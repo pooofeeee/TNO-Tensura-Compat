@@ -1,6 +1,7 @@
 package com.tno.tensuracompat;
 
 import com.mojang.logging.LogUtils;
+import io.github.manasmods.tensura.Tensura;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -12,6 +13,6 @@ public class TNOTensuraCompat {
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public TNOTensuraCompat(IEventBus modEventBus, ModContainer modContainer) {
-        LOGGER.info("TNO Tensura Compat loaded");
+        LOGGER.info("TNO Tensura Compat loaded with API linkage to {}", Tensura.class.getName());
     }
 }
