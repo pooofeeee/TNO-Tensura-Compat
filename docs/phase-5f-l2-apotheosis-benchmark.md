@@ -1,6 +1,6 @@
 # Phase 5F — L2 / Apotheosis / TNO Benchmark Plan
 
-Status: planning + runtime instrumentation only. No balance values are changed by this phase until measurements justify a change.
+Status: runtime instrumentation implemented and exact-stack discovery complete. No balance values are changed by this phase.
 
 ## Goal
 
@@ -187,15 +187,281 @@ Every measurement row should include at least:
 - elapsed time for sustained-DPS / TTK tests
 - notes for immunity, Nullification, projectile cancellation, regeneration, death reset, etc.
 
-## Immediate next step
+## Phase 5F runtime inspector
 
-Before writing any balance logic, build a runtime inspector / benchmark helper that can print:
+The development runtime now registers these permission-level-2 commands:
 
-1. Royal Bow Apotheosis loot category and affixability.
-2. Current rarity, affixes and effective affix levels.
-3. Socket count and installed gems / purities.
-4. Relevant Apothic Attributes values (Arrow Damage, Arrow Velocity, Draw Speed, Armor Pierce/Shred, Protection Pierce/Shred, Crit Chance/Damage).
-5. Target L2 level and exact traits / ranks.
-6. Hit result before and after the target takes damage where the event API allows observation.
+- `/tno_phase5f bow` inspects the held item.
+- `/tno_phase5f target <entity>` inspects a targeted living entity.
 
-Keep all helper code development-only and production-inert.
+Both emit one-line JSON prefixed by `TNO_PHASE5F`, using schema
+`tno.phase5f.runtime_inspector.v1`, to both the command source and the log. A
+startup template inspection checks `royalvariations:royal_bow`; a bounded
+one-shot entity scan provides an L2/Tensura attachment smoke test when a living
+non-player entity is loaded. Registration and both automatic probes are guarded
+by `!FMLEnvironment.production`.
+
+All Apotheosis and L2 calls use runtime class names plus reflection. There is no
+compile-time linkage to either family. Tensura's SHP read uses the project's
+existing mandatory API linkage (`TensuraStorages.getExistenceFrom` and
+`TensuraAttributes.MAX_SPIRITUAL_HEALTH`).
+
+The Bow JSON includes:
+
+- item ID, Royal Bow identity, loaded relevant mods and versions;
+- resolved loot category, category validity and affixability;
+- current rarity and all live rarities, their exact rule trees, affix pools,
+  enabled reforging recipes, constructible affix sets and missing rule slots;
+- every current affix's registry ID, rarity, raw stored float, formatted/displayed
+  level, effective clamped level, validity, exclusivity and Supremacy-floor state;
+- socket count, every gem ID/purity/uniqueness/validity and applicable live bonus;
+- raw main-hand modifiers and, for a player-held Bow, effective values for the
+  requested Apothic Attributes plus the addon-provided Manas/Tensura attributes;
+- current enchantments, supported enchantments, live registry max levels, and an
+  exact largest pairwise-compatible set;
+- presence of the Supremacy and add-sockets recipes.
+
+The target JSON includes registry ID, UUID, current/max HP, armor, toughness,
+Tensura current/max SHP, L2 initialization state, level, and every trait ID/rank
+with its live maximum rank where accessible.
+
+### Optional local runtime setup
+
+The Gradle property below adds only a filtered Phase 5F set of local files to
+`localRuntime`:
+
+```powershell
+.\gradlew.bat runClient '-Pphase5f_runtime_mods_dir=C:\path\to\instance\mods'
+```
+
+Nothing is added when the property is absent or is not a directory. The existing
+private Royal Variations JAR remains conditional on its own `libs/` file. When
+the target directory supplies Curios, that exact local Curios JAR is used for the
+Royal Variations test runtime; otherwise the prior Maven local-runtime fallback
+is retained. None of these file dependencies is published or declared as a
+released mandatory dependency.
+
+## Verification sources
+
+The investigation used both upstream source and the exact installed artifacts.
+The upstream references establish the intended APIs; the local JAR/data results
+below take precedence for version-specific values.
+
+- The official [Apotheosis 1.21 changelog](https://github.com/Shadows-of-Fire/Apotheosis/blob/1.21/changelog.md)
+  documents namespaced loot categories, the 1.21 loot-rule system, generic
+  projectile affix/gem handling, and runtime affix validation.
+- Official `AffixHelper` source documents [Sigil of Supremacy applying a 1.5
+  floor](https://github.com/Shadows-of-Fire/Apotheosis/blob/26.1/src/main/java/dev/shadowsoffire/apotheosis/affix/AffixHelper.java).
+  The exact 8.7.0 bytecode was checked and has the same `builder.upgrade(affix,
+  1.5F)` behavior and a maximum affix level of 2.0.
+- Official Apothic Attributes source shows that [Arrow Damage scales arrow base
+  damage and Arrow Velocity scales its movement](https://github.com/Shadows-of-Fire/Apothic-Attributes/blob/26.1/src/main/java/dev/shadowsoffire/apothic_attributes/impl/AttributeEvents.java).
+  The exact 2.10.1 artifact was used for runtime values.
+- Ancient rarity/affix data came from the exact 1.8.5 JAR and was cross-checked
+  against the official [Ancient Reforging repository](https://github.com/ianm1647/ancientreforging).
+- The reflective L2 route was checked against the exact 3.0.18 bytecode and the
+  official [L2 entity capability initialization](https://github.com/Minecraft-LightLand/L2Hostility/blob/main/src/main/java/dev/xkmc/l2hostility/events/CapabilityEvents.java).
+
+## Exact artifact/runtime facts
+
+The equivalent local runtime loaded the exact target versions for Royal
+Variations, Apotheosis, Apothic Attributes, Apothic Enchanting, Apothic
+Equipment, Ancient Reforging, Nightmare's Apothic Tensura, Apotheosis Balance,
+L2 Hostility, L2 Library and L2 Complements.
+
+Royal Variations' artifact is
+`royal-variations-[NeoForge]_1.21.1_2.0.4.jar`. Its internal NeoForge mod
+metadata reports version `2.0`; the filename/distribution version is `2.0.4`.
+
+Live Royal Bow result:
+
+| Field | Verified result |
+|---|---|
+| Item | `royalvariations:royal_bow` |
+| Loot category | `apotheosis:bow` |
+| Category accepts stack | `true` |
+| Affixable | `true` |
+| Registered rarities | 8 |
+| Registered affixes | 227 total; the inspector filters them per Bow/rarity |
+| Registered gems | 21 |
+| Supremacy recipe | enabled |
+| Add-sockets recipe | enabled; recipe itself is capped at 2 sockets |
+
+### Rarity and capacity result
+
+There are two different maxima, and treating them as one would create an
+impossible test item:
+
+| Rarity | Sort | Declared affix rules | Constructible live maximum | Missing declared slots | Max sockets | Enabled reforging recipe |
+|---|---:|---|---:|---|---:|---|
+| `ancientreforging:ancient` | 800 | 5 stat + 3 basic + 2 ability | 10 | none | 5 | `ancientreforging:reforging/ancient` |
+| `apothicnightmares:god_grade` | 800 | 4 stat + 2 basic + 1 ability | 6 | 1 basic | 5 | `apotheosis:reforging/god_grade` |
+| `apothicnightmares:genesis_grade` | 900 | 5 stat + 3 basic + 1 ability | 7 | 2 basic | 6 | `apotheosis:reforging/genesis_grade` |
+
+Therefore:
+
+- With Apotheosis 8.7.0 + Ancient Reforging 1.8.5 alone, **Ancient** is the
+  highest rarity and supports its full ten-affix declaration.
+- In the complete installed addon stack, **Genesis Grade** is the highest
+  obtainable rarity. Its live Bow pool has six stat affixes, two ability affixes,
+  and only one basic-effect affix. Apotheosis's exact 8.7.0 `AffixLootRule`
+  logs and skips a rule when no candidate remains, so the enabled recipe produces
+  at most 5 stat + 1 basic + 1 ability = **7 affixes**, not an invented nine.
+- **Ancient** remains the highest *rule-complete* rarity and the highest generic
+  Apotheosis affix-count build: ten compatible affixes and up to five sockets.
+- The full-stack maximum-capacity item is an obtainable Genesis Royal Bow with
+  seven affixes and a six-socket roll. A Genesis Bow with nine distinct legal
+  affixes is impossible in this exact stack.
+
+Ancient's exact rule allows 3-4 sockets on the common branch and exactly 5 on its
+rare branch. Genesis allows 3-5 normally and 5-6 on its rare branch. The
+`sigil_add_sockets` recipe's `max_sockets: 2` is not the rarity socket ceiling.
+
+### Affixes and actual damage
+
+The exact Ancient Bow pool has 21 entries and can satisfy all ten slots. The
+five generic damage-stat candidates are:
+
+- `ancientreforging:ranged/attribute/elven` — Arrow Damage, up to +80%;
+- `ancientreforging:melee/attribute/lacerating` — Crit Damage, up to +80%;
+- `ancientreforging:melee/attribute/intricate` — Crit Chance, up to +115%;
+- `ancientreforging:melee/attribute/piercing` — Armor Pierce, up to +24;
+- `ancientreforging:weapon/attribute/shredding` — Armor Shred, up to +70%.
+
+`ancientreforging:ranged/attribute/agile` is still a valid Ancient Draw Speed
+alternative (up to +150% total), and `streamlined` supplies up to +70% Arrow
+Velocity. Those can beat a penetration or crit slot for sustained DPS or a
+low-armor target, so the five-stat damage selection must be recorded per target.
+
+Nightmare's addon overwrites the base `apotheosis:ranged/attribute/agile` data to
+use `tensura:projectile_dodge_chance`; it is not a Draw Speed affix in the merged
+runtime. It also supplies the Genesis/God Bow pools. A Genesis maximum consists
+of five of six elemental boost stats, one of `critical_focus` or
+`warp_fletching`, and `crippling_shot`. Which elemental five and which ability
+maximize damage depends on the Bow's active damage type and the target's Tensura
+resistances; sort index alone cannot answer that combat question.
+
+This is why the benchmark should retain both legal candidates:
+
+1. Genesis 7-affix/6-socket maximum-capacity final-stack item.
+2. Ancient 10-affix/5-socket rule-complete generic Apotheosis item.
+
+The higher observed boss damage of those two, with the exact affix/gem JSON
+captured, is the Suite A comparator. Declaring either universally stronger before
+that measurement would be a balance guess.
+
+### Gems
+
+Exact Perfect values for the originally nominated gems were verified from the
+8.7.0 JAR:
+
+- `apotheosis:core/combatant`: +55% Arrow Damage, unique;
+- `apotheosis:core/breach`: +15 Protection Pierce, unique;
+- `apotheosis:core/lightning`: +55% Arrow Velocity, non-unique;
+- `apotheosis:core/slipstream`: +60% Draw Speed, unique;
+- `apotheosis:core/warlord`: +70% Crit Damage, non-unique;
+- `apotheosis:the_nether/molten_breach`: +10 Armor Pierce, unique.
+
+All six can legally coexist once each in a six-socket Genesis Bow. `unique` bans
+a duplicate of that same gem; it does not ban other unique gem IDs. They are not
+automatically the damage optimum. The live Bow-compatible pool also contains,
+among others:
+
+- `apotheosis:core/samurai`: +50% Crit Chance, unique;
+- `apotheosis:overworld/verdant_ruin`: +40% Armor Shred with a wearer-armor
+  downside, unique;
+- `apotheosis:overworld/royalty`: +40% Protection Shred with -65% Draw Speed,
+  unique;
+- `apotheosis:core/tyrannical`: Perfect Bleeding II behavior, unique.
+
+For maximum single-hit physical damage, start by comparing Combatant, Lightning,
+Warlord, Samurai, Breach and Molten Breach against penetration/shred alternatives.
+For sustained DPS, Slipstream becomes a candidate. Breach, Molten Breach,
+Verdant Ruin and Royalty are target-defense-dependent. The inspector records the
+actual installed bonuses, so the benchmark—not an NBT assumption—selects the
+winning legal six.
+
+### Enchantments and Supremacy
+
+The live Royal Bow supports 20 enchantments. The exact largest pairwise-compatible
+set contains 9:
+
+- `apothic_enchanting:endless_quiver` I
+- `apothicnightmares:spatial_bow` I
+- `l2complements:soul_bound` I
+- `l2complements:transparent` I
+- `l2hostility:vanish` I
+- `minecraft:flame` I
+- `minecraft:power` V
+- `minecraft:punch` II
+- `tensura:barrier_piercing` II
+
+This is a maximum-count sample, not a claim that every utility enchantment
+increases damage. Infinity is excluded by compatibility. The APO-only suite must
+also exclude or hold constant TNO engraving enchantments as specified above.
+
+The target instance contains a legacy `config/apotheosis/enchantments.cfg` with
+higher values such as Power IX, Punch V, Barrier Piercing VI and Slotting VII.
+Copying that exact file into the isolated runtime did not change the live registry
+values: Apothic Enchanting 1.6.1 no longer exposes the old per-enchantment config
+manager. The live values above, not the stale file comments/defaults, are the
+verified ceiling for this installed stack.
+
+The Supremacy recipe is enabled. Exact 8.7.0 behavior upgrades every current
+affix to at least raw/effective level 1.5; the hard affix maximum is 2.0. It stores
+no separate Supremacy component, so the inspector reports per-affix levels and
+infers Supremacy only when every affix reaches that floor. The pre-Supremacy value
+cannot be recovered from an already upgraded stack.
+
+### Addon impact
+
+- Ancient Reforging adds Ancient rarity, its complete ten-affix Bow pool and the
+  five-socket branch.
+- Nightmare's Apothic Tensura adds God/Genesis, their incomplete Bow pools,
+  six-socket Genesis branch, Tensura/Manas attributes, and overwrites base Agile.
+- Apothic Equipment only replaces ordinary equipment crafting recipes; its
+  vanilla Bow recipe starts with one socket. It does not modify Royal Bow or the
+  rarity socket ceilings.
+- Apotheosis Balance is active, but the final instance has
+  `apotheosisMultiplier = 1.0`, `affixRollChance = 1.0`, and no rarity drops, so
+  it makes no numeric/capacity change in this configuration. Raw runtime
+  modifiers remain in the output to catch later config changes.
+- Apothic Cataclysm 1.2.0 was artifact-inspected. It contains no rarity, affix or
+  gem data for Royal Bow; it only tags Cataclysm boss entities and therefore was
+  not required in the equivalent Tensura-target runtime.
+
+## L2 runtime proof and remaining benchmark work
+
+The target command was executed in the exact optional stack against a summoned
+`minecraft:zombie`. It reported HP 20/20, armor 2, toughness 0, Tensura SHP
+40/40, and an initialized L2 attachment at level 0 with an empty trait map. This
+proves the registry, SHP and L2 attachment/trait paths without forcing traits or
+changing balance state.
+
+The final instance config retains `maxMobLevel = 3000`, `maxTraitCount = 9`, and
+all requested trait toggles including Arena and Ragnarok enabled. Boss-specific
+L2 level/trait eligibility and the Tensura:L2Hostility datapack still require the
+later live boss matrix. No Phase 5F boss damage row, forced trait profile, Stage
+curve, penetration value, EP threshold or production combat behavior was added
+or changed here.
+
+## Verification completed
+
+- `.\gradlew.bat clean build` passed with the local Royal Variations artifact
+  present. This repository currently has no test sources, so Gradle reported
+  `test NO-SOURCE`.
+- The same clean build passed while that private JAR was temporarily renamed out
+  of Gradle's expected path, then the JAR was restored. This proves clean-clone
+  configuration and compilation do not require Royal Variations, Apotheosis or
+  L2 artifacts.
+- `runServer` with `-Pphase5f_runtime_mods_dir=<target mods>` reached `Done`,
+  emitted the structured Royal Bow report, confirmed all relevant versions and
+  recipes, and produced the rarity/affix/socket results above.
+- The target command ran in that server and returned the live zombie/L2/Tensura
+  result above. The temporary local RCON switch used to issue the command was
+  restored to disabled and is not tracked.
+- `runClient` with the same optional exact-stack directory completed mod loading,
+  initialized OpenAL, created the GUI atlas and preloaded Patchouli content with
+  no fatal/crash marker. It was manually stopped after main-menu readiness.
+- Datagen was not run because this phase changes no generated registry/data
+  resources.

@@ -162,10 +162,43 @@ dependencies {
     // Royal Variations is deliberately runtime-only for local compatibility
     // testing. A clean clone without the private JAR needs no Royal Variations
     // runtime dependencies and never references its classes at compile time.
+    def phase5fRuntimeModsDir = providers.gradleProperty('phase5f_runtime_mods_dir')
+            .map { file(it) }
+            .getOrNull()
+    def phase5fCuriosJar = phase5fRuntimeModsDir?.isDirectory()
+            ? fileTree(phase5fRuntimeModsDir) { include 'curios-neoforge-*.jar' }.files.find()
+            : null
+
     def royalVariationsRuntimeJar = file("libs/${royal_variations_jar}")
     if (royalVariationsRuntimeJar.isFile()) {
         localRuntime files(royalVariationsRuntimeJar)
-        localRuntime "top.theillusivec4.curios:curios-neoforge:${curios_version}"
+        if (phase5fCuriosJar != null) {
+            localRuntime files(phase5fCuriosJar)
+        }
+        else {
+            localRuntime "top.theillusivec4.curios:curios-neoforge:${curios_version}"
+        }
+    }
+
+    // Optional Phase 5F benchmark stack. Nothing is added unless an explicit
+    // local mod directory is supplied with -Pphase5f_runtime_mods_dir=... .
+    // These files remain runtime-only and are never published transitively.
+    if (phase5fRuntimeModsDir?.isDirectory()) {
+        localRuntime fileTree(phase5fRuntimeModsDir) {
+            include 'Placebo-*.jar'
+            include 'ApothicAttributes-*.jar'
+            include 'ApothicEnchanting-*.jar'
+            include 'ApothicSpawners-*.jar'
+            include 'Apotheosis-*.jar'
+            include 'apothic_equipment-*.jar'
+            include 'ancientreforging-*.jar'
+            include 'apothicnightmares-*.jar'
+            include 'apotheosis_balance-*.jar'
+            include 'l2library-*.jar'
+            include 'l2complements-*.jar'
+            include 'l2hostility-*.jar'
+            include 'Patchouli-*.jar'
+        }
     }
 }
 
