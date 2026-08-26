@@ -13,6 +13,7 @@ import io.github.manasmods.tensura.storage.TensuraStorages;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -36,6 +37,7 @@ import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.Unbreakable;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.core.NonNullList;
@@ -122,6 +124,12 @@ public final class Phase5FApotheosisBenchmark {
     private static final ResourceLocation ANCIENT_SPECTRAL = id("ancientreforging", "ranged/spectral");
     private static final ResourceLocation ANCIENT_PROSPEROUS =
             id("ancientreforging", "ranged/enchantment/prosperous");
+    private static final ResourceLocation ANCIENT_PIERCING =
+            id("ancientreforging", "melee/attribute/piercing");
+    private static final ResourceLocation ANCIENT_AGILE =
+            id("ancientreforging", "ranged/attribute/agile");
+    private static final ResourceLocation ANCIENT_SHREDDING =
+            id("ancientreforging", "weapon/attribute/shredding");
     private static final List<ResourceLocation> GENESIS_STATS = List.of(
             id("apothicnightmares", "ranged/attribute/earth_volley"),
             id("apothicnightmares", "ranged/attribute/flame_volley"),
@@ -243,7 +251,7 @@ public final class Phase5FApotheosisBenchmark {
             this.player = createBenchmarkPlayer(-1);
             String filter = System.getProperty("tno.phase5f.apoProfileFilter", "");
             this.profiles = buildProfiles(server).stream()
-                    .filter(profile -> filter.isBlank() || profile.name.contains(filter))
+                    .filter(profile -> filter.isBlank() || profile.name.equals(filter))
                     .toList();
             if (profiles.isEmpty()) throw new IllegalStateException("benchmark profile filter matched no profiles: " + filter);
             logCandidateCatalog();
@@ -277,6 +285,7 @@ public final class Phase5FApotheosisBenchmark {
             player = createBenchmarkPlayer(profileIndex);
             equip(profile.stack);
             target = createControlTarget();
+            resetTarget(true);
             currentResult = new ProfileResult(profile, readAttributes(player), fullDrawTicks(player));
             shotIndex = 0;
             phaseTick = 0;
@@ -302,7 +311,7 @@ public final class Phase5FApotheosisBenchmark {
         }
 
         private void waitForSample() {
-            if (++phaseTick < SHOT_WINDOW_TICKS) return;
+            if (++phaseTick < Math.max(SHOT_WINDOW_TICKS, currentResult.fullDrawTicks)) return;
             currentResult.samples.add(currentShot);
             currentShot = null;
             shotIndex++;
@@ -310,6 +319,8 @@ public final class Phase5FApotheosisBenchmark {
         }
 
         private void setupSustained() {
+            player = createBenchmarkPlayer(profileIndex + 1_000);
+            equip(currentResult.profile.stack);
             resetTarget(true);
             clearArrows();
             currentResult.sustainedIncoming = 0.0D;
@@ -331,6 +342,9 @@ public final class Phase5FApotheosisBenchmark {
             }
             resetTarget(false);
             if (server.getTickCount() >= nextSustainedShot) {
+                // Previous misses are outside the current release's damage window and must not
+                // contaminate collision/ownership state for the next controlled shot.
+                clearArrows();
                 fireFullDraw();
                 sustainedShots++;
                 nextSustainedShot += currentResult.fullDrawTicks;
@@ -448,11 +462,14 @@ public final class Phase5FApotheosisBenchmark {
         }
 
         private void fireFullDraw() {
+            // Volley affixes can consume several arrows per release. Replenish the controlled
+            // vanilla-arrow supply so long distributions never change ammo state or arrow type.
+            player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.ARROW, 64));
             List<UUID> existing = level.getEntitiesOfClass(AbstractArrow.class,
                     player.getBoundingBox().inflate(64.0D), arrow -> fromBenchmarkPlayer(arrow.getOwner()))
                     .stream().map(Entity::getUUID).toList();
             ItemStack bow = player.getMainHandItem();
-            int remaining = bow.getUseDuration(player) - BowItem.MAX_DRAW_DURATION;
+            int remaining = bow.getUseDuration(player) - fullDrawTicks(player);
             bow.releaseUsing(level, player, remaining);
             List<AbstractArrow> spawned = level.getEntitiesOfClass(AbstractArrow.class,
                     player.getBoundingBox().inflate(64.0D),
@@ -482,7 +499,6 @@ public final class Phase5FApotheosisBenchmark {
             equipProtection(mob);
             level.addFreshEntity(mob);
             setBase(mob, TensuraAttributes.MAX_SPIRITUAL_HEALTH, 1_000_000_000.0D);
-            resetTarget(true);
             return mob;
         }
 
@@ -495,6 +511,7 @@ public final class Phase5FApotheosisBenchmark {
                     EquipmentSlot.FEET, Items.NETHERITE_BOOTS).entrySet()) {
                 ItemStack armor = new ItemStack(entry.getValue());
                 armor.enchant(protection, protection.value().getMaxLevel());
+                armor.set(DataComponents.UNBREAKABLE, new Unbreakable(false));
                 mob.setItemSlot(entry.getKey(), armor);
             }
         }
@@ -519,15 +536,7 @@ public final class Phase5FApotheosisBenchmark {
         }
 
         private void restoreControlTargetHealth() {
-            if (!(target instanceof NeutralArmorStandTarget)) return;
-            try {
-                Field health = LivingEntity.class.getDeclaredField("DATA_HEALTH_ID");
-                health.setAccessible(true);
-                invoke(target.getEntityData(), "set", health.get(null), 1_000_000.0F);
-            }
-            catch (ReflectiveOperationException exception) {
-                throw new IllegalStateException("could not restore unclamped benchmark target health", exception);
-            }
+            if (target instanceof NeutralArmorStandTarget) target.setHealth(1_000_000.0F);
         }
 
         private void keepTestEntitiesStable() {
@@ -553,7 +562,43 @@ public final class Phase5FApotheosisBenchmark {
 
         private void runL2Smoke() throws ReflectiveOperationException {
             if (phaseTick > 0) {
-                if (++phaseTick < 12) return;
+                if (smokeCap == null) {
+                    if (++phaseTick < 4) return;
+                    Object attachmentType = invoke(staticField(L2_MISCS, "MOB"), "type");
+                    if (!booleanValue(invoke(attachmentType, "isProper", target))) {
+                        smokeReport.addProperty("status", "fallback_rejected_by_l2_predicate");
+                        log("l2_smoke", smokeReport);
+                        phase = Phase.DONE;
+                        return;
+                    }
+                    smokeCap = invoke(attachmentType, "getOrCreate", target);
+                    // This is L2's normal reroll path at a requested base level. The false flag
+                    // preserves normal trait chances instead of forcing a full-chance package.
+                    invoke(smokeCap, "reinit", target, 300, false);
+                    invoke(smokeCap, "setLevel", target, 300);
+                    if (target instanceof Mob controlledMob) controlledMob.setNoAi(true);
+                    player = createBenchmarkPlayer(10_000);
+                    ProfileResult winner = results.stream()
+                            .max(Comparator.comparingDouble(ProfileResult::sustainedDps)).orElseThrow();
+                    equip(winner.profile.stack);
+                    target.setHealth(target.getMaxHealth());
+                    target.setAbsorptionAmount(0.0F);
+                    target.invulnerableTime = 0;
+                    target.setRemainingFireTicks(0);
+                    if (target.getType() == EntityType.WITHER) {
+                        invoke(target, "setInvulnerableTicks", 0);
+                    }
+                    currentShot = new Shot(0);
+                    fireFullDraw();
+                    smokeReport.addProperty("status", "ok");
+                    smokeReport.addProperty("entity",
+                            BuiltInRegistries.ENTITY_TYPE.getKey(target.getType()).toString());
+                    smokeReport.addProperty("tensura_integration",
+                            "Tensura entity_existence data exists for minecraft:wither");
+                    phaseTick = 100;
+                    return;
+                }
+                if (++phaseTick < 112) return;
                 smokeReport.addProperty("l2_initialized", booleanValue(invoke(smokeCap, "isInitialized")));
                 smokeReport.addProperty("l2_level", numberValue(invoke(smokeCap, "getLevel")).intValue());
                 smokeReport.addProperty("forced_traits", false);
@@ -580,7 +625,6 @@ public final class Phase5FApotheosisBenchmark {
             Object mobEntry = staticField(L2_MISCS, "MOB");
             Object attachmentType = invoke(mobEntry, "type");
             LivingEntity boss = null;
-            Object cap = null;
             for (ResourceLocation bossId : List.of(
                     id("tensura_neb", "luminous_valentine"), id("minecraft", "wither"))) {
                 if (!BuiltInRegistries.ENTITY_TYPE.containsKey(bossId)) continue;
@@ -589,38 +633,26 @@ public final class Phase5FApotheosisBenchmark {
                 candidate.setPos(TEST_X, TEST_Y, TARGET_Z);
                 candidate.setNoGravity(true);
                 candidate.setSilent(true);
-                if (candidate instanceof Mob controlledMob) controlledMob.setNoAi(true);
                 level.addFreshEntity(candidate);
-                Object candidateCap = optionalValue(invoke(attachmentType, "getExisting", candidate)).orElse(null);
-                if (candidateCap != null) {
+                if (booleanValue(invoke(attachmentType, "isProper", candidate))) {
                     boss = candidate;
-                    cap = candidateCap;
                     break;
                 }
                 if (bossId.equals(id("tensura_neb", "luminous_valentine"))) {
                     report.addProperty("preferred_entity_status",
-                            "no L2 attachment: Luminous is neither Enemy nor in l2hostility:whitelist");
+                            "rejected by the live L2 attachment predicate: Luminous is neither Enemy nor in l2hostility:whitelist");
                 }
                 candidate.discard();
             }
-            if (cap == null) {
+            if (boss == null) {
                 report.addProperty("status", "no_l2_eligible_tensura_target");
                 log("l2_smoke", report);
                 phase = Phase.DONE;
                 return;
             }
-            invoke(cap, "setLevel", boss, 300);
-            player = createBenchmarkPlayer(10_000);
-            equip(winner.profile.stack);
             target = boss;
-            resetTarget(true);
-            currentShot = new Shot(0);
-            fireFullDraw();
-            report.addProperty("status", "ok");
-            report.addProperty("entity", BuiltInRegistries.ENTITY_TYPE.getKey(boss.getType()).toString());
-            report.addProperty("tensura_integration", "Tensura entity_existence data exists for minecraft:wither");
             smokeReport = report;
-            smokeCap = cap;
+            smokeCap = null;
             phaseTick = 1;
         }
 
@@ -641,7 +673,7 @@ public final class Phase5FApotheosisBenchmark {
             report.addProperty("target_equipment", "neutral LivingEntity adapter using minecraft:armor_stand type; full_netherite");
             report.addProperty("target_protection", "minecraft:protection IV on four pieces");
             report.addProperty("arrow", "minecraft:arrow");
-            report.addProperty("draw", "full (20 use ticks)");
+            report.addProperty("draw", "full (attribute-adjusted use ticks recorded per profile)");
             report.addProperty("tno_scalable_data", "absent/default; no TNO engraving applied");
             JsonArray profileArray = new JsonArray();
             for (Profile profile : profiles) profileArray.add(profileJson(profile, readStackAttributes(profile.stack), -1));
@@ -664,20 +696,37 @@ public final class Phase5FApotheosisBenchmark {
                 genesis("GENESIS_SUSTAINED_WARP_FLETCHING", true,
                         List.of("core/combatant", "core/breach", "core/lightning", "core/slipstream",
                                 "core/samurai", "overworld/verdant_ruin")),
-                ancient("ANCIENT_SINGLE_MAGICAL_SPECTRAL", false,
+                ancient("ANCIENT_SINGLE_MAGICAL_SPECTRAL", ANCIENT_PIERCING,
                         List.of("core/combatant", "core/breach", "core/lightning", "core/warlord", "core/warlord"),
                         List.of(ANCIENT_MAGICAL, ANCIENT_SPECTRAL)),
-                ancient("ANCIENT_SINGLE_PROSPEROUS_SPECTRAL", false,
+                ancient("ANCIENT_SINGLE_PROSPEROUS_SPECTRAL", ANCIENT_PIERCING,
                         List.of("core/combatant", "core/breach", "core/lightning", "core/warlord", "core/warlord"),
                         List.of(ANCIENT_PROSPEROUS, ANCIENT_SPECTRAL)),
-                ancient("ANCIENT_SINGLE_PROSPEROUS_MAGICAL", false,
+                ancient("ANCIENT_SINGLE_PROSPEROUS_SPECTRAL_VERDANT", ANCIENT_PIERCING,
+                        List.of("core/combatant", "core/breach", "core/lightning", "core/warlord",
+                                "overworld/verdant_ruin"),
+                        List.of(ANCIENT_PROSPEROUS, ANCIENT_SPECTRAL)),
+                ancient("ANCIENT_SINGLE_PROSPEROUS_SPECTRAL_MOLTEN", ANCIENT_PIERCING,
+                        List.of("core/combatant", "core/breach", "core/lightning", "core/warlord",
+                                "the_nether/molten_breach"),
+                        List.of(ANCIENT_PROSPEROUS, ANCIENT_SPECTRAL)),
+                ancient("ANCIENT_SINGLE_PROSPEROUS_SPECTRAL_SHREDDING", ANCIENT_SHREDDING,
                         List.of("core/combatant", "core/breach", "core/lightning", "core/warlord", "core/warlord"),
-                        List.of(ANCIENT_PROSPEROUS, ANCIENT_MAGICAL)),
-                ancient("ANCIENT_SUSTAINED_PROSPEROUS_SPECTRAL_WARLORD", true,
+                        List.of(ANCIENT_PROSPEROUS, ANCIENT_SPECTRAL)),
+                ancient("ANCIENT_SUSTAINED_PROSPEROUS_SPECTRAL_WARLORD", ANCIENT_AGILE,
                         List.of("core/combatant", "core/breach", "core/lightning", "core/slipstream", "core/warlord"),
                         List.of(ANCIENT_PROSPEROUS, ANCIENT_SPECTRAL)),
-                ancient("ANCIENT_SUSTAINED_PROSPEROUS_SPECTRAL_TYRANNICAL", true,
+                ancient("ANCIENT_SUSTAINED_PROSPEROUS_SPECTRAL_TYRANNICAL", ANCIENT_AGILE,
                         List.of("core/combatant", "core/breach", "core/lightning", "core/slipstream", "core/tyrannical"),
+                        List.of(ANCIENT_PROSPEROUS, ANCIENT_SPECTRAL)),
+                ancient("ANCIENT_SUSTAINED_MAGICAL_SPECTRAL_WARLORD", ANCIENT_AGILE,
+                        List.of("core/combatant", "core/breach", "core/lightning", "core/slipstream", "core/warlord"),
+                        List.of(ANCIENT_MAGICAL, ANCIENT_SPECTRAL)),
+                ancient("ANCIENT_SUSTAINED_PIERCING_WARLORD", ANCIENT_PIERCING,
+                        List.of("core/combatant", "core/breach", "core/lightning", "core/slipstream", "core/warlord"),
+                        List.of(ANCIENT_PROSPEROUS, ANCIENT_SPECTRAL)),
+                ancient("ANCIENT_SUSTAINED_SHREDDING_WARLORD", ANCIENT_SHREDDING,
+                        List.of("core/combatant", "core/breach", "core/lightning", "core/slipstream", "core/warlord"),
                         List.of(ANCIENT_PROSPEROUS, ANCIENT_SPECTRAL))
         );
         List<Profile> profiles = new ArrayList<>();
@@ -694,14 +743,14 @@ public final class Phase5FApotheosisBenchmark {
                 gemIds(gems), 6, "5 stat + 1 ability + 1 basic (two declared basic slots unsatisfiable)");
     }
 
-    private static ProfileSpec ancient(String name, boolean sustained, List<String> gems,
+    private static ProfileSpec ancient(String name, ResourceLocation fifthStat, List<String> gems,
             List<ResourceLocation> abilities) {
         List<ResourceLocation> affixes = new ArrayList<>(List.of(
                 id("ancientreforging", "ranged/attribute/elven"),
                 id("ancientreforging", "ranged/attribute/streamlined"),
                 id("ancientreforging", "melee/attribute/lacerating"),
                 id("ancientreforging", "melee/attribute/intricate"),
-                id("ancientreforging", sustained ? "ranged/attribute/agile" : "melee/attribute/piercing")));
+                fifthStat));
         affixes.addAll(ANCIENT_BASICS);
         affixes.addAll(abilities);
         return new ProfileSpec(name, id("ancientreforging", "ancient"), affixes,
@@ -1013,6 +1062,20 @@ public final class Phase5FApotheosisBenchmark {
         }
 
         @Override
+        public void setHealth(float health) {
+            try {
+                Field dataHealth = LivingEntity.class.getDeclaredField("DATA_HEALTH_ID");
+                dataHealth.setAccessible(true);
+                // Never let a comparison shot transition this reusable diagnostic entity into
+                // LivingEntity's death state; the Post event still reports real mitigated damage.
+                invoke(getEntityData(), "set", dataHealth.get(null), Math.max(1.0F, health));
+            }
+            catch (ReflectiveOperationException exception) {
+                throw new IllegalStateException("could not set neutral target test health", exception);
+            }
+        }
+
+        @Override
         public Iterable<ItemStack> getArmorSlots() {
             return armorItems;
         }
@@ -1125,9 +1188,10 @@ public final class Phase5FApotheosisBenchmark {
             }
             json.addProperty("sample_shots", samples.size());
             json.addProperty("shots_with_direct_hit", shotsWithHit);
+            json.addProperty("observed_hit_rate", samples.isEmpty() ? 0.0D : shotsWithHit / (double) samples.size());
             json.addProperty("direct_damage_events", directEvents);
             json.addProperty("shots_with_apothic_crit", shotsWithCrit);
-            json.addProperty("observed_crit_rate", samples.isEmpty() ? 0.0D : shotsWithCrit / (double) samples.size());
+            json.addProperty("observed_crit_rate", shotsWithHit == 0 ? 0.0D : shotsWithCrit / (double) shotsWithHit);
             addDistribution(json, "noncrit_hit", nonCrit);
             addDistribution(json, "crit_hit", crit);
             addDistribution(json, "pre_apothic_crit_hit", preCrit);

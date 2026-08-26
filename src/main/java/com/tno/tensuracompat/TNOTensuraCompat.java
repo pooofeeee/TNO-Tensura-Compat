@@ -31,7 +31,7 @@ public class TNOTensuraCompat {
             NeoForge.EVENT_BUS.addListener(Phase5FApotheosisBenchmark::onServerStarted);
             NeoForge.EVENT_BUS.addListener(EventPriority.HIGHEST,
                     Phase5FApotheosisBenchmark::onIncomingBeforeCrit);
-            NeoForge.EVENT_BUS.addListener(EventPriority.NORMAL,
+            NeoForge.EVENT_BUS.addListener(EventPriority.HIGH,
                     Phase5FApotheosisBenchmark::onIncomingAfterCrit);
             NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST,
                     Phase5FApotheosisBenchmark::onIncomingDamage);
