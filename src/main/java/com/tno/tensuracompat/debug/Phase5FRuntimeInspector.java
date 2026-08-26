@@ -119,6 +119,7 @@ public final class Phase5FRuntimeInspector {
         event.getDispatcher().register(Commands.literal("tno_phase5f")
                 .requires(source -> source.hasPermission(2))
                 .then(Commands.literal("bow").executes(Phase5FRuntimeInspector::inspectHeldBow))
+                .then(Commands.literal("apo_benchmark").executes(Phase5FApotheosisBenchmark::start))
                 .then(Commands.literal("target")
                         .then(Commands.argument("entity", EntityArgument.entity())
                                 .executes(Phase5FRuntimeInspector::inspectTarget))));
