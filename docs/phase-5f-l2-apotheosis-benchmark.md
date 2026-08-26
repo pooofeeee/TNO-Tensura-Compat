@@ -224,8 +224,9 @@ The Bow JSON includes:
 - presence of the Supremacy and add-sockets recipes.
 
 The target JSON includes registry ID, UUID, current/max HP, armor, toughness,
-Tensura current/max SHP, L2 initialization state, level, and every trait ID/rank
-with its live maximum rank where accessible.
+Tensura current/base-max/effective-max SHP, Magicules and Aura, the datapack
+scaling multipliers and marker, L2 initialization state, level, and every trait
+ID/rank with its live maximum rank where accessible.
 
 ### Optional local runtime setup
 
@@ -597,37 +598,86 @@ The same Ancient build wins both categories. Ancient wins over Genesis for both;
 Genesis Grade's extra socket does not compensate for its incomplete affix pool
 in this installed stack and controlled target.
 
-## Preliminary L2 Lv300 smoke proof
+## Tensura:L2Hostility datapack eligibility smoke
 
-Luminous is present but is rejected by L2 Hostility's live attachment predicate:
-it is neither `Enemy` nor included in `l2hostility:whitelist`. The other installed
-NEB boss candidates checked before the fallback also did not pass that predicate.
-The smoke test therefore used `minecraft:wither`, for which Tensura
-`entity_existence` data exists and L2 accepts a normal attachment.
+The earlier Luminous rejection was recorded before the required datapack was
+installed and is superseded by this section. The local world now contains
+`run/world/datapacks/Tensura-L2Hostility.zip`; it is runtime-only and is not
+tracked. The live `datapack list enabled` response was:
 
-With the official winning Royal Bow equipped, the isolated smoke reported:
+```text
+There are 3 data pack(s) enabled: [vanilla (built-in)], [mod_data], [file/Tensura-L2Hostility.zip (world)]
+```
 
-- L2 initialized: `true`;
-- L2 level: `300`;
-- forced traits: `false`;
-- naturally rolled trait count: `0` in this smoke run;
-- real Bow direct events: `2`;
-- real Bow post-mitigation damage: `1577.6461791992188`;
-- the expected winning-build attributes, including Arrow Damage `3.0224999815`,
-  Armor Pierce `31`, Protection Pierce `15`, Crit Chance `1.5300000191`, and Crit
-  Damage `5.8799999714`.
+The live selectors confirmed every requested entity is in
+`#l2hostility:whitelist` and the seven bosses are declared in the pack's
+`#l2hostility:semiboss` tag. The pack defines these entity level ranges:
 
-This proves the winning Apotheosis stack can fire through the real Tensura + L2
-runtime path at L2 Lv300 without a forced illegal trait package. It is a
-compatibility smoke only and is not boss-balance evidence.
+| Entity | Configured level range | Health scale | Attack scale |
+|---|---:|---:|---:|
+| `tensura:hinata_sakaguchi` | 120-280 | 0.90 | 1.10 |
+| `tensura:gazel_dwargo` | 110-260 | 1.00 | 1.00 |
+| `tensura:orc_disaster` | 100-250 | 1.20 | 1.00 |
+| `tensura:elemental_colossus` | 75-150 | 1.30 | 0.80 |
+| `tensura_neb:luminous_valentine` | 130-300 | 0.85 | 1.20 |
+| `tensura_neb:carrion` | 90-210 | 1.10 | 0.95 |
+| `tensura_neb:rimuru_ogre_fight` | 85-250 | 0.95 | 0.90 |
 
-## L2 runtime proof and remaining benchmark work
+The initial diagnostic used `NoAI` before L2 initialization and correctly
+produced no useful level. Exact L2 3.0.18 bytecode showed why: this runtime has
+`allowNoAI = false`, and `MobTraitCap.init` suppresses NoAI mobs. The valid smoke
+therefore used an explicitly ticking/force-loaded chunk and did not set NoAI
+before attachment. No whitelist or compatibility patch was needed.
 
-The target command was executed in the exact optional stack against a summoned
-`minecraft:zombie`. It reported HP 20/20, armor 2, toughness 0, Tensura SHP
-40/40, and an initialized L2 attachment at level 0 with an empty trait map. This
-proves the registry, SHP and L2 attachment/trait paths without forcing traits or
-changing balance state.
+### Natural/default observations
+
+All values below are current values after the datapack filled each Tensura
+resource to its scaled effective maximum. Trait rolls are the exact accepted
+official-pass rolls, not required fixed packages.
+
+| Entity | L2 | Generated traits/ranks | Max HP | SHP | Magicules | Aura | SHP / Magic-Aura multiplier |
+|---|---:|---|---:|---:|---:|---:|---:|
+| `tensura:hinata_sakaguchi` | 124 | Freezing 1; Reflect 2 | 10000 | 16992 | 1866083.88 | 1740000 | 4.72x / 3.48x |
+| `tensura:gazel_dwargo` | 122 | Cursed 1; Fiery 1; Reflect 1; Tank 5 | 10000 | 16776 | 1031656 | 2532978.64 | 4.66x / 3.44x |
+| `tensura:orc_disaster` | 109 | Blindness 1; Cursed 1; Drain 1; Regenerate 2; Slowness 1; Tank 5; Wither 1 | 6893.6 | 11529 | 771426.66 | 159 | 4.27x / 3.18x |
+| `tensura:elemental_colossus` | 84 | Freezing 1; Speedy 2; Tank 3 | 4104.96 | 15840 | 891070.52 | 134 | 3.52x / 2.68x |
+| `tensura_neb:luminous_valentine` | 132 | Reflect 1; Slowness 4; Soul Burner 2 | 10000 | 49600 | 14741588.68 | 3729758.76 | 4.96x / 3.64x |
+| `tensura_neb:carrion` | 99 | Poison 2; Regenerate 2; Speedy 1; Tank 2 | 10000 | 11910 | 342166.58 | 1514960.48 | 3.97x / 2.98x |
+| `tensura_neb:rimuru_ogre_fight` | 85 | Fiery 1; Regenerate 3 | 6845 | 10650 | 295101.9 | 134244 | 3.55x / 2.70x |
+
+Every attachment reported `initialized: true`; every level is inside its exact
+entity range; and every target carried the datapack's `l2_tensura_scaled` marker.
+
+### Requested Lv300 observations
+
+The smoke used L2's own `level set 300` followed by
+`rerollTraitNoSuppression`. This keeps the entity config ceilings and normal
+trait rules. The datapack's existing one-shot modifiers were then removed from
+only the disposable test entity, its marker was cleared, and its own tick
+function reapplied the formulas at the stored level. No trait was manually
+inserted.
+
+| Entity | Exact level after request | Generated traits/ranks | Max HP | SHP | Magicules | Aura | SHP / Magic-Aura multiplier |
+|---|---:|---|---:|---:|---:|---:|---:|
+| `tensura:hinata_sakaguchi` | 280 (capped) | Dispell 2; Reflect 3; Speedy 1 | 10000 | 33840 | 3539124.6 | 3300000 | 9.40x / 6.60x |
+| `tensura:gazel_dwargo` | 260 (capped) | Adaptive 2; Fiery 1; Poison 3; Reflect 1; Tank 2 | 10000 | 31680 | 1859380 | 4565252.2 | 8.80x / 6.20x |
+| `tensura:orc_disaster` | 250 (capped) | Cursed 3; Drain 2; Regenerate 2; Speedy 2; Tank 4; Wither 1 | 10000 | 22950 | 1455522 | 300 | 8.50x / 6.00x |
+| `tensura:elemental_colossus` | 150 (capped) | Blindness 2; Speedy 3; Tank 3; Wither 1 | 6576 | 24750 | 1329956 | 200 | 5.50x / 4.00x |
+| `tensura_neb:luminous_valentine` | 300 | Dispell 3; Killer Aura 1; Reflect 2; Soul Burner 2; Speedy 1; Weakness 1; Wither 1 | 10000 | 100000 | 28349209 | 7172613 | 10.00x / 7.00x |
+| `tensura_neb:carrion` | 210 (capped) | Cursed 1; Erosion 1; Regenerate 2; Speedy 2; Tank 2 | 10000 | 21900 | 597069.2 | 2643555.2 | 7.30x / 5.20x |
+| `tensura_neb:rimuru_ogre_fight` | 250 (capped) | Adaptive 2; Blindness 2; Drain 2; Freezing 2; Regenerate 1; Slowness 4; Wither 2 | 10000 | 25500 | 655782 | 298320 | 8.50x / 6.00x |
+
+The scaling is visibly and numerically applied to all seven targets. At stored
+level `L`, the observed SHP multiplier is exactly `1 + 0.03L`, while the
+Magicule and Aura multipliers are exactly `1 + 0.02L`, matching the installed
+datapack functions. Luminous now legitimately receives L2 Lv300 and is the
+preferred target for the next benchmark step. This is still a compatibility
+smoke; no damage/balance conclusion or 39-trait matrix is included.
+
+The official Apotheosis winner remains unchanged:
+`ANCIENT_SINGLE_PROSPEROUS_SPECTRAL`.
+
+## Remaining L2 benchmark work
 
 The final instance config retains `maxMobLevel = 3000`, `maxTraitCount = 9`, and
 all requested trait toggles including Arena and Ragnarok enabled. The full
@@ -647,9 +697,10 @@ or changed here.
 - `runServer` with `-Pphase5f_runtime_mods_dir=<target mods>` reached `Done`,
   emitted the structured Royal Bow report, confirmed all relevant versions and
   recipes, and produced the rarity/affix/socket results above.
-- The target command ran in that server and returned the live zombie/L2/Tensura
-  result above. The temporary local RCON switch used to issue the command was
-  restored to disabled and is not tracked.
+- A fresh `runServer` loaded `file/Tensura-L2Hostility.zip` and returned the live
+  attachment, natural-roll, requested-level and Tensura-resource results for all
+  seven requested bosses above. The temporary local RCON switch used to issue
+  commands was restored to disabled and is not tracked.
 - `runClient` with the same optional exact-stack directory completed mod loading,
   initialized OpenAL, created the GUI atlas and preloaded Patchouli content with
   no fatal/crash marker. It was manually stopped after main-menu readiness.

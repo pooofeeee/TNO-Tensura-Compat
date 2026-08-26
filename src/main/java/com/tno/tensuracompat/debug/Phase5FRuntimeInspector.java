@@ -281,20 +281,34 @@ public final class Phase5FRuntimeInspector {
         try {
             var existence = TensuraStorages.getExistenceFrom(living);
             tensura.addProperty("status", "ok");
-            tensura.addProperty("spiritual_health", existence.getSpiritualHealth());
-            if (living.getAttributes().hasAttribute(TensuraAttributes.MAX_SPIRITUAL_HEALTH)) {
-                tensura.addProperty("max_spiritual_health",
-                        living.getAttributeValue(TensuraAttributes.MAX_SPIRITUAL_HEALTH));
-            }
-            else {
-                tensura.add("max_spiritual_health", null);
-            }
+            addTensuraResource(tensura, living, "spiritual_health", existence.getSpiritualHealth(),
+                    TensuraAttributes.MAX_SPIRITUAL_HEALTH);
+            addTensuraResource(tensura, living, "magicule", existence.getMagicule(), TensuraAttributes.MAX_MAGICULE);
+            addTensuraResource(tensura, living, "aura", existence.getAura(), TensuraAttributes.MAX_AURA);
+            tensura.addProperty("l2_scaling_marker", living.getTags().contains("l2_tensura_scaled"));
         }
         catch (Throwable throwable) {
             tensura.addProperty("status", "unavailable");
             tensura.addProperty("error", summarize(throwable));
         }
         return tensura;
+    }
+
+    private static void addTensuraResource(JsonObject report, LivingEntity living, String name, double current,
+            Holder<Attribute> maximumAttribute) {
+        report.addProperty(name, current);
+        var instance = living.getAttribute(maximumAttribute);
+        if (instance == null) {
+            report.add("base_max_" + name, null);
+            report.add("max_" + name, null);
+            report.add("max_" + name + "_multiplier", null);
+            return;
+        }
+        double base = instance.getBaseValue();
+        double maximum = instance.getValue();
+        report.addProperty("base_max_" + name, base);
+        report.addProperty("max_" + name, maximum);
+        report.addProperty("max_" + name + "_multiplier", base == 0.0D ? 0.0D : maximum / base);
     }
 
     private static JsonObject inspectL2(LivingEntity living) {
