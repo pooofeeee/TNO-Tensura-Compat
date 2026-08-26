@@ -591,10 +591,10 @@ public final class Phase5FApotheosisBenchmark {
                     currentShot = new Shot(0);
                     fireFullDraw();
                     smokeReport.addProperty("status", "ok");
-                    smokeReport.addProperty("entity",
-                            BuiltInRegistries.ENTITY_TYPE.getKey(target.getType()).toString());
+                    ResourceLocation targetId = BuiltInRegistries.ENTITY_TYPE.getKey(target.getType());
+                    smokeReport.addProperty("entity", targetId.toString());
                     smokeReport.addProperty("tensura_integration",
-                            "Tensura entity_existence data exists for minecraft:wither");
+                            "Tensura entity_existence data exists for " + targetId);
                     phaseTick = 100;
                     return;
                 }
@@ -626,7 +626,11 @@ public final class Phase5FApotheosisBenchmark {
             Object attachmentType = invoke(mobEntry, "type");
             LivingEntity boss = null;
             for (ResourceLocation bossId : List.of(
-                    id("tensura_neb", "luminous_valentine"), id("minecraft", "wither"))) {
+                    id("tensura_neb", "luminous_valentine"),
+                    id("tensura_neb", "carrion"),
+                    id("tensura_neb", "rimuru_ogre_fight"),
+                    id("tensura_neb", "veldora"),
+                    id("minecraft", "wither"))) {
                 if (!BuiltInRegistries.ENTITY_TYPE.containsKey(bossId)) continue;
                 Entity entity = BuiltInRegistries.ENTITY_TYPE.get(bossId).create(level);
                 if (!(entity instanceof LivingEntity candidate)) continue;
@@ -769,6 +773,10 @@ public final class Phase5FApotheosisBenchmark {
         Object rarityHolder = invoke(rarityRegistry, "holder", spec.rarity);
         Object rarity = invoke(rarityHolder, "get");
         callStatic(AFFIX_HELPER, "setRarity", stack, rarity);
+        // Both compared rarity recipes have a legitimate low-chance Unbreakable outcome.
+        // Select it for the legal maximum stack so an 80-shot distribution never changes
+        // item condition partway through the controlled sample.
+        stack.set(DataComponents.UNBREAKABLE, new Unbreakable(false));
 
         Object category = callStatic("dev.shadowsoffire.apotheosis.loot.LootCategory", "forItem", stack);
         Object affixRegistry = staticField(AFFIX_REGISTRY, "INSTANCE");
@@ -1173,11 +1181,21 @@ public final class Phase5FApotheosisBenchmark {
             List<Double> nonCrit = new ArrayList<>();
             List<Double> crit = new ArrayList<>();
             List<Double> preCrit = new ArrayList<>();
+            JsonArray hitShotIndices = new JsonArray();
+            JsonArray sampleRecords = new JsonArray();
             int shotsWithHit = 0;
             int shotsWithCrit = 0;
             int directEvents = 0;
             for (Shot shot : samples) {
-                if (!shot.incoming.isEmpty()) shotsWithHit++;
+                if (!shot.incoming.isEmpty()) {
+                    shotsWithHit++;
+                    hitShotIndices.add(shot.index);
+                    JsonObject sample = new JsonObject();
+                    sample.addProperty("shot", shot.index);
+                    sample.addProperty("crit", shot.criticalEvents > 0);
+                    sample.addProperty("damage", shot.effectiveDamage());
+                    sampleRecords.add(sample);
+                }
                 directEvents += shot.incoming.size();
                 if (shot.criticalEvents > 0) shotsWithCrit++;
                 if (!shot.preCrit.isEmpty()) preCrit.add(shot.total(shot.preCrit));
@@ -1188,6 +1206,8 @@ public final class Phase5FApotheosisBenchmark {
             }
             json.addProperty("sample_shots", samples.size());
             json.addProperty("shots_with_direct_hit", shotsWithHit);
+            json.add("hit_shot_indices", hitShotIndices);
+            json.add("hit_samples", sampleRecords);
             json.addProperty("observed_hit_rate", samples.isEmpty() ? 0.0D : shotsWithHit / (double) samples.size());
             json.addProperty("direct_damage_events", directEvents);
             json.addProperty("shots_with_apothic_crit", shotsWithCrit);
