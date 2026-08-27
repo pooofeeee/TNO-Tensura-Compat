@@ -850,7 +850,7 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("engraving_after_stage_coefficient", hit.familyStageScaled);
             json.addProperty("damage_before_matching_resistance_recovery", hit.familyAfterResistance);
             json.addProperty("damage_after_matching_resistance_recovery", hit.familyAfterRecovery);
-            json.addProperty("damage_after_L2_processing", hit.familyAfterL2);
+            json.addProperty("damage_after_L2_processing", hit.familyPost);
             json.addProperty("matching_resistance_cancelled_before_recovery", hit.familyCanceledBeforeRecovery);
             json.addProperty("tensura_resistance_bypass_level", hit.resistanceBypassLevel);
             json.addProperty("nullification_authoritative", hit.nullificationAuthoritative);
@@ -930,15 +930,15 @@ public final class Phase5FSuiteBBenchmark {
 
         private boolean transformed(HitRecord hit, String trait, boolean magic) {
             return traitRanks.has(trait) && hit.l2Magic == magic
-                    && hit.familyAfterL2 + 0.0001D < hit.familyAfterRecovery;
+                    && hit.familyPost + 0.0001D < hit.familyAfterRecovery;
         }
 
         private boolean adaptiveObserved(HitRecord hit) {
             if (!traitRanks.has("l2hostility:adaptive") || hit.index < 2 || hit.familyAfterRecovery <= 0.0D) return false;
             HitRecord previous = hits.stream().filter(value -> value.index == hit.index - 1).findFirst().orElse(null);
             if (previous == null || previous.familyAfterRecovery <= 0.0D) return false;
-            return hit.familyAfterL2 / hit.familyAfterRecovery + 0.0001D
-                    < previous.familyAfterL2 / previous.familyAfterRecovery;
+            return hit.familyPost / hit.familyAfterRecovery + 0.0001D
+                    < previous.familyPost / previous.familyAfterRecovery;
         }
 
         private double dps() {
