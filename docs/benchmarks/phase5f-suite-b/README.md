@@ -54,6 +54,7 @@ every other boss has `54` cases. Diagnostic output is explicitly rejected.
 | Magic Weapon | `tensura:hinata_sakaguchi` | 200, 280, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 | Magic Weapon | `tensura:gazel_dwargo` | 185, 260, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 | Magic Weapon | `tensura:orc_disaster` | 175, 250, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
+| Magic Weapon | `tensura:elemental_colossus` | 112, 150, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 
 Luminous has matching Magic Resistance and no Magic Nullification in every
 captured profile. Native through S4 remained fully blocked. The locked recovery
@@ -86,3 +87,10 @@ successive same-family hits by one half (for example S7: 14.4, 7.2, 3.6, 1.8,
 ...). That profile's aggregate progression was non-monotonic and is classified
 `MARGINAL`/ambiguous rather than tuned around. The corrected post-L2 probe
 marked the Adaptive transforms, and no L2 layer was bypassed.
+
+Elemental Colossus had neither matching Magic Resistance nor Nullification.
+Five profiles progressed from about 8 Native DPS to 14.4 S7 DPS and are
+provisionally `MEANINGFUL/BALANCED`. Its Lv800 legal roll included Dementor;
+because the actual Magic Weapon source is not L2-magic-tagged, Dementor reduced
+each S7 event from 14.4 to about 3.85. That compressed profile is `MARGINAL`,
+and its recorded Dementor transforms demonstrate that Stage did not bypass L2.
