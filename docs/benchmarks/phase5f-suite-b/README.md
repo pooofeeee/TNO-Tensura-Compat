@@ -59,6 +59,7 @@ every other boss has `54` cases. Diagnostic output is explicitly rejected.
 | Magic Weapon | `tensura_neb:rimuru_ogre_fight` | 167, 250, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 | Holy Weapon | `tensura_neb:luminous_valentine` | 215, 300, 600, 800, 1000 | 45 | 450 | 0 | Accepted |
 | Holy Weapon | `tensura:hinata_sakaguchi` | 200, 280, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
+| Holy Weapon | `tensura:gazel_dwargo` | 185, 260, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 
 Luminous has matching Magic Resistance and no Magic Nullification in every
 captured profile. Native through S4 remained fully blocked. The locked recovery
@@ -159,3 +160,8 @@ Hinata likewise had matching Holy Resistance without Holy Nullification.
 Native-S4 were `EFFECTIVELY DEAD`; S5 was `MARGINAL`, while S6-S7 produced
 consistent relative progression at about 6.8-7.48 and 14.4-15.12 DPS. No
 Adaptive or Dementor profile was generated, and no L2 layer was bypassed.
+
+Gazel is `EFFECTIVELY DEAD` for Holy Weapon at every stage and level. All 540
+rows were zero. Matching Holy Resistance was present without Nullification,
+but Gazel admitted no Holy engraving event, so even S7 had no damage to
+recover. No L2 layer was bypassed.
