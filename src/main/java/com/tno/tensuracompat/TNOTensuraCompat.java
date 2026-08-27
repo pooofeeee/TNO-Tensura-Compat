@@ -59,6 +59,7 @@ public class TNOTensuraCompat {
                     Phase5FSuiteBBenchmark::onDamagePre);
             NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST,
                     Phase5FSuiteBBenchmark::onDamagePost);
+            Phase5FSuiteBBenchmark.registerTensuraEvents();
         }
 
         LOGGER.info("TNO Tensura Compat loaded with API linkage to {}", Tensura.class.getName());

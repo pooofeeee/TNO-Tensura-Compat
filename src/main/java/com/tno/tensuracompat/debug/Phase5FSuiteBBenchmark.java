@@ -6,10 +6,13 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import com.mojang.logging.LogUtils;
+import dev.architectury.event.EventResult;
 import io.github.manasmods.tensura.registry.attribute.TensuraAttributes;
 import io.github.manasmods.tensura.storage.TensuraStorages;
+import io.github.manasmods.tensura.util.EnergyHelper;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -29,9 +32,11 @@ import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.BundleContents;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
@@ -50,6 +55,7 @@ import org.slf4j.Logger;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Proxy;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -78,6 +84,8 @@ public final class Phase5FSuiteBBenchmark {
     private static final String L2_MISCS = "dev.xkmc.l2hostility.init.registrate.LHMiscs";
     private static final ResourceLocation ROYAL_BOW = id("royalvariations", "royal_bow");
     private static final ResourceLocation ROYAL_ARROW = id("royalvariations", "royal_arrow");
+    private static final ResourceLocation EARTH_CORE = id("tensura", "element_core_earth");
+    private static final double SEVERANCE_NATIVE_ATTACK_BONUS = 3.0D;
     private static final int MAX_SHOTS = Integer.getInteger("tno.phase5f.suiteBShots", 10);
     private static final int WINDOW_TICKS = Integer.getInteger("tno.phase5f.suiteBTicks", 200);
     private static final boolean DIAGNOSTIC = Boolean.getBoolean("tno.phase5f.suiteBDiagnostic");
@@ -128,6 +136,7 @@ public final class Phase5FSuiteBBenchmark {
     );
 
     private static Session active;
+    private static boolean energyEventRegistered;
 
     private Phase5FSuiteBBenchmark() {
     }
@@ -175,6 +184,36 @@ public final class Phase5FSuiteBBenchmark {
 
     public static void onDamagePost(LivingDamageEvent.Post event) {
         if (active != null) active.captureDamagePost(event);
+    }
+
+    public static void registerTensuraEvents() {
+        if (energyEventRegistered) return;
+        try {
+            Class<?> listenerType = Class.forName("io.github.manasmods.tensura.event.TensuraEntityEvents$EnergyDrainEvent");
+            Object listener = Proxy.newProxyInstance(listenerType.getClassLoader(), new Class<?>[]{listenerType},
+                    (proxy, method, args) -> {
+                        if (method.getDeclaringClass() == Object.class) {
+                            return switch (method.getName()) {
+                                case "toString" -> "TNO Phase 5F Energy Drain probe";
+                                case "hashCode" -> System.identityHashCode(proxy);
+                                case "equals" -> proxy == args[0];
+                                default -> null;
+                            };
+                        }
+                        Session session = active;
+                        if (session != null && method.getName().equals("drain")) {
+                            session.captureEnergyDrain((LivingEntity) args[0], (Entity) args[1],
+                                    args[2], args[3], args[4], args[5]);
+                        }
+                        return EventResult.pass();
+                    });
+            Object event = staticField("io.github.manasmods.tensura.event.TensuraEntityEvents", "ENERGY_DRAIN_EVENT");
+            invoke(event, "register", listener);
+            energyEventRegistered = true;
+        }
+        catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("could not register Phase 5F native Energy Drain probe", exception);
+        }
     }
 
     private static void requireMods() {
@@ -372,6 +411,11 @@ public final class Phase5FSuiteBBenchmark {
         private void resetActors() {
             fillResources(target);
             fillResources(player);
+            if (family == Family.ENERGY) {
+                var existence = TensuraStorages.getExistenceFrom(player);
+                existence.setMagicule(0.0D);
+                existence.setAura(0.0D);
+            }
             target.setHealth(target.getMaxHealth());
             target.setAbsorptionAmount(0.0F);
             target.invulnerableTime = 0;
@@ -445,10 +489,13 @@ public final class Phase5FSuiteBBenchmark {
         private void captureIncomingHighest(LivingIncomingDamageEvent event) {
             if (!runningTargetEvent(event)) return;
             String type = damageType(event.getSource());
-            if (type.equals(family.damageType.toString())) {
-                double raw = event.getAmount();
-                double coefficient = currentCase().stage.coefficient(family);
-                float scaled = (float) (raw * coefficient);
+            if (family.matchesDamageType(type)) {
+                double eventAmount = event.getAmount();
+                double raw = family == Family.ELEMENTAL
+                        ? currentHit.elementalNativeProjectileDamage : eventAmount;
+                float scaled = family == Family.ELEMENTAL
+                        ? (float) eventAmount
+                        : (float) (raw * currentCase().stage.coefficient(family));
                 double nativeAfterResistance = scaled > target.getHealth() * 0.5D ? scaled * 0.5D : 0.0D;
                 boolean sourceBypass = currentCase().stage.penetration > 0.0D
                         && result.matchingResistance && !result.matchingNullification;
@@ -474,9 +521,18 @@ public final class Phase5FSuiteBBenchmark {
                 currentHit.l2Magic |= probe.l2Magic;
             }
             else if (isBenchmarkArrow(event.getSource())) {
-                currentHit.physicalOriginal += event.getOriginalAmount();
+                currentHit.physicalCombinedOriginal += event.getOriginalAmount();
+                currentHit.physicalOriginal += family == Family.SEVERANCE
+                        ? currentHit.severanceBasePostRound : event.getOriginalAmount();
                 currentHit.physicalIncoming += event.getAmount();
                 currentHit.physicalSourceIds.add(type);
+                currentHit.physicalSourceTags.addAll(sourceTags(event.getSource()));
+                if (family == Family.SEVERANCE) {
+                    currentHit.familyAfterResistance += Math.max(0.0D,
+                            event.getAmount() - currentHit.severanceBasePostRound);
+                    currentHit.familyAfterRecovery = currentHit.familyAfterResistance;
+                    currentHit.l2Magic |= event.getSource().is(Tags.DamageTypes.IS_MAGIC);
+                }
             }
             else {
                 currentHit.dotIncoming += event.getAmount();
@@ -513,7 +569,7 @@ public final class Phase5FSuiteBBenchmark {
         private void captureDamagePre(LivingDamageEvent.Pre event) {
             if (phase != Phase.RUN || currentHit == null || event.getEntity() != target) return;
             String type = damageType(event.getSource());
-            if (type.equals(family.damageType.toString())) currentHit.familyAfterL2 += event.getNewDamage();
+            if (family.matchesDamageType(type)) currentHit.familyAfterL2 += event.getNewDamage();
             else if (isBenchmarkArrow(event.getSource())) currentHit.physicalAfterL2 += event.getNewDamage();
             else currentHit.dotAfterL2 += event.getNewDamage();
         }
@@ -522,7 +578,7 @@ public final class Phase5FSuiteBBenchmark {
             if (phase != Phase.RUN || currentHit == null) return;
             if (event.getEntity() == target) {
                 String type = damageType(event.getSource());
-                if (type.equals(family.damageType.toString())) currentHit.familyPost += event.getNewDamage();
+                if (family.matchesDamageType(type)) currentHit.familyPost += event.getNewDamage();
                 else if (isBenchmarkArrow(event.getSource())) currentHit.physicalPost += event.getNewDamage();
                 else currentHit.dotPost += event.getNewDamage();
             }
@@ -530,6 +586,21 @@ public final class Phase5FSuiteBBenchmark {
                 currentHit.reflectedPost += event.getNewDamage();
                 currentHit.reflectedSourceIds.add(damageType(event.getSource()));
             }
+        }
+
+        private void captureEnergyDrain(LivingEntity drained, Entity source,
+                Object drainType, Object gainType, Object amount, Object percentage) throws ReflectiveOperationException {
+            if (phase != Phase.RUN || currentHit == null || family != Family.ENERGY
+                    || drained != target || !fromBenchmarkPlayer(source)
+                    || invoke(drainType, "get") != EnergyHelper.DrainType.EP
+                    || invoke(gainType, "get") != EnergyHelper.GainType.NORMAL
+                    || !Boolean.TRUE.equals(invoke(percentage, "get"))) return;
+            double nativePercentage = numberValue(invoke(amount, "get")).doubleValue();
+            double stagedPercentage = nativePercentage * currentCase().stage.coefficient(family);
+            invoke(amount, "set", stagedPercentage);
+            currentHit.energyDrainEvents++;
+            currentHit.energyNativePercentage += nativePercentage;
+            currentHit.energyStagedPercentage += stagedPercentage;
         }
 
         private boolean runningTargetEvent(LivingIncomingDamageEvent event) {
@@ -547,18 +618,26 @@ public final class Phase5FSuiteBBenchmark {
 
         private void fireFullDraw() {
             player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(royalArrow, 64));
-            List<UUID> existing = level.getEntitiesOfClass(AbstractArrow.class,
-                    player.getBoundingBox().inflate(64.0D), arrow -> fromBenchmarkPlayer(arrow.getOwner()))
+            List<UUID> existing = level.getEntitiesOfClass(Projectile.class,
+                    player.getBoundingBox().inflate(64.0D), projectile -> fromBenchmarkPlayer(projectile.getOwner()))
                     .stream().map(Entity::getUUID).toList();
             ItemStack bow = player.getMainHandItem();
             int drawTicks = 20;
             bow.releaseUsing(level, player, bow.getUseDuration(player) - drawTicks);
-            List<AbstractArrow> spawned = level.getEntitiesOfClass(AbstractArrow.class,
+            List<Projectile> spawned = level.getEntitiesOfClass(Projectile.class,
                     player.getBoundingBox().inflate(64.0D),
-                    arrow -> fromBenchmarkPlayer(arrow.getOwner()) && !existing.contains(arrow.getUUID()));
-            if (spawned.isEmpty()) throw new IllegalStateException("full-draw Royal Bow release created no Royal Arrow");
+                    projectile -> fromBenchmarkPlayer(projectile.getOwner()) && !existing.contains(projectile.getUUID()));
+            if (spawned.isEmpty()) throw new IllegalStateException("full-draw Royal Bow release created no projectile");
             Vec3 aim = target.getBoundingBox().getCenter();
-            for (AbstractArrow arrow : spawned) {
+            for (Projectile projectile : spawned) {
+                if (family == Family.ELEMENTAL) {
+                    dispatchSlottingProjectile(projectile, aim);
+                    continue;
+                }
+                if (!(projectile instanceof AbstractArrow arrow)) {
+                    throw new IllegalStateException("Royal Bow created non-arrow projectile for " + family.id + ": "
+                            + BuiltInRegistries.ENTITY_TYPE.getKey(projectile.getType()));
+                }
                 if (!BuiltInRegistries.ENTITY_TYPE.getKey(arrow.getType()).getNamespace().equals("royalvariations")) {
                     throw new IllegalStateException("Royal Bow did not create a Royal Variations arrow: " + arrow.getType());
                 }
@@ -575,6 +654,7 @@ public final class Phase5FSuiteBBenchmark {
                 }
                 arrow.setCritArrow(false);
                 double speed = arrow.getDeltaMovement().length();
+                if (family == Family.SEVERANCE) configureSeveranceStage(arrow, speed);
                 Vec3 direction = aim.subtract(arrow.position()).normalize();
                 // Preserve the real released projectile, owner, velocity and damage,
                 // while putting it into a deterministic final collision lane. Several
@@ -584,11 +664,55 @@ public final class Phase5FSuiteBBenchmark {
                 arrow.hasImpulse = true;
                 try {
                     invoke(arrow, "onHitEntity", new EntityHitResult(target));
+                    currentHit.captureImmediate(target, player);
                 }
                 catch (ReflectiveOperationException exception) {
                     throw new IllegalStateException("could not dispatch controlled Royal Arrow collision", exception);
                 }
             }
+        }
+
+        private void dispatchSlottingProjectile(Projectile projectile, Vec3 aim) {
+            ResourceLocation type = BuiltInRegistries.ENTITY_TYPE.getKey(projectile.getType());
+            if (!type.equals(id("tensura", "stone_shot"))) {
+                throw new IllegalStateException("one-Earth-core Slotting release created unexpected projectile " + type);
+            }
+            try {
+                double nativeDamage = numberValue(invoke(projectile, "getDamage")).doubleValue();
+                double stagedDamage = nativeDamage * currentCase().stage.coefficient(family);
+                invoke(projectile, "setDamage", (float) stagedDamage);
+                currentHit.elementalProjectileId = type.toString();
+                currentHit.elementalNativeProjectileDamage = nativeDamage;
+                currentHit.elementalStagedProjectileDamage = stagedDamage;
+                double speed = projectile.getDeltaMovement().length();
+                Vec3 direction = aim.subtract(projectile.position()).normalize();
+                projectile.setPos(aim.subtract(direction.scale(2.0D)));
+                projectile.setDeltaMovement(direction.scale(speed));
+                projectile.hasImpulse = true;
+                invoke(projectile, "onHit", new EntityHitResult(target));
+                currentHit.captureImmediate(target, player);
+            }
+            catch (ReflectiveOperationException exception) {
+                throw new IllegalStateException("could not dispatch controlled native Slotting projectile", exception);
+            }
+        }
+
+        private void configureSeveranceStage(AbstractArrow arrow, double speed) {
+            double nativeBase = arrow.getBaseDamage();
+            double coefficient = currentCase().stage.coefficient(family);
+            double stagedBase = nativeBase + SEVERANCE_NATIVE_ATTACK_BONUS * (coefficient - 1.0D);
+            arrow.setBaseDamage(stagedBase);
+            currentHit.severanceProjectileSpeed = speed;
+            currentHit.severanceBaseProjectileDamage = nativeBase;
+            currentHit.severanceNativeAttackBonus = SEVERANCE_NATIVE_ATTACK_BONUS;
+            currentHit.severanceStagedAttackBonus = SEVERANCE_NATIVE_ATTACK_BONUS * coefficient;
+            currentHit.severanceNativePreRound = speed * (nativeBase + SEVERANCE_NATIVE_ATTACK_BONUS);
+            currentHit.severanceStagedPreRound = speed * (nativeBase + currentHit.severanceStagedAttackBonus);
+            currentHit.severanceBasePostRound = Math.ceil(speed * nativeBase);
+            currentHit.severanceNativePostRound = Math.ceil(currentHit.severanceNativePreRound);
+            currentHit.severanceStagedPostRound = Math.ceil(currentHit.severanceStagedPreRound);
+            currentHit.familyRaw = currentHit.severanceNativePostRound - currentHit.severanceBasePostRound;
+            currentHit.familyStageScaled = currentHit.severanceStagedPostRound - currentHit.severanceBasePostRound;
         }
 
         private FakePlayer createPlayer(int index) {
@@ -601,6 +725,8 @@ public final class Phase5FSuiteBBenchmark {
             fake.getAbilities().invulnerable = false;
             setBase(fake, Attributes.MAX_HEALTH, 1024.0D);
             setBase(fake, TensuraAttributes.MAX_SPIRITUAL_HEALTH, 1_000_000_000.0D);
+            setBase(fake, TensuraAttributes.MAX_MAGICULE, 1_000_000_000.0D);
+            setBase(fake, TensuraAttributes.MAX_AURA, 1_000_000_000.0D);
             fake.setHealth(fake.getMaxHealth());
             fake.setPos(TEST_X, TEST_Y, 0.5D);
             return fake;
@@ -621,6 +747,10 @@ public final class Phase5FSuiteBBenchmark {
 
         private void stabilize() {
             if (player != null) {
+                // FakePlayerFactory instances are not advanced by the normal player
+                // list. Tick the native cooldown tracker once per server tick so the
+                // Energy Steal I 20-tick cooldown behaves like a real player.
+                player.getCooldowns().tick();
                 player.setPos(TEST_X, TEST_Y, 0.5D);
                 player.setDeltaMovement(Vec3.ZERO);
                 player.setYRot(0.0F);
@@ -656,8 +786,8 @@ public final class Phase5FSuiteBBenchmark {
 
         private void clearArrows() {
             if (player == null) return;
-            level.getEntitiesOfClass(AbstractArrow.class, player.getBoundingBox().inflate(64.0D),
-                    arrow -> fromBenchmarkPlayer(arrow.getOwner())).forEach(Entity::discard);
+            level.getEntitiesOfClass(Projectile.class, player.getBoundingBox().inflate(64.0D),
+                    projectile -> fromBenchmarkPlayer(projectile.getOwner())).forEach(Entity::discard);
         }
 
         private void cleanupCase() {
@@ -707,14 +837,38 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("diagnostic", DIAGNOSTIC);
             json.addProperty("TNO_family", family.id);
             json.addProperty("engraving", family.enchantment.toString());
-            json.addProperty("damage_source_id", family.damageType.toString());
+            if (family.damageType == null) json.add("damage_source_id", null);
+            else json.addProperty("damage_source_id", family.damageType.toString());
+            json.addProperty("native_mechanic", switch (family) {
+                case ELEMENTAL -> "Slotting I with one legal Earth core; native release interception creates tensura:stone_shot at coefficient 1.0 instead of a Royal Arrow";
+                case ENERGY -> "Energy Steal I; 1% current Aura and current Magicules; native 20-tick bow cooldown";
+                case SEVERANCE -> "Severance I; +3 enchanted attack contribution before projectile velocity/ceil plus native wound storage";
+                default -> "native Tensura damage event";
+            });
+            if (family == Family.ELEMENTAL) {
+                json.addProperty("slotting_element", "EARTH");
+                json.addProperty("slotting_core", EARTH_CORE.toString());
+                json.addProperty("slotting_capacity", 1);
+                json.addProperty("slotting_contents", cleanBow.get(DataComponents.BUNDLE_CONTENTS).toString());
+                json.addProperty("representative_equivalence_proof", "installed combination_1..5 each contain exactly one Earth/Fire/Space/Water/Wind core, use projectile damage coefficient 1.0, and route through TensuraFlyingProjectile elemental damage; their speeds/knockback/burn/projectile entities remain materially distinct utility and are not Stage-scaled; Earth retained for targeted Hinata Earth Nullification and Luminous Spiritual Nullification coverage");
+                json.addProperty("elemental_stage_scope", "damage coefficient only; Slotting capacity/content count/projectile pierce unchanged");
+                json.addProperty("royal_arrow_compatibility", "native Slotting release hook consumes the core-loaded Royal Bow release and spawns tensura:stone_shot; no Royal Arrow exists in this legal path");
+            }
+            if (family == Family.ENERGY) json.addProperty("energy_operation_emits_damage_source", false);
+            if (family == Family.SEVERANCE) {
+                json.addProperty("severance_distinct_damage_source", false);
+                json.addProperty("severance_native_attack_bonus", SEVERANCE_NATIVE_ATTACK_BONUS);
+                json.addProperty("severance_stage_formula", "A'=A*(1+t*(P+A)/A), P=2.4, A=3.0; injected as pre-round projectile base delta while native +3 enchantment remains active");
+            }
             json.addProperty("APO_profile", "NONE");
             json.addProperty("shots_per_case", MAX_SHOTS);
             json.addProperty("fixed_window_ticks", WINDOW_TICKS);
             json.addProperty("distance", TARGET_Z - 0.5D);
-            json.addProperty("projectile_control", "real full-draw Royal Arrow dispatched through its own onHitEntity path in a deterministic two-block final collision lane; owner, velocity, item and source preserved");
+            json.addProperty("projectile_control", family == Family.ELEMENTAL
+                    ? "real native one-Earth-core Slotting projectile dispatched through its own onHit path in a deterministic two-block final collision lane; owner, velocity, entity and source preserved"
+                    : "real full-draw Royal Arrow dispatched through its own onHitEntity path in a deterministic two-block final collision lane; owner, velocity, item and source preserved");
             json.addProperty("bow", ROYAL_BOW.toString());
-            json.addProperty("arrow", ROYAL_ARROW.toString());
+            json.addProperty("arrow", family == Family.ELEMENTAL ? "not created by native Slotting release" : ROYAL_ARROW.toString());
             json.addProperty("royal_arrow_mark_enabled", false);
             json.addProperty("crit_enabled", false);
             json.addProperty("stage_fixture_only", true);
@@ -767,6 +921,7 @@ public final class Phase5FSuiteBBenchmark {
         final boolean nativeProfileSource;
         final boolean matchingResistance;
         final boolean matchingNullification;
+        final JsonObject matchingDefenseDetails;
         final double initialMaxHp;
         final double initialHp;
         final double initialMaxShp;
@@ -785,6 +940,8 @@ public final class Phase5FSuiteBBenchmark {
         boolean attackerDefeated;
         double finalHp;
         double finalShp;
+        double finalMagicules;
+        double finalAura;
 
         CaseResult(CaseSpec spec, LivingEntity target, LivingEntity player, Object cap,
                 boolean nativeProfileSource) throws ReflectiveOperationException {
@@ -796,6 +953,7 @@ public final class Phase5FSuiteBBenchmark {
             this.bowAttributes = readStackAttributes(player.getMainHandItem());
             this.matchingResistance = matchingResistance(target, active.family);
             this.matchingNullification = matchingNullification(target, active.family);
+            this.matchingDefenseDetails = matchingDefenseDetails(target, active.family);
             this.initialMaxHp = target.getMaxHealth();
             this.initialHp = target.getHealth();
             ResourceState resources = resources(target);
@@ -813,7 +971,10 @@ public final class Phase5FSuiteBBenchmark {
         void finish(LivingEntity target) {
             if (target == null) return;
             finalHp = target.getHealth();
-            finalShp = resources(target).shp;
+            ResourceState resources = resources(target);
+            finalShp = resources.shp;
+            finalMagicules = resources.magicules;
+            finalAura = resources.aura;
         }
 
         JsonObject caseJson() {
@@ -830,6 +991,25 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("post_HP", hit.postHp);
             json.addProperty("pre_SHP", hit.preShp);
             json.addProperty("post_SHP", hit.postShp);
+            json.addProperty("pre_Magicules", hit.preMagicules);
+            json.addProperty("immediate_post_Magicules", hit.immediatePostMagicules);
+            json.addProperty("post_Magicules", hit.postMagicules);
+            json.addProperty("pre_Aura", hit.preAura);
+            json.addProperty("immediate_post_Aura", hit.immediatePostAura);
+            json.addProperty("post_Aura", hit.postAura);
+            json.addProperty("magicule_current_pool_drain", hit.immediateMagiculeDrain());
+            json.addProperty("aura_current_pool_drain", hit.immediateAuraDrain());
+            json.addProperty("energy_current_pool_drain", hit.energyDrain());
+            json.addProperty("magicule_recovery_observed", hit.targetMagiculeRegen);
+            json.addProperty("aura_recovery_observed", hit.targetAuraRegen);
+            json.addProperty("attacker_magicule_gain", Math.max(0.0D,
+                    hit.immediatePostAttackerMagicules - hit.preAttackerMagicules));
+            json.addProperty("attacker_aura_gain", Math.max(0.0D,
+                    hit.immediatePostAttackerAura - hit.preAttackerAura));
+            json.addProperty("energy_drain_event_count", hit.energyDrainEvents);
+            json.addProperty("energy_native_percentage", hit.energyNativePercentage);
+            json.addProperty("energy_after_stage_percentage", hit.energyStagedPercentage);
+            json.addProperty("energy_operation_emitted_damage_source", false);
             json.addProperty("direct_damage", hit.directDamage());
             json.addProperty("physical_damage", hit.physicalPost);
             json.addProperty("engraving_damage", hit.familyPost);
@@ -841,10 +1021,16 @@ public final class Phase5FSuiteBBenchmark {
             if (htk == null) json.add("HTK", null); else json.addProperty("HTK", htk);
             if (ttk == null) json.add("TTK", null); else json.addProperty("TTK", ttk);
             json.addProperty("DPS", dps());
-            json.addProperty("blocked_or_cancelled", hit.directDamage() == 0.0D && hit.resourceDamage() == 0.0D);
+            json.addProperty("resource_impact_per_second", resourceImpactPerSecond());
+            json.addProperty("blocked_or_cancelled", hit.blocked());
             json.add("damage_source_ids", strings(union(hit.physicalSourceIds, hit.familySourceIds)));
-            json.add("damage_source_tags_if_observable", strings(hit.familySourceTags));
+            json.add("damage_source_tags_if_observable", strings(union(hit.physicalSourceTags, hit.familySourceTags)));
             json.addProperty("family_source_is_l2_magic", hit.l2Magic);
+            json.addProperty("element", active.family == Family.ELEMENTAL ? "EARTH" : "NONE");
+            json.addProperty("slotting_projectile_id", hit.elementalProjectileId);
+            json.addProperty("slotting_native_projectile_damage", hit.elementalNativeProjectileDamage);
+            json.addProperty("slotting_after_stage_projectile_damage", hit.elementalStagedProjectileDamage);
+            json.addProperty("royal_arrow_created", active.family != Family.ELEMENTAL);
             json.addProperty("physical_original_before_stage", hit.physicalOriginal);
             json.addProperty("engraving_native_amount", hit.familyRaw);
             json.addProperty("engraving_after_stage_coefficient", hit.familyStageScaled);
@@ -854,6 +1040,22 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("matching_resistance_cancelled_before_recovery", hit.familyCanceledBeforeRecovery);
             json.addProperty("tensura_resistance_bypass_level", hit.resistanceBypassLevel);
             json.addProperty("nullification_authoritative", hit.nullificationAuthoritative);
+            json.addProperty("physical_combined_original_before_L2", hit.physicalCombinedOriginal);
+            json.addProperty("severance_projectile_speed", hit.severanceProjectileSpeed);
+            json.addProperty("severance_base_projectile_damage", hit.severanceBaseProjectileDamage);
+            json.addProperty("severance_native_attack_bonus", hit.severanceNativeAttackBonus);
+            json.addProperty("severance_after_stage_attack_bonus", hit.severanceStagedAttackBonus);
+            json.addProperty("severance_native_pre_round", hit.severanceNativePreRound);
+            json.addProperty("severance_after_stage_pre_round", hit.severanceStagedPreRound);
+            json.addProperty("severance_base_only_post_round", hit.severanceBasePostRound);
+            json.addProperty("severance_native_post_round", hit.severanceNativePostRound);
+            json.addProperty("severance_after_stage_post_round", hit.severanceStagedPostRound);
+            json.addProperty("severance_pre_amount", hit.preSeverance);
+            json.addProperty("severance_post_amount", hit.postSeverance);
+            json.addProperty("severance_amount_delta", Math.max(0.0D, hit.postSeverance - hit.preSeverance));
+            json.addProperty("severance_distinct_damage_source", false);
+            json.addProperty("combined_physical_after_L2", hit.physicalAfterL2);
+            json.addProperty("combined_physical_post_damage", hit.physicalPost);
             json.addProperty("dispell_transformed", transformed(hit, "l2hostility:dispell", true));
             json.addProperty("dementor_transformed", transformed(hit, "l2hostility:dementor", false));
             json.addProperty("adaptive_hit_index", traitRanks.has("l2hostility:adaptive") ? hit.index : 0);
@@ -870,16 +1072,20 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("hits_recorded", hits.size());
             json.addProperty("direct_damage", hits.stream().mapToDouble(HitRecord::directDamage).sum());
             json.addProperty("resource_damage", hits.stream().mapToDouble(HitRecord::resourceDamage).sum());
+            json.addProperty("energy_current_pool_drain", hits.stream().mapToDouble(HitRecord::energyDrain).sum());
             json.addProperty("DoT_damage", hits.stream().mapToDouble(hit -> hit.dotPost).sum());
             json.addProperty("regen", hits.stream().mapToDouble(hit -> hit.targetHpRegen + hit.targetShpRegen).sum());
             json.addProperty("reflected_damage", hits.stream().mapToDouble(hit -> hit.reflectedPost).sum());
             json.addProperty("elapsed_ticks", elapsedTicks);
             json.addProperty("DPS", dps());
+            json.addProperty("resource_impact_per_second", resourceImpactPerSecond());
             if (htk == null) json.add("HTK", null); else json.addProperty("HTK", htk);
             if (ttk == null) json.add("TTK", null); else json.addProperty("TTK", ttk);
             json.addProperty("attacker_defeated", attackerDefeated);
             json.addProperty("final_HP", finalHp);
             json.addProperty("final_SHP", finalShp);
+            json.addProperty("final_Magicules", finalMagicules);
+            json.addProperty("final_Aura", finalAura);
             json.addProperty("notes", interactionNotes(null));
             return json;
         }
@@ -922,6 +1128,7 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("royal_arrow_mark_enabled", false);
             json.addProperty("matching_Tensura_resistance_present", matchingResistance);
             json.addProperty("matching_Tensura_nullification_present", matchingNullification);
+            json.add("matching_Tensura_defense_details", matchingDefenseDetails.deepCopy());
             json.addProperty("penetration_percentage_applied", matchingResistance && !matchingNullification ? spec.stage.penetration : 0.0D);
             json.add("Bow_attributes", bowAttributes.deepCopy());
             json.add("attacker_APO_attributes", attackerAttributes.deepCopy());
@@ -929,20 +1136,35 @@ public final class Phase5FSuiteBBenchmark {
         }
 
         private boolean transformed(HitRecord hit, String trait, boolean magic) {
-            return traitRanks.has(trait) && hit.l2Magic == magic
-                    && hit.familyPost + 0.0001D < hit.familyAfterRecovery;
+            if (!traitRanks.has(trait) || hit.l2Magic != magic || active.family == Family.ENERGY) return false;
+            double before = active.family == Family.SEVERANCE ? hit.physicalIncoming : hit.familyAfterRecovery;
+            double after = active.family == Family.SEVERANCE ? hit.physicalPost : hit.familyPost;
+            return after + 0.0001D < before;
         }
 
         private boolean adaptiveObserved(HitRecord hit) {
-            if (!traitRanks.has("l2hostility:adaptive") || hit.index < 2 || hit.familyAfterRecovery <= 0.0D) return false;
+            double before = active.family == Family.SEVERANCE ? hit.physicalIncoming : hit.familyAfterRecovery;
+            double after = active.family == Family.SEVERANCE ? hit.physicalPost : hit.familyPost;
+            if (!traitRanks.has("l2hostility:adaptive") || hit.index < 2 || before <= 0.0D
+                    || active.family == Family.ENERGY) return false;
             HitRecord previous = hits.stream().filter(value -> value.index == hit.index - 1).findFirst().orElse(null);
-            if (previous == null || previous.familyAfterRecovery <= 0.0D) return false;
-            return hit.familyPost / hit.familyAfterRecovery + 0.0001D
-                    < previous.familyPost / previous.familyAfterRecovery;
+            if (previous == null) return false;
+            double previousBefore = active.family == Family.SEVERANCE
+                    ? previous.physicalIncoming : previous.familyAfterRecovery;
+            double previousAfter = active.family == Family.SEVERANCE ? previous.physicalPost : previous.familyPost;
+            if (previousBefore <= 0.0D) return false;
+            return after / before + 0.0001D < previousAfter / previousBefore;
         }
 
         private double dps() {
             double effective = hits.stream().mapToDouble(HitRecord::resourceDamage).sum();
+            return elapsedTicks <= 0 ? 0.0D : effective / (elapsedTicks / 20.0D);
+        }
+
+        private double resourceImpactPerSecond() {
+            double effective = active.family == Family.ENERGY
+                    ? hits.stream().mapToDouble(HitRecord::energyDrain).sum()
+                    : hits.stream().mapToDouble(HitRecord::resourceDamage).sum();
             return elapsedTicks <= 0 ? 0.0D : effective / (elapsedTicks / 20.0D);
         }
 
@@ -963,24 +1185,46 @@ public final class Phase5FSuiteBBenchmark {
         final int startTick;
         final double preHp;
         final double preShp;
+        final double preMagicules;
+        final double preAura;
+        final double preSeverance;
         final double preAttackerHp;
         final double preAttackerShp;
+        final double preAttackerMagicules;
+        final double preAttackerAura;
         final Set<String> physicalSourceIds = new LinkedHashSet<>();
+        final Set<String> physicalSourceTags = new LinkedHashSet<>();
         final Set<String> familySourceIds = new LinkedHashSet<>();
         final Set<String> familySourceTags = new LinkedHashSet<>();
         final Set<String> dotSourceIds = new LinkedHashSet<>();
         final Set<String> reflectedSourceIds = new LinkedHashSet<>();
         double lastHp;
         double lastShp;
+        double lastMagicules;
+        double lastAura;
         double lastAttackerHp;
         double lastAttackerShp;
+        double lastAttackerMagicules;
+        double lastAttackerAura;
         double postHp;
         double postShp;
+        double postMagicules;
+        double postAura;
+        double postSeverance;
+        double immediatePostMagicules;
+        double immediatePostAura;
+        double immediatePostAttackerMagicules;
+        double immediatePostAttackerAura;
         double targetHpRegen;
         double targetShpRegen;
+        double targetMagiculeRegen;
+        double targetAuraRegen;
         double attackerHpRegen;
         double attackerShpRegen;
+        double attackerMagiculeRegen;
+        double attackerAuraRegen;
         double physicalOriginal;
+        double physicalCombinedOriginal;
         double physicalIncoming;
         double physicalAfterL2;
         double physicalPost;
@@ -999,6 +1243,22 @@ public final class Phase5FSuiteBBenchmark {
         boolean familyCanceledBeforeRecovery;
         boolean nullificationAuthoritative;
         double resistanceBypassLevel;
+        int energyDrainEvents;
+        double energyNativePercentage;
+        double energyStagedPercentage;
+        double severanceProjectileSpeed;
+        double severanceBaseProjectileDamage;
+        double severanceNativeAttackBonus;
+        double severanceStagedAttackBonus;
+        double severanceNativePreRound;
+        double severanceStagedPreRound;
+        double severanceBasePostRound;
+        double severanceNativePostRound;
+        double severanceStagedPostRound;
+        String elementalProjectileId = "";
+        double elementalNativeProjectileDamage;
+        double elementalStagedProjectileDamage;
+        boolean immediateCaptured;
 
         HitRecord(int index, int startTick, LivingEntity target, LivingEntity player) {
             this.index = index;
@@ -1007,10 +1267,31 @@ public final class Phase5FSuiteBBenchmark {
             ResourceState playerResources = resources(player);
             this.preHp = this.lastHp = target.getHealth();
             this.preShp = this.lastShp = targetResources.shp;
+            this.preMagicules = this.lastMagicules = targetResources.magicules;
+            this.preAura = this.lastAura = targetResources.aura;
+            this.preSeverance = severance(target);
             this.preAttackerHp = this.lastAttackerHp = player.getHealth();
             this.preAttackerShp = this.lastAttackerShp = playerResources.shp;
+            this.preAttackerMagicules = this.lastAttackerMagicules = playerResources.magicules;
+            this.preAttackerAura = this.lastAttackerAura = playerResources.aura;
             this.postHp = preHp;
             this.postShp = preShp;
+            this.postMagicules = this.immediatePostMagicules = preMagicules;
+            this.postAura = this.immediatePostAura = preAura;
+            this.postSeverance = preSeverance;
+            this.immediatePostAttackerMagicules = preAttackerMagicules;
+            this.immediatePostAttackerAura = preAttackerAura;
+        }
+
+        void captureImmediate(LivingEntity target, LivingEntity player) {
+            ResourceState targetState = resources(target);
+            ResourceState playerState = resources(player);
+            immediatePostMagicules = targetState.magicules;
+            immediatePostAura = targetState.aura;
+            immediatePostAttackerMagicules = playerState.magicules;
+            immediatePostAttackerAura = playerState.aura;
+            postSeverance = severance(target);
+            immediateCaptured = true;
         }
 
         void observe(LivingEntity target, LivingEntity player) {
@@ -1019,17 +1300,38 @@ public final class Phase5FSuiteBBenchmark {
                 double hp = target.getHealth();
                 if (hp > lastHp) targetHpRegen += hp - lastHp;
                 if (state.shp > lastShp) targetShpRegen += state.shp - lastShp;
+                if (state.magicules > lastMagicules) targetMagiculeRegen += state.magicules - lastMagicules;
+                if (state.aura > lastAura) targetAuraRegen += state.aura - lastAura;
                 lastHp = postHp = hp;
                 lastShp = postShp = state.shp;
+                lastMagicules = postMagicules = state.magicules;
+                lastAura = postAura = state.aura;
+                postSeverance = severance(target);
             }
             if (player != null) {
                 ResourceState state = resources(player);
                 double hp = player.getHealth();
                 if (hp > lastAttackerHp) attackerHpRegen += hp - lastAttackerHp;
                 if (state.shp > lastAttackerShp) attackerShpRegen += state.shp - lastAttackerShp;
+                if (state.magicules > lastAttackerMagicules) attackerMagiculeRegen += state.magicules - lastAttackerMagicules;
+                if (state.aura > lastAttackerAura) attackerAuraRegen += state.aura - lastAttackerAura;
                 lastAttackerHp = hp;
                 lastAttackerShp = state.shp;
+                lastAttackerMagicules = state.magicules;
+                lastAttackerAura = state.aura;
             }
+        }
+
+        double immediateMagiculeDrain() {
+            return Math.max(0.0D, preMagicules - immediatePostMagicules);
+        }
+
+        double immediateAuraDrain() {
+            return Math.max(0.0D, preAura - immediatePostAura);
+        }
+
+        double energyDrain() {
+            return immediateMagiculeDrain() + immediateAuraDrain();
         }
 
         double resourceDamage() {
@@ -1044,7 +1346,7 @@ public final class Phase5FSuiteBBenchmark {
         }
 
         boolean blocked() {
-            return directDamage() == 0.0D && resourceDamage() == 0.0D;
+            return directDamage() == 0.0D && resourceDamage() == 0.0D && energyDrain() == 0.0D;
         }
     }
 
@@ -1054,6 +1356,10 @@ public final class Phase5FSuiteBBenchmark {
         Holder.Reference<Enchantment> enchantment = registry.getHolderOrThrow(
                 ResourceKey.create(Registries.ENCHANTMENT, family.enchantment));
         bow.enchant(enchantment, 1);
+        if (family == Family.ELEMENTAL) {
+            bow.set(DataComponents.BUNDLE_CONTENTS,
+                    new BundleContents(List.of(new ItemStack(requiredItem(EARTH_CORE)))));
+        }
         return bow;
     }
 
@@ -1089,19 +1395,47 @@ public final class Phase5FSuiteBBenchmark {
     }
 
     private static boolean matchingResistance(LivingEntity target, Family family) {
-        return skillToggled(target, switch (family) {
-            case MAGIC -> "MAGIC_RESISTANCE";
-            case HOLY -> "HOLY_ATTACK_RESISTANCE";
-            case SOUL -> "SPIRITUAL_ATTACK_RESISTANCE";
-        });
+        return switch (family) {
+            case MAGIC -> skillToggled(target, "MAGIC_RESISTANCE");
+            case HOLY -> skillToggled(target, "HOLY_ATTACK_RESISTANCE");
+            case SOUL -> skillToggled(target, "SPIRITUAL_ATTACK_RESISTANCE");
+            case ELEMENTAL -> skillToggled(target, "EARTH_ATTACK_RESISTANCE")
+                    || skillToggled(target, "SPIRITUAL_ATTACK_RESISTANCE");
+            case ENERGY, SEVERANCE -> false;
+        };
     }
 
     private static boolean matchingNullification(LivingEntity target, Family family) {
-        return skillToggled(target, switch (family) {
-            case MAGIC -> "MAGIC_NULLIFICATION";
-            case HOLY -> "HOLY_ATTACK_NULLIFICATION";
-            case SOUL -> "SPIRITUAL_ATTACK_NULLIFICATION";
-        });
+        return switch (family) {
+            case MAGIC -> skillToggled(target, "MAGIC_NULLIFICATION");
+            case HOLY -> skillToggled(target, "HOLY_ATTACK_NULLIFICATION");
+            case SOUL -> skillToggled(target, "SPIRITUAL_ATTACK_NULLIFICATION");
+            case ELEMENTAL -> skillToggled(target, "EARTH_ATTACK_NULLIFICATION")
+                    || skillToggled(target, "SPIRITUAL_ATTACK_NULLIFICATION");
+            case ENERGY, SEVERANCE -> false;
+        };
+    }
+
+    private static JsonObject matchingDefenseDetails(LivingEntity target, Family family) {
+        JsonObject json = new JsonObject();
+        switch (family) {
+            case ELEMENTAL -> {
+                json.addProperty("EARTH_ATTACK_RESISTANCE", skillToggled(target, "EARTH_ATTACK_RESISTANCE"));
+                json.addProperty("EARTH_ATTACK_NULLIFICATION", skillToggled(target, "EARTH_ATTACK_NULLIFICATION"));
+                json.addProperty("SPIRITUAL_ATTACK_RESISTANCE", skillToggled(target, "SPIRITUAL_ATTACK_RESISTANCE"));
+                json.addProperty("SPIRITUAL_ATTACK_NULLIFICATION", skillToggled(target, "SPIRITUAL_ATTACK_NULLIFICATION"));
+            }
+            case ENERGY -> json.addProperty("native_operation_uses_damage_resistance", false);
+            case SEVERANCE -> {
+                json.addProperty("native_wound_uses_matching_resistance", false);
+                json.addProperty("native_wound_cancellation", "NO_SEVERANCE entity tag, physical-converted source, or mastered Suppressor");
+            }
+            default -> {
+                json.addProperty("matching_resistance_present", matchingResistance(target, family));
+                json.addProperty("matching_nullification_present", matchingNullification(target, family));
+            }
+        }
+        return json;
     }
 
     private static boolean skillToggled(LivingEntity target, String field) {
@@ -1149,6 +1483,15 @@ public final class Phase5FSuiteBBenchmark {
         }
         catch (Throwable ignored) {
             return new ResourceState(0.0D, 0.0D, 0.0D, 0.0D);
+        }
+    }
+
+    private static double severance(LivingEntity entity) {
+        try {
+            return TensuraStorages.getEffectFrom(entity).getSeveranceAmount();
+        }
+        catch (Throwable ignored) {
+            return 0.0D;
         }
     }
 
@@ -1334,7 +1677,10 @@ public final class Phase5FSuiteBBenchmark {
     private enum Family {
         MAGIC("MAGIC_WEAPON", id("tensura", "magic_weapon"), id("tensura", "magic")),
         HOLY("HOLY_WEAPON", id("tensura", "holy_weapon"), id("tensura", "holy_damage")),
-        SOUL("SOUL_EATER", id("tensura", "soul_eater"), id("tensura", "soul_scatter"));
+        SOUL("SOUL_EATER", id("tensura", "soul_eater"), id("tensura", "soul_scatter")),
+        ELEMENTAL("ELEMENTAL_SLOTTING", id("tensura", "slotting"), id("tensura", "earth_elemental")),
+        ENERGY("ENERGY_STEAL", id("tensura", "energy_steal"), null),
+        SEVERANCE("SEVERANCE", id("tensura", "severance"), null);
 
         final String id;
         final ResourceLocation enchantment;
@@ -1346,11 +1692,15 @@ public final class Phase5FSuiteBBenchmark {
             this.damageType = damageType;
         }
 
+        boolean matchesDamageType(String value) {
+            return damageType != null && damageType.toString().equals(value);
+        }
+
         static Family parse(String value) {
             for (Family family : values()) {
                 if (family.name().equalsIgnoreCase(value) || family.id.equalsIgnoreCase(value)) return family;
             }
-            throw new IllegalArgumentException("phase5f_suite_b_family must be magic, holy, or soul");
+            throw new IllegalArgumentException("phase5f_suite_b_family must be magic, holy, soul, elemental, energy, or severance");
         }
     }
 
@@ -1363,7 +1713,12 @@ public final class Phase5FSuiteBBenchmark {
     private record Stage(String name, Long ep, double bonus, double penetration) {
         double coefficient(Family family) {
             if (name.equals("Native")) return 1.0D;
-            return 1.0D + bonus * (family == Family.SOUL ? 1.0D : 2.0D);
+            return switch (family) {
+                case SOUL, ENERGY -> 1.0D + bonus;
+                case SEVERANCE -> 1.0D + bonus * ((2.4D + SEVERANCE_NATIVE_ATTACK_BONUS)
+                        / SEVERANCE_NATIVE_ATTACK_BONUS);
+                default -> 1.0D + 2.0D * bonus;
+            };
         }
     }
 
