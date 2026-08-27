@@ -56,6 +56,7 @@ every other boss has `54` cases. Diagnostic output is explicitly rejected.
 | Magic Weapon | `tensura:orc_disaster` | 175, 250, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 | Magic Weapon | `tensura:elemental_colossus` | 112, 150, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 | Magic Weapon | `tensura_neb:carrion` | 150, 210, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
+| Magic Weapon | `tensura_neb:rimuru_ogre_fight` | 167, 250, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 
 Luminous has matching Magic Resistance and no Magic Nullification in every
 captured profile. Native through S4 remained fully blocked. The locked recovery
@@ -102,3 +103,10 @@ were `EFFECTIVELY DEAD`; S5-S7 recovered measurable progression at roughly
 included Adaptive and compressed those stages to about 0.64, 1.36, and 2.90
 DPS, respectively, making that profile `MARGINAL`. The repeated-hit rows record
 the Adaptive reductions, with no unexpected L2 bypass.
+
+Rimuru Ogre Fight naturally rolled Adaptive at every level. It compressed the
+family to roughly 1.28 Native DPS and 2.30 S7 DPS, so the progression is
+`MARGINAL` despite being measurable. Lv1000 also rolled Dementor and reduced
+the range further to about 0.48-0.62 DPS. Lv167 Regenerate was observed, but
+the applied-event cap kept capped/background healing out of DPS. No matching
+Magic Resistance/Nullification or unexpected L2 bypass was present.
