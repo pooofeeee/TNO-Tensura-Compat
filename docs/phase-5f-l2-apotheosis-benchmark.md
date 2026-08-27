@@ -677,6 +677,44 @@ smoke; no damage/balance conclusion or 39-trait matrix is included.
 The official Apotheosis winner remains unchanged:
 `ANCIENT_SINGLE_PROSPEROUS_SPECTRAL`.
 
+## Suite A APO-only boss benchmark
+
+Suite A locks the official `ANCIENT_SINGLE_PROSPEROUS_SPECTRAL` bow, leaves the
+TNO scalable Engraving family absent (`TNO_family = NONE`, `TNO_stage = Native`),
+and uses ten released arrows with a 200-tick observation window per case. Stress
+levels use only the benchmark's temporary in-memory ceiling lift for native L2
+reinitialization; they remain explicitly non-legal profiles and do not modify
+the datapack or production balance.
+
+The accepted post-fix captures below all report initialized L2 attachments, the
+correct APO/TNO profile, complete observation windows, structured per-hit rows,
+and zero case errors. The tracked raw JSONL evidence is documented in
+[`docs/benchmarks/phase5f-suite-a/README.md`](benchmarks/phase5f-suite-a/README.md).
+
+| Boss / level | Mode | Shots / crits / blocked | Direct | DoT | Regen | DPS | Result |
+|---|---|---:|---:|---:|---:|---:|---|
+| Luminous 215 | Natural representative | 10 / 0 / 10 | 0 | 0 | 0 | 0 | Native defenses cancelled every arrow |
+| Luminous 300 | Natural maximum | 10 / 0 / 10 | 0 | 0 | 0 | 0 | Native defenses cancelled every arrow |
+| Luminous 600/800/1000 | Stress | 10 / 0 / 10 each | 0 | 0 | 0 | 0 | Fully blocked at every stress level |
+| Hinata 200 | Natural representative | 10 / 0 / 10 | 0 | 0 | 0 | 0 | Native defenses cancelled every arrow |
+| Hinata 280 | Natural maximum | 10 / 0 / 10 | 0 | 0 | 0 | 0 | Native defenses cancelled every arrow |
+| Hinata 300/600/800/1000 | Stress | 10 / 0 / 10 each | 0 | 0 | 0 | 0 | Fully blocked at every stress level |
+| Gazel 185 | Natural representative | 10 / 0 / 10 | 0 | 0 | 0 | 0 | Native defenses cancelled every arrow |
+| Gazel 260 | Natural maximum | 10 / 0 / 10 | 0 | 0 | 0 | 0 | Native defenses cancelled every arrow |
+| Gazel 300/600/800/1000 | Stress | 10 / 0 / 10 each | 0 | 0 | 0 | 0 | Fully blocked at every stress level |
+| Orc Disaster 175 | Natural representative | 9 / 8 / 1 | 10560.2271 | 20.4000 | 1348.6401 | 1306.2503 | Defeated in 9 hits / 162 ticks |
+| Orc Disaster 250 | Natural maximum | 10 / 5 / 5 | 7681.8533 | 12.0000 | 1158 | 769.3853 | Survived at 3464.1462 HP |
+| Orc Disaster 300/600/800/1000 | Stress | 10 / 0 / 10 each | 0 | 0 | 0 | 0 | Fully blocked at every stress level |
+
+Tank's armor/toughness increase is visible in the captured snapshots. Reflect
+appears on multiple fully blocked profiles but produced no reflected damage.
+Regenerate is directly measurable on Orc Disaster when damage lands; at its
+natural representative it restored 1348.6401 HP during the fixed window, and at
+the natural maximum it restored 1158 HP. Adaptive, Dispell, Dementor, Reprint,
+and Ragnarok rolls are preserved with exact ranks in the JSONL case records;
+their presence is not presented as isolated causation where native defense had
+already reduced every hit to zero.
+
 ## Remaining L2 benchmark work
 
 The final instance config retains `maxMobLevel = 3000`, `maxTraitCount = 9`, and

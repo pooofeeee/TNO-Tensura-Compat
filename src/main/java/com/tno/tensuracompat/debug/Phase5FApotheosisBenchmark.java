@@ -686,7 +686,14 @@ public final class Phase5FApotheosisBenchmark {
         }
     }
 
-        private static List<Profile> buildProfiles(MinecraftServer server) throws ReflectiveOperationException {
+    static ItemStack buildOfficialWinner(MinecraftServer server) throws ReflectiveOperationException {
+        ProfileSpec spec = ancient("ANCIENT_SINGLE_PROSPEROUS_SPECTRAL", ANCIENT_PIERCING,
+                List.of("core/combatant", "core/breach", "core/lightning", "core/warlord", "core/warlord"),
+                List.of(ANCIENT_PROSPEROUS, ANCIENT_SPECTRAL));
+        return construct(server, spec).stack.copy();
+    }
+
+    private static List<Profile> buildProfiles(MinecraftServer server) throws ReflectiveOperationException {
         List<ProfileSpec> specs = List.of(
                 genesis("GENESIS_SINGLE_CRITICAL_FOCUS", false,
                         List.of("core/combatant", "core/breach", "core/lightning", "core/warlord",
