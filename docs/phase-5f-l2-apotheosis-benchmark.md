@@ -711,6 +711,9 @@ and zero case errors. The tracked raw JSONL evidence is documented in
 | Carrion 150 | Natural representative | 10 / 0 / 10 | 0 | 0 | 0 | 0 | Native defenses cancelled every arrow |
 | Carrion 210 | Natural maximum | 10 / 0 / 10 | 0 | 0 | 0 | 0 | Native defenses cancelled every arrow |
 | Carrion 300/600/800/1000 | Stress | 10 / 0 / 10 each | 0 | 0 | 0 | 0 | Fully blocked at every stress level |
+| Rimuru Ogre Fight 167 | Natural representative | 10 / 0 / 10 | 0 | 0 | 0 | 0 | Native defenses cancelled every arrow |
+| Rimuru Ogre Fight 250 | Natural maximum | 10 / 0 / 10 | 0 | 0 | 0 | 0 | Native defenses cancelled every arrow |
+| Rimuru Ogre Fight 300/600/800/1000 | Stress | 10 / 0 / 10 each | 0 | 0 | 0 | 0 | Fully blocked at every stress level |
 
 Tank's armor/toughness increase is visible in the captured snapshots. Reflect
 appears on multiple fully blocked profiles but produced no reflected damage.
@@ -732,6 +735,11 @@ stress cases. Its generated defensive rolls included Tank in every case,
 Regenerate in every case, Reflect 3 at stress level 600, and Dispell 1 at stress
 level 800. Because no damage landed, regeneration and reflected damage both
 remained zero; Ragnarok 2 at level 1000 did not change that outcome.
+
+Rimuru Ogre Fight fully blocked all 60 released arrows. Adaptive 2 appeared in
+every case; Dispell 3 and Reflect 1 co-occurred at level 600, while Dementor 1,
+Tank 5, and Ragnarok 1 co-occurred at level 1000. None of those profiles
+recorded direct, DoT, regeneration, or reflected damage during the fixed window.
 
 ## Remaining L2 benchmark work
 
