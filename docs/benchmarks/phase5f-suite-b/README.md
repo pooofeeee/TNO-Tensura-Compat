@@ -68,6 +68,7 @@ every other boss has `54` cases. Diagnostic output is explicitly rejected.
 | Soul Eater | `tensura:hinata_sakaguchi` | 200, 280, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 | Soul Eater | `tensura:gazel_dwargo` | 185, 260, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 | Soul Eater | `tensura:orc_disaster` | 175, 250, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
+| Soul Eater | `tensura:elemental_colossus` | 112, 150, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 
 Luminous has matching Magic Resistance and no Magic Nullification in every
 captured profile. Native through S4 remained fully blocked. The locked recovery
@@ -248,3 +249,8 @@ Orc Disaster produced only residual physical Royal Arrow damage, ranging from
 in all 540 rows, so Stage had no native Soul amount to scale. Neither matching
 Soul Resistance nor Soul Nullification was present, and no L2 layer was
 bypassed.
+
+Elemental Colossus is `EFFECTIVELY DEAD` for Soul Eater: all 540 rows were
+zero. Neither matching Soul Resistance nor Soul Nullification was present, but
+no native Soul event was generated, leaving no amount for Stage scaling. No L2
+layer was bypassed.
