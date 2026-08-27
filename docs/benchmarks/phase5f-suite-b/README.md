@@ -191,3 +191,32 @@ Rimuru Ogre Fight naturally rolled Adaptive at every level, compressing Holy
 Weapon to roughly 1.28 Native DPS and 2.30 S7 DPS. It is `MARGINAL` across the
 boss. No matching Holy Resistance/Nullification or unexpected L2 bypass was
 observed.
+
+## Holy Weapon family summary
+
+Holy Weapon is complete: seven bosses, 369 cases, 3,690 per-hit rows, and zero
+case errors. Average DPS across the 41 boss/level profiles increased from 2.99
+(Native) to 9.46 (S7). Seventeen profiles remained zero through S4; six Gazel
+profiles remained zero at S7. Luminous, Hinata, and Gazel had matching Holy
+Resistance; no captured profile had Holy Nullification.
+
+The actual `tensura:holy_damage` source was never in `neoforge:is_magic`, so
+Dispell transformed zero rows. Adaptive transformed 756 rows across Luminous,
+Orc Disaster, Elemental Colossus, and Rimuru profiles. Dementor transformed 90
+Orc Disaster Lv300 rows. No L2 layer was unexpectedly bypassed.
+
+Evidence classifications:
+
+- Luminous and Hinata: Native-S4 `EFFECTIVELY DEAD`; S5 `MARGINAL`; S6-S7
+  generally `MEANINGFUL/BALANCED`, except Luminous Lv1000 Adaptive
+  (`MARGINAL`).
+- Gazel: `EFFECTIVELY DEAD` at every stage and level.
+- Orc Disaster: generally `MEANINGFUL/BALANCED`; Lv300 Dementor and Lv800
+  Adaptive profiles `MARGINAL`.
+- Elemental Colossus: generally `MEANINGFUL/BALANCED`; Lv600/Lv800 Adaptive
+  profiles `MARGINAL`.
+- Carrion: `MEANINGFUL/BALANCED` across all captured profiles.
+- Rimuru Ogre Fight: `MARGINAL` across the boss because every profile rolled
+  Adaptive.
+
+No Holy Weapon profile reached `TOO STRONG` or `OP`; no balance value changed.
