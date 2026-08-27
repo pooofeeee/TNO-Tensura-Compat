@@ -58,6 +58,7 @@ every other boss has `54` cases. Diagnostic output is explicitly rejected.
 | Magic Weapon | `tensura_neb:carrion` | 150, 210, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 | Magic Weapon | `tensura_neb:rimuru_ogre_fight` | 167, 250, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 | Holy Weapon | `tensura_neb:luminous_valentine` | 215, 300, 600, 800, 1000 | 45 | 450 | 0 | Accepted |
+| Holy Weapon | `tensura:hinata_sakaguchi` | 200, 280, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 
 Luminous has matching Magic Resistance and no Magic Nullification in every
 captured profile. Native through S4 remained fully blocked. The locked recovery
@@ -153,3 +154,8 @@ were `EFFECTIVELY DEAD`; S5-S7 recovered roughly 3.2-3.36, 7.14-7.48, and
 compressed those stages to about 0.64, 1.36, and 2.88 DPS (`MARGINAL`). The
 actual `tensura:holy_damage` source was not in `neoforge:is_magic`, and no L2
 layer was unexpectedly bypassed.
+
+Hinata likewise had matching Holy Resistance without Holy Nullification.
+Native-S4 were `EFFECTIVELY DEAD`; S5 was `MARGINAL`, while S6-S7 produced
+consistent relative progression at about 6.8-7.48 and 14.4-15.12 DPS. No
+Adaptive or Dementor profile was generated, and no L2 layer was bypassed.
