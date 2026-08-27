@@ -67,6 +67,7 @@ every other boss has `54` cases. Diagnostic output is explicitly rejected.
 | Soul Eater | `tensura_neb:luminous_valentine` | 215, 300, 600, 800, 1000 | 45 | 450 | 0 | Accepted |
 | Soul Eater | `tensura:hinata_sakaguchi` | 200, 280, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 | Soul Eater | `tensura:gazel_dwargo` | 185, 260, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
+| Soul Eater | `tensura:orc_disaster` | 175, 250, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 
 Luminous has matching Magic Resistance and no Magic Nullification in every
 captured profile. Native through S4 remained fully blocked. The locked recovery
@@ -240,4 +241,10 @@ bypassed.
 Gazel is likewise `EFFECTIVELY DEAD` for Soul Eater: all 540 rows were zero.
 Matching Soul Resistance was present without Nullification, but no native Soul
 event was generated, leaving no damage for S7 recovery. No L2 layer was
+bypassed.
+
+Orc Disaster produced only residual physical Royal Arrow damage, ranging from
+0.143 to 1.667 DPS across the 54 cases. `engraving_native_amount` remained zero
+in all 540 rows, so Stage had no native Soul amount to scale. Neither matching
+Soul Resistance nor Soul Nullification was present, and no L2 layer was
 bypassed.
