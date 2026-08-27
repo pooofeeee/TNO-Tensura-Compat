@@ -52,6 +52,7 @@ every other boss has `54` cases. Diagnostic output is explicitly rejected.
 | --- | --- | ---: | ---: | ---: | ---: | --- |
 | Magic Weapon | `tensura_neb:luminous_valentine` | 215, 300, 600, 800, 1000 | 45 | 450 | 0 | Accepted |
 | Magic Weapon | `tensura:hinata_sakaguchi` | 200, 280, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
+| Magic Weapon | `tensura:gazel_dwargo` | 185, 260, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 
 Luminous has matching Magic Resistance and no Magic Nullification in every
 captured profile. Native through S4 remained fully blocked. The locked recovery
@@ -68,3 +69,10 @@ recorded engraving damage for all 540 rows, no L2 layer was unexpectedly
 bypassed, and the naturally generated profiles in this accepted rerun did not
 include Adaptive. Dispell was present, but the source again was not tagged
 `neoforge:is_magic` and was not transformed by Dispell.
+
+Gazel is `EFFECTIVELY DEAD` for this family in all six profiles and all nine
+stages: every row measured zero DPS. The legitimate Royal Arrow releases
+completed, but Gazel admitted no projectile/family damage event, leaving
+`engraving_native_amount = 0` and no damage-source IDs. Although Magic
+Resistance was present and Magic Nullification was not, even S7 had no
+matching-resistance damage to recover. No L2 layer was bypassed.
