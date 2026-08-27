@@ -57,6 +57,7 @@ every other boss has `54` cases. Diagnostic output is explicitly rejected.
 | Magic Weapon | `tensura:elemental_colossus` | 112, 150, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 | Magic Weapon | `tensura_neb:carrion` | 150, 210, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 | Magic Weapon | `tensura_neb:rimuru_ogre_fight` | 167, 250, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
+| Holy Weapon | `tensura_neb:luminous_valentine` | 215, 300, 600, 800, 1000 | 45 | 450 | 0 | Accepted |
 
 Luminous has matching Magic Resistance and no Magic Nullification in every
 captured profile. Native through S4 remained fully blocked. The locked recovery
@@ -143,3 +144,12 @@ Evidence classifications:
 
 No Magic Weapon profile reached `TOO STRONG` or `OP`. This is benchmark
 classification only; no balance value was changed.
+
+## Holy Weapon captures
+
+Luminous had matching Holy Resistance and no Holy Nullification. Native-S4
+were `EFFECTIVELY DEAD`; S5-S7 recovered roughly 3.2-3.36, 7.14-7.48, and
+14.4-15.12 DPS in four profiles. Its Lv1000 legal roll included Adaptive and
+compressed those stages to about 0.64, 1.36, and 2.88 DPS (`MARGINAL`). The
+actual `tensura:holy_damage` source was not in `neoforge:is_magic`, and no L2
+layer was unexpectedly bypassed.
