@@ -63,6 +63,7 @@ every other boss has `54` cases. Diagnostic output is explicitly rejected.
 | Holy Weapon | `tensura:orc_disaster` | 175, 250, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 | Holy Weapon | `tensura:elemental_colossus` | 112, 150, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 | Holy Weapon | `tensura_neb:carrion` | 150, 210, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
+| Holy Weapon | `tensura_neb:rimuru_ogre_fight` | 167, 250, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 
 Luminous has matching Magic Resistance and no Magic Nullification in every
 captured profile. Native through S4 remained fully blocked. The locked recovery
@@ -185,3 +186,8 @@ Carrion had neither matching Holy Resistance nor Nullification. All six
 profiles showed broadly `MEANINGFUL/BALANCED` progression from roughly 8
 Native DPS to 14.4-15.12 S7 DPS. No Adaptive/Dementor profile or unexpected
 L2 bypass was observed.
+
+Rimuru Ogre Fight naturally rolled Adaptive at every level, compressing Holy
+Weapon to roughly 1.28 Native DPS and 2.30 S7 DPS. It is `MARGINAL` across the
+boss. No matching Holy Resistance/Nullification or unexpected L2 bypass was
+observed.
