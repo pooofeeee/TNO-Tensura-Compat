@@ -66,6 +66,7 @@ every other boss has `54` cases. Diagnostic output is explicitly rejected.
 | Holy Weapon | `tensura_neb:rimuru_ogre_fight` | 167, 250, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 | Soul Eater | `tensura_neb:luminous_valentine` | 215, 300, 600, 800, 1000 | 45 | 450 | 0 | Accepted |
 | Soul Eater | `tensura:hinata_sakaguchi` | 200, 280, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
+| Soul Eater | `tensura:gazel_dwargo` | 185, 260, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 
 Luminous has matching Magic Resistance and no Magic Nullification in every
 captured profile. Native through S4 remained fully blocked. The locked recovery
@@ -232,6 +233,11 @@ Royal Arrow hits, leaving no eligible amount for Stage scaling. No L2 layer was
 bypassed.
 
 Hinata is likewise `EFFECTIVELY DEAD` for Soul Eater: all 540 rows were zero.
+Matching Soul Resistance was present without Nullification, but no native Soul
+event was generated, leaving no damage for S7 recovery. No L2 layer was
+bypassed.
+
+Gazel is likewise `EFFECTIVELY DEAD` for Soul Eater: all 540 rows were zero.
 Matching Soul Resistance was present without Nullification, but no native Soul
 event was generated, leaving no damage for S7 recovery. No L2 layer was
 bypassed.
