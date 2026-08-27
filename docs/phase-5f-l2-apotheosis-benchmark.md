@@ -741,6 +741,54 @@ every case; Dispell 3 and Reflect 1 co-occurred at level 600, while Dementor 1,
 Tank 5, and Ragnarok 1 co-occurred at level 1000. None of those profiles
 recorded direct, DoT, regeneration, or reflected damage during the fixed window.
 
+### Suite A completion summary
+
+All seven isolated official captures passed: 41 cases, 409 machine-readable
+per-shot rows, and zero `case_error` records. The single short case is Orc
+Disaster's valid nine-hit defeat at natural representative level 175.
+
+| Level group | Cases | APO-only outcome |
+|---|---:|---|
+| Natural representative | 7 | Five bosses fully blocked; Elemental allowed only 0.5600 DPS of post-release Wither damage; Orc allowed 1306.2503 DPS and was defeated |
+| Natural maximum | 7 | Five bosses fully blocked; Elemental allowed only 0.1520 DPS of post-release Wither damage; Orc allowed 769.3853 DPS and survived |
+| Stress 300 | 6 | All six above-ceiling stress profiles produced 0 DPS; Luminous's legal natural maximum is already level 300 and also produced 0 DPS |
+| Stress 600 | 7 | Every boss produced 0 DPS |
+| Stress 800 | 7 | Every boss produced 0 DPS |
+| Stress 1000 | 7 | Every boss produced 0 DPS |
+
+Classification for this exact runtime stack and accepted random trait rolls:
+
+- Fully block APO physical damage at every tested level: Luminous, Hinata,
+  Gazel, Carrion, and Rimuru Ogre Fight.
+- Heavily suppress APO damage: Elemental Colossus, which blocked every direct
+  event and admitted only tiny natural-level Wither ticks; Orc Disaster at all
+  four stress levels.
+- Allow meaningful APO damage: Orc Disaster at its natural representative and
+  natural maximum levels only.
+- Regeneration materially affected the two damaging Orc cases (1348.6401 and
+  1158 HP restored). Elemental's small natural-level Wither totals were almost
+  entirely offset by ordinary observed healing. Regenerate rolls on fully
+  blocked profiles had no damage to restore.
+
+Notable defensive-trait coverage across the 41 accepted cases:
+
+| Trait | Cases / ranks observed | Runtime observation |
+|---|---|---|
+| Tank | 29; ranks 1-5 | Armor/toughness changes were recorded; it coexisted with both Orc's damaging natural cases and many fully blocked cases, so it is not isolated as the universal cancellation source |
+| Adaptive | 11; ranks 1-3 | Every Adaptive case produced 0 DPS, including all six Rimuru cases |
+| Reflect | 19; ranks 1-3 | No reflected damage was recorded because the corresponding direct events were cancelled |
+| Regenerate | 24; ranks 1-5 | Measurable only where damage landed; zero on untouched full-health targets |
+| Dispell | 14; ranks 1-3 | All Dispell profiles produced 0 DPS, including every Hinata and Luminous case |
+| Dementor | 5; rank 1 | All five cases produced 0 DPS |
+| Ragnarok | 5; ranks 1-2 | All five cases produced 0 DPS |
+| Protection | 0 | Not naturally generated in this accepted Suite A sample |
+| Repelling | 0 | Not naturally generated in this accepted Suite A sample |
+| Arena | 0 | Not naturally generated in this accepted Suite A sample |
+
+No missing trait was forced: Suite A preserves natural/legal L2 generation as
+the balance evidence. Exact boss, level, trait IDs/ranks, resources, attributes,
+per-hit values, damage types, and final state remain in the tracked JSONL files.
+
 ## Remaining L2 benchmark work
 
 The final instance config retains `maxMobLevel = 3000`, `maxTraitCount = 9`, and
@@ -765,6 +813,10 @@ or changed here.
   attachment, natural-roll, requested-level and Tensura-resource results for all
   seven requested bosses above. The temporary local RCON switch used to issue
   commands was restored to disabled and is not tracked.
+- Seven isolated Suite A `runServer` captures completed with the locked APO-only
+  profile: 41 accepted cases, 409 per-shot records, and zero case errors. The
+  ignored runtime logs were reduced to validated tracked JSONL evidence before
+  each subsequent server run.
 - `runClient` with the same optional exact-stack directory completed mod loading,
   initialized OpenAL, created the GUI atlas and preloaded Patchouli content with
   no fatal/crash marker. It was manually stopped after main-menu readiness.

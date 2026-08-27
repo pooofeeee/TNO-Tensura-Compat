@@ -5,6 +5,9 @@ from the accepted post-fix official server captures. Each file contains its
 catalog, case-start records, every per-shot row, case results, and final suite
 result exactly as emitted by the runtime harness.
 
+Checkpoint 1 is complete: seven bosses, 41 cases, 409 per-shot rows, and zero
+case errors are preserved here.
+
 Locked protocol:
 
 - APO profile: `ANCIENT_SINGLE_PROSPEROUS_SPECTRAL`
