@@ -55,6 +55,7 @@ every other boss has `54` cases. Diagnostic output is explicitly rejected.
 | Magic Weapon | `tensura:gazel_dwargo` | 185, 260, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 | Magic Weapon | `tensura:orc_disaster` | 175, 250, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 | Magic Weapon | `tensura:elemental_colossus` | 112, 150, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
+| Magic Weapon | `tensura_neb:carrion` | 150, 210, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 
 Luminous has matching Magic Resistance and no Magic Nullification in every
 captured profile. Native through S4 remained fully blocked. The locked recovery
@@ -94,3 +95,10 @@ provisionally `MEANINGFUL/BALANCED`. Its Lv800 legal roll included Dementor;
 because the actual Magic Weapon source is not L2-magic-tagged, Dementor reduced
 each S7 event from 14.4 to about 3.85. That compressed profile is `MARGINAL`,
 and its recorded Dementor transforms demonstrate that Stage did not bypass L2.
+
+Carrion had matching Magic Resistance and no Magic Nullification. Native-S4
+were `EFFECTIVELY DEAD`; S5-S7 recovered measurable progression at roughly
+3.2-3.36, 6.8-7.14, and 14.4-15.12 DPS in five profiles. The Lv300 legal roll
+included Adaptive and compressed those stages to about 0.64, 1.36, and 2.90
+DPS, respectively, making that profile `MARGINAL`. The repeated-hit rows record
+the Adaptive reductions, with no unexpected L2 bypass.
