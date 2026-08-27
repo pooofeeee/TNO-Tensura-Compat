@@ -60,6 +60,7 @@ every other boss has `54` cases. Diagnostic output is explicitly rejected.
 | Holy Weapon | `tensura_neb:luminous_valentine` | 215, 300, 600, 800, 1000 | 45 | 450 | 0 | Accepted |
 | Holy Weapon | `tensura:hinata_sakaguchi` | 200, 280, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 | Holy Weapon | `tensura:gazel_dwargo` | 185, 260, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
+| Holy Weapon | `tensura:orc_disaster` | 175, 250, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 
 Luminous has matching Magic Resistance and no Magic Nullification in every
 captured profile. Native through S4 remained fully blocked. The locked recovery
@@ -165,3 +166,9 @@ Gazel is `EFFECTIVELY DEAD` for Holy Weapon at every stage and level. All 540
 rows were zero. Matching Holy Resistance was present without Nullification,
 but Gazel admitted no Holy engraving event, so even S7 had no damage to
 recover. No L2 layer was bypassed.
+
+Orc Disaster had neither matching Holy Resistance nor Nullification. Four
+profiles showed broadly `MEANINGFUL/BALANCED` progression (roughly 8-16.7
+DPS). Lv300 Dementor compressed the family to about 3.1-4.0 DPS, while Lv800
+Adaptive compressed it to about 1.8-3.4 DPS; both are `MARGINAL` profiles.
+The transforms were captured after Stage scaling, with no unexpected bypass.
