@@ -110,3 +110,36 @@ family to roughly 1.28 Native DPS and 2.30 S7 DPS, so the progression is
 the range further to about 0.48-0.62 DPS. Lv167 Regenerate was observed, but
 the applied-event cap kept capped/background healing out of DPS. No matching
 Magic Resistance/Nullification or unexpected L2 bypass was present.
+
+## Magic Weapon family summary
+
+Magic Weapon is complete: seven bosses, 369 cases, 3,690 per-hit rows, and zero
+case errors. Across the 41 boss/level profiles, average DPS rose from 2.09
+(Native) to 9.90 (S7). Twenty-three profiles remained at zero through S4; six
+profiles remained zero even at S7 (all Gazel profiles). No captured boss had
+matching Magic Nullification, and no unexpected L2 bypass was recorded.
+
+The actual `tensura:magic` source was never in `neoforge:is_magic`. Consequently
+Dispell transformed zero rows even when naturally present. Dementor correctly
+treated this source as non-magic and transformed 180 rows across Elemental
+Colossus Lv800 and Rimuru Lv1000. Adaptive reductions were recorded on 590 rows
+across Orc Disaster, Carrion, and Rimuru profiles. These live transforms remain
+authoritative after Stage scaling and matching-Resistance recovery.
+
+Evidence classifications:
+
+- Luminous and Hinata: Native-S4 `EFFECTIVELY DEAD`; S5 `MARGINAL`; S6-S7
+  `MEANINGFUL/BALANCED` as relative progression, though still small against
+  their full boss resources.
+- Gazel: `EFFECTIVELY DEAD` at every stage and level.
+- Orc Disaster: generally `MEANINGFUL/BALANCED`; Lv600 Adaptive profile
+  `MARGINAL`/ambiguous.
+- Elemental Colossus: generally `MEANINGFUL/BALANCED`; Lv800 Dementor profile
+  `MARGINAL`.
+- Carrion: Native-S4 `EFFECTIVELY DEAD`; S5 `MARGINAL`; S6-S7 generally
+  `MEANINGFUL/BALANCED`, except the Lv300 Adaptive profile (`MARGINAL`).
+- Rimuru Ogre Fight: `MARGINAL` across the family because Adaptive was present
+  in every captured profile; Lv1000 was further compressed by Dementor.
+
+No Magic Weapon profile reached `TOO STRONG` or `OP`. This is benchmark
+classification only; no balance value was changed.
