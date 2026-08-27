@@ -90,7 +90,9 @@ foreach ($group in $grouped) {
     if ((Compare-Object $stages $expectedStages).Count -ne 0) {
         throw "Level profile $($group.Name) is missing one or more locked stages."
     }
-    $traitPackages = @($group.Group.Value.traits | ForEach-Object { $_ | ConvertTo-Json -Compress } | Sort-Object -Unique)
+    $traitPackages = @($group.Group | ForEach-Object {
+        ConvertTo-Json -InputObject @($_.Value.traits) -Compress
+    } | Sort-Object -Unique)
     if ($traitPackages.Count -ne 1) {
         throw "Level profile $($group.Name) changed L2 traits across stages."
     }

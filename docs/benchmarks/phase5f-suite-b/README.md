@@ -48,4 +48,14 @@ every other boss has `54` cases. Diagnostic output is explicitly rejected.
 
 ## Checkpoint status
 
-No official Suite B boss capture has been accepted yet.
+| Family | Boss | Levels | Cases | Per-hit rows | Errors | Status |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| Magic Weapon | `tensura_neb:luminous_valentine` | 215, 300, 600, 800, 1000 | 45 | 450 | 0 | Accepted |
+
+Luminous has matching Magic Resistance and no Magic Nullification in every
+captured profile. Native through S4 remained fully blocked. The locked recovery
+fixture produced measurable progression at S5-S7 (roughly 3.2-3.36, 6.8-7.14,
+and 14.4-15.12 DPS respectively). Its actual `tensura:magic` source was not in
+`neoforge:is_magic`, so naturally rolled L2 Dispell did not transform these
+events. These are capture facts, not balance conclusions; family-wide
+classification is deferred until all seven Magic Weapon bosses are complete.
