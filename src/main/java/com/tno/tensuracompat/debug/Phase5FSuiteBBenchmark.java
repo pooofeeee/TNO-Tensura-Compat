@@ -677,11 +677,15 @@ public final class Phase5FSuiteBBenchmark {
             if (!type.equals(id("tensura", "stone_shot"))) {
                 throw new IllegalStateException("one-Earth-core Slotting release created unexpected projectile " + type);
             }
+            if (!fromBenchmarkPlayer(projectile.getOwner())) {
+                throw new IllegalStateException("native Slotting projectile did not retain the benchmark player owner");
+            }
             try {
                 double nativeDamage = numberValue(invoke(projectile, "getDamage")).doubleValue();
                 double stagedDamage = nativeDamage * currentCase().stage.coefficient(family);
                 invoke(projectile, "setDamage", (float) stagedDamage);
                 currentHit.elementalProjectileId = type.toString();
+                currentHit.elementalOwnerRetained = true;
                 currentHit.elementalNativeProjectileDamage = nativeDamage;
                 currentHit.elementalStagedProjectileDamage = stagedDamage;
                 double speed = projectile.getDeltaMovement().length();
@@ -1028,8 +1032,13 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("family_source_is_l2_magic", hit.l2Magic);
             json.addProperty("element", active.family == Family.ELEMENTAL ? "EARTH" : "NONE");
             json.addProperty("slotting_projectile_id", hit.elementalProjectileId);
+            json.addProperty("slotting_owner_retained", hit.elementalOwnerRetained);
             json.addProperty("slotting_native_projectile_damage", hit.elementalNativeProjectileDamage);
             json.addProperty("slotting_after_stage_projectile_damage", hit.elementalStagedProjectileDamage);
+            json.addProperty("slotting_stage_scoped_to_native_projectile_damage",
+                    active.family != Family.ELEMENTAL || (hit.physicalOriginal == 0.0D
+                            && Math.abs(hit.elementalStagedProjectileDamage
+                            - hit.elementalNativeProjectileDamage * spec.stage.coefficient(active.family)) < 0.0001D));
             json.addProperty("royal_arrow_created", active.family != Family.ELEMENTAL);
             json.addProperty("physical_original_before_stage", hit.physicalOriginal);
             json.addProperty("engraving_native_amount", hit.familyRaw);
@@ -1175,7 +1184,9 @@ public final class Phase5FSuiteBBenchmark {
             if (matchingNullification) notes.add("matching Tensura Nullification kept authoritative");
             else if (matchingResistance) notes.add("matching Tensura Resistance measured before benchmark recovery");
             if (spec.mode == LevelMode.STRESS) notes.add("controlled level above/independent of natural entity ceiling");
-            if (hit != null && hit.blocked()) notes.add("released Royal Arrow produced no net HP/SHP damage");
+            if (hit != null && hit.blocked()) notes.add(active.family == Family.ELEMENTAL
+                    ? "released native Slotting projectile produced no net HP/SHP damage"
+                    : "released Royal Arrow produced no net HP/SHP damage");
             return String.join("; ", notes);
         }
     }
@@ -1256,6 +1267,7 @@ public final class Phase5FSuiteBBenchmark {
         double severanceNativePostRound;
         double severanceStagedPostRound;
         String elementalProjectileId = "";
+        boolean elementalOwnerRetained;
         double elementalNativeProjectileDamage;
         double elementalStagedProjectileDamage;
         boolean immediateCaptured;
