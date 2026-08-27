@@ -1,8 +1,9 @@
 # Phase 5F — L2 / Apotheosis / TNO Benchmark Plan
 
-Status: runtime instrumentation and the Apotheosis-only controlled benchmark are
-complete. The full L2 trait/boss matrix remains future work. No balance values
-are changed by this phase.
+Status: runtime instrumentation, the Apotheosis-only controlled benchmark, and
+Suite B Checkpoint 2 for Magic Weapon, Holy Weapon, and Soul Eater are complete.
+The full L2 trait/boss matrix remains future work. No balance values are changed
+by this phase.
 
 ## Goal
 
@@ -788,6 +789,51 @@ Notable defensive-trait coverage across the 41 accepted cases:
 No missing trait was forced: Suite A preserves natural/legal L2 generation as
 the balance evidence. Exact boss, level, trait IDs/ranks, resources, attributes,
 per-hit values, damage types, and final state remain in the tracked JSONL files.
+
+## Suite B Checkpoint 2 completion
+
+Checkpoint 2 is closed from 21 accepted machine-readable boss artifacts: seven
+each for Magic Weapon, Holy Weapon, and Soul Eater. The locked Suite B protocol
+produced 1,107 cases and 11,070 per-hit rows with zero unresolved `case_error`
+records, APO profile `NONE` throughout, and no unexpected L2 bypass.
+
+| Family | Bosses | Cases | Rows | Average DPS Native -> S7 | Zero through S4 / at S7 | Result |
+|---|---:|---:|---:|---:|---:|---|
+| Magic Weapon | 7 | 369 | 3,690 | 2.09 -> 9.90 | 23 / 6 | Mixed progression; no `TOO STRONG` or `OP` profile |
+| Holy Weapon | 7 | 369 | 3,690 | 2.99 -> 9.46 | 17 / 6 | Mixed progression; no `TOO STRONG` or `OP` profile |
+| Soul Eater | 7 | 369 | 3,690 | 0.064 -> 0.030 | 35 / 35 | `EFFECTIVELY DEAD` / non-functional on Royal Arrow |
+
+Magic Weapon encountered matching Magic Resistance in 23 boss/level profiles
+and no Magic Nullification. Eligible native Magic amounts exposed the configured
+S5-S7 matching-Resistance recovery after Native-S4 suppression. Adaptive,
+Dementor, and Dispell transformed 590, 180, and zero rows respectively. Dispell
+did not transform `tensura:magic` because the source was not in
+`neoforge:is_magic`. Gazel remained fully `EFFECTIVELY DEAD`; no Magic Weapon
+result reached `TOO STRONG` or `OP`.
+
+Holy Weapon encountered matching Holy Resistance in 17 profiles and no Holy
+Nullification. Eligible native Holy amounts likewise exposed S5-S7 recovery.
+Adaptive, Dementor, and Dispell transformed 756, 90, and zero rows respectively.
+Dispell did not transform `tensura:holy_damage` because the source was not in
+`neoforge:is_magic`. Gazel remained fully `EFFECTIVELY DEAD`; no Holy Weapon
+result reached `TOO STRONG` or `OP`.
+
+Soul Eater is effectively non-functional on Royal Arrow in this runtime path.
+Luminous, Hinata, Gazel, Elemental Colossus, Carrion, and Rimuru Ogre Fight
+produced no native `tensura:soul_scatter` event and therefore no eligible Soul
+amount for Stage scaling. Orc Disaster produced only residual physical Royal
+Arrow damage, and `engraving_native_amount` remained zero there as well.
+Consequently Stage scaling and S5-S7 matching-Resistance recovery had no Soul
+amount to amplify or recover.
+
+The Soul Eater result is a benchmark/runtime compatibility finding, not
+permission to alter its production behavior. Checkpoint 2 makes no change to
+Stage thresholds, Curve C, matching-Resistance recovery, native Tensura or L2
+mechanics, datapack behavior, or Royal Bow/Royal Arrow base damage. Soul Eater
+is not fixed or rebalanced here.
+
+The detailed artifact inventory and per-boss findings are in
+`docs/benchmarks/phase5f-suite-b/README.md`.
 
 ## Remaining L2 benchmark work
 

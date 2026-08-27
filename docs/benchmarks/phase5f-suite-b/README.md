@@ -266,3 +266,55 @@ Rimuru Ogre Fight is likewise `EFFECTIVELY DEAD` for Soul Eater: all 540 rows
 were zero. Neither matching Soul Resistance nor Soul Nullification was present,
 but no native Soul event was generated, leaving no amount for Stage scaling.
 No L2 layer was bypassed.
+
+## Soul Eater family summary
+
+Soul Eater is complete: seven bosses, 369 accepted cases, 3,690 per-hit rows,
+and zero case errors. It is effectively non-functional on Royal Arrow in this
+runtime path. Across the 41 boss/level profiles, average DPS fell from 0.064
+(Native) to 0.030 (S7); 35 profiles were zero through S4 and remained zero at
+S7. No row contained a nonzero `engraving_native_amount`.
+
+Luminous, Hinata, Gazel, Elemental Colossus, Carrion, and Rimuru Ogre Fight
+produced no native `tensura:soul_scatter` event and therefore no eligible Soul
+amount for Stage scaling. Orc Disaster produced only residual physical Royal
+Arrow damage (0.143-1.667 DPS), while its `engraving_native_amount` also
+remained zero. The matching Soul Resistance present in all Hinata and Gazel
+profiles consequently had no Soul amount for Stage scaling or S5-S7
+matching-Resistance recovery to amplify or recover.
+
+This is a benchmark/runtime compatibility finding, not permission to alter
+production Soul Eater behavior. Checkpoint 2 does not attempt to fix Soul Eater
+or change any balance, Tensura, L2, datapack, Royal Bow, or Royal Arrow value.
+
+## Checkpoint 2 cross-family summary
+
+| Family | Boss artifacts | Cases | Per-hit rows | Average DPS Native -> S7 | Zero through S4 / at S7 | Classification |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Magic Weapon | 7 | 369 | 3,690 | 2.09 -> 9.90 | 23 / 6 | Mixed progression; no `TOO STRONG` or `OP` result |
+| Holy Weapon | 7 | 369 | 3,690 | 2.99 -> 9.46 | 17 / 6 | Mixed progression; no `TOO STRONG` or `OP` result |
+| Soul Eater | 7 | 369 | 3,690 | 0.064 -> 0.030 | 35 / 35 | `EFFECTIVELY DEAD` / non-functional on Royal Arrow |
+
+Magic Weapon had matching Magic Resistance in 23 profiles and no matching
+Magic Nullification. Matching Resistance suppressed Native-S4 in those
+profiles and exposed the configured S5-S7 recovery when an eligible native
+Magic amount existed. Adaptive transformed 590 rows, Dementor transformed 180,
+and Dispell transformed zero because `tensura:magic` was not in
+`neoforge:is_magic`. Gazel was fully `EFFECTIVELY DEAD`; no profile was `TOO
+STRONG` or `OP`.
+
+Holy Weapon had matching Holy Resistance in 17 profiles and no matching Holy
+Nullification. Matching Resistance likewise suppressed Native-S4 and exposed
+S5-S7 recovery where an eligible native Holy amount existed. Adaptive
+transformed 756 rows, Dementor transformed 90, and Dispell transformed zero
+because `tensura:holy_damage` was not in `neoforge:is_magic`. Gazel was fully
+`EFFECTIVELY DEAD`; no profile was `TOO STRONG` or `OP`.
+
+Soul Eater generated no native Soul amount on any tested boss. Its six fully
+zero bosses and Orc Disaster's residual physical-only damage leave no
+meaningful Stage progression to classify beyond `EFFECTIVELY DEAD` /
+non-functional for this Royal Arrow runtime path.
+
+In total, Checkpoint 2 contains 21 accepted artifacts, 1,107 cases, and 11,070
+per-hit rows. It has zero unresolved case errors, APO profile `NONE` throughout,
+and no unexpected L2 bypass.
