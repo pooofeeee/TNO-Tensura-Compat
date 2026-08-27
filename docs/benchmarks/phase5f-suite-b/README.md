@@ -53,6 +53,7 @@ every other boss has `54` cases. Diagnostic output is explicitly rejected.
 | Magic Weapon | `tensura_neb:luminous_valentine` | 215, 300, 600, 800, 1000 | 45 | 450 | 0 | Accepted |
 | Magic Weapon | `tensura:hinata_sakaguchi` | 200, 280, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 | Magic Weapon | `tensura:gazel_dwargo` | 185, 260, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
+| Magic Weapon | `tensura:orc_disaster` | 175, 250, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 
 Luminous has matching Magic Resistance and no Magic Nullification in every
 captured profile. Native through S4 remained fully blocked. The locked recovery
@@ -76,3 +77,12 @@ completed, but Gazel admitted no projectile/family damage event, leaving
 `engraving_native_amount = 0` and no damage-source IDs. Although Magic
 Resistance was present and Magic Nullification was not, even S7 had no
 matching-resistance damage to recover. No L2 layer was bypassed.
+
+Orc Disaster had neither matching Magic Resistance nor Nullification. Five of
+six profiles showed measurable, generally monotonic Native/S0-S7 progression
+(about 8-15 DPS at the upper stages), provisionally `MEANINGFUL/BALANCED` at
+this technical-test scale. The Lv600 legal roll included Adaptive and reduced
+successive same-family hits by one half (for example S7: 14.4, 7.2, 3.6, 1.8,
+...). That profile's aggregate progression was non-monotonic and is classified
+`MARGINAL`/ambiguous rather than tuned around. The corrected post-L2 probe
+marked the Adaptive transforms, and no L2 layer was bypassed.
