@@ -835,6 +835,25 @@ is not fixed or rebalanced here.
 The detailed artifact inventory and per-boss findings are in
 `docs/benchmarks/phase5f-suite-b/README.md`.
 
+## Checkpoint 3 — Elemental / Slotting (in progress)
+
+The Elemental family uses the installed native Slotting behavior rather than a
+fabricated Royal Arrow event. One legal Earth core on the Royal Bow causes
+Tensura to create `tensura:stone_shot`; the projectile retains its owner and
+emits `tensura:earth_elemental`. Runtime tags contain
+`minecraft:bypasses_armor` and do not contain `neoforge:is_magic`. The temporary
+Stage fixture scales only the native projectile damage coefficient (`1.0`), not
+slot capacity/count, projectile utility, Royal Bow base damage, or Royal Arrow
+base damage. No Royal Arrow exists on this native release path.
+
+The first accepted artifact is Luminous: 45 cases, 450 per-hit rows, zero case
+errors, APO profile `NONE`, and no unexpected L2 bypass. Native Earth
+Nullification canceled every one of the 14 observable Earth events and remained
+absolute through S7, so average DPS was `0.00 -> 0.00` and all five profiles are
+`EFFECTIVELY DEAD` for this representative Elemental path. Naturally present
+Dispell and Adaptive did not override the upstream native nullification, and
+Dispell also correctly saw the actual source as non-magic.
+
 ## Remaining L2 benchmark work
 
 The final instance config retains `maxMobLevel = 3000`, `maxTraitCount = 9`, and

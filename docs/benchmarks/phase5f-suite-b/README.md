@@ -1,8 +1,9 @@
 # Phase 5F Suite B machine-readable evidence
 
 Checkpoint 2 measures TNO-only `Magic Weapon`, `Holy Weapon`, and `Soul Eater`
-on the seven accepted Tensura/L2 bosses. It does not contain Elemental, Energy
-Steal, Severance, forced-trait coverage, or APO+TNO evidence.
+on the seven accepted Tensura/L2 bosses. Checkpoint 3 is adding Elemental /
+Slotting, Energy Steal, and Severance in that order. It does not contain
+forced-trait coverage or APO+TNO evidence.
 
 Locked protocol:
 
@@ -38,7 +39,7 @@ runtime logs remain ignored. Preserve a capture only after validation:
 scripts/extract-phase5f-suite-b.ps1 `
   -LogPath <runtime-log> `
   -OutputPath <family>/<boss>.jsonl `
-  -ExpectedFamily <MAGIC_WEAPON|HOLY_WEAPON|SOUL_EATER> `
+  -ExpectedFamily <MAGIC_WEAPON|HOLY_WEAPON|SOUL_EATER|ELEMENTAL_SLOTTING> `
   -ExpectedBoss <entity-id> `
   -ExpectedCases <45-or-54>
 ```
@@ -318,3 +319,26 @@ non-functional for this Royal Arrow runtime path.
 In total, Checkpoint 2 contains 21 accepted artifacts, 1,107 cases, and 11,070
 per-hit rows. It has zero unresolved case errors, APO profile `NONE` throughout,
 and no unexpected L2 bypass.
+
+## Checkpoint 3 — Elemental / Slotting (in progress)
+
+| Boss | Levels | Cases | Per-hit rows | Errors | Native -> S7 average DPS | Status |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| `tensura_neb:luminous_valentine` | 215, 300, 600, 800, 1000 | 45 | 450 | 0 | 0.00 -> 0.00 | Accepted; `EFFECTIVELY DEAD` under absolute Earth Nullification |
+
+The legal one-Earth-core Slotting path consumes the core-equipped Royal Bow
+release and creates `tensura:stone_shot`; it does not create a Royal Arrow.
+The installed projectile reports native damage `1.0`, retains the benchmark
+player owner, and emits `tensura:earth_elemental` with
+`minecraft:bypasses_armor` but without `neoforge:is_magic`. The temporary Stage
+fixture changes only that projectile damage coefficient. Slot capacity, core
+count, projectile utility, and any Royal Bow/Royal Arrow base amount remain
+unchanged.
+
+Luminous produced 14 observable Earth events across the 450 rows. Every one was
+canceled by native Earth Nullification before L2, remained marked
+nullification-authoritative, and received zero matching-Resistance penetration.
+All five profiles therefore stayed at zero DPS from Native through S7. Dispell
+was naturally present in all five profiles and Adaptive in two, but neither had
+an eligible post-nullification event to transform; the actual source also was
+not L2-magic. No row recorded unexpected L2 bypass.
