@@ -325,6 +325,7 @@ and no unexpected L2 bypass.
 | Boss | Levels | Cases | Per-hit rows | Errors | Native -> S7 average DPS | Status |
 | --- | ---: | ---: | ---: | ---: | ---: | --- |
 | `tensura_neb:luminous_valentine` | 215, 300, 600, 800, 1000 | 45 | 450 | 0 | 0.00 -> 0.00 | Accepted; `EFFECTIVELY DEAD` under absolute Earth Nullification |
+| `tensura:hinata_sakaguchi` | 200, 280, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; `EFFECTIVELY DEAD` under absolute Earth Nullification |
 
 The legal one-Earth-core Slotting path consumes the core-equipped Royal Bow
 release and creates `tensura:stone_shot`; it does not create a Royal Arrow.
@@ -342,3 +343,12 @@ All five profiles therefore stayed at zero DPS from Native through S7. Dispell
 was naturally present in all five profiles and Adaptive in two, but neither had
 an eligible post-nullification event to transform; the actual source also was
 not L2-magic. No row recorded unexpected L2 bypass.
+
+Hinata likewise produced 14 observable Earth events across 540 rows. Native
+Earth Nullification and Spiritual Resistance were present in all six profiles;
+Earth Nullification canceled all 14 events before L2 and kept configured Stage
+penetration at zero. Every profile remained zero DPS from Native through S7.
+Dispell was naturally present in all six profiles but correctly did not
+transform the non-magic source, and no Adaptive or Dementor profile rolled.
+Ownership/scope invariants passed on all rows and there was no unexpected L2
+bypass.

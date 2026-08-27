@@ -854,6 +854,13 @@ absolute through S7, so average DPS was `0.00 -> 0.00` and all five profiles are
 Dispell and Adaptive did not override the upstream native nullification, and
 Dispell also correctly saw the actual source as non-magic.
 
+Hinata is also accepted: 54 cases, 540 per-hit rows, zero case errors, and no
+unexpected L2 bypass. All six profiles had Earth Nullification plus Spiritual
+Resistance. Earth Nullification canceled all 14 observable Earth events and
+kept Stage penetration at zero, yielding average DPS `0.00 -> 0.00` and six
+more `EFFECTIVELY DEAD` profiles. Dispell was naturally present throughout but
+did not transform the actual non-magic source.
+
 ## Remaining L2 benchmark work
 
 The final instance config retains `maxMobLevel = 3000`, `maxTraitCount = 9`, and
