@@ -64,6 +64,7 @@ every other boss has `54` cases. Diagnostic output is explicitly rejected.
 | Holy Weapon | `tensura:elemental_colossus` | 112, 150, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 | Holy Weapon | `tensura_neb:carrion` | 150, 210, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 | Holy Weapon | `tensura_neb:rimuru_ogre_fight` | 167, 250, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
+| Soul Eater | `tensura_neb:luminous_valentine` | 215, 300, 600, 800, 1000 | 45 | 450 | 0 | Accepted |
 
 Luminous has matching Magic Resistance and no Magic Nullification in every
 captured profile. Native through S4 remained fully blocked. The locked recovery
@@ -220,3 +221,11 @@ Evidence classifications:
   Adaptive.
 
 No Holy Weapon profile reached `TOO STRONG` or `OP`; no balance value changed.
+
+## Soul Eater captures
+
+Luminous is `EFFECTIVELY DEAD` for Soul Eater at every level and stage. All
+450 rows were zero. Neither matching Soul Resistance nor Nullification was
+present; the native engraving produced no `tensura:soul_scatter` event on the
+Royal Arrow hits, leaving no eligible amount for Stage scaling. No L2 layer was
+bypassed.
