@@ -1033,7 +1033,10 @@ public final class Phase5FSuiteBBenchmark {
         }
 
         double resourceDamage() {
-            return Math.max(0.0D, preHp + preShp - postHp - postShp + targetHpRegen + targetShpRegen);
+            double observed = Math.max(0.0D,
+                    preHp + preShp - postHp - postShp + targetHpRegen + targetShpRegen);
+            double appliedEvents = Math.max(0.0D, directDamage() + dotPost);
+            return Math.min(observed, appliedEvents);
         }
 
         double directDamage() {
