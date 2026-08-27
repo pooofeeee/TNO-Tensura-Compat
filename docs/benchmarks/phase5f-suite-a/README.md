@@ -36,6 +36,7 @@ Accepted captures:
 | `gazel_dwargo.jsonl` | 6 | 60 | 0 |
 | `orc_disaster.jsonl` | 6 | 59 | 0 |
 | `elemental_colossus.jsonl` | 6 | 60 | 0 |
+| `carrion.jsonl` | 6 | 60 | 0 |
 
 Orc Disaster has 59 rows because the natural-representative target was defeated
 on shot 9. This is a valid terminal case, not missing evidence.

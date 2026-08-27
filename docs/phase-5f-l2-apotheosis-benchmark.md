@@ -708,6 +708,9 @@ and zero case errors. The tracked raw JSONL evidence is documented in
 | Elemental Colossus 112 | Natural representative | 10 / 0 / 10 | 0 | 5.6000 | 5.1987 | 0.5600 | Direct arrows blocked; small `minecraft:wither` DoT persisted |
 | Elemental Colossus 150 | Natural maximum | 10 / 0 / 10 | 0 | 1.5200 | 1.2407 | 0.1520 | Direct arrows blocked; small `minecraft:wither` DoT persisted |
 | Elemental Colossus 300/600/800/1000 | Stress | 10 / 0 / 10 each | 0 | 0 | 0 | 0 | Fully blocked at every stress level |
+| Carrion 150 | Natural representative | 10 / 0 / 10 | 0 | 0 | 0 | 0 | Native defenses cancelled every arrow |
+| Carrion 210 | Natural maximum | 10 / 0 / 10 | 0 | 0 | 0 | 0 | Native defenses cancelled every arrow |
+| Carrion 300/600/800/1000 | Stress | 10 / 0 / 10 each | 0 | 0 | 0 | 0 | Fully blocked at every stress level |
 
 Tank's armor/toughness increase is visible in the captured snapshots. Reflect
 appears on multiple fully blocked profiles but produced no reflected damage.
@@ -723,6 +726,12 @@ cases recorded only post-release `minecraft:wither` ticks: 5.6000 damage against
 5.1987 regeneration at level 112, and 1.5200 against 1.2407 at level 150. The
 stress cases produced neither direct nor DoT damage. This is classified as
 heavy suppression rather than meaningful APO direct damage.
+
+Carrion fully blocked all 60 released arrows across its two natural and four
+stress cases. Its generated defensive rolls included Tank in every case,
+Regenerate in every case, Reflect 3 at stress level 600, and Dispell 1 at stress
+level 800. Because no damage landed, regeneration and reflected damage both
+remained zero; Ragnarok 2 at level 1000 did not change that outcome.
 
 ## Remaining L2 benchmark work
 
