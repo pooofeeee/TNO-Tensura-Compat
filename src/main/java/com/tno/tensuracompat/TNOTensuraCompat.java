@@ -6,6 +6,7 @@ import com.tno.tensuracompat.data.TNODataGenerators;
 import com.tno.tensuracompat.debug.Phase5FRuntimeInspector;
 import com.tno.tensuracompat.debug.Phase5FApotheosisBenchmark;
 import com.tno.tensuracompat.debug.Phase5FSuiteABenchmark;
+import com.tno.tensuracompat.debug.Phase5FSuiteBBenchmark;
 import io.github.manasmods.tensura.Tensura;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.EventPriority;
@@ -48,6 +49,16 @@ public class TNOTensuraCompat {
                     Phase5FSuiteABenchmark::onIncomingDamage);
             NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST,
                     Phase5FSuiteABenchmark::onDamagePost);
+            NeoForge.EVENT_BUS.addListener(Phase5FSuiteBBenchmark::onServerTick);
+            NeoForge.EVENT_BUS.addListener(Phase5FSuiteBBenchmark::onServerStarted);
+            NeoForge.EVENT_BUS.addListener(EventPriority.HIGHEST, true,
+                    Phase5FSuiteBBenchmark::onIncomingHighest);
+            NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, true,
+                    Phase5FSuiteBBenchmark::onIncomingLowest);
+            NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST,
+                    Phase5FSuiteBBenchmark::onDamagePre);
+            NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST,
+                    Phase5FSuiteBBenchmark::onDamagePost);
         }
 
         LOGGER.info("TNO Tensura Compat loaded with API linkage to {}", Tensura.class.getName());
