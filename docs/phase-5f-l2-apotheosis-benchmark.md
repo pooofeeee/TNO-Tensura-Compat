@@ -705,6 +705,9 @@ and zero case errors. The tracked raw JSONL evidence is documented in
 | Orc Disaster 175 | Natural representative | 9 / 8 / 1 | 10560.2271 | 20.4000 | 1348.6401 | 1306.2503 | Defeated in 9 hits / 162 ticks |
 | Orc Disaster 250 | Natural maximum | 10 / 5 / 5 | 7681.8533 | 12.0000 | 1158 | 769.3853 | Survived at 3464.1462 HP |
 | Orc Disaster 300/600/800/1000 | Stress | 10 / 0 / 10 each | 0 | 0 | 0 | 0 | Fully blocked at every stress level |
+| Elemental Colossus 112 | Natural representative | 10 / 0 / 10 | 0 | 5.6000 | 5.1987 | 0.5600 | Direct arrows blocked; small `minecraft:wither` DoT persisted |
+| Elemental Colossus 150 | Natural maximum | 10 / 0 / 10 | 0 | 1.5200 | 1.2407 | 0.1520 | Direct arrows blocked; small `minecraft:wither` DoT persisted |
+| Elemental Colossus 300/600/800/1000 | Stress | 10 / 0 / 10 each | 0 | 0 | 0 | 0 | Fully blocked at every stress level |
 
 Tank's armor/toughness increase is visible in the captured snapshots. Reflect
 appears on multiple fully blocked profiles but produced no reflected damage.
@@ -714,6 +717,12 @@ the natural maximum it restored 1158 HP. Adaptive, Dispell, Dementor, Reprint,
 and Ragnarok rolls are preserved with exact ranks in the JSONL case records;
 their presence is not presented as isolated causation where native defense had
 already reduced every hit to zero.
+
+Elemental Colossus likewise cancelled all direct arrow events. Its two natural
+cases recorded only post-release `minecraft:wither` ticks: 5.6000 damage against
+5.1987 regeneration at level 112, and 1.5200 against 1.2407 at level 150. The
+stress cases produced neither direct nor DoT damage. This is classified as
+heavy suppression rather than meaningful APO direct damage.
 
 ## Remaining L2 benchmark work
 
