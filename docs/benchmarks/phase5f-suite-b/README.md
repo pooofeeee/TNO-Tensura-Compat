@@ -61,6 +61,7 @@ every other boss has `54` cases. Diagnostic output is explicitly rejected.
 | Holy Weapon | `tensura:hinata_sakaguchi` | 200, 280, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 | Holy Weapon | `tensura:gazel_dwargo` | 185, 260, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 | Holy Weapon | `tensura:orc_disaster` | 175, 250, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
+| Holy Weapon | `tensura:elemental_colossus` | 112, 150, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 
 Luminous has matching Magic Resistance and no Magic Nullification in every
 captured profile. Native through S4 remained fully blocked. The locked recovery
@@ -172,3 +173,9 @@ profiles showed broadly `MEANINGFUL/BALANCED` progression (roughly 8-16.7
 DPS). Lv300 Dementor compressed the family to about 3.1-4.0 DPS, while Lv800
 Adaptive compressed it to about 1.8-3.4 DPS; both are `MARGINAL` profiles.
 The transforms were captured after Stage scaling, with no unexpected bypass.
+
+Elemental Colossus had neither matching Holy Resistance nor Nullification.
+Four profiles showed provisionally `MEANINGFUL/BALANCED` progression from
+roughly 8 Native DPS to 14-15 S7 DPS. Lv600 and Lv800 naturally rolled
+Adaptive and compressed the range to roughly 1.6-2.88 DPS (`MARGINAL`). No L2
+layer was bypassed.
