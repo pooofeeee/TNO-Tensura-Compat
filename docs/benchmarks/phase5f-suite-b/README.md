@@ -51,6 +51,7 @@ every other boss has `54` cases. Diagnostic output is explicitly rejected.
 | Family | Boss | Levels | Cases | Per-hit rows | Errors | Status |
 | --- | --- | ---: | ---: | ---: | ---: | --- |
 | Magic Weapon | `tensura_neb:luminous_valentine` | 215, 300, 600, 800, 1000 | 45 | 450 | 0 | Accepted |
+| Magic Weapon | `tensura:hinata_sakaguchi` | 200, 280, 300, 600, 800, 1000 | 54 | 540 | 0 | Accepted |
 
 Luminous has matching Magic Resistance and no Magic Nullification in every
 captured profile. Native through S4 remained fully blocked. The locked recovery
@@ -59,3 +60,11 @@ and 14.4-15.12 DPS respectively). Its actual `tensura:magic` source was not in
 `neoforge:is_magic`, so naturally rolled L2 Dispell did not transform these
 events. These are capture facts, not balance conclusions; family-wide
 classification is deferred until all seven Magic Weapon bosses are complete.
+
+Hinata likewise had matching Magic Resistance without Magic Nullification in
+all six profiles. Native-S4 were fully blocked; S5-S7 measured roughly
+3.2-3.36, 6.8-7.14, and 14.4-15.84 DPS. Actual post-L2 damage matched the
+recorded engraving damage for all 540 rows, no L2 layer was unexpectedly
+bypassed, and the naturally generated profiles in this accepted rerun did not
+include Adaptive. Dispell was present, but the source again was not tagged
+`neoforge:is_magic` and was not transformed by Dispell.
