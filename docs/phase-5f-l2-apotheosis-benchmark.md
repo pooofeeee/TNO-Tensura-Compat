@@ -835,7 +835,7 @@ is not fixed or rebalanced here.
 The detailed artifact inventory and per-boss findings are in
 `docs/benchmarks/phase5f-suite-b/README.md`.
 
-## Checkpoint 3 — Elemental / Slotting (in progress)
+## Checkpoint 3 — Elemental / Slotting (complete)
 
 The Elemental family uses the installed native Slotting behavior rather than a
 fabricated Royal Arrow event. One legal Earth core on the Royal Bow causes
@@ -895,6 +895,27 @@ Earth event and stayed at `0.00 -> 0.00` average DPS despite having neither
 matching Earth Resistance nor Earth Nullification. Adaptive was present in all
 six profiles and Dementor in two, but there was no native event sequence for
 either trait or Stage to transform.
+
+The completed Elemental / Slotting family contains seven accepted artifacts,
+369 cases, and 3,690 per-hit rows, with zero case errors, APO profile `NONE`
+throughout, and no unexpected L2 bypass. Across 41 boss/level profiles, average
+DPS was `0.029512 Native -> 0.00 S7`; 365 of 369 cases were zero, 39 profiles
+were zero through S4, and every S7 profile was zero. No result reached `TOO
+STRONG` or `OP`.
+
+Matching Earth Nullification remained absolute on Luminous and Hinata. Gazel
+and Carrion had matching Earth Resistance, but no eligible S5-S7 event existed
+for configured recovery. The only nonzero controls were Orc Disaster Lv175
+and Elemental Colossus Lv112 in Native/S0. On both bosses the native Earth event
+disappeared in later independently reset Stage cases despite no matching
+Tensura Resistance or Nullification; Rimuru never emitted the event. Across 13
+Adaptive, 13 Dispell, and six Dementor profiles, zero rows recorded a transform:
+the Earth source was not magic, or upstream cancellation/event absence left no
+sequence to transform. Elemental / Slotting is therefore `EFFECTIVELY DEAD` as
+a Stage progression path in this runtime apart from those isolated low-level
+positive controls. The result is evidence only and does not change native
+Slotting, Stage coefficients, matching-Resistance recovery, or production
+combat behavior.
 
 ## Remaining L2 benchmark work
 

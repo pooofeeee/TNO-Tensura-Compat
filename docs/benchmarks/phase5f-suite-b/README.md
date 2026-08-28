@@ -320,7 +320,7 @@ In total, Checkpoint 2 contains 21 accepted artifacts, 1,107 cases, and 11,070
 per-hit rows. It has zero unresolved case errors, APO profile `NONE` throughout,
 and no unexpected L2 bypass.
 
-## Checkpoint 3 — Elemental / Slotting (in progress)
+## Checkpoint 3 — Elemental / Slotting (complete)
 
 | Boss | Levels | Cases | Per-hit rows | Errors | Native -> S7 average DPS | Status |
 | --- | ---: | ---: | ---: | ---: | ---: | --- |
@@ -396,3 +396,31 @@ no native Earth amount for Stage or L2 to process. Adaptive rolled in all six
 profiles and Dementor in two, but neither had an event sequence to transform.
 The artifact retained `APO_profile = NONE`, passed ownership/scope invariants,
 and recorded no unexpected L2 bypass.
+
+### Elemental / Slotting family conclusion
+
+The seven accepted artifacts contain 369 cases and 3,690 per-hit rows, with
+zero case errors, APO profile `NONE` throughout, and no unexpected L2 bypass.
+Across the 41 boss/level profiles, average DPS fell from `0.029512` at Native
+to `0.00` at S7. Of the 369 cases, 365 were zero; 39 profiles were zero through
+S4, and all 41 profiles were zero at S7. No result reached `TOO STRONG` or
+`OP`.
+
+Luminous and Hinata demonstrate that matching Earth Nullification remains
+absolute. Gazel and Carrion had matching Earth Resistance, but no eligible
+Earth event existed in S5-S7 for configured recovery to amplify. Orc Disaster
+Lv175 and Elemental Colossus Lv112 supplied the only nonzero positive controls,
+and only in Native/S0. Their native Earth-event availability disappeared in
+later independently reset Stage cases despite having no matching Tensura
+Resistance or Nullification. Rimuru emitted no native Earth event at any stage.
+This loss of event availability is preserved as an observed native runtime
+behavior; it is not altered to manufacture monotonic Stage progression.
+
+Thirteen profiles rolled Adaptive, 13 rolled Dispell, and six rolled Dementor.
+No row recorded an observed transformation: the non-magic Earth source made
+Dispell inapplicable, while upstream cancellation or absent repeated event
+sequences left Adaptive and Dementor nothing measurable to transform. The
+family is therefore `EFFECTIVELY DEAD` as a Stage progression path in this
+installed runtime, apart from the two isolated low-level Native/S0 positive
+controls. This finding is not permission to change Slotting, Stage values,
+matching-Resistance recovery, or production combat behavior.
