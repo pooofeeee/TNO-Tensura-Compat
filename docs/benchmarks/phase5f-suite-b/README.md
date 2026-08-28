@@ -495,6 +495,27 @@ other six bosses in this installed Royal Arrow path. This is benchmark/runtime
 evidence only, not permission to change Energy Steal, the Stage curve, L2,
 Royal Arrow damage, or production combat behavior.
 
+## Checkpoint 3 — Severance (in progress)
+
+| Boss | Levels | Cases | Per-hit rows | Errors | Native -> S7 average DPS | Status |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| `tensura_neb:luminous_valentine` | 215, 300, 600, 800, 1000 | 45 | 450 | 0 | 0.00 -> 0.00 | Accepted; all combined physical events canceled post-L2, no Severance wound stored |
+
+Severance I is measured on the real Royal Arrow as one combined physical
+`minecraft:arrow` source, not a fabricated second DamageSource. Native
+Severance contributes `+3` before projectile velocity and vanilla ceiling;
+the Stage fixture changes only that eligible attack contribution using the
+locked pre-round formula. Royal Bow/Arrow base damage, velocity, native wound
+cancellation, L2, and production combat behavior remain unchanged.
+
+Luminous produced 450 correctly formed combined physical pre-L2 events. Every
+row retained the real projectile source and exact native/Stage velocity and
+rounding values, but post-L2 physical damage was zero throughout. Consequently
+all 45 cases had zero DPS and no Severance wound was stored. Dispell was present
+in all five profiles and Adaptive in one, but the source was physical and no
+accepted repeated sequence remained to transform. APO profile was `NONE`, and
+no unexpected L2 bypass occurred.
+
 Carrion likewise emitted no Energy Drain event in 540 rows. Every Royal Arrow
 was canceled before the native post-damage hook, leaving all 54 cases at zero
 resource impact from Native through S7. No Adaptive, Dispell, or Dementor

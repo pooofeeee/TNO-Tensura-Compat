@@ -986,6 +986,23 @@ non-DamageSource operation. Energy Steal is measurable on Orc and `EFFECTIVELY
 DEAD` on the other six bosses in this runtime path. No production behavior or
 balance value was changed.
 
+## Checkpoint 3 — Severance (in progress)
+
+Severance I is measured through the installed Royal Arrow path as one combined
+physical `minecraft:arrow` source, not a second DamageSource. Its native `+3`
+attack contribution is applied before projectile velocity and vanilla ceiling;
+the temporary Stage fixture scales only that eligible contribution with the
+locked pre-round formula. It does not change base bow/arrow damage, velocity,
+native wound cancellation, L2, or production behavior.
+
+Luminous is accepted with 45 cases, 450 per-hit rows, zero case errors, APO
+profile `NONE`, and no unexpected L2 bypass. All 450 combined physical pre-L2
+events retained exact source, velocity, native `+3`, Stage, and rounding
+invariants. Post-L2 physical damage was zero on every row, so average DPS
+remained `0.00 Native -> 0.00 S7` and no Severance wound was stored. Dispell
+was present in all five profiles and Adaptive in one, but no accepted physical
+sequence remained to transform.
+
 Hinata is accepted with 54 cases, 540 per-hit rows, zero case errors, APO
 profile `NONE`, and no unexpected L2 bypass. Every Royal Arrow was canceled
 before the native post-damage hook, so no Energy Drain event was emitted and
