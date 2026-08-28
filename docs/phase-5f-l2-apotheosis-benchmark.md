@@ -917,7 +917,7 @@ positive controls. The result is evidence only and does not change native
 Slotting, Stage coefficients, matching-Resistance recovery, or production
 combat behavior.
 
-## Checkpoint 3 — Energy Steal (in progress)
+## Checkpoint 3 — Energy Steal (complete)
 
 Energy Steal I uses the installed native post-damage operation: one percent of
 the target's current Aura and current Magicules, a native 20-tick bow cooldown,
@@ -967,6 +967,24 @@ canceled before the native post-damage hook, so no Energy Drain event was
 emitted and resource impact remained `0.00 Native -> 0.00 S7`. Adaptive rolled
 in all six profiles but had no eligible physical-hit sequence to adapt before
 the Energy operation.
+
+The completed Energy Steal family contains seven accepted artifacts, 369
+cases, and 3,690 per-hit rows, with zero case errors, APO profile `NONE`
+throughout, and no unexpected L2 bypass. All 81 Energy Drain events occurred on
+Orc Disaster; all 54 Orc cases were nonzero, while the other 315 cases were
+zero before the native post-damage hook. Across 41 profiles, average resource
+impact was `623.019818/s Native -> 885.007144/s S7`; Orc alone measured
+`4,257.302087/s -> 6,047.548818/s`.
+
+Every emitted event retained the native one-percent current-Magicules/current-
+Aura operation, the exact Stage coefficient up to 1.4 percent at S7, equal
+target drain and attacker gain, and no DamageSource. Aggregate case progression
+was sometimes non-monotonic because the number of surviving physical hits that
+reached the post-damage hook varied; the per-event formula did not. Seven
+Adaptive, 12 Dispell, and two Dementor profiles did not directly transform the
+non-DamageSource operation. Energy Steal is measurable on Orc and `EFFECTIVELY
+DEAD` on the other six bosses in this runtime path. No production behavior or
+balance value was changed.
 
 Hinata is accepted with 54 cases, 540 per-hit rows, zero case errors, APO
 profile `NONE`, and no unexpected L2 bypass. Every Royal Arrow was canceled

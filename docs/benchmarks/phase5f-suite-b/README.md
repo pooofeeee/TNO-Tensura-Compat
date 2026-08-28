@@ -425,7 +425,7 @@ installed runtime, apart from the two isolated low-level Native/S0 positive
 controls. This finding is not permission to change Slotting, Stage values,
 matching-Resistance recovery, or production combat behavior.
 
-## Checkpoint 3 — Energy Steal (in progress)
+## Checkpoint 3 — Energy Steal (complete)
 
 | Boss | Levels | Cases | Per-hit rows | Errors | Native -> S7 resource impact/s | Status |
 | --- | ---: | ---: | ---: | ---: | ---: | --- |
@@ -467,6 +467,33 @@ Arrow was canceled before the native post-damage hook, so all 54 cases remained
 at zero resource impact from Native through S7. Adaptive rolled in all six
 profiles but had no eligible physical-hit sequence to adapt before the Energy
 operation. APO profile remained `NONE`, and no unexpected L2 bypass occurred.
+
+### Energy Steal family conclusion
+
+The seven accepted artifacts contain 369 cases and 3,690 per-hit rows, with
+zero case errors, APO profile `NONE` throughout, and no unexpected L2 bypass.
+Eighty-one rows emitted the native Energy Drain event, all on Orc Disaster;
+all 54 Orc cases were nonzero, while the other 315 cases were zero before the
+post-damage hook. Across the 41 boss/level profiles, the zero-heavy average
+resource impact rose from `623.019818/s` Native to `885.007144/s` at S7. Within
+Orc alone it rose from `4,257.302087/s` to `6,047.548818/s`.
+
+Every emitted event passed exact current-pool accounting: native Energy Steal I
+used one percent each of current Magicules and Aura; Stage changed only that
+eligible percentage up to 1.4 percent at S7; target drain equaled attacker gain;
+and the operation emitted no DamageSource. Fixed-window averages were not
+monotonic at every intermediate stage because the native post-damage event
+required a surviving physical Royal Arrow hit and the number of eligible events
+varied between otherwise isolated cases. That availability variance does not
+change the verified per-event formula.
+
+Seven profiles rolled Adaptive, 12 rolled Dispell, and two rolled Dementor.
+Those DamageSource-oriented traits did not directly transform the Energy
+operation; their relevant effect was upstream physical-hit availability. Energy
+Steal is therefore measurable on Orc Disaster but `EFFECTIVELY DEAD` on the
+other six bosses in this installed Royal Arrow path. This is benchmark/runtime
+evidence only, not permission to change Energy Steal, the Stage curve, L2,
+Royal Arrow damage, or production combat behavior.
 
 Carrion likewise emitted no Energy Drain event in 540 rows. Every Royal Arrow
 was canceled before the native post-damage hook, leaving all 54 cases at zero
