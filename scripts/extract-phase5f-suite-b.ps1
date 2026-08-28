@@ -194,6 +194,9 @@ if ($Suite -eq 'C') {
             @($spawnedIds | Where-Object { $_ -notin $allowed }).Count -ne 0 -or
             @($hitIds | Where-Object { $_ -notin $allowed }).Count -ne 0 -or
             @($hitUuids | Where-Object { $_ -notin $spawnedUuids }).Count -ne 0 -or
+            [int]$value.projectiles_discarded_after_target_defeat -lt 0 -or
+            [int]$value.projectiles_discarded_after_target_defeat -gt [int]$value.released_projectile_count -or
+            ([int]$value.projectiles_discarded_after_target_defeat -gt 0 -and [double]$value.post_HP -gt 0.0001) -or
             $value.royal_arrow_mark_observed -or
             $value.duplicate_event_from_same_projectile -or
             $value.unexpected_source_duplication -or

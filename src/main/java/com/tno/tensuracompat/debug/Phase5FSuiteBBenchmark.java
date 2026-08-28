@@ -751,6 +751,16 @@ public final class Phase5FSuiteBBenchmark {
                     throw new IllegalStateException("locked Spectral APO profile created unexpected projectile " + projectileId);
                 }
                 currentHit.projectileEntityId = projectileId.toString();
+                if (!target.isAlive()) {
+                    // A genuine multi-projectile APO release is dispatched in
+                    // spawn order. If an earlier sibling defeats the target,
+                    // the remaining projectile has no legal living collision
+                    // target. Preserve its spawn evidence and discard it rather
+                    // than misclassifying canHitEntity(false) as a case error.
+                    currentHit.projectilesDiscardedAfterTargetDefeat++;
+                    arrow.discard();
+                    continue;
+                }
                 try {
                     if (projectileId.getNamespace().equals("royalvariations")) {
                         invoke(arrow, "setMarking", false);
@@ -1218,6 +1228,8 @@ public final class Phase5FSuiteBBenchmark {
             json.add("released_projectile_uuids", strings(hit.releasedProjectileUuids));
             json.add("hit_projectile_entity_ids", strings(hit.hitProjectileEntityIds));
             json.add("hit_projectile_uuids", strings(hit.hitProjectileUuids));
+            json.addProperty("projectiles_discarded_after_target_defeat",
+                    hit.projectilesDiscardedAfterTargetDefeat);
             json.addProperty("genuine_apo_multi_projectile_release", hit.releasedProjectileCount > 1
                     && hit.releasedProjectileUuids.size() == hit.releasedProjectileCount);
             json.addProperty("duplicate_event_from_same_projectile", duplicateEventFromSameProjectile(hit));
@@ -1488,6 +1500,7 @@ public final class Phase5FSuiteBBenchmark {
         int dotDamageEventCount;
         int critMultiplierEvents;
         int releasedProjectileCount;
+        int projectilesDiscardedAfterTargetDefeat;
         int severanceConfiguredProjectileCount;
         boolean crit;
         boolean royalArrowMarkObserved;
