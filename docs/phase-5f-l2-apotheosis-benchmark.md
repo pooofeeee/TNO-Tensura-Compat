@@ -961,6 +961,13 @@ before the native post-damage hook, so no Energy Drain event was emitted and
 resource impact remained `0.00 Native -> 0.00 S7`. No Adaptive, Dispell, or
 Dementor profile rolled.
 
+Rimuru Ogre Fight is accepted with 54 cases, 540 per-hit rows, zero case
+errors, APO profile `NONE`, and no unexpected L2 bypass. Every Royal Arrow was
+canceled before the native post-damage hook, so no Energy Drain event was
+emitted and resource impact remained `0.00 Native -> 0.00 S7`. Adaptive rolled
+in all six profiles but had no eligible physical-hit sequence to adapt before
+the Energy operation.
+
 Hinata is accepted with 54 cases, 540 per-hit rows, zero case errors, APO
 profile `NONE`, and no unexpected L2 bypass. Every Royal Arrow was canceled
 before the native post-damage hook, so no Energy Drain event was emitted and
