@@ -1105,6 +1105,15 @@ physical and Magic Weapon events, the temporary S7 fixture, and zero unexpected
 L2 bypass. That diagnostic capture was intentionally not retained as official
 matrix evidence; the complete forced run will replace it.
 
+The legal/natural matrix is now accepted for all seven bosses: 70 exact-level
+profiles, zero errors or requested/attached mismatches, complete 39-trait
+legality metadata, `APO_profile = NONE`, and visible Tensura:L2Hostility scaling
+throughout. Twenty-six traits appeared naturally; the 12 SEMIBOSS-restricted
+traits plus the legal-but-1000-cost Arena did not appear in this finite sample
+and therefore are not yet counted as behavior coverage. Fourteen native
+profiles exceeded the configured random-pool count of nine after entity preset
+traits were included, matching L2's preset-before-random generation order.
+
 ## Verification completed
 
 - `.\gradlew.bat clean build` passed with the local Royal Variations artifact
