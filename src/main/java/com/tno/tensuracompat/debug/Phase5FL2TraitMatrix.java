@@ -84,6 +84,11 @@ public final class Phase5FL2TraitMatrix {
     private static final ResourceLocation ROYAL_ARROW = id("royalvariations", "royal_arrow");
     private static final ResourceLocation MAGIC_WEAPON = id("tensura", "magic_weapon");
     private static final List<Integer> LEVELS = List.of(50, 100, 150, 200, 300, 400, 500, 600, 800, 1000);
+    private static final List<Integer> PROFILE_LEVELS = List.of(200, 300, 400, 500, 600, 800, 1000);
+    private static final List<String> DEFENSIVE_PRIORITY = List.of(
+            "l2hostility:arena", "l2hostility:dementor", "l2hostility:tank",
+            "l2hostility:adaptive", "l2hostility:regenerate", "l2hostility:dispell",
+            "l2hostility:reflect");
     private static final List<String> EXPECTED_TRAITS = List.of(
             "l2hostility:tank", "l2hostility:speedy", "l2hostility:protection",
             "l2hostility:invisible", "l2hostility:fiery", "l2hostility:regenerate",
@@ -185,6 +190,15 @@ public final class Phase5FL2TraitMatrix {
         private Object cap;
         private FakePlayer player;
         private ForcedObservation observation;
+        private ForcedCase profileSpec;
+        private JsonArray activeProfileTraits = new JsonArray();
+        private JsonArray activeProfileConstruction = new JsonArray();
+        private int activeProfileLevel;
+        private int activeProfileConsumedBudget;
+        private int activeProfileRemainingBudget;
+        private int activeProfileMaxTraitCount;
+        private int activeProfileNormalizationCount;
+        private final Set<String> activeProfileUnexpectedRuntimeTraits = new LinkedHashSet<>();
         private String action = "idle";
         private Phase phase = Phase.START;
         private boolean complete;
@@ -194,8 +208,9 @@ public final class Phase5FL2TraitMatrix {
             this.server = server;
             this.level = server.overworld();
             this.mode = System.getProperty("tno.phase5f.l2TraitMode", "natural").toLowerCase(Locale.ROOT);
-            if (!mode.equals("natural") && !mode.equals("catalog") && !mode.equals("forced")) {
-                throw new IllegalArgumentException("trait matrix supports natural, forced, or catalog mode, got " + mode);
+            if (!mode.equals("natural") && !mode.equals("catalog") && !mode.equals("forced")
+                    && !mode.equals("profiles")) {
+                throw new IllegalArgumentException("trait matrix supports natural, forced, profiles, or catalog mode, got " + mode);
             }
             this.boss = selectBoss(System.getProperty("tno.phase5f.l2TraitBoss", BOSSES.getFirst().id.toString()));
             this.traits = readTraitRegistry();
@@ -208,7 +223,7 @@ public final class Phase5FL2TraitMatrix {
 
         private void tick() throws ReflectiveOperationException {
             if (complete) return;
-            if (mode.equals("forced")) {
+            if (mode.equals("forced") || mode.equals("profiles")) {
                 tickForced();
                 return;
             }
@@ -283,16 +298,17 @@ public final class Phase5FL2TraitMatrix {
 
         private JsonObject basePayload() {
             JsonObject json = new JsonObject();
-            json.addProperty("evidence_class", mode.equals("forced")
-                    ? "FORCED_DIAGNOSTIC_MATRIX" : "LEGAL_NATURAL_MATRIX");
+            json.addProperty("evidence_class", mode.equals("forced") ? "FORCED_DIAGNOSTIC_MATRIX"
+                    : mode.equals("profiles") ? "LEGAL_CONSTRUCTED_PROFILE_MATRIX" : "LEGAL_NATURAL_MATRIX");
             json.addProperty("mode", mode);
             json.addProperty("boss", boss.id.toString());
-            json.add("requested_levels", ints(LEVELS));
+            json.add("requested_levels", ints(mode.equals("profiles") ? PROFILE_LEVELS : LEVELS));
             json.addProperty("expected_trait_count", EXPECTED_TRAITS.size());
             if (mode.equals("forced")) {
                 json.addProperty("requested_forced_case_count", forcedCases.size());
                 json.addProperty("trait_filter", System.getProperty("tno.phase5f.l2Trait", ""));
             }
+            if (mode.equals("profiles")) json.add("requested_profile_levels", ints(PROFILE_LEVELS));
             return json;
         }
 
@@ -440,10 +456,14 @@ public final class Phase5FL2TraitMatrix {
         }
 
         private List<ForcedCase> buildForcedCases() throws ReflectiveOperationException {
+            if (!mode.equals("forced")) return List.of();
             List<ForcedCase> cases = new ArrayList<>();
             String filter = System.getProperty("tno.phase5f.l2Trait", "");
+            Set<String> filters = filter.isBlank() ? Set.of()
+                    : Stream.of(filter.split(",")).map(String::trim).filter(value -> !value.isBlank())
+                    .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
             for (Object trait : traits) {
-                if (!filter.isBlank() && !traitId(trait).equals(filter)) continue;
+                if (!filters.isEmpty() && !filters.contains(traitId(trait))) continue;
                 Object config = invoke(trait, "getConfig", level.registryAccess());
                 int max = numberValue(invoke(config, "max_rank")).intValue();
                 for (int rank = 1; rank <= max; rank++) cases.add(new ForcedCase(trait, traitId(trait), rank, max));
@@ -451,12 +471,23 @@ public final class Phase5FL2TraitMatrix {
             if (mode.equals("forced") && cases.isEmpty()) {
                 throw new IllegalArgumentException("forced trait filter matched no live trait: " + filter);
             }
+            if (!filters.isEmpty() && cases.stream().map(ForcedCase::id).collect(java.util.stream.Collectors.toSet()).size()
+                    != filters.size()) {
+                throw new IllegalArgumentException("forced trait filter contains an unknown live trait: " + filter);
+            }
             return cases;
         }
 
         private void tickForced() throws ReflectiveOperationException {
             switch (phase) {
-                case START -> startForcedCase();
+                case START -> {
+                    if (mode.equals("profiles")) startProfileCase();
+                    else startForcedCase();
+                }
+                case WAIT_ATTACHMENT -> {
+                    if (!mode.equals("profiles")) throw new IllegalStateException("unexpected forced attachment wait");
+                    prepareProfileCase();
+                }
                 case FORCED_RUN -> runForcedCase();
                 case DONE -> {
                 }
@@ -535,6 +566,269 @@ public final class Phase5FL2TraitMatrix {
             phase = Phase.FORCED_RUN;
         }
 
+        private void startProfileCase() throws ReflectiveOperationException {
+            cleanup();
+            if (caseIndex >= PROFILE_LEVELS.size()) {
+                finish();
+                return;
+            }
+            activeProfileLevel = PROFILE_LEVELS.get(caseIndex);
+            Entity created = BuiltInRegistries.ENTITY_TYPE.get(boss.id).create(level);
+            if (!(created instanceof LivingEntity living)) {
+                throw new IllegalStateException("could not create legal-profile target " + boss.id);
+            }
+            target = living;
+            target.setPos(0.5D, 240.0D, 20.5D);
+            target.setNoGravity(true);
+            target.setSilent(true);
+            target.addTag(TARGET_TAG);
+            level.addFreshEntity(target);
+            phaseTick = 0;
+            action = "waiting_for_native_join_initialization";
+            phase = Phase.WAIT_ATTACHMENT;
+        }
+
+        private void prepareProfileCase() throws ReflectiveOperationException {
+            if (++phaseTick < 5) return;
+            Object type = invoke(staticField(L2_MISCS, "MOB"), "type");
+            cap = invoke(type, "getOrCreate", target);
+            removeAttachedTraitState();
+            initializeWithoutGeneratedTraits(cap, target, activeProfileLevel);
+            clearTransientTraitState(cap);
+            AttributeState baseline = attributes(target);
+            constructLegalDefensiveProfile();
+            clearPendingTraitChanges(cap);
+            invoke(cap, "syncToClient", target);
+
+            Entity auraProbe = EntityType.ARMOR_STAND.create(level);
+            if (!(auraProbe instanceof LivingEntity livingAuraProbe)) {
+                throw new IllegalStateException("could not create legal-profile aura probe entity");
+            }
+            auraVictim = livingAuraProbe;
+            auraVictim.setPos(0.5D, 240.0D, 23.0D);
+            auraVictim.setNoGravity(true);
+            auraVictim.addTag(TARGET_TAG);
+            level.addFreshEntity(auraVictim);
+
+            Entity probe = EntityType.ZOMBIE.create(level);
+            if (!(probe instanceof LivingEntity livingProbe)) {
+                throw new IllegalStateException("could not create legal-profile probe entity");
+            }
+            victim = livingProbe;
+            victim.setPos(0.5D, 240.0D, 50.0D);
+            victim.setNoGravity(true);
+            victim.addTag(TARGET_TAG);
+            setBase(victim, Attributes.MAX_HEALTH, 1_000.0D);
+            victim.setHealth(victim.getMaxHealth());
+            if (victim instanceof Mob mobProbe) mobProbe.setNoAi(true);
+            equipProbe(victim);
+            level.addFreshEntity(victim);
+            Object probeCap = invoke(type, "getOrCreate", victim);
+            invoke(probeCap, "deinit");
+            if (readTraits(probeCap).size() != 0) {
+                throw new IllegalStateException("neutral legal-profile probe retained L2 traits after deinit");
+            }
+
+            player = createForcedPlayer(caseIndex);
+            profileSpec = new ForcedCase(null, "LEGAL_DEFENSIVE_PROFILE", 0, 0);
+            observation = new ForcedObservation(profileSpec, true, baseline, resources(target),
+                    resources(player), nearbyEntityTypes());
+            observation.victimInitialEquipment = equipment(victim);
+            observation.playerInitialEquipment = equipment(player);
+            if (target instanceof Mob mob) mob.setTarget(player);
+            phaseTick = 0;
+            action = "legal_profile_initialization";
+            phase = Phase.FORCED_RUN;
+        }
+
+        private void removeAttachedTraitState() throws ReflectiveOperationException {
+            JsonArray attached = readTraits(cap);
+            Map<String, Object> byId = new LinkedHashMap<>();
+            traits.forEach(trait -> byId.put(traitId(trait), trait));
+            for (var value : attached) {
+                JsonObject entry = value.getAsJsonObject();
+                Object trait = byId.get(entry.get("id").getAsString());
+                if (trait == null) continue;
+                invoke(trait, "initialize", target, 0);
+                invoke(trait, "postInit", target, 0);
+            }
+        }
+
+        private void rebuildProfileAfterDeferredChanges() throws ReflectiveOperationException {
+            removeAttachedTraitState();
+            initializeWithoutGeneratedTraits(cap, target, activeProfileLevel);
+            clearTransientTraitState(cap);
+            constructLegalDefensiveProfile();
+            clearPendingTraitChanges(cap);
+            invoke(cap, "syncToClient", target);
+        }
+
+        private void clearTransientTraitState(Object profileCap) throws ReflectiveOperationException {
+            clearPendingTraitChanges(profileCap);
+            Object data = readField(profileCap, "data");
+            if (!(data instanceof Map<?, ?> traitData)) {
+                throw new IllegalStateException("L2 trait state data is not observable");
+            }
+            traitData.clear();
+        }
+
+        private void clearPendingTraitChanges(Object profileCap) throws ReflectiveOperationException {
+            Object pending = readField(profileCap, "pending");
+            if (!(pending instanceof Collection<?> pendingChanges)) {
+                throw new IllegalStateException("L2 pending trait changes are not observable");
+            }
+            pendingChanges.clear();
+        }
+
+        private void constructLegalDefensiveProfile() throws ReflectiveOperationException {
+            Object config = invoke(cap, "getConfigCache", target);
+            Object rawTraits = readField(cap, "traits");
+            if (!(rawTraits instanceof Map<?, ?> rawMap)) {
+                throw new IllegalStateException("L2 legal-profile trait map is not observable");
+            }
+            @SuppressWarnings("unchecked")
+            Map<Object, Integer> traitMap = (Map<Object, Integer>) rawMap;
+            traitMap.clear();
+            activeProfileConstruction = new JsonArray();
+            activeProfileConsumedBudget = 0;
+            activeProfileRemainingBudget = activeProfileLevel;
+            int globalMax = serverConfigInt("maxTraitCount");
+            int entityMax = numberValue(readField(config, "maxTraitCount")).intValue();
+            activeProfileMaxTraitCount = entityMax > 0 ? entityMax : globalMax;
+            int maxModLevel = numberValue(invoke(Class.forName(TRAIT_MANAGER), "getMaxLevel")).intValue() + 1;
+            Object collector = profileCollector(config, activeProfileLevel);
+            Set<String> cappedPresets = new LinkedHashSet<>();
+
+            for (Object base : collectionValue(invoke(config, "traits"))) {
+                Object trait = invoke(base, "trait");
+                if (trait == null) continue;
+                Object condition = invoke(base, "condition");
+                if (condition != null && !booleanValue(invoke(condition, "match", target, activeProfileLevel, collector))) {
+                    continue;
+                }
+                if (!profileTraitLegal(trait, config, maxModLevel)) continue;
+                int maxRank = numberValue(invoke(trait, "getMaxLevel", level.registryAccess())).intValue();
+                int cost = numberValue(invoke(trait, "getCost", level.registryAccess(), 1.0D)).intValue();
+                int freeRank = Math.min(maxRank, numberValue(invoke(base, "free")).intValue());
+                int minimumRank = Math.min(maxRank, Math.max(freeRank, numberValue(invoke(base, "min")).intValue()));
+                int paidRank = Math.min(minimumRank, freeRank + activeProfileRemainingBudget / cost);
+                int rank = Math.max(freeRank, paidRank);
+                if (rank <= 0) continue;
+                int spent = Math.max(0, paidRank - freeRank) * cost;
+                traitMap.put(trait, rank);
+                activeProfileRemainingBudget -= spent;
+                activeProfileConsumedBudget += spent;
+                boolean capped = booleanValue(invoke(base, "cap"));
+                if (capped) cappedPresets.add(traitId(trait));
+                activeProfileConstruction.add(profileConstructionEntry(trait, rank, "ENTITY_PRESET",
+                        freeRank, spent, cost, capped));
+            }
+
+            if (booleanValue(readField(config, "presetTraitsOnly"))) {
+                traitMap.clear();
+                activeProfileConstruction = new JsonArray();
+                activeProfileConsumedBudget = 0;
+                activeProfileRemainingBudget = activeProfileLevel;
+            }
+            else {
+                Map<String, Object> byId = new LinkedHashMap<>();
+                traits.forEach(trait -> byId.put(traitId(trait), trait));
+                for (String id : DEFENSIVE_PRIORITY) {
+                    Object trait = byId.get(id);
+                    if (trait == null || cappedPresets.contains(id)) continue;
+                    if (!profileTraitLegal(trait, config, maxModLevel)) continue;
+                    if (activeProfileMaxTraitCount > 0 && traitMap.size() >= activeProfileMaxTraitCount) break;
+                    if (!traitMap.containsKey(trait) && hardExcluded(trait, traitMap.keySet())) continue;
+                    int current = traitMap.getOrDefault(trait, 0);
+                    int maxRank = numberValue(invoke(trait, "getMaxLevel", level.registryAccess())).intValue();
+                    int cost = numberValue(invoke(trait, "getCost", level.registryAccess(), 1.0D)).intValue();
+                    int rank = Math.min(maxRank, current + activeProfileRemainingBudget / cost);
+                    if (rank <= current) continue;
+                    int spent = (rank - current) * cost;
+                    traitMap.put(trait, rank);
+                    activeProfileRemainingBudget -= spent;
+                    activeProfileConsumedBudget += spent;
+                    activeProfileConstruction.add(profileConstructionEntry(trait, rank,
+                            current > 0 ? "PRESET_DEFENSIVE_UPGRADE" : "DEFENSIVE_PRIORITY",
+                            current, spent, cost, false));
+                }
+            }
+
+            for (Map.Entry<Object, Integer> entry : traitMap.entrySet()) {
+                invoke(entry.getKey(), "initialize", target, entry.getValue());
+            }
+            activeProfileTraits = readTraits(cap);
+            if (activeProfileTraits.size() > activeProfileMaxTraitCount
+                    && activeProfileConstruction.asList().stream()
+                    .anyMatch(value -> value.getAsJsonObject().get("construction_source").getAsString()
+                            .equals("DEFENSIVE_PRIORITY"))) {
+                throw new IllegalStateException("constructed profile exceeded maxTraitCount outside legal presets");
+            }
+            if (activeProfileConsumedBudget + activeProfileRemainingBudget != activeProfileLevel) {
+                throw new IllegalStateException("constructed profile budget accounting mismatch");
+            }
+        }
+
+        private Object profileCollector(Object config, int requested) throws ReflectiveOperationException {
+            Class<?> type = Class.forName("dev.xkmc.l2hostility.content.logic.MobDifficultyCollector");
+            Object collector = type.getDeclaredConstructor().newInstance();
+            invoke(collector, "acceptConfig", invoke(config, "difficulty"));
+            setIntField(collector, "min", 0);
+            setIntField(collector, "base", requested);
+            setIntField(collector, "cap", requested);
+            setDoubleField(collector, "apply_chance", 1.0D);
+            setDoubleField(collector, "trait_chance", 0.0D);
+            setBooleanField(collector, "fullChance", false);
+            return collector;
+        }
+
+        private boolean profileTraitLegal(Object trait, Object config, int maxModLevel)
+                throws ReflectiveOperationException {
+            return !collectionValue(invoke(config, "blacklist")).contains(trait)
+                    && booleanValue(invoke(trait, "allow", target, activeProfileLevel, maxModLevel));
+        }
+
+        private boolean hardExcluded(Object candidate, Collection<Object> selected) throws ReflectiveOperationException {
+            for (Object existing : selected) {
+                if (exclusionFactor(existing, candidate) >= 1.0D || exclusionFactor(candidate, existing) >= 1.0D) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private double exclusionFactor(Object from, Object to) throws ReflectiveOperationException {
+            Object exclusion = invoke(from, "getExclusion", level.registryAccess());
+            if (!(invoke(exclusion, "excluded") instanceof Map<?, ?> map)) return 0.0D;
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
+                if (holderTraitId(entry.getKey()).equals(traitId(to))) {
+                    return numberValue(entry.getValue()).doubleValue();
+                }
+            }
+            return 0.0D;
+        }
+
+        private JsonObject profileConstructionEntry(Object trait, int rank, String source, int priorOrFreeRank,
+                int spent, int cost, boolean cappedPreset) throws ReflectiveOperationException {
+            JsonObject json = new JsonObject();
+            json.addProperty("trait_id", traitId(trait));
+            json.addProperty("rank_after_step", rank);
+            json.addProperty("construction_source", source);
+            json.addProperty(source.equals("ENTITY_PRESET") ? "free_rank" : "rank_before_step", priorOrFreeRank);
+            json.addProperty("effective_cost_per_paid_rank", cost);
+            json.addProperty("budget_spent", spent);
+            json.addProperty("preset_caps_generation", cappedPreset);
+            Object exclusion = invoke(trait, "getExclusion", level.registryAccess());
+            JsonObject exclusions = new JsonObject();
+            if (invoke(exclusion, "excluded") instanceof Map<?, ?> map) {
+                map.entrySet().stream().sorted(Comparator.comparing(entry -> holderTraitId(entry.getKey())))
+                        .forEach(entry -> exclusions.addProperty(holderTraitId(entry.getKey()),
+                                numberValue(entry.getValue()).doubleValue()));
+            }
+            json.add("exclusions", exclusions);
+            return json;
+        }
+
         private void initializeWithoutGeneratedTraits(Object forcedCap, LivingEntity living, int requested)
                 throws ReflectiveOperationException {
             Object config = invoke(forcedCap, "getConfigCache", living);
@@ -584,13 +878,28 @@ public final class Phase5FL2TraitMatrix {
 
         private void runForcedCase() throws ReflectiveOperationException {
             phaseTick++;
+            if (mode.equals("profiles")) normalizeProfileTraitMap();
             stabilizeForcedEntities();
             if (phaseTick == 5) {
                 JsonArray attached = readTraits(cap);
-                ForcedCase spec = forcedCases.get(caseIndex);
-                if (attached.size() != 1 || !attached.get(0).getAsJsonObject().get("id").getAsString().equals(spec.id)
-                        || attached.get(0).getAsJsonObject().get("rank").getAsInt() != spec.rank) {
-                    throw new IllegalStateException("forced trait attachment mismatch: " + attached);
+                if (mode.equals("profiles")) {
+                    if (!attached.equals(activeProfileTraits)) {
+                        rebuildProfileAfterDeferredChanges();
+                    }
+                }
+                else {
+                    ForcedCase spec = forcedCases.get(caseIndex);
+                    if (attached.size() != 1 || !attached.get(0).getAsJsonObject().get("id").getAsString().equals(spec.id)
+                            || attached.get(0).getAsJsonObject().get("rank").getAsInt() != spec.rank) {
+                        throw new IllegalStateException("forced trait attachment mismatch: " + attached);
+                    }
+                }
+            }
+            if (phaseTick == (mode.equals("profiles") ? 6 : 5)) {
+                JsonArray attached = readTraits(cap);
+                if (mode.equals("profiles") && !attached.equals(activeProfileTraits)) {
+                    throw new IllegalStateException("legal profile attachment remained unstable after deferred cleanup: expected="
+                            + activeProfileTraits + " actual=" + attached);
                 }
                 observation.afterInitialization = attributes(target);
                 observation.targetInvisible = target.isInvisible();
@@ -598,48 +907,103 @@ public final class Phase5FL2TraitMatrix {
                 target.setHealth(Math.max(1.0F, target.getMaxHealth() * 0.5F));
                 observation.regenWoundedHealth = target.getHealth();
             }
-            if (phaseTick == 25) observation.regenObservedHealth = target.getHealth();
-            if (phaseTick == 30) {
+            if (probeTick(25)) observation.regenObservedHealth = target.getHealth();
+            if (probeTick(30)) {
                 restoreTargetResources();
                 action = "royal_arrow_physical_repeat_1";
                 fireRoyalArrow(false, false);
             }
-            if (phaseTick == 35) {
+            if (probeTick(35)) {
                 restoreTargetResources();
                 action = "royal_arrow_physical_repeat_2";
                 fireRoyalArrow(false, false);
             }
-            if (phaseTick == 40) {
+            if (probeTick(40)) {
                 restoreTargetResources();
                 action = "direct_player_melee_control";
                 target.hurt(player.damageSources().playerAttack(player), 40.0F);
             }
-            if (phaseTick == 45) {
+            if (probeTick(45)) {
                 restoreTargetResources();
                 action = "magic_weapon_native";
                 fireRoyalArrow(true, false);
             }
-            if (phaseTick == 50) {
+            if (probeTick(50)) {
                 restoreTargetResources();
                 action = "magic_weapon_s7_fixture";
                 fireRoyalArrow(true, true);
             }
-            if (phaseTick == 55 || phaseTick == 60) {
+            if (probeTick(55) || probeTick(60)) {
                 restoreVictimResources();
                 action = "boss_sourced_physical_control_" + phaseTick;
                 victim.hurt(target.damageSources().mobAttack(target), 10.0F);
             }
-            ForcedCase spec = forcedCases.get(caseIndex);
-            if (phaseTick == 70 && (spec.id.equals("l2hostility:undying") || spec.id.equals("l2hostility:split"))) {
+            ForcedCase spec = mode.equals("profiles") ? profileSpec : forcedCases.get(caseIndex);
+            boolean adaptive = mode.equals("profiles") ? profileContains("l2hostility:adaptive")
+                    : spec.id.equals("l2hostility:adaptive");
+            if (probeTick(65) && adaptive) {
+                restoreTargetResources();
+                action = "adaptive_delayed_physical_repeat";
+                fireRoyalArrow(false, false);
+            }
+            if (probeTick(70) && !mode.equals("profiles")
+                    && (spec.id.equals("l2hostility:undying") || spec.id.equals("l2hostility:split"))) {
                 action = "lethal_royal_arrow_transition";
                 target.setHealth(1.0F);
                 TensuraStorages.getExistenceFrom(target).setSpiritualHealth(0.0D);
                 fireRoyalArrow(false, false);
                 observation.lethalTransitionExercised = true;
             }
-            int terminalTick = spec.id.equals("l2hostility:shulker") || spec.id.equals("l2hostility:grenade")
-                    || spec.id.equals("l2hostility:master") ? 240 : 100;
+            int terminalTick = !mode.equals("profiles") && (spec.id.equals("l2hostility:shulker")
+                    || spec.id.equals("l2hostility:grenade") || spec.id.equals("l2hostility:master")) ? 240 : 100;
+            if (mode.equals("profiles")) terminalTick++;
             if (phaseTick >= terminalTick) finishForcedCase();
+        }
+
+        private boolean probeTick(int forcedTick) {
+            return phaseTick == forcedTick + (mode.equals("profiles") ? 1 : 0);
+        }
+
+        private void normalizeProfileTraitMap() throws ReflectiveOperationException {
+            Object rawTraits = readField(cap, "traits");
+            if (!(rawTraits instanceof Map<?, ?> rawMap)) {
+                throw new IllegalStateException("L2 legal-profile trait map is not observable during normalization");
+            }
+            @SuppressWarnings("unchecked")
+            Map<Object, Integer> traitMap = (Map<Object, Integer>) rawMap;
+            Map<String, Integer> desired = new LinkedHashMap<>();
+            for (var value : activeProfileTraits) {
+                JsonObject entry = value.getAsJsonObject();
+                desired.put(entry.get("id").getAsString(), entry.get("rank").getAsInt());
+            }
+            boolean changed = false;
+            for (Object trait : List.copyOf(traitMap.keySet())) {
+                String id = traitId(trait);
+                if (desired.containsKey(id)) continue;
+                activeProfileUnexpectedRuntimeTraits.add(id);
+                invoke(trait, "initialize", target, 0);
+                invoke(trait, "postInit", target, 0);
+                traitMap.remove(trait);
+                changed = true;
+            }
+            Map<String, Object> byId = new LinkedHashMap<>();
+            traits.forEach(trait -> byId.put(traitId(trait), trait));
+            for (Map.Entry<String, Integer> entry : desired.entrySet()) {
+                Object trait = byId.get(entry.getKey());
+                if (!entry.getValue().equals(traitMap.get(trait))) {
+                    traitMap.put(trait, entry.getValue());
+                    changed = true;
+                }
+            }
+            clearPendingTraitChanges(cap);
+            if (changed) activeProfileNormalizationCount++;
+        }
+
+        private boolean profileContains(String id) {
+            for (var value : activeProfileTraits) {
+                if (value.getAsJsonObject().get("id").getAsString().equals(id)) return true;
+            }
+            return false;
         }
 
         private void finishForcedCase() throws ReflectiveOperationException {
@@ -665,12 +1029,82 @@ public final class Phase5FL2TraitMatrix {
             observation.finalNearbyEntities = nearbyEntityTypes();
             observation.masterProtected = cap != null && booleanValue(invoke(cap, "isMasterProtected"));
             observation.tensuraScalingMarker = target != null && target.getTags().contains(SCALE_TAG);
-            log("forced_trait_result", observation.toJson(boss.id));
+            if (mode.equals("profiles")) log("legal_defensive_profile_result", profileResultPayload());
+            else log("forced_trait_result", observation.toJson(boss.id));
             cleanup();
             observation = null;
             caseIndex++;
             phaseTick = 0;
             phase = Phase.START;
+        }
+
+        private JsonObject profileResultPayload() throws ReflectiveOperationException {
+            JsonObject json = observation.toJson(boss.id);
+            json.addProperty("evidence_class", "LEGAL_CONSTRUCTED_PROFILE");
+            json.addProperty("compatibility_evidence_only", false);
+            json.addProperty("balance_evidence_allowed", true);
+            json.remove("trait_id");
+            json.remove("effect_category");
+            json.remove("rank");
+            json.remove("native_max_rank");
+            json.remove("legal_for_tested_entity");
+            json.addProperty("requested_level", activeProfileLevel);
+            json.addProperty("attached_level", numberValue(invoke(cap, "getLevel")).intValue());
+            json.addProperty("forced_attachment_used", false);
+            json.addProperty("constructed_profile_attachment_used", true);
+            json.addProperty("construction_objective", "RANGED_TNO_DEFENSIVE_PRIORITY");
+            json.add("defensive_priority", strings(DEFENSIVE_PRIORITY));
+            json.add("traits", activeProfileTraits.deepCopy());
+            json.add("trait_ranks", traitRanks(activeProfileTraits));
+            json.addProperty("trait_count", activeProfileTraits.size());
+            json.add("construction_steps", activeProfileConstruction.deepCopy());
+            Object config = invoke(cap, "getConfigCache", target);
+            json.add("preset_traits", presetTraits(config));
+            json.addProperty("global_max_trait_count", serverConfigInt("maxTraitCount"));
+            json.addProperty("entity_max_trait_count", numberValue(readField(config, "maxTraitCount")).intValue());
+            json.addProperty("effective_max_trait_count", activeProfileMaxTraitCount);
+            json.addProperty("max_trait_count_reached", activeProfileMaxTraitCount > 0
+                    && activeProfileTraits.size() >= activeProfileMaxTraitCount);
+            json.addProperty("construction_budget_source", "REQUESTED_L2_LEVEL");
+            json.addProperty("construction_trait_cost_factor", 1.0D);
+            json.addProperty("construction_consumed_budget", activeProfileConsumedBudget);
+            json.addProperty("construction_remaining_budget", activeProfileRemainingBudget);
+            json.addProperty("deterministic_profile_normalization", true);
+            json.addProperty("profile_normalization_count", activeProfileNormalizationCount);
+            json.add("unexpected_runtime_traits_removed", strings(activeProfileUnexpectedRuntimeTraits));
+            json.addProperty("trait_budget_observability", "NOT_EXPOSED_AFTER_GENERATION");
+            json.addProperty("consumed_trait_budget", "NOT_RUNTIME_OBSERVABLE");
+            json.addProperty("remaining_trait_budget", "NOT_RUNTIME_OBSERVABLE");
+            int maxModLevel = numberValue(invoke(Class.forName(TRAIT_MANAGER), "getMaxLevel")).intValue() + 1;
+            JsonArray eligibility = new JsonArray();
+            for (Object trait : traits) eligibility.add(traitEligibility(trait, activeProfileLevel, maxModLevel, config));
+            json.add("trait_eligibility", eligibility);
+            json.addProperty("complete_trait_eligibility_count", eligibility.size());
+            json.addProperty("all_attached_traits_legal", activeProfileTraits.asList().stream().allMatch(value -> {
+                String id = value.getAsJsonObject().get("id").getAsString();
+                for (var legal : eligibility) {
+                    JsonObject entry = legal.getAsJsonObject();
+                    if (entry.get("trait_id").getAsString().equals(id)) {
+                        return entry.get("legal_at_requested_level").getAsBoolean();
+                    }
+                }
+                return false;
+            }));
+            json.addProperty("max_HP", target != null && !target.isRemoved() ? target.getMaxHealth() : 0.0D);
+            json.addProperty("HP", target != null && !target.isRemoved() ? target.getHealth() : 0.0D);
+            json.addProperty("armor", target != null && !target.isRemoved()
+                    ? target.getAttributeValue(Attributes.ARMOR) : 0.0D);
+            json.addProperty("toughness", target != null && !target.isRemoved()
+                    ? target.getAttributeValue(Attributes.ARMOR_TOUGHNESS) : 0.0D);
+            ResourceState state = target != null && !target.isRemoved() ? resources(target) : ResourceState.ZERO;
+            json.addProperty("spiritual_health", state.spiritualHealth);
+            json.addProperty("max_spiritual_health", state.maxSpiritualHealth);
+            json.addProperty("magicules", state.magicules);
+            json.addProperty("aura", state.aura);
+            json.addProperty("authoritative_defensive_layer",
+                    "L2 incoming-damage admission and transforms remain authoritative; canceled or zeroed events are not restored");
+            json.addProperty("terminal_classification", "LEGAL_RUNTIME_PROFILE");
+            return json;
         }
 
         private void restoreTargetResources() {
@@ -802,7 +1236,7 @@ public final class Phase5FL2TraitMatrix {
         }
 
         private void captureIncoming(LivingIncomingDamageEvent event, String hook) {
-            if (!mode.equals("forced") || observation == null) return;
+            if ((!mode.equals("forced") && !mode.equals("profiles")) || observation == null) return;
             if (event.getEntity() != target && event.getEntity() != victim && event.getEntity() != player) return;
             String source = damageType(event.getSource());
             double before = event.getAmount();
@@ -825,7 +1259,7 @@ public final class Phase5FL2TraitMatrix {
 
         private void captureDamage(LivingEntity entity, net.minecraft.world.damagesource.DamageSource source,
                 float amount, String hook) {
-            if (!mode.equals("forced") || observation == null) return;
+            if ((!mode.equals("forced") && !mode.equals("profiles")) || observation == null) return;
             if (entity != target && entity != victim && entity != player) return;
             observation.events.add(eventPayload(entity, source, action, hook, amount, amount));
             if (hook.equals("damage_post") && entity == target && amount > 0.0F) {
@@ -909,7 +1343,7 @@ public final class Phase5FL2TraitMatrix {
             json.addProperty("status", errors == 0 ? "complete" : "complete_with_errors");
             json.addProperty("profile_count", caseIndex);
             json.addProperty("requested_profile_count", mode.equals("natural") ? LEVELS.size()
-                    : mode.equals("forced") ? forcedCases.size() : 0);
+                    : mode.equals("forced") ? forcedCases.size() : mode.equals("profiles") ? PROFILE_LEVELS.size() : 0);
             json.addProperty("case_error_count", errors);
             log("matrix_result", json);
             phase = Phase.DONE;
@@ -925,7 +1359,8 @@ public final class Phase5FL2TraitMatrix {
                 json.addProperty("rank", spec.rank);
             }
             else {
-                json.addProperty("requested_level", caseIndex < LEVELS.size() ? LEVELS.get(caseIndex) : -1);
+                List<Integer> requestedLevels = mode.equals("profiles") ? PROFILE_LEVELS : LEVELS;
+                json.addProperty("requested_level", caseIndex < requestedLevels.size() ? requestedLevels.get(caseIndex) : -1);
             }
             json.addProperty("error_type", throwable.getClass().getName());
             json.addProperty("error_message", String.valueOf(throwable.getMessage()));
@@ -944,6 +1379,11 @@ public final class Phase5FL2TraitMatrix {
             auraVictim = null;
             cap = null;
             player = null;
+            profileSpec = null;
+            activeProfileTraits = new JsonArray();
+            activeProfileConstruction = new JsonArray();
+            activeProfileNormalizationCount = 0;
+            activeProfileUnexpectedRuntimeTraits.clear();
             level.getEntities((Entity) null, new AABB(-64, 200, -64, 64, 300, 64),
                     entity -> entity.getTags().contains(TARGET_TAG)).forEach(Entity::discard);
         }

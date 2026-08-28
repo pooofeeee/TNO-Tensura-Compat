@@ -6,7 +6,7 @@ param(
     [string] $OutputPath,
 
     [Parameter(Mandatory = $true)]
-    [ValidateSet('catalog', 'natural', 'forced')]
+    [ValidateSet('catalog', 'natural', 'forced', 'profiles')]
     [string] $ExpectedMode,
 
     [Parameter(Mandatory = $true)]
@@ -33,6 +33,7 @@ $expectedTraits = @(
     'l2hostility:levitation', 'l2hostility:blindness', 'l2hostility:nausea',
     'l2hostility:soul_burner', 'l2hostility:freezing', 'l2hostility:cursed'
 ) | Sort-Object
+$expectedTraitFilter = @($ExpectedTrait -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
 
 $resolvedLog = (Resolve-Path -LiteralPath $LogPath).Path
 $content = [IO.File]::ReadAllText($resolvedLog)
@@ -51,6 +52,7 @@ $starts = @($records | Where-Object { $_.Value.kind -eq 'matrix_start' })
 $catalogs = @($records | Where-Object { $_.Value.kind -eq 'trait_catalog' })
 $profiles = @($records | Where-Object { $_.Value.kind -eq 'natural_profile' })
 $forcedResults = @($records | Where-Object { $_.Value.kind -eq 'forced_trait_result' })
+$legalProfileResults = @($records | Where-Object { $_.Value.kind -eq 'legal_defensive_profile_result' })
 $errors = @($records | Where-Object { $_.Value.kind -eq 'case_error' })
 $results = @($records | Where-Object { $_.Value.kind -eq 'matrix_result' })
 
@@ -81,11 +83,16 @@ foreach ($trait in $catalog.traits) {
 $result = $results[0].Value
 $expectedProfiles = if ($ExpectedMode -eq 'natural') { 10 }
     elseif ($ExpectedMode -eq 'forced') {
-        if ($ExpectedTrait) {
-            [int](@($catalog.traits | Where-Object { $_.trait_id -eq $ExpectedTrait })[0].native_max_rank)
+        if ($expectedTraitFilter.Count -gt 0) {
+            $selected = @($catalog.traits | Where-Object { $expectedTraitFilter -contains $_.trait_id })
+            if ($selected.Count -ne $expectedTraitFilter.Count) {
+                throw "One or more expected forced traits are absent from the live catalog: $ExpectedTrait"
+            }
+            [int](($selected | Measure-Object -Property native_max_rank -Sum).Sum)
         }
         else { [int](($catalog.traits | Measure-Object -Property native_max_rank -Sum).Sum) }
     }
+    elseif ($ExpectedMode -eq 'profiles') { 7 }
     else { 0 }
 if ($result.status -ne 'complete' -or [int]$result.case_error_count -ne 0 -or
     [int]$result.profile_count -ne $expectedProfiles -or
@@ -93,11 +100,11 @@ if ($result.status -ne 'complete' -or [int]$result.case_error_count -ne 0 -or
     throw 'Capture lacks one clean, complete matrix_result.'
 }
 
-if ($profiles.Count -ne $expectedProfiles) {
-    if ($ExpectedMode -eq 'natural') {
-        throw "Expected $expectedProfiles natural profiles; found $($profiles.Count)."
-    }
-    elseif ($profiles.Count -ne 0) { throw 'Forced/catalog capture unexpectedly contains natural profiles.' }
+if ($ExpectedMode -eq 'natural' -and $profiles.Count -ne $expectedProfiles) {
+    throw "Expected $expectedProfiles natural profiles; found $($profiles.Count)."
+}
+elseif ($ExpectedMode -ne 'natural' -and $profiles.Count -ne 0) {
+    throw 'Forced/profiles/catalog capture unexpectedly contains natural profiles.'
 }
 if ($ExpectedMode -eq 'natural') {
     $actualLevels = @($profiles.Value.requested_level | Sort-Object -Unique)
@@ -126,11 +133,60 @@ if ($ExpectedMode -eq 'natural') {
     }
 }
 
+if ($ExpectedMode -eq 'profiles') {
+    $expectedProfileLevels = @(200, 300, 400, 500, 600, 800, 1000)
+    if ($legalProfileResults.Count -ne $expectedProfiles) {
+        throw "Expected $expectedProfiles legal defensive profiles; found $($legalProfileResults.Count)."
+    }
+    if ($forcedResults.Count -ne 0) { throw 'Legal-profile capture unexpectedly contains forced trait rows.' }
+    $actualLevels = @($legalProfileResults.Value.requested_level | ForEach-Object { [int]$_ } | Sort-Object -Unique)
+    if ((Compare-Object $actualLevels $expectedProfileLevels).Count -ne 0) {
+        throw 'Legal-profile matrix does not contain the exact requested level ladder.'
+    }
+    foreach ($profile in $legalProfileResults.Value) {
+        if ($profile.evidence_class -ne 'LEGAL_CONSTRUCTED_PROFILE' -or
+            $profile.compatibility_evidence_only -or -not $profile.balance_evidence_allowed -or
+            $profile.forced_attachment_used -or -not $profile.constructed_profile_attachment_used -or
+            [int]$profile.attached_level -ne [int]$profile.requested_level -or
+            -not $profile.all_attached_traits_legal -or -not $profile.runtime_probe_completed -or
+            $profile.APO_profile -ne 'NONE' -or $profile.production_combat_mutated -or
+            $profile.real_royal_bow -ne 'royalvariations:royal_bow' -or
+            $profile.real_royal_arrow -ne 'royalvariations:royal_arrow' -or
+            $profile.royal_arrow_mark_enabled -or -not $profile.tensura_l2h_scaling_marker -or
+            $profile.unexpected_L2_bypass -or [int]$profile.complete_trait_eligibility_count -ne 39 -or
+            $profile.trait_budget_observability -ne 'NOT_EXPOSED_AFTER_GENERATION' -or
+            $profile.consumed_trait_budget -ne 'NOT_RUNTIME_OBSERVABLE' -or
+            $profile.remaining_trait_budget -ne 'NOT_RUNTIME_OBSERVABLE' -or
+            [double]$profile.construction_trait_cost_factor -ne 1.0 -or
+            [int]$profile.construction_consumed_budget + [int]$profile.construction_remaining_budget -ne [int]$profile.requested_level) {
+            throw "Invalid legal defensive profile at requested level $($profile.requested_level)."
+        }
+        $eligibility = @($profile.trait_eligibility.trait_id | Sort-Object)
+        if ((Compare-Object $eligibility $expectedTraits).Count -ne 0) {
+            throw "Incomplete legal-profile eligibility table at requested level $($profile.requested_level)."
+        }
+        foreach ($generated in $profile.traits) {
+            $legal = @($profile.trait_eligibility | Where-Object { $_.trait_id -eq $generated.id })
+            if ($legal.Count -ne 1 -or -not $legal[0].legal_at_requested_level) {
+                throw "Constructed illegal trait $($generated.id) at requested level $($profile.requested_level)."
+            }
+        }
+        if ([int]$profile.trait_count -gt [int]$profile.effective_max_trait_count) {
+            $nonPresetAdds = @($profile.construction_steps | Where-Object { $_.construction_source -eq 'DEFENSIVE_PRIORITY' })
+            if ($nonPresetAdds.Count -gt 0) {
+                throw "Legal-profile construction exceeded maxTraitCount outside presets at level $($profile.requested_level)."
+            }
+        }
+    }
+}
+
 if ($ExpectedMode -eq 'forced') {
     if ($forcedResults.Count -ne $expectedProfiles) {
         throw "Expected $expectedProfiles forced trait results; found $($forcedResults.Count)."
     }
-    $expectedCatalog = if ($ExpectedTrait) { @($catalog.traits | Where-Object { $_.trait_id -eq $ExpectedTrait }) }
+    $expectedCatalog = if ($expectedTraitFilter.Count -gt 0) {
+            @($catalog.traits | Where-Object { $expectedTraitFilter -contains $_.trait_id })
+        }
         else { @($catalog.traits) }
     if ($expectedCatalog.Count -eq 0) { throw "Expected trait filter $ExpectedTrait is absent from the live catalog." }
     foreach ($trait in $expectedCatalog) {
@@ -161,7 +217,7 @@ if ($ExpectedMode -eq 'forced') {
 
 $outputDir = Split-Path -Parent $OutputPath
 if ($outputDir) { [IO.Directory]::CreateDirectory($outputDir) | Out-Null }
-$preserved = @($starts[0], $catalogs[0]) + $profiles + $forcedResults + @($results[0])
+$preserved = @($starts[0], $catalogs[0]) + $profiles + $forcedResults + $legalProfileResults + @($results[0])
 $text = ($preserved.Json -join "`n") + "`n"
 [IO.File]::WriteAllText($OutputPath, $text, [Text.UTF8Encoding]::new($false))
 
