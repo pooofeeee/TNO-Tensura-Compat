@@ -424,3 +424,22 @@ family is therefore `EFFECTIVELY DEAD` as a Stage progression path in this
 installed runtime, apart from the two isolated low-level Native/S0 positive
 controls. This finding is not permission to change Slotting, Stage values,
 matching-Resistance recovery, or production combat behavior.
+
+## Checkpoint 3 — Energy Steal (in progress)
+
+| Boss | Levels | Cases | Per-hit rows | Errors | Native -> S7 resource impact/s | Status |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| `tensura_neb:luminous_valentine` | 215, 300, 600, 800, 1000 | 45 | 450 | 0 | 0.00 -> 0.00 | Accepted; no native Energy Drain event, all profiles `EFFECTIVELY DEAD` |
+
+Energy Steal I is measured through its native event operation: one percent of
+the target's current Aura and current Magicules, with a native 20-tick bow
+cooldown and no DamageSource. The Stage fixture changes only that eligible
+current-pool percentage. It does not alter the Royal Arrow's base damage,
+cooldown, resource maxima, native Tensura/L2 mechanics, or production behavior.
+
+Luminous produced no Energy Drain event in any of 450 rows. All Royal Arrow
+damage was canceled before Tensura's post-damage Energy Steal hook could run,
+so every case had zero resource impact from Native through S7. Dispell was
+naturally present in all five profiles, but there was no Energy event or damage
+source for it to transform. APO profile remained `NONE`, and no unexpected L2
+bypass occurred.

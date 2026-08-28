@@ -917,6 +917,20 @@ positive controls. The result is evidence only and does not change native
 Slotting, Stage coefficients, matching-Resistance recovery, or production
 combat behavior.
 
+## Checkpoint 3 — Energy Steal (in progress)
+
+Energy Steal I uses the installed native post-damage operation: one percent of
+the target's current Aura and current Magicules, a native 20-tick bow cooldown,
+and no DamageSource. The temporary Stage fixture scales only the eligible
+current-pool percentage; it does not change Royal Arrow base damage, the native
+cooldown, target resource maxima, or production behavior.
+
+Luminous is accepted with 45 cases, 450 per-hit rows, zero case errors, APO
+profile `NONE`, and no unexpected L2 bypass. Every Royal Arrow was canceled
+before the native post-damage hook, so no Energy Drain event was emitted and
+resource impact remained `0.00 Native -> 0.00 S7`. All five profiles naturally
+contained Dispell, but no Energy event or DamageSource existed to transform.
+
 ## Remaining L2 benchmark work
 
 The final instance config retains `maxMobLevel = 3000`, `maxTraitCount = 9`, and
