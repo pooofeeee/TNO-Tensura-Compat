@@ -503,6 +503,7 @@ Royal Arrow damage, or production combat behavior.
 | `tensura:hinata_sakaguchi` | 200, 280, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; all combined physical events canceled post-L2, no Severance wound stored |
 | `tensura:gazel_dwargo` | 185, 260, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; admitted events canceled post-L2, no Severance wound stored |
 | `tensura:orc_disaster` | 175, 250, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.958 -> 0.540 | Accepted; 93 combined physical hits survived L2 and stored native Severance wound |
+| `tensura:elemental_colossus` | 112, 150, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; every arrow canceled before the combined-source probe, no Severance wound stored |
 
 Severance I is measured on the real Royal Arrow as one combined physical
 `minecraft:arrow` source, not a fabricated second DamageSource. Native
@@ -538,6 +539,14 @@ APO remained `NONE`, and no unexpected L2 bypass occurred. The extractor now
 accepts Tensura's native `0.5` minimum wound clamp for an admitted sub-`0.5`
 physical hit while continuing to reject wound storage when post-L2 damage is
 zero.
+
+Elemental Colossus canceled all 540 Royal Arrow releases before the combined
+`minecraft:arrow` source reached the incoming probe. Post-L2 physical damage,
+wound storage, and all 54 case DPS values were therefore zero from Native
+through S7. Tank was present in all six legal profiles. No Adaptive, Dispell,
+or Dementor rolled; the one Regenerate profile recorded no healing row, and the
+two Reflect profiles recorded no reflected damage because no physical sequence
+was admitted. APO remained `NONE`, and no unexpected L2 bypass occurred.
 
 Hinata likewise produced 540 correctly formed combined physical pre-L2 events.
 Every row passed source, velocity, native `+3`, Stage, and rounding invariants,

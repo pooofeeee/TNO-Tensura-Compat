@@ -1029,6 +1029,15 @@ Stage value. The validator was corrected for Tensura's native `0.5` minimum
 wound clamp on an admitted sub-`0.5` physical hit, while zero post-L2 damage
 continues to require zero wound storage.
 
+Elemental Colossus is accepted with 54 cases, 540 rows, zero errors, APO
+profile `NONE`, and no unexpected L2 bypass. Every Royal Arrow was canceled
+before the combined `minecraft:arrow` source reached the incoming probe, so
+post-L2 physical damage, native wound storage, and average DPS remained
+`0.00 Native -> 0.00 S7`. All six legal profiles contained Tank. No Adaptive,
+Dispell, or Dementor rolled; one Regenerate profile recorded no healing row,
+and two Reflect profiles recorded no reflection because no physical sequence
+was admitted.
+
 Hinata is accepted with 54 cases, 540 per-hit rows, zero case errors, APO
 profile `NONE`, and no unexpected L2 bypass. Every Royal Arrow was canceled
 before the native post-damage hook, so no Energy Drain event was emitted and
