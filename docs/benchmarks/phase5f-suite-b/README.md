@@ -431,6 +431,7 @@ matching-Resistance recovery, or production combat behavior.
 | --- | ---: | ---: | ---: | ---: | ---: | --- |
 | `tensura_neb:luminous_valentine` | 215, 300, 600, 800, 1000 | 45 | 450 | 0 | 0.00 -> 0.00 | Accepted; no native Energy Drain event, all profiles `EFFECTIVELY DEAD` |
 | `tensura:hinata_sakaguchi` | 200, 280, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; no native Energy Drain event, all profiles `EFFECTIVELY DEAD` |
+| `tensura:gazel_dwargo` | 185, 260, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; no native Energy Drain event, all profiles `EFFECTIVELY DEAD` |
 
 Energy Steal I is measured through its native event operation: one percent of
 the target's current Aura and current Magicules, with a native 20-tick bow
@@ -450,3 +451,9 @@ was canceled before the native post-damage hook, leaving all 54 cases at zero
 resource impact from Native through S7. Dispell was naturally present in all
 six profiles but had no Energy event or DamageSource to transform. APO profile
 remained `NONE`, and no unexpected L2 bypass occurred.
+
+Gazel also produced no Energy Drain event in 540 rows. Upstream Royal Arrow
+cancellation prevented the native post-damage hook in every case, so resource
+impact remained zero from Native through S7. One profile naturally rolled
+Dementor, but there was no Energy operation or DamageSource to transform. APO
+profile remained `NONE`, and no unexpected L2 bypass occurred.
