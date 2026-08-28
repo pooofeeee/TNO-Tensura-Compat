@@ -434,6 +434,7 @@ matching-Resistance recovery, or production combat behavior.
 | `tensura:gazel_dwargo` | 185, 260, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; no native Energy Drain event, all profiles `EFFECTIVELY DEAD` |
 | `tensura:orc_disaster` | 175, 250, 300, 600, 800, 1000 | 54 | 540 | 0 | 4257.302 -> 6047.549 | Accepted positive control; every case emitted Energy Drain, Lv175 aggregate non-monotonic |
 | `tensura:elemental_colossus` | 112, 150, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; no native Energy Drain event, all profiles `EFFECTIVELY DEAD` |
+| `tensura_neb:carrion` | 150, 210, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; no native Energy Drain event, all profiles `EFFECTIVELY DEAD` |
 
 Energy Steal I is measured through its native event operation: one percent of
 the target's current Aura and current Magicules, with a native 20-tick bow
@@ -459,6 +460,12 @@ cancellation prevented the native post-damage hook in every case, so resource
 impact remained zero from Native through S7. One profile naturally rolled
 Dementor, but there was no Energy operation or DamageSource to transform. APO
 profile remained `NONE`, and no unexpected L2 bypass occurred.
+
+Carrion likewise emitted no Energy Drain event in 540 rows. Every Royal Arrow
+was canceled before the native post-damage hook, leaving all 54 cases at zero
+resource impact from Native through S7. No Adaptive, Dispell, or Dementor
+profile rolled; APO profile remained `NONE`, and no unexpected L2 bypass
+occurred.
 
 Orc Disaster supplied the positive control: every one of its 54 cases emitted
 at least one Energy Drain event, for 81 event rows in total. Every event used
