@@ -388,7 +388,8 @@ if ($ExpectedFamily -eq 'SEVERANCE') {
         $expectedStagedPost = $admittedProjectiles * $expectedStagedPostPerProjectile
         $wound = [double]$value.severance_amount_delta
         $postPhysical = [double]$value.combined_physical_post_damage
-        $maximumExpectedWound = [Math]::Max(0.5, $postPhysical)
+        $combinedOriginal = [double]$value.physical_combined_original_before_L2
+        $maximumExpectedWound = [Math]::Max(0.5, $combinedOriginal * 0.5)
 
         if (-not $value.royal_arrow_created -or $value.severance_distinct_damage_source -or
             $value.family_source_is_l2_magic -or
@@ -396,7 +397,9 @@ if ($ExpectedFamily -eq 'SEVERANCE') {
             $value.matching_Tensura_nullification_present -or
             [Math]::Abs([double]$value.penetration_percentage_applied) -gt 0.0001 -or
             $configuredProjectiles -lt 1 -or
-            ($Suite -eq 'C' -and $configuredProjectiles -ne [int]$value.released_projectile_count) -or
+            ($Suite -eq 'C' -and
+                ($configuredProjectiles + [int]$value.projectiles_discarded_after_target_defeat) -ne
+                    [int]$value.released_projectile_count) -or
             $admittedProjectiles -lt 0 -or $admittedProjectiles -gt $configuredProjectiles -or
             ($Suite -eq 'C' -and $admittedProjectiles -ne [int]$value.physical_damage_event_count) -or
             $speed -le 0.0 -or ($Suite -eq 'B' -and [Math]::Abs($baseDamage - 2.4) -gt 0.0001) -or
@@ -417,7 +420,6 @@ if ($ExpectedFamily -eq 'SEVERANCE') {
 
         if (@($value.damage_source_ids) -contains 'minecraft:arrow') {
             $physicalEventRows++
-            $combinedOriginal = [double]$value.physical_combined_original_before_L2
             if ([Math]::Abs([double]$value.physical_original_before_stage - $expectedBasePost) -gt 0.0001 -or
                 ($Suite -eq 'B' -and [Math]::Abs($combinedOriginal - $expectedStagedPost) -gt 0.0001) -or
                 ($Suite -eq 'C' -and $combinedOriginal + 0.0001 -lt $expectedBasePost) -or
