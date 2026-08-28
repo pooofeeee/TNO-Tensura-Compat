@@ -938,6 +938,16 @@ resource impact remained `0.00 Native -> 0.00 S7`. One profile naturally
 contained Dementor, but no Energy operation or DamageSource existed to
 transform.
 
+Orc Disaster is accepted with 54 cases, 540 per-hit rows, zero case errors,
+APO profile `NONE`, and no unexpected L2 bypass. All 54 cases emitted at least
+one Energy Drain event (81 event rows total), and each passed exact native
+one-percent/current-pool, Stage-coefficient, target-drain/attacker-gain, and
+non-DamageSource invariants. Average resource impact rose from 4,257.302/s
+Native to 6,047.549/s at S7. Lv175 was non-monotonic because eligible events
+fell from 10 Native to one at S7; the per-event formula remained exact. One
+Dispell and one Dementor profile did not transform the non-DamageSource energy
+operation.
+
 Hinata is accepted with 54 cases, 540 per-hit rows, zero case errors, APO
 profile `NONE`, and no unexpected L2 bypass. Every Royal Arrow was canceled
 before the native post-damage hook, so no Energy Drain event was emitted and
