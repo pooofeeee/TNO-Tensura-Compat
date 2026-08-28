@@ -1046,6 +1046,14 @@ all six legal profiles, with no recorded healing. Three Adaptive profiles and
 two Dispell profiles recorded no transform because no positive physical
 sequence survived. No Dementor rolled.
 
+Rimuru Ogre Fight is accepted with 54 cases, 540 rows, zero errors, APO
+profile `NONE`, and no unexpected L2 bypass. All 540 combined
+physical/projectile arrow events were admitted, but every post-L2 amount was
+zero before wound storage; average DPS stayed `0.00 Native -> 0.00 S7`.
+Adaptive and Regenerate appeared in all six legal profiles without a recorded
+effect on a positive surviving sequence. No Dispell or Dementor rolled, and
+the one Reflect profile recorded no reflection.
+
 Hinata is accepted with 54 cases, 540 per-hit rows, zero case errors, APO
 profile `NONE`, and no unexpected L2 bypass. Every Royal Arrow was canceled
 before the native post-damage hook, so no Energy Drain event was emitted and

@@ -505,6 +505,7 @@ Royal Arrow damage, or production combat behavior.
 | `tensura:orc_disaster` | 175, 250, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.958 -> 0.540 | Accepted; 93 combined physical hits survived L2 and stored native Severance wound |
 | `tensura:elemental_colossus` | 112, 150, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; every arrow canceled before the combined-source probe, no Severance wound stored |
 | `tensura_neb:carrion` | 150, 210, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; all combined physical events canceled post-L2, no Severance wound stored |
+| `tensura_neb:rimuru_ogre_fight` | 167, 250, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; all combined physical events canceled post-L2, no Severance wound stored |
 
 Severance I is measured on the real Royal Arrow as one combined physical
 `minecraft:arrow` source, not a fabricated second DamageSource. Native
@@ -556,6 +557,13 @@ Regenerate were present in every legal profile; Regenerate recorded no healing.
 Adaptive rolled in three profiles and Dispell in two, but neither recorded a
 transform because no positive physical sequence survived. No Dementor rolled,
 APO remained `NONE`, and no unexpected L2 bypass occurred.
+
+Rimuru Ogre Fight admitted all 540 combined physical/projectile arrow events,
+but every post-L2 amount was zero before native wound storage. All 54 cases
+remained at `0.00 Native -> 0.00 S7`. Adaptive and Regenerate were present in
+all six legal profiles, but neither recorded an effect on a positive surviving
+sequence. No Dispell or Dementor rolled; the one Reflect profile recorded no
+reflected damage. APO remained `NONE`, and no unexpected L2 bypass occurred.
 
 Hinata likewise produced 540 correctly formed combined physical pre-L2 events.
 Every row passed source, velocity, native `+3`, Stage, and rounding invariants,
