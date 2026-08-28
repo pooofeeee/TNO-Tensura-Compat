@@ -181,6 +181,7 @@ public final class Phase5FL2TraitMatrix {
         private int phaseTick;
         private LivingEntity target;
         private LivingEntity victim;
+        private LivingEntity auraVictim;
         private Object cap;
         private FakePlayer player;
         private ForcedObservation observation;
@@ -496,20 +497,39 @@ public final class Phase5FL2TraitMatrix {
             invoke(cap, "syncToClient", target);
             level.addFreshEntity(target);
 
-            Entity probe = EntityType.ARMOR_STAND.create(level);
+            Entity auraProbe = EntityType.ARMOR_STAND.create(level);
+            if (!(auraProbe instanceof LivingEntity livingAuraProbe)) {
+                throw new IllegalStateException("could not create aura probe entity");
+            }
+            auraVictim = livingAuraProbe;
+            auraVictim.setPos(0.5D, 240.0D, 23.0D);
+            auraVictim.setNoGravity(true);
+            auraVictim.addTag(TARGET_TAG);
+            level.addFreshEntity(auraVictim);
+
+            Entity probe = EntityType.ZOMBIE.create(level);
             if (!(probe instanceof LivingEntity livingProbe)) throw new IllegalStateException("could not create probe entity");
             victim = livingProbe;
-            victim.setPos(0.5D, 240.0D, 23.0D);
+            victim.setPos(0.5D, 240.0D, 50.0D);
             victim.setNoGravity(true);
             victim.addTag(TARGET_TAG);
+            setBase(victim, Attributes.MAX_HEALTH, 1_000.0D);
+            victim.setHealth(victim.getMaxHealth());
+            if (victim instanceof Mob mobProbe) mobProbe.setNoAi(true);
             equipProbe(victim);
             level.addFreshEntity(victim);
+            Object probeCap = invoke(type, "getOrCreate", victim);
+            invoke(probeCap, "deinit");
+            if (readTraits(probeCap).size() != 0) {
+                throw new IllegalStateException("neutral probe retained L2 traits after deinit");
+            }
 
             player = createForcedPlayer(caseIndex);
             observation = new ForcedObservation(spec, legal, baseline, resources(target),
                     resources(player), nearbyEntityTypes());
             observation.victimInitialEquipment = equipment(victim);
-            if (target instanceof Mob mob) mob.setTarget(victim);
+            observation.playerInitialEquipment = equipment(player);
+            if (target instanceof Mob mob) mob.setTarget(player);
             phaseTick = 0;
             action = "forced_initialization";
             phase = Phase.FORCED_RUN;
@@ -605,8 +625,9 @@ public final class Phase5FL2TraitMatrix {
                 fireRoyalArrow(true, true);
             }
             if (phaseTick == 55 || phaseTick == 60) {
-                action = "boss_melee_control_" + phaseTick;
-                if (target instanceof Mob mob) mob.doHurtTarget(victim);
+                restoreVictimResources();
+                action = "boss_sourced_physical_control_" + phaseTick;
+                victim.hurt(target.damageSources().mobAttack(target), 10.0F);
             }
             ForcedCase spec = forcedCases.get(caseIndex);
             if (phaseTick == 70 && (spec.id.equals("l2hostility:undying") || spec.id.equals("l2hostility:split"))) {
@@ -628,11 +649,17 @@ public final class Phase5FL2TraitMatrix {
             observation.targetFinalHealth = target != null && !target.isRemoved() ? target.getHealth() : 0.0D;
             observation.targetFinalResources = target != null && !target.isRemoved() ? resources(target) : ResourceState.ZERO;
             observation.playerFinalResources = resources(player);
+            observation.playerFinalHealth = player != null ? player.getHealth() : 0.0D;
+            observation.playerEffects = player != null ? effects(player) : new JsonArray();
+            observation.playerEquipment = player != null ? equipment(player) : new JsonArray();
             observation.victimFinalHealth = victim != null && !victim.isRemoved() ? victim.getHealth() : 0.0D;
             observation.victimEffects = victim != null && !victim.isRemoved() ? effects(victim) : new JsonArray();
             observation.victimEquipment = victim != null && !victim.isRemoved() ? equipment(victim) : new JsonArray();
             observation.victimFireTicks = victim != null ? victim.getRemainingFireTicks() : 0;
             observation.victimMotion = victim != null ? victim.getDeltaMovement() : Vec3.ZERO;
+            observation.auraVictimEffects = auraVictim != null && !auraVictim.isRemoved()
+                    ? effects(auraVictim) : new JsonArray();
+            observation.auraVictimMotion = auraVictim != null ? auraVictim.getDeltaMovement() : Vec3.ZERO;
             observation.targetMotion = target != null ? target.getDeltaMovement() : Vec3.ZERO;
             observation.targetFinalPosition = target != null ? target.position() : Vec3.ZERO;
             observation.finalNearbyEntities = nearbyEntityTypes();
@@ -653,12 +680,29 @@ public final class Phase5FL2TraitMatrix {
             existence.setSpiritualHealth(attribute(target, TensuraAttributes.MAX_SPIRITUAL_HEALTH));
         }
 
+        private void restorePlayerResources() {
+            if (player == null) return;
+            player.setHealth(player.getMaxHealth());
+            var existence = TensuraStorages.getExistenceFrom(player);
+            existence.setSpiritualHealth(attribute(player, TensuraAttributes.MAX_SPIRITUAL_HEALTH));
+        }
+
+        private void restoreVictimResources() {
+            if (victim == null || victim.isRemoved()) return;
+            victim.setHealth(victim.getMaxHealth());
+            var existence = TensuraStorages.getExistenceFrom(victim);
+            existence.setSpiritualHealth(attribute(victim, TensuraAttributes.MAX_SPIRITUAL_HEALTH));
+        }
+
         private void stabilizeForcedEntities() {
             if (player != null) {
                 player.getCooldowns().tick();
                 if (!player.isAlive()) player.setHealth(player.getMaxHealth());
             }
-            if (target instanceof Mob mob && victim != null && victim.isAlive()) mob.setTarget(victim);
+            if (target instanceof Mob mob && player != null && player.isAlive()) {
+                mob.setTarget(player);
+                target.setOnGround(true);
+            }
         }
 
         private FakePlayer createForcedPlayer(int index) {
@@ -678,6 +722,10 @@ public final class Phase5FL2TraitMatrix {
             existence.setMagicule(1_000_000_000.0D);
             existence.setAura(1_000_000_000.0D);
             fake.setPos(0.5D, 240.0D, 16.0D);
+            fake.setItemSlot(EquipmentSlot.HEAD, enchanted(new ItemStack(Items.DIAMOND_HELMET)));
+            fake.setItemSlot(EquipmentSlot.CHEST, enchanted(new ItemStack(Items.DIAMOND_CHESTPLATE)));
+            fake.setItemSlot(EquipmentSlot.LEGS, enchanted(new ItemStack(Items.DIAMOND_LEGGINGS)));
+            fake.setItemSlot(EquipmentSlot.FEET, enchanted(new ItemStack(Items.DIAMOND_BOOTS)));
             return fake;
         }
 
@@ -731,6 +779,7 @@ public final class Phase5FL2TraitMatrix {
                     throw new IllegalStateException("could not disable Royal Arrow Mark", exception);
                 }
                 arrow.setCritArrow(false);
+                arrow.addTag(TARGET_TAG);
                 Vec3 aim = target.getBoundingBox().getCenter();
                 double speed = arrow.getDeltaMovement().length();
                 Vec3 direction = aim.subtract(arrow.position()).normalize();
@@ -768,6 +817,9 @@ public final class Phase5FL2TraitMatrix {
             if (hook.equals("incoming_lowest") && event.isCanceled()) {
                 observation.anyIncomingCanceled = true;
                 observation.canceledActions.add(action);
+                if (event.getEntity() == target) {
+                    observation.canceledTargetDamageKeys.add(damageKey(action, source));
+                }
             }
         }
 
@@ -779,7 +831,12 @@ public final class Phase5FL2TraitMatrix {
             if (hook.equals("damage_post") && entity == target && amount > 0.0F) {
                 observation.anyTargetDamagePost = true;
                 observation.targetDamagePostActions.add(action);
+                observation.targetDamagePostKeys.add(damageKey(action, damageType(source)));
             }
+        }
+
+        private String damageKey(String eventAction, String source) {
+            return eventAction + "|" + source;
         }
 
         private JsonObject eventPayload(LivingEntity entity, net.minecraft.world.damagesource.DamageSource source,
@@ -862,7 +919,14 @@ public final class Phase5FL2TraitMatrix {
         private void fail(Throwable throwable) {
             errors++;
             JsonObject json = basePayload();
-            json.addProperty("requested_level", caseIndex < LEVELS.size() ? LEVELS.get(caseIndex) : -1);
+            if (mode.equals("forced") && caseIndex < forcedCases.size()) {
+                ForcedCase spec = forcedCases.get(caseIndex);
+                json.addProperty("trait_id", spec.id);
+                json.addProperty("rank", spec.rank);
+            }
+            else {
+                json.addProperty("requested_level", caseIndex < LEVELS.size() ? LEVELS.get(caseIndex) : -1);
+            }
             json.addProperty("error_type", throwable.getClass().getName());
             json.addProperty("error_message", String.valueOf(throwable.getMessage()));
             log("case_error", json);
@@ -874,8 +938,10 @@ public final class Phase5FL2TraitMatrix {
         private void cleanup() {
             if (target != null && !target.isRemoved()) target.discard();
             if (victim != null && !victim.isRemoved()) victim.discard();
+            if (auraVictim != null && !auraVictim.isRemoved()) auraVictim.discard();
             target = null;
             victim = null;
+            auraVictim = null;
             cap = null;
             player = null;
             level.getEntities((Entity) null, new AABB(-64, 200, -64, 64, 300, 64),
@@ -1200,6 +1266,8 @@ public final class Phase5FL2TraitMatrix {
         final JsonArray events = new JsonArray();
         final Set<String> canceledActions = new LinkedHashSet<>();
         final Set<String> targetDamagePostActions = new LinkedHashSet<>();
+        final Set<String> canceledTargetDamageKeys = new LinkedHashSet<>();
+        final Set<String> targetDamagePostKeys = new LinkedHashSet<>();
         AttributeState afterInitialization = AttributeState.ZERO;
         AttributeState afterRun = AttributeState.ZERO;
         ResourceState targetFinalResources = ResourceState.ZERO;
@@ -1207,15 +1275,21 @@ public final class Phase5FL2TraitMatrix {
         JsonArray targetEffectsAtStart = new JsonArray();
         JsonArray victimEffects = new JsonArray();
         JsonArray victimInitialEquipment = new JsonArray();
+        JsonArray playerInitialEquipment = new JsonArray();
+        JsonArray playerEffects = new JsonArray();
+        JsonArray playerEquipment = new JsonArray();
         JsonArray victimEquipment = new JsonArray();
+        JsonArray auraVictimEffects = new JsonArray();
         JsonObject finalNearbyEntities = new JsonObject();
         Vec3 victimMotion = Vec3.ZERO;
+        Vec3 auraVictimMotion = Vec3.ZERO;
         Vec3 targetMotion = Vec3.ZERO;
         Vec3 targetFinalPosition = Vec3.ZERO;
         double regenWoundedHealth;
         double regenObservedHealth;
         double targetFinalHealth;
         double victimFinalHealth;
+        double playerFinalHealth;
         int victimFireTicks;
         boolean targetInvisible;
         boolean targetAlive;
@@ -1255,7 +1329,7 @@ public final class Phase5FL2TraitMatrix {
             json.addProperty("real_royal_arrow", ROYAL_ARROW.toString());
             json.addProperty("royal_arrow_mark_enabled", false);
             json.addProperty("APO_profile", "NONE");
-            json.addProperty("TNO_probes", "physical Royal Arrow repeats, direct physical control, Magic Weapon Native, temporary S7 coefficient fixture");
+            json.addProperty("TNO_probes", "physical Royal Arrow repeats, direct player-to-boss physical control, boss-sourced physical controls, Magic Weapon Native, temporary S7 coefficient fixture");
             json.addProperty("production_combat_mutated", false);
             json.add("attributes_before_forced_trait", beforeInitialization.toJson());
             json.add("attributes_after_forced_trait", afterInitialization.toJson());
@@ -1264,6 +1338,10 @@ public final class Phase5FL2TraitMatrix {
             json.add("target_final_resources", targetFinalResources.toJson());
             json.add("player_initial_resources", playerInitialResources.toJson());
             json.add("player_final_resources", playerFinalResources.toJson());
+            json.addProperty("royal_bow_user_final_HP", playerFinalHealth);
+            json.add("royal_bow_user_effects", playerEffects);
+            json.add("royal_bow_user_equipment_before", playerInitialEquipment);
+            json.add("royal_bow_user_equipment_after", playerEquipment);
             json.addProperty("regen_wounded_HP", regenWoundedHealth);
             json.addProperty("regen_observed_HP_at_25_ticks", regenObservedHealth);
             json.addProperty("target_final_HP", targetFinalHealth);
@@ -1271,13 +1349,16 @@ public final class Phase5FL2TraitMatrix {
             json.addProperty("lethal_transition_exercised", lethalTransitionExercised);
             json.addProperty("target_invisible_after_initialization", targetInvisible);
             json.add("target_effects_after_initialization", targetEffectsAtStart);
-            json.addProperty("probe_entity", "minecraft:armor_stand");
+            json.addProperty("probe_entity", "minecraft:zombie");
             json.addProperty("probe_entity_final_HP", victimFinalHealth);
             json.add("probe_entity_effects", victimEffects);
             json.add("probe_entity_equipment_before", victimInitialEquipment);
             json.add("probe_entity_equipment", victimEquipment);
             json.addProperty("probe_entity_fire_ticks", victimFireTicks);
             json.add("probe_entity_motion", vector(victimMotion));
+            json.addProperty("aura_probe_entity", "minecraft:armor_stand");
+            json.add("aura_probe_effects", auraVictimEffects);
+            json.add("aura_probe_motion", vector(auraVictimMotion));
             json.add("boss_motion", vector(targetMotion));
             json.add("boss_final_position", vector(targetFinalPosition));
             json.add("nearby_entity_types_before_probe", initialNearbyEntities);
@@ -1287,9 +1368,9 @@ public final class Phase5FL2TraitMatrix {
             json.add("damage_event_trace", events);
             json.add("canceled_actions", strings(canceledActions));
             json.add("target_damage_post_actions", strings(targetDamagePostActions));
-            Set<String> bypass = new LinkedHashSet<>(canceledActions);
-            bypass.retainAll(targetDamagePostActions);
-            json.add("unexpected_L2_bypass_actions", strings(bypass));
+            Set<String> bypass = new LinkedHashSet<>(canceledTargetDamageKeys);
+            bypass.retainAll(targetDamagePostKeys);
+            json.add("unexpected_L2_bypass_damage_keys", strings(bypass));
             json.addProperty("unexpected_L2_bypass", !bypass.isEmpty());
             json.addProperty("runtime_probe_completed", true);
             json.addProperty("terminal_classification", "PENDING_CROSS_TRAIT_VALIDATION");
