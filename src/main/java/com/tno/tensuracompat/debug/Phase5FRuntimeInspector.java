@@ -190,7 +190,7 @@ public final class Phase5FRuntimeInspector {
         }
     }
 
-    private static JsonObject inspectBow(ItemStack stack, ServerPlayer player, MinecraftServer server, String trigger) {
+    static JsonObject inspectBow(ItemStack stack, ServerPlayer player, MinecraftServer server, String trigger) {
         JsonObject report = baseReport("bow", trigger);
         ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
         report.addProperty("item_id", itemId.toString());

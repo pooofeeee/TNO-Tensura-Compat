@@ -13,11 +13,14 @@ param(
     [string] $ExpectedBoss,
 
     [Parameter(Mandatory = $true)]
-    [int] $ExpectedCases
+    [int] $ExpectedCases,
+
+    [ValidateSet('B', 'C')]
+    [string] $Suite = 'B'
 )
 
 $ErrorActionPreference = 'Stop'
-$marker = 'TNO_PHASE5F_SUITE_B '
+$marker = if ($Suite -eq 'C') { 'TNO_PHASE5F_SUITE_C ' } else { 'TNO_PHASE5F_SUITE_B ' }
 $resolvedLog = (Resolve-Path -LiteralPath $LogPath).Path
 
 if ($resolvedLog.EndsWith('.gz', [StringComparison]::OrdinalIgnoreCase)) {
@@ -47,7 +50,7 @@ foreach ($line in ($content -split "`r?`n")) {
     $json = $line.Substring($markerIndex + $marker.Length)
     if (-not $json.StartsWith('{')) { continue }
     try { $value = $json | ConvertFrom-Json }
-    catch { throw "Malformed Suite B JSON in ${resolvedLog}: $json" }
+    catch { throw "Malformed Suite $Suite JSON in ${resolvedLog}: $json" }
     $records.Add([pscustomobject]@{ Json = $json; Value = $value })
 }
 
@@ -60,9 +63,12 @@ $suiteResults = @($records | Where-Object { $_.Value.kind -eq 'suite_result' })
 
 if ($catalogs.Count -ne 1) { throw "Expected one catalog record; found $($catalogs.Count)" }
 $catalog = $catalogs[0].Value
-if ($catalog.diagnostic) { throw 'Diagnostic output cannot be preserved as official Suite B evidence.' }
-if ($catalog.TNO_family -ne $ExpectedFamily -or $catalog.APO_profile -ne 'NONE') {
-    throw 'Capture does not use the requested TNO-only family/profile.'
+if ($catalog.diagnostic) { throw "Diagnostic output cannot be preserved as official Suite $Suite evidence." }
+$expectedProfile = if ($Suite -eq 'C') { 'ANCIENT_SINGLE_PROSPEROUS_SPECTRAL' } else { 'NONE' }
+$expectedSuiteLabel = if ($Suite -eq 'C') { 'BOTH' } else { 'B_TNO_ONLY' }
+if ($catalog.suite -ne $expectedSuiteLabel -or $catalog.TNO_family -ne $ExpectedFamily -or
+    $catalog.APO_profile -ne $expectedProfile) {
+    throw "Capture does not use the requested Suite $Suite family/profile."
 }
 if ($catalog.cases[0].boss -ne $ExpectedBoss) {
     throw "Expected boss $ExpectedBoss; found $($catalog.cases[0].boss)"
@@ -70,7 +76,8 @@ if ($catalog.cases[0].boss -ne $ExpectedBoss) {
 if ($catalog.shots_per_case -ne 10 -or $catalog.fixed_window_ticks -ne 200) {
     throw 'Capture does not use the locked 10-shot/200-tick protocol.'
 }
-if ($catalog.royal_arrow_mark_enabled -or -not $catalog.stage_fixture_only -or $catalog.production_balance_mutated) {
+if ($catalog.royal_arrow_mark_enabled -or -not $catalog.stage_fixture_only -or
+    $catalog.production_balance_mutated -or $catalog.production_combat_mutated) {
     throw 'Capture is not the locked Mark-disabled, fixture-only benchmark setup.'
 }
 if ($caseErrors.Count -ne 0) { throw "Capture contains $($caseErrors.Count) case_error record(s)." }
@@ -102,7 +109,8 @@ foreach ($case in $caseResults) {
     $value = $case.Value
     if ($value.status -ne 'ok' -or -not $value.l2_initialized -or
         -not $value.profile_clone_verified -or -not $value.tensura_l2h_scaling_marker -or
-        $value.APO_profile -ne 'NONE' -or $value.TNO_family -ne $ExpectedFamily) {
+        $value.APO_profile -ne $expectedProfile -or $value.suite -ne $expectedSuiteLabel -or
+        $value.TNO_family -ne $ExpectedFamily) {
         throw "Invalid case result at level $($value.level), stage $($value.TNO_stage)."
     }
     if ($value.shots_released -lt 1 -or $value.shots_released -gt 10) {
@@ -120,7 +128,97 @@ foreach ($row in $rows) {
     if ($row.Value.l2_layer_bypassed_unexpectedly) {
         throw "Unexpected L2 bypass at level $($row.Value.level), stage $($row.Value.TNO_stage), hit $($row.Value.hit_index)."
     }
-    if ($row.Value.crit) { throw 'TNO-only isolation unexpectedly recorded a critical hit.' }
+    if ($Suite -eq 'B' -and $row.Value.crit) { throw 'TNO-only isolation unexpectedly recorded a critical hit.' }
+}
+
+if ($Suite -eq 'C') {
+    $expectedAffixes = @(
+        'ancientreforging:melee/attribute/intricate',
+        'ancientreforging:melee/attribute/lacerating',
+        'ancientreforging:melee/attribute/piercing',
+        'ancientreforging:ranged/attribute/elven',
+        'ancientreforging:ranged/attribute/streamlined',
+        'ancientreforging:ranged/enchantment/prosperous',
+        'ancientreforging:ranged/mob_effect/acidic',
+        'ancientreforging:ranged/mob_effect/deathbound',
+        'ancientreforging:ranged/mob_effect/ivy_laced',
+        'ancientreforging:ranged/spectral'
+    )
+    $expectedGems = @(
+        'apotheosis:core/breach', 'apotheosis:core/combatant',
+        'apotheosis:core/lightning', 'apotheosis:core/warlord', 'apotheosis:core/warlord'
+    )
+    $inspection = $catalog.APO_runtime_inspection
+    $affixes = @($inspection.apotheosis.affixes.entries)
+    $gems = @($inspection.apotheosis.sockets.gems)
+    if ($inspection.item_id -ne 'royalvariations:royal_bow' -or
+        $inspection.apotheosis.status -ne 'ok' -or
+        $inspection.apotheosis.rarity -ne 'ancientreforging:ancient' -or
+        $affixes.Count -ne 10 -or
+        (Compare-Object @($affixes.id | Sort-Object) $expectedAffixes).Count -ne 0 -or
+        @($affixes | Where-Object { -not $_.valid -or [Math]::Abs([double]$_.effective_level - 1.5) -gt 0.0001 }).Count -ne 0 -or
+        $inspection.apotheosis.sockets.effective_socket_count -ne 5 -or
+        -not $inspection.apotheosis.sockets.all_unique_constraints_satisfied -or
+        $gems.Count -ne 5 -or
+        (Compare-Object @($gems.id | Sort-Object) $expectedGems).Count -ne 0 -or
+        @($gems | Where-Object { -not $_.valid -or $_.purity -ne 'perfect' }).Count -ne 0) {
+        throw 'Suite C catalog does not contain the exact accepted Ancient rarity/affix/gem profile.'
+    }
+
+    $appliedEnchantments = @($inspection.enchantments.applied)
+    $appliedIds = @($appliedEnchantments.id)
+    if (-not $inspection.enchantments.applied_pairwise_compatible -or
+        $appliedIds -contains 'tensura:barrier_piercing' -or
+        $appliedIds -notcontains $catalog.engraving -or
+        -not $catalog.suite_a_apotheosis_profile_preserved -or
+        $catalog.suite_a_full_enchantment_package_preserved -or
+        $catalog.suite_a_enchantment_removed -ne 'tensura:barrier_piercing' -or
+        $catalog.suite_c_enchantment_added -ne $catalog.engraving) {
+        throw 'Suite C did not preserve the legal barrier_piercing-to-family-Engraving substitution.'
+    }
+
+    foreach ($row in $rows) {
+        $value = $row.Value
+        $spawnedIds = @($value.released_projectile_entity_ids)
+        $spawnedUuids = @($value.released_projectile_uuids)
+        $hitIds = @($value.hit_projectile_entity_ids)
+        $hitUuids = @($value.hit_projectile_uuids)
+        $allowed = if ($ExpectedFamily -eq 'ELEMENTAL_SLOTTING') {
+            @('tensura:stone_shot')
+        }
+        else { @('royalvariations:royal_arrow', 'minecraft:spectral_arrow') }
+        if ($value.requested_ammo_item -notlike 'royalvariations:royal_arrow*' -or
+            [int]$value.released_projectile_count -lt 1 -or
+            $spawnedUuids.Count -ne [int]$value.released_projectile_count -or
+            @($spawnedUuids | Sort-Object -Unique).Count -ne $spawnedUuids.Count -or
+            @($spawnedIds | Where-Object { $_ -notin $allowed }).Count -ne 0 -or
+            @($hitIds | Where-Object { $_ -notin $allowed }).Count -ne 0 -or
+            @($hitUuids | Where-Object { $_ -notin $spawnedUuids }).Count -ne 0 -or
+            $value.royal_arrow_mark_observed -or
+            $value.duplicate_event_from_same_projectile -or
+            $value.unexpected_source_duplication -or
+            $value.event_recursion_observed -or
+            $value.l2_layer_bypassed_unexpectedly -or
+            $value.tensura_layer_bypassed_unexpectedly -or
+            -not $value.suite_a_apotheosis_profile_preserved -or
+            $value.suite_a_full_enchantment_package_preserved -or
+            $value.suite_a_enchantment_removed -ne 'tensura:barrier_piercing' -or
+            $value.suite_c_enchantment_added -ne $catalog.engraving) {
+            throw "Invalid Suite C projectile/profile invariant at level $($value.level), stage $($value.TNO_stage), hit $($value.hit_index)."
+        }
+        if ($ExpectedFamily -ne 'ELEMENTAL_SLOTTING' -and
+            [int]$value.physical_damage_event_count -gt [int]$value.released_projectile_count) {
+            throw "A Suite C release emitted more physical events than unique projectiles."
+        }
+        if ($ExpectedFamily -in @('MAGIC_WEAPON', 'HOLY_WEAPON', 'SOUL_EATER', 'ELEMENTAL_SLOTTING') -and
+            [int]$value.engraving_damage_event_count -gt [int]$value.released_projectile_count) {
+            throw "A Suite C release emitted more family events than unique projectiles."
+        }
+        if ($ExpectedFamily -ne 'ELEMENTAL_SLOTTING' -and [int]$value.physical_damage_event_count -gt 0 -and
+            $value.physical_damage_source_id -ne 'minecraft:arrow') {
+            throw "Suite C physical DamageSource changed from minecraft:arrow."
+        }
+    }
 }
 
 if ($ExpectedFamily -eq 'ELEMENTAL_SLOTTING') {

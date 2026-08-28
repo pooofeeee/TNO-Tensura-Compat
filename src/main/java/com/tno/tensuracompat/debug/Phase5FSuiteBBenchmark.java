@@ -38,6 +38,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.BundleContents;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -78,17 +79,22 @@ import java.util.UUID;
 public final class Phase5FSuiteBBenchmark {
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
-    private static final String MARKER = "TNO_PHASE5F_SUITE_B";
-    private static final String TARGET_TAG = "tno_phase5f_suite_b_target";
+    private static final boolean SUITE_C = Boolean.getBoolean("tno.phase5f.suiteC");
+    private static final String MARKER = SUITE_C ? "TNO_PHASE5F_SUITE_C" : "TNO_PHASE5F_SUITE_B";
+    private static final String TARGET_TAG = SUITE_C ? "tno_phase5f_suite_c_target" : "tno_phase5f_suite_b_target";
+    private static final String APO_PROFILE = "ANCIENT_SINGLE_PROSPEROUS_SPECTRAL";
     private static final String SCALE_TAG = "l2_tensura_scaled";
     private static final String L2_MISCS = "dev.xkmc.l2hostility.init.registrate.LHMiscs";
     private static final ResourceLocation ROYAL_BOW = id("royalvariations", "royal_bow");
     private static final ResourceLocation ROYAL_ARROW = id("royalvariations", "royal_arrow");
     private static final ResourceLocation EARTH_CORE = id("tensura", "element_core_earth");
     private static final double SEVERANCE_NATIVE_ATTACK_BONUS = 3.0D;
-    private static final int MAX_SHOTS = Integer.getInteger("tno.phase5f.suiteBShots", 10);
-    private static final int WINDOW_TICKS = Integer.getInteger("tno.phase5f.suiteBTicks", 200);
-    private static final boolean DIAGNOSTIC = Boolean.getBoolean("tno.phase5f.suiteBDiagnostic");
+    private static final int MAX_SHOTS = Integer.getInteger(
+            SUITE_C ? "tno.phase5f.suiteCShots" : "tno.phase5f.suiteBShots", 10);
+    private static final int WINDOW_TICKS = Integer.getInteger(
+            SUITE_C ? "tno.phase5f.suiteCTicks" : "tno.phase5f.suiteBTicks", 200);
+    private static final boolean DIAGNOSTIC = Boolean.getBoolean(
+            SUITE_C ? "tno.phase5f.suiteCDiagnostic" : "tno.phase5f.suiteBDiagnostic");
     private static final double TEST_X = 0.5D;
     private static final double TEST_Y = 240.0D;
     private static final double TARGET_Z = 20.5D;
@@ -99,6 +105,33 @@ public final class Phase5FSuiteBBenchmark {
             id("apothic_attributes", "prot_pierce"), id("apothic_attributes", "prot_shred"),
             id("apothic_attributes", "crit_chance"), id("apothic_attributes", "crit_damage"),
             id("apothic_attributes", "draw_speed")
+    );
+    private static final Set<String> OFFICIAL_AFFIXES = Set.of(
+            "ancientreforging:ranged/attribute/elven",
+            "ancientreforging:ranged/attribute/streamlined",
+            "ancientreforging:melee/attribute/lacerating",
+            "ancientreforging:melee/attribute/intricate",
+            "ancientreforging:melee/attribute/piercing",
+            "ancientreforging:ranged/mob_effect/acidic",
+            "ancientreforging:ranged/mob_effect/deathbound",
+            "ancientreforging:ranged/mob_effect/ivy_laced",
+            "ancientreforging:ranged/enchantment/prosperous",
+            "ancientreforging:ranged/spectral"
+    );
+    private static final Map<String, Integer> OFFICIAL_GEMS = Map.of(
+            "apotheosis:core/combatant", 1,
+            "apotheosis:core/breach", 1,
+            "apotheosis:core/lightning", 1,
+            "apotheosis:core/warlord", 2
+    );
+    private static final Map<String, Double> OFFICIAL_APO_ATTRIBUTES = Map.of(
+            "apothic_attributes:arrow_damage", 3.0224999815D,
+            "apothic_attributes:arrow_velocity", 2.9449999630D,
+            "apothic_attributes:armor_pierce", 31.0D,
+            "apothic_attributes:prot_pierce", 15.0D,
+            "apothic_attributes:crit_chance", 1.5300000191D,
+            "apothic_attributes:crit_damage", 5.8799999714D,
+            "apothic_attributes:draw_speed", 1.0D
     );
     private static final List<BossSpec> BOSSES = List.of(
             boss("tensura_neb", "luminous_valentine", 130, 300, true),
@@ -142,8 +175,11 @@ public final class Phase5FSuiteBBenchmark {
     }
 
     public static void onServerStarted(ServerStartedEvent event) {
-        if (FMLEnvironment.production || !Boolean.getBoolean("tno.phase5f.suiteB") || active != null) return;
+        boolean suiteB = Boolean.getBoolean("tno.phase5f.suiteB");
+        boolean suiteC = Boolean.getBoolean("tno.phase5f.suiteC");
+        if (FMLEnvironment.production || (!suiteB && !suiteC) || active != null) return;
         try {
+            if (suiteB && suiteC) throw new IllegalStateException("Suite B and Suite C cannot run together");
             requireMods();
             active = new Session(event.getServer());
             LOGGER.info("{} automatic benchmark started", MARKER);
@@ -176,6 +212,10 @@ public final class Phase5FSuiteBBenchmark {
 
     public static void onIncomingLowest(LivingIncomingDamageEvent event) {
         if (active != null) active.captureIncomingLowest(event);
+    }
+
+    public static void onIncomingAfterCrit(LivingIncomingDamageEvent event) {
+        if (active != null) active.captureIncomingAfterCrit(event);
     }
 
     public static void onDamagePre(LivingDamageEvent.Pre event) {
@@ -217,8 +257,14 @@ public final class Phase5FSuiteBBenchmark {
     }
 
     private static void requireMods() {
-        for (String mod : List.of("royalvariations", "l2hostility")) {
-            if (!ModList.get().isLoaded(mod)) throw new IllegalStateException("required Suite B runtime mod absent: " + mod);
+        List<String> required = SUITE_C
+                ? List.of("royalvariations", "l2hostility", "apotheosis", "apothic_attributes",
+                        "ancientreforging", "apothicnightmares")
+                : List.of("royalvariations", "l2hostility");
+        for (String mod : required) {
+            if (!ModList.get().isLoaded(mod)) {
+                throw new IllegalStateException("required Suite " + (SUITE_C ? "C" : "B") + " runtime mod absent: " + mod);
+            }
         }
     }
 
@@ -226,11 +272,12 @@ public final class Phase5FSuiteBBenchmark {
         private final MinecraftServer server;
         private final ServerLevel level;
         private final Family family;
-        private final ItemStack cleanBow;
+        private final ItemStack benchmarkBow;
         private final Item royalArrow;
         private final List<CaseSpec> cases;
         private final List<JsonObject> summaries = new ArrayList<>();
         private final Map<LivingIncomingDamageEvent, FamilyProbe> familyProbes = new IdentityHashMap<>();
+        private final Map<LivingIncomingDamageEvent, Float> beforeCrit = new IdentityHashMap<>();
         private FakePlayer player;
         private LivingEntity target;
         private Object l2Cap;
@@ -246,18 +293,25 @@ public final class Phase5FSuiteBBenchmark {
         private long runStartTick;
         private long nextShotTick;
         private boolean complete;
+        private boolean catalogLogged;
+        private JsonObject apoInspection;
 
         Session(MinecraftServer server) {
             this.server = server;
             this.level = server.overworld();
-            this.family = Family.parse(System.getProperty("tno.phase5f.suiteBFamily", ""));
-            this.cleanBow = buildCleanBow(server, family);
+            this.family = Family.parse(System.getProperty(
+                    SUITE_C ? "tno.phase5f.suiteCFamily" : "tno.phase5f.suiteBFamily", ""));
+            this.benchmarkBow = buildBenchmarkBow(server, family);
             this.royalArrow = requiredItem(ROYAL_ARROW);
-            this.cases = buildCases(System.getProperty("tno.phase5f.suiteBBoss", ""));
-            if (cases.isEmpty()) throw new IllegalStateException("Suite B boss filter matched no targets");
-            assertTnoOnlyStack(cleanBow);
+            this.cases = buildCases(System.getProperty(
+                    SUITE_C ? "tno.phase5f.suiteCBoss" : "tno.phase5f.suiteBBoss", ""));
+            if (cases.isEmpty()) throw new IllegalStateException("Suite " + (SUITE_C ? "C" : "B") + " boss filter matched no targets");
+            if (!SUITE_C) assertTnoOnlyStack(benchmarkBow);
             cleanupTestArea();
-            logCatalog();
+            if (!SUITE_C) {
+                logCatalog();
+                catalogLogged = true;
+            }
         }
 
         void tick() throws ReflectiveOperationException {
@@ -306,7 +360,11 @@ public final class Phase5FSuiteBBenchmark {
             cleanupCase();
             CaseSpec spec = currentCase();
             player = createPlayer(caseIndex);
-            equipCleanBow();
+            equipBenchmarkBow();
+            if (!catalogLogged) {
+                logCatalog();
+                catalogLogged = true;
+            }
             target = createTarget(spec.boss);
             if (profileTemplate != null && spec.profileKey().equals(templateKey)) {
                 CompoundTag copy = profileTemplate.copy();
@@ -423,6 +481,7 @@ public final class Phase5FSuiteBBenchmark {
             player.setAbsorptionAmount(0.0F);
             player.invulnerableTime = 0;
             familyProbes.clear();
+            beforeCrit.clear();
             clearArrows();
         }
 
@@ -519,17 +578,34 @@ public final class Phase5FSuiteBBenchmark {
                 currentHit.familySourceIds.add(type);
                 currentHit.familySourceTags.addAll(probe.tags);
                 currentHit.l2Magic |= probe.l2Magic;
+                currentHit.familyDamageEventCount++;
             }
             else if (isBenchmarkArrow(event.getSource())) {
+                if (SUITE_C && !type.equals("minecraft:arrow")) {
+                    throw new IllegalStateException("Suite C physical projectile source changed to " + type);
+                }
+                Entity direct = event.getSource().getDirectEntity();
+                if (direct != null) {
+                    String projectileUuid = direct.getUUID().toString();
+                    currentHit.hitProjectileUuids.add(projectileUuid);
+                    currentHit.hitProjectileEntityIds.add(
+                            BuiltInRegistries.ENTITY_TYPE.getKey(direct.getType()).toString());
+                    currentHit.physicalEventsByProjectile.merge(projectileUuid, 1, Integer::sum);
+                }
                 currentHit.physicalCombinedOriginal += event.getOriginalAmount();
                 currentHit.physicalOriginal += family == Family.SEVERANCE
-                        ? currentHit.severanceBasePostRound : event.getOriginalAmount();
+                        ? currentHit.severanceBasePostByProjectile.getOrDefault(
+                                event.getSource().getDirectEntity().getUUID().toString(), 0.0D)
+                        : event.getOriginalAmount();
                 currentHit.physicalIncoming += event.getAmount();
                 currentHit.physicalSourceIds.add(type);
                 currentHit.physicalSourceTags.addAll(sourceTags(event.getSource()));
+                currentHit.physicalDamageEventCount++;
                 if (family == Family.SEVERANCE) {
+                    double basePost = currentHit.severanceBasePostByProjectile.getOrDefault(
+                            event.getSource().getDirectEntity().getUUID().toString(), 0.0D);
                     currentHit.familyAfterResistance += Math.max(0.0D,
-                            event.getAmount() - currentHit.severanceBasePostRound);
+                            event.getAmount() - basePost);
                     currentHit.familyAfterRecovery = currentHit.familyAfterResistance;
                     currentHit.l2Magic |= event.getSource().is(Tags.DamageTypes.IS_MAGIC);
                 }
@@ -537,11 +613,32 @@ public final class Phase5FSuiteBBenchmark {
             else {
                 currentHit.dotIncoming += event.getAmount();
                 currentHit.dotSourceIds.add(type);
+                currentHit.dotDamageEventCount++;
+            }
+            if (SUITE_C) {
+                currentHit.preCritDamage += event.getAmount();
+                beforeCrit.put(event, event.getAmount());
+            }
+        }
+
+        private void captureIncomingAfterCrit(LivingIncomingDamageEvent event) {
+            if (!SUITE_C || phase != Phase.RUN || currentHit == null || event.getEntity() != target) return;
+            Float before = beforeCrit.get(event);
+            if (before != null && event.getAmount() > before + 0.001F && !currentHit.crit) {
+                currentHit.crit = true;
+                currentHit.critMultiplierEvents++;
+                currentHit.critDamageSourceIds.add(damageType(event.getSource()));
             }
         }
 
         private void captureIncomingLowest(LivingIncomingDamageEvent event) {
             if (!runningTargetEvent(event)) return;
+            Float preCrit = beforeCrit.remove(event);
+            if (SUITE_C && preCrit != null && event.getAmount() > preCrit + 0.001F && !currentHit.crit) {
+                currentHit.crit = true;
+                currentHit.critMultiplierEvents++;
+                currentHit.critDamageSourceIds.add(damageType(event.getSource()));
+            }
             FamilyProbe probe = familyProbes.remove(event);
             if (probe == null) return;
             double afterResistance = probe.sourceBypass ? probe.nativeAfterResistance
@@ -628,8 +725,12 @@ public final class Phase5FSuiteBBenchmark {
                     player.getBoundingBox().inflate(64.0D),
                     projectile -> fromBenchmarkPlayer(projectile.getOwner()) && !existing.contains(projectile.getUUID()));
             if (spawned.isEmpty()) throw new IllegalStateException("full-draw Royal Bow release created no projectile");
+            currentHit.releasedProjectileCount = spawned.size();
             Vec3 aim = target.getBoundingBox().getCenter();
             for (Projectile projectile : spawned) {
+                currentHit.releasedProjectileEntityIds.add(
+                        BuiltInRegistries.ENTITY_TYPE.getKey(projectile.getType()).toString());
+                currentHit.releasedProjectileUuids.add(projectile.getUUID().toString());
                 if (family == Family.ELEMENTAL) {
                     dispatchSlottingProjectile(projectile, aim);
                     continue;
@@ -638,11 +739,23 @@ public final class Phase5FSuiteBBenchmark {
                     throw new IllegalStateException("Royal Bow created non-arrow projectile for " + family.id + ": "
                             + BuiltInRegistries.ENTITY_TYPE.getKey(projectile.getType()));
                 }
-                if (!BuiltInRegistries.ENTITY_TYPE.getKey(arrow.getType()).getNamespace().equals("royalvariations")) {
+                ResourceLocation projectileId = BuiltInRegistries.ENTITY_TYPE.getKey(arrow.getType());
+                if (!SUITE_C && !projectileId.getNamespace().equals("royalvariations")) {
                     throw new IllegalStateException("Royal Bow did not create a Royal Variations arrow: " + arrow.getType());
                 }
+                if (SUITE_C && !projectileId.equals(id("minecraft", "spectral_arrow"))
+                        && !projectileId.getNamespace().equals("royalvariations")) {
+                    throw new IllegalStateException("locked Spectral APO profile created unexpected projectile " + projectileId);
+                }
+                currentHit.projectileEntityId = projectileId.toString();
                 try {
-                    invoke(arrow, "setMarking", false);
+                    if (projectileId.getNamespace().equals("royalvariations")) {
+                        invoke(arrow, "setMarking", false);
+                        currentHit.royalArrowMarkObserved |= booleanValue(readField(arrow, "marking"));
+                        if (currentHit.royalArrowMarkObserved) {
+                            throw new IllegalStateException("Royal Arrow Mark remained active in Suite C isolation");
+                        }
+                    }
                     if (!booleanValue(invoke(arrow, "canHitEntity", target))) {
                         throw new IllegalStateException("Royal Arrow rejected target collision; player_to_target_allied="
                                 + player.isAlliedTo(target) + ", target_to_player_allied=" + target.isAlliedTo(player)
@@ -665,10 +778,14 @@ public final class Phase5FSuiteBBenchmark {
                 try {
                     invoke(arrow, "onHitEntity", new EntityHitResult(target));
                     currentHit.captureImmediate(target, player);
+                    arrow.discard();
                 }
                 catch (ReflectiveOperationException exception) {
                     throw new IllegalStateException("could not dispatch controlled Royal Arrow collision", exception);
                 }
+            }
+            if (currentHit.releasedProjectileUuids.size() != currentHit.releasedProjectileCount) {
+                throw new IllegalStateException("spawned projectile UUIDs were not unique within one release");
             }
         }
 
@@ -685,6 +802,7 @@ public final class Phase5FSuiteBBenchmark {
                 double stagedDamage = nativeDamage * currentCase().stage.coefficient(family);
                 invoke(projectile, "setDamage", (float) stagedDamage);
                 currentHit.elementalProjectileId = type.toString();
+                currentHit.projectileEntityId = type.toString();
                 currentHit.elementalOwnerRetained = true;
                 currentHit.elementalNativeProjectileDamage = nativeDamage;
                 currentHit.elementalStagedProjectileDamage = stagedDamage;
@@ -695,6 +813,7 @@ public final class Phase5FSuiteBBenchmark {
                 projectile.hasImpulse = true;
                 invoke(projectile, "onHit", new EntityHitResult(target));
                 currentHit.captureImmediate(target, player);
+                projectile.discard();
             }
             catch (ReflectiveOperationException exception) {
                 throw new IllegalStateException("could not dispatch controlled native Slotting projectile", exception);
@@ -706,23 +825,32 @@ public final class Phase5FSuiteBBenchmark {
             double coefficient = currentCase().stage.coefficient(family);
             double stagedBase = nativeBase + SEVERANCE_NATIVE_ATTACK_BONUS * (coefficient - 1.0D);
             arrow.setBaseDamage(stagedBase);
+            double nativePre = speed * (nativeBase + SEVERANCE_NATIVE_ATTACK_BONUS);
+            double stagedPre = speed * (nativeBase + SEVERANCE_NATIVE_ATTACK_BONUS * coefficient);
+            double basePost = Math.ceil(speed * nativeBase);
+            double nativePost = Math.ceil(nativePre);
+            double stagedPost = Math.ceil(stagedPre);
+            currentHit.severanceConfiguredProjectileCount++;
             currentHit.severanceProjectileSpeed = speed;
             currentHit.severanceBaseProjectileDamage = nativeBase;
             currentHit.severanceNativeAttackBonus = SEVERANCE_NATIVE_ATTACK_BONUS;
             currentHit.severanceStagedAttackBonus = SEVERANCE_NATIVE_ATTACK_BONUS * coefficient;
-            currentHit.severanceNativePreRound = speed * (nativeBase + SEVERANCE_NATIVE_ATTACK_BONUS);
-            currentHit.severanceStagedPreRound = speed * (nativeBase + currentHit.severanceStagedAttackBonus);
-            currentHit.severanceBasePostRound = Math.ceil(speed * nativeBase);
-            currentHit.severanceNativePostRound = Math.ceil(currentHit.severanceNativePreRound);
-            currentHit.severanceStagedPostRound = Math.ceil(currentHit.severanceStagedPreRound);
-            currentHit.familyRaw = currentHit.severanceNativePostRound - currentHit.severanceBasePostRound;
-            currentHit.familyStageScaled = currentHit.severanceStagedPostRound - currentHit.severanceBasePostRound;
+            currentHit.severanceNativePreRound += nativePre;
+            currentHit.severanceStagedPreRound += stagedPre;
+            currentHit.severanceBasePostRound += basePost;
+            currentHit.severanceNativePostRound += nativePost;
+            currentHit.severanceStagedPostRound += stagedPost;
+            currentHit.familyRaw += nativePost - basePost;
+            currentHit.familyStageScaled += stagedPost - basePost;
+            currentHit.severanceBasePostByProjectile.put(arrow.getUUID().toString(), basePost);
         }
 
         private FakePlayer createPlayer(int index) {
-            String key = "tno-phase5f-suite-b-" + family.id + "-" + currentCase().boss.id + "-" + index;
+            String key = "tno-phase5f-suite-" + (SUITE_C ? "c" : "b") + "-"
+                    + family.id + "-" + currentCase().boss.id + "-" + index;
             UUID uuid = UUID.nameUUIDFromBytes(key.getBytes(StandardCharsets.UTF_8));
-            FakePlayer fake = FakePlayerFactory.get(level, new GameProfile(uuid, "TNO_P5FB_" + index));
+            FakePlayer fake = FakePlayerFactory.get(level,
+                    new GameProfile(uuid, (SUITE_C ? "TNO_P5FC_" : "TNO_P5FB_") + index));
             fake.getInventory().clearContent();
             fake.removeAllEffects();
             fake.getAbilities().instabuild = true;
@@ -736,8 +864,8 @@ public final class Phase5FSuiteBBenchmark {
             return fake;
         }
 
-        private void equipCleanBow() {
-            player.setItemInHand(InteractionHand.MAIN_HAND, cleanBow.copy());
+        private void equipBenchmarkBow() {
+            player.setItemInHand(InteractionHand.MAIN_HAND, benchmarkBow.copy());
             player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(royalArrow, 64));
             player.setItemSlot(EquipmentSlot.MAINHAND, player.getMainHandItem());
             try {
@@ -746,7 +874,12 @@ public final class Phase5FSuiteBBenchmark {
             catch (ReflectiveOperationException exception) {
                 throw new IllegalStateException("could not refresh fake-player attributes", exception);
             }
-            assertNoApoAmplification(player);
+            if (SUITE_C) {
+                apoInspection = Phase5FRuntimeInspector.inspectBow(
+                        player.getMainHandItem(), player, server, "suite_c_locked_profile");
+                assertOfficialApoProfile(apoInspection, family);
+            }
+            else assertNoApoAmplification(player);
         }
 
         private void stabilize() {
@@ -796,6 +929,7 @@ public final class Phase5FSuiteBBenchmark {
 
         private void cleanupCase() {
             familyProbes.clear();
+            beforeCrit.clear();
             currentHit = null;
             clearArrows();
             if (target != null) target.discard();
@@ -837,7 +971,7 @@ public final class Phase5FSuiteBBenchmark {
 
         private void logCatalog() {
             JsonObject json = new JsonObject();
-            json.addProperty("suite", "B_TNO_ONLY");
+            json.addProperty("suite", SUITE_C ? "BOTH" : "B_TNO_ONLY");
             json.addProperty("diagnostic", DIAGNOSTIC);
             json.addProperty("TNO_family", family.id);
             json.addProperty("engraving", family.enchantment.toString());
@@ -853,7 +987,7 @@ public final class Phase5FSuiteBBenchmark {
                 json.addProperty("slotting_element", "EARTH");
                 json.addProperty("slotting_core", EARTH_CORE.toString());
                 json.addProperty("slotting_capacity", 1);
-                json.addProperty("slotting_contents", cleanBow.get(DataComponents.BUNDLE_CONTENTS).toString());
+                json.addProperty("slotting_contents", benchmarkBow.get(DataComponents.BUNDLE_CONTENTS).toString());
                 json.addProperty("representative_equivalence_proof", "installed combination_1..5 each contain exactly one Earth/Fire/Space/Water/Wind core, use projectile damage coefficient 1.0, and route through TensuraFlyingProjectile elemental damage; their speeds/knockback/burn/projectile entities remain materially distinct utility and are not Stage-scaled; Earth retained for targeted Hinata Earth Nullification and Luminous Spiritual Nullification coverage");
                 json.addProperty("elemental_stage_scope", "damage coefficient only; Slotting capacity/content count/projectile pierce unchanged");
                 json.addProperty("royal_arrow_compatibility", "native Slotting release hook consumes the core-loaded Royal Bow release and spawns tensura:stone_shot; no Royal Arrow exists in this legal path");
@@ -864,7 +998,15 @@ public final class Phase5FSuiteBBenchmark {
                 json.addProperty("severance_native_attack_bonus", SEVERANCE_NATIVE_ATTACK_BONUS);
                 json.addProperty("severance_stage_formula", "A'=A*(1+t*(P+A)/A), P=2.4, A=3.0; injected as pre-round projectile base delta while native +3 enchantment remains active");
             }
-            json.addProperty("APO_profile", "NONE");
+            json.addProperty("APO_profile", SUITE_C ? APO_PROFILE : "NONE");
+            if (SUITE_C) {
+                json.addProperty("suite_a_apotheosis_profile_preserved", true);
+                json.addProperty("suite_a_full_enchantment_package_preserved", false);
+                json.addProperty("suite_a_enchantment_removed", "tensura:barrier_piercing");
+                json.addProperty("suite_c_enchantment_added", family.enchantment.toString());
+                json.addProperty("enchantment_substitution_reason",
+                        "the family Engraving is runtime-incompatible with tensura:barrier_piercing; all accepted APO rarity/affix/gem attributes and the other eight Suite A enchantments remain exact");
+            }
             json.addProperty("shots_per_case", MAX_SHOTS);
             json.addProperty("fixed_window_ticks", WINDOW_TICKS);
             json.addProperty("distance", TARGET_Z - 0.5D);
@@ -873,13 +1015,18 @@ public final class Phase5FSuiteBBenchmark {
                     : "real full-draw Royal Arrow dispatched through its own onHitEntity path in a deterministic two-block final collision lane; owner, velocity, item and source preserved");
             json.addProperty("bow", ROYAL_BOW.toString());
             json.addProperty("arrow", family == Family.ELEMENTAL ? "not created by native Slotting release" : ROYAL_ARROW.toString());
+            json.addProperty("projectile_entity", family == Family.ELEMENTAL ? "tensura:stone_shot"
+                    : SUITE_C ? "royalvariations:royal_arrow or its probabilistic minecraft:spectral_arrow conversion from the locked Spectral affix"
+                    : "royalvariations namespace Royal Arrow entity");
             json.addProperty("royal_arrow_mark_enabled", false);
-            json.addProperty("crit_enabled", false);
+            json.addProperty("crit_enabled", SUITE_C);
             json.addProperty("stage_fixture_only", true);
             json.addProperty("production_balance_mutated", false);
+            json.addProperty("production_combat_mutated", false);
             json.addProperty("profile_clone_policy", "one legal native L2 roll per boss/level; pristine serialized clones for Native and S0-S7");
-            json.addProperty("clean_bow_components", cleanBow.getComponents().toString());
-            json.add("clean_bow_attribute_modifiers", readStackAttributes(cleanBow));
+            json.addProperty("benchmark_bow_components", benchmarkBow.getComponents().toString());
+            json.add("benchmark_bow_attribute_modifiers", readStackAttributes(benchmarkBow));
+            if (SUITE_C) json.add("APO_runtime_inspection", apoInspection.deepCopy());
             JsonArray planned = new JsonArray();
             for (CaseSpec spec : cases) {
                 JsonObject entry = new JsonObject();
@@ -990,7 +1137,10 @@ public final class Phase5FSuiteBBenchmark {
         JsonObject rowJson(HitRecord hit) {
             JsonObject json = commonJson();
             json.addProperty("hit_index", hit.index);
-            json.addProperty("crit", false);
+            json.addProperty("crit", hit.crit);
+            json.addProperty("crit_multiplier_event_count", hit.critMultiplierEvents);
+            json.addProperty("pre_crit_damage", hit.preCritDamage);
+            json.add("crit_damage_source_ids", strings(hit.critDamageSourceIds));
             json.addProperty("pre_HP", hit.preHp);
             json.addProperty("post_HP", hit.postHp);
             json.addProperty("pre_SHP", hit.preShp);
@@ -1027,6 +1177,11 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("DPS", dps());
             json.addProperty("resource_impact_per_second", resourceImpactPerSecond());
             json.addProperty("blocked_or_cancelled", hit.blocked());
+            json.addProperty("projectile_cancelled", hit.physicalDamageEventCount == 0
+                    && active.family != Family.ELEMENTAL);
+            json.addProperty("physical_damage_event_count", hit.physicalDamageEventCount);
+            json.addProperty("engraving_damage_event_count", hit.familyDamageEventCount);
+            json.addProperty("dot_damage_event_count", hit.dotDamageEventCount);
             json.add("damage_source_ids", strings(union(hit.physicalSourceIds, hit.familySourceIds)));
             json.add("damage_source_tags_if_observable", strings(union(hit.physicalSourceTags, hit.familySourceTags)));
             json.addProperty("family_source_is_l2_magic", hit.l2Magic);
@@ -1039,7 +1194,25 @@ public final class Phase5FSuiteBBenchmark {
                     active.family != Family.ELEMENTAL || (hit.physicalOriginal == 0.0D
                             && Math.abs(hit.elementalStagedProjectileDamage
                             - hit.elementalNativeProjectileDamage * spec.stage.coefficient(active.family)) < 0.0001D));
-            json.addProperty("royal_arrow_created", active.family != Family.ELEMENTAL);
+            json.addProperty("projectile_entity_id", hit.hitProjectileEntityIds.size() == 1
+                    ? hit.hitProjectileEntityIds.iterator().next()
+                    : hit.hitProjectileEntityIds.isEmpty() ? "NONE" : "MULTIPLE");
+            json.addProperty("requested_ammo_item", active.family == Family.ELEMENTAL
+                    ? ROYAL_ARROW + " consumed by native Slotting release" : ROYAL_ARROW.toString());
+            json.addProperty("released_projectile_count", hit.releasedProjectileCount);
+            json.add("released_projectile_entity_ids", strings(hit.releasedProjectileEntityIds));
+            json.add("released_projectile_uuids", strings(hit.releasedProjectileUuids));
+            json.add("hit_projectile_entity_ids", strings(hit.hitProjectileEntityIds));
+            json.add("hit_projectile_uuids", strings(hit.hitProjectileUuids));
+            json.addProperty("genuine_apo_multi_projectile_release", hit.releasedProjectileCount > 1
+                    && hit.releasedProjectileUuids.size() == hit.releasedProjectileCount);
+            json.addProperty("duplicate_event_from_same_projectile", duplicateEventFromSameProjectile(hit));
+            json.addProperty("royal_arrow_mark_observed", hit.royalArrowMarkObserved);
+            json.addProperty("royal_arrow_created", hit.releasedProjectileEntityIds.stream()
+                    .anyMatch(id -> id.startsWith("royalvariations:")));
+            json.addProperty("royal_arrow_ammunition_used", active.family != Family.ELEMENTAL);
+            json.addProperty("spectral_affix_projectile_conversion",
+                    SUITE_C && hit.releasedProjectileEntityIds.contains("minecraft:spectral_arrow"));
             json.addProperty("physical_original_before_stage", hit.physicalOriginal);
             json.addProperty("engraving_native_amount", hit.familyRaw);
             json.addProperty("engraving_after_stage_coefficient", hit.familyStageScaled);
@@ -1059,6 +1232,7 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("severance_base_only_post_round", hit.severanceBasePostRound);
             json.addProperty("severance_native_post_round", hit.severanceNativePostRound);
             json.addProperty("severance_after_stage_post_round", hit.severanceStagedPostRound);
+            json.addProperty("severance_configured_projectile_count", hit.severanceConfiguredProjectileCount);
             json.addProperty("severance_pre_amount", hit.preSeverance);
             json.addProperty("severance_post_amount", hit.postSeverance);
             json.addProperty("severance_amount_delta", Math.max(0.0D, hit.postSeverance - hit.preSeverance));
@@ -1070,6 +1244,13 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("adaptive_hit_index", traitRanks.has("l2hostility:adaptive") ? hit.index : 0);
             json.addProperty("adaptive_effect_observed", adaptiveObserved(hit));
             json.addProperty("l2_layer_bypassed_unexpectedly", false);
+            json.addProperty("tensura_layer_bypassed_unexpectedly", false);
+            json.addProperty("unexpected_source_duplication", unexpectedSourceDuplication(hit));
+            json.addProperty("event_recursion_observed", false);
+            json.addProperty("physical_damage_source_id", hit.physicalSourceIds.size() == 1
+                    ? hit.physicalSourceIds.iterator().next() : "MULTIPLE_OR_NONE");
+            json.addProperty("family_damage_source_id", hit.familySourceIds.size() == 1
+                    ? hit.familySourceIds.iterator().next() : "MULTIPLE_OR_NONE");
             json.addProperty("notes", interactionNotes(hit));
             return json;
         }
@@ -1101,7 +1282,7 @@ public final class Phase5FSuiteBBenchmark {
 
         private JsonObject commonJson() {
             JsonObject json = new JsonObject();
-            json.addProperty("suite", "B_TNO_ONLY");
+            json.addProperty("suite", SUITE_C ? "BOTH" : "B_TNO_ONLY");
             json.addProperty("diagnostic", DIAGNOSTIC);
             json.addProperty("boss", spec.boss.id.toString());
             json.addProperty("boss_priority", spec.boss.primary ? "PRIMARY" : "SECONDARY");
@@ -1133,7 +1314,7 @@ public final class Phase5FSuiteBBenchmark {
             if (spec.stage.ep == null) json.add("EP_or_stage_fixture", null); else json.addProperty("EP_or_stage_fixture", spec.stage.ep);
             json.addProperty("stage_bonus", spec.stage.bonus);
             json.addProperty("stage_coefficient", spec.stage.coefficient(active.family));
-            json.addProperty("APO_profile", "NONE");
+            json.addProperty("APO_profile", SUITE_C ? APO_PROFILE : "NONE");
             json.addProperty("royal_arrow_mark_enabled", false);
             json.addProperty("matching_Tensura_resistance_present", matchingResistance);
             json.addProperty("matching_Tensura_nullification_present", matchingNullification);
@@ -1141,7 +1322,37 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("penetration_percentage_applied", matchingResistance && !matchingNullification ? spec.stage.penetration : 0.0D);
             json.add("Bow_attributes", bowAttributes.deepCopy());
             json.add("attacker_APO_attributes", attackerAttributes.deepCopy());
+            if (SUITE_C) {
+                JsonObject apotheosis = active.apoInspection.getAsJsonObject("apotheosis");
+                json.addProperty("suite_a_apotheosis_profile_preserved", true);
+                json.addProperty("suite_a_full_enchantment_package_preserved", false);
+                json.addProperty("suite_a_enchantment_removed", "tensura:barrier_piercing");
+                json.addProperty("suite_c_enchantment_added", active.family.enchantment.toString());
+                json.addProperty("APO_rarity", apotheosis.get("rarity").getAsString());
+                json.add("APO_affixes", apotheosis.getAsJsonObject("affixes").getAsJsonArray("entries").deepCopy());
+                json.addProperty("APO_sockets",
+                        apotheosis.getAsJsonObject("sockets").get("effective_socket_count").getAsInt());
+                json.add("APO_gems", apotheosis.getAsJsonObject("sockets").getAsJsonArray("gems").deepCopy());
+                json.add("APO_enchantments",
+                        active.apoInspection.getAsJsonObject("enchantments").getAsJsonArray("applied").deepCopy());
+            }
             return json;
+        }
+
+        private boolean unexpectedSourceDuplication(HitRecord hit) {
+            int projectiles = Math.max(1, hit.releasedProjectileCount);
+            if (duplicateEventFromSameProjectile(hit)) return true;
+            if (active.family == Family.ELEMENTAL) return hit.physicalDamageEventCount != 0
+                    || hit.familyDamageEventCount > projectiles;
+            if (active.family == Family.ENERGY) return hit.physicalDamageEventCount > projectiles
+                    || hit.energyDrainEvents > projectiles;
+            if (active.family == Family.SEVERANCE) return hit.physicalDamageEventCount > projectiles
+                    || hit.familyDamageEventCount != 0;
+            return hit.physicalDamageEventCount > projectiles || hit.familyDamageEventCount > projectiles;
+        }
+
+        private boolean duplicateEventFromSameProjectile(HitRecord hit) {
+            return hit.physicalEventsByProjectile.values().stream().anyMatch(count -> count > 1);
         }
 
         private boolean transformed(HitRecord hit, String trait, boolean magic) {
@@ -1209,6 +1420,13 @@ public final class Phase5FSuiteBBenchmark {
         final Set<String> familySourceTags = new LinkedHashSet<>();
         final Set<String> dotSourceIds = new LinkedHashSet<>();
         final Set<String> reflectedSourceIds = new LinkedHashSet<>();
+        final Set<String> critDamageSourceIds = new LinkedHashSet<>();
+        final Set<String> releasedProjectileEntityIds = new LinkedHashSet<>();
+        final Set<String> releasedProjectileUuids = new LinkedHashSet<>();
+        final Set<String> hitProjectileEntityIds = new LinkedHashSet<>();
+        final Set<String> hitProjectileUuids = new LinkedHashSet<>();
+        final Map<String, Integer> physicalEventsByProjectile = new LinkedHashMap<>();
+        final Map<String, Double> severanceBasePostByProjectile = new LinkedHashMap<>();
         double lastHp;
         double lastShp;
         double lastMagicules;
@@ -1249,7 +1467,16 @@ public final class Phase5FSuiteBBenchmark {
         double dotAfterL2;
         double dotPost;
         double reflectedPost;
+        double preCritDamage;
         int elapsedTicks;
+        int physicalDamageEventCount;
+        int familyDamageEventCount;
+        int dotDamageEventCount;
+        int critMultiplierEvents;
+        int releasedProjectileCount;
+        int severanceConfiguredProjectileCount;
+        boolean crit;
+        boolean royalArrowMarkObserved;
         boolean l2Magic;
         boolean familyCanceledBeforeRecovery;
         boolean nullificationAuthoritative;
@@ -1267,6 +1494,7 @@ public final class Phase5FSuiteBBenchmark {
         double severanceNativePostRound;
         double severanceStagedPostRound;
         String elementalProjectileId = "";
+        String projectileEntityId = "";
         boolean elementalOwnerRetained;
         double elementalNativeProjectileDamage;
         double elementalStagedProjectileDamage;
@@ -1362,17 +1590,111 @@ public final class Phase5FSuiteBBenchmark {
         }
     }
 
-    private static ItemStack buildCleanBow(MinecraftServer server, Family family) {
-        ItemStack bow = new ItemStack(requiredItem(ROYAL_BOW));
+    private static ItemStack buildBenchmarkBow(MinecraftServer server, Family family) {
+        ItemStack bow;
+        try {
+            bow = SUITE_C ? Phase5FApotheosisBenchmark.buildOfficialWinner(server)
+                    : new ItemStack(requiredItem(ROYAL_BOW));
+        }
+        catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("could not construct locked Suite C APO profile", exception);
+        }
         Registry<Enchantment> registry = server.registryAccess().registryOrThrow(Registries.ENCHANTMENT);
         Holder.Reference<Enchantment> enchantment = registry.getHolderOrThrow(
                 ResourceKey.create(Registries.ENCHANTMENT, family.enchantment));
+        if (SUITE_C) {
+            EnchantmentHelper.updateEnchantments(bow, mutable -> mutable.removeIf(
+                    holder -> holderId(holder).equals("tensura:barrier_piercing")));
+        }
+        if (!enchantment.value().canEnchant(bow)) {
+            throw new IllegalStateException(family.enchantment + " does not support the locked Royal Bow");
+        }
+        for (var entry : bow.getEnchantments().entrySet()) {
+            if (!Enchantment.areCompatible(entry.getKey(), enchantment)) {
+                throw new IllegalStateException(family.enchantment
+                        + " is incompatible with accepted Suite A enchantment " + holderId(entry.getKey()));
+            }
+        }
         bow.enchant(enchantment, 1);
         if (family == Family.ELEMENTAL) {
             bow.set(DataComponents.BUNDLE_CONTENTS,
                     new BundleContents(List.of(new ItemStack(requiredItem(EARTH_CORE)))));
         }
         return bow;
+    }
+
+    private static void assertOfficialApoProfile(JsonObject inspection, Family family) {
+        if (!ROYAL_BOW.toString().equals(inspection.get("item_id").getAsString())) {
+            throw new IllegalStateException("Suite C item changed from Royal Bow");
+        }
+        JsonObject apotheosis = inspection.getAsJsonObject("apotheosis");
+        if (!"ok".equals(apotheosis.get("status").getAsString())
+                || !"ancientreforging:ancient".equals(apotheosis.get("rarity").getAsString())) {
+            throw new IllegalStateException("Suite C APO rarity inspection mismatch: " + apotheosis);
+        }
+
+        JsonArray affixes = apotheosis.getAsJsonObject("affixes").getAsJsonArray("entries");
+        Set<String> actualAffixes = new LinkedHashSet<>();
+        for (var value : affixes) {
+            JsonObject affix = value.getAsJsonObject();
+            actualAffixes.add(affix.get("id").getAsString());
+            if (!affix.get("valid").getAsBoolean()
+                    || Math.abs(affix.get("effective_level").getAsDouble() - 1.5D) > 0.0001D) {
+                throw new IllegalStateException("Suite C affix is invalid or not at Supremacy 1.5: " + affix);
+            }
+        }
+        if (!actualAffixes.equals(OFFICIAL_AFFIXES)) {
+            throw new IllegalStateException("Suite C affix set mismatch: " + actualAffixes);
+        }
+
+        JsonObject sockets = apotheosis.getAsJsonObject("sockets");
+        if (sockets.get("effective_socket_count").getAsInt() != 5
+                || !sockets.get("all_unique_constraints_satisfied").getAsBoolean()) {
+            throw new IllegalStateException("Suite C socket validation failed: " + sockets);
+        }
+        Map<String, Integer> actualGems = new LinkedHashMap<>();
+        for (var value : sockets.getAsJsonArray("gems")) {
+            JsonObject gem = value.getAsJsonObject();
+            if (!gem.get("valid").getAsBoolean() || !"perfect".equals(gem.get("purity").getAsString())) {
+                throw new IllegalStateException("Suite C gem is invalid or not Perfect: " + gem);
+            }
+            actualGems.merge(gem.get("id").getAsString(), 1, Integer::sum);
+        }
+        if (!actualGems.equals(OFFICIAL_GEMS)) {
+            throw new IllegalStateException("Suite C gem multiset mismatch: " + actualGems);
+        }
+
+        JsonObject enchantments = inspection.getAsJsonObject("enchantments");
+        if (!enchantments.get("applied_pairwise_compatible").getAsBoolean()) {
+            throw new IllegalStateException("Suite C enchantment package is not pairwise compatible");
+        }
+        Set<String> applied = new LinkedHashSet<>();
+        for (var value : enchantments.getAsJsonArray("applied")) {
+            JsonObject enchantment = value.getAsJsonObject();
+            applied.add(enchantment.get("id").getAsString());
+            if (!enchantment.get("supported_by_item").getAsBoolean()
+                    || enchantment.get("level").getAsInt() != enchantment.get("runtime_max_level").getAsInt()
+                    && !enchantment.get("id").getAsString().equals(family.enchantment.toString())) {
+                throw new IllegalStateException("Suite C enchantment validation failed: " + enchantment);
+            }
+        }
+        Set<String> expectedEnchantments = new LinkedHashSet<>(List.of(
+                "apothic_enchanting:endless_quiver", "apothicnightmares:spatial_bow",
+                "l2complements:soul_bound", "l2complements:transparent", "l2hostility:vanish",
+                "minecraft:flame", "minecraft:power", "minecraft:punch"));
+        expectedEnchantments.add(family.enchantment.toString());
+        if (!applied.equals(expectedEnchantments)) {
+            throw new IllegalStateException("Suite C enchantment set mismatch: " + applied);
+        }
+
+        JsonObject attributes = apotheosis.getAsJsonObject("attributes");
+        for (var expected : OFFICIAL_APO_ATTRIBUTES.entrySet()) {
+            double actual = attributes.getAsJsonObject(expected.getKey()).get("player_effective_value").getAsDouble();
+            if (Math.abs(actual - expected.getValue()) > 0.0001D) {
+                throw new IllegalStateException("Suite C APO attribute mismatch: " + expected.getKey()
+                        + "=" + actual + " expected " + expected.getValue());
+            }
+        }
     }
 
     private static Item requiredItem(ResourceLocation id) {
@@ -1579,7 +1901,7 @@ public final class Phase5FSuiteBBenchmark {
     }
 
     private static void log(String kind, JsonObject payload) {
-        payload.addProperty("schema", "tno.phase5f.suite_b.v1");
+        payload.addProperty("schema", SUITE_C ? "tno.phase5f.suite_c.v1" : "tno.phase5f.suite_b.v1");
         payload.addProperty("kind", kind);
         LOGGER.info("{} {}", MARKER, GSON.toJson(payload));
     }

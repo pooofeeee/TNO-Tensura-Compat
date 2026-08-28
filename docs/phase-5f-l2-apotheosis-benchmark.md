@@ -1188,3 +1188,8 @@ Arrow, or production combat change.
   no fatal/crash marker. It was manually stopped after main-menu readiness.
 - Datagen was not run because this phase changes no generated registry/data
   resources.
+# Suite C checkpoint — combined harness gate
+
+The Suite C development harness now combines the accepted Ancient Apotheosis profile with each Suite B family fixture. Runtime legality required one explicit substitution: each family Engraving conflicts with `tensura:barrier_piercing`, so the combined comparator retains the exact Ancient rarity/affixes/gems/APO attributes and eight compatible Suite A enchantments while replacing only Barrier Piercing with the active Engraving. No impossible enchantment component is fabricated.
+
+The controlled projectile dispatcher also exposed and corrected a benchmark-only lifecycle defect. After the real hit callback, the dispatched entity had remained alive and could re-hit on the next tick. The harness now discards that already-dispatched entity, records spawned/hit IDs and UUIDs, and rejects a second physical event from one UUID. The corrected Magic/Luminous diagnostic gate completed 4 cases/40 rows with zero errors, duplicate flags, Mark, L2 bypass, Tensura bypass, or production mutation. Every release produced two distinct legal projectiles (`royalvariations:royal_arrow` plus `minecraft:spectral_arrow`), proving the remaining two-event pattern is real APO multi-projectile behavior rather than re-collision.
