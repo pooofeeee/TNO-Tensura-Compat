@@ -39,7 +39,7 @@ runtime logs remain ignored. Preserve a capture only after validation:
 scripts/extract-phase5f-suite-b.ps1 `
   -LogPath <runtime-log> `
   -OutputPath <family>/<boss>.jsonl `
-  -ExpectedFamily <MAGIC_WEAPON|HOLY_WEAPON|SOUL_EATER|ELEMENTAL_SLOTTING> `
+  -ExpectedFamily <MAGIC_WEAPON|HOLY_WEAPON|SOUL_EATER|ELEMENTAL_SLOTTING|ENERGY_STEAL> `
   -ExpectedBoss <entity-id> `
   -ExpectedCases <45-or-54>
 ```

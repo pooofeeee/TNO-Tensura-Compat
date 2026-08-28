@@ -6,7 +6,7 @@ param(
     [string] $OutputPath,
 
     [Parameter(Mandatory = $true)]
-    [ValidateSet('MAGIC_WEAPON', 'HOLY_WEAPON', 'SOUL_EATER', 'ELEMENTAL_SLOTTING')]
+    [ValidateSet('MAGIC_WEAPON', 'HOLY_WEAPON', 'SOUL_EATER', 'ELEMENTAL_SLOTTING', 'ENERGY_STEAL')]
     [string] $ExpectedFamily,
 
     [Parameter(Mandatory = $true)]
@@ -164,6 +164,89 @@ if ($ExpectedFamily -eq 'ELEMENTAL_SLOTTING') {
     }
     if ($eventRows -eq 0) {
         Write-Warning 'This boss emitted no Earth Elemental event; retain family-level positive-control evidence before interpreting the capture.'
+    }
+}
+
+if ($ExpectedFamily -eq 'ENERGY_STEAL') {
+    if ($catalog.engraving -ne 'tensura:energy_steal' -or
+        $null -ne $catalog.damage_source_id -or
+        $catalog.energy_operation_emits_damage_source -or
+        $catalog.arrow -ne 'royalvariations:royal_arrow') {
+        throw 'Energy capture does not describe the locked native Energy Steal I Royal Arrow path.'
+    }
+
+    $eventRows = 0
+    foreach ($row in $rows) {
+        $value = $row.Value
+        $eventCount = [int]$value.energy_drain_event_count
+        if ($eventCount -lt 0 -or $eventCount -gt 1 -or
+            $value.energy_operation_emitted_damage_source -or
+            $value.matching_Tensura_resistance_present -or
+            $value.matching_Tensura_nullification_present -or
+            [Math]::Abs([double]$value.penetration_percentage_applied) -gt 0.0001 -or
+            [Math]::Abs([double]$value.engraving_native_amount) -gt 0.0001 -or
+            [Math]::Abs([double]$value.engraving_after_stage_coefficient) -gt 0.0001 -or
+            [Math]::Abs([double]$value.damage_before_matching_resistance_recovery) -gt 0.0001 -or
+            [Math]::Abs([double]$value.damage_after_matching_resistance_recovery) -gt 0.0001 -or
+            [Math]::Abs([double]$value.damage_after_L2_processing) -gt 0.0001) {
+            throw "Energy row escaped the non-DamageSource/current-pool scope at level $($value.level), stage $($value.TNO_stage), hit $($value.hit_index)."
+        }
+
+        $nativePercentage = [double]$value.energy_native_percentage
+        $stagedPercentage = [double]$value.energy_after_stage_percentage
+        $magiculeDrain = [double]$value.magicule_current_pool_drain
+        $auraDrain = [double]$value.aura_current_pool_drain
+        $totalDrain = [double]$value.energy_current_pool_drain
+        $magiculeGain = [double]$value.attacker_magicule_gain
+        $auraGain = [double]$value.attacker_aura_gain
+        if ($eventCount -eq 0) {
+            if ([Math]::Abs($nativePercentage) -gt 0.0001 -or
+                [Math]::Abs($stagedPercentage) -gt 0.0001 -or
+                [Math]::Abs($totalDrain) -gt 0.0001 -or
+                [Math]::Abs($magiculeGain + $auraGain) -gt 0.0001) {
+                throw "Energy values were recorded without a native event at level $($value.level), stage $($value.TNO_stage), hit $($value.hit_index)."
+            }
+            continue
+        }
+
+        $eventRows++
+        $expectedPercentage = 0.01 * [double]$value.stage_coefficient
+        $expectedMagiculeDrain = [double]$value.pre_Magicules * $expectedPercentage
+        $expectedAuraDrain = [double]$value.pre_Aura * $expectedPercentage
+        $magiculeTolerance = [Math]::Max(0.001, [Math]::Abs($expectedMagiculeDrain) * 0.0000001)
+        $auraTolerance = [Math]::Max(0.001, [Math]::Abs($expectedAuraDrain) * 0.0000001)
+        if ([Math]::Abs($nativePercentage - 0.01) -gt 0.000001 -or
+            [Math]::Abs($stagedPercentage - $expectedPercentage) -gt 0.000001 -or
+            [Math]::Abs($magiculeDrain - $expectedMagiculeDrain) -gt $magiculeTolerance -or
+            [Math]::Abs($auraDrain - $expectedAuraDrain) -gt $auraTolerance -or
+            [Math]::Abs($totalDrain - ($magiculeDrain + $auraDrain)) -gt 0.001 -or
+            [Math]::Abs($magiculeGain - $magiculeDrain) -gt $magiculeTolerance -or
+            [Math]::Abs($auraGain - $auraDrain) -gt $auraTolerance) {
+            throw "Invalid Energy Steal current-pool accounting at level $($value.level), stage $($value.TNO_stage), hit $($value.hit_index)."
+        }
+    }
+
+    foreach ($case in $caseResults) {
+        $value = $case.Value
+        $caseRows = @($rows | Where-Object {
+            $_.Value.level -eq $value.level -and $_.Value.TNO_stage -eq $value.TNO_stage
+        })
+        if ($caseRows.Count -ne [int]$value.hits_recorded) {
+            throw "Energy case row count mismatch at level $($value.level), stage $($value.TNO_stage)."
+        }
+        $totalDrain = ($caseRows.Value | Measure-Object -Property energy_current_pool_drain -Sum).Sum
+        $expectedRate = if ([int]$value.elapsed_ticks -gt 0) {
+            [double]$totalDrain / ([double]$value.elapsed_ticks / 20.0)
+        }
+        else { 0.0 }
+        if ([Math]::Abs([double]$value.energy_current_pool_drain - [double]$totalDrain) -gt 0.001 -or
+            [Math]::Abs([double]$value.resource_impact_per_second - $expectedRate) -gt 0.001) {
+            throw "Energy case aggregate mismatch at level $($value.level), stage $($value.TNO_stage)."
+        }
+    }
+
+    if ($eventRows -eq 0) {
+        Write-Warning 'This boss emitted no Energy Drain event; retain family-level positive-control evidence before interpreting the capture.'
     }
 }
 
