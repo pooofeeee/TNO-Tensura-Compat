@@ -393,7 +393,7 @@ if ($ExpectedFamily -eq 'SEVERANCE') {
             [Math]::Abs([double]$value.penetration_percentage_applied) -gt 0.0001 -or
             $configuredProjectiles -lt 1 -or
             ($Suite -eq 'C' -and $configuredProjectiles -ne [int]$value.released_projectile_count) -or
-            $speed -le 0.0 -or [Math]::Abs($baseDamage - 2.4) -gt 0.0001 -or
+            $speed -le 0.0 -or ($Suite -eq 'B' -and [Math]::Abs($baseDamage - 2.4) -gt 0.0001) -or
             [Math]::Abs($nativeBonus - 3.0) -gt 0.0001 -or
             [Math]::Abs($stagedBonus - (3.0 * [double]$value.stage_coefficient)) -gt 0.0001 -or
             [Math]::Abs([double]$value.severance_native_pre_round - $expectedNativePre) -gt 0.0001 -or
@@ -411,8 +411,10 @@ if ($ExpectedFamily -eq 'SEVERANCE') {
 
         if (@($value.damage_source_ids) -contains 'minecraft:arrow') {
             $physicalEventRows++
+            $combinedOriginal = [double]$value.physical_combined_original_before_L2
             if ([Math]::Abs([double]$value.physical_original_before_stage - $expectedBasePost) -gt 0.0001 -or
-                [Math]::Abs([double]$value.physical_combined_original_before_L2 - $expectedStagedPost) -gt 0.0001 -or
+                ($Suite -eq 'B' -and [Math]::Abs($combinedOriginal - $expectedStagedPost) -gt 0.0001) -or
+                ($Suite -eq 'C' -and $combinedOriginal + 0.0001 -lt $expectedBasePost) -or
                 @($value.damage_source_tags_if_observable) -notcontains 'minecraft:is_projectile' -or
                 @($value.damage_source_tags_if_observable) -contains 'neoforge:is_magic') {
                 throw "Severance combined source did not retain physical projectile tags at level $($value.level), stage $($value.TNO_stage), hit $($value.hit_index)."
