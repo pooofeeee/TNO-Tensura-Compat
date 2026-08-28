@@ -502,6 +502,7 @@ Royal Arrow damage, or production combat behavior.
 | `tensura_neb:luminous_valentine` | 215, 300, 600, 800, 1000 | 45 | 450 | 0 | 0.00 -> 0.00 | Accepted; all combined physical events canceled post-L2, no Severance wound stored |
 | `tensura:hinata_sakaguchi` | 200, 280, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; all combined physical events canceled post-L2, no Severance wound stored |
 | `tensura:gazel_dwargo` | 185, 260, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; admitted events canceled post-L2, no Severance wound stored |
+| `tensura:orc_disaster` | 175, 250, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.958 -> 0.540 | Accepted; 93 combined physical hits survived L2 and stored native Severance wound |
 
 Severance I is measured on the real Royal Arrow as one combined physical
 `minecraft:arrow` source, not a fabricated second DamageSource. Native
@@ -521,6 +522,22 @@ no unexpected L2 bypass occurred.
 Gazel retained exact Severance configuration math on all 540 rows. Of those,
 486 reached the incoming arrow probe, but every post-L2 amount was zero and no
 wound was stored. All 54 cases stayed at zero DPS with no unexpected bypass.
+
+Orc Disaster retained the combined physical/projectile source and exact
+velocity/native-`+3`/Stage/ceiling formula on all 540 rows. L2 admitted every
+incoming arrow event, but only 93 rows retained positive post-L2 physical
+damage and stored native Severance wound. Average DPS was
+`0.957775 Native -> 0.539537 S7`; the fixed-window result is non-monotonic
+because 17 Native hits survived compared with nine at S7. Tank and Regenerate
+were present in all six legal profiles. Regenerate produced no separately
+recorded healing row, the Lv800 Dispell roll produced no source transform, and
+the Lv1000 Adaptive roll produced 12 observed Adaptive row effects; no Dementor
+rolled. Eight surviving S0 hits had a higher pre-round Stage value but the same
+ceiled amount as native, so the known Stage-rounding collapse is observable.
+APO remained `NONE`, and no unexpected L2 bypass occurred. The extractor now
+accepts Tensura's native `0.5` minimum wound clamp for an admitted sub-`0.5`
+physical hit while continuing to reject wound storage when post-L2 damage is
+zero.
 
 Hinata likewise produced 540 correctly formed combined physical pre-L2 events.
 Every row passed source, velocity, native `+3`, Stage, and rounding invariants,

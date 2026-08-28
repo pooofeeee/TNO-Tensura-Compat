@@ -1015,6 +1015,20 @@ bypass. Exact Severance configuration math remained present throughout; 486
 rows reached the incoming arrow probe, but all post-L2 damage and wound storage
 were zero, leaving `0.00 Native -> 0.00 S7` DPS.
 
+Orc Disaster is accepted with 54 cases, 540 rows, zero errors, APO profile
+`NONE`, and no unexpected L2 bypass. All 540 rows retained the combined
+physical/projectile source and exact velocity/native-`+3`/Stage/ceiling math;
+93 hits survived L2 and stored native Severance wound. Average DPS was
+`0.957775 Native -> 0.539537 S7`, driven by 17 surviving Native hits versus
+nine at S7 rather than a reversal of the per-hit Stage formula. All six legal
+profiles contained Tank and Regenerate; Regenerate produced no separately
+recorded healing row, Dispell did not transform the Lv800 source, and Adaptive
+was observed on 12 Lv1000 rows. No Dementor rolled. Eight surviving S0 hits
+still collapsed to the native ceiled amount despite their higher pre-round
+Stage value. The validator was corrected for Tensura's native `0.5` minimum
+wound clamp on an admitted sub-`0.5` physical hit, while zero post-L2 damage
+continues to require zero wound storage.
+
 Hinata is accepted with 54 cases, 540 per-hit rows, zero case errors, APO
 profile `NONE`, and no unexpected L2 bypass. Every Royal Arrow was canceled
 before the native post-damage hook, so no Energy Drain event was emitted and

@@ -274,6 +274,7 @@ if ($ExpectedFamily -eq 'SEVERANCE') {
         $expectedStagedPost = [Math]::Ceiling($expectedStagedPre)
         $wound = [double]$value.severance_amount_delta
         $postPhysical = [double]$value.combined_physical_post_damage
+        $maximumExpectedWound = [Math]::Max(0.5, $postPhysical)
 
         if (-not $value.royal_arrow_created -or $value.severance_distinct_damage_source -or
             $value.family_source_is_l2_magic -or
@@ -291,7 +292,8 @@ if ($ExpectedFamily -eq 'SEVERANCE') {
             [Math]::Abs([double]$value.engraving_native_amount - ($expectedNativePost - $expectedBasePost)) -gt 0.0001 -or
             [Math]::Abs([double]$value.engraving_after_stage_coefficient - ($expectedStagedPost - $expectedBasePost)) -gt 0.0001 -or
             $wound -lt -0.0001 -or $postPhysical -lt -0.0001 -or
-            $wound -gt ($postPhysical + 0.001)) {
+            ($postPhysical -le 0.0001 -and $wound -gt 0.0001) -or
+            $wound -gt ($maximumExpectedWound + 0.001)) {
             throw "Invalid Severance velocity/rounding/wound scope at level $($value.level), stage $($value.TNO_stage), hit $($value.hit_index)."
         }
 
