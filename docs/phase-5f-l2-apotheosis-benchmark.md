@@ -1078,41 +1078,90 @@ store wound, and Adaptive state must remain fresh between cases. This is an
 evidence finding, not permission to change Stage, native Severance, L2, Royal
 Arrow, or production combat behavior.
 
-## Remaining L2 benchmark work
+## Dedicated 39-trait matrix — complete
 
-The final instance config retains `maxMobLevel = 3000`, `maxTraitCount = 9`, and
-all requested trait toggles including Arena and Ragnarok enabled. The full
-39-trait and multi-boss matrix remains later work. No forced trait profile, Stage
-curve, penetration value, EP threshold or production combat behavior was added
-or changed here.
+The development-only harness and strict extractors now cover the complete live
+L2 registry while keeping legal balance evidence separate from forced
+compatibility evidence. Every runtime row uses the real Royal Bow and Royal
+Arrow, keeps Royal Arrow Mark disabled and `APO_profile = NONE`, and records
+`production_combat_mutated = false`.
 
-## Dedicated 39-trait matrix checkpoint
+The legal/natural matrix completed all seven accepted bosses at levels 50,
+100, 150, 200, 300, 400, 500, 600, 800, and 1000: 70 profiles, zero errors,
+zero requested/attached level mismatches, and complete 39-trait legality per
+profile. Twenty-six traits occurred naturally. Arena was legal but absent from
+the finite sample because it costs 1000. The remaining 12 traits were rejected
+for every tested SEMIBOSS by live whitelist/blacklist/entity restrictions.
 
-Checkpoint 4 begins with a non-production-only L2 trait matrix harness and a
-strict JSONL extractor. The harness reads the live 39-trait registry, records
-complete per-boss legality tables across the exact 50-1000 level ladder, and
-separates native generation from forced compatibility diagnostics. Forced
-cases use the real Royal Bow/Royal Arrow and selected TNO probes, but are
-explicitly barred from balance conclusions. Post-generation consumed and
-remaining trait budget are reported as not runtime-observable because L2 does
-not retain its effective generation cost factor; the artifact separately
-records a nominal non-free cost upper bound instead of claiming an invented
-budget value.
+The isolated Luminous forced matrix completed all 39 traits and all 110 native
+rank cases with zero errors. The targeted Orc defensive matrix completed 33
+ranks with zero errors and established the observable interactions that
+Luminous's native cancellation could mask: Tank and forced-illegal Protection
+reduced physical damage; Dementor compressed both physical and real
+`tensura:magic`; Dispell did not reduce that Tensura source; Repelling rejected
+the real projectile; Arena vetoed admission; and Teleport relocated the boss
+before projectile completion. Forced-illegal rows remain compatibility evidence
+only and do not contribute to balance conclusions.
 
-The short harness gate compiled successfully. A five-rank forced Tank run then
-completed with zero case errors, exact rank 1-5 attachment, real Royal Arrow
-physical and Magic Weapon events, the temporary S7 fixture, and zero unexpected
-L2 bypass. That diagnostic capture was intentionally not retained as official
-matrix evidence; the complete forced run will replace it.
+The strongest-legal-profile mode then completed all seven bosses at exact
+levels 200, 300, 400, 500, 600, 800, and 1000: 49 legal profiles, zero errors,
+zero illegal attached traits, and zero unexpected bypass. It reproduces live
+costs, minimum levels, rank caps, SEMIBOSS rules, presets, exclusions,
+whitelist/blacklist, and effective `maxTraitCount`. L2 does not retain consumed
+or remaining budget after generation, so those runtime fields remain
+`NOT_RUNTIME_OBSERVABLE`; separate deterministic construction accounting is
+recorded exactly.
 
-The legal/natural matrix is now accepted for all seven bosses: 70 exact-level
-profiles, zero errors or requested/attached mismatches, complete 39-trait
-legality metadata, `APO_profile = NONE`, and visible Tensura:L2Hostility scaling
-throughout. Twenty-six traits appeared naturally; the 12 SEMIBOSS-restricted
-traits plus the legal-but-1000-cost Arena did not appear in this finite sample
-and therefore are not yet counted as behavior coverage. Fourteen native
-profiles exceeded the configured random-pool count of nine after entity preset
-traits were included, matching L2's preset-before-random generation order.
+Every strongest profile occurred at Lv1000. Luminous used Adaptive 5,
+Dementor 1, Dispell 3, Killer Aura 1, Reflect 2, Regenerate 5, Soul Burner 2,
+and Tank 5 (1000/0 spent/remaining). Hinata used Adaptive 5, Dementor 1,
+Dispell 2, Reflect 2, Regenerate 5, and Tank 5 (950/50). Gazel used the same
+except Reflect 1 (950/50). Orc used Adaptive 5, Dementor 1, Dispell 2, Drain 2,
+Regenerate 5, Tank 5, and Wither 1 (980/20). Elemental Colossus used Adaptive
+5, Dementor 1, Dispell 2, Regenerate 5, Speedy 2, and Tank 5 (950/50). Carrion
+used Adaptive 5, Dementor 1, Dispell 2, Reflect 1, Regenerate 5, Speedy 1, and
+Tank 5 (1000/0). Rimuru Ogre Fight used Adaptive 5, Dementor 1, Dispell 2,
+Drain 2, Regenerate 5, and Tank 5 (940/60). Arena could not fit after paid
+preset ranks in any Lv1000 profile and was correctly skipped.
+
+`docs/benchmarks/phase5f-l2-traits/coverage.jsonl` is the exact terminal
+coverage artifact. Its catalog-backed validator passes 39/39 unique live IDs,
+all native ranks, no duplicates, and no missing traits. Terminal counts are 26
+`LEGAL_RUNTIME_CONFIRMED`, one `FORCED_RUNTIME_CONFIRMED` (legal Arena), and 12
+`BLOCKED_BY_ENTITY_RESTRICTION`; no trait is blocked by a technical limitation.
+
+The final interaction conclusion is:
+
+- Tank directly mitigates physical Royal Arrow damage. Dementor directly
+  compresses physical and the real Tensura source because `tensura:magic` is
+  tagged `minecraft:bypasses_armor` but not `neoforge:is_magic`. Adaptive is a
+  source-keyed repeated-hit transform with fresh memory per case. Arena is the
+  direct legal admission veto.
+- Dispell does not reduce the tested real `tensura:magic` source under those
+  live tags. Its equipment behavior is separate. The temporary S7 fixture does
+  not change source tags.
+- Repelling rejected the real Royal Arrow before an incoming arrow event and
+  Teleport moved Orc before projectile completion. Both observations are
+  forced-illegal compatibility evidence. Protection likewise reduced physical
+  damage only in an illegal forced SEMIBOSS case.
+- Reflect did not return damage from the indirect projectile source. Regen is
+  post-hit sustain and coexists with native Tensura healing, so its observed
+  heal cannot be exclusively attributed. Undying is illegal here, and the
+  forced lethal probe could not distinguish it from native Tensura boss
+  survival at HP 1.
+- Offence/status, equipment, movement/control, spawn/entity-state, healing, and
+  death-only traits did not reclassify or restore an incoming TNO event. Their
+  indirect pressure remains native L2 behavior, not penetration behavior.
+- Unexpected L2 bypass count is zero across 70 natural profiles, 110 complete
+  forced-rank cases, 33 targeted Orc forced-rank cases, and 49 legal strongest
+  profiles. Canceled and zeroed events stayed zero; no Stage or penetration
+  fixture bypassed L2.
+
+No compatibility bug requiring a production patch was demonstrated before
+Phase 6. The `tensura:magic` tag semantics, strong legal defensive stacking,
+native boss cancellation, and mixed native/L2 regeneration are runtime/balance
+observations. They do not authorize a Stage, penetration, L2, Tensura, Royal
+Arrow, or production combat change.
 
 ## Verification completed
 

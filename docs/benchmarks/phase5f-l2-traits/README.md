@@ -73,5 +73,138 @@ controlled boss-sourced hits so the probe cannot contribute its own L2 traits.
 The artifact preserves live legality per row: 27 traits are legal for the
 tested SEMIBOSS and 12 are explicitly `FORCED_ILLEGAL_DIAGNOSTIC`. These are
 compatibility observations only. The strict extractor found no unexpected L2
-bypass. Terminal one-row-per-trait conclusions and the additional legal
-worst-case profile work remain pending and are not implied by this checkpoint.
+bypass.
+
+## Strongest legal defensive profiles
+
+The separate `profiles` mode completed all seven bosses at exact requested and
+attached levels 200, 300, 400, 500, 600, 800, and 1000: 49 profiles, zero case
+errors, zero illegal attached traits, zero production mutation, `APO_profile =
+NONE`, and zero unexpected L2 bypass. Construction uses the live trait costs,
+minimum levels, native rank caps, entity rules, SEMIBOSS restrictions, presets,
+whitelist/blacklist, exclusions, and effective `maxTraitCount`. Entity presets
+are applied before the deterministic ranged-TNO defensive priority, matching
+L2 generation order. The requested L2 level is the construction budget.
+
+Each artifact records exact construction spending and remaining construction
+budget. L2 does not retain those values after generation, so the separate
+post-generation `consumed_trait_budget` and `remaining_trait_budget` fields
+remain explicitly `NOT_RUNTIME_OBSERVABLE`; they are not invented aliases for
+the reproducible construction accounting.
+
+The strongest constructed profile for every boss was its Lv1000 case:
+
+| Boss | Construction spent / remaining | Exact attached traits |
+| --- | ---: | --- |
+| Luminous Valentine | 1000 / 0 | Adaptive 5, Dementor 1, Dispell 3, Killer Aura 1, Reflect 2, Regenerate 5, Soul Burner 2, Tank 5 |
+| Hinata Sakaguchi | 950 / 50 | Adaptive 5, Dementor 1, Dispell 2, Reflect 2, Regenerate 5, Tank 5 |
+| Gazel Dwargo | 950 / 50 | Adaptive 5, Dementor 1, Dispell 2, Reflect 1, Regenerate 5, Tank 5 |
+| Orc Disaster | 980 / 20 | Adaptive 5, Dementor 1, Dispell 2, Drain 2, Regenerate 5, Tank 5, Wither 1 |
+| Elemental Colossus | 950 / 50 | Adaptive 5, Dementor 1, Dispell 2, Regenerate 5, Speedy 2, Tank 5 |
+| Carrion | 1000 / 0 | Adaptive 5, Dementor 1, Dispell 2, Reflect 1, Regenerate 5, Speedy 1, Tank 5 |
+| Rimuru Ogre Fight | 940 / 60 | Adaptive 5, Dementor 1, Dispell 2, Drain 2, Regenerate 5, Tank 5 |
+
+Arena remained absent from the legal profiles. Although it is legal for these
+entities, its cost is 1000 and every Lv1000 construction first consumed budget
+for paid preset ranks, leaving less than 1000. The builder therefore correctly
+skipped Arena instead of fabricating an over-budget stack. Across all 49 legal
+profiles, Adaptive appeared in 37, Dementor in 45, Dispell in 19, Reflect in
+23, Regenerate in 36, and Tank in 48. Native Tensura boss defenses still
+canceled some or all probes on several entities; those cancellations are valid
+evidence and were never bypassed to make TNO measurable.
+
+## Exact 39-trait terminal coverage
+
+`coverage.jsonl` has exactly one row for every live registry trait. The strict
+catalog-backed validator confirms 39 unique IDs, no missing or extra IDs, the
+live native max rank for each trait, all native ranks represented by the forced
+matrix, seven tested entities per row, and existing evidence paths. Terminal
+counts are:
+
+- `LEGAL_RUNTIME_CONFIRMED`: 26 traits that occurred in the legal/natural
+  matrix.
+- `FORCED_RUNTIME_CONFIRMED`: Arena, which is legal but absent from the finite
+  natural/profile samples and was confirmed by the isolated runtime probe.
+- `BLOCKED_BY_ENTITY_RESTRICTION`: the 12 traits illegal for every tested
+  SEMIBOSS. Their forced rows remain compatibility-only evidence.
+- `NOT_RUNTIME_OBSERVABLE`: 0.
+- `BLOCKED_BY_TECHNICAL_LIMITATION`: 0.
+
+Validate the terminal artifact with:
+
+```powershell
+.\scripts\validate-phase5f-l2-trait-coverage.ps1
+```
+
+## Final TNO interaction conclusions
+
+1. **Direct reduction/cancellation.** Tank legally reduces the physical
+   `minecraft:arrow` path through armor/toughness. Dementor legally compresses
+   both admitted physical damage and the tested real `tensura:magic` source.
+   Adaptive legally performs source-keyed repeated-hit transforms after its
+   cooldown. Arena legally vetoes admission. Protection also reduced physical
+   damage in forced diagnostics, but it is illegal for all tested SEMIBOSS
+   entities and is not balance evidence.
+2. **Indirect Royal Arrow prevention.** Forced-illegal Repelling rejected the
+   real projectile before an incoming arrow event. Forced-illegal Teleport
+   relocated Orc before the projectile portions completed. Neither is a legal
+   profile result for this boss set.
+3. **Traits without an incoming TNO transform.** Blindness, Corrosion, Cursed,
+   Drain, Erosion, Fiery, Freezing, Gravity, Killer Aura, Levitation, Moonwalk,
+   Nausea, Poison, Ragnarok, Reflect, Regenerate, Reprint, Slowness, Soul
+   Burner, Speedy, Weakness, and Wither did not reduce, cancel, or reclassify
+   the incoming tested TNO event. The entity-restricted Counter Strike,
+   Grenade, Growth, Invisible, Master, Pulling, Shulker, Split, and Undying
+   likewise provide no legal incoming transform here.
+4. **Admission/immunity conditions.** Arena is the direct legal admission
+   gate. Repelling and Teleport prevented the projectile prerequisite only in
+   explicitly illegal forced diagnostics. Native Tensura boss defenses also
+   remained authoritative and are not attributed to an L2 trait.
+5. **Other mechanic groups.** Blindness, Cursed, Fiery, Freezing, Killer Aura,
+   Levitation, Nausea, Poison, Slowness, Soul Burner, Weakness, and Wither are
+   offence/status; Gravity, Moonwalk, Speedy, Counter Strike, and Pulling are
+   movement/control; Corrosion, Erosion, Ragnarok, Reprint, and Dispell's
+   secondary behavior are equipment-related; Regenerate is healing; Undying
+   and Split require death transitions; Grenade, Growth, Invisible, Master,
+   and Shulker are spawn/entity-state mechanics.
+6. **Adaptive.** Repeated probes use one source classification and wait past
+   the L2 cooldown. Surviving Orc profile events showed source-keyed transforms;
+   canceled/zero events stayed zero. Every profile/case starts with fresh
+   Adaptive memory, so there is no cross-case learning.
+7. **Dementor.** It compressed physical and real Tensura damage. The installed
+   `tensura:magic` source carries `minecraft:bypasses_armor` but not
+   `neoforge:is_magic`, so Dementor treats it as non-L2-magic under the live
+   rules. This is observed tag behavior, not a TNO bypass.
+8. **Dispell.** It did not reduce the real `tensura:magic` source because that
+   source lacks `neoforge:is_magic`. Its equipment-disabling behavior remains
+   independent of damage classification. The temporary S7 fixture did not
+   change those tags.
+9. **Repelling.** The real `royalvariations:royal_arrow` was rejected before an
+   incoming `minecraft:arrow` event, while direct control probes remained
+   distinguishable. The result is forced-illegal compatibility evidence.
+10. **Arena.** The fake shooter was outside the required aura, so Arena denied
+    Royal Arrow admission. The legal trait was not constructible within any
+    tested strongest-profile budget after presets.
+11. **Teleport.** Forced Teleport moved Orc from the fixed arena to about
+    `(-12.001, 73, 4.755)`, preventing projectile portions while direct controls
+    still ran. It is blacklisted for these SEMIBOSS entities.
+12. **Tank / Protection / Regen / Undying.** Tank rank scaling was confirmed
+    through attributes and physical damage. Protection's forced-illegal ranks
+    reduced physical but not bypass-armor Tensura damage. Twelve of 36 legal
+    Regen profiles healed during the wound window, but native Tensura
+    regeneration coexists, so the amount is not exclusively attributable to
+    L2 Regen. Forced Undying ended at the native boss HP floor; revival could
+    not be separated from Tensura boss survival and the trait is illegal here.
+13. **Unexpected bypass.** Count: zero across the 70 natural profiles, 110
+    full forced-rank cases, 33 targeted Orc forced-rank cases, and 49 legal
+    strongest profiles. No Stage or penetration fixture restored an L2-canceled
+    or zeroed event.
+14. **Compatibility bugs before Phase 6.** None was demonstrated. L2 ordering,
+    real projectile ownership/tags, native Tensura cancellation, and temporary
+    TNO probes coexisted without production mutation. Phase 6 must preserve
+    that ordering and the observed `tensura:magic` tag semantics.
+15. **Balance observations, not bugs.** Native boss defenses dominate many
+    profiles; Arena costs the entire Lv1000 budget before presets; legal
+    Tank/Dementor/Adaptive stacks are very strong; healing attribution is
+    confounded by native Tensura regeneration; and the 12 blocked traits cannot
+    enter these legal SEMIBOSS profiles. None authorizes a balance change.
