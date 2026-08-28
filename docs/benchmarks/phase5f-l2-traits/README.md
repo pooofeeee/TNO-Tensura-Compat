@@ -58,3 +58,20 @@ not a harness-created illegal stack. L2 does not retain the effective
 are explicitly `NOT_RUNTIME_OBSERVABLE`. Each profile retains the nominal
 non-free raw-cost upper bound for audit without mislabeling it as consumed
 budget.
+
+## Forced diagnostic matrix result
+
+The isolated Luminous diagnostic completed all 110 native rank cases across
+the exact 39-trait catalog with zero case errors. Every row used the real Royal
+Bow and Royal Arrow, disabled Royal Arrow Mark, kept `APO_profile = NONE`, and
+ran physical-arrow repeats, direct physical control, Magic Weapon Native, the
+temporary S7 coefficient fixture, boss-sourced offence, and the relevant
+movement/equipment/healing/death probes. A nearby Armor Stand records aura and
+movement behavior; a separate deinitialized, equipped Zombie receives the
+controlled boss-sourced hits so the probe cannot contribute its own L2 traits.
+
+The artifact preserves live legality per row: 27 traits are legal for the
+tested SEMIBOSS and 12 are explicitly `FORCED_ILLEGAL_DIAGNOSTIC`. These are
+compatibility observations only. The strict extractor found no unexpected L2
+bypass. Terminal one-row-per-trait conclusions and the additional legal
+worst-case profile work remain pending and are not implied by this checkpoint.
