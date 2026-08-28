@@ -372,16 +372,20 @@ if ($ExpectedFamily -eq 'SEVERANCE') {
             [int]$value.severance_configured_projectile_count
         }
         else { 1 }
+        $admittedProjectiles = if ($Suite -eq 'C') {
+            [int]$value.severance_admitted_projectile_count
+        }
+        else { 1 }
         $expectedNativePrePerProjectile = $speed * ($baseDamage + $nativeBonus)
         $expectedStagedPrePerProjectile = $speed * ($baseDamage + $stagedBonus)
         $expectedBasePostPerProjectile = [Math]::Ceiling($speed * $baseDamage)
         $expectedNativePostPerProjectile = [Math]::Ceiling($expectedNativePrePerProjectile)
         $expectedStagedPostPerProjectile = [Math]::Ceiling($expectedStagedPrePerProjectile)
-        $expectedNativePre = $configuredProjectiles * $expectedNativePrePerProjectile
-        $expectedStagedPre = $configuredProjectiles * $expectedStagedPrePerProjectile
-        $expectedBasePost = $configuredProjectiles * $expectedBasePostPerProjectile
-        $expectedNativePost = $configuredProjectiles * $expectedNativePostPerProjectile
-        $expectedStagedPost = $configuredProjectiles * $expectedStagedPostPerProjectile
+        $expectedNativePre = $admittedProjectiles * $expectedNativePrePerProjectile
+        $expectedStagedPre = $admittedProjectiles * $expectedStagedPrePerProjectile
+        $expectedBasePost = $admittedProjectiles * $expectedBasePostPerProjectile
+        $expectedNativePost = $admittedProjectiles * $expectedNativePostPerProjectile
+        $expectedStagedPost = $admittedProjectiles * $expectedStagedPostPerProjectile
         $wound = [double]$value.severance_amount_delta
         $postPhysical = [double]$value.combined_physical_post_damage
         $maximumExpectedWound = [Math]::Max(0.5, $postPhysical)
@@ -393,6 +397,8 @@ if ($ExpectedFamily -eq 'SEVERANCE') {
             [Math]::Abs([double]$value.penetration_percentage_applied) -gt 0.0001 -or
             $configuredProjectiles -lt 1 -or
             ($Suite -eq 'C' -and $configuredProjectiles -ne [int]$value.released_projectile_count) -or
+            $admittedProjectiles -lt 0 -or $admittedProjectiles -gt $configuredProjectiles -or
+            ($Suite -eq 'C' -and $admittedProjectiles -ne [int]$value.physical_damage_event_count) -or
             $speed -le 0.0 -or ($Suite -eq 'B' -and [Math]::Abs($baseDamage - 2.4) -gt 0.0001) -or
             [Math]::Abs($nativeBonus - 3.0) -gt 0.0001 -or
             [Math]::Abs($stagedBonus - (3.0 * [double]$value.stage_coefficient)) -gt 0.0001 -or

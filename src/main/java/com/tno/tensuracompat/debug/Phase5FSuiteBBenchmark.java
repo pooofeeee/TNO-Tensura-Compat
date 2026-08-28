@@ -588,8 +588,9 @@ public final class Phase5FSuiteBBenchmark {
                     throw new IllegalStateException("Suite C physical projectile source changed to " + type);
                 }
                 Entity direct = event.getSource().getDirectEntity();
+                String projectileUuid = null;
                 if (direct != null) {
-                    String projectileUuid = direct.getUUID().toString();
+                    projectileUuid = direct.getUUID().toString();
                     currentHit.hitProjectileUuids.add(projectileUuid);
                     currentHit.hitProjectileEntityIds.add(
                             BuiltInRegistries.ENTITY_TYPE.getKey(direct.getType()).toString());
@@ -598,7 +599,7 @@ public final class Phase5FSuiteBBenchmark {
                 currentHit.physicalCombinedOriginal += event.getOriginalAmount();
                 currentHit.physicalOriginal += family == Family.SEVERANCE
                         ? currentHit.severanceBasePostByProjectile.getOrDefault(
-                                event.getSource().getDirectEntity().getUUID().toString(), 0.0D)
+                                projectileUuid, 0.0D)
                         : event.getOriginalAmount();
                 currentHit.physicalIncoming += event.getAmount();
                 currentHit.physicalSourceIds.add(type);
@@ -606,7 +607,18 @@ public final class Phase5FSuiteBBenchmark {
                 currentHit.physicalDamageEventCount++;
                 if (family == Family.SEVERANCE) {
                     double basePost = currentHit.severanceBasePostByProjectile.getOrDefault(
-                            event.getSource().getDirectEntity().getUUID().toString(), 0.0D);
+                            projectileUuid, 0.0D);
+                    SeveranceProjection projection = currentHit.severanceProjections.get(projectileUuid);
+                    if (projection != null && currentHit.severanceAdmittedProjectileUuids.add(projectileUuid)) {
+                        currentHit.severanceAdmittedProjectileCount++;
+                        currentHit.severanceNativePreRound += projection.nativePre;
+                        currentHit.severanceStagedPreRound += projection.stagedPre;
+                        currentHit.severanceBasePostRound += projection.basePost;
+                        currentHit.severanceNativePostRound += projection.nativePost;
+                        currentHit.severanceStagedPostRound += projection.stagedPost;
+                        currentHit.familyRaw += projection.nativePost - projection.basePost;
+                        currentHit.familyStageScaled += projection.stagedPost - projection.basePost;
+                    }
                     currentHit.familyAfterResistance += Math.max(0.0D,
                             event.getAmount() - basePost);
                     currentHit.familyAfterRecovery = currentHit.familyAfterResistance;
@@ -848,14 +860,9 @@ public final class Phase5FSuiteBBenchmark {
             currentHit.severanceBaseProjectileDamage = nativeBase;
             currentHit.severanceNativeAttackBonus = SEVERANCE_NATIVE_ATTACK_BONUS;
             currentHit.severanceStagedAttackBonus = SEVERANCE_NATIVE_ATTACK_BONUS * coefficient;
-            currentHit.severanceNativePreRound += nativePre;
-            currentHit.severanceStagedPreRound += stagedPre;
-            currentHit.severanceBasePostRound += basePost;
-            currentHit.severanceNativePostRound += nativePost;
-            currentHit.severanceStagedPostRound += stagedPost;
-            currentHit.familyRaw += nativePost - basePost;
-            currentHit.familyStageScaled += stagedPost - basePost;
             currentHit.severanceBasePostByProjectile.put(arrow.getUUID().toString(), basePost);
+            currentHit.severanceProjections.put(arrow.getUUID().toString(),
+                    new SeveranceProjection(nativePre, stagedPre, basePost, nativePost, stagedPost));
         }
 
         private FakePlayer createPlayer(int index) {
@@ -1259,6 +1266,7 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("severance_native_post_round", hit.severanceNativePostRound);
             json.addProperty("severance_after_stage_post_round", hit.severanceStagedPostRound);
             json.addProperty("severance_configured_projectile_count", hit.severanceConfiguredProjectileCount);
+            json.addProperty("severance_admitted_projectile_count", hit.severanceAdmittedProjectileCount);
             json.addProperty("severance_pre_amount", hit.preSeverance);
             json.addProperty("severance_post_amount", hit.postSeverance);
             json.addProperty("severance_amount_delta", Math.max(0.0D, hit.postSeverance - hit.preSeverance));
@@ -1453,6 +1461,8 @@ public final class Phase5FSuiteBBenchmark {
         final Set<String> hitProjectileUuids = new LinkedHashSet<>();
         final Map<String, Integer> physicalEventsByProjectile = new LinkedHashMap<>();
         final Map<String, Double> severanceBasePostByProjectile = new LinkedHashMap<>();
+        final Map<String, SeveranceProjection> severanceProjections = new LinkedHashMap<>();
+        final Set<String> severanceAdmittedProjectileUuids = new LinkedHashSet<>();
         double lastHp;
         double lastShp;
         double lastMagicules;
@@ -1502,6 +1512,7 @@ public final class Phase5FSuiteBBenchmark {
         int releasedProjectileCount;
         int projectilesDiscardedAfterTargetDefeat;
         int severanceConfiguredProjectileCount;
+        int severanceAdmittedProjectileCount;
         boolean crit;
         boolean royalArrowMarkObserved;
         boolean l2Magic;
@@ -2095,6 +2106,10 @@ public final class Phase5FSuiteBBenchmark {
     private record FamilyProbe(double raw, double scaled, double nativeAfterResistance,
                                double stagedAmount, boolean sourceBypass,
                                Set<String> tags, boolean l2Magic) {
+    }
+
+    private record SeveranceProjection(double nativePre, double stagedPre, double basePost,
+                                        double nativePost, double stagedPost) {
     }
 
     private record ResourceState(double shp, double maxShp, double magicules, double aura) {

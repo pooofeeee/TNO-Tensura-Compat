@@ -30,3 +30,5 @@ Official captures may opt into vanilla server tick sprint. This removes wall-clo
 The controlled dispatcher also records pending sibling projectiles discarded after an earlier projectile from the same genuine APO multi-projectile release defeats the target. Those siblings retain their spawn entity IDs/UUIDs but are not forced through `canHitEntity` against an already-dead target and cannot contribute damage events.
 
 For Severance, the evidence retains both the exact pre-round/native/staged Severance contribution and the actual combined physical `minecraft:arrow` amount entering L2. The Suite C validator does not equate those values: the legal APO profile changes bow base damage, and its enchantment/critical processing may further transform the combined event after the isolated Severance contribution has been calculated.
+
+Severance aggregation is scoped to projectiles that actually emit an admitted physical arrow event. Configured/released and admitted projectile counts remain separate, so an L2/Tensura-cancelled sibling cannot contribute phantom native or staged Severance amount.
