@@ -24,3 +24,5 @@ The accepted Magic/Luminous diagnostic gate produced:
 - the exact Ancient profile: ten valid level-1.5 affixes, five Perfect gems, five sockets, and the accepted effective APO attributes.
 
 Diagnostic logs are not accepted evidence and are not tracked. Official JSONL is extracted only by `scripts/extract-phase5f-suite-c.ps1`, whose strict validation rejects malformed stages/profile identity, illegal enchantments, unknown projectile types, reused projectile UUIDs, event duplication, Mark, production mutation, or L2/Tensura bypass.
+
+Official captures may opt into vanilla server tick sprint. This removes wall-clock sleeping only: every case still advances the locked 200 server ticks, fires ten releases at the same 20-tick spacing, and observes the same tick-based cooldown, DoT, regeneration, and L2 logic. The catalog records `server_tick_sprint_enabled` so this execution detail is never implicit.

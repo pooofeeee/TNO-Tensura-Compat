@@ -308,6 +308,9 @@ public final class Phase5FSuiteBBenchmark {
             if (cases.isEmpty()) throw new IllegalStateException("Suite " + (SUITE_C ? "C" : "B") + " boss filter matched no targets");
             if (!SUITE_C) assertTnoOnlyStack(benchmarkBow);
             cleanupTestArea();
+            if (SUITE_C && Boolean.getBoolean("tno.phase5f.suiteCFastTicks")) {
+                runCommand("tick sprint 10000000");
+            }
             if (!SUITE_C) {
                 logCatalog();
                 catalogLogged = true;
@@ -1009,6 +1012,8 @@ public final class Phase5FSuiteBBenchmark {
             }
             json.addProperty("shots_per_case", MAX_SHOTS);
             json.addProperty("fixed_window_ticks", WINDOW_TICKS);
+            json.addProperty("server_tick_sprint_enabled",
+                    SUITE_C && Boolean.getBoolean("tno.phase5f.suiteCFastTicks"));
             json.addProperty("distance", TARGET_Z - 0.5D);
             json.addProperty("projectile_control", family == Family.ELEMENTAL
                     ? "real native one-Earth-core Slotting projectile dispatched through its own onHit path in a deterministic two-block final collision lane; owner, velocity, entity and source preserved"
@@ -1136,6 +1141,15 @@ public final class Phase5FSuiteBBenchmark {
 
         JsonObject rowJson(HitRecord hit) {
             JsonObject json = commonJson();
+            if (SUITE_C) {
+                // The exact profile is retained on the catalog, case_start, and
+                // case_result records. Avoid repeating the large affix/gem/
+                // enchantment arrays on every per-hit row in the accepted JSONL.
+                json.remove("APO_affixes");
+                json.remove("APO_gems");
+                json.remove("APO_enchantments");
+                json.addProperty("APO_profile_metadata_record", "catalog/case_start/case_result");
+            }
             json.addProperty("hit_index", hit.index);
             json.addProperty("crit", hit.crit);
             json.addProperty("crit_multiplier_event_count", hit.critMultiplierEvents);
