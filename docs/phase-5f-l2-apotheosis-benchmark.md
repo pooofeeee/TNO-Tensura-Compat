@@ -1010,6 +1010,11 @@ post-L2 physical damage and Severance wound storage were zero throughout.
 Average DPS remained `0.00 Native -> 0.00 S7`. Dispell was present in all six
 profiles and Adaptive in one, with no accepted sequence to transform.
 
+Gazel is accepted with 54 cases, 540 rows, zero errors, and no unexpected L2
+bypass. Exact Severance configuration math remained present throughout; 486
+rows reached the incoming arrow probe, but all post-L2 damage and wound storage
+were zero, leaving `0.00 Native -> 0.00 S7` DPS.
+
 Hinata is accepted with 54 cases, 540 per-hit rows, zero case errors, APO
 profile `NONE`, and no unexpected L2 bypass. Every Royal Arrow was canceled
 before the native post-damage hook, so no Energy Drain event was emitted and

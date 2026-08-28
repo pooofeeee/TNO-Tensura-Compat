@@ -288,8 +288,6 @@ if ($ExpectedFamily -eq 'SEVERANCE') {
             [Math]::Abs([double]$value.severance_base_only_post_round - $expectedBasePost) -gt 0.0001 -or
             [Math]::Abs([double]$value.severance_native_post_round - $expectedNativePost) -gt 0.0001 -or
             [Math]::Abs([double]$value.severance_after_stage_post_round - $expectedStagedPost) -gt 0.0001 -or
-            [Math]::Abs([double]$value.physical_original_before_stage - $expectedBasePost) -gt 0.0001 -or
-            [Math]::Abs([double]$value.physical_combined_original_before_L2 - $expectedStagedPost) -gt 0.0001 -or
             [Math]::Abs([double]$value.engraving_native_amount - ($expectedNativePost - $expectedBasePost)) -gt 0.0001 -or
             [Math]::Abs([double]$value.engraving_after_stage_coefficient - ($expectedStagedPost - $expectedBasePost)) -gt 0.0001 -or
             $wound -lt -0.0001 -or $postPhysical -lt -0.0001 -or
@@ -299,10 +297,17 @@ if ($ExpectedFamily -eq 'SEVERANCE') {
 
         if (@($value.damage_source_ids) -contains 'minecraft:arrow') {
             $physicalEventRows++
-            if (@($value.damage_source_tags_if_observable) -notcontains 'minecraft:is_projectile' -or
+            if ([Math]::Abs([double]$value.physical_original_before_stage - $expectedBasePost) -gt 0.0001 -or
+                [Math]::Abs([double]$value.physical_combined_original_before_L2 - $expectedStagedPost) -gt 0.0001 -or
+                @($value.damage_source_tags_if_observable) -notcontains 'minecraft:is_projectile' -or
                 @($value.damage_source_tags_if_observable) -contains 'neoforge:is_magic') {
                 throw "Severance combined source did not retain physical projectile tags at level $($value.level), stage $($value.TNO_stage), hit $($value.hit_index)."
             }
+        }
+        elseif ([Math]::Abs([double]$value.physical_original_before_stage) -gt 0.0001 -or
+            [Math]::Abs([double]$value.physical_combined_original_before_L2) -gt 0.0001 -or
+            $postPhysical -gt 0.0001 -or $wound -gt 0.0001) {
+            throw "Severance amounts were observed without an admitted arrow event at level $($value.level), stage $($value.TNO_stage), hit $($value.hit_index)."
         }
         if ($wound -gt 0.0001) { $woundRows++ }
     }

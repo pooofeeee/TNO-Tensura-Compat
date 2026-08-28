@@ -501,6 +501,7 @@ Royal Arrow damage, or production combat behavior.
 | --- | ---: | ---: | ---: | ---: | ---: | --- |
 | `tensura_neb:luminous_valentine` | 215, 300, 600, 800, 1000 | 45 | 450 | 0 | 0.00 -> 0.00 | Accepted; all combined physical events canceled post-L2, no Severance wound stored |
 | `tensura:hinata_sakaguchi` | 200, 280, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; all combined physical events canceled post-L2, no Severance wound stored |
+| `tensura:gazel_dwargo` | 185, 260, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; admitted events canceled post-L2, no Severance wound stored |
 
 Severance I is measured on the real Royal Arrow as one combined physical
 `minecraft:arrow` source, not a fabricated second DamageSource. Native
@@ -516,6 +517,10 @@ all 45 cases had zero DPS and no Severance wound was stored. Dispell was present
 in all five profiles and Adaptive in one, but the source was physical and no
 accepted repeated sequence remained to transform. APO profile was `NONE`, and
 no unexpected L2 bypass occurred.
+
+Gazel retained exact Severance configuration math on all 540 rows. Of those,
+486 reached the incoming arrow probe, but every post-L2 amount was zero and no
+wound was stored. All 54 cases stayed at zero DPS with no unexpected bypass.
 
 Hinata likewise produced 540 correctly formed combined physical pre-L2 events.
 Every row passed source, velocity, native `+3`, Stage, and rounding invariants,
