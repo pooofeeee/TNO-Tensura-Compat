@@ -931,6 +931,12 @@ before the native post-damage hook, so no Energy Drain event was emitted and
 resource impact remained `0.00 Native -> 0.00 S7`. All five profiles naturally
 contained Dispell, but no Energy event or DamageSource existed to transform.
 
+Hinata is accepted with 54 cases, 540 per-hit rows, zero case errors, APO
+profile `NONE`, and no unexpected L2 bypass. Every Royal Arrow was canceled
+before the native post-damage hook, so no Energy Drain event was emitted and
+resource impact remained `0.00 Native -> 0.00 S7`. All six profiles naturally
+contained Dispell, but no Energy event or DamageSource existed to transform.
+
 ## Remaining L2 benchmark work
 
 The final instance config retains `maxMobLevel = 3000`, `maxTraitCount = 9`, and

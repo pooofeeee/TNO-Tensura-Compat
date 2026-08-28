@@ -430,6 +430,7 @@ matching-Resistance recovery, or production combat behavior.
 | Boss | Levels | Cases | Per-hit rows | Errors | Native -> S7 resource impact/s | Status |
 | --- | ---: | ---: | ---: | ---: | ---: | --- |
 | `tensura_neb:luminous_valentine` | 215, 300, 600, 800, 1000 | 45 | 450 | 0 | 0.00 -> 0.00 | Accepted; no native Energy Drain event, all profiles `EFFECTIVELY DEAD` |
+| `tensura:hinata_sakaguchi` | 200, 280, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; no native Energy Drain event, all profiles `EFFECTIVELY DEAD` |
 
 Energy Steal I is measured through its native event operation: one percent of
 the target's current Aura and current Magicules, with a native 20-tick bow
@@ -443,3 +444,9 @@ so every case had zero resource impact from Native through S7. Dispell was
 naturally present in all five profiles, but there was no Energy event or damage
 source for it to transform. APO profile remained `NONE`, and no unexpected L2
 bypass occurred.
+
+Hinata likewise produced no Energy Drain event in 540 rows. Every Royal Arrow
+was canceled before the native post-damage hook, leaving all 54 cases at zero
+resource impact from Native through S7. Dispell was naturally present in all
+six profiles but had no Energy event or DamageSource to transform. APO profile
+remained `NONE`, and no unexpected L2 bypass occurred.
