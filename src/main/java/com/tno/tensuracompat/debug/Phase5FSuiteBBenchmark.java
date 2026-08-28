@@ -70,6 +70,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 /**
  * Development-only Suite B runner. It uses a clean Royal Bow/Royal Arrow and
@@ -85,6 +86,8 @@ public final class Phase5FSuiteBBenchmark {
     private static final String APO_PROFILE = "ANCIENT_SINGLE_PROSPEROUS_SPECTRAL";
     private static final String SCALE_TAG = "l2_tensura_scaled";
     private static final String L2_MISCS = "dev.xkmc.l2hostility.init.registrate.LHMiscs";
+    private static final String L2_TRAITS = "dev.xkmc.l2hostility.init.registrate.LHTraits";
+    private static final boolean ENDGAME = SUITE_C && Boolean.getBoolean("tno.phase5f.suiteCEndgame");
     private static final ResourceLocation ROYAL_BOW = id("royalvariations", "royal_bow");
     private static final ResourceLocation ROYAL_ARROW = id("royalvariations", "royal_arrow");
     private static final ResourceLocation EARTH_CORE = id("tensura", "element_core_earth");
@@ -158,6 +161,39 @@ public final class Phase5FSuiteBBenchmark {
             "l2hostility:dispell", "l2hostility:protection", "l2hostility:regenerate",
             "l2hostility:reflect", "l2hostility:repelling", "l2hostility:tank",
             "l2hostility:undying", "l2hostility:ragnarok"
+    );
+    private static final Map<String, Map<String, Integer>> ACCEPTED_ENDGAME_PROFILES = Map.of(
+            "tensura_neb:luminous_valentine", Map.of(
+                    "l2hostility:adaptive", 5, "l2hostility:dementor", 1,
+                    "l2hostility:dispell", 3, "l2hostility:killer_aura", 1,
+                    "l2hostility:reflect", 2, "l2hostility:regenerate", 5,
+                    "l2hostility:soul_burner", 2, "l2hostility:tank", 5),
+            "tensura:hinata_sakaguchi", Map.of(
+                    "l2hostility:adaptive", 5, "l2hostility:dementor", 1,
+                    "l2hostility:dispell", 2, "l2hostility:reflect", 2,
+                    "l2hostility:regenerate", 5, "l2hostility:tank", 5),
+            "tensura:gazel_dwargo", Map.of(
+                    "l2hostility:adaptive", 5, "l2hostility:dementor", 1,
+                    "l2hostility:dispell", 2, "l2hostility:reflect", 1,
+                    "l2hostility:regenerate", 5, "l2hostility:tank", 5),
+            "tensura:orc_disaster", Map.of(
+                    "l2hostility:adaptive", 5, "l2hostility:dementor", 1,
+                    "l2hostility:dispell", 2, "l2hostility:drain", 2,
+                    "l2hostility:regenerate", 5, "l2hostility:tank", 5,
+                    "l2hostility:wither", 1),
+            "tensura:elemental_colossus", Map.of(
+                    "l2hostility:adaptive", 5, "l2hostility:dementor", 1,
+                    "l2hostility:dispell", 2, "l2hostility:regenerate", 5,
+                    "l2hostility:speedy", 2, "l2hostility:tank", 5),
+            "tensura_neb:carrion", Map.of(
+                    "l2hostility:adaptive", 5, "l2hostility:dementor", 1,
+                    "l2hostility:dispell", 2, "l2hostility:reflect", 1,
+                    "l2hostility:regenerate", 5, "l2hostility:speedy", 1,
+                    "l2hostility:tank", 5),
+            "tensura_neb:rimuru_ogre_fight", Map.of(
+                    "l2hostility:adaptive", 5, "l2hostility:dementor", 1,
+                    "l2hostility:dispell", 2, "l2hostility:drain", 2,
+                    "l2hostility:regenerate", 5, "l2hostility:tank", 5)
     );
     private static final Map<String, TagKey<net.minecraft.world.damagesource.DamageType>> SOURCE_TAGS = Map.of(
             "neoforge:is_magic", Tags.DamageTypes.IS_MAGIC,
@@ -415,6 +451,7 @@ public final class Phase5FSuiteBBenchmark {
             try {
                 if (spec.mode == LevelMode.STRESS && spec.level > originalMax) maxLevel.setInt(config, spec.level);
                 invoke(l2Cap, "reinit", target, spec.level, false);
+                if (ENDGAME) installAcceptedEndgameProfile();
             }
             finally {
                 maxLevel.setInt(config, originalMax);
@@ -424,6 +461,63 @@ public final class Phase5FSuiteBBenchmark {
             removeDatapackScaling();
             phaseTick = 0;
             phase = Phase.WAIT_SCALING;
+        }
+
+        private void installAcceptedEndgameProfile() throws ReflectiveOperationException {
+            Map<String, Integer> expected = ACCEPTED_ENDGAME_PROFILES.get(currentCase().boss.id.toString());
+            if (expected == null || currentCase().level != 1000) {
+                throw new IllegalStateException("missing accepted Lv1000 endgame profile for " + currentCase().boss.id);
+            }
+
+            Object rawTraits = readField(l2Cap, "traits");
+            if (!(rawTraits instanceof Map<?, ?> rawMap)) {
+                throw new IllegalStateException("L2 endgame trait map is not observable");
+            }
+            @SuppressWarnings("unchecked")
+            Map<Object, Integer> traitMap = (Map<Object, Integer>) rawMap;
+            for (Map.Entry<Object, Integer> entry : new ArrayList<>(traitMap.entrySet())) {
+                invoke(entry.getKey(), "initialize", target, 0);
+                invoke(entry.getKey(), "postInit", target, 0);
+            }
+            traitMap.clear();
+            Object data = readField(l2Cap, "data");
+            if (!(data instanceof Map<?, ?> traitData)) {
+                throw new IllegalStateException("L2 endgame trait state data is not observable");
+            }
+            traitData.clear();
+            clearPendingTraitChanges();
+
+            Map<String, Object> byId = new LinkedHashMap<>();
+            Object registry = invoke(staticField(L2_TRAITS, "TRAITS"), "get");
+            if (registry instanceof Iterable<?> iterable) {
+                iterable.forEach(trait -> byId.put(traitId(trait), trait));
+            }
+            else if (invoke(registry, "stream") instanceof Stream<?> stream) {
+                stream.forEach(trait -> byId.put(traitId(trait), trait));
+            }
+            for (Map.Entry<String, Integer> entry : expected.entrySet()) {
+                Object trait = byId.get(entry.getKey());
+                if (trait == null) throw new IllegalStateException("accepted endgame trait absent: " + entry.getKey());
+                traitMap.put(trait, entry.getValue());
+                invoke(trait, "initialize", target, entry.getValue());
+            }
+            clearPendingTraitChanges();
+            JsonObject expectedRanks = new JsonObject();
+            expected.entrySet().stream().sorted(Map.Entry.comparingByKey())
+                    .forEach(entry -> expectedRanks.addProperty(entry.getKey(), entry.getValue()));
+            JsonObject actualRanks = traitRanks(readTraits(l2Cap));
+            if (!actualRanks.equals(expectedRanks)) {
+                throw new IllegalStateException("accepted endgame profile mismatch: expected="
+                        + expectedRanks + " actual=" + actualRanks);
+            }
+        }
+
+        private void clearPendingTraitChanges() throws ReflectiveOperationException {
+            Object pending = readField(l2Cap, "pending");
+            if (!(pending instanceof Collection<?> pendingChanges)) {
+                throw new IllegalStateException("L2 pending endgame trait changes are not observable");
+            }
+            pendingChanges.clear();
         }
 
         private void removeDatapackScaling() {
@@ -448,7 +542,7 @@ public final class Phase5FSuiteBBenchmark {
             profileTemplate.remove("Rotation");
             templateKey = currentCase().profileKey();
             templateTraits = GSON.toJson(readTraits(l2Cap));
-            beginRun(true);
+            beginRun(!ENDGAME);
         }
 
         private void waitForClone() throws ReflectiveOperationException {
@@ -993,6 +1087,7 @@ public final class Phase5FSuiteBBenchmark {
             JsonObject json = new JsonObject();
             json.addProperty("suite", SUITE_C ? "BOTH" : "B_TNO_ONLY");
             json.addProperty("diagnostic", DIAGNOSTIC);
+            json.addProperty("strongest_legal_endgame_matrix", ENDGAME);
             json.addProperty("TNO_family", family.id);
             json.addProperty("engraving", family.enchantment.toString());
             if (family.damageType == null) json.add("damage_source_id", null);
@@ -1045,7 +1140,9 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("stage_fixture_only", true);
             json.addProperty("production_balance_mutated", false);
             json.addProperty("production_combat_mutated", false);
-            json.addProperty("profile_clone_policy", "one legal native L2 roll per boss/level; pristine serialized clones for Native and S0-S7");
+            json.addProperty("profile_clone_policy", ENDGAME
+                    ? "accepted strongest legal Lv1000 profile per boss; pristine serialized clone for Native and S7"
+                    : "one legal native L2 roll per boss/level; pristine serialized clones for Native and S0-S7");
             json.addProperty("benchmark_bow_components", benchmarkBow.getComponents().toString());
             json.add("benchmark_bow_attribute_modifiers", readStackAttributes(benchmarkBow));
             if (SUITE_C) json.add("APO_runtime_inspection", apoInspection.deepCopy());
@@ -1070,18 +1167,33 @@ public final class Phase5FSuiteBBenchmark {
         for (BossSpec boss : BOSSES) {
             if (!filter.isBlank() && !boss.id.toString().equals(filter)) continue;
             List<LevelEntry> levels = new ArrayList<>();
-            levels.add(new LevelEntry((boss.minLevel + boss.maxLevel) / 2, LevelMode.NATURAL_REPRESENTATIVE));
-            levels.add(new LevelEntry(boss.maxLevel, LevelMode.NATURAL_MAXIMUM));
-            for (int stress : List.of(300, 600, 800, 1000)) {
-                if (stress != boss.maxLevel) levels.add(new LevelEntry(stress, LevelMode.STRESS));
+            if (ENDGAME) {
+                levels.add(new LevelEntry(1000, LevelMode.STRESS));
+            }
+            else {
+                levels.add(new LevelEntry((boss.minLevel + boss.maxLevel) / 2, LevelMode.NATURAL_REPRESENTATIVE));
+                levels.add(new LevelEntry(boss.maxLevel, LevelMode.NATURAL_MAXIMUM));
+                for (int stress : List.of(300, 600, 800, 1000)) {
+                    if (stress != boss.maxLevel) levels.add(new LevelEntry(stress, LevelMode.STRESS));
+                }
             }
             if (DIAGNOSTIC) levels = List.of(new LevelEntry(300, boss.maxLevel == 300 ? LevelMode.NATURAL_MAXIMUM : LevelMode.STRESS));
-            List<Stage> stages = DIAGNOSTIC ? List.of(STAGES.get(0), STAGES.get(1), STAGES.get(6), STAGES.get(8)) : STAGES;
+            List<Stage> stages = ENDGAME ? List.of(STAGES.get(0), STAGES.get(8))
+                    : DIAGNOSTIC ? List.of(STAGES.get(0), STAGES.get(1), STAGES.get(6), STAGES.get(8)) : STAGES;
             for (LevelEntry entry : levels) {
                 for (Stage stage : stages) result.add(new CaseSpec(boss, entry.level, entry.mode, stage));
             }
         }
         return result;
+    }
+
+    private static int endgameBudgetSpent(BossSpec boss) {
+        return switch (boss.id.toString()) {
+            case "tensura_neb:luminous_valentine", "tensura_neb:carrion" -> 1000;
+            case "tensura:orc_disaster" -> 980;
+            case "tensura_neb:rimuru_ogre_fight" -> 940;
+            default -> 950;
+        };
     }
 
     private static final class CaseResult {
@@ -1327,10 +1439,15 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("l2_initialized", true);
             json.add("traits", traits.deepCopy());
             json.add("trait_ranks", traitRanks.deepCopy());
-            json.addProperty("legal_profile", spec.mode != LevelMode.STRESS);
+            json.addProperty("legal_profile", ENDGAME || spec.mode != LevelMode.STRESS);
             json.addProperty("legal_trait_profile", true);
             json.addProperty("native_profile_source", nativeProfileSource);
             json.addProperty("profile_clone_verified", true);
+            json.addProperty("strongest_legal_endgame_profile", ENDGAME);
+            json.addProperty("endgame_profile_source",
+                    ENDGAME ? "accepted Phase 5F 39-trait strongest legal defensive profile" : "not applicable");
+            json.addProperty("endgame_profile_budget_spent", ENDGAME ? endgameBudgetSpent(spec.boss) : 0);
+            json.addProperty("endgame_profile_budget_remaining", ENDGAME ? 1000 - endgameBudgetSpent(spec.boss) : 0);
             json.addProperty("HP", initialMaxHp);
             json.addProperty("initial_HP", initialHp);
             json.addProperty("SHP", initialShp);

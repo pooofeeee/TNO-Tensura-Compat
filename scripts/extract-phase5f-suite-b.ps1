@@ -16,7 +16,9 @@ param(
     [int] $ExpectedCases,
 
     [ValidateSet('B', 'C')]
-    [string] $Suite = 'B'
+    [string] $Suite = 'B',
+
+    [switch] $Endgame
 )
 
 $ErrorActionPreference = 'Stop'
@@ -70,7 +72,7 @@ if ($catalog.suite -ne $expectedSuiteLabel -or $catalog.TNO_family -ne $Expected
     $catalog.APO_profile -ne $expectedProfile) {
     throw "Capture does not use the requested Suite $Suite family/profile."
 }
-if ($catalog.cases[0].boss -ne $ExpectedBoss) {
+if ($ExpectedBoss -ne 'ALL' -and $catalog.cases[0].boss -ne $ExpectedBoss) {
     throw "Expected boss $ExpectedBoss; found $($catalog.cases[0].boss)"
 }
 if ($catalog.shots_per_case -ne 10 -or $catalog.fixed_window_ticks -ne 200) {
@@ -90,10 +92,11 @@ if ($suiteResults.Count -ne 1 -or $suiteResults[0].Value.status -ne 'complete' -
     throw 'Capture lacks one complete suite_result with the expected case count.'
 }
 
-$grouped = @($caseResults | Group-Object { "$($_.Value.level)|$($_.Value.level_mode)" })
+$grouped = @($caseResults | Group-Object { "$($_.Value.boss)|$($_.Value.level)|$($_.Value.level_mode)" })
 foreach ($group in $grouped) {
     $stages = @($group.Group.Value.TNO_stage | Sort-Object -Unique)
-    $expectedStages = @('Native', 'S0', 'S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7')
+    $expectedStages = if ($Endgame) { @('Native', 'S7') }
+        else { @('Native', 'S0', 'S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7') }
     if ((Compare-Object $stages $expectedStages).Count -ne 0) {
         throw "Level profile $($group.Name) is missing one or more locked stages."
     }
@@ -102,6 +105,33 @@ foreach ($group in $grouped) {
     } | Sort-Object -Unique)
     if ($traitPackages.Count -ne 1) {
         throw "Level profile $($group.Name) changed L2 traits across stages."
+    }
+}
+
+if ($Endgame) {
+    $expectedProfiles = @{
+        'tensura_neb:luminous_valentine' = @('l2hostility:adaptive=5','l2hostility:dementor=1','l2hostility:dispell=3','l2hostility:killer_aura=1','l2hostility:reflect=2','l2hostility:regenerate=5','l2hostility:soul_burner=2','l2hostility:tank=5')
+        'tensura:hinata_sakaguchi' = @('l2hostility:adaptive=5','l2hostility:dementor=1','l2hostility:dispell=2','l2hostility:reflect=2','l2hostility:regenerate=5','l2hostility:tank=5')
+        'tensura:gazel_dwargo' = @('l2hostility:adaptive=5','l2hostility:dementor=1','l2hostility:dispell=2','l2hostility:reflect=1','l2hostility:regenerate=5','l2hostility:tank=5')
+        'tensura:orc_disaster' = @('l2hostility:adaptive=5','l2hostility:dementor=1','l2hostility:dispell=2','l2hostility:drain=2','l2hostility:regenerate=5','l2hostility:tank=5','l2hostility:wither=1')
+        'tensura:elemental_colossus' = @('l2hostility:adaptive=5','l2hostility:dementor=1','l2hostility:dispell=2','l2hostility:regenerate=5','l2hostility:speedy=2','l2hostility:tank=5')
+        'tensura_neb:carrion' = @('l2hostility:adaptive=5','l2hostility:dementor=1','l2hostility:dispell=2','l2hostility:reflect=1','l2hostility:regenerate=5','l2hostility:speedy=1','l2hostility:tank=5')
+        'tensura_neb:rimuru_ogre_fight' = @('l2hostility:adaptive=5','l2hostility:dementor=1','l2hostility:dispell=2','l2hostility:drain=2','l2hostility:regenerate=5','l2hostility:tank=5')
+    }
+    $capturedBosses = @($caseResults.Value.boss | Sort-Object -Unique)
+    if ($catalog.strongest_legal_endgame_matrix -ne $true -or
+        (Compare-Object $capturedBosses @($expectedProfiles.Keys | Sort-Object)).Count -ne 0) {
+        throw 'Endgame capture does not contain all seven accepted strongest legal profiles.'
+    }
+    foreach ($case in $caseResults) {
+        $value = $case.Value
+        $actual = @($value.traits | ForEach-Object { "$($_.id)=$($_.rank)" } | Sort-Object)
+        $expected = @($expectedProfiles[$value.boss] | Sort-Object)
+        if ($value.level -ne 1000 -or -not $value.strongest_legal_endgame_profile -or
+            -not $value.legal_profile -or $value.native_profile_source -or
+            (Compare-Object $actual $expected).Count -ne 0) {
+            throw "Invalid strongest legal endgame profile for $($value.boss), stage $($value.TNO_stage)."
+        }
     }
 }
 
@@ -330,7 +360,8 @@ if ($ExpectedFamily -eq 'ENERGY_STEAL') {
     foreach ($case in $caseResults) {
         $value = $case.Value
         $caseRows = @($rows | Where-Object {
-            $_.Value.level -eq $value.level -and $_.Value.TNO_stage -eq $value.TNO_stage
+            $_.Value.boss -eq $value.boss -and $_.Value.level -eq $value.level -and
+                $_.Value.TNO_stage -eq $value.TNO_stage
         })
         if ($caseRows.Count -ne [int]$value.hits_recorded) {
             throw "Energy case row count mismatch at level $($value.level), stage $($value.TNO_stage)."

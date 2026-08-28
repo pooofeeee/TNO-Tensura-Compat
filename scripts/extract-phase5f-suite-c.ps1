@@ -5,7 +5,8 @@ param(
     [ValidateSet('MAGIC_WEAPON', 'HOLY_WEAPON', 'SOUL_EATER', 'ELEMENTAL_SLOTTING', 'ENERGY_STEAL', 'SEVERANCE')]
     [string] $ExpectedFamily,
     [Parameter(Mandatory = $true)] [string] $ExpectedBoss,
-    [Parameter(Mandatory = $true)] [int] $ExpectedCases
+    [Parameter(Mandatory = $true)] [int] $ExpectedCases,
+    [switch] $Endgame
 )
 
 $ErrorActionPreference = 'Stop'
@@ -15,5 +16,6 @@ $ErrorActionPreference = 'Stop'
     -ExpectedFamily $ExpectedFamily `
     -ExpectedBoss $ExpectedBoss `
     -ExpectedCases $ExpectedCases `
-    -Suite C
+    -Suite C `
+    -Endgame:$Endgame
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

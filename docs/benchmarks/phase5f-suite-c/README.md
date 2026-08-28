@@ -32,3 +32,5 @@ The controlled dispatcher also records pending sibling projectiles discarded aft
 For Severance, the evidence retains both the exact pre-round/native/staged Severance contribution and the actual combined physical `minecraft:arrow` amount entering L2. The Suite C validator does not equate those values: the legal APO profile changes bow base damage, and its enchantment/critical processing may further transform the combined event after the isolated Severance contribution has been calculated.
 
 Severance aggregation is scoped to projectiles that actually emit an admitted physical arrow event. Configured/released and admitted projectile counts remain separate, so an L2/Tensura-cancelled sibling cannot contribute phantom native or staged Severance amount.
+
+The targeted endgame mode reuses the already-accepted strongest legal Lv1000 defensive profile for every boss. It runs Native and S7 only, records the exact trait/rank set and prior legality budget, and uses pristine serialized clones across the two Stage cases. It does not synthesize new traits or relax L2 legality.
