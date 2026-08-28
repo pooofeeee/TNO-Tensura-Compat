@@ -500,6 +500,7 @@ Royal Arrow damage, or production combat behavior.
 | Boss | Levels | Cases | Per-hit rows | Errors | Native -> S7 average DPS | Status |
 | --- | ---: | ---: | ---: | ---: | ---: | --- |
 | `tensura_neb:luminous_valentine` | 215, 300, 600, 800, 1000 | 45 | 450 | 0 | 0.00 -> 0.00 | Accepted; all combined physical events canceled post-L2, no Severance wound stored |
+| `tensura:hinata_sakaguchi` | 200, 280, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; all combined physical events canceled post-L2, no Severance wound stored |
 
 Severance I is measured on the real Royal Arrow as one combined physical
 `minecraft:arrow` source, not a fabricated second DamageSource. Native
@@ -515,6 +516,13 @@ all 45 cases had zero DPS and no Severance wound was stored. Dispell was present
 in all five profiles and Adaptive in one, but the source was physical and no
 accepted repeated sequence remained to transform. APO profile was `NONE`, and
 no unexpected L2 bypass occurred.
+
+Hinata likewise produced 540 correctly formed combined physical pre-L2 events.
+Every row passed source, velocity, native `+3`, Stage, and rounding invariants,
+but post-L2 physical damage and Severance wound storage remained zero. All 54
+cases therefore stayed at zero DPS from Native through S7. Dispell was present
+in all six profiles and Adaptive in one, with no accepted sequence to
+transform. APO profile was `NONE`, and no unexpected L2 bypass occurred.
 
 Carrion likewise emitted no Energy Drain event in 540 rows. Every Royal Arrow
 was canceled before the native post-damage hook, leaving all 54 cases at zero
