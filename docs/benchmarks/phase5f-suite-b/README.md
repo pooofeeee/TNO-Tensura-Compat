@@ -326,6 +326,7 @@ and no unexpected L2 bypass.
 | --- | ---: | ---: | ---: | ---: | ---: | --- |
 | `tensura_neb:luminous_valentine` | 215, 300, 600, 800, 1000 | 45 | 450 | 0 | 0.00 -> 0.00 | Accepted; `EFFECTIVELY DEAD` under absolute Earth Nullification |
 | `tensura:hinata_sakaguchi` | 200, 280, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; `EFFECTIVELY DEAD` under absolute Earth Nullification |
+| `tensura:gazel_dwargo` | 185, 260, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; `EFFECTIVELY DEAD` under matching Earth/Spiritual Resistance |
 
 The legal one-Earth-core Slotting path consumes the core-equipped Royal Bow
 release and creates `tensura:stone_shot`; it does not create a Royal Arrow.
@@ -352,3 +353,11 @@ Dispell was naturally present in all six profiles but correctly did not
 transform the non-magic source, and no Adaptive or Dementor profile rolled.
 Ownership/scope invariants passed on all rows and there was no unexpected L2
 bypass.
+
+Gazel remained zero DPS in all six profiles and all nine stages. Matching Earth
+and Spiritual Resistance were present without Nullification. Twelve observable
+Earth events occurred (nine Native and three S0) and all were canceled by the
+native resistance layer. No eligible Earth event was emitted in S5-S7, so the
+configured recovery had no event amount to restore even at full S7 recovery.
+One profile each naturally rolled Adaptive and Dementor, but both had no
+nonzero post-resistance event to transform. No unexpected L2 bypass occurred.

@@ -861,6 +861,14 @@ kept Stage penetration at zero, yielding average DPS `0.00 -> 0.00` and six
 more `EFFECTIVELY DEAD` profiles. Dispell was naturally present throughout but
 did not transform the actual non-magic source.
 
+Gazel is accepted with 54 cases, 540 per-hit rows, zero case errors, and no
+unexpected L2 bypass. Its six profiles had matching Earth and Spiritual
+Resistance but no Nullification. All 12 observable Earth events were canceled
+by that native resistance layer, and no eligible Earth event was emitted in
+S5-S7 for configured recovery to restore. Average DPS therefore remained
+`0.00 -> 0.00`; naturally rolled Adaptive and Dementor profiles had no nonzero
+post-resistance amount to transform.
+
 ## Remaining L2 benchmark work
 
 The final instance config retains `maxMobLevel = 3000`, `maxTraitCount = 9`, and
