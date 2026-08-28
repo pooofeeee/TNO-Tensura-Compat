@@ -1086,6 +1086,25 @@ all requested trait toggles including Arena and Ragnarok enabled. The full
 curve, penetration value, EP threshold or production combat behavior was added
 or changed here.
 
+## Dedicated 39-trait matrix checkpoint
+
+Checkpoint 4 begins with a non-production-only L2 trait matrix harness and a
+strict JSONL extractor. The harness reads the live 39-trait registry, records
+complete per-boss legality tables across the exact 50-1000 level ladder, and
+separates native generation from forced compatibility diagnostics. Forced
+cases use the real Royal Bow/Royal Arrow and selected TNO probes, but are
+explicitly barred from balance conclusions. Post-generation consumed and
+remaining trait budget are reported as not runtime-observable because L2 does
+not retain its effective generation cost factor; the artifact separately
+records a nominal non-free cost upper bound instead of claiming an invented
+budget value.
+
+The short harness gate compiled successfully. A five-rank forced Tank run then
+completed with zero case errors, exact rank 1-5 attachment, real Royal Arrow
+physical and Magic Weapon events, the temporary S7 fixture, and zero unexpected
+L2 bypass. That diagnostic capture was intentionally not retained as official
+matrix evidence; the complete forced run will replace it.
+
 ## Verification completed
 
 - `.\gradlew.bat clean build` passed with the local Royal Variations artifact
