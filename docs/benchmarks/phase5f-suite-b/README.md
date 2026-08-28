@@ -328,6 +328,7 @@ and no unexpected L2 bypass.
 | `tensura:hinata_sakaguchi` | 200, 280, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; `EFFECTIVELY DEAD` under absolute Earth Nullification |
 | `tensura:gazel_dwargo` | 185, 260, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; `EFFECTIVELY DEAD` under matching Earth/Spiritual Resistance |
 | `tensura:orc_disaster` | 175, 250, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.167 -> 0.00 | Accepted; only Lv175 Native/S0 nonzero, all S7 profiles `EFFECTIVELY DEAD` |
+| `tensura:elemental_colossus` | 112, 150, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.035 -> 0.00 | Accepted; only Lv112 Native/S0 nonzero, all S7 profiles `EFFECTIVELY DEAD` |
 
 The legal one-Earth-core Slotting path consumes the core-equipped Royal Bow
 release and creates `tensura:stone_shot`; it does not create a Royal Arrow.
@@ -372,3 +373,11 @@ from about 0.167 Native to 0.00 S7. One profile naturally rolled Dispell, which
 correctly did not transform the actual non-magic source; no Adaptive or
 Dementor profile rolled. No unexpected L2 bypass occurred. This is a native
 runtime compatibility finding, not a Stage or Slotting behavior change.
+
+Elemental Colossus likewise had no matching Tensura defense. Fourteen real
+Earth events occurred only in the Lv112 Native/S0 cases (10 Native, four S0);
+the other 52 cases and every S7 profile were zero. Average DPS fell from about
+0.035 Native to 0.00 S7. Two profiles each naturally rolled Adaptive and
+Dementor, but no nonzero repeated post-L2 sequence remained for either to
+transform. Ownership/scope invariants passed and no unexpected L2 bypass
+occurred.

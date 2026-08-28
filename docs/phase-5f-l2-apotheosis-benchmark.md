@@ -877,6 +877,12 @@ every S7 profile was zero and average DPS fell `0.167 -> 0.00`. A naturally
 present Dispell profile correctly did not transform the actual non-magic
 source. This runtime result does not alter native Slotting or the Stage fixture.
 
+Elemental Colossus is accepted with 54 cases, 540 per-hit rows, zero case
+errors, and no unexpected L2 bypass. Fourteen real Earth events appeared only
+in Lv112 Native/S0; the other 52 cases and every S7 profile were zero, so
+average DPS fell `0.035 -> 0.00`. Two profiles each naturally rolled Adaptive
+and Dementor, but no nonzero repeated post-L2 sequence remained to transform.
+
 ## Remaining L2 benchmark work
 
 The final instance config retains `maxMobLevel = 3000`, `maxTraitCount = 9`, and
