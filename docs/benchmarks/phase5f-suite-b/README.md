@@ -327,6 +327,7 @@ and no unexpected L2 bypass.
 | `tensura_neb:luminous_valentine` | 215, 300, 600, 800, 1000 | 45 | 450 | 0 | 0.00 -> 0.00 | Accepted; `EFFECTIVELY DEAD` under absolute Earth Nullification |
 | `tensura:hinata_sakaguchi` | 200, 280, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; `EFFECTIVELY DEAD` under absolute Earth Nullification |
 | `tensura:gazel_dwargo` | 185, 260, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; `EFFECTIVELY DEAD` under matching Earth/Spiritual Resistance |
+| `tensura:orc_disaster` | 175, 250, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.167 -> 0.00 | Accepted; only Lv175 Native/S0 nonzero, all S7 profiles `EFFECTIVELY DEAD` |
 
 The legal one-Earth-core Slotting path consumes the core-equipped Royal Bow
 release and creates `tensura:stone_shot`; it does not create a Royal Arrow.
@@ -361,3 +362,13 @@ native resistance layer. No eligible Earth event was emitted in S5-S7, so the
 configured recovery had no event amount to restore even at full S7 recovery.
 One profile each naturally rolled Adaptive and Dementor, but both had no
 nonzero post-resistance event to transform. No unexpected L2 bypass occurred.
+
+Orc Disaster had no matching Tensura resistance or nullification, providing the
+positive event control. Its Lv175 representative produced 1.0 Native DPS and
+about 0.495 S0 DPS from 14 real Earth events (10 Native, four S0). The remaining
+52 of 54 cases were zero: no eligible Earth event was emitted in the other
+level/stage cases, and every S7 profile was zero. Average DPS consequently fell
+from about 0.167 Native to 0.00 S7. One profile naturally rolled Dispell, which
+correctly did not transform the actual non-magic source; no Adaptive or
+Dementor profile rolled. No unexpected L2 bypass occurred. This is a native
+runtime compatibility finding, not a Stage or Slotting behavior change.

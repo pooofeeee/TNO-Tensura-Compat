@@ -869,6 +869,14 @@ S5-S7 for configured recovery to restore. Average DPS therefore remained
 `0.00 -> 0.00`; naturally rolled Adaptive and Dementor profiles had no nonzero
 post-resistance amount to transform.
 
+Orc Disaster is accepted with 54 cases, 540 per-hit rows, zero case errors, and
+no unexpected L2 bypass. With no matching Tensura defense, it supplied the
+positive control: Lv175 Native reached 1.0 DPS and S0 about 0.495 DPS through 14
+real Earth events. No eligible Earth event was emitted in the other 52 cases;
+every S7 profile was zero and average DPS fell `0.167 -> 0.00`. A naturally
+present Dispell profile correctly did not transform the actual non-magic
+source. This runtime result does not alter native Slotting or the Stage fixture.
+
 ## Remaining L2 benchmark work
 
 The final instance config retains `maxMobLevel = 3000`, `maxTraitCount = 9`, and
