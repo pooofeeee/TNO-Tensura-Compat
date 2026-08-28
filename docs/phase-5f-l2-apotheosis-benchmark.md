@@ -948,6 +948,13 @@ fell from 10 Native to one at S7; the per-event formula remained exact. One
 Dispell and one Dementor profile did not transform the non-DamageSource energy
 operation.
 
+Elemental Colossus is accepted with 54 cases, 540 per-hit rows, zero case
+errors, APO profile `NONE`, and no unexpected L2 bypass. Every Royal Arrow was
+canceled before the native post-damage hook, so no Energy Drain event was
+emitted and resource impact remained `0.00 Native -> 0.00 S7`. One profile
+naturally contained Adaptive, but no eligible hit sequence reached the Energy
+operation.
+
 Hinata is accepted with 54 cases, 540 per-hit rows, zero case errors, APO
 profile `NONE`, and no unexpected L2 bypass. Every Royal Arrow was canceled
 before the native post-damage hook, so no Energy Drain event was emitted and
