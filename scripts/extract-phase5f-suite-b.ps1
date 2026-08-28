@@ -6,7 +6,7 @@ param(
     [string] $OutputPath,
 
     [Parameter(Mandatory = $true)]
-    [ValidateSet('MAGIC_WEAPON', 'HOLY_WEAPON', 'SOUL_EATER', 'ELEMENTAL_SLOTTING', 'ENERGY_STEAL')]
+    [ValidateSet('MAGIC_WEAPON', 'HOLY_WEAPON', 'SOUL_EATER', 'ELEMENTAL_SLOTTING', 'ENERGY_STEAL', 'SEVERANCE')]
     [string] $ExpectedFamily,
 
     [Parameter(Mandatory = $true)]
@@ -247,6 +247,71 @@ if ($ExpectedFamily -eq 'ENERGY_STEAL') {
 
     if ($eventRows -eq 0) {
         Write-Warning 'This boss emitted no Energy Drain event; retain family-level positive-control evidence before interpreting the capture.'
+    }
+}
+
+if ($ExpectedFamily -eq 'SEVERANCE') {
+    if ($catalog.engraving -ne 'tensura:severance' -or
+        $null -ne $catalog.damage_source_id -or
+        $catalog.severance_distinct_damage_source -or
+        [Math]::Abs([double]$catalog.severance_native_attack_bonus - 3.0) -gt 0.0001 -or
+        $catalog.arrow -ne 'royalvariations:royal_arrow') {
+        throw 'Severance capture does not describe the locked native Severance I Royal Arrow path.'
+    }
+
+    $physicalEventRows = 0
+    $woundRows = 0
+    foreach ($row in $rows) {
+        $value = $row.Value
+        $speed = [double]$value.severance_projectile_speed
+        $baseDamage = [double]$value.severance_base_projectile_damage
+        $nativeBonus = [double]$value.severance_native_attack_bonus
+        $stagedBonus = [double]$value.severance_after_stage_attack_bonus
+        $expectedNativePre = $speed * ($baseDamage + $nativeBonus)
+        $expectedStagedPre = $speed * ($baseDamage + $stagedBonus)
+        $expectedBasePost = [Math]::Ceiling($speed * $baseDamage)
+        $expectedNativePost = [Math]::Ceiling($expectedNativePre)
+        $expectedStagedPost = [Math]::Ceiling($expectedStagedPre)
+        $wound = [double]$value.severance_amount_delta
+        $postPhysical = [double]$value.combined_physical_post_damage
+
+        if (-not $value.royal_arrow_created -or $value.severance_distinct_damage_source -or
+            $value.family_source_is_l2_magic -or
+            $value.matching_Tensura_resistance_present -or
+            $value.matching_Tensura_nullification_present -or
+            [Math]::Abs([double]$value.penetration_percentage_applied) -gt 0.0001 -or
+            $speed -le 0.0 -or [Math]::Abs($baseDamage - 2.4) -gt 0.0001 -or
+            [Math]::Abs($nativeBonus - 3.0) -gt 0.0001 -or
+            [Math]::Abs($stagedBonus - (3.0 * [double]$value.stage_coefficient)) -gt 0.0001 -or
+            [Math]::Abs([double]$value.severance_native_pre_round - $expectedNativePre) -gt 0.0001 -or
+            [Math]::Abs([double]$value.severance_after_stage_pre_round - $expectedStagedPre) -gt 0.0001 -or
+            [Math]::Abs([double]$value.severance_base_only_post_round - $expectedBasePost) -gt 0.0001 -or
+            [Math]::Abs([double]$value.severance_native_post_round - $expectedNativePost) -gt 0.0001 -or
+            [Math]::Abs([double]$value.severance_after_stage_post_round - $expectedStagedPost) -gt 0.0001 -or
+            [Math]::Abs([double]$value.physical_original_before_stage - $expectedBasePost) -gt 0.0001 -or
+            [Math]::Abs([double]$value.physical_combined_original_before_L2 - $expectedStagedPost) -gt 0.0001 -or
+            [Math]::Abs([double]$value.engraving_native_amount - ($expectedNativePost - $expectedBasePost)) -gt 0.0001 -or
+            [Math]::Abs([double]$value.engraving_after_stage_coefficient - ($expectedStagedPost - $expectedBasePost)) -gt 0.0001 -or
+            $wound -lt -0.0001 -or $postPhysical -lt -0.0001 -or
+            $wound -gt ($postPhysical + 0.001)) {
+            throw "Invalid Severance velocity/rounding/wound scope at level $($value.level), stage $($value.TNO_stage), hit $($value.hit_index)."
+        }
+
+        if (@($value.damage_source_ids) -contains 'minecraft:arrow') {
+            $physicalEventRows++
+            if (@($value.damage_source_tags_if_observable) -notcontains 'minecraft:is_projectile' -or
+                @($value.damage_source_tags_if_observable) -contains 'neoforge:is_magic') {
+                throw "Severance combined source did not retain physical projectile tags at level $($value.level), stage $($value.TNO_stage), hit $($value.hit_index)."
+            }
+        }
+        if ($wound -gt 0.0001) { $woundRows++ }
+    }
+
+    if ($physicalEventRows -eq 0) {
+        Write-Warning 'This boss admitted no combined physical Severance arrow event; retain family-level positive-control evidence before interpreting the capture.'
+    }
+    elseif ($woundRows -eq 0) {
+        Write-Warning 'This boss admitted physical arrows but stored no Severance wound; preserve the native cancellation finding.'
     }
 }
 
