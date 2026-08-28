@@ -986,7 +986,7 @@ non-DamageSource operation. Energy Steal is measurable on Orc and `EFFECTIVELY
 DEAD` on the other six bosses in this runtime path. No production behavior or
 balance value was changed.
 
-## Checkpoint 3 — Severance (in progress)
+## Checkpoint 3 — Severance (complete)
 
 Severance I is measured through the installed Royal Arrow path as one combined
 physical `minecraft:arrow` source, not a second DamageSource. Its native `+3`
@@ -1054,11 +1054,29 @@ Adaptive and Regenerate appeared in all six legal profiles without a recorded
 effect on a positive surviving sequence. No Dispell or Dementor rolled, and
 the one Reflect profile recorded no reflection.
 
-Hinata is accepted with 54 cases, 540 per-hit rows, zero case errors, APO
-profile `NONE`, and no unexpected L2 bypass. Every Royal Arrow was canceled
-before the native post-damage hook, so no Energy Drain event was emitted and
-resource impact remained `0.00 Native -> 0.00 S7`. All six profiles naturally
-contained Dispell, but no Energy event or DamageSource existed to transform.
+The completed Severance family contains seven accepted artifacts, 369 cases,
+and 3,690 per-hit rows, with zero case errors, APO profile `NONE` throughout,
+and no unexpected L2 bypass. Of 3,096 admitted combined physical events, only
+93 retained positive post-L2 damage and native wound storage; all 93 belonged
+to Orc Disaster. The other 315 cases were zero-damage profiles. Across 41
+boss/level profiles, average DPS was `0.140162 Native -> 0.078957 S7`; Orc alone
+was `0.957775 -> 0.539537` because fixed-window hit survival varied.
+
+Orc is `MARGINAL`; Luminous, Hinata, Gazel, Elemental Colossus, Carrion, and
+Rimuru Ogre Fight are `EFFECTIVELY DEAD`. No profile was
+`MEANINGFUL/BALANCED` or `TOO STRONG / OP`. Twelve legal profiles contained
+Adaptive, 14 Dispell, zero Dementor, 23 Regenerate, 31 Tank, and 21 Reflect.
+Only Orc's Lv1000 Adaptive roll produced an observed transform (12 rows);
+Dispell, Regenerate, and Reflect produced no recorded transform/heal/reflection.
+
+Eight surviving Orc S0 hits still had a higher staged pre-round value collapse
+to the native ceiled amount, confirming that the known Stage-rounding issue
+remains observable when physical damage survives L2. It is not solved here.
+Permanent Phase 6 work must preserve the single physical/projectile source and
+L2 ordering: zeroed/canceled events cannot create a second engraving source or
+store wound, and Adaptive state must remain fresh between cases. This is an
+evidence finding, not permission to change Stage, native Severance, L2, Royal
+Arrow, or production combat behavior.
 
 ## Remaining L2 benchmark work
 

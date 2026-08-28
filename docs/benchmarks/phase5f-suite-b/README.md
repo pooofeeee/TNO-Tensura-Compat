@@ -495,17 +495,17 @@ other six bosses in this installed Royal Arrow path. This is benchmark/runtime
 evidence only, not permission to change Energy Steal, the Stage curve, L2,
 Royal Arrow damage, or production combat behavior.
 
-## Checkpoint 3 — Severance (in progress)
+## Checkpoint 3 — Severance (complete)
 
 | Boss | Levels | Cases | Per-hit rows | Errors | Native -> S7 average DPS | Status |
 | --- | ---: | ---: | ---: | ---: | ---: | --- |
-| `tensura_neb:luminous_valentine` | 215, 300, 600, 800, 1000 | 45 | 450 | 0 | 0.00 -> 0.00 | Accepted; all combined physical events canceled post-L2, no Severance wound stored |
-| `tensura:hinata_sakaguchi` | 200, 280, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; all combined physical events canceled post-L2, no Severance wound stored |
-| `tensura:gazel_dwargo` | 185, 260, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; admitted events canceled post-L2, no Severance wound stored |
-| `tensura:orc_disaster` | 175, 250, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.958 -> 0.540 | Accepted; 93 combined physical hits survived L2 and stored native Severance wound |
-| `tensura:elemental_colossus` | 112, 150, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; every arrow canceled before the combined-source probe, no Severance wound stored |
-| `tensura_neb:carrion` | 150, 210, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; all combined physical events canceled post-L2, no Severance wound stored |
-| `tensura_neb:rimuru_ogre_fight` | 167, 250, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; all combined physical events canceled post-L2, no Severance wound stored |
+| `tensura_neb:luminous_valentine` | 215, 300, 600, 800, 1000 | 45 | 450 | 0 | 0.00 -> 0.00 | `EFFECTIVELY DEAD`; all combined physical events canceled post-L2, no Severance wound stored |
+| `tensura:hinata_sakaguchi` | 200, 280, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | `EFFECTIVELY DEAD`; all combined physical events canceled post-L2, no Severance wound stored |
+| `tensura:gazel_dwargo` | 185, 260, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | `EFFECTIVELY DEAD`; admitted events canceled post-L2, no Severance wound stored |
+| `tensura:orc_disaster` | 175, 250, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.958 -> 0.540 | `MARGINAL`; 93 combined physical hits survived L2 and stored native Severance wound |
+| `tensura:elemental_colossus` | 112, 150, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | `EFFECTIVELY DEAD`; every arrow canceled before the combined-source probe, no Severance wound stored |
+| `tensura_neb:carrion` | 150, 210, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | `EFFECTIVELY DEAD`; all combined physical events canceled post-L2, no Severance wound stored |
+| `tensura_neb:rimuru_ogre_fight` | 167, 250, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | `EFFECTIVELY DEAD`; all combined physical events canceled post-L2, no Severance wound stored |
 
 Severance I is measured on the real Royal Arrow as one combined physical
 `minecraft:arrow` source, not a fabricated second DamageSource. Native
@@ -572,25 +572,35 @@ cases therefore stayed at zero DPS from Native through S7. Dispell was present
 in all six profiles and Adaptive in one, with no accepted sequence to
 transform. APO profile was `NONE`, and no unexpected L2 bypass occurred.
 
-Carrion likewise emitted no Energy Drain event in 540 rows. Every Royal Arrow
-was canceled before the native post-damage hook, leaving all 54 cases at zero
-resource impact from Native through S7. No Adaptive, Dispell, or Dementor
-profile rolled; APO profile remained `NONE`, and no unexpected L2 bypass
-occurred.
+### Severance family conclusion
 
-Orc Disaster supplied the positive control: every one of its 54 cases emitted
-at least one Energy Drain event, for 81 event rows in total. Every event used
-the native one-percent current-pool amount, the exact Stage coefficient, equal
-target drain/attacker gain, and no DamageSource. Average resource impact rose
-from about 4,257.302/s Native to 6,047.549/s at S7. The Lv175 aggregate moved
-the opposite direction (10 eligible Native events versus one at S7), showing
-that post-damage event availability—not the per-event Stage formula—can make a
-fixed-window profile non-monotonic. One profile each rolled Dispell and
-Dementor; neither transforms a non-DamageSource energy operation. No unexpected
-L2 bypass occurred.
+The seven accepted artifacts contain 369 cases and 3,690 per-hit rows, with
+zero case errors, APO profile `NONE` throughout, and no unexpected L2 bypass.
+All rows retained the real Royal Arrow, exact native `+3` and temporary Stage
+pre-round formula, and a single physical/projectile source whenever the event
+was admitted. L2 admitted 3,096 incoming events, but only 93 retained positive
+post-L2 physical damage and native wound storage; all 93 occurred on Orc
+Disaster. The other 315 cases were zero-damage profiles. Across the 41
+boss/level profiles, average DPS was `0.140162 Native -> 0.078957 S7`; Orc alone
+was `0.957775 -> 0.539537` because its number of surviving hits varied by case.
 
-Elemental Colossus emitted no Energy Drain event in 540 rows. Every Royal Arrow
-was canceled before the native post-damage hook, so all 54 cases remained at
-zero resource impact from Native through S7. One profile naturally rolled
-Adaptive, but no eligible hit sequence reached the Energy operation. APO
-profile remained `NONE`, and no unexpected L2 bypass occurred.
+Orc Disaster is `MARGINAL`. Luminous, Hinata, Gazel, Elemental Colossus,
+Carrion, and Rimuru Ogre Fight are `EFFECTIVELY DEAD`. No boss qualified as
+`MEANINGFUL/BALANCED` or `TOO STRONG / OP`.
+
+Across the 41 legal profiles, Adaptive appeared 12 times, Dispell 14 times,
+Dementor zero times, Regenerate 23 times, Tank 31 times, and Reflect 21 times.
+Only the Orc Lv1000 Adaptive profile produced an observed transform (12 rows).
+Dispell never transformed the physical source, Regenerate recorded no healing,
+and Reflect recorded no reflected damage. Tank and the broader native/L2
+physical-cancellation path prevented most releases from reaching wound storage.
+Exact full trait/rank rolls remain in each tracked per-boss artifact.
+
+The known Stage-rounding collapse remains observable: eight surviving Orc S0
+hits had a higher staged pre-round value but the same ceiled amount as native.
+This checkpoint does not solve that issue or change balance. Before permanent
+Phase 6 implementation, the combined physical/projectile source and L2 ordering
+must remain authoritative: an event reduced or canceled to zero must not create
+a separate engraving source or store Severance wound, and fresh Adaptive state
+must remain isolated per case. No compatibility bypass is justified by this
+evidence.
