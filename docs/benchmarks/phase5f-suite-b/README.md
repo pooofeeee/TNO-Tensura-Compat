@@ -329,6 +329,7 @@ and no unexpected L2 bypass.
 | `tensura:gazel_dwargo` | 185, 260, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; `EFFECTIVELY DEAD` under matching Earth/Spiritual Resistance |
 | `tensura:orc_disaster` | 175, 250, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.167 -> 0.00 | Accepted; only Lv175 Native/S0 nonzero, all S7 profiles `EFFECTIVELY DEAD` |
 | `tensura:elemental_colossus` | 112, 150, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.035 -> 0.00 | Accepted; only Lv112 Native/S0 nonzero, all S7 profiles `EFFECTIVELY DEAD` |
+| `tensura_neb:carrion` | 150, 210, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; `EFFECTIVELY DEAD` under matching Earth Resistance |
 
 The legal one-Earth-core Slotting path consumes the core-equipped Royal Bow
 release and creates `tensura:stone_shot`; it does not create a Royal Arrow.
@@ -381,3 +382,9 @@ the other 52 cases and every S7 profile were zero. Average DPS fell from about
 Dementor, but no nonzero repeated post-L2 sequence remained for either to
 transform. Ownership/scope invariants passed and no unexpected L2 bypass
 occurred.
+
+Carrion was zero in all 54 cases. Matching Earth Resistance canceled the 14
+observable Native/S0 Earth events, and no eligible event appeared in later
+stages for configured recovery. Two profiles rolled Adaptive, one Dispell, and
+one Dementor; none had a nonzero post-resistance sequence to transform. No
+unexpected L2 bypass occurred.

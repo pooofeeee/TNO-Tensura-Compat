@@ -883,6 +883,12 @@ in Lv112 Native/S0; the other 52 cases and every S7 profile were zero, so
 average DPS fell `0.035 -> 0.00`. Two profiles each naturally rolled Adaptive
 and Dementor, but no nonzero repeated post-L2 sequence remained to transform.
 
+Carrion is accepted with 54 cases, 540 per-hit rows, zero case errors, and no
+unexpected L2 bypass. Matching Earth Resistance canceled all 14 observable
+Native/S0 Earth events, no eligible event appeared later for recovery, and all
+54 cases remained zero. Natural Adaptive, Dispell, and Dementor profiles had no
+nonzero post-resistance sequence to transform.
+
 ## Remaining L2 benchmark work
 
 The final instance config retains `maxMobLevel = 3000`, `maxTraitCount = 9`, and
