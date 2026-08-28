@@ -330,6 +330,7 @@ and no unexpected L2 bypass.
 | `tensura:orc_disaster` | 175, 250, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.167 -> 0.00 | Accepted; only Lv175 Native/S0 nonzero, all S7 profiles `EFFECTIVELY DEAD` |
 | `tensura:elemental_colossus` | 112, 150, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.035 -> 0.00 | Accepted; only Lv112 Native/S0 nonzero, all S7 profiles `EFFECTIVELY DEAD` |
 | `tensura_neb:carrion` | 150, 210, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; `EFFECTIVELY DEAD` under matching Earth Resistance |
+| `tensura_neb:rimuru_ogre_fight` | 167, 250, 300, 600, 800, 1000 | 54 | 540 | 0 | 0.00 -> 0.00 | Accepted; no native Earth event, all profiles `EFFECTIVELY DEAD` |
 
 The legal one-Earth-core Slotting path consumes the core-equipped Royal Bow
 release and creates `tensura:stone_shot`; it does not create a Royal Arrow.
@@ -388,3 +389,10 @@ observable Native/S0 Earth events, and no eligible event appeared in later
 stages for configured recovery. Two profiles rolled Adaptive, one Dispell, and
 one Dementor; none had a nonzero post-resistance sequence to transform. No
 unexpected L2 bypass occurred.
+
+Rimuru Ogre Fight was zero in all 54 cases and emitted no native Earth event.
+It had neither matching Earth Resistance nor Earth Nullification, so there was
+no native Earth amount for Stage or L2 to process. Adaptive rolled in all six
+profiles and Dementor in two, but neither had an event sequence to transform.
+The artifact retained `APO_profile = NONE`, passed ownership/scope invariants,
+and recorded no unexpected L2 bypass.

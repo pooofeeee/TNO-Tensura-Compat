@@ -889,6 +889,13 @@ Native/S0 Earth events, no eligible event appeared later for recovery, and all
 54 cases remained zero. Natural Adaptive, Dispell, and Dementor profiles had no
 nonzero post-resistance sequence to transform.
 
+Rimuru Ogre Fight is accepted with 54 cases, 540 per-hit rows, zero case
+errors, APO profile `NONE`, and no unexpected L2 bypass. It emitted no native
+Earth event and stayed at `0.00 -> 0.00` average DPS despite having neither
+matching Earth Resistance nor Earth Nullification. Adaptive was present in all
+six profiles and Dementor in two, but there was no native event sequence for
+either trait or Stage to transform.
+
 ## Remaining L2 benchmark work
 
 The final instance config retains `maxMobLevel = 3000`, `maxTraitCount = 9`, and
