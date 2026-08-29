@@ -1193,3 +1193,119 @@ Arrow, or production combat change.
 The Suite C development harness now combines the accepted Ancient Apotheosis profile with each Suite B family fixture. Runtime legality required one explicit substitution: each family Engraving conflicts with `tensura:barrier_piercing`, so the combined comparator retains the exact Ancient rarity/affixes/gems/APO attributes and eight compatible Suite A enchantments while replacing only Barrier Piercing with the active Engraving. No impossible enchantment component is fabricated.
 
 The controlled projectile dispatcher also exposed and corrected a benchmark-only lifecycle defect. After the real hit callback, the dispatched entity had remained alive and could re-hit on the next tick. The harness now discards that already-dispatched entity, records spawned/hit IDs and UUIDs, and rejects a second physical event from one UUID. The corrected Magic/Luminous diagnostic gate completed 4 cases/40 rows with zero errors, duplicate flags, Mark, L2 bypass, Tensura bypass, or production mutation. Every release produced two distinct legal projectiles (`royalvariations:royal_arrow` plus `minecraft:spectral_arrow`), proving the remaining two-event pattern is real APO multi-projectile behavior rather than re-collision.
+
+# Phase 5F final research closure
+
+Phase 5F is complete. No completed capture was rerun for closure. The strict
+aggregate validator reparsed the accepted evidence and passed all 48 Suite C
+artifacts: 42 direct artifacts with 2,214 cases and 21,204 rows, plus six
+strongest-legal Lv1000 artifacts with 84 cases and 840 rows. The combined total
+is 2,298 cases, 22,044 rows, and zero case errors.
+
+The terminal research set is:
+
+1. **Suite A — Apotheosis only.** Seven bosses, 41 cases, 409 rows, and zero
+   errors establish the legal `ANCIENT_SINGLE_PROSPEROUS_SPECTRAL` comparator.
+   The all-case average was 50.642624 DPS with 37 zero cases under the natural
+   and stress L2 profiles.
+2. **Suite B — TNO only.** Six families each completed seven bosses and 369
+   Native/S0-S7 cases: 2,214 cases and 22,140 rows in total. Magic and Holy had
+   measurable recovery; Soul was non-functional as a Royal Arrow Soul source;
+   Elemental was almost entirely event-availability limited; Energy Steal and
+   Severance were measurable only on Orc.
+3. **All 39 L2 traits.** Natural legality covered 26 traits, legal Arena was
+   forced for isolated compatibility evidence, and 12 traits were blocked by
+   live SEMIBOSS/entity restrictions. All 39 IDs and all 110 native rank cases
+   were covered. The targeted Orc defensive matrix added 33 ranks. No
+   compatibility trait produced an unexpected bypass.
+4. **Strongest legal L2 profiles.** All seven accepted Lv1000 profiles were
+   reconstructed within the live cost, preset, exclusion, rank, entity, and
+   `maxTraitCount` rules. The exact profiles and budgets remain recorded in
+   `docs/benchmarks/phase5f-l2-traits/README.md` and are identity-checked again
+   by the Suite C closure validator.
+5. **Suite C — APO + TNO.** The 42 direct and six endgame artifacts prove legal
+   coexistence after substituting only the active family Engraving for the
+   incompatible Barrier Piercing enchantment. The APO rarity, ten affixes, five
+   Perfect gems, five sockets, other eight enchantments, and effective attributes
+   remain exact.
+6. **Double scaling.** None found. Across 5,319 positive combined Magic/Holy
+   rows, the eligible family result is exactly native amount times one Stage
+   coefficient. All non-Severance rows preserve raw physical outside Stage
+   scaling; Severance scales only its isolated eligible `+3` contribution.
+7. **Event duplication.** None remains after the development harness lifecycle
+   fix. There are zero unexpected source duplications, zero reused projectile
+   UUIDs, zero same-projectile re-hits, and zero recursive events. The accepted
+   Royal Arrow plus Spectral sibling pair is genuine APO behavior.
+8. **L2/Tensura bypass.** Zero unexpected L2 bypasses and zero unexpected
+   Tensura bypasses. Matching Nullification stays absolute. Matching Resistance
+   recovery remains S0-S4 0%, S5 25%, S6 50%, and S7 100% only where the matching
+   Resistance and an eligible native event both exist.
+9. **Integration bugs.** The only demonstrated defect was the already-corrected
+   benchmark-only re-collision lifecycle. Suite C demonstrates no production
+   integration defect, so closure makes no production combat patch.
+10. **Severance.** Suite B's eight surviving Orc S0 rows prove pre-round Stage
+    growth can collapse to the same native ceiling. Max APO made all 1,920
+    admitted S0-S7 direct rows distinguishable, but that only masks the
+    low-magnitude failure. The rounding position remains an intrinsic Phase 6
+    implementation issue.
+11. **Matching Resistance penetration.** The locked recovery schedule behaves
+    as designed and never penetrates matching Nullification. No evidence
+    justifies changing its values.
+12. **Balance observations, not bugs.** Combined Magic/Holy can be very large;
+    Soul and Elemental are mostly or fully absent; Energy Steal and Severance are
+    Orc-only in these boss paths; and strongest legal L2 profiles suppress most
+    results. These findings do not authorize production rebalancing.
+13. **Phase 6 constraints.** The implementation locks below remain binding,
+    including the explicit Severance rounding requirement.
+14. **Status.** Phase 5F is complete and Phase 6 is unblocked for implementation
+    planning. Phase 6 has not started.
+
+## Suite C family comparison
+
+| Family | Suite B Native -> S7 | Suite C Native -> S7 | Combined interpretation |
+| --- | ---: | ---: | --- |
+| Magic Weapon | 2.09 -> 9.90 DPS | 480.189045 -> 1,160.273532 DPS | Legitimate upstream APO projectile/crit magnitude plus one Stage application; no duplicate or double scaling. |
+| Holy Weapon | 2.99 -> 9.46 DPS | 521.705901 -> 1,084.743127 DPS | Same independent coexistence; native Holy source identity is preserved. |
+| Soul Eater | 0.064 -> 0.030 DPS | 27.092741 -> 9.175172 DPS | No native Soul event in either suite; Suite C's increase is residual APO physical on Orc. |
+| Elemental / Slotting | 0.029512 -> 0 DPS | 0 -> 0 DPS | Native Earth-event availability remains the limiting runtime behavior. |
+| Energy Steal | 623.019818 -> 885.007144 resource/s | 792.429557 -> 1,338.533942 resource/s | Exact one-percent-times-Stage operation, at most once per release, no DamageSource. |
+| Severance | 0.140162 -> 0.078957 DPS | 42.442595 -> 19.432426 DPS | APO raises combined physical magnitude; only the native Severance contribution is staged and L2 remains authoritative. |
+
+Absolute B/C averages are not paired-roll balance ratios: the suites preserve
+their own legal native L2 rolls and independent crit outcomes. Attribution comes
+from the per-event formula, UUID, source, and bypass evidence. The combined
+result is normal independent coexistence with legitimate projectile/crit
+multiplication, not an integration bug.
+
+## Phase 6 handoff — locked requirements
+
+- Common gear supports S0-S3; Rare gear supports S0-S7.
+- Preserve the already-locked EP thresholds and the Rare EP discount of 17%.
+- Preserve Curve C where Phase 5F validated it and all six scalable Engraving
+  families: Magic Weapon, Holy Weapon, Soul Eater, Elemental / Slotting, Energy
+  Steal, and Severance.
+- Matching Tensura Resistance recovery remains S0-S4 `0%`, S5 `25%`, S6 `50%`,
+  and S7 `100%`. Matching Nullification remains absolute.
+- L2 defenses remain authoritative. Canceled/zeroed events cannot be restored by
+  Stage, and no compatibility path may bypass L2 admission or transformation.
+- Base/raw physical damage is not Stage-scaled. Royal Arrow Mark is not
+  Stage-scaled. Generic Apotheosis rarity, affixes, gems, crit, and progression
+  remain outside TNO Stage logic.
+- Preserve the observed `tensura:magic` DamageSource semantics: it bypasses armor
+  but is not `neoforge:is_magic`; do not alter tags to make Dispell apply.
+- Severance must remain one combined physical/projectile `minecraft:arrow`
+  DamageSource. Do not fabricate a second engraving event. Preserve the native
+  velocity/ceiling and L2-before-wound order, and never store wound when combined
+  physical damage is zero or cancelled.
+- The remaining Severance-specific task is to choose and implement a
+  rounding-aware representation of the Stage-scaled eligible native `+3`
+  contribution. It must prevent a positive low-magnitude Stage delta from being
+  silently lost without changing the locked curve, staging base/APO physical,
+  changing native damage tags, or adding another DamageSource.
+- Soul/Elemental event availability and Orc-only Energy/Severance behavior must
+  remain documented runtime compatibility findings until a separately authorized
+  production design decision. Phase 5F does not authorize a fix or rebalance.
+
+Closure adds only the aggregate validator, machine-readable summary, and
+documentation. It does not change production combat, Stage thresholds, EP,
+Tensura, L2, Apotheosis, Royal Bow, or Royal Arrow behavior.
