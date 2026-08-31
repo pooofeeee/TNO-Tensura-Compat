@@ -16,6 +16,9 @@ public final class RoyalVariationsGearData {
     /** Temporary technical-test minimum/initial EP; not a final balance value. */
     public static final int ROYAL_BOW_INITIAL_EP = 1_000;
 
+    /** Allows the authorized Rare integration path to reach its locked S7 threshold. */
+    public static final int ROYAL_BOW_MAX_EP = 2_490_000;
+
     /** Temporary technical-test native Tensura EP gain coefficient; not final balance. */
     public static final double ROYAL_BOW_GROWTH_RATE = 0.01D;
 
@@ -26,6 +29,7 @@ public final class RoyalVariationsGearData {
         GearExistenceData royalBow = GearExistenceData.getDefault(
                 ROYAL_BOW_ID,
                 ROYAL_BOW_INITIAL_EP,
+                ROYAL_BOW_MAX_EP,
                 ROYAL_BOW_GROWTH_RATE
         );
         TensuraGearRegistrar.register(context, royalBow);

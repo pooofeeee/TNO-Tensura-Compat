@@ -2,7 +2,7 @@
 
 ## Status
 
-Checkpoints 6A through 6E are implemented, tested, committed, and pushed on `phase-6-production-stage-framework`. Checkpoint 6F is design-blocked. The repository does not establish Royal Bow's TNO Common/Rare classification or the production trigger for its first applicable Engraving roll. The Phase 6 stop condition prohibits inventing either rule, so Royal Bow remains deliberately absent from the external-gear classification table and the end-to-end runtime acceptance has not been represented as complete.
+Checkpoints 6A through 6E are implemented, tested, committed, and pushed on `phase-6-production-stage-framework`. Checkpoint 6F is in progress. Royal Bow is now explicitly authorized as TNO Rare and its first applicable Engraving roll is authorized once, immediately after successful native Tensura Gear conversion.
 
 ## Architecture and native EP
 
@@ -12,7 +12,7 @@ The production framework is intentionally small:
 - `GearStageClass` defines the Common and Rare EP schedules and caps.
 - `StageResolver` derives Stage directly from current native Tensura Gear EP.
 - `NativeGearEpSource` reads Tensura 2.0.1.1 `TensuraDataComponents.EP` from the weapon.
-- `GearStageClasses` is the explicit external-item classification table. It currently contains no Royal Bow mapping because that classification is unresolved.
+- `GearStageClasses` is the explicit external-item classification table. Royal Bow maps directly to TNO Rare; no Apotheosis or native Tensura rarity controls this mapping.
 - `ProductionStageScaling` joins classification, native EP, Stage, and the active native scalable family.
 - `ScalableFamily` is closed to the six authorized families.
 
@@ -107,19 +107,16 @@ The accepted Phase 5F and Phase 6 Elemental pre-flight evidence was not modified
 
 ## Royal Bow end-to-end and first Engraving behavior
 
-The intended chain is Royal Bow -> native Tensura Gear -> native Gear EP -> TNO Stage -> native eligible Engraving -> eligible scaled component -> Tensura defenses -> L2. The generic production pieces through this chain are implemented. The item-specific activation is not.
+The production chain is Royal Bow -> native Tensura Gear -> native Gear EP -> TNO Rare Stage -> native eligible Engraving -> eligible scaled component -> Tensura defenses -> L2. Royal Arrow has no separate EP or Stage.
 
-Two inputs are still required:
+TNO narrowly wraps the `initiateGearExistence` call inside Tensura's native equipment-change listener. It invokes the native operation first, then requires the Royal Bow ID, its explicit Rare mapping, initialized native EP/EP-gain components, and native maximum EP at least equal to the S7 threshold. This guarantees conversion-before-roll ordering without depending on listener registration order. The GearExistence record now uses max EP 2,490,000 so every authorized Rare Stage is naturally reachable; its existing temporary 1,000 initial EP and 0.01 growth rate are unchanged.
 
-1. Royal Bow's explicit TNO Stage class: Common or Rare.
-2. The exact production event that performs the first applicable Engraving roll.
+On the first successful conversion, TNO atomically claims a persistent item marker before selecting the first roll. The distribution is Common 35%, Uncommon 35%, Rare 20%, and Epic 10%. Only Tensura's configured pool for the selected rarity is considered, each candidate must pass native `canEnchant`, and a chosen candidate is applied through `EngravingHelper.increaseEngraving` so the native `EngraveEvent` remains authoritative. An empty legal pool or a native event cancellation is a valid no-Engraving outcome. The native curse chance/path is preserved. The marker is copied and serialized with the ItemStack, so equipment changes, login, load, Stage/EP changes, shots, and reintegration checks cannot perform the first roll again. Later Engraving behavior remains native/previously established.
 
-The authorized first-roll rarity distribution for the relevant Rare path is preserved as a requirement: Common 35%, Uncommon 35%, Rare 20%, Epic 10%, first applicable roll only, and no guaranteed starting Engraving. No trigger or roll implementation was added because the trigger is not established. Later-roll behavior remains native/previously established.
-
-Until both decisions are supplied, Royal Bow end-to-end activation, positive-control runtime values, strongest-legal L2 validation, and the Ancient Apotheosis coexistence spot check are blocked. This is not a production failure and is not permission to infer a classification or progression event from benchmark fixtures.
+Targeted runtime acceptance, strongest-legal L2 validation, and the Ancient Apotheosis coexistence spot check remain to be completed before 6F closure.
 
 ## Remaining observations
 
 - High Magic/Holy combined results, absent Royal Arrow Soul events, boss-dependent Elemental availability, Orc-only Energy Steal/Severance observations, and strongest-legal L2 suppression remain accepted non-bug research observations.
 - No authorized balance constants, native Tensura mechanics, L2 mechanics, Apotheosis mechanics, Royal Bow/Arrow base damage, Mark behavior, or accepted research evidence were changed.
-- Phase 6 status remains `BLOCKED` at 6F, not `COMPLETE`.
+- Phase 6 status remains `IN_PROGRESS` at 6F until targeted runtime acceptance passes.

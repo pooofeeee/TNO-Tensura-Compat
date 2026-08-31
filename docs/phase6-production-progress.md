@@ -3,8 +3,8 @@
 - Baseline SHA: `50d599f374d94deafa46f5cd10b09d548b369461`
 - Current branch: `phase-6-production-stage-framework`
 - Latest completed checkpoint: 6E — rounding-aware Severance
-- Current checkpoint: 6F — BLOCKED on Royal Bow production classification and first-roll trigger
-- Latest known good commit SHA: `67beb1911e2cf916e14c945de4fd780a74580f46` (6E remote checkpoint)
+- Current checkpoint: 6F — Royal Bow activation and targeted production acceptance
+- Latest known good commit SHA: `90ae0d9b0555ae589c2ea67de352ced83d3a9f97` (resolved-blocker remote checkpoint)
 
 ## Completed implementation areas
 
@@ -24,6 +24,10 @@
 - Severance is intercepted inside `AbstractArrow.onHitEntity`: Tensura's installed `+3` is first applied by native `EnchantmentHelper.modifyDamage`, then TNO adds only `+3 * Curve C bonus` before projectile velocity and the one native ceiling.
 - A classified Severance arrow whose positive eligible pre-round delta lands in the same native integer bucket receives the next integer result. This is scoped to that classified weapon and enchantment; it does not alter global projectile rounding, base/APO physical damage, velocity, crit logic, source identity, L2 order, or wound order.
 - The existing local integer continues through the single `minecraft:arrow` hit and Tensura's native after-damage/wound path. Rejected or zero physical hits still cannot create a wound.
+- Royal Bow is explicitly mapped to TNO `GearStageClass.RARE`; Apotheosis and native Tensura rarity names are not consulted.
+- Royal Bow native GearExistence now permits the locked S7 threshold at 2,490,000 EP while retaining the existing temporary 1,000 initial EP and 0.01 growth rate.
+- A narrow wrapper around Tensura's equipment-change `initiateGearExistence` call recognizes successful Royal Bow conversion immediately after the native operation and performs the authorized first applicable Engraving roll once, without relying on listener registration order.
+- The roll claims a persistent `minecraft:custom_data` marker before selection, uses the exact Common 35% / Uncommon 35% / Rare 20% / Epic 10% distribution, filters Tensura's configured pool through native `canEnchant`, and applies the result through Tensura's `EngraveEvent` path. Later equipment/login/EP/Stage/shot checks cannot repeat it.
 
 ## Completed tests
 
@@ -37,18 +41,17 @@
 - Low-magnitude S0 collapse, naturally distinct ceiling, eligible-only +3 scaling, and APO/base isolation tests pass.
 - A dev `runServer` reached `Done` with Royal Variations, Tensura's `MixinAbstractArrow`, and TNO's `AbstractArrowMixin` all applied without injection errors.
 - `gradlew.bat clean build` passes at Checkpoints 6A-6E.
+- Exact 100-value first-roll distribution and Rare Stage boundary tests pass for the initial 6F activation unit.
 
 ## Remaining tests
 
-- Royal Bow end-to-end activation, final targeted runtime acceptance, and Phase 6 closure remain for 6F.
-- Positive-control Resistance/Nullification combat values remain blocked until a production gear classification is authorized; the generic native boundary and deterministic invariants are complete.
-- Magic/Holy positive-control damage values remain blocked until a production gear classification is authorized.
+- Dev-runtime conversion/marker/roll verification and the full targeted 6F acceptance set remain.
+- Magic/Holy, matching Resistance/Nullification, strongest-legal L2, and accepted Ancient coexistence spot checks remain to be captured through the now-active Royal Bow Rare mapping.
 
 ## Unresolved findings
 
-- The accepted repository evidence defines Common and Rare thresholds but does not assign Royal Bow a production TNO Common/Rare class. Phase 5's S0-S7 Royal Bow fixture is benchmark coverage, not an explicit classification decision.
-- The exact authorized production trigger for Royal Bow's first applicable Engraving roll is not established.
+- None. The prior Royal Bow class and first-roll trigger decisions are now explicitly resolved; runtime acceptance is unfinished work, not a design blocker.
 
 ## Exact next action
 
-Obtain explicit design decisions for (1) Royal Bow's TNO Common/Rare classification and (2) the exact production event that performs its first applicable Engraving roll. Then enable the item mapping/roll at 6F and run the required targeted production acceptance. Do not infer either rule from benchmark fixtures.
+Run dev-server verification of native Royal Bow conversion, the persistent one-time marker and native eligible roll, then execute the targeted 6F combat acceptance set without rerunning the Phase 5F matrix.
