@@ -1,6 +1,8 @@
 package com.tno.tensuracompat.core.stage;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.Optional;
 
@@ -43,5 +45,18 @@ class StageCurveTest {
                 Optional.of(ScalableFamily.MAGIC_WEAPON),
                 ScalableFamily.HOLY_WEAPON
         ));
+    }
+
+    @ParameterizedTest
+    @EnumSource(ScalableFamily.class)
+    void everyFamilyScalesOnlyItsOwnEligibleContribution(ScalableFamily family) {
+        assertEquals(140.0D, StageCurve.scaleForActiveFamily(
+                100.0D, Stage.S7, Optional.of(family), family));
+
+        ScalableFamily different = family == ScalableFamily.MAGIC_WEAPON
+                ? ScalableFamily.HOLY_WEAPON
+                : ScalableFamily.MAGIC_WEAPON;
+        assertEquals(100.0D, StageCurve.scaleForActiveFamily(
+                100.0D, Stage.S7, Optional.of(family), different));
     }
 }

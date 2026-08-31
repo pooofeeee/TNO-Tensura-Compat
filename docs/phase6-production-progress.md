@@ -2,9 +2,9 @@
 
 - Baseline SHA: `50d599f374d94deafa46f5cd10b09d548b369461`
 - Current branch: `phase-6-production-stage-framework`
-- Latest completed checkpoint: 6A — permanent EP to Stage framework
-- Current checkpoint: 6B — Magic / Holy / Soul production integration
-- Latest known good commit SHA: `50d599f374d94deafa46f5cd10b09d548b369461`
+- Latest completed checkpoint: 6B — Magic / Holy / Soul production integration
+- Current checkpoint: 6C — Elemental / Slotting and Energy Steal
+- Latest known good commit SHA: `15dc5f69357de45767d6740917f5665c93c76fbd` (6A remote checkpoint)
 
 ## Completed implementation areas
 
@@ -12,16 +12,21 @@
 - Common S0-S3 and locked Rare S0-S7 thresholds.
 - Direct authoritative read from Tensura 2.0.1.1 `TensuraDataComponents.EP`; no TNO EP counter or Stage cache.
 - Curve C family isolation and zero-gain behavior when no scalable native family is active.
+- Narrow production wrappers around Tensura's existing Magic/Holy additional-damage and Soul spiritual-damage calls.
+- Damage source holders, native event count, and Soul event availability are preserved; the wrappers do not manufacture events.
+- Explicit external-gear classification table defaults to no classification, so unclassified gear receives zero TNO combat gain.
 
 ## Completed tests
 
 - Common boundary/cap, every Rare threshold, exact Curve C, no-Engraving zero-gain, and family-isolation unit tests pass.
-- `gradlew.bat clean build` passes at Checkpoint 6A.
+- All six family isolation cases pass.
+- A dev `runServer` reached `Done` and applied both 6B mixins without injection errors.
+- `gradlew.bat clean build` passes at Checkpoints 6A and 6B.
 
 ## Remaining tests
 
-- Production Magic/Holy/Soul hooks and their focused acceptance remain for 6B.
 - Elemental/Energy, Resistance/Nullification, Severance, and final targeted runtime acceptance remain for 6C-6F.
+- Magic/Holy positive-control damage values remain blocked until a production gear classification is authorized.
 
 ## Unresolved findings
 
@@ -30,4 +35,4 @@
 
 ## Exact next action
 
-Inspect the installed Tensura native Magic/Holy/Soul event order and implement narrow production scaling hooks that preserve one native event and all native source semantics.
+Trace the installed native Slotting projectile and Energy Drain operation boundaries; implement coefficient-only Elemental damage and percentage-only Energy Steal scaling.
