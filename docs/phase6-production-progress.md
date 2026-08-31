@@ -2,9 +2,9 @@
 
 - Baseline SHA: `50d599f374d94deafa46f5cd10b09d548b369461`
 - Current branch: `phase-6-production-stage-framework`
-- Latest completed checkpoint: 6D — matching Resistance recovery and absolute Nullification
-- Current checkpoint: 6E — rounding-aware Severance
-- Latest known good commit SHA: `f4379a58cc95cb9a8fe307fc49162b4cdf2cad2a` (6C remote checkpoint)
+- Latest completed checkpoint: 6E — rounding-aware Severance
+- Current checkpoint: 6F — Royal Bow end-to-end integration, runtime regression, and Phase 6 closure
+- Latest known good commit SHA: `95783e6257d6309043ff023ce3a6f5ec3ed77200` (6D remote checkpoint)
 
 ## Completed implementation areas
 
@@ -21,6 +21,9 @@
 - Recovery is applied at the native damage boundary before Tensura Resistance and downstream L2. It uses Tensura bypass level 1 only to prevent that already-modelled matching Resistance layer from applying twice.
 - Matching Nullification is checked first and remains absolute. Its presence prevents both recovery and the level-1 bypass; no alternate source or fallback damage is created.
 - Slotting projectiles carry only an attack-time Stage snapshot derived from native Gear EP so delayed native projectile hits use the same 6D rule. No independent EP or persistent gear Stage counter exists.
+- Severance is intercepted inside `AbstractArrow.onHitEntity`: Tensura's installed `+3` is first applied by native `EnchantmentHelper.modifyDamage`, then TNO adds only `+3 * Curve C bonus` before projectile velocity and the one native ceiling.
+- A classified Severance arrow whose positive eligible pre-round delta lands in the same native integer bucket receives the next integer result. This is scoped to that classified weapon and enchantment; it does not alter global projectile rounding, base/APO physical damage, velocity, crit logic, source identity, L2 order, or wound order.
+- The existing local integer continues through the single `minecraft:arrow` hit and Tensura's native after-damage/wound path. Rejected or zero physical hits still cannot create a wound.
 
 ## Completed tests
 
@@ -31,11 +34,13 @@
 - Elemental Native/S0-S7 multiplier and Energy 1.00%-to-1.40% deterministic tests pass.
 - Resistance recovery schedule, native HP gate, and loss-only interpolation tests pass.
 - A dev `runServer` reached `Done` with the 6D `TensuraProjectileMixin` and all loaded family mixins applied without injection errors.
-- `gradlew.bat clean build` passes at Checkpoints 6A-6D.
+- Low-magnitude S0 collapse, naturally distinct ceiling, eligible-only +3 scaling, and APO/base isolation tests pass.
+- A dev `runServer` reached `Done` with Royal Variations, Tensura's `MixinAbstractArrow`, and TNO's `AbstractArrowMixin` all applied without injection errors.
+- `gradlew.bat clean build` passes at Checkpoints 6A-6E.
 
 ## Remaining tests
 
-- Severance and final targeted runtime acceptance remain for 6E-6F.
+- Final targeted runtime acceptance and Phase 6 closure remain for 6F.
 - Positive-control Resistance/Nullification combat values remain blocked until a production gear classification is authorized; the generic native boundary and deterministic invariants are complete.
 - Magic/Holy positive-control damage values remain blocked until a production gear classification is authorized.
 
@@ -46,4 +51,4 @@
 
 ## Exact next action
 
-Trace Royal Arrow's native Severance +3 through velocity multiplication, native rounding, the one physical `minecraft:arrow` event, L2 processing, and wound storage before implementing the rounding-aware eligible delta.
+Resolve the two recorded Royal Bow production ambiguities (TNO Common/Rare classification and the first-applicable-Engraving trigger) before enabling the generic framework for Royal Bow and running 6F acceptance. Do not invent either rule.
