@@ -2,9 +2,9 @@
 
 - Baseline SHA: `50d599f374d94deafa46f5cd10b09d548b369461`
 - Current branch: `phase-6-production-stage-framework`
-- Latest completed checkpoint: 6C — Elemental / Slotting and Energy Steal
-- Current checkpoint: 6D — matching Resistance recovery and absolute Nullification
-- Latest known good commit SHA: `45c129a4c5a68014ff00108ccaef583a8ae3bfe1` (6B remote checkpoint)
+- Latest completed checkpoint: 6D — matching Resistance recovery and absolute Nullification
+- Current checkpoint: 6E — rounding-aware Severance
+- Latest known good commit SHA: `f4379a58cc95cb9a8fe307fc49162b4cdf2cad2a` (6C remote checkpoint)
 
 ## Completed implementation areas
 
@@ -17,6 +17,10 @@
 - Explicit external-gear classification table defaults to no classification, so unclassified gear receives zero TNO combat gain.
 - Slotting scales only Tensura's computed elemental projectile damage argument; speed, utility, core capacity/count/tier, and physical arrows are untouched.
 - Energy Steal scales only Tensura's admitted EP percentage drain argument; it adds no operation and no `DamageSource`.
+- Matching Resistance recovery uses the locked S0-S4 0%, S5 25%, S6 50%, S7 100% schedule and `post + penetration * (pre - post)`.
+- Recovery is applied at the native damage boundary before Tensura Resistance and downstream L2. It uses Tensura bypass level 1 only to prevent that already-modelled matching Resistance layer from applying twice.
+- Matching Nullification is checked first and remains absolute. Its presence prevents both recovery and the level-1 bypass; no alternate source or fallback damage is created.
+- Slotting projectiles carry only an attack-time Stage snapshot derived from native Gear EP so delayed native projectile hits use the same 6D rule. No independent EP or persistent gear Stage counter exists.
 
 ## Completed tests
 
@@ -25,11 +29,14 @@
 - A dev `runServer` reached `Done` and applied both 6B mixins without injection errors.
 - Energy Steal's production mixin applied without injection errors during dev-server startup.
 - Elemental Native/S0-S7 multiplier and Energy 1.00%-to-1.40% deterministic tests pass.
-- `gradlew.bat clean build` passes at Checkpoints 6A-6C.
+- Resistance recovery schedule, native HP gate, and loss-only interpolation tests pass.
+- A dev `runServer` reached `Done` with the 6D `TensuraProjectileMixin` and all loaded family mixins applied without injection errors.
+- `gradlew.bat clean build` passes at Checkpoints 6A-6D.
 
 ## Remaining tests
 
-- Resistance/Nullification, Severance, and final targeted runtime acceptance remain for 6D-6F.
+- Severance and final targeted runtime acceptance remain for 6E-6F.
+- Positive-control Resistance/Nullification combat values remain blocked until a production gear classification is authorized; the generic native boundary and deterministic invariants are complete.
 - Magic/Holy positive-control damage values remain blocked until a production gear classification is authorized.
 
 ## Unresolved findings
@@ -39,4 +46,4 @@
 
 ## Exact next action
 
-Trace Tensura's exact matching Resistance and Nullification handling around native special damage, then implement loss-only S5-S7 recovery without undoing Nullification or downstream L2.
+Trace Royal Arrow's native Severance +3 through velocity multiplication, native rounding, the one physical `minecraft:arrow` event, L2 processing, and wound storage before implementing the rounding-aware eligible delta.

@@ -5,6 +5,8 @@ import net.minecraft.core.Holder;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.item.enchantment.EnchantedItemInUse;
 
+import java.util.Optional;
+
 /** Classification and scaling for native Tensura special-damage events. */
 public final class NativeScalableDamage {
     private NativeScalableDamage() {
@@ -15,15 +17,10 @@ public final class NativeScalableDamage {
             EnchantedItemInUse enchantedItem,
             float nativeEligibleAmount
     ) {
-        if (damageType.is(TensuraDamageTypes.MAGIC_GENERIC)) {
-            return ProductionStageScaling.scaleEligible(
-                    enchantedItem.itemStack(), ScalableFamily.MAGIC_WEAPON, nativeEligibleAmount);
-        }
-        if (damageType.is(TensuraDamageTypes.HOLY_DAMAGE)) {
-            return ProductionStageScaling.scaleEligible(
-                    enchantedItem.itemStack(), ScalableFamily.HOLY_WEAPON, nativeEligibleAmount);
-        }
-        return nativeEligibleAmount;
+        return additionalDamageFamily(damageType)
+                .map(family -> ProductionStageScaling.scaleEligible(
+                        enchantedItem.itemStack(), family, nativeEligibleAmount))
+                .orElse(nativeEligibleAmount);
     }
 
     public static float scaleSpiritualDamage(
@@ -36,5 +33,21 @@ public final class NativeScalableDamage {
         }
         return ProductionStageScaling.scaleEligible(
                 enchantedItem.itemStack(), ScalableFamily.SOUL_EATER, nativeEligibleAmount);
+    }
+
+    public static Optional<ScalableFamily> additionalDamageFamily(Holder<DamageType> damageType) {
+        if (damageType.is(TensuraDamageTypes.MAGIC_GENERIC)) {
+            return Optional.of(ScalableFamily.MAGIC_WEAPON);
+        }
+        if (damageType.is(TensuraDamageTypes.HOLY_DAMAGE)) {
+            return Optional.of(ScalableFamily.HOLY_WEAPON);
+        }
+        return Optional.empty();
+    }
+
+    public static Optional<ScalableFamily> spiritualDamageFamily(Holder<DamageType> damageType) {
+        return damageType.is(TensuraDamageTypes.SOUL_SCATTER)
+                ? Optional.of(ScalableFamily.SOUL_EATER)
+                : Optional.empty();
     }
 }

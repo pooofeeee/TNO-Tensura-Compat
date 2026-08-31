@@ -2,6 +2,7 @@ package com.tno.tensuracompat.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.tno.tensuracompat.core.stage.ElementalStageProjectileContext;
 import com.tno.tensuracompat.core.stage.ProductionStageScaling;
 import com.tno.tensuracompat.core.stage.ScalableFamily;
 import io.github.manasmods.tensura.enchantment.SlottingHelper;
@@ -30,6 +31,7 @@ public abstract class SlottingHelperMixin {
     ) {
         float scaled = ProductionStageScaling.scaleEligible(
                 gear, ScalableFamily.ELEMENTAL_SLOTTING, nativeProjectileDamage);
+        ElementalStageProjectileContext.capture(projectile, gear);
         original.call(projectile, scaled);
     }
 }

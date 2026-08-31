@@ -14,17 +14,22 @@ public final class ProductionStageScaling {
     }
 
     public static double scaleEligible(ItemStack gear, ScalableFamily family, double nativeEligibleAmount) {
-        Optional<GearStageClass> stageClass = GearStageClasses.classification(gear);
-        if (stageClass.isEmpty()) {
+        Optional<Stage> stage = stage(gear);
+        if (stage.isEmpty()) {
             return nativeEligibleAmount;
         }
 
-        Stage stage = NativeGearEpSource.resolve(gear, stageClass.get());
         return StageCurve.scaleForActiveFamily(
                 nativeEligibleAmount,
-                stage,
+                stage.get(),
                 Optional.of(family),
                 family
         );
+    }
+
+    /** Resolves attack-time Stage directly from authoritative native Gear EP. */
+    public static Optional<Stage> stage(ItemStack gear) {
+        return GearStageClasses.classification(gear)
+                .map(stageClass -> NativeGearEpSource.resolve(gear, stageClass));
     }
 }

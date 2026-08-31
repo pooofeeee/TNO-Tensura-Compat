@@ -2,6 +2,7 @@ package com.tno.tensuracompat.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.tno.tensuracompat.core.stage.MatchingResistanceRecovery;
 import com.tno.tensuracompat.core.stage.NativeScalableDamage;
 import io.github.manasmods.tensura.damage.TensuraDamageHelper;
 import io.github.manasmods.tensura.enchantment.effect.SpiritualDamageEntity;
@@ -40,6 +41,10 @@ public abstract class SpiritualDamageEntityMixin {
     ) {
         float scaled = NativeScalableDamage.scaleSpiritualDamage(
                 damageType(), enchantedItem, nativeEligibleAmount);
-        return original.call(damaged, attacker, source, scaled);
+        float recovered = NativeScalableDamage.spiritualDamageFamily(damageType())
+                .map(family -> MatchingResistanceRecovery.apply(
+                        enchantedItem.itemStack(), family, damaged, source, scaled))
+                .orElse(scaled);
+        return original.call(damaged, attacker, source, recovered);
     }
 }
