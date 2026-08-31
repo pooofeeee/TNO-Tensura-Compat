@@ -2,9 +2,9 @@
 
 - Baseline SHA: `50d599f374d94deafa46f5cd10b09d548b369461`
 - Current branch: `phase-6-production-stage-framework`
-- Latest completed checkpoint: 6E — rounding-aware Severance
-- Current checkpoint: 6F — Royal Bow activation and targeted production acceptance
-- Latest known good commit SHA: `90ae0d9b0555ae589c2ea67de352ced83d3a9f97` (resolved-blocker remote checkpoint)
+- Latest completed checkpoint: 6F — Royal Bow activation and targeted production acceptance
+- Current checkpoint: Phase 6 complete
+- Latest known good commit SHA: `22f235ccc4b4b9b4042634e23f0d1279af0630e7` (6F activation checkpoint; this file is completed by the final closure commit)
 
 ## Completed implementation areas
 
@@ -42,16 +42,27 @@
 - A dev `runServer` reached `Done` with Royal Variations, Tensura's `MixinAbstractArrow`, and TNO's `AbstractArrowMixin` all applied without injection errors.
 - `gradlew.bat clean build` passes at Checkpoints 6A-6E.
 - Exact 100-value first-roll distribution and Rare Stage boundary tests pass for the initial 6F activation unit.
+- Fresh runtime conversion produced native EP 1,000, max EP 2,490,000, growth 0.01, and Rare S0; its observed legal Common `tensura:swift` result persisted and a repeat equipment update did not reroll.
+- A no-Engraving S0/S7 control produced zero TNO family amount and identical 8.0 physical arrow input.
+- Magic resolved S0-S7 from real EP and scaled native 8.0 exactly to 8.4/8.8/9.2/9.6/10.0/10.4/10.8/11.2. Holy reproduced 8.4/11.2 at S0/S7.
+- Earth Slotting scaled native projectile damage 1.0 to 1.05/1.40; Energy Steal scaled 1.00% to 1.05%/1.40%; Soul emitted no native Soul event and TNO created none.
+- Low-magnitude Severance preserved the positive S0 delta that otherwise shared native ceiling 17, producing one combined physical input 18; S7 produced 20. No second source appeared.
+- Lv300 Luminous matching Magic Resistance produced S4 0%, S5 25%, S6 50%, and S7 100% recovery. Earth Nullification remained absolute S4-S7 with bypass level 0.
+- The accepted Ancient APO profile completed an S7 spot check against the accepted strongest-legal Lv1000 Luminous profile. Five releases produced ten real projectiles, ten physical events, and ten Magic events with L2 downstream and authoritative.
+- Accepted targeted set: 29 cases, 89 per-hit rows, zero duplicate events, zero unexpected L2 bypass, zero unexpected Tensura bypass, zero base/APO physical Stage violations, zero Mark Stage violations, and no double scaling.
+- The acceptance-discovered Architectury registry-supplier access failure was corrected by using the public `Supplier` interface; the affected S5-S7 and Resistance runs then completed cleanly.
 
-## Remaining tests
+## Closure verification
 
-- Dev-runtime conversion/marker/roll verification and the full targeted 6F acceptance set remain.
-- Magic/Holy, matching Resistance/Nullification, strongest-legal L2, and accepted Ancient coexistence spot checks remain to be captured through the now-active Royal Bow Rare mapping.
+- All relevant unit tests pass.
+- Final `gradlew.bat clean build` passes.
+- No temporary Phase 6 observer, raw runtime log, world, generated acceptance capture, runtime config, or third-party JAR is tracked.
+- Phase 5F benchmark evidence and Phase 6 Elemental pre-flight evidence remain unchanged.
 
 ## Unresolved findings
 
-- None. The prior Royal Bow class and first-roll trigger decisions are now explicitly resolved; runtime acceptance is unfinished work, not a design blocker.
+- None.
 
 ## Exact next action
 
-Run dev-server verification of native Royal Bow conversion, the persistent one-time marker and native eligible roll, then execute the targeted 6F combat acceptance set without rerunning the Phase 5F matrix.
+Stop before Phase 7 and await explicit direction.

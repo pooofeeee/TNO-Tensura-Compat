@@ -9,6 +9,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /** Applies recovery before Tensura's matching Resistance and before downstream L2 processing. */
 public final class MatchingResistanceRecovery {
@@ -145,7 +146,10 @@ public final class MatchingResistanceRecovery {
         try {
             Class<?> registry = Class.forName("io.github.manasmods.tensura.registry.skill.ResistanceSkills");
             Object supplier = registry.getField(fieldName).get(null);
-            return supplier.getClass().getMethod("get").invoke(supplier);
+            if (supplier instanceof Supplier<?> publicSupplier) {
+                return publicSupplier.get();
+            }
+            throw new IllegalStateException("Tensura resistance registry field is not a Supplier: " + fieldName);
         } catch (ReflectiveOperationException exception) {
             throw reflectionFailure("resolve Tensura resistance " + fieldName, exception);
         }

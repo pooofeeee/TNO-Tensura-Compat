@@ -2,7 +2,7 @@
 
 ## Status
 
-Checkpoints 6A through 6E are implemented, tested, committed, and pushed on `phase-6-production-stage-framework`. Checkpoint 6F is in progress. Royal Bow is now explicitly authorized as TNO Rare and its first applicable Engraving roll is authorized once, immediately after successful native Tensura Gear conversion.
+Checkpoints 6A through 6F are implemented and accepted on `phase-6-production-stage-framework`. Royal Bow is explicitly TNO Rare, its first applicable Engraving roll runs once immediately after successful native Tensura Gear conversion, and the targeted production runtime acceptance is complete. Phase 6 is complete.
 
 ## Architecture and native EP
 
@@ -96,10 +96,10 @@ Apotheosis continues to own generic weapon progression. TNO does not scale raw/b
 
 - Boundary tests cover immediately below and exactly at every Common/Rare threshold, both caps, and the locked 17% Rare schedule.
 - Curve C, all six family-isolation cases, and the no-scalable-Engraving zero-gain invariant pass.
-- Deterministic Elemental, Energy Steal, matching Resistance schedule, native HP gate, and recovery interpolation tests pass. The matching-Nullification-first branch is implemented and its mixin loads; its required positive runtime acceptance remains part of blocked 6F.
+- Deterministic Elemental, Energy Steal, matching Resistance schedule, native HP gate, and recovery interpolation tests pass. The matching-Nullification-first branch is implemented, its mixin loads, and its S4-S7 runtime acceptance is complete.
 - Severance tests cover eligible-only +3 scaling, a low-magnitude S0 collapse, naturally distinct ceiling behavior, and large Apotheosis/base isolation.
 - Development server startup reached `Done` with the relevant production mixins, Royal Variations, and Tensura's arrow mixin applied without injection errors.
-- `gradlew.bat clean build` passed after Checkpoint 6E.
+- `gradlew.bat clean build` passed for the final Phase 6 tree.
 - Phase 5 benchmark listeners remain behind the existing `!FMLEnvironment.production` registration guard; no Phase 6 benchmark listener or temporary runtime instrumentation was added.
 - No raw runtime log, world, temporary config, generated capture, or third-party local JAR is tracked by the Phase 6 commits.
 
@@ -113,10 +113,27 @@ TNO narrowly wraps the `initiateGearExistence` call inside Tensura's native equi
 
 On the first successful conversion, TNO atomically claims a persistent item marker before selecting the first roll. The distribution is Common 35%, Uncommon 35%, Rare 20%, and Epic 10%. Only Tensura's configured pool for the selected rarity is considered, each candidate must pass native `canEnchant`, and a chosen candidate is applied through `EngravingHelper.increaseEngraving` so the native `EngraveEvent` remains authoritative. An empty legal pool or a native event cancellation is a valid no-Engraving outcome. The native curse chance/path is preserved. The marker is copied and serialized with the ItemStack, so equipment changes, login, load, Stage/EP changes, shots, and reintegration checks cannot perform the first roll again. Later Engraving behavior remains native/previously established.
 
-Targeted runtime acceptance, strongest-legal L2 validation, and the Ancient Apotheosis coexistence spot check remain to be completed before 6F closure.
+## Checkpoint 6F targeted production acceptance
+
+The accepted set used 29 targeted cases and 89 per-hit rows. It used real native Royal Bow EP components and the production mixins; no Phase 5 Stage fixture mutation was active. The temporary observer was removed after capture and no raw runtime log or generated acceptance capture is tracked.
+
+- Fresh equipment conversion produced `royalvariations:royal_bow` with native EP 1,000, max EP 2,490,000, growth 0.01, and resolved Rare S0. The observed first roll selected Common and legally applied `tensura:swift`; this is an observed stochastic result, not a guaranteed starting Engraving. The persistent marker was present, and repeating the equipment update left the enchantment set unchanged.
+- A no-scalable-Engraving S0/S7 control emitted zero scalable-family events and zero eligible TNO amount. Its physical arrow input remained 8.0 at both stages.
+- Magic Weapon resolved real EP through all Rare stages. A stable native amount of 8.0 became 8.4, 8.8, 9.2, 9.6, 10.0, 10.4, 10.8, and 11.2 at S0-S7. The physical arrow input remained 8.0 throughout.
+- Holy Weapon reproduced the positive control at S0/S7: native 8.0 became 8.4/11.2 while physical input remained 8.0.
+- Soul Eater emitted no native `tensura:soul_scatter` event in the targeted Royal Arrow control. Native and staged Soul amounts both remained zero; the production framework did not fabricate an event.
+- Earth Slotting scaled its native projectile damage from 1.0 to 1.05 at S0 and 1.40 at S7, retained the native `tensura:stone_shot` owner/entity path, and did not create or scale a physical Royal Arrow.
+- Energy Steal emitted exactly three admitted native drain events per case. Its native 1.00% argument became 1.05% at S0 and 1.40% at S7, with no added damage source.
+- Low-magnitude Severance reproduced the rounding case. At S0, native/staged pre-round values were about 16.245/16.696 and both ordinary ceilings were 17; the production guard preserved the positive eligible delta as combined physical input 18. At S7 the staged pre-round value was about 19.750 and the one combined physical input was 20. No second Severance source appeared.
+- A Lv300 Luminous matching-Magic-Resistance control stayed canceled at S4 with bypass level 0. S5 admitted 25% of the 10.4 pre-resistance staged amount (2.6), S6 admitted 50% of 10.8 (5.4), and S7 admitted 100% of 11.2; S5-S7 used native bypass level 1 only for the already-modelled matching Resistance layer.
+- A Lv300 Luminous Earth Nullification control remained absolute at S4-S7. The production Slotting values were 1.25, 1.30, 1.35, and 1.40, but every eligible damage path remained zero and the Resistance bypass level stayed 0.
+- The accepted `ANCIENT_SINGLE_PROSPEROUS_SPECTRAL` Royal Bow was checked at S7 against the accepted strongest-legal Lv1000 Luminous profile: Adaptive 5, Dementor 1, Dispell 3, Killer Aura 1, Reflect 2, Regenerate 5, Soul Burner 2, and Tank 5. Runtime inspection revalidated Ancient rarity, the locked affixes, five Perfect gems, Supremacy levels, and the compatible enchantment package. Five releases produced ten real APO projectiles, ten physical events, and ten Magic events. Downstream L2 reduced the events without any TNO restoration or bypass.
+- Across the accepted set: unexpected duplicate events 0, unexpected L2 bypasses 0, unexpected Tensura bypasses 0, base/APO physical Stage violations 0, Mark Stage violations 0, and detected double scaling 0.
+
+The runtime run also exposed and resolved one compatibility defect: reflective invocation on Architectury's non-public registry-supplier implementation failed at S5-S7. Production now reads the same Tensura registry entry through its public `Supplier` interface. The rerun completed S5-S7 and the matching-Resistance control without errors.
 
 ## Remaining observations
 
 - High Magic/Holy combined results, absent Royal Arrow Soul events, boss-dependent Elemental availability, Orc-only Energy Steal/Severance observations, and strongest-legal L2 suppression remain accepted non-bug research observations.
 - No authorized balance constants, native Tensura mechanics, L2 mechanics, Apotheosis mechanics, Royal Bow/Arrow base damage, Mark behavior, or accepted research evidence were changed.
-- Phase 6 status remains `IN_PROGRESS` at 6F until targeted runtime acceptance passes.
+- Phase 6 is `COMPLETE`. Phase 7 has not started.
