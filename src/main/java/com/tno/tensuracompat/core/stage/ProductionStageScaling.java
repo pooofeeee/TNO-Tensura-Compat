@@ -10,13 +10,17 @@ public final class ProductionStageScaling {
     }
 
     public static float scaleEligible(ItemStack gear, ScalableFamily family, float nativeEligibleAmount) {
+        return (float) scaleEligible(gear, family, (double) nativeEligibleAmount);
+    }
+
+    public static double scaleEligible(ItemStack gear, ScalableFamily family, double nativeEligibleAmount) {
         Optional<GearStageClass> stageClass = GearStageClasses.classification(gear);
         if (stageClass.isEmpty()) {
             return nativeEligibleAmount;
         }
 
         Stage stage = NativeGearEpSource.resolve(gear, stageClass.get());
-        return (float) StageCurve.scaleForActiveFamily(
+        return StageCurve.scaleForActiveFamily(
                 nativeEligibleAmount,
                 stage,
                 Optional.of(family),

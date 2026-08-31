@@ -59,4 +59,17 @@ class StageCurveTest {
         assertEquals(100.0D, StageCurve.scaleForActiveFamily(
                 100.0D, Stage.S7, Optional.of(family), different));
     }
+
+    @Test
+    void energyStealCurveScalesOnePercentAsAPercentageNotDamage() {
+        assertEquals(0.0105D, StageCurve.scaleEligible(0.01D, Stage.S0), 0.0000001D);
+        assertEquals(0.0140D, StageCurve.scaleEligible(0.01D, Stage.S7), 0.0000001D);
+    }
+
+    @Test
+    void elementalPositiveControlMatchesCurveC() {
+        for (Stage stage : Stage.values()) {
+            assertEquals(stage.curveMultiplier(), StageCurve.scaleEligible(1.0D, stage));
+        }
+    }
 }
