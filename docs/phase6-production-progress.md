@@ -3,8 +3,8 @@
 - Baseline SHA: `50d599f374d94deafa46f5cd10b09d548b369461`
 - Current branch: `phase-6-production-stage-framework`
 - Latest completed checkpoint: 6E — rounding-aware Severance
-- Current checkpoint: 6F — Royal Bow end-to-end integration, runtime regression, and Phase 6 closure
-- Latest known good commit SHA: `95783e6257d6309043ff023ce3a6f5ec3ed77200` (6D remote checkpoint)
+- Current checkpoint: 6F — BLOCKED on Royal Bow production classification and first-roll trigger
+- Latest known good commit SHA: `67beb1911e2cf916e14c945de4fd780a74580f46` (6E remote checkpoint)
 
 ## Completed implementation areas
 
@@ -40,7 +40,7 @@
 
 ## Remaining tests
 
-- Final targeted runtime acceptance and Phase 6 closure remain for 6F.
+- Royal Bow end-to-end activation, final targeted runtime acceptance, and Phase 6 closure remain for 6F.
 - Positive-control Resistance/Nullification combat values remain blocked until a production gear classification is authorized; the generic native boundary and deterministic invariants are complete.
 - Magic/Holy positive-control damage values remain blocked until a production gear classification is authorized.
 
@@ -51,4 +51,4 @@
 
 ## Exact next action
 
-Resolve the two recorded Royal Bow production ambiguities (TNO Common/Rare classification and the first-applicable-Engraving trigger) before enabling the generic framework for Royal Bow and running 6F acceptance. Do not invent either rule.
+Obtain explicit design decisions for (1) Royal Bow's TNO Common/Rare classification and (2) the exact production event that performs its first applicable Engraving roll. Then enable the item mapping/roll at 6F and run the required targeted production acceptance. Do not infer either rule from benchmark fixtures.
