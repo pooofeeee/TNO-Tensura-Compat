@@ -8,8 +8,11 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.logging.LogUtils;
 import dev.architectury.event.EventResult;
 import io.github.manasmods.tensura.registry.attribute.TensuraAttributes;
+import io.github.manasmods.tensura.registry.item.misc.TensuraDataComponents;
 import io.github.manasmods.tensura.storage.TensuraStorages;
 import io.github.manasmods.tensura.util.EnergyHelper;
+import com.tno.tensuracompat.core.stage.ProductionStageScaling;
+import com.tno.tensuracompat.core.stage.SeveranceStageScaling;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponents;
@@ -37,6 +40,7 @@ import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.BundleContents;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.phys.AABB;
@@ -73,29 +77,36 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 /**
- * Development-only Suite B runner. It uses a clean Royal Bow/Royal Arrow and
- * one native Tensura engraving, then applies the locked temporary Stage fixture
- * only to that engraving's own damage event. Production gameplay is untouched.
+ * Development-only Suite B/C runner and Phase 6 endgame observer. Suite B/C
+ * retain their locked fixtures; the explicitly gated Phase 6 mode instead uses
+ * real native Gear EP and observes the existing production Stage integration.
+ * Production gameplay is untouched.
  */
 public final class Phase5FSuiteBBenchmark {
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
     private static final boolean SUITE_C = Boolean.getBoolean("tno.phase5f.suiteC");
-    private static final String MARKER = SUITE_C ? "TNO_PHASE5F_SUITE_C" : "TNO_PHASE5F_SUITE_B";
-    private static final String TARGET_TAG = SUITE_C ? "tno_phase5f_suite_c_target" : "tno_phase5f_suite_b_target";
+    private static final boolean ENDGAME_RESEARCH = Boolean.getBoolean("tno.phase6.endgameResearch");
+    private static final String MARKER = ENDGAME_RESEARCH ? "TNO_PHASE6_ENDGAME_RESEARCH"
+            : SUITE_C ? "TNO_PHASE5F_SUITE_C" : "TNO_PHASE5F_SUITE_B";
+    private static final String TARGET_TAG = ENDGAME_RESEARCH ? "tno_phase6_endgame_research_target"
+            : SUITE_C ? "tno_phase5f_suite_c_target" : "tno_phase5f_suite_b_target";
     private static final String APO_PROFILE = "ANCIENT_SINGLE_PROSPEROUS_SPECTRAL";
     private static final String SCALE_TAG = "l2_tensura_scaled";
     private static final String L2_MISCS = "dev.xkmc.l2hostility.init.registrate.LHMiscs";
     private static final String L2_TRAITS = "dev.xkmc.l2hostility.init.registrate.LHTraits";
     private static final boolean ENDGAME = SUITE_C && Boolean.getBoolean("tno.phase5f.suiteCEndgame");
+    private static final boolean STRONGEST_LEGAL_PROFILE = ENDGAME || ENDGAME_RESEARCH;
     private static final ResourceLocation ROYAL_BOW = id("royalvariations", "royal_bow");
     private static final ResourceLocation ROYAL_ARROW = id("royalvariations", "royal_arrow");
     private static final ResourceLocation EARTH_CORE = id("tensura", "element_core_earth");
     private static final double SEVERANCE_NATIVE_ATTACK_BONUS = 3.0D;
     private static final int MAX_SHOTS = Integer.getInteger(
-            SUITE_C ? "tno.phase5f.suiteCShots" : "tno.phase5f.suiteBShots", 10);
+            ENDGAME_RESEARCH ? "tno.phase6.endgameShots"
+                    : SUITE_C ? "tno.phase5f.suiteCShots" : "tno.phase5f.suiteBShots", 10);
     private static final int WINDOW_TICKS = Integer.getInteger(
-            SUITE_C ? "tno.phase5f.suiteCTicks" : "tno.phase5f.suiteBTicks", 200);
+            ENDGAME_RESEARCH ? "tno.phase6.endgameTicks"
+                    : SUITE_C ? "tno.phase5f.suiteCTicks" : "tno.phase5f.suiteBTicks", 200);
     private static final boolean DIAGNOSTIC = Boolean.getBoolean(
             SUITE_C ? "tno.phase5f.suiteCDiagnostic" : "tno.phase5f.suiteBDiagnostic");
     private static final double TEST_X = 0.5D;
@@ -195,6 +206,25 @@ public final class Phase5FSuiteBBenchmark {
                     "l2hostility:dispell", 2, "l2hostility:drain", 2,
                     "l2hostility:regenerate", 5, "l2hostility:tank", 5)
     );
+    private static final Map<Integer, Map<String, Integer>> ACCEPTED_ORC_ENDGAME_PROFILES = Map.of(
+            300, Map.of(
+                    "l2hostility:dementor", 1, "l2hostility:drain", 2,
+                    "l2hostility:regenerate", 2, "l2hostility:tank", 5,
+                    "l2hostility:wither", 1),
+            600, Map.of(
+                    "l2hostility:adaptive", 3, "l2hostility:dementor", 1,
+                    "l2hostility:drain", 2, "l2hostility:regenerate", 4,
+                    "l2hostility:tank", 5, "l2hostility:wither", 1),
+            800, Map.of(
+                    "l2hostility:adaptive", 5, "l2hostility:dementor", 1,
+                    "l2hostility:drain", 2, "l2hostility:regenerate", 5,
+                    "l2hostility:tank", 5, "l2hostility:wither", 1),
+            1000, Map.of(
+                    "l2hostility:adaptive", 5, "l2hostility:dementor", 1,
+                    "l2hostility:dispell", 2, "l2hostility:drain", 2,
+                    "l2hostility:regenerate", 5, "l2hostility:tank", 5,
+                    "l2hostility:wither", 1)
+    );
     private static final Map<String, TagKey<net.minecraft.world.damagesource.DamageType>> SOURCE_TAGS = Map.of(
             "neoforge:is_magic", Tags.DamageTypes.IS_MAGIC,
             "minecraft:is_projectile", DamageTypeTags.IS_PROJECTILE,
@@ -213,9 +243,12 @@ public final class Phase5FSuiteBBenchmark {
     public static void onServerStarted(ServerStartedEvent event) {
         boolean suiteB = Boolean.getBoolean("tno.phase5f.suiteB");
         boolean suiteC = Boolean.getBoolean("tno.phase5f.suiteC");
-        if (FMLEnvironment.production || (!suiteB && !suiteC) || active != null) return;
+        boolean endgameResearch = Boolean.getBoolean("tno.phase6.endgameResearch");
+        if (FMLEnvironment.production || (!suiteB && !suiteC && !endgameResearch) || active != null) return;
         try {
-            if (suiteB && suiteC) throw new IllegalStateException("Suite B and Suite C cannot run together");
+            if ((suiteB ? 1 : 0) + (suiteC ? 1 : 0) + (endgameResearch ? 1 : 0) != 1) {
+                throw new IllegalStateException("Suite B, Suite C, and Phase 6 endgame research are mutually exclusive");
+            }
             requireMods();
             active = new Session(event.getServer());
             LOGGER.info("{} automatic benchmark started", MARKER);
@@ -299,7 +332,8 @@ public final class Phase5FSuiteBBenchmark {
                 : List.of("royalvariations", "l2hostility");
         for (String mod : required) {
             if (!ModList.get().isLoaded(mod)) {
-                throw new IllegalStateException("required Suite " + (SUITE_C ? "C" : "B") + " runtime mod absent: " + mod);
+                throw new IllegalStateException("required " + (ENDGAME_RESEARCH ? "Phase 6 endgame research"
+                        : "Suite " + (SUITE_C ? "C" : "B")) + " runtime mod absent: " + mod);
             }
         }
     }
@@ -336,15 +370,21 @@ public final class Phase5FSuiteBBenchmark {
             this.server = server;
             this.level = server.overworld();
             this.family = Family.parse(System.getProperty(
-                    SUITE_C ? "tno.phase5f.suiteCFamily" : "tno.phase5f.suiteBFamily", ""));
+                    ENDGAME_RESEARCH ? "tno.phase6.endgameFamily"
+                            : SUITE_C ? "tno.phase5f.suiteCFamily" : "tno.phase5f.suiteBFamily", ""));
             this.benchmarkBow = buildBenchmarkBow(server, family);
             this.royalArrow = requiredItem(ROYAL_ARROW);
             this.cases = buildCases(System.getProperty(
-                    SUITE_C ? "tno.phase5f.suiteCBoss" : "tno.phase5f.suiteBBoss", ""));
+                    ENDGAME_RESEARCH ? "tno.phase6.endgameBoss"
+                            : SUITE_C ? "tno.phase5f.suiteCBoss" : "tno.phase5f.suiteBBoss", ""));
             if (cases.isEmpty()) throw new IllegalStateException("Suite " + (SUITE_C ? "C" : "B") + " boss filter matched no targets");
+            if (ENDGAME_RESEARCH && cases.stream().anyMatch(spec ->
+                    !spec.boss.id.equals(id("tensura", "orc_disaster")))) {
+                throw new IllegalStateException("Phase 6 endgame research is locked to the accepted Orc Disaster positive-control target");
+            }
             if (!SUITE_C) assertTnoOnlyStack(benchmarkBow);
             cleanupTestArea();
-            if (SUITE_C && Boolean.getBoolean("tno.phase5f.suiteCFastTicks")) {
+            if (ENDGAME_RESEARCH || SUITE_C && Boolean.getBoolean("tno.phase5f.suiteCFastTicks")) {
                 runCommand("tick sprint 10000000");
             }
             if (!SUITE_C) {
@@ -449,9 +489,10 @@ public final class Phase5FSuiteBBenchmark {
             Field maxLevel = findField(config.getClass(), "maxLevel");
             int originalMax = maxLevel.getInt(config);
             try {
-                if (spec.mode == LevelMode.STRESS && spec.level > originalMax) maxLevel.setInt(config, spec.level);
+                if ((spec.mode == LevelMode.STRESS || spec.mode == LevelMode.ENDGAME_TARGET)
+                        && spec.level > originalMax) maxLevel.setInt(config, spec.level);
                 invoke(l2Cap, "reinit", target, spec.level, false);
-                if (ENDGAME) installAcceptedEndgameProfile();
+                if (STRONGEST_LEGAL_PROFILE) installAcceptedEndgameProfile();
             }
             finally {
                 maxLevel.setInt(config, originalMax);
@@ -464,9 +505,12 @@ public final class Phase5FSuiteBBenchmark {
         }
 
         private void installAcceptedEndgameProfile() throws ReflectiveOperationException {
-            Map<String, Integer> expected = ACCEPTED_ENDGAME_PROFILES.get(currentCase().boss.id.toString());
-            if (expected == null || currentCase().level != 1000) {
-                throw new IllegalStateException("missing accepted Lv1000 endgame profile for " + currentCase().boss.id);
+            Map<String, Integer> expected = ENDGAME_RESEARCH
+                    ? ACCEPTED_ORC_ENDGAME_PROFILES.get(currentCase().level)
+                    : ACCEPTED_ENDGAME_PROFILES.get(currentCase().boss.id.toString());
+            if (expected == null || !ENDGAME_RESEARCH && currentCase().level != 1000) {
+                throw new IllegalStateException("missing accepted endgame profile for "
+                        + currentCase().boss.id + " at Lv" + currentCase().level);
             }
 
             Object rawTraits = readField(l2Cap, "traits");
@@ -533,6 +577,14 @@ public final class Phase5FSuiteBBenchmark {
                 return;
             }
             assertAttachment();
+            if (STRONGEST_LEGAL_PROFILE) {
+                // Reapply after the delayed datapack/L2 initialization window.
+                // Native reinit may still have pending generated-trait changes
+                // during those ticks; accepted evidence requires the exact legal
+                // constructed profile, not a mixture with that discarded roll.
+                installAcceptedEndgameProfile();
+                invoke(l2Cap, "syncToClient", target);
+            }
             resetActors();
             profileTemplate = new CompoundTag();
             target.saveWithoutId(profileTemplate);
@@ -542,7 +594,7 @@ public final class Phase5FSuiteBBenchmark {
             profileTemplate.remove("Rotation");
             templateKey = currentCase().profileKey();
             templateTraits = GSON.toJson(readTraits(l2Cap));
-            beginRun(!ENDGAME);
+            beginRun(!STRONGEST_LEGAL_PROFILE);
         }
 
         private void waitForClone() throws ReflectiveOperationException {
@@ -647,13 +699,15 @@ public final class Phase5FSuiteBBenchmark {
             String type = damageType(event.getSource());
             if (family.matchesDamageType(type)) {
                 double eventAmount = event.getAmount();
-                double raw = family == Family.ELEMENTAL
-                        ? currentHit.elementalNativeProjectileDamage : eventAmount;
-                float scaled = family == Family.ELEMENTAL
+                double raw = ENDGAME_RESEARCH
+                        ? eventAmount / currentCase().stage.coefficient(family)
+                        : family == Family.ELEMENTAL
+                                ? currentHit.elementalNativeProjectileDamage : eventAmount;
+                float scaled = ENDGAME_RESEARCH || family == Family.ELEMENTAL
                         ? (float) eventAmount
                         : (float) (raw * currentCase().stage.coefficient(family));
                 double nativeAfterResistance = scaled > target.getHealth() * 0.5D ? scaled * 0.5D : 0.0D;
-                boolean sourceBypass = currentCase().stage.penetration > 0.0D
+                boolean sourceBypass = !ENDGAME_RESEARCH && currentCase().stage.penetration > 0.0D
                         && result.matchingResistance && !result.matchingNullification;
                 double stagedAmount = scaled;
                 if (sourceBypass) {
@@ -666,7 +720,7 @@ public final class Phase5FSuiteBBenchmark {
                         throw new IllegalStateException("could not apply matching Tensura Resistance bypass level 1", exception);
                     }
                 }
-                event.setAmount((float) stagedAmount);
+                if (!ENDGAME_RESEARCH) event.setAmount((float) stagedAmount);
                 FamilyProbe probe = new FamilyProbe(raw, scaled, nativeAfterResistance, stagedAmount,
                         sourceBypass, sourceTags(event.getSource()), event.getSource().is(Tags.DamageTypes.IS_MAGIC));
                 familyProbes.put(event, probe);
@@ -750,6 +804,14 @@ public final class Phase5FSuiteBBenchmark {
             }
             FamilyProbe probe = familyProbes.remove(event);
             if (probe == null) return;
+            if (ENDGAME_RESEARCH) {
+                double afterTensura = event.isCanceled() ? 0.0D : event.getAmount();
+                currentHit.familyAfterResistance += afterTensura;
+                currentHit.familyAfterRecovery += afterTensura;
+                currentHit.familyCanceledBeforeRecovery |= event.isCanceled();
+                currentHit.nullificationAuthoritative |= event.isCanceled() && result.matchingNullification;
+                return;
+            }
             double afterResistance = probe.sourceBypass ? probe.nativeAfterResistance
                     : event.isCanceled() ? 0.0D : event.getAmount();
             double afterRecovery = afterResistance;
@@ -803,7 +865,11 @@ public final class Phase5FSuiteBBenchmark {
                     || !Boolean.TRUE.equals(invoke(percentage, "get"))) return;
             double nativePercentage = numberValue(invoke(amount, "get")).doubleValue();
             double stagedPercentage = nativePercentage * currentCase().stage.coefficient(family);
-            invoke(amount, "set", stagedPercentage);
+            if (ENDGAME_RESEARCH) {
+                stagedPercentage = nativePercentage;
+                nativePercentage /= currentCase().stage.coefficient(family);
+            }
+            else invoke(amount, "set", stagedPercentage);
             currentHit.energyDrainEvents++;
             currentHit.energyNativePercentage += nativePercentage;
             currentHit.energyStagedPercentage += stagedPercentage;
@@ -917,9 +983,12 @@ public final class Phase5FSuiteBBenchmark {
                 throw new IllegalStateException("native Slotting projectile did not retain the benchmark player owner");
             }
             try {
-                double nativeDamage = numberValue(invoke(projectile, "getDamage")).doubleValue();
-                double stagedDamage = nativeDamage * currentCase().stage.coefficient(family);
-                invoke(projectile, "setDamage", (float) stagedDamage);
+                double observedDamage = numberValue(invoke(projectile, "getDamage")).doubleValue();
+                double nativeDamage = ENDGAME_RESEARCH
+                        ? observedDamage / currentCase().stage.coefficient(family) : observedDamage;
+                double stagedDamage = ENDGAME_RESEARCH
+                        ? observedDamage : nativeDamage * currentCase().stage.coefficient(family);
+                if (!ENDGAME_RESEARCH) invoke(projectile, "setDamage", (float) stagedDamage);
                 currentHit.elementalProjectileId = type.toString();
                 currentHit.projectileEntityId = type.toString();
                 currentHit.elementalOwnerRetained = true;
@@ -943,12 +1012,16 @@ public final class Phase5FSuiteBBenchmark {
             double nativeBase = arrow.getBaseDamage();
             double coefficient = currentCase().stage.coefficient(family);
             double stagedBase = nativeBase + SEVERANCE_NATIVE_ATTACK_BONUS * (coefficient - 1.0D);
-            arrow.setBaseDamage(stagedBase);
+            if (!ENDGAME_RESEARCH) arrow.setBaseDamage(stagedBase);
             double nativePre = speed * (nativeBase + SEVERANCE_NATIVE_ATTACK_BONUS);
             double stagedPre = speed * (nativeBase + SEVERANCE_NATIVE_ATTACK_BONUS * coefficient);
             double basePost = Math.ceil(speed * nativeBase);
             double nativePost = Math.ceil(nativePre);
-            double stagedPost = Math.ceil(stagedPre);
+            double stagedPost = ENDGAME_RESEARCH
+                    ? SeveranceStageScaling.roundedProjectileDamage(speed,
+                            SeveranceStageScaling.adjustment(nativeBase + SEVERANCE_NATIVE_ATTACK_BONUS,
+                                    1, com.tno.tensuracompat.core.stage.Stage.valueOf(currentCase().stage.name)))
+                    : Math.ceil(stagedPre);
             currentHit.severanceConfiguredProjectileCount++;
             currentHit.severanceProjectileSpeed = speed;
             currentHit.severanceBaseProjectileDamage = nativeBase;
@@ -987,6 +1060,28 @@ public final class Phase5FSuiteBBenchmark {
             }
             catch (ReflectiveOperationException exception) {
                 throw new IllegalStateException("could not refresh fake-player attributes", exception);
+            }
+            if (ENDGAME_RESEARCH) {
+                ItemStack equipped = player.getMainHandItem();
+                if (!equipped.has(TensuraDataComponents.EP.get())
+                        || !equipped.has(TensuraDataComponents.MAX_EP.get())
+                        || !equipped.has(TensuraDataComponents.EP_GAIN.get())) {
+                    throw new IllegalStateException("Royal Bow did not complete native Tensura gear integration");
+                }
+                equipped.set(TensuraDataComponents.EP.get(), currentCase().stage.ep.doubleValue());
+                String resolved = ProductionStageScaling.stage(equipped)
+                        .map(Enum::name).orElse("NONE");
+                if (!resolved.equals(currentCase().stage.name)) {
+                    throw new IllegalStateException("native EP resolved " + resolved
+                            + " instead of " + currentCase().stage.name);
+                }
+                int selectedLevel = EnchantmentHelper.getItemEnchantmentLevel(
+                        server.registryAccess().registryOrThrow(Registries.ENCHANTMENT)
+                                .getHolderOrThrow(ResourceKey.create(Registries.ENCHANTMENT, family.enchantment)),
+                        equipped);
+                if (equipped.getEnchantments().size() != 1 || selectedLevel != 1) {
+                    throw new IllegalStateException("TNO-only research bow did not retain exactly one selected Engraving");
+                }
             }
             if (SUITE_C) {
                 apoInspection = Phase5FRuntimeInspector.inspectBow(
@@ -1085,9 +1180,17 @@ public final class Phase5FSuiteBBenchmark {
 
         private void logCatalog() {
             JsonObject json = new JsonObject();
-            json.addProperty("suite", SUITE_C ? "BOTH" : "B_TNO_ONLY");
+            json.addProperty("suite", ENDGAME_RESEARCH ? "PHASE6_TNO_ENDGAME_RESEARCH"
+                    : SUITE_C ? "BOTH" : "B_TNO_ONLY");
             json.addProperty("diagnostic", DIAGNOSTIC);
-            json.addProperty("strongest_legal_endgame_matrix", ENDGAME);
+            json.addProperty("strongest_legal_endgame_matrix", STRONGEST_LEGAL_PROFILE);
+            json.addProperty("production_stage_observation", ENDGAME_RESEARCH);
+            if (ENDGAME_RESEARCH) {
+                json.addProperty("authoritative_L2_level_api",
+                        "LHMiscs.MOB.type().getOrCreate(target) -> MobTraitCap.getLevel()");
+                json.addProperty("profile_evidence_source",
+                        "accepted Phase 5F strongest-legal profiles/orc_disaster.jsonl");
+            }
             json.addProperty("TNO_family", family.id);
             json.addProperty("engraving", family.enchantment.toString());
             if (family.damageType == null) json.add("damage_source_id", null);
@@ -1125,7 +1228,7 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("shots_per_case", MAX_SHOTS);
             json.addProperty("fixed_window_ticks", WINDOW_TICKS);
             json.addProperty("server_tick_sprint_enabled",
-                    SUITE_C && Boolean.getBoolean("tno.phase5f.suiteCFastTicks"));
+                    ENDGAME_RESEARCH || SUITE_C && Boolean.getBoolean("tno.phase5f.suiteCFastTicks"));
             json.addProperty("distance", TARGET_Z - 0.5D);
             json.addProperty("projectile_control", family == Family.ELEMENTAL
                     ? "real native one-Earth-core Slotting projectile dispatched through its own onHit path in a deterministic two-block final collision lane; owner, velocity, entity and source preserved"
@@ -1137,11 +1240,12 @@ public final class Phase5FSuiteBBenchmark {
                     : "royalvariations namespace Royal Arrow entity");
             json.addProperty("royal_arrow_mark_enabled", false);
             json.addProperty("crit_enabled", SUITE_C);
-            json.addProperty("stage_fixture_only", true);
+            json.addProperty("stage_fixture_only", !ENDGAME_RESEARCH);
             json.addProperty("production_balance_mutated", false);
             json.addProperty("production_combat_mutated", false);
-            json.addProperty("profile_clone_policy", ENDGAME
-                    ? "accepted strongest legal Lv1000 profile per boss; pristine serialized clone for Native and S7"
+            json.addProperty("profile_clone_policy", ENDGAME_RESEARCH
+                    ? "accepted strongest legal profile per exact L2 level; pristine serialized clone for S0-S7"
+                    : ENDGAME ? "accepted strongest legal Lv1000 profile per boss; pristine serialized clone for Native and S7"
                     : "one legal native L2 roll per boss/level; pristine serialized clones for Native and S0-S7");
             json.addProperty("benchmark_bow_components", benchmarkBow.getComponents().toString());
             json.add("benchmark_bow_attribute_modifiers", readStackAttributes(benchmarkBow));
@@ -1167,7 +1271,12 @@ public final class Phase5FSuiteBBenchmark {
         for (BossSpec boss : BOSSES) {
             if (!filter.isBlank() && !boss.id.toString().equals(filter)) continue;
             List<LevelEntry> levels = new ArrayList<>();
-            if (ENDGAME) {
+            if (ENDGAME_RESEARCH) {
+                for (int level : List.of(300, 600, 800, 1000)) {
+                    levels.add(new LevelEntry(level, LevelMode.ENDGAME_TARGET));
+                }
+            }
+            else if (ENDGAME) {
                 levels.add(new LevelEntry(1000, LevelMode.STRESS));
             }
             else {
@@ -1178,7 +1287,8 @@ public final class Phase5FSuiteBBenchmark {
                 }
             }
             if (DIAGNOSTIC) levels = List.of(new LevelEntry(300, boss.maxLevel == 300 ? LevelMode.NATURAL_MAXIMUM : LevelMode.STRESS));
-            List<Stage> stages = ENDGAME ? List.of(STAGES.get(0), STAGES.get(8))
+            List<Stage> stages = ENDGAME_RESEARCH ? STAGES.subList(1, STAGES.size())
+                    : ENDGAME ? List.of(STAGES.get(0), STAGES.get(8))
                     : DIAGNOSTIC ? List.of(STAGES.get(0), STAGES.get(1), STAGES.get(6), STAGES.get(8)) : STAGES;
             for (LevelEntry entry : levels) {
                 for (Stage stage : stages) result.add(new CaseSpec(boss, entry.level, entry.mode, stage));
@@ -1187,7 +1297,16 @@ public final class Phase5FSuiteBBenchmark {
         return result;
     }
 
-    private static int endgameBudgetSpent(BossSpec boss) {
+    private static int endgameBudgetSpent(BossSpec boss, int level) {
+        if (ENDGAME_RESEARCH) {
+            return switch (level) {
+                case 300 -> 290;
+                case 600 -> 590;
+                case 800 -> 780;
+                case 1000 -> 980;
+                default -> throw new IllegalArgumentException("no accepted Orc budget for Lv" + level);
+            };
+        }
         return switch (boss.id.toString()) {
             case "tensura_neb:luminous_valentine", "tensura_neb:carrion" -> 1000;
             case "tensura:orc_disaster" -> 980;
@@ -1364,6 +1483,22 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("damage_before_matching_resistance_recovery", hit.familyAfterResistance);
             json.addProperty("damage_after_matching_resistance_recovery", hit.familyAfterRecovery);
             json.addProperty("damage_after_L2_processing", hit.familyPost);
+            if (ENDGAME_RESEARCH) {
+                json.addProperty("native_event_existed", nativeEventExisted(hit));
+                json.addProperty("value_before_Tensura_defenses", valueBeforeTensura(hit));
+                json.addProperty("value_after_Tensura_defenses", valueAfterTensura(hit));
+                json.addProperty("value_entering_L2", valueEnteringL2(hit));
+                json.addProperty("value_after_L2", valueAfterL2(hit));
+                json.addProperty("L2_damage_pipeline_applicable", active.family != Family.ENERGY);
+                json.addProperty("associated_effect_executed", associatedEffectExecuted(hit));
+                json.addProperty("family_effect_final_event_amount", familyFinalResult(hit));
+                json.addProperty("family_final_result", familyFinalResult(hit));
+                json.addProperty("final_observed_HP_SHP_resource_damage", hit.resourceDamage());
+                json.addProperty("result_classification", resultClassification(hit));
+                json.addProperty("failure_reason", failureReason(hit));
+                json.addProperty("failure_reason_detail", failureReasonDetail(hit));
+                json.addProperty("prerequisite_failure_reason", prerequisiteFailureReason(hit));
+            }
             json.addProperty("matching_resistance_cancelled_before_recovery", hit.familyCanceledBeforeRecovery);
             json.addProperty("tensura_resistance_bypass_level", hit.resistanceBypassLevel);
             json.addProperty("nullification_authoritative", hit.nullificationAuthoritative);
@@ -1401,6 +1536,133 @@ public final class Phase5FSuiteBBenchmark {
             return json;
         }
 
+        private boolean nativeEventExisted(HitRecord hit) {
+            return switch (active.family) {
+                case MAGIC, HOLY, SOUL, ELEMENTAL -> hit.familyDamageEventCount > 0;
+                case ENERGY -> hit.energyDrainEvents > 0;
+                case SEVERANCE -> hit.severanceConfiguredProjectileCount > 0;
+            };
+        }
+
+        private double valueBeforeTensura(HitRecord hit) {
+            return switch (active.family) {
+                case MAGIC, HOLY, SOUL, ELEMENTAL -> hit.familyStageScaled;
+                case ENERGY -> hit.energyStagedPercentage;
+                case SEVERANCE -> hit.physicalCombinedOriginal;
+            };
+        }
+
+        private double valueAfterTensura(HitRecord hit) {
+            return switch (active.family) {
+                case MAGIC, HOLY, SOUL, ELEMENTAL -> hit.familyAfterResistance;
+                case ENERGY -> hit.energyStagedPercentage;
+                case SEVERANCE -> hit.physicalIncoming;
+            };
+        }
+
+        private double valueEnteringL2(HitRecord hit) {
+            return switch (active.family) {
+                case MAGIC, HOLY, SOUL, ELEMENTAL -> hit.familyAfterRecovery;
+                case ENERGY -> 0.0D;
+                case SEVERANCE -> hit.physicalIncoming;
+            };
+        }
+
+        private double valueAfterL2(HitRecord hit) {
+            return switch (active.family) {
+                case MAGIC, HOLY, SOUL, ELEMENTAL -> hit.familyPost;
+                case ENERGY -> 0.0D;
+                case SEVERANCE -> hit.physicalPost;
+            };
+        }
+
+        private boolean associatedEffectExecuted(HitRecord hit) {
+            return switch (active.family) {
+                case MAGIC, HOLY, SOUL, ELEMENTAL -> hit.familyPost > 0.0D;
+                case ENERGY -> hit.energyDrainEvents > 0 && hit.energyDrain() > 0.0D;
+                case SEVERANCE -> hit.postSeverance > hit.preSeverance;
+            };
+        }
+
+        private double familyFinalResult(HitRecord hit) {
+            return switch (active.family) {
+                case MAGIC, HOLY, SOUL, ELEMENTAL -> hit.familyPost;
+                case ENERGY -> hit.energyDrain();
+                case SEVERANCE -> Math.max(0.0D, hit.postSeverance - hit.preSeverance);
+            };
+        }
+
+        private String resultClassification(HitRecord hit) {
+            if (familyFinalResult(hit) <= 0.0001D) return "ZERO";
+            if ((active.family == Family.MAGIC || active.family == Family.HOLY)
+                    && hit.resourceDamage() <= 0.0001D) return "ZERO";
+            if (active.family != Family.ENERGY) {
+                double entering = valueEnteringL2(hit);
+                if (entering > 0.0D && familyFinalResult(hit) / entering <= 0.10D) return "NEAR_ZERO";
+            }
+            return "NONZERO";
+        }
+
+        private String failureReason(HitRecord hit) {
+            if (resultClassification(hit).equals("NONZERO")) return "NONE";
+            if (matchingNullification && nativeEventExisted(hit)) return "TENSURA_NULLIFICATION";
+            if (matchingResistance && nativeEventExisted(hit) && valueAfterTensura(hit) <= 0.0001D) {
+                return "TENSURA_RESISTANCE";
+            }
+            if ((active.family == Family.MAGIC || active.family == Family.HOLY
+                    || active.family == Family.ENERGY) && !nativeEventExisted(hit)) {
+                return "PREREQUISITE_HIT_FAILED";
+            }
+            if ((active.family == Family.SOUL || active.family == Family.ELEMENTAL)
+                    && !nativeEventExisted(hit)) return "NATIVE_EVENT_ABSENT";
+            if (active.family == Family.SEVERANCE && hit.physicalDamageEventCount == 0) {
+                return traitRanks.has("l2hostility:repelling")
+                        ? "L2_PROJECTILE_REJECTION" : "PREREQUISITE_HIT_FAILED";
+            }
+            if (valueEnteringL2(hit) > 0.0D && valueAfterL2(hit) <= 0.0001D) {
+                return traitRanks.has("l2hostility:arena")
+                        ? "L2_ADMISSION_VETO" : "L2_MITIGATION";
+            }
+            if (valueEnteringL2(hit) > 0.0D
+                    && familyFinalResult(hit) / valueEnteringL2(hit) <= 0.10D) return "L2_MITIGATION";
+            if ((active.family == Family.MAGIC || active.family == Family.HOLY)
+                    && familyFinalResult(hit) > 0.0001D && hit.resourceDamage() <= 0.0001D) {
+                return "OTHER_VERIFIED_REASON";
+            }
+            return "OTHER_VERIFIED_REASON";
+        }
+
+        private String failureReasonDetail(HitRecord hit) {
+            return switch (failureReason(hit)) {
+                case "NONE" -> "NONE";
+                case "TENSURA_RESISTANCE" -> "Matching native Tensura Resistance cancelled the eligible family amount.";
+                case "TENSURA_NULLIFICATION" -> "Matching native Tensura Nullification remained authoritative.";
+                case "L2_MITIGATION" -> "The legal L2 profile reduced the admitted family result to at most 10% of its L2-entry amount.";
+                case "L2_ADMISSION_VETO" -> "The legal L2 Arena admission rule rejected the hit before the family effect could execute.";
+                case "L2_PROJECTILE_REJECTION" -> "The legal L2 Repelling rule rejected the projectile prerequisite.";
+                case "PREREQUISITE_HIT_FAILED" -> "The native family operation did not execute because its prerequisite physical hit did not survive.";
+                case "NATIVE_EVENT_ABSENT" -> "The Royal Bow path emitted no native event eligible for this family.";
+                default -> (active.family == Family.MAGIC || active.family == Family.HOLY)
+                        && familyFinalResult(hit) > 0.0001D && hit.resourceDamage() <= 0.0001D
+                        ? "A positive post-L2 family event amount produced no persistent HP/SHP resource loss during the observed hit interval."
+                        : "The observed zero or near-zero result was not attributable to another verified failure category.";
+            };
+        }
+
+        private String prerequisiteFailureReason(HitRecord hit) {
+            if (!failureReason(hit).equals("PREREQUISITE_HIT_FAILED")) return "NONE";
+            if (traitRanks.has("l2hostility:repelling") && hit.physicalDamageEventCount == 0) {
+                return "L2_PROJECTILE_REJECTION";
+            }
+            if (traitRanks.has("l2hostility:arena") && hit.physicalDamageEventCount == 0) {
+                return "L2_ADMISSION_VETO";
+            }
+            if (hit.physicalIncoming > 0.0D && hit.physicalAfterL2 <= 0.0001D) {
+                return "L2_MITIGATION";
+            }
+            return hit.physicalDamageEventCount == 0 ? "OTHER_VERIFIED_REASON" : "NATIVE_EVENT_ABSENT";
+        }
+
         JsonObject summaryJson() {
             JsonObject json = commonJson();
             json.addProperty("status", "ok");
@@ -1428,7 +1690,8 @@ public final class Phase5FSuiteBBenchmark {
 
         private JsonObject commonJson() {
             JsonObject json = new JsonObject();
-            json.addProperty("suite", SUITE_C ? "BOTH" : "B_TNO_ONLY");
+            json.addProperty("suite", ENDGAME_RESEARCH ? "PHASE6_TNO_ENDGAME_RESEARCH"
+                    : SUITE_C ? "BOTH" : "B_TNO_ONLY");
             json.addProperty("diagnostic", DIAGNOSTIC);
             json.addProperty("boss", spec.boss.id.toString());
             json.addProperty("boss_priority", spec.boss.primary ? "PRIMARY" : "SECONDARY");
@@ -1439,15 +1702,17 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("l2_initialized", true);
             json.add("traits", traits.deepCopy());
             json.add("trait_ranks", traitRanks.deepCopy());
-            json.addProperty("legal_profile", ENDGAME || spec.mode != LevelMode.STRESS);
+            json.addProperty("legal_profile", STRONGEST_LEGAL_PROFILE || spec.mode != LevelMode.STRESS);
             json.addProperty("legal_trait_profile", true);
             json.addProperty("native_profile_source", nativeProfileSource);
             json.addProperty("profile_clone_verified", true);
-            json.addProperty("strongest_legal_endgame_profile", ENDGAME);
+            json.addProperty("strongest_legal_endgame_profile", STRONGEST_LEGAL_PROFILE);
             json.addProperty("endgame_profile_source",
-                    ENDGAME ? "accepted Phase 5F 39-trait strongest legal defensive profile" : "not applicable");
-            json.addProperty("endgame_profile_budget_spent", ENDGAME ? endgameBudgetSpent(spec.boss) : 0);
-            json.addProperty("endgame_profile_budget_remaining", ENDGAME ? 1000 - endgameBudgetSpent(spec.boss) : 0);
+                    STRONGEST_LEGAL_PROFILE ? "accepted Phase 5F 39-trait strongest legal defensive profile" : "not applicable");
+            json.addProperty("endgame_profile_budget_spent",
+                    STRONGEST_LEGAL_PROFILE ? endgameBudgetSpent(spec.boss, spec.level) : 0);
+            json.addProperty("endgame_profile_budget_remaining",
+                    STRONGEST_LEGAL_PROFILE ? spec.level - endgameBudgetSpent(spec.boss, spec.level) : 0);
             json.addProperty("HP", initialMaxHp);
             json.addProperty("initial_HP", initialHp);
             json.addProperty("SHP", initialShp);
@@ -1463,6 +1728,13 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("TNO_family", active.family.id);
             json.addProperty("TNO_stage", spec.stage.name);
             if (spec.stage.ep == null) json.add("EP_or_stage_fixture", null); else json.addProperty("EP_or_stage_fixture", spec.stage.ep);
+            if (ENDGAME_RESEARCH) {
+                json.addProperty("native_gear_EP", active.player.getMainHandItem()
+                        .getOrDefault(TensuraDataComponents.EP.get(), 0.0D));
+                json.addProperty("resolved_production_stage", ProductionStageScaling
+                        .stage(active.player.getMainHandItem()).map(Enum::name).orElse("NONE"));
+                json.addProperty("production_stage_observation", true);
+            }
             json.addProperty("stage_bonus", spec.stage.bonus);
             json.addProperty("stage_coefficient", spec.stage.coefficient(active.family));
             json.addProperty("APO_profile", SUITE_C ? APO_PROFILE : "NONE");
@@ -1546,6 +1818,9 @@ public final class Phase5FSuiteBBenchmark {
             if (matchingNullification) notes.add("matching Tensura Nullification kept authoritative");
             else if (matchingResistance) notes.add("matching Tensura Resistance measured before benchmark recovery");
             if (spec.mode == LevelMode.STRESS) notes.add("controlled level above/independent of natural entity ceiling");
+            if (spec.mode == LevelMode.ENDGAME_TARGET) {
+                notes.add("intended pack endgame level with accepted strongest legal L2 profile");
+            }
             if (hit != null && hit.blocked()) notes.add(active.family == Family.ELEMENTAL
                     ? "released native Slotting projectile produced no net HP/SHP damage"
                     : "released Royal Arrow produced no net HP/SHP damage");
@@ -1775,6 +2050,13 @@ public final class Phase5FSuiteBBenchmark {
             bow.set(DataComponents.BUNDLE_CONTENTS,
                     new BundleContents(List.of(new ItemStack(requiredItem(EARTH_CORE)))));
         }
+        if (ENDGAME_RESEARCH) {
+            // This deterministic benchmark supplies its one selected family itself.
+            // Mark the production one-time roll as already handled so equipping the
+            // disposable stack cannot add a second random Engraving.
+            CustomData.update(DataComponents.CUSTOM_DATA, bow,
+                    tag -> tag.putBoolean("tno_tensura_compat.first_engraving_roll_processed", true));
+        }
         return bow;
     }
 
@@ -1868,6 +2150,7 @@ public final class Phase5FSuiteBBenchmark {
     }
 
     private static void assertNoApoAmplification(LivingEntity player) {
+        if (!ModList.get().isLoaded("apothic_attributes")) return;
         for (ResourceLocation id : APO_ATTRIBUTES) {
             double value = attribute(player, id, 0.0D);
             String path = id.getPath();
@@ -2056,7 +2339,8 @@ public final class Phase5FSuiteBBenchmark {
     }
 
     private static void log(String kind, JsonObject payload) {
-        payload.addProperty("schema", SUITE_C ? "tno.phase5f.suite_c.v1" : "tno.phase5f.suite_b.v1");
+        payload.addProperty("schema", ENDGAME_RESEARCH ? "tno.phase6.endgame_research.v1"
+                : SUITE_C ? "tno.phase5f.suite_c.v1" : "tno.phase5f.suite_b.v1");
         payload.addProperty("kind", kind);
         LOGGER.info("{} {}", MARKER, GSON.toJson(payload));
     }
@@ -2160,7 +2444,7 @@ public final class Phase5FSuiteBBenchmark {
     }
 
     private enum LevelMode {
-        NATURAL_REPRESENTATIVE, NATURAL_MAXIMUM, STRESS
+        NATURAL_REPRESENTATIVE, NATURAL_MAXIMUM, STRESS, ENDGAME_TARGET
     }
 
     private enum Family {
@@ -2202,6 +2486,7 @@ public final class Phase5FSuiteBBenchmark {
     private record Stage(String name, Long ep, double bonus, double penetration) {
         double coefficient(Family family) {
             if (name.equals("Native")) return 1.0D;
+            if (ENDGAME_RESEARCH) return 1.0D + bonus;
             return switch (family) {
                 case SOUL, ENERGY -> 1.0D + bonus;
                 case SEVERANCE -> 1.0D + bonus * ((2.4D + SEVERANCE_NATIVE_ATTACK_BONUS)

@@ -135,5 +135,6 @@ The runtime run also exposed and resolved one compatibility defect: reflective i
 ## Remaining observations
 
 - High Magic/Holy combined results, absent Royal Arrow Soul events, boss-dependent Elemental availability, Orc-only Energy Steal/Severance observations, and strongest-legal L2 suppression remain accepted non-bug research observations.
+- The post-completion TNO-only Lv300/Lv600/Lv800/Lv1000 revalidation and its design recommendation are documented in [`phase-6-endgame-viability-research.md`](phase-6-endgame-viability-research.md). It changes no Phase 6 production rule and proposes no permanent percentage.
 - No authorized balance constants, native Tensura mechanics, L2 mechanics, Apotheosis mechanics, Royal Bow/Arrow base damage, Mark behavior, or accepted research evidence were changed.
 - Phase 6 is `COMPLETE`. Phase 7 has not started.
