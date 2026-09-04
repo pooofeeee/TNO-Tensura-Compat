@@ -6,7 +6,7 @@ param(
     [string]$OutputPath,
 
     [Parameter(Mandatory = $true)]
-    [ValidateSet('durability')]
+    [ValidateSet('durability', 'classification')]
     [string]$Mode
 )
 
@@ -52,6 +52,18 @@ switch ($Mode) {
             if ([math]::Abs([double]$row.generic_L2_health_modifier_amount - [double]$row.generic_L2_health_modifier_expected_amount) -gt 0.000001) { throw 'Generic L2 health formula mismatch' }
             if ([bool]$row.generic_L2_health_modifier_present_on_SHP) { throw 'L2 hostility_health unexpectedly appeared on SHP' }
             if ([math]::Abs([double]$row.Tensura_L2H_datapack_SHP_modifier_amount - [double]$row.Tensura_L2H_datapack_SHP_expected_amount) -gt 0.000001) { throw 'Tensura:L2Hostility SHP formula mismatch' }
+        }
+    }
+    'classification' {
+        $rows = @($session | Where-Object kind -eq 'classification_result')
+        if ($rows.Count -ne 2) { throw "Expected 2 classification_result records, found $($rows.Count)" }
+        if ([int]$suite[0].case_count -ne 2 -or [int]$suite[0].requested_case_count -ne 2) { throw 'Classification suite count mismatch' }
+        $expected = @('tensura:magic', 'tensura:holy_damage')
+        foreach ($row in $rows) {
+            if ($row.status -ne 'complete' -or $expected -notcontains $row.damage_type) { throw 'Invalid classification row' }
+            if (-not [bool]$row.minecraft_bypasses_armor) { throw "$($row.damage_type) lost bypasses_armor" }
+            if ([bool]$row.neoforge_is_magic -or [bool]$row.minecraft_bypasses_effects -or [bool]$row.minecraft_bypasses_invulnerability) { throw "$($row.damage_type) classification changed" }
+            if (-not [bool]$row.L2_Dementor_eligible -or [bool]$row.L2_Dispell_eligible) { throw "$($row.damage_type) L2 routing changed" }
         }
     }
 }

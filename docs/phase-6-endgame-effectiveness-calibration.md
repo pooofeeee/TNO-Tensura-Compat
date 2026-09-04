@@ -9,7 +9,7 @@ or change any production combat behavior.
 | Checkpoint | Status | Evidence | Conclusion |
 |---|---|---|---|
 | A — durability decomposition | Complete | `docs/benchmarks/phase6-endgame-calibration/durability.jsonl` | Generic L2 vanilla-health scaling is exact and independently observable; it is capped at 10,000 HP here. Native L2 does not scale SHP, but the required external datapack adds 3% of native SHP per L2 level. Tank is a separate trait multiplier. |
-| B — Magic/Holy classification | Pending | — | — |
+| B — Magic/Holy classification | Complete | `docs/benchmarks/phase6-endgame-calibration/classification.jsonl` | Both Tensura sources bypass armor but lack NeoForge `IS_MAGIC`; therefore installed L2 Dementor reduces both and Dispell reduces neither. Preserve source identity is the safe default. |
 | C — development calibration context | Pending | — | — |
 | D — diagnostic ceiling | Pending | — | — |
 | E — generic-health calibration | Pending conditional checkpoint | — | — |

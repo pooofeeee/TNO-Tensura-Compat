@@ -9,6 +9,8 @@ import io.github.manasmods.tensura.registry.attribute.TensuraAttributes;
 import io.github.manasmods.tensura.storage.TensuraStorages;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -18,10 +20,15 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageType;
+import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.tags.TagKey;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.common.Tags;
 import org.slf4j.Logger;
 
 import java.lang.reflect.Field;
@@ -33,6 +40,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.LinkedHashSet;
 
 /** Development-only post-Phase-6 calibration harness. */
 public final class Phase6EndgameCalibration {
@@ -56,10 +65,10 @@ public final class Phase6EndgameCalibration {
     public static void onServerStarted(ServerStartedEvent event) {
         if (FMLEnvironment.production || !Boolean.getBoolean("tno.phase6.calibration") || active != null) return;
         String mode = System.getProperty("tno.phase6.calibrationMode", "");
-        if (!mode.equals("durability")) return;
+        if (!Set.of("durability", "classification").contains(mode)) return;
         try {
             if (!ModList.get().isLoaded("l2hostility")) throw new IllegalStateException("L2 Hostility is absent");
-            active = new Session(event.getServer());
+            active = new Session(event.getServer(), mode);
             log("suite_start", active.catalog());
         }
         catch (Throwable throwable) {
@@ -86,6 +95,7 @@ public final class Phase6EndgameCalibration {
     private static final class Session {
         private final MinecraftServer server;
         private final ServerLevel level;
+        private final String mode;
         private final List<CaseSpec> cases = new ArrayList<>();
         private final List<JsonObject> results = new ArrayList<>();
         private LivingEntity target;
@@ -96,32 +106,80 @@ public final class Phase6EndgameCalibration {
         private Phase phase = Phase.SPAWN;
         private boolean complete;
 
-        Session(MinecraftServer server) {
+        Session(MinecraftServer server, String mode) {
             this.server = server;
             this.level = server.overworld();
-            for (ResourceLocation boss : BOSSES) for (int requested : LEVELS) cases.add(new CaseSpec(boss, requested));
+            this.mode = mode;
+            if (mode.equals("durability")) {
+                for (ResourceLocation boss : BOSSES) for (int requested : LEVELS) cases.add(new CaseSpec(boss, requested));
+            }
         }
 
         JsonObject catalog() {
             JsonObject json = new JsonObject();
-            json.addProperty("mode", "durability");
+            json.addProperty("mode", mode);
             json.addProperty("APO_profile", "NONE");
-            json.addProperty("requested_case_count", cases.size());
-            json.addProperty("health_formula", "H=1+level*healthFactor*entity.healthScale (exponentialHealth=false)");
-            json.addProperty("health_modifier", "l2hostility:hostility_health / ADD_MULTIPLIED_TOTAL");
-            json.addProperty("tank_formula", "T=1+tankRank*tankHealth");
-            json.addProperty("tank_modifier", "l2hostility:tank_health / ADD_MULTIPLIED_TOTAL");
-            json.addProperty("SHP_datapack_formula", "1+level*0.03 / ADD_MULTIPLIED_BASE");
+            json.addProperty("requested_case_count", mode.equals("durability") ? cases.size() : 2);
+            if (mode.equals("durability")) {
+                json.addProperty("health_formula", "H=1+level*healthFactor*entity.healthScale (exponentialHealth=false)");
+                json.addProperty("health_modifier", "l2hostility:hostility_health / ADD_MULTIPLIED_TOTAL");
+                json.addProperty("tank_formula", "T=1+tankRank*tankHealth");
+                json.addProperty("tank_modifier", "l2hostility:tank_health / ADD_MULTIPLIED_TOTAL");
+                json.addProperty("SHP_datapack_formula", "1+level*0.03 / ADD_MULTIPLIED_BASE");
+            }
             return json;
         }
 
         void tick() throws ReflectiveOperationException {
+            if (mode.equals("classification")) {
+                classifySources();
+                complete = true;
+                return;
+            }
             switch (phase) {
                 case SPAWN -> spawn();
                 case WAIT_ATTACHMENT -> waitAttachment();
                 case WAIT_SCALING -> waitScaling();
                 case DONE -> complete = true;
             }
+        }
+
+        void classifySources() {
+            List<ResourceLocation> ids = List.of(id("tensura", "magic"), id("tensura", "holy_damage"));
+            for (ResourceLocation id : ids) {
+                Holder<DamageType> holder = server.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE)
+                        .getHolderOrThrow(ResourceKey.create(Registries.DAMAGE_TYPE, id));
+                DamageSource source = new DamageSource(holder);
+                Set<String> tags = new LinkedHashSet<>();
+                holder.tags().map(tag -> tag.location().toString()).sorted().forEach(tags::add);
+                boolean bypassInvulnerability = source.is(DamageTypeTags.BYPASSES_INVULNERABILITY);
+                boolean bypassEffects = source.is(DamageTypeTags.BYPASSES_EFFECTS);
+                boolean neoForgeMagic = source.is(Tags.DamageTypes.IS_MAGIC);
+                JsonObject json = new JsonObject();
+                json.addProperty("status", "complete");
+                json.addProperty("damage_type", id.toString());
+                json.addProperty("TNO_family", id.getPath().equals("magic") ? "MAGIC_WEAPON" : "HOLY_WEAPON");
+                json.addProperty("message_id", holder.value().msgId());
+                json.addProperty("DamageSource_getMsgId", source.getMsgId());
+                json.add("runtime_damage_tags", GSON.toJsonTree(tags));
+                json.addProperty("minecraft_bypasses_armor", source.is(DamageTypeTags.BYPASSES_ARMOR));
+                json.addProperty("minecraft_bypasses_effects", bypassEffects);
+                json.addProperty("minecraft_bypasses_invulnerability", bypassInvulnerability);
+                json.addProperty("minecraft_bypasses_resistance", source.is(DamageTypeTags.BYPASSES_RESISTANCE));
+                json.addProperty("neoforge_is_magic", neoForgeMagic);
+                json.addProperty("L2_Dementor_eligible", !bypassInvulnerability && !bypassEffects && !neoForgeMagic);
+                json.addProperty("L2_Dispell_eligible", !bypassInvulnerability && !bypassEffects && neoForgeMagic);
+                json.addProperty("L2_Dementor_runtime_class", "dev.xkmc.l2hostility.content.traits.legendary.DementorTrait#onDamaged");
+                json.addProperty("L2_Dispell_runtime_class", "dev.xkmc.l2hostility.content.traits.legendary.DispellTrait#onDamaged");
+                json.addProperty("Dementor_reduction_base", uncheckedServerDouble("dementorDamageReductionBase"));
+                json.addProperty("Dispell_reduction_base", uncheckedServerDouble("dispellDamageReductionBase"));
+                log("classification_result", json);
+            }
+            JsonObject suite = new JsonObject();
+            suite.addProperty("status", "complete");
+            suite.addProperty("case_count", 2);
+            suite.addProperty("requested_case_count", 2);
+            log("suite_result", suite);
         }
 
         void spawn() {
@@ -373,6 +431,15 @@ public final class Phase6EndgameCalibration {
     private static boolean serverBoolean(String field) throws ReflectiveOperationException {
         Object server = staticField("dev.xkmc.l2hostility.init.data.LHConfig", "SERVER");
         return booleanValue(invoke(readField(server, field), "get"));
+    }
+
+    private static double uncheckedServerDouble(String field) {
+        try {
+            return serverDouble(field);
+        }
+        catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("cannot read L2 config " + field, exception);
+        }
     }
 
     private static void log(String kind, JsonObject json) {

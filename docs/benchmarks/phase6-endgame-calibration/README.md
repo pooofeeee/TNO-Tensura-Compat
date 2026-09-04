@@ -84,3 +84,59 @@ L2 level. A future candidate may compensate verified level-derived durability,
 but must keep these native, generic-L2, Tank, and datapack-SHP layers distinct.
 
 No production combat or balance behavior was changed by this checkpoint.
+
+## Checkpoint B — Magic/Holy classification
+
+Status: complete. `classification.jsonl` contains two runtime registry
+observations and one complete suite result, with zero case errors.
+
+Tensura 2.0.1.1 defines both Engravings through its `tensura:after_attack`
+`additional_damage` effect using `TOTAL_ATTACK_MULTIPLY`. Magic Weapon names
+`tensura:magic`; Holy Weapon names `tensura:holy_damage`. The installed
+`TensuraDamageTypes` registry exposes these as `MAGIC_GENERIC` and
+`HOLY_DAMAGE`, respectively. Their runtime `DamageSource.getMsgId()` values
+are `tensura.magic` and `tensura.holy_damage`.
+
+Both runtime holders have exactly these effective tags:
+
+| Damage type | Runtime tags |
+|---|---|
+| `tensura:magic` | `minecraft:bypasses_armor`, `minecraft:bypasses_shield`, `minecraft:no_knockback`, `minecraft:witch_resistant_to`, `tensura:bypass_protection_enchantment` |
+| `tensura:holy_damage` | `minecraft:bypasses_armor`, `minecraft:bypasses_shield`, `minecraft:no_knockback`, `tensura:bypass_protection_enchantment` |
+
+Neither source has `neoforge:is_magic`, `minecraft:bypasses_effects`,
+`minecraft:bypasses_invulnerability`, or `minecraft:bypasses_resistance`.
+The distinction is decisive in the installed L2 Hostility 3.0.18 bytecode:
+
+- `DementorTrait.onDamaged` returns without reducing only for bypass-
+  invulnerability, bypass-effects, or NeoForge `IS_MAGIC` sources. These two
+  sources satisfy none of those exits, so Dementor installs its nonlinear
+  reducer. The active base is 2; `x < 2` becomes `x/2`, otherwise it becomes
+  `log(x)/log(2)`. This exactly explains `11.2 -> 3.485427`.
+- `DispellTrait.onDamaged` is the complementary branch: after the same two
+  bypass exits, it returns unless the source has NeoForge `IS_MAGIC`. These
+  sources do not, so Dispell does not install its damage reducer. Its
+  equipment-disable behavior when the mob attacks is a separate method and
+  remains unaffected.
+- `LHAttackListener.onDamage` obtains the target capability through
+  `LHMiscs.MOB.type().getExisting(target)` and invokes each actual trait's
+  `onDamaged`; L2 DamageTracker carries the original source into that path.
+
+This is a semantic mismatch: Tensura calls the events Magic/Holy and gives
+them armor-bypassing semantics, while L2's two reducers classify them solely
+by the NeoForge `IS_MAGIC` tag.
+
+Two research-only architecture choices were compared:
+
+1. Preserve the exact source and tags, then negotiate only the demonstrated
+   Dementor reduction inside the TNO eligible-contribution context. This is
+   narrow, retains DamageTracker ordering, does not activate Dispell, and
+   cannot affect unrelated damage.
+2. Teach only a compatibility bridge that Tensura Magic/Holy are semantically
+   magical to L2. This must not add a global tag or replace the DamageSource;
+   it would also need to define whether the compatibility classification
+   activates Dispell, making it broader and more interaction-sensitive.
+
+No production choice is locked here. The safe default carried into the next
+checkpoints is option 1: preserve original source identity/classification and
+negotiate only reductions that calibration proves necessary.
