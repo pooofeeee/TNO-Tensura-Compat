@@ -206,3 +206,130 @@ All 22 safety acceptance items therefore pass. The evidence proves that the
 high ramp is the best current development candidate and does not violate the
 accepted boundaries, but it still does not solve Regenerate and is not a
 permanent production selection.
+
+## Final calibration analysis
+
+Status: complete. Checkpoints A-I establish a safe answer for admitted Magic
+Weapon and Holy Weapon events. They do not establish a complete solution for
+all six families or authorize a production change on this branch.
+
+### A. Proven for Magic Weapon and Holy Weapon
+
+The evidence supports one narrow architecture: after the native event exists,
+after production Curve C, and after the authoritative matching Tensura layer,
+use the existing initialized L2 attachment and its actual level-derived
+generic-health factor to negotiate only the eligible Magic/Holy contribution
+at L2's existing generic-health, Dementor, and Adaptive modifier boundaries.
+Never restore arbitrary final damage, replace or duplicate the DamageSource,
+retag the source as NeoForge magic, subtract HP directly, or create an event.
+
+The best tested development candidate is:
+
+| Stage | Q | RD | RA |
+|---|---:|---:|---:|
+| S0-S4 | 0 | 0 | 0 |
+| S5 | 0.50 | 0.50 | 0.50 |
+| S6 | 0.75 | 0.625 | 0.625 |
+| S7 | 1.00 | 0.75 | 0.75 |
+
+Q uses only the verified nominal generic L2 hostility-health factor
+`H = 1 + level * healthFactor * entityHealthScale`; it does not collapse
+native HP, capped generic HP, Tank, native SHP, or the external datapack SHP
+bridge into one quantity. RD blends from native Dementor output toward the
+same reducer input. RA blends the native Adaptive factor toward 1 while L2
+continues to own source memory and count. No arbitrary Lv800 activation
+threshold is justified: the H input already follows the actual attached L2
+level, and S5-S7 provide the progression boundary.
+
+Checkpoint H demonstrates damage-side usefulness: accepted-profile high-ramp
+S7 estimates are roughly 153-262 family DPS and 345-399 seconds gross TTK at
+Lv600-Lv1000. Checkpoint I then proves strict S5 < S6 < S7 at every tested
+Lv300/Lv600/Lv800/Lv1000 coordinate and exact Q/RD/RA no-op behavior at S0-S4.
+
+### B. Explicit answers
+
+1. **Is Q required?** Yes. D proves that reducer recovery without generic-H
+   participation remains too weak; E proves Q alone is insufficient. It is a
+   necessary component, not a global durability or damage multiplier.
+2. **Is RD required?** Yes. Native Dementor logarithmically compresses both
+   installed Tensura source types. Partial RD in the 0.50-0.75 range is needed;
+   RD=1 is rejected because it erases Dementor.
+3. **Is RA required?** Yes. Untouched Adaptive collapses repeated same-source
+   hits. Partial RA in the 0.50-0.75 range is needed; RA=1 is rejected because
+   it erases Adaptive.
+4. **Is the HIGH ramp the best current development candidate?** Yes. It is the
+   strongest tested ramp that passes the complete safety matrix while retaining
+   both reducer identities. This is a recommendation for the next production-
+   implementation task, not code implemented by this branch.
+5. **Does it preserve Dementor?** Yes. In H's otherwise-identical controls,
+   removing Dementor raises high-S7 family DPS from the accepted 153-262 range
+   to 202-348. The accepted profile therefore remains measurably worse.
+6. **Does it preserve Adaptive?** Yes. Removing Adaptive raises high-S7 family
+   DPS to 192-313. In I, the original source key, rank, memory capacity, and
+   L2-owned count remain unchanged; count advances 1-10 and the S7 tenth-hit
+   factor is 0.750488 rather than 1.
+7. **Is it safe for lower Stages, non-L2 paths, and unrelated families?** Yes,
+   within the tested architecture. Four hundred S0-S4 traces are exact
+   negotiation no-ops. Missing/uninitialized L2, an unclassified or unstaged
+   item, an inactive family, and an absent eligible event fail closed. Soul,
+   Elemental, Energy, and Severance are rejected before the L2 negotiation.
+8. **Is Magic/Holy production implementation now justified?** Yes, as the next
+   narrow damage-side task: Magic/Holy only, initialized existing L2 attachment,
+   active native eligible event, S5-S7 only, and the high-ramp parameters above.
+   It is not evidence that Regenerate is solved or that a full sustained kill
+   is guaranteed.
+9. **What prevents calling the six-family system solved?** Native Regenerate
+   can nominally heal 400-500 HP/s, exceeding every tested TNO-only Magic/Holy
+   result. Soul lacks its native `tensura:soul_scatter` event. Elemental's
+   native projectile can exist while its matching elemental damage event does
+   not. Energy Steal is healthy only after a physical prerequisite that often
+   fails. Severance preserves its native +3 and one source but rarely survives
+   the physical wall to store wound.
+10. **What is the next exact order?** Implement the validated Magic/Holy
+    architecture first; then investigate Severance against Regenerate; then
+    investigate the Elemental native-event path; then Soul's native-event path;
+    then Energy Steal's physical prerequisite; only after those blockers are
+    resolved should the original Phase 7 resume.
+
+### C. Unresolved work and exact next investigations
+
+The first follow-up after Magic/Holy production implementation should be a
+separate **Severance ↔ Regenerate** investigation. Do not begin by inventing a
+generic TNO anti-heal mechanic. Determine the installed native Severance wound
+semantics; whether wound reduces, prevents, or materially constrains L2
+Regenerate; whether Tank, Dementor, or Adaptive prevents wound admission; and
+whether proportional treatment of only the native eligible Severance +3 can
+make wound reliable while retaining one physical DamageSource. Royal Arrow
+base damage must remain native, and Tank/Dementor/Adaptive must remain relevant.
+Only that evidence can decide whether Tensura's existing anti-sustain semantic
+already supplies the correct answer.
+
+Elemental requires a different native-path investigation across Earth, Fire,
+Space, Water, and Wind. The accepted Earth case proves
+`tensura:stone_shot` can exist and receive Stage propagation while the required
+`tensura:earth_elemental` event is absent. Determine the exact owner, state,
+skill, target, or hit-path prerequisite for each matching elemental
+DamageSource; whether another native damage path is selected; and whether the
+result is boss-dependent. Compatibility may satisfy a legitimate missing
+prerequisite, but it must not synthesize an elemental event merely because TNO
+expects one.
+
+Soul then needs its own native `soul_scatter` eligibility investigation.
+Energy Steal follows: its drain math and equal target-loss/attacker-gain
+accounting are healthy when admitted, so research must remain focused on the
+physical prerequisite rather than inventing a drain. These tasks are distinct
+from Q/RD/RA and must not be hidden inside the Magic/Holy implementation.
+
+### Final recommendation
+
+Approve the high-ramp Q/RD/RA architecture for a separately reviewed,
+production-quality Magic/Holy implementation. Preserve the exact existing
+matching-Resistance schedule, absolute Nullification, original source IDs and
+tags, L2 admission and trait state, Curve C, base Royal Arrow damage, APO
+output, and native Gear EP. Keep it inactive at S0-S4 and fail closed whenever
+the already-existing L2/native-event context is unavailable.
+
+Do not claim complete endgame viability until Regenerate and the other four
+family-specific blockers have their own evidence. This branch ends with the
+calibration recommendation only; it contains no permanent Q/RD/RA production
+implementation and does not start Phase 7.
