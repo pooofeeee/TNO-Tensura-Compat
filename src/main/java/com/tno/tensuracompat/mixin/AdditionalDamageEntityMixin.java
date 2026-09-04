@@ -4,6 +4,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.tno.tensuracompat.core.stage.MatchingResistanceRecovery;
 import com.tno.tensuracompat.core.stage.NativeScalableDamage;
+import com.tno.tensuracompat.debug.Phase6CalibrationContext;
 import io.github.manasmods.tensura.enchantment.effect.AdditionalDamageEntity;
 import net.minecraft.core.Holder;
 import net.minecraft.world.damagesource.DamageSource;
@@ -45,6 +46,18 @@ public abstract class AdditionalDamageEntityMixin {
                                 enchantedItem.itemStack(), family, livingTarget, source, scaled))
                         .orElse(scaled)
                 : scaled;
-        return original.call(damaged, source, recovered);
+        if (!(damaged instanceof LivingEntity livingTarget)) {
+            return original.call(damaged, source, recovered);
+        }
+        var family = NativeScalableDamage.additionalDamageFamily(damageType());
+        if (family.isEmpty()) return original.call(damaged, source, recovered);
+        var scope = Phase6CalibrationContext.open(enchantedItem.itemStack(), family.get(), livingTarget,
+                nativeEligibleAmount, scaled, recovered);
+        try {
+            return original.call(damaged, source, recovered);
+        }
+        finally {
+            scope.ifPresent(Phase6CalibrationContext.Scope::close);
+        }
     }
 }

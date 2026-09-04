@@ -140,3 +140,32 @@ Two research-only architecture choices were compared:
 No production choice is locked here. The safe default carried into the next
 checkpoints is option 1: preserve original source identity/classification and
 negotiate only reductions that calibration proves necessary.
+
+## Checkpoint C — development-only calibration context
+
+Status: complete. `Phase6CalibrationContext` is a synchronous scope around
+only the existing `AdditionalDamageEntity` call for the classified Magic and
+Holy families. It records the originating classified stack, authoritative
+native-EP Stage, family, native eligible amount, amount after production Curve
+C, amount after the accepted Tensura defense layer, target, actual existing L2
+capability, relevant attached trait ranks, and temporary `Q/RD/RA` parameters.
+
+The capability path is exactly
+`LHMiscs.MOB.type().getExisting(target)`. The context does not call
+`getOrCreate`; absent, uninitialized, inaccessible, or malformed attachments
+fail closed by producing no scope. It also rejects unclassified gear,
+non-Magic/Holy families, and missing Stages.
+
+The scope and its parameters are thread-local and are removed in `finally`
+after the one native `Entity.hurt` call. Nothing is written to the ItemStack,
+Royal Arrow, target capability, target/player, or world. The L2 capability is
+observed but never mutated. In particular, Adaptive memory, source keys,
+counts, rank, and capacity remain entirely L2-owned.
+
+Ordinary production cannot activate the mechanism: it requires both a
+non-production environment and the explicit `tno.phase6.calibration` system
+property. With the property absent, the wrapped call receives the exact same
+`recovered` value as before and no context exists. Parameter construction is
+bounded to finite `[0,1]` values and is covered by unit tests. The full clean
+build, existing Stage/Resistance/Severance suites, and the new parameter tests
+all pass.
