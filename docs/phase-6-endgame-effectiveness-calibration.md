@@ -16,7 +16,7 @@ or change any production combat behavior.
 | F — Dementor calibration | Complete | `dementor_magic_weapon.jsonl`, `dementor_holy_weapon.jsonl` | RD 0.50-0.75 is the promising coarse interval. RD <=0.25 is too weak; RD=1 erases Dementor and is too strong architecturally. |
 | G — Adaptive calibration | Complete | `adaptive_magic_weapon.jsonl`, `adaptive_holy_weapon.jsonl` | RA 0.50-0.75 is promising. Both retain a clear repeated-source penalty; RA=1 reproduces no-Adaptive and is rejected. |
 | H — combined candidates | Complete | `combined_magic_weapon.jsonl`, `combined_holy_weapon.jsonl` | Three strictly increasing ramps preserve Dementor and Adaptive harm and produce clear S5 < S6 < S7 gross progression. The upper ramp reaches roughly 5.7-6.7 minute gross S7 estimates, but native Regenerate's 400-500 HP/s configured ceiling exceeds every tested TNO-only result; this is promising damage calibration, not yet a complete endgame solution. |
-| I — safety matrix | Pending | — | — |
+| I — safety matrix | Complete | `safety_magic_weapon.jsonl`, `safety_holy_weapon.jsonl`; accepted Phase 5F/6 targeted evidence | 64 cases and 640 traces preserve lower-Stage no-op behavior, source/event integrity, native L2/Tensura authority, unrelated-family isolation, and strict S5-S7 progression with zero failures, duplicates, or unexpected bypasses. |
 
 Checkpoint A's full formula audit, 16-case table, exact modifier lists, and
 per-case trait/rank lists are documented in the benchmark evidence README.
@@ -155,3 +155,54 @@ Regenerate cannot be defended from the 200-tick damage window. The high ramp
 is therefore the best safety-test candidate, but the three-component
 Q/RD/RA architecture is not yet proven sufficient against Regenerate and no
 production policy should be implemented from H alone.
+
+## Checkpoint I — safety and non-interaction
+
+Checkpoint I is complete. The new live safety matrix contains 32 Magic cases
+and 32 Holy cases over the accepted legal Orc profile at Lv300, Lv600, Lv800,
+and Lv1000, with production S0-S7 and ten real Royal Arrow releases per case.
+The 640 hit rows each contain one calibration trace. Strict extraction reports
+64/64 complete cases, zero case errors, zero duplicate sources or eligible
+events, zero recursion, zero unexpected Tensura bypass, and zero unexpected L2
+bypass.
+
+S0-S4 use Q=RD=RA=0 and are exact negotiation no-ops at every tested level.
+They retain the normal Curve C result, the native Dementor result, the native
+Adaptive factor, one unchanged 8.0 physical-arrow input, and the original
+projectile and source identities. S5-S7 use only the development high ramp:
+`(0.50,0.50,0.50)`, `(0.75,0.625,0.625)`, and
+`(1.00,0.75,0.75)`. Both families increase strictly S5 < S6 < S7 at all four
+levels. No special Lv800 threshold exists; the verified L2 H factor naturally
+follows the attached level.
+
+Dementor and Adaptive remain authoritative. The original Adaptive source keys
+are still `tensura.magic` and `tensura.holy_damage`; rank and memory capacity
+are unchanged; L2 owns the memory; and every attached repeated sequence
+advances count 1-10 without reset. At S7, RA=0.75 leaves the tenth factor at
+0.750488 versus 1.0 on hit one. Checkpoint H's legal controls show higher
+damage when either trait is removed, so both remain measurably harmful.
+
+The candidate is isolated to an explicitly flagged development scope around
+an already-existing native Magic/Holy event. The gate now returns no scope for
+an unflagged runtime, unrelated family, unclassified gear, absent Stage,
+missing target, absent L2 mod, absent or uninitialized existing attachment, or
+failed reflective read. It uses `getExisting`, never `getOrCreate`, and owns no
+persistent state. The clean build remains independent of local L2/Royal
+Variations runtime artifacts.
+
+Accepted Phase 5F/6 evidence supplies the targeted non-interaction controls
+without repeating completed runs. Matching Resistance remains exactly 0% at
+S0-S4, 25% at S5, 50% at S6, and 100% at S7. Matching Nullification remains
+absolute. Arena admission, Repelling projectile rejection, Teleport avoidance,
+Reflect behavior, Tank's physical mitigation, and current Dispell routing are
+unchanged. Regenerate rank/config/rate is observed but never modified. Missing
+Soul/Elemental native events are not synthesized; Energy Steal retains its
+physical prerequisite and native transfer accounting; Severance retains one
+physical source, unchanged base-arrow contribution, and native wound gate.
+APO and base Royal Arrow output stay outside Q/RD/RA, and native Gear EP remains
+the only Stage authority.
+
+All 22 safety acceptance items therefore pass. The evidence proves that the
+high ramp is the best current development candidate and does not violate the
+accepted boundaries, but it still does not solve Regenerate and is not a
+permanent production selection.

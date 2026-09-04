@@ -491,6 +491,138 @@ switch ($Mode) {
             }
         }
     }
+    'safety' {
+        if (-not $ExpectedFamily) { throw 'safety mode requires -ExpectedFamily' }
+        $rows = @($session | Where-Object kind -eq 'row')
+        $cases = @($session | Where-Object kind -eq 'case_result')
+        if ($rows.Count -ne 320 -or $cases.Count -ne 32 -or
+                [int]$suite[0].case_count -ne 32 -or [int]$suite[0].requested_case_count -ne 32) {
+            throw "Safety suite count mismatch: cases=$($cases.Count), rows=$($rows.Count)"
+        }
+        $parameters = @{
+            'SAFETY_S0_NATIVE_POLICY'  = @('S0', 0.00, 0.000, 0.000)
+            'SAFETY_S1_NATIVE_POLICY'  = @('S1', 0.00, 0.000, 0.000)
+            'SAFETY_S2_NATIVE_POLICY'  = @('S2', 0.00, 0.000, 0.000)
+            'SAFETY_S3_NATIVE_POLICY'  = @('S3', 0.00, 0.000, 0.000)
+            'SAFETY_S4_NATIVE_POLICY'  = @('S4', 0.00, 0.000, 0.000)
+            'SAFETY_S5_HIGH_CANDIDATE' = @('S5', 0.50, 0.500, 0.500)
+            'SAFETY_S6_HIGH_CANDIDATE' = @('S6', 0.75, 0.625, 0.625)
+            'SAFETY_S7_HIGH_CANDIDATE' = @('S7', 1.00, 0.750, 0.750)
+        }
+        $keys = [System.Collections.Generic.HashSet[string]]::new()
+        foreach ($case in $cases) {
+            $expected = $parameters[$case.calibration_case]
+            if ($null -eq $expected -or $case.status -ne 'ok' -or $case.calibration_mode -ne 'safety' -or
+                    $case.TNO_family -ne $ExpectedFamily -or $case.APO_profile -ne 'NONE' -or
+                    @(300,600,800,1000) -notcontains [int]$case.level -or
+                    $case.TNO_stage -ne $expected[0] -or
+                    $case.L2_profile_variant -ne 'ACCEPTED_STRONGEST_LEGAL' -or
+                    -not [bool]$case.fresh_L2_attachment_per_case -or [bool]$case.profile_clone_verified -or
+                    -not [bool]$case.profile_is_accepted_strongest_legal -or
+                    [bool]$case.removed_trait_budget_not_reallocated -or
+                    [double]$case.Q_generic_health -ne [double]$expected[1] -or
+                    [double]$case.RD_dementor -ne [double]$expected[2] -or
+                    [double]$case.RA_adaptive -ne [double]$expected[3] -or
+                    -not [bool]$case.legal_trait_profile -or
+                    [int]$case.shots_released -ne 10 -or [int]$case.hits_recorded -ne 10 -or
+                    [int]$case.calibration_trace_count -ne 10) { throw 'Invalid safety case' }
+            if (-not $keys.Add("$($case.level)|$($case.TNO_stage)|$($case.calibration_case)")) {
+                throw 'Duplicate safety case coordinate'
+            }
+            $expectedRegenRank = switch ([int]$case.level) { 300 { 2 } 600 { 4 } default { 5 } }
+            if ([int]$case.Regenerate_rank -ne $expectedRegenRank -or
+                    [math]::Abs([double]$case.Regenerate_nominal_HP_per_second -
+                        ([double]$case.HP * [double]$case.Regenerate_config_fraction_per_rank_per_second * $expectedRegenRank)) -gt 0.001) {
+                throw 'Safety Regenerate rank/rate changed'
+            }
+        }
+        foreach ($row in $rows) {
+            $trace = $row.calibration_trace
+            $expected = $parameters[$row.calibration_case]
+            $expectedSource = if ($ExpectedFamily -eq 'MAGIC_WEAPON') { 'tensura.magic' } else { 'tensura.holy_damage' }
+            $expectedDamageType = if ($ExpectedFamily -eq 'MAGIC_WEAPON') { 'tensura:magic' } else { 'tensura:holy_damage' }
+            $withAdaptive = [int]$row.level -ge 600
+            if ($null -eq $expected -or $row.TNO_family -ne $ExpectedFamily -or $row.APO_profile -ne 'NONE' -or
+                    $row.TNO_stage -ne $expected[0] -or [double]$row.Q_generic_health -ne [double]$expected[1] -or
+                    [double]$row.RD_dementor -ne [double]$expected[2] -or
+                    [double]$row.RA_adaptive -ne [double]$expected[3] -or
+                    [int]$row.calibration_trace_count -ne 1 -or [int]$row.engraving_damage_event_count -ne 1 -or
+                    $trace.Adaptive_source_msgId -ne $expectedSource -or -not [bool]$trace.Dementor_applied -or
+                    [bool]$trace.Adaptive_applied -ne $withAdaptive -or
+                    [bool]$row.l2_layer_bypassed_unexpectedly -or [bool]$row.tensura_layer_bypassed_unexpectedly -or
+                    [bool]$row.unexpected_source_duplication -or [bool]$row.event_recursion_observed -or
+                    [bool]$row.genuine_apo_multi_projectile_release -or [bool]$row.duplicate_event_from_same_projectile -or
+                    [bool]$row.royal_arrow_mark_observed -or [bool]$row.spectral_affix_projectile_conversion -or
+                    [int]$row.released_projectile_count -ne 1 -or [double]$row.physical_original_before_stage -ne 8.0 -or
+                    [double]$row.physical_combined_original_before_L2 -ne 8.0 -or
+                    $row.physical_damage_source_id -ne 'minecraft:arrow' -or
+                    $row.family_damage_source_id -ne $expectedDamageType) {
+                throw 'Invalid safety row identity/invariant'
+            }
+            $expectedH = 1.0 + [int]$row.level * 0.03 * 1.2
+            $expectedGeneric = [double]$trace.generic_input *
+                (1.0 + [double]$row.Q_generic_health * ($expectedH - 1.0))
+            if ([math]::Abs([double]$trace.generic_L2_health_multiplier - $expectedH) -gt 0.00001 -or
+                    [math]::Abs([double]$trace.generic_diagnostic_output - $expectedGeneric) -gt 0.001) {
+                throw 'Safety generic normalization formula failed'
+            }
+            $x = [double]$trace.Dementor_pre
+            $nativeDementor = if ($x -lt 2.0) { $x / 2.0 } else { [math]::Log($x, 2.0) }
+            $expectedDementor = $nativeDementor + [double]$row.RD_dementor * ($x - $nativeDementor)
+            if ([math]::Abs([double]$trace.Dementor_native_post - $nativeDementor) -gt 0.001 -or
+                    [math]::Abs([double]$trace.Dementor_diagnostic_post - $expectedDementor) -gt 0.001 -or
+                    [double]$trace.Dementor_diagnostic_post -gt $x + 0.001) {
+                throw 'Safety Dementor formula/bound failed'
+            }
+            $nativeAdaptiveFactor = if ($withAdaptive) {
+                [math]::Pow([double]$trace.Adaptive_configured_factor,
+                    [int]$trace.Adaptive_adaptation_count - 1)
+            }
+            else { 1.0 }
+            $expectedAdaptiveFactor = $nativeAdaptiveFactor +
+                [double]$row.RA_adaptive * (1.0 - $nativeAdaptiveFactor)
+            if ([math]::Abs([double]$trace.Adaptive_native_factor - $nativeAdaptiveFactor) -gt 0.000001 -or
+                    [math]::Abs([double]$trace.Adaptive_negotiated_factor - $expectedAdaptiveFactor) -gt 0.000001 -or
+                    [math]::Abs([double]$trace.Adaptive_diagnostic_result -
+                        ([double]$trace.Adaptive_pre * $expectedAdaptiveFactor)) -gt 0.001 -or
+                    [double]$trace.Adaptive_diagnostic_result -gt [double]$trace.Adaptive_pre + 0.001 -or
+                    [math]::Abs([double]$trace.final_family_event_amount - [double]$row.family_effect_final_event_amount) -gt 0.001) {
+                throw 'Safety Adaptive/final-event formula failed'
+            }
+            if (@('S0','S1','S2','S3','S4') -contains $row.TNO_stage) {
+                if ([math]::Abs([double]$trace.generic_diagnostic_output - [double]$trace.generic_input) -gt 0.001 -or
+                        [math]::Abs([double]$trace.Dementor_diagnostic_post - [double]$trace.Dementor_native_post) -gt 0.001 -or
+                        [math]::Abs([double]$trace.Adaptive_negotiated_factor - [double]$trace.Adaptive_native_factor) -gt 0.000001) {
+                    throw 'Safety S0-S4 negotiation was not an exact no-op'
+                }
+            }
+        }
+        foreach ($group in ($rows | Group-Object level, TNO_stage, calibration_case)) {
+            $ordered = @($group.Group | Sort-Object {[int]$_.hit_index})
+            if ($ordered.Count -ne 10 -or (@($ordered.hit_index) -join ',') -ne '1,2,3,4,5,6,7,8,9,10') {
+                throw 'Safety repeated-hit sequence count/order mismatch'
+            }
+            if ([bool]$ordered[0].calibration_trace.Adaptive_applied) {
+                $counts = @($ordered | ForEach-Object {[int]$_.calibration_trace.Adaptive_adaptation_count})
+                if (($counts -join ',') -ne '1,2,3,4,5,6,7,8,9,10') { throw 'Safety candidate reset Adaptive state' }
+                if ($ordered[0].TNO_stage -eq 'S7' -and
+                        [double]$ordered[-1].calibration_trace.Adaptive_negotiated_factor -ge
+                        [double]$ordered[0].calibration_trace.Adaptive_negotiated_factor) {
+                    throw 'Safety S7 candidate erased Adaptive repeated-source harm'
+                }
+            }
+        }
+        foreach ($level in @(300,600,800,1000)) {
+            $stageAverages = @{}
+            foreach ($stage in @('S5','S6','S7')) {
+                $sample = @($rows | Where-Object { [int]$_.level -eq $level -and $_.TNO_stage -eq $stage })
+                $stageAverages[$stage] = ($sample | Measure-Object -Property family_effect_final_event_amount -Average).Average
+            }
+            if (-not ($stageAverages.S5 -lt $stageAverages.S6 -and $stageAverages.S6 -lt $stageAverages.S7)) {
+                throw "Safety Stage progression is not strict at Lv$level"
+            }
+        }
+    }
 }
 
 $parent = Split-Path -Parent $OutputPath

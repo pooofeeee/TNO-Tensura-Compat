@@ -416,3 +416,92 @@ and one reducer trace per release, legal profile flags, removed-budget policy,
 Regenerate rank/config/rate, H/Dementor/Adaptive formulas, original source IDs,
 natural Adaptive 1-10 progression, and zero case errors, bypasses, duplicates,
 or recursion.
+
+## Checkpoint I — safety and non-interaction matrix
+
+Status: complete. `safety_magic_weapon.jsonl` and
+`safety_holy_weapon.jsonl` each contain 32 cases, 320 per-hit rows, 320
+calibration traces, and zero case errors. The matrix uses the accepted legal
+Orc Disaster profile at Lv300, Lv600, Lv800, and Lv1000; production S0-S7;
+ten real Royal Arrow releases per coordinate; `APO_profile = NONE`; and a
+fresh initialized L2 attachment per case. S0-S4 use exactly Q=RD=RA=0. The
+development-only high candidate is used only at S5-S7:
+
+| Stage | Q | RD | RA |
+|---|---:|---:|---:|
+| S0-S4 | 0 | 0 | 0 |
+| S5 | 0.50 | 0.50 | 0.50 |
+| S6 | 0.75 | 0.625 | 0.625 |
+| S7 | 1.00 | 0.75 | 0.75 |
+
+The independently extracted family DPS is:
+
+| Family | L2 level | S5 | S6 | S7 |
+|---|---:|---:|---:|---:|
+| Magic | 300 | 36.308 | 63.907 | 100.882 |
+| Magic | 600 | 38.891 | 86.890 | 153.459 |
+| Magic | 800 | 52.269 | 108.856 | 201.920 |
+| Magic | 1000 | 64.062 | 146.525 | 250.364 |
+| Holy | 300 | 36.308 | 63.907 | 100.882 |
+| Holy | 600 | 40.827 | 83.240 | 175.499 |
+| Holy | 800 | 50.237 | 113.995 | 214.451 |
+| Holy | 1000 | 61.558 | 140.397 | 250.364 |
+
+Every level has strict S5 < S6 < S7 progression; there is no special Lv800
+activation edge. The actual L2-derived H term changes continuously with the
+attached level. The S0-S4 trace assertions prove that generic normalization,
+Dementor negotiation, and Adaptive negotiation each return their native input
+exactly. Those 400 lower-Stage hit traces retain ordinary production Curve C
+and native L2 behavior; the endgame negotiation itself is a no-op.
+
+The strict extractor also proves all 640 rows retain one native eligible
+event, one real `royalvariations:royal_arrow`, the original
+`tensura.magic`/`tensura.holy_damage` Adaptive key, one unchanged 8.0 base
+physical input, and no Mark, APO projectile conversion, duplicate source,
+duplicate eligible event, recursion, unexpected Tensura bypass, or unexpected
+L2 bypass. Adaptive remains L2-owned and advances 1-10 on every attached
+profile at Lv600+. At S7 its negotiated factor still falls from 1.0 to
+0.750488, so repeated-source harm remains visible. Checkpoint H's legal
+otherwise-identical controls remain the comparative proof that removing
+Dementor or Adaptive produces more damage than the accepted high-ramp profile.
+
+The rest of the safety verdict deliberately reuses accepted evidence rather
+than rerunning completed matrices:
+
+- The context is development-only and fail-closed. It requires the explicit
+  calibration flag, classified staged gear, Magic or Holy as the active
+  family, a target, a loaded L2 runtime, and an initialized attachment returned
+  by `getExisting`. Any absent gate or reflection failure produces no scope.
+  An ordinary unflagged runtime exits at the first gate before optional L2
+  inspection, and unrelated families exit before attachment inspection.
+  Nothing is serialized or attached to the bow, arrow, target, player, or
+  world.
+- The accepted Phase 6 production checks remain authoritative for matching
+  Resistance: S0-S4 0%, S5 25%, S6 50%, S7 100%. Matching Nullification is
+  absolute at every Stage. The candidate is installed only after the existing
+  Tensura layer and cannot create a fallback, second source, or post-
+  nullification restoration.
+- The accepted 39-trait evidence remains the targeted authority for Arena,
+  Repelling, Teleport, Reflect, Tank, Dispell, and Regenerate. Arena admission,
+  forced-illegal projectile rejection/avoidance, reflection behavior, Tank's
+  ordinary physical reduction, and installed Dispell classification are
+  unchanged. The safety cases retain the exact legal Regenerate ranks and the
+  configured `maxHealth * 0.01 * rank` nominal rates; Q/RD/RA never edits or
+  compensates healing.
+- The accepted Suite B/production evidence remains unchanged for the other
+  four families. Missing Soul and matching Elemental native events stay
+  missing; Energy Steal still requires an admitted physical hit and preserves
+  equal target drain/attacker gain when it runs; Severance remains one physical
+  source with the native +3 Stage path and no wound after a rejected/zero hit.
+  `Phase6CalibrationContext` rejects all four families before inspecting L2.
+- The accepted Suite C and targeted Phase 6 APO checks remain unchanged. APO
+  projectiles stay independent, APO/base physical/crit/gem/affix output is not
+  Q/RD/RA-scaled, Royal Arrow owns no EP or Stage, and native Tensura Gear EP
+  remains the sole Stage authority.
+
+All 22 Checkpoint-I acceptance statements pass. Counts are 64/64 live safety
+cases and 640/640 live hit traces, plus the already accepted targeted
+Phase 5F/6 evidence cited above; failures, duplicate sources/events,
+unexpected Tensura bypasses, and unexpected L2 bypasses are all zero. This is
+a development safety result, not a permanent production selection. In
+particular, it does not solve or weaken Regenerate.

@@ -4,7 +4,6 @@ import com.tno.tensuracompat.core.stage.GearStageClasses;
 import com.tno.tensuracompat.core.stage.ProductionStageScaling;
 import com.tno.tensuracompat.core.stage.ScalableFamily;
 import com.tno.tensuracompat.core.stage.Stage;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.resources.ResourceLocation;
@@ -56,18 +55,17 @@ public final class Phase6CalibrationContext {
             return Optional.empty();
         }
         if (GearStageClasses.classification(gear).isEmpty()) {
-            throw new IllegalStateException("development calibration received unclassified gear "
-                    + BuiltInRegistries.ITEM.getKey(gear.getItem()));
+            return Optional.empty();
         }
         Optional<Stage> stage = ProductionStageScaling.stage(gear);
         if (stage.isEmpty()) {
-            throw new IllegalStateException("development calibration gear has no production Stage");
+            return Optional.empty();
         }
         if (target == null) {
-            throw new IllegalStateException("development calibration target is absent");
+            return Optional.empty();
         }
         if (!ModList.get().isLoaded("l2hostility")) {
-            throw new IllegalStateException("development calibration requires the local L2 Hostility runtime");
+            return Optional.empty();
         }
 
         try {
@@ -75,7 +73,7 @@ public final class Phase6CalibrationContext {
             Object result = invoke(type, "getExisting", target);
             Object cap = result instanceof Optional<?> optional ? optional.orElse(null) : result;
             if (cap == null || !booleanValue(invoke(cap, "isInitialized"))) {
-                throw new IllegalStateException("development calibration target has no initialized existing L2 attachment");
+                return Optional.empty();
             }
             Map<String, Integer> traits = relevantTraits(cap);
             Frame frame = new Frame(gear, stage.get(), family, nativeEligibleAmount,
@@ -85,7 +83,7 @@ public final class Phase6CalibrationContext {
             return Optional.of(new Scope(Thread.currentThread(), frame));
         }
         catch (ReflectiveOperationException exception) {
-            throw new IllegalStateException("could not open development-only L2 calibration context", exception);
+            return Optional.empty();
         }
     }
 

@@ -463,7 +463,7 @@ public final class Phase5FSuiteBBenchmark {
                 catalogLogged = true;
             }
             target = createTarget(spec.boss);
-            if (!CALIBRATION_MODE.equals("combined")
+            if (!freshCalibrationAttachment()
                     && profileTemplate != null && spec.profileKey().equals(templateKey)) {
                 CompoundTag copy = profileTemplate.copy();
                 target.load(copy);
@@ -606,7 +606,7 @@ public final class Phase5FSuiteBBenchmark {
                 invoke(l2Cap, "syncToClient", target);
             }
             resetActors();
-            if (!CALIBRATION_MODE.equals("combined")) {
+            if (!freshCalibrationAttachment()) {
                 profileTemplate = new CompoundTag();
                 target.saveWithoutId(profileTemplate);
                 profileTemplate.remove("UUID");
@@ -1292,7 +1292,7 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("stage_fixture_only", !PRODUCTION_OBSERVATION);
             json.addProperty("production_balance_mutated", false);
             json.addProperty("production_combat_mutated", false);
-            json.addProperty("profile_clone_policy", CALIBRATION_MODE.equals("combined")
+            json.addProperty("profile_clone_policy", freshCalibrationAttachment()
                     ? "fresh initialized L2 attachment and exact legal constructed profile for every case; required for native ticking-trait evidence"
                     : PRODUCTION_OBSERVATION
                     ? "accepted strongest legal profile per exact L2 level; pristine serialized clone for S0-S7"
@@ -1330,12 +1330,17 @@ public final class Phase5FSuiteBBenchmark {
             BossSpec boss = BOSSES.stream().filter(value -> value.id.equals(id("tensura", "orc_disaster")))
                     .findFirst().orElseThrow();
             if (!filter.isBlank() && !boss.id.toString().equals(filter)) return result;
-            List<Integer> levels = CALIBRATION_MODE.equals("combined")
-                    ? List.of(600, 800, 1000)
-                    : List.of(300, 600, 800, 1000);
+            List<Integer> levels = switch (CALIBRATION_MODE) {
+                case "combined" -> List.of(600, 800, 1000);
+                case "safety" -> List.of(300, 600, 800, 1000);
+                default -> List.of(300, 600, 800, 1000);
+            };
             for (int level : levels) {
                 for (TraitProfile profile : TraitProfile.forMode(CALIBRATION_MODE)) {
-                    for (Stage stage : STAGES.subList(6, STAGES.size())) {
+                    List<Stage> stages = CALIBRATION_MODE.equals("safety")
+                            ? STAGES.subList(1, STAGES.size())
+                            : STAGES.subList(6, STAGES.size());
+                    for (Stage stage : stages) {
                         for (CalibrationCase calibration : CalibrationCase.forMode(CALIBRATION_MODE, stage)) {
                             result.add(new CaseSpec(boss, level, LevelMode.ENDGAME_TARGET,
                                     stage, calibration, profile));
@@ -1406,6 +1411,10 @@ public final class Phase5FSuiteBBenchmark {
             spent -= 30 * reference.getOrDefault("l2hostility:regenerate", 0);
         }
         return spent;
+    }
+
+    private static boolean freshCalibrationAttachment() {
+        return CALIBRATION_MODE.equals("combined") || CALIBRATION_MODE.equals("safety");
     }
 
     private static final class CaseResult {
@@ -1881,8 +1890,8 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("legal_profile", STRONGEST_LEGAL_PROFILE || spec.mode != LevelMode.STRESS);
             json.addProperty("legal_trait_profile", true);
             json.addProperty("native_profile_source", nativeProfileSource);
-            json.addProperty("profile_clone_verified", !CALIBRATION_MODE.equals("combined"));
-            if (CALIBRATION_MODE.equals("combined")) {
+            json.addProperty("profile_clone_verified", !freshCalibrationAttachment());
+            if (freshCalibrationAttachment()) {
                 json.addProperty("fresh_L2_attachment_per_case", true);
             }
             json.addProperty("strongest_legal_endgame_profile", STRONGEST_LEGAL_PROFILE
@@ -2743,7 +2752,15 @@ public final class Phase5FSuiteBBenchmark {
         COMBINED_MID_S7("COMBINED_MID_S7", 0.75D, 0.75D, 0.75D),
         COMBINED_HIGH_S5("COMBINED_HIGH_S5", 0.50D, 0.50D, 0.50D),
         COMBINED_HIGH_S6("COMBINED_HIGH_S6", 0.75D, 0.625D, 0.625D),
-        COMBINED_HIGH_S7("COMBINED_HIGH_S7", 1.00D, 0.75D, 0.75D);
+        COMBINED_HIGH_S7("COMBINED_HIGH_S7", 1.00D, 0.75D, 0.75D),
+        SAFETY_S0("SAFETY_S0_NATIVE_POLICY", 0.0D, 0.0D, 0.0D),
+        SAFETY_S1("SAFETY_S1_NATIVE_POLICY", 0.0D, 0.0D, 0.0D),
+        SAFETY_S2("SAFETY_S2_NATIVE_POLICY", 0.0D, 0.0D, 0.0D),
+        SAFETY_S3("SAFETY_S3_NATIVE_POLICY", 0.0D, 0.0D, 0.0D),
+        SAFETY_S4("SAFETY_S4_NATIVE_POLICY", 0.0D, 0.0D, 0.0D),
+        SAFETY_S5("SAFETY_S5_HIGH_CANDIDATE", 0.50D, 0.50D, 0.50D),
+        SAFETY_S6("SAFETY_S6_HIGH_CANDIDATE", 0.75D, 0.625D, 0.625D),
+        SAFETY_S7("SAFETY_S7_HIGH_CANDIDATE", 1.00D, 0.75D, 0.75D);
 
         final String id;
         final Phase6CalibrationContext.Parameters parameters;
@@ -2770,6 +2787,17 @@ public final class Phase5FSuiteBBenchmark {
                     case "S6" -> List.of(COMBINED_LOW_S6, COMBINED_MID_S6, COMBINED_HIGH_S6);
                     case "S7" -> List.of(COMBINED_LOW_S7, COMBINED_MID_S7, COMBINED_HIGH_S7);
                     default -> throw new IllegalArgumentException("combined calibration has no " + stage.name);
+                };
+                case "safety" -> switch (stage.name) {
+                    case "S0" -> List.of(SAFETY_S0);
+                    case "S1" -> List.of(SAFETY_S1);
+                    case "S2" -> List.of(SAFETY_S2);
+                    case "S3" -> List.of(SAFETY_S3);
+                    case "S4" -> List.of(SAFETY_S4);
+                    case "S5" -> List.of(SAFETY_S5);
+                    case "S6" -> List.of(SAFETY_S6);
+                    case "S7" -> List.of(SAFETY_S7);
+                    default -> throw new IllegalArgumentException("safety calibration has no " + stage.name);
                 };
                 default -> throw new IllegalArgumentException("calibration mode is not implemented yet: " + mode);
             };
