@@ -15,4 +15,21 @@ public final class MagicHolyEndgameMath {
         }
         return 1.0D + parameters.genericHealthQ() * (genericHealthMultiplier - 1.0D);
     }
+
+    public static double negotiateDementor(
+            boolean hasDementor,
+            double preDementor,
+            double nativePostDementor,
+            double recovery
+    ) {
+        if (!hasDementor || !Double.isFinite(preDementor) || !Double.isFinite(nativePostDementor)
+                || !validFraction(recovery) || nativePostDementor > preDementor) {
+            return nativePostDementor;
+        }
+        return nativePostDementor + recovery * (preDementor - nativePostDementor);
+    }
+
+    private static boolean validFraction(double value) {
+        return Double.isFinite(value) && value >= 0.0D && value <= 1.0D;
+    }
 }

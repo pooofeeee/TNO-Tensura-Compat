@@ -17,6 +17,7 @@ public final class MagicHolyEndgameL2Bridge {
     private static final String DAMAGE_ORDER = "dev.xkmc.l2damagetracker.contents.attack.DamageModifier$Order";
     private static final int LISTENER_PRIORITY = 4501;
     private static final int BEFORE_DEMENTOR = 7435;
+    private static final int AFTER_DEMENTOR = 7437;
     private static boolean registrationAttempted;
     private static Object registeredListener;
 
@@ -63,9 +64,17 @@ public final class MagicHolyEndgameL2Bridge {
 
             double normalization = MagicHolyEndgameMath.genericNormalization(
                     frame.parameters(), frame.l2Target().genericHealthMultiplier());
-            if (normalization == 1.0D) return;
+            double[] beforeDementor = {Double.NaN};
             invoke(defence, "addDealtModifier", modifier("PRE_NONLINEAR", BEFORE_DEMENTOR,
-                    "magic_holy_generic_health", value -> value * normalization));
+                    "magic_holy_generic_health", value -> {
+                        beforeDementor[0] = value * normalization;
+                        return beforeDementor[0];
+                    }));
+            if (frame.l2Target().hasTrait("l2hostility:dementor")) {
+                invoke(defence, "addDealtModifier", modifier("PRE_NONLINEAR", AFTER_DEMENTOR,
+                        "magic_holy_dementor_recovery", value -> MagicHolyEndgameMath.negotiateDementor(
+                                true, beforeDementor[0], value, frame.parameters().dementorRecovery())));
+            }
         }
         catch (ReflectiveOperationException | RuntimeException ignored) {
             // The optional bridge is deliberately fail-closed for this event.
