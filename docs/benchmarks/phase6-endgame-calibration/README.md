@@ -171,6 +171,41 @@ exceeded the pre-Adaptive value; 0% matched native behavior. Equivalent bounds
 were validated around Dementor's native base-2 nonlinear result. These are
 diagnostic ceilings, not candidate production values.
 
+## Checkpoint E — generic L2-health normalization sweep
+
+Status: complete. `health_magic_weapon.jsonl` and
+`health_holy_weapon.jsonl` each contain 60 accepted cases, 600 per-hit rows,
+and 600 reducer traces: Q = 0, 0.25, 0.50, 0.75, 1.00 across S5-S7 and
+Lv300/Lv600/Lv800/Lv1000. RD and RA remain zero, so actual Dementor and
+Adaptive behavior is unchanged. Both artifacts have zero case errors,
+unexpected bypasses, duplicates, recursion, or source changes.
+
+The exact candidate tested is `eligible * (1 + Q * (H - 1))`, using only the
+nominal Orc generic hostility-health `H = 1 + level * 0.03 * 1.2`. Target
+health is never rewritten. Native HP, realized/capped generic HP, Tank, native
+SHP, and the separate external SHP bridge retain the Checkpoint A
+decomposition. In particular, Q is not derived from final combined resources.
+
+S7 family DPS below is ordered Q = 0, 0.25, 0.50, 0.75, 1.00:
+
+| Family | Lv300 | Lv600 | Lv800 | Lv1000 |
+|---|---|---|---|---|
+| Magic | 3.485, 5.373, 6.222, 6.730, 7.046 | 0.697, 1.290, 1.408, 1.516, 1.595 | 0.696, 1.303, 1.485, 1.595, 1.677 | 0.696, 1.360, 1.545, 1.686, 1.737 |
+| Holy | 3.602, 5.490, 6.280, 6.730, 7.046 | 0.697, 1.231, 1.412, 1.531, 1.595 | 0.696, 1.303, 1.486, 1.597, 1.675 | 0.696, 1.360, 1.549, 1.657, 1.737 |
+
+Q is monotonic at the reducer input but has diminishing final returns because
+Dementor applies logarithmically and Adaptive still reaches a 0.001953125
+factor. Q=1 alone remains unusable: S7 family-only estimated TTK is 38,428s
+at Lv600, about 46,200s at Lv800, and about 53,900s at Lv1000. Thus E confirms
+that generic-H participation is required by D's viable architecture but is
+not sufficient and cannot substitute for trait negotiation.
+
+No explicit target-level threshold is supported by this sweep. H naturally
+scales with actual attached L2 level, Lv600 already has the same wall, and the
+development context is absent on no-L2 targets. This is not a final Q choice.
+The full 0.25-1.00 interval remains available for the small combined shortlist;
+F and G must first establish trait-negotiation regions.
+
 ## Checkpoint B — Magic/Holy classification
 
 Status: complete. `classification.jsonl` contains two runtime registry

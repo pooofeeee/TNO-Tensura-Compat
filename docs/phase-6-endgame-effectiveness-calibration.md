@@ -12,7 +12,7 @@ or change any production combat behavior.
 | B — Magic/Holy classification | Complete | `docs/benchmarks/phase6-endgame-calibration/classification.jsonl` | Both Tensura sources bypass armor but lack NeoForge `IS_MAGIC`; therefore installed L2 Dementor reduces both and Dispell reduces neither. Preserve source identity is the safe default. |
 | C — development calibration context | Complete | `Phase6CalibrationContext` plus unit tests | Synchronous ThreadLocal scope; observes only `getExisting`; fail-closed; no serialized or L2-owned state changes; impossible to activate in production. |
 | D — diagnostic ceiling | Complete | `ceiling_magic_weapon.jsonl`, `ceiling_holy_weapon.jsonl` | Neither reducer alone nor both together are sufficient. Generic-H compensation is also required for practical viability in this controlled profile. The all-100% diagnostic bound reaches about 211-242s S7 TTK at Lv600-Lv1000, proving the three-component architecture is mathematically sufficient without selecting production values. |
-| E — generic-health calibration | Pending conditional checkpoint | — | — |
+| E — generic-health calibration | Complete | `health_magic_weapon.jsonl`, `health_holy_weapon.jsonl` | Q is monotonic but cannot overcome untouched Dementor + Adaptive. Q=1 alone still estimates 10.7-15.0 hour S7 fights at Lv600-Lv1000. No arbitrary L2-level threshold is supported; H naturally scales. |
 | F — Dementor calibration | Pending | — | — |
 | G — Adaptive calibration | Pending | — | — |
 | H — combined candidates | Pending | — | — |
@@ -51,3 +51,20 @@ multiplier, not final total resources. Target HP, Tank, native SHP, and the
 external Tensura:L2Hostility SHP bridge remain unchanged and separately
 identified. The 100% values are upper bounds only. No Q/RD/RA candidate or
 permanent production behavior is selected here.
+
+## Checkpoint E — Q sweep
+
+The accepted E matrix has 120 cases and 1,200 traced hits. It varies only Q
+through 0, 0.25, 0.50, 0.75, and 1.00; RD=RA=0 throughout. At S7 Lv1000,
+Magic moves from 0.696 to 1.737 family DPS and Holy from 0.696 to 1.737.
+Those are monotonic gains, but native Dementor's logarithm and Adaptive's
+unchanged repeated-source collapse dominate them. Q=1 still estimates about
+53,900 seconds family-only TTK at Lv1000.
+
+Accordingly, level-derived durability participation is necessary in the
+three-component architecture established by D, but never sufficient alone.
+No target-level cutoff is justified: the verified H term already follows
+actual L2 level, and Lv600 exhibits the same fundamental wall. The nominal H
+input remains explicitly distinct from capped vanilla HP, Tank, native SHP,
+and the separately observed Tensura:L2Hostility SHP bridge. E does not select
+a permanent Q or change any production behavior.

@@ -1322,7 +1322,7 @@ public final class Phase5FSuiteBBenchmark {
             if (!filter.isBlank() && !boss.id.toString().equals(filter)) return result;
             for (int level : List.of(300, 600, 800, 1000)) {
                 for (Stage stage : STAGES.subList(6, STAGES.size())) {
-                    for (CalibrationCase calibration : CalibrationCase.ceilingCases()) {
+                    for (CalibrationCase calibration : CalibrationCase.forMode(CALIBRATION_MODE)) {
                         result.add(new CaseSpec(boss, level, LevelMode.ENDGAME_TARGET, stage, calibration));
                     }
                 }
@@ -2646,7 +2646,12 @@ public final class Phase5FSuiteBBenchmark {
         ADAPTIVE_FULL("CASE_2_ADAPTIVE_100", 0.0D, 0.0D, 1.0D),
         REDUCERS_FULL("CASE_3_DEMENTOR_ADAPTIVE_100", 0.0D, 1.0D, 1.0D),
         HEALTH_FULL("CASE_4_GENERIC_HEALTH_100", 1.0D, 0.0D, 0.0D),
-        ALL_FULL("CASE_5_ALL_100", 1.0D, 1.0D, 1.0D);
+        ALL_FULL("CASE_5_ALL_100", 1.0D, 1.0D, 1.0D),
+        HEALTH_Q_0("HEALTH_Q_0", 0.0D, 0.0D, 0.0D),
+        HEALTH_Q_25("HEALTH_Q_25", 0.25D, 0.0D, 0.0D),
+        HEALTH_Q_50("HEALTH_Q_50", 0.50D, 0.0D, 0.0D),
+        HEALTH_Q_75("HEALTH_Q_75", 0.75D, 0.0D, 0.0D),
+        HEALTH_Q_100("HEALTH_Q_100", 1.0D, 0.0D, 0.0D);
 
         final String id;
         final Phase6CalibrationContext.Parameters parameters;
@@ -2658,6 +2663,14 @@ public final class Phase5FSuiteBBenchmark {
 
         static List<CalibrationCase> ceilingCases() {
             return List.of(BASELINE, DEMENTOR_FULL, ADAPTIVE_FULL, REDUCERS_FULL, HEALTH_FULL, ALL_FULL);
+        }
+
+        static List<CalibrationCase> forMode(String mode) {
+            return switch (mode) {
+                case "ceiling" -> ceilingCases();
+                case "health" -> List.of(HEALTH_Q_0, HEALTH_Q_25, HEALTH_Q_50, HEALTH_Q_75, HEALTH_Q_100);
+                default -> throw new IllegalArgumentException("calibration mode is not implemented yet: " + mode);
+            };
         }
 
         Phase6CalibrationContext.Parameters parameters() {

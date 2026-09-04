@@ -182,6 +182,63 @@ switch ($Mode) {
             }
         }
     }
+    'health' {
+        if (-not $ExpectedFamily) { throw 'health mode requires -ExpectedFamily' }
+        $rows = @($session | Where-Object kind -eq 'row')
+        $cases = @($session | Where-Object kind -eq 'case_result')
+        if ($rows.Count -ne 600 -or $cases.Count -ne 60 -or
+                [int]$suite[0].case_count -ne 60 -or [int]$suite[0].requested_case_count -ne 60) {
+            throw "Health suite count mismatch: cases=$($cases.Count), rows=$($rows.Count)"
+        }
+        $expectedQ = @(0.0, 0.25, 0.5, 0.75, 1.0)
+        $keys = [System.Collections.Generic.HashSet[string]]::new()
+        foreach ($case in $cases) {
+            if ($case.status -ne 'ok' -or $case.calibration_mode -ne 'health' -or
+                    $case.TNO_family -ne $ExpectedFamily -or $case.APO_profile -ne 'NONE' -or
+                    @(300,600,800,1000) -notcontains [int]$case.level -or
+                    @('S5','S6','S7') -notcontains $case.TNO_stage -or
+                    $expectedQ -notcontains [double]$case.Q_generic_health -or
+                    [double]$case.RD_dementor -ne 0.0 -or [double]$case.RA_adaptive -ne 0.0 -or
+                    [int]$case.shots_released -ne 10 -or [int]$case.hits_recorded -ne 10 -or
+                    [int]$case.calibration_trace_count -ne 10) { throw 'Invalid health case' }
+            if (-not $keys.Add("$($case.level)|$($case.TNO_stage)|$($case.Q_generic_health)")) {
+                throw 'Duplicate health case coordinate'
+            }
+        }
+        foreach ($row in $rows) {
+            $trace = $row.calibration_trace
+            $expectedSource = if ($ExpectedFamily -eq 'MAGIC_WEAPON') { 'tensura.magic' } else { 'tensura.holy_damage' }
+            if ($row.TNO_family -ne $ExpectedFamily -or $row.APO_profile -ne 'NONE' -or
+                    [int]$row.calibration_trace_count -ne 1 -or [int]$row.engraving_damage_event_count -ne 1 -or
+                    $trace.Adaptive_source_msgId -ne $expectedSource -or
+                    [bool]$row.l2_layer_bypassed_unexpectedly -or [bool]$row.tensura_layer_bypassed_unexpectedly -or
+                    [bool]$row.unexpected_source_duplication -or [bool]$row.event_recursion_observed) {
+                throw 'Invalid health row identity/invariant'
+            }
+            $expectedH = 1.0 + [int]$row.level * 0.03 * 1.2
+            $expectedOutput = [double]$trace.generic_input *
+                (1.0 + [double]$row.Q_generic_health * ($expectedH - 1.0))
+            if ([math]::Abs([double]$trace.generic_L2_health_multiplier - $expectedH) -gt 0.00001 -or
+                    [math]::Abs([double]$trace.generic_diagnostic_output - $expectedOutput) -gt 0.001 -or
+                    [math]::Abs([double]$trace.Dementor_diagnostic_post - [double]$trace.Dementor_native_post) -gt 0.001) {
+                throw 'Health row formula or RD=0 invariant failed'
+            }
+            if ([bool]$trace.Adaptive_applied -and
+                    [math]::Abs([double]$trace.Adaptive_negotiated_factor - [double]$trace.Adaptive_native_factor) -gt 0.000001) {
+                throw 'Health row RA=0 changed Adaptive'
+            }
+            if ([math]::Abs([double]$trace.final_family_event_amount - [double]$row.family_effect_final_event_amount) -gt 0.001) {
+                throw 'Health final family event/trace mismatch'
+            }
+        }
+        foreach ($group in ($rows | Group-Object level, TNO_stage, calibration_case)) {
+            $ordered = @($group.Group | Sort-Object {[int]$_.hit_index})
+            if ($ordered.Count -ne 10) { throw 'Health repeated-hit sequence count mismatch' }
+            if ([bool]$ordered[0].calibration_trace.Adaptive_applied -and
+                    (@($ordered | ForEach-Object {[int]$_.calibration_trace.Adaptive_adaptation_count}) -join ',') -ne
+                    '1,2,3,4,5,6,7,8,9,10') { throw 'Health sweep reset Adaptive state' }
+        }
+    }
 }
 
 $parent = Split-Path -Parent $OutputPath
