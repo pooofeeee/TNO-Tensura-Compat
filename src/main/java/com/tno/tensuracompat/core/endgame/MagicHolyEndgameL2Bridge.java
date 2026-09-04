@@ -18,6 +18,7 @@ public final class MagicHolyEndgameL2Bridge {
     private static final int LISTENER_PRIORITY = 4501;
     private static final int BEFORE_DEMENTOR = 7435;
     private static final int AFTER_DEMENTOR = 7437;
+    private static final int AFTER_ADAPTIVE = 7437;
     private static boolean registrationAttempted;
     private static Object registeredListener;
 
@@ -74,6 +75,11 @@ public final class MagicHolyEndgameL2Bridge {
                 invoke(defence, "addDealtModifier", modifier("PRE_NONLINEAR", AFTER_DEMENTOR,
                         "magic_holy_dementor_recovery", value -> MagicHolyEndgameMath.negotiateDementor(
                                 true, beforeDementor[0], value, frame.parameters().dementorRecovery())));
+            }
+            if (frame.l2Target().hasTrait("l2hostility:adaptive")) {
+                invoke(defence, "addDealtModifier", modifier("POST_MULTIPLICATIVE", AFTER_ADAPTIVE,
+                        "magic_holy_adaptive_recovery", value -> MagicHolyEndgameMath.negotiateAdaptive(
+                                true, value, frame.parameters().adaptiveRecovery())));
             }
         }
         catch (ReflectiveOperationException | RuntimeException ignored) {

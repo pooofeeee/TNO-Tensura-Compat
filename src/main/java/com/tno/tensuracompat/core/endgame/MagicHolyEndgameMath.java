@@ -29,6 +29,14 @@ public final class MagicHolyEndgameMath {
         return nativePostDementor + recovery * (preDementor - nativePostDementor);
     }
 
+    public static double negotiateAdaptive(boolean hasAdaptive, double nativeFactor, double recovery) {
+        if (!hasAdaptive || !Double.isFinite(nativeFactor) || nativeFactor < 0.0D || nativeFactor > 1.0D
+                || !validFraction(recovery)) {
+            return nativeFactor;
+        }
+        return nativeFactor + recovery * (1.0D - nativeFactor);
+    }
+
     private static boolean validFraction(double value) {
         return Double.isFinite(value) && value >= 0.0D && value <= 1.0D;
     }
