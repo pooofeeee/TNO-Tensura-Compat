@@ -1,0 +1,94 @@
+{
+  "schema": "tno.phase6.severance_regenerate.native_semantics.v1",
+  "checkpoint": "R1",
+  "conclusion": "A_NATIVE_SEVERANCE_CLEARLY_CONSTRAINS_L2_REGENERATE",
+  "runtime": {
+    "minecraft": "1.21.1",
+    "tensura": {
+      "file": "tensura-neoforge-2.0.1.1.jar",
+      "version": "2.0.1.1",
+      "sha256": "C12EC9AAA1488C662EDE52B4BD0150EC114E7BDAC32AF20C0E723612DD79D8B9"
+    },
+    "l2hostility": {
+      "file": "l2hostility-3.0.18.jar",
+      "version": "3.0.18",
+      "sha256": "8821952B49C5E9B1980B4D7CCECBCFA8E957204D39AC62D8D40DFF34FAAAF780"
+    },
+    "l2library": {
+      "file": "l2library-3.0.8.jar",
+      "version": "3.0.8",
+      "sha256": "26038E30873CF505BC289E28F9DCF084561B8A4929B294DD0552BA5E52505DD6"
+    },
+    "l2complements": {
+      "file": "l2complements-3.1.3.jar",
+      "version": "3.1.3",
+      "sha256": "94E34372F6C0EE1D36FD18EEDA5F2C6676800D32D63AA250C194472C7196B8A7"
+    }
+  },
+  "live_config": {
+    "tensura.severanceRemoveSec": 300,
+    "l2hostility.regen": 0.01
+  },
+  "severance": {
+    "enchantment": "tensura:severance",
+    "max_level": 1,
+    "native_damage_add_per_level": 3.0,
+    "callback": "tensura:after_damage",
+    "callback_input": "combined integer arrow damage after enchantment modification, velocity, and ceil",
+    "callback_tests_entity_hurt_result": false,
+    "callback_requires_hp_loss": false,
+    "callback_requires_shp_loss": false,
+    "amount_at_level_1_times_callback_damage": 0.5,
+    "severance_cap_parameter": 0.5,
+    "ignore_defence": false,
+    "defence_bound": "min(candidate,max(0.5,maxHP-currentHP-existingWound))",
+    "cancellation": [
+      "tensura:no_severance entity type tag",
+      "mastered tensura:suppressor",
+      "infinite-material target",
+      "severanceRemoveSec equals zero"
+    ],
+    "storage_key": "tensura:effect_storage",
+    "amount_field": "severance",
+    "duration_field": "severanceRemove",
+    "stacking": "additive after Severance Protection reduction",
+    "refresh": "every application resets removal timer",
+    "duration_unit": "server seconds",
+    "effective_hp_ceiling": "maxHP-severanceAmount",
+    "changes_max_health_attribute": false,
+    "directly_changes_spiritual_health": false,
+    "directly_changes_magicules": false,
+    "directly_changes_aura": false
+  },
+  "regenerate": {
+    "class": "dev.xkmc.l2hostility.content.traits.common.RegenTrait",
+    "cadence": "target.tickCount modulo 20 equals zero",
+    "formula": "target.getMaxHealth()*regen*rank",
+    "method": "LivingEntity.heal(float)",
+    "rank_4_fraction_per_second": 0.04,
+    "rank_5_fraction_per_second": 0.05,
+    "heals_spiritual_health": false,
+    "intercepted_by_living_heal_event": true,
+    "severance_visible": true
+  },
+  "heal_interception": {
+    "class": "io.github.manasmods.tensura.neoforge.handler.AbilityHandlers",
+    "method": "onHeal",
+    "event": "net.neoforged.neoforge.event.entity.living.LivingHealEvent",
+    "priority": "HIGHEST",
+    "behavior_below_ceiling": "unchanged",
+    "behavior_crossing_ceiling": "amount truncated to ceiling-currentHP",
+    "behavior_at_ceiling": "cancelled",
+    "behavior_above_ceiling": "native severance damage attempted and heal cancelled"
+  },
+  "source_audit": [
+    "data/tensura/enchantment/severance.json",
+    "io.github.manasmods.tensura.mixin.MixinAbstractArrow",
+    "io.github.manasmods.tensura.enchantment.TensuraEnchantmentHelper",
+    "io.github.manasmods.tensura.enchantment.effect.SeveranceDamageEntity",
+    "io.github.manasmods.tensura.ability.SkillUtils",
+    "io.github.manasmods.tensura.storage.effect.EffectStorage",
+    "io.github.manasmods.tensura.neoforge.handler.AbilityHandlers",
+    "dev.xkmc.l2hostility.content.traits.common.RegenTrait"
+  ]
+}
