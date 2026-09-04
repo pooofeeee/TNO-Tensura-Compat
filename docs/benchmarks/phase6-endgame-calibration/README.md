@@ -206,6 +206,45 @@ development context is absent on no-L2 targets. This is not a final Q choice.
 The full 0.25-1.00 interval remains available for the small combined shortlist;
 F and G must first establish trait-negotiation regions.
 
+## Checkpoint F — Dementor sweep
+
+Status: complete. `dementor_magic_weapon.jsonl` and
+`dementor_holy_weapon.jsonl` each contain 120 cases, 1,200 traced hits, and
+zero errors. RD = 0, 0.25, 0.50, 0.75, 1.00 was tested across S5-S7 and all
+four levels on both the accepted legal profile and an otherwise-identical
+legal control with Dementor removed. The removed trait's 120-point budget was
+left unused; no replacement trait or impossible combination was created.
+Q=RA=0 throughout.
+
+S7 accepted-profile family DPS below is ordered RD = 0, 0.25, 0.50, 0.75,
+1.00. Adaptive remains native at Lv600+ and therefore compresses every value.
+
+| Family | Lv300 | Lv600 | Lv800 | Lv1000 |
+|---|---|---|---|---|
+| Magic | 3.485, 5.414, 7.652, 10.141, 11.760 | 0.696, 1.082, 1.467, 1.868, 2.238 | 0.696, 1.093, 1.467, 1.853, 2.238 | 0.696, 1.082, 1.467, 2.072, 2.242 |
+| Holy | 3.602, 5.414, 7.343, 9.706, 11.200 | 0.696, 1.105, 1.467, 2.287, 2.238 | 0.762, 1.151, 1.660, 1.853, 2.308 | 0.698, 1.266, 1.467, 1.961, 2.238 |
+
+The exact per-hit formula was validated at L2's reducer boundary:
+`candidate = nativePost + RD * (pre - nativePost)`. RD=0 is bit-for-bit the
+native reducer output within float tolerance, no candidate exceeds the
+pre-Dementor input, and RD=1 reaches the same reducer boundary as the legal
+no-Dementor control. Source ID, Adaptive count/factor, event count, and all
+admission paths remain unchanged.
+
+Classification for later combined testing:
+
+- RD 0 and 0.25: too weak. Even RD 0.25 leaves S7 Lv600-Lv1000 at roughly
+  1.1 family DPS and multi-hour TTK.
+- RD 0.50-0.75: promising coarse interval. RD 0.50 retains a large Dementor
+  disadvantage; RD 0.75 retains a measurable gap while giving substantially
+  more pre-Adaptive signal.
+- RD 1.00: too strong as a policy candidate because it makes Dementor
+  equivalent to the no-Dementor control, even though untouched Adaptive still
+  makes the isolated fight nonviable.
+
+Dementor therefore needs partial negotiation, but it is not sufficient alone.
+No fine-grained sweep or permanent RD value is selected.
+
 ## Checkpoint B — Magic/Holy classification
 
 Status: complete. `classification.jsonl` contains two runtime registry

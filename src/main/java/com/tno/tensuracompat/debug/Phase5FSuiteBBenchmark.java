@@ -523,13 +523,14 @@ public final class Phase5FSuiteBBenchmark {
         }
 
         private void installAcceptedEndgameProfile() throws ReflectiveOperationException {
-            Map<String, Integer> expected = PRODUCTION_OBSERVATION
+            Map<String, Integer> reference = PRODUCTION_OBSERVATION
                     ? ACCEPTED_ORC_ENDGAME_PROFILES.get(currentCase().level)
                     : ACCEPTED_ENDGAME_PROFILES.get(currentCase().boss.id.toString());
-            if (expected == null || !PRODUCTION_OBSERVATION && currentCase().level != 1000) {
+            if (reference == null || !PRODUCTION_OBSERVATION && currentCase().level != 1000) {
                 throw new IllegalStateException("missing accepted endgame profile for "
                         + currentCase().boss.id + " at Lv" + currentCase().level);
             }
+            Map<String, Integer> expected = currentCase().traitProfile.apply(reference);
 
             Object rawTraits = readField(l2Cap, "traits");
             if (!(rawTraits instanceof Map<?, ?> rawMap)) {
@@ -1205,7 +1206,10 @@ public final class Phase5FSuiteBBenchmark {
                 json.addProperty("level", spec.level);
                 json.addProperty("level_mode", spec.mode.name());
                 json.addProperty("TNO_stage", spec.stage.name);
-                if (CALIBRATION_COMBAT) json.addProperty("calibration_case", spec.calibration.id);
+                if (CALIBRATION_COMBAT) {
+                    json.addProperty("L2_profile_variant", spec.traitProfile.id);
+                    json.addProperty("calibration_case", spec.calibration.id);
+                }
             }
             return json;
         }
@@ -1300,6 +1304,7 @@ public final class Phase5FSuiteBBenchmark {
                 entry.addProperty("level_mode", spec.mode.name());
                 entry.addProperty("TNO_stage", spec.stage.name);
                 if (CALIBRATION_COMBAT) {
+                    entry.addProperty("L2_profile_variant", spec.traitProfile.id);
                     entry.addProperty("calibration_case", spec.calibration.id);
                     entry.addProperty("Q_generic_health", spec.calibration.parameters.genericHealthQ());
                     entry.addProperty("RD_dementor", spec.calibration.parameters.dementorRD());
@@ -1321,9 +1326,12 @@ public final class Phase5FSuiteBBenchmark {
                     .findFirst().orElseThrow();
             if (!filter.isBlank() && !boss.id.toString().equals(filter)) return result;
             for (int level : List.of(300, 600, 800, 1000)) {
-                for (Stage stage : STAGES.subList(6, STAGES.size())) {
-                    for (CalibrationCase calibration : CalibrationCase.forMode(CALIBRATION_MODE)) {
-                        result.add(new CaseSpec(boss, level, LevelMode.ENDGAME_TARGET, stage, calibration));
+                for (TraitProfile profile : TraitProfile.forMode(CALIBRATION_MODE)) {
+                    for (Stage stage : STAGES.subList(6, STAGES.size())) {
+                        for (CalibrationCase calibration : CalibrationCase.forMode(CALIBRATION_MODE)) {
+                            result.add(new CaseSpec(boss, level, LevelMode.ENDGAME_TARGET,
+                                    stage, calibration, profile));
+                        }
                     }
                 }
             }
@@ -1353,7 +1361,7 @@ public final class Phase5FSuiteBBenchmark {
                     : DIAGNOSTIC ? List.of(STAGES.get(0), STAGES.get(1), STAGES.get(6), STAGES.get(8)) : STAGES;
             for (LevelEntry entry : levels) {
                 for (Stage stage : stages) result.add(new CaseSpec(
-                        boss, entry.level, entry.mode, stage, CalibrationCase.NONE));
+                        boss, entry.level, entry.mode, stage, CalibrationCase.NONE, TraitProfile.ACCEPTED));
             }
         }
         return result;
@@ -1375,6 +1383,18 @@ public final class Phase5FSuiteBBenchmark {
             case "tensura_neb:rimuru_ogre_fight" -> 940;
             default -> 950;
         };
+    }
+
+    private static int calibrationBudgetSpent(CaseSpec spec) {
+        int spent = endgameBudgetSpent(spec.boss, spec.level);
+        Map<String, Integer> reference = ACCEPTED_ORC_ENDGAME_PROFILES.getOrDefault(spec.level, Map.of());
+        if (spec.traitProfile.removedTraits.contains("l2hostility:dementor")) {
+            spent -= 120 * reference.getOrDefault("l2hostility:dementor", 0);
+        }
+        if (spec.traitProfile.removedTraits.contains("l2hostility:adaptive")) {
+            spent -= 80 * reference.getOrDefault("l2hostility:adaptive", 0);
+        }
+        return spent;
     }
 
     private static final class CaseResult {
@@ -1831,13 +1851,28 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("legal_trait_profile", true);
             json.addProperty("native_profile_source", nativeProfileSource);
             json.addProperty("profile_clone_verified", true);
-            json.addProperty("strongest_legal_endgame_profile", STRONGEST_LEGAL_PROFILE);
+            json.addProperty("strongest_legal_endgame_profile", STRONGEST_LEGAL_PROFILE
+                    && (!CALIBRATION_COMBAT || spec.traitProfile == TraitProfile.ACCEPTED));
+            if (CALIBRATION_COMBAT) {
+                json.addProperty("L2_profile_variant", spec.traitProfile.id);
+                json.addProperty("profile_is_accepted_strongest_legal",
+                        spec.traitProfile == TraitProfile.ACCEPTED);
+                json.addProperty("removed_trait_budget_not_reallocated",
+                        spec.traitProfile != TraitProfile.ACCEPTED);
+            }
             json.addProperty("endgame_profile_source",
-                    STRONGEST_LEGAL_PROFILE ? "accepted Phase 5F 39-trait strongest legal defensive profile" : "not applicable");
+                    STRONGEST_LEGAL_PROFILE && (!CALIBRATION_COMBAT || spec.traitProfile == TraitProfile.ACCEPTED)
+                            ? "accepted Phase 5F 39-trait strongest legal defensive profile"
+                            : CALIBRATION_COMBAT
+                                    ? "accepted legal profile with named trait(s) removed and budget left unused"
+                                    : "not applicable");
             json.addProperty("endgame_profile_budget_spent",
-                    STRONGEST_LEGAL_PROFILE ? endgameBudgetSpent(spec.boss, spec.level) : 0);
+                    STRONGEST_LEGAL_PROFILE ? calibrationBudgetSpent(spec) : 0);
             json.addProperty("endgame_profile_budget_remaining",
-                    STRONGEST_LEGAL_PROFILE ? spec.level - endgameBudgetSpent(spec.boss, spec.level) : 0);
+                    STRONGEST_LEGAL_PROFILE ? spec.level - calibrationBudgetSpent(spec) : 0);
+            if (CALIBRATION_COMBAT) {
+                json.addProperty("reference_profile_budget_spent", endgameBudgetSpent(spec.boss, spec.level));
+            }
             json.addProperty("HP", initialMaxHp);
             json.addProperty("initial_HP", initialHp);
             json.addProperty("SHP", initialShp);
@@ -2636,7 +2671,7 @@ public final class Phase5FSuiteBBenchmark {
         }
     }
 
-    private record ProfileKey(ResourceLocation boss, int level, LevelMode mode) {
+    private record ProfileKey(ResourceLocation boss, int level, LevelMode mode, TraitProfile traitProfile) {
     }
 
     private enum CalibrationCase {
@@ -2651,7 +2686,12 @@ public final class Phase5FSuiteBBenchmark {
         HEALTH_Q_25("HEALTH_Q_25", 0.25D, 0.0D, 0.0D),
         HEALTH_Q_50("HEALTH_Q_50", 0.50D, 0.0D, 0.0D),
         HEALTH_Q_75("HEALTH_Q_75", 0.75D, 0.0D, 0.0D),
-        HEALTH_Q_100("HEALTH_Q_100", 1.0D, 0.0D, 0.0D);
+        HEALTH_Q_100("HEALTH_Q_100", 1.0D, 0.0D, 0.0D),
+        DEMENTOR_RD_0("DEMENTOR_RD_0", 0.0D, 0.0D, 0.0D),
+        DEMENTOR_RD_25("DEMENTOR_RD_25", 0.0D, 0.25D, 0.0D),
+        DEMENTOR_RD_50("DEMENTOR_RD_50", 0.0D, 0.50D, 0.0D),
+        DEMENTOR_RD_75("DEMENTOR_RD_75", 0.0D, 0.75D, 0.0D),
+        DEMENTOR_RD_100("DEMENTOR_RD_100", 0.0D, 1.0D, 0.0D);
 
         final String id;
         final Phase6CalibrationContext.Parameters parameters;
@@ -2669,6 +2709,8 @@ public final class Phase5FSuiteBBenchmark {
             return switch (mode) {
                 case "ceiling" -> ceilingCases();
                 case "health" -> List.of(HEALTH_Q_0, HEALTH_Q_25, HEALTH_Q_50, HEALTH_Q_75, HEALTH_Q_100);
+                case "dementor" -> List.of(DEMENTOR_RD_0, DEMENTOR_RD_25, DEMENTOR_RD_50,
+                        DEMENTOR_RD_75, DEMENTOR_RD_100);
                 default -> throw new IllegalArgumentException("calibration mode is not implemented yet: " + mode);
             };
         }
@@ -2678,10 +2720,40 @@ public final class Phase5FSuiteBBenchmark {
         }
     }
 
+    private enum TraitProfile {
+        ACCEPTED("ACCEPTED_STRONGEST_LEGAL", Set.of()),
+        WITHOUT_DEMENTOR("WITHOUT_DEMENTOR_CONTROL", Set.of("l2hostility:dementor")),
+        WITHOUT_ADAPTIVE("WITHOUT_ADAPTIVE_CONTROL", Set.of("l2hostility:adaptive")),
+        WITHOUT_DEMENTOR_ADAPTIVE("WITHOUT_DEMENTOR_ADAPTIVE_CONTROL",
+                Set.of("l2hostility:dementor", "l2hostility:adaptive")),
+        WITHOUT_REGENERATE("WITHOUT_REGENERATE_CONTROL", Set.of("l2hostility:regenerate"));
+
+        final String id;
+        final Set<String> removedTraits;
+
+        TraitProfile(String id, Set<String> removedTraits) {
+            this.id = id;
+            this.removedTraits = removedTraits;
+        }
+
+        Map<String, Integer> apply(Map<String, Integer> reference) {
+            Map<String, Integer> result = new LinkedHashMap<>(reference);
+            removedTraits.forEach(result::remove);
+            return Map.copyOf(result);
+        }
+
+        static List<TraitProfile> forMode(String mode) {
+            return switch (mode) {
+                case "dementor" -> List.of(ACCEPTED, WITHOUT_DEMENTOR);
+                default -> List.of(ACCEPTED);
+            };
+        }
+    }
+
     private record CaseSpec(BossSpec boss, int level, LevelMode mode, Stage stage,
-                            CalibrationCase calibration) {
+                            CalibrationCase calibration, TraitProfile traitProfile) {
         ProfileKey profileKey() {
-            return new ProfileKey(boss.id, level, mode);
+            return new ProfileKey(boss.id, level, mode, traitProfile);
         }
     }
 

@@ -13,7 +13,7 @@ or change any production combat behavior.
 | C — development calibration context | Complete | `Phase6CalibrationContext` plus unit tests | Synchronous ThreadLocal scope; observes only `getExisting`; fail-closed; no serialized or L2-owned state changes; impossible to activate in production. |
 | D — diagnostic ceiling | Complete | `ceiling_magic_weapon.jsonl`, `ceiling_holy_weapon.jsonl` | Neither reducer alone nor both together are sufficient. Generic-H compensation is also required for practical viability in this controlled profile. The all-100% diagnostic bound reaches about 211-242s S7 TTK at Lv600-Lv1000, proving the three-component architecture is mathematically sufficient without selecting production values. |
 | E — generic-health calibration | Complete | `health_magic_weapon.jsonl`, `health_holy_weapon.jsonl` | Q is monotonic but cannot overcome untouched Dementor + Adaptive. Q=1 alone still estimates 10.7-15.0 hour S7 fights at Lv600-Lv1000. No arbitrary L2-level threshold is supported; H naturally scales. |
-| F — Dementor calibration | Pending | — | — |
+| F — Dementor calibration | Complete | `dementor_magic_weapon.jsonl`, `dementor_holy_weapon.jsonl` | RD 0.50-0.75 is the promising coarse interval. RD <=0.25 is too weak; RD=1 erases Dementor and is too strong architecturally. |
 | G — Adaptive calibration | Pending | — | — |
 | H — combined candidates | Pending | — | — |
 | I — safety matrix | Pending | — | — |
@@ -68,3 +68,17 @@ actual L2 level, and Lv600 exhibits the same fundamental wall. The nominal H
 input remains explicitly distinct from capped vanilla HP, Tank, native SHP,
 and the separately observed Tensura:L2Hostility SHP bridge. E does not select
 a permanent Q or change any production behavior.
+
+## Checkpoint F — RD sweep
+
+The accepted F matrix has 240 cases and 2,400 reducer traces, split equally
+between the accepted legal profiles and legal otherwise-identical controls
+with Dementor removed and its budget left unused. The measured formula is
+exactly `nativePost + RD * (pre - nativePost)` at the native L2 boundary.
+
+RD 0-0.25 remains too weak; RD 1.00 reproduces the no-Dementor boundary and
+would delete the trait's identity. RD 0.50-0.75 is the only promising coarse
+region: it retains measurable nonlinear harm while recovering enough signal
+for the later combined test. Adaptive remains fully native and is why even
+RD=1 alone still produces multi-hour high-level estimates. No permanent RD is
+selected.

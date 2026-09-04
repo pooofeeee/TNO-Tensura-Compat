@@ -164,9 +164,13 @@ public final class Phase6CalibrationContext {
                     }));
         }
         else {
-            trace.dementorPre = trace.genericPost;
-            trace.dementorNativePost = trace.genericPost;
-            trace.dementorDiagnosticPost = trace.genericPost;
+            invoke(defence, "addDealtModifier", modifier("PRE_NONLINEAR", AFTER_DEMENTOR,
+                    "calibration_dementor_observation", value -> {
+                        trace.dementorPre = trace.genericPost;
+                        trace.dementorNativePost = value;
+                        trace.dementorDiagnosticPost = value;
+                        return value;
+                    }));
         }
 
         if (frame.hasTrait("l2hostility:adaptive")) {
@@ -186,11 +190,15 @@ public final class Phase6CalibrationContext {
                     }));
         }
         else {
-            trace.adaptivePre = trace.dementorDiagnosticPost;
-            trace.adaptiveNativeFactor = 1.0D;
-            trace.adaptiveDiagnosticFactor = 1.0D;
-            trace.adaptiveNativePost = trace.adaptivePre;
-            trace.adaptiveDiagnosticPost = trace.adaptivePre;
+            invoke(defence, "addDealtModifier", modifier("POST_MULTIPLICATIVE", AFTER_ADAPTIVE,
+                    "calibration_adaptive_observation", value -> {
+                        trace.adaptivePre = trace.dementorDiagnosticPost;
+                        trace.adaptiveNativeFactor = value;
+                        trace.adaptiveDiagnosticFactor = value;
+                        trace.adaptiveNativePost = trace.adaptivePre * value;
+                        trace.adaptiveDiagnosticPost = trace.adaptiveNativePost;
+                        return value;
+                    }));
         }
     }
 
