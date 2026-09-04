@@ -138,3 +138,9 @@ The runtime run also exposed and resolved one compatibility defect: reflective i
 - The post-completion TNO-only Lv300/Lv600/Lv800/Lv1000 revalidation and its design recommendation are documented in [`phase-6-endgame-viability-research.md`](phase-6-endgame-viability-research.md). It changes no Phase 6 production rule and proposes no permanent percentage.
 - No authorized balance constants, native Tensura mechanics, L2 mechanics, Apotheosis mechanics, Royal Bow/Arrow base damage, Mark behavior, or accepted research evidence were changed.
 - Phase 6 is `COMPLETE`. Phase 7 has not started.
+
+## Magic/Holy endgame production extension
+
+The separately calibrated Magic/Holy L2 endgame negotiation is now productionized on `phase-6-endgame-magic-holy-production`. It adds Stage-gated generic-health participation plus bounded native Dementor and Adaptive negotiation only to existing `tensura:magic` and `tensura:holy_damage` events. The exact architecture, policy table, fail-closed contract, optional-L2 result, and 86-case/860-hit production acceptance are documented in [`phase-6-endgame-magic-holy-production.md`](phase-6-endgame-magic-holy-production.md).
+
+This extension does not revise the Phase 6 Stage framework or resolve Regenerate, Severance, Elemental, Soul Eater, or Energy Steal. The original Phase 7 remains unstarted.

@@ -9,7 +9,7 @@ This directory is reserved for production-path acceptance evidence. It does not 
 - P3: actual Dementor-bearing targets receive `nativePost + RD * (pre - nativePost)` immediately after L2's native Dementor reducer at `PRE_NONLINEAR` priority 7437. Targets without Dementor receive no RD modifier.
 - P4: actual Adaptive-bearing targets receive factor negotiation `A + RA * (1 - A)` after L2's native factor at `POST_MULTIPLICATIVE` priority 7437. TNO does not inspect or mutate Adaptive rank, capacity, count, memory, or source key.
 - P5: integrated production acceptance complete.
-- P6: not yet executed at this checkpoint.
+- P6: production review, optional-L2 startup verification, final validation, and documentation complete.
 
 P1 is intentionally behavior-neutral: the context is not yet connected to the native event and no L2 damage modifier is registered. The adapter uses `getExisting`, requires an initialized attachment, reads the target's current level plus live `healthFactor`, `exponentialHealth`, and entity `healthScale`, and returns no view if any required read fails.
 
