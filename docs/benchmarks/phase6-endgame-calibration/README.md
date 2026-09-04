@@ -85,6 +85,92 @@ but must keep these native, generic-L2, Tank, and datapack-SHP layers distinct.
 
 No production combat or balance behavior was changed by this checkpoint.
 
+## Checkpoint D — absolute diagnostic ceiling
+
+Status: complete. `ceiling_magic_weapon.jsonl` and
+`ceiling_holy_weapon.jsonl` each contain one catalog, 72 accepted case
+results, 720 per-hit rows, 720 reducer traces, one complete suite result, and
+zero case errors. This is 144 cases and 1,440 traced hits overall. Every case
+uses the real Royal Bow/Royal Arrow, native Gear EP resolving production S5,
+S6, or S7, `APO_profile = NONE`, ten releases, a 200-tick window, and a
+pristine clone of the accepted legal Orc Disaster profile for its level.
+
+The development listener runs immediately after L2's own listener and adds
+modifiers inside `DamageData.Defence`; it does not restore damage after L2.
+The generic diagnostic is `PRE_NONLINEAR` priority 7435, the Dementor blend is
+`PRE_NONLINEAR` priority 7437 around native priority 7436, and the Adaptive
+blend is `POST_MULTIPLICATIVE` priority 7437. The original source IDs remain
+`tensura.magic` and `tensura.holy_damage`. Each hit has exactly one eligible
+family event and no duplicate, recursion, unexpected L2 bypass, unexpected
+Tensura bypass, second family source, or direct HP subtraction.
+
+### Durability-layer precision
+
+CASE 4 and CASE 5 multiply only the eligible special contribution by
+`1 + Q * (H - 1)`, where the nominal generic L2 hostility-health multiplier
+for Orc is `H = 1 + level * 0.03 * 1.2`. They do not alter target HP, SHP,
+Tank, or the external datapack. This must not be misread as all durability
+being native L2 generic health. Checkpoint A proved that vanilla HP is capped
+at 10,000, Tank is separate, and the external Tensura:L2Hostility datapack
+independently makes SHP `nativeSHP * (1 + level * 0.03)`. At Lv1000 the
+diagnostic input is therefore 37x while the separately retained SHP bridge is
+31x. Checkpoint E must calibrate this deliberately; D uses 100% only as an
+upper-bound necessity test.
+
+### S7 diagnostic results
+
+Each cell is family DPS / estimated family-only TTK. TTK uses the full
+recorded maximum HP + SHP and is an estimate, not a simulated kill.
+
+| Family | Lv | C0 baseline | C1 Dementor 100% | C2 Adaptive 100% | C3 both 100% | C4 H 100% only | C5 H + both 100% |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Magic | 300 | 3.544 / 10,440s | 11.200 / 3,304s | 3.544 / 10,440s | 11.200 / 3,304s | 7.046 / 5,251s | 132.160 / 280s |
+| Magic | 600 | 0.704 / 87,095s | 2.238 / 27,393s | 3.602 / 17,016s | 11.200 / 5,473s | 1.595 / 38,428s | 265.776 / 231s |
+| Magic | 800 | 0.704 / 110,130s | 2.238 / 34,632s | 3.602 / 21,513s | 11.200 / 6,920s | 1.675 / 46,272s | 333.760 / 232s |
+| Magic | 1000 | 0.696 / 134,548s | 2.238 / 41,871s | 3.485 / 26,883s | 11.760 / 7,968s | 1.767 / 53,042s | 414.400 / 226s |
+| Holy | 300 | 3.485 / 10,616s | 11.200 / 3,304s | 3.485 / 10,616s | 11.200 / 3,304s | 7.105 / 5,208s | 138.768 / 267s |
+| Holy | 600 | 0.726 / 84,476s | 2.249 / 27,260s | 3.544 / 17,297s | 11.200 / 5,473s | 1.595 / 38,426s | 253.120 / 242s |
+| Holy | 800 | 0.696 / 111,286s | 2.378 / 32,593s | 3.485 / 22,235s | 11.200 / 6,920s | 1.675 / 46,272s | 367.136 / 211s |
+| Holy | 1000 | 0.697 / 134,372s | 2.238 / 41,871s | 3.485 / 26,883s | 11.200 / 8,366s | 1.745 / 53,709s | 414.400 / 226s |
+
+The total TNO-only Royal Bow event DPS differs from family DPS only by the
+surviving unscaled physical arrow residue. At Lv1000 S7 CASE 5 it is 414.471
+DPS for both families, giving a 226.1-second estimated total TTK. At the same
+coordinate, baseline total DPS is about 0.77 and estimated TTK exceeds 121,000
+seconds.
+
+### Reducer and necessity findings
+
+- Dementor recovery alone is not sufficient. At S7 Lv600-Lv1000 its
+  family-only TTK remains about 7.6-11.6 hours because Adaptive still owns the
+  repeated-source collapse where present.
+- Adaptive recovery alone is not sufficient. Dementor still constrains the
+  family to roughly 3.5 DPS and 4.7-7.5 hours at Lv600-Lv1000.
+- Recovering both reducers is still not sufficient: 11.2-11.76 family DPS
+  leaves 91-139 minute estimated fights.
+- Generic-H compensation alone is not sufficient because both traits still
+  act after it; its S7 high-level TTK remains 10.7-14.9 hours.
+- Some level-derived durability compensation is therefore necessary together
+  with partial trait negotiation if practical endgame viability is the goal.
+  D does not yet choose how much, and it keeps the external SHP bridge distinct.
+- The all-100% upper bound is mathematically capable: S7 Lv600-Lv1000 lands at
+  211-242 seconds in this controlled profile. Thus the three-component
+  architecture is sufficient in principle and no hidden fourth multiplier is
+  justified by this checkpoint.
+- Magic and Holy are materially equivalent at these boundaries. Small table
+  differences are run-to-run physical/projectile and target-update variance;
+  their exact Lv1000 S7 CASE 5 family result is identical.
+- Lv600 already has the same fundamental wall: baseline is about 0.70-0.73
+  family DPS and roughly 23-24 hours estimated TTK, while both reducer ceilings
+  without H still leave about 91 minutes.
+
+Adaptive was never reset or rewritten. In every attached-trait case its count
+advanced exactly 1 through 10 and native factor exactly followed
+`0.5^(count-1)`, ending at `0.001953125`. A 100% diagnostic factor never
+exceeded the pre-Adaptive value; 0% matched native behavior. Equivalent bounds
+were validated around Dementor's native base-2 nonlinear result. These are
+diagnostic ceilings, not candidate production values.
+
 ## Checkpoint B — Magic/Holy classification
 
 Status: complete. `classification.jsonl` contains two runtime registry

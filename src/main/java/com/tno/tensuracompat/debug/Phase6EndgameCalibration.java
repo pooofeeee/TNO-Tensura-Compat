@@ -63,7 +63,9 @@ public final class Phase6EndgameCalibration {
     }
 
     public static void onServerStarted(ServerStartedEvent event) {
-        if (FMLEnvironment.production || !Boolean.getBoolean("tno.phase6.calibration") || active != null) return;
+        if (FMLEnvironment.production || !Boolean.getBoolean("tno.phase6.calibration")) return;
+        Phase6CalibrationContext.registerL2Listener();
+        if (active != null) return;
         String mode = System.getProperty("tno.phase6.calibrationMode", "");
         if (!Set.of("durability", "classification").contains(mode)) return;
         try {

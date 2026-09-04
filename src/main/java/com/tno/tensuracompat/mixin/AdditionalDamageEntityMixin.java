@@ -5,6 +5,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.tno.tensuracompat.core.stage.MatchingResistanceRecovery;
 import com.tno.tensuracompat.core.stage.NativeScalableDamage;
 import com.tno.tensuracompat.debug.Phase6CalibrationContext;
+import com.tno.tensuracompat.debug.Phase5FSuiteBBenchmark;
 import io.github.manasmods.tensura.enchantment.effect.AdditionalDamageEntity;
 import net.minecraft.core.Holder;
 import net.minecraft.world.damagesource.DamageSource;
@@ -54,7 +55,9 @@ public abstract class AdditionalDamageEntityMixin {
         var scope = Phase6CalibrationContext.open(enchantedItem.itemStack(), family.get(), livingTarget,
                 nativeEligibleAmount, scaled, recovered);
         try {
-            return original.call(damaged, source, recovered);
+            boolean accepted = original.call(damaged, source, recovered);
+            scope.ifPresent(value -> Phase5FSuiteBBenchmark.captureCalibrationTrace(value.snapshot()));
+            return accepted;
         }
         finally {
             scope.ifPresent(Phase6CalibrationContext.Scope::close);

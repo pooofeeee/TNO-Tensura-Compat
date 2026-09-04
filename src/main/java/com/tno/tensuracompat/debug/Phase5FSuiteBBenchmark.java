@@ -87,25 +87,33 @@ public final class Phase5FSuiteBBenchmark {
     private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
     private static final boolean SUITE_C = Boolean.getBoolean("tno.phase5f.suiteC");
     private static final boolean ENDGAME_RESEARCH = Boolean.getBoolean("tno.phase6.endgameResearch");
-    private static final String MARKER = ENDGAME_RESEARCH ? "TNO_PHASE6_ENDGAME_RESEARCH"
+    private static final String CALIBRATION_MODE = System.getProperty("tno.phase6.calibrationMode", "");
+    private static final boolean CALIBRATION_COMBAT = Boolean.getBoolean("tno.phase6.calibration")
+            && Set.of("ceiling", "health", "dementor", "adaptive", "combined", "safety").contains(CALIBRATION_MODE);
+    private static final boolean PRODUCTION_OBSERVATION = ENDGAME_RESEARCH || CALIBRATION_COMBAT;
+    private static final String MARKER = CALIBRATION_COMBAT ? "TNO_PHASE6_CALIBRATION"
+            : ENDGAME_RESEARCH ? "TNO_PHASE6_ENDGAME_RESEARCH"
             : SUITE_C ? "TNO_PHASE5F_SUITE_C" : "TNO_PHASE5F_SUITE_B";
-    private static final String TARGET_TAG = ENDGAME_RESEARCH ? "tno_phase6_endgame_research_target"
+    private static final String TARGET_TAG = CALIBRATION_COMBAT ? "tno_phase6_calibration_target"
+            : ENDGAME_RESEARCH ? "tno_phase6_endgame_research_target"
             : SUITE_C ? "tno_phase5f_suite_c_target" : "tno_phase5f_suite_b_target";
     private static final String APO_PROFILE = "ANCIENT_SINGLE_PROSPEROUS_SPECTRAL";
     private static final String SCALE_TAG = "l2_tensura_scaled";
     private static final String L2_MISCS = "dev.xkmc.l2hostility.init.registrate.LHMiscs";
     private static final String L2_TRAITS = "dev.xkmc.l2hostility.init.registrate.LHTraits";
     private static final boolean ENDGAME = SUITE_C && Boolean.getBoolean("tno.phase5f.suiteCEndgame");
-    private static final boolean STRONGEST_LEGAL_PROFILE = ENDGAME || ENDGAME_RESEARCH;
+    private static final boolean STRONGEST_LEGAL_PROFILE = ENDGAME || PRODUCTION_OBSERVATION;
     private static final ResourceLocation ROYAL_BOW = id("royalvariations", "royal_bow");
     private static final ResourceLocation ROYAL_ARROW = id("royalvariations", "royal_arrow");
     private static final ResourceLocation EARTH_CORE = id("tensura", "element_core_earth");
     private static final double SEVERANCE_NATIVE_ATTACK_BONUS = 3.0D;
     private static final int MAX_SHOTS = Integer.getInteger(
-            ENDGAME_RESEARCH ? "tno.phase6.endgameShots"
+            CALIBRATION_COMBAT ? "tno.phase6.calibrationShots"
+                    : ENDGAME_RESEARCH ? "tno.phase6.endgameShots"
                     : SUITE_C ? "tno.phase5f.suiteCShots" : "tno.phase5f.suiteBShots", 10);
     private static final int WINDOW_TICKS = Integer.getInteger(
-            ENDGAME_RESEARCH ? "tno.phase6.endgameTicks"
+            CALIBRATION_COMBAT ? "tno.phase6.calibrationTicks"
+                    : ENDGAME_RESEARCH ? "tno.phase6.endgameTicks"
                     : SUITE_C ? "tno.phase5f.suiteCTicks" : "tno.phase5f.suiteBTicks", 200);
     private static final boolean DIAGNOSTIC = Boolean.getBoolean(
             SUITE_C ? "tno.phase5f.suiteCDiagnostic" : "tno.phase5f.suiteBDiagnostic");
@@ -244,10 +252,11 @@ public final class Phase5FSuiteBBenchmark {
         boolean suiteB = Boolean.getBoolean("tno.phase5f.suiteB");
         boolean suiteC = Boolean.getBoolean("tno.phase5f.suiteC");
         boolean endgameResearch = Boolean.getBoolean("tno.phase6.endgameResearch");
-        if (FMLEnvironment.production || (!suiteB && !suiteC && !endgameResearch) || active != null) return;
+        boolean calibration = CALIBRATION_COMBAT;
+        if (FMLEnvironment.production || (!suiteB && !suiteC && !endgameResearch && !calibration) || active != null) return;
         try {
-            if ((suiteB ? 1 : 0) + (suiteC ? 1 : 0) + (endgameResearch ? 1 : 0) != 1) {
-                throw new IllegalStateException("Suite B, Suite C, and Phase 6 endgame research are mutually exclusive");
+            if ((suiteB ? 1 : 0) + (suiteC ? 1 : 0) + (endgameResearch ? 1 : 0) + (calibration ? 1 : 0) != 1) {
+                throw new IllegalStateException("Suite B, Suite C, Phase 6 research, and calibration are mutually exclusive");
             }
             requireMods();
             active = new Session(event.getServer());
@@ -295,6 +304,10 @@ public final class Phase5FSuiteBBenchmark {
         if (active != null) active.captureDamagePost(event);
     }
 
+    public static void captureCalibrationTrace(Phase6CalibrationContext.Snapshot snapshot) {
+        if (active != null) active.captureCalibrationTrace(snapshot);
+    }
+
     public static void registerTensuraEvents() {
         if (energyEventRegistered) return;
         try {
@@ -332,7 +345,8 @@ public final class Phase5FSuiteBBenchmark {
                 : List.of("royalvariations", "l2hostility");
         for (String mod : required) {
             if (!ModList.get().isLoaded(mod)) {
-                throw new IllegalStateException("required " + (ENDGAME_RESEARCH ? "Phase 6 endgame research"
+                throw new IllegalStateException("required " + (CALIBRATION_COMBAT ? "Phase 6 calibration"
+                        : ENDGAME_RESEARCH ? "Phase 6 endgame research"
                         : "Suite " + (SUITE_C ? "C" : "B")) + " runtime mod absent: " + mod);
             }
         }
@@ -365,26 +379,30 @@ public final class Phase5FSuiteBBenchmark {
         private boolean complete;
         private boolean catalogLogged;
         private JsonObject apoInspection;
+        private Phase6CalibrationContext.ParameterScope calibrationParameters;
 
         Session(MinecraftServer server) {
             this.server = server;
             this.level = server.overworld();
             this.family = Family.parse(System.getProperty(
-                    ENDGAME_RESEARCH ? "tno.phase6.endgameFamily"
+                    CALIBRATION_COMBAT ? "tno.phase6.calibrationFamily"
+                            : ENDGAME_RESEARCH ? "tno.phase6.endgameFamily"
                             : SUITE_C ? "tno.phase5f.suiteCFamily" : "tno.phase5f.suiteBFamily", ""));
             this.benchmarkBow = buildBenchmarkBow(server, family);
             this.royalArrow = requiredItem(ROYAL_ARROW);
             this.cases = buildCases(System.getProperty(
-                    ENDGAME_RESEARCH ? "tno.phase6.endgameBoss"
+                    CALIBRATION_COMBAT ? "tno.phase6.calibrationBoss"
+                            : ENDGAME_RESEARCH ? "tno.phase6.endgameBoss"
                             : SUITE_C ? "tno.phase5f.suiteCBoss" : "tno.phase5f.suiteBBoss", ""));
-            if (cases.isEmpty()) throw new IllegalStateException("Suite " + (SUITE_C ? "C" : "B") + " boss filter matched no targets");
-            if (ENDGAME_RESEARCH && cases.stream().anyMatch(spec ->
+            if (cases.isEmpty()) throw new IllegalStateException((CALIBRATION_COMBAT ? "Calibration"
+                    : "Suite " + (SUITE_C ? "C" : "B")) + " boss filter matched no targets");
+            if (PRODUCTION_OBSERVATION && cases.stream().anyMatch(spec ->
                     !spec.boss.id.equals(id("tensura", "orc_disaster")))) {
                 throw new IllegalStateException("Phase 6 endgame research is locked to the accepted Orc Disaster positive-control target");
             }
             if (!SUITE_C) assertTnoOnlyStack(benchmarkBow);
             cleanupTestArea();
-            if (ENDGAME_RESEARCH || SUITE_C && Boolean.getBoolean("tno.phase5f.suiteCFastTicks")) {
+            if (PRODUCTION_OBSERVATION || SUITE_C && Boolean.getBoolean("tno.phase5f.suiteCFastTicks")) {
                 runCommand("tick sprint 10000000");
             }
             if (!SUITE_C) {
@@ -505,10 +523,10 @@ public final class Phase5FSuiteBBenchmark {
         }
 
         private void installAcceptedEndgameProfile() throws ReflectiveOperationException {
-            Map<String, Integer> expected = ENDGAME_RESEARCH
+            Map<String, Integer> expected = PRODUCTION_OBSERVATION
                     ? ACCEPTED_ORC_ENDGAME_PROFILES.get(currentCase().level)
                     : ACCEPTED_ENDGAME_PROFILES.get(currentCase().boss.id.toString());
-            if (expected == null || !ENDGAME_RESEARCH && currentCase().level != 1000) {
+            if (expected == null || !PRODUCTION_OBSERVATION && currentCase().level != 1000) {
                 throw new IllegalStateException("missing accepted endgame profile for "
                         + currentCase().boss.id + " at Lv" + currentCase().level);
             }
@@ -635,6 +653,9 @@ public final class Phase5FSuiteBBenchmark {
         }
 
         private void beginRun(boolean nativeProfileSource) throws ReflectiveOperationException {
+            if (CALIBRATION_COMBAT) {
+                calibrationParameters = Phase6CalibrationContext.useParameters(currentCase().calibration.parameters());
+            }
             result = new CaseResult(currentCase(), target, player, l2Cap, nativeProfileSource);
             shotsReleased = 0;
             currentHit = null;
@@ -699,15 +720,15 @@ public final class Phase5FSuiteBBenchmark {
             String type = damageType(event.getSource());
             if (family.matchesDamageType(type)) {
                 double eventAmount = event.getAmount();
-                double raw = ENDGAME_RESEARCH
+                double raw = PRODUCTION_OBSERVATION
                         ? eventAmount / currentCase().stage.coefficient(family)
                         : family == Family.ELEMENTAL
                                 ? currentHit.elementalNativeProjectileDamage : eventAmount;
-                float scaled = ENDGAME_RESEARCH || family == Family.ELEMENTAL
+                float scaled = PRODUCTION_OBSERVATION || family == Family.ELEMENTAL
                         ? (float) eventAmount
                         : (float) (raw * currentCase().stage.coefficient(family));
                 double nativeAfterResistance = scaled > target.getHealth() * 0.5D ? scaled * 0.5D : 0.0D;
-                boolean sourceBypass = !ENDGAME_RESEARCH && currentCase().stage.penetration > 0.0D
+                boolean sourceBypass = !PRODUCTION_OBSERVATION && currentCase().stage.penetration > 0.0D
                         && result.matchingResistance && !result.matchingNullification;
                 double stagedAmount = scaled;
                 if (sourceBypass) {
@@ -720,7 +741,7 @@ public final class Phase5FSuiteBBenchmark {
                         throw new IllegalStateException("could not apply matching Tensura Resistance bypass level 1", exception);
                     }
                 }
-                if (!ENDGAME_RESEARCH) event.setAmount((float) stagedAmount);
+                if (!PRODUCTION_OBSERVATION) event.setAmount((float) stagedAmount);
                 FamilyProbe probe = new FamilyProbe(raw, scaled, nativeAfterResistance, stagedAmount,
                         sourceBypass, sourceTags(event.getSource()), event.getSource().is(Tags.DamageTypes.IS_MAGIC));
                 familyProbes.put(event, probe);
@@ -804,7 +825,7 @@ public final class Phase5FSuiteBBenchmark {
             }
             FamilyProbe probe = familyProbes.remove(event);
             if (probe == null) return;
-            if (ENDGAME_RESEARCH) {
+            if (PRODUCTION_OBSERVATION) {
                 double afterTensura = event.isCanceled() ? 0.0D : event.getAmount();
                 currentHit.familyAfterResistance += afterTensura;
                 currentHit.familyAfterRecovery += afterTensura;
@@ -842,6 +863,12 @@ public final class Phase5FSuiteBBenchmark {
             else currentHit.dotAfterL2 += event.getNewDamage();
         }
 
+        private void captureCalibrationTrace(Phase6CalibrationContext.Snapshot snapshot) {
+            if (CALIBRATION_COMBAT && phase == Phase.RUN && currentHit != null) {
+                currentHit.calibrationTraces.add(snapshot);
+            }
+        }
+
         private void captureDamagePost(LivingDamageEvent.Post event) {
             if (phase != Phase.RUN || currentHit == null) return;
             if (event.getEntity() == target) {
@@ -865,7 +892,7 @@ public final class Phase5FSuiteBBenchmark {
                     || !Boolean.TRUE.equals(invoke(percentage, "get"))) return;
             double nativePercentage = numberValue(invoke(amount, "get")).doubleValue();
             double stagedPercentage = nativePercentage * currentCase().stage.coefficient(family);
-            if (ENDGAME_RESEARCH) {
+            if (PRODUCTION_OBSERVATION) {
                 stagedPercentage = nativePercentage;
                 nativePercentage /= currentCase().stage.coefficient(family);
             }
@@ -984,11 +1011,11 @@ public final class Phase5FSuiteBBenchmark {
             }
             try {
                 double observedDamage = numberValue(invoke(projectile, "getDamage")).doubleValue();
-                double nativeDamage = ENDGAME_RESEARCH
+                double nativeDamage = PRODUCTION_OBSERVATION
                         ? observedDamage / currentCase().stage.coefficient(family) : observedDamage;
-                double stagedDamage = ENDGAME_RESEARCH
+                double stagedDamage = PRODUCTION_OBSERVATION
                         ? observedDamage : nativeDamage * currentCase().stage.coefficient(family);
-                if (!ENDGAME_RESEARCH) invoke(projectile, "setDamage", (float) stagedDamage);
+                if (!PRODUCTION_OBSERVATION) invoke(projectile, "setDamage", (float) stagedDamage);
                 currentHit.elementalProjectileId = type.toString();
                 currentHit.projectileEntityId = type.toString();
                 currentHit.elementalOwnerRetained = true;
@@ -1012,12 +1039,12 @@ public final class Phase5FSuiteBBenchmark {
             double nativeBase = arrow.getBaseDamage();
             double coefficient = currentCase().stage.coefficient(family);
             double stagedBase = nativeBase + SEVERANCE_NATIVE_ATTACK_BONUS * (coefficient - 1.0D);
-            if (!ENDGAME_RESEARCH) arrow.setBaseDamage(stagedBase);
+            if (!PRODUCTION_OBSERVATION) arrow.setBaseDamage(stagedBase);
             double nativePre = speed * (nativeBase + SEVERANCE_NATIVE_ATTACK_BONUS);
             double stagedPre = speed * (nativeBase + SEVERANCE_NATIVE_ATTACK_BONUS * coefficient);
             double basePost = Math.ceil(speed * nativeBase);
             double nativePost = Math.ceil(nativePre);
-            double stagedPost = ENDGAME_RESEARCH
+            double stagedPost = PRODUCTION_OBSERVATION
                     ? SeveranceStageScaling.roundedProjectileDamage(speed,
                             SeveranceStageScaling.adjustment(nativeBase + SEVERANCE_NATIVE_ATTACK_BONUS,
                                     1, com.tno.tensuracompat.core.stage.Stage.valueOf(currentCase().stage.name)))
@@ -1061,7 +1088,7 @@ public final class Phase5FSuiteBBenchmark {
             catch (ReflectiveOperationException exception) {
                 throw new IllegalStateException("could not refresh fake-player attributes", exception);
             }
-            if (ENDGAME_RESEARCH) {
+            if (PRODUCTION_OBSERVATION) {
                 ItemStack equipped = player.getMainHandItem();
                 if (!equipped.has(TensuraDataComponents.EP.get())
                         || !equipped.has(TensuraDataComponents.MAX_EP.get())
@@ -1137,6 +1164,10 @@ public final class Phase5FSuiteBBenchmark {
         }
 
         private void cleanupCase() {
+            if (calibrationParameters != null) {
+                calibrationParameters.close();
+                calibrationParameters = null;
+            }
             familyProbes.clear();
             beforeCrit.clear();
             currentHit = null;
@@ -1174,24 +1205,35 @@ public final class Phase5FSuiteBBenchmark {
                 json.addProperty("level", spec.level);
                 json.addProperty("level_mode", spec.mode.name());
                 json.addProperty("TNO_stage", spec.stage.name);
+                if (CALIBRATION_COMBAT) json.addProperty("calibration_case", spec.calibration.id);
             }
             return json;
         }
 
         private void logCatalog() {
             JsonObject json = new JsonObject();
-            json.addProperty("suite", ENDGAME_RESEARCH ? "PHASE6_TNO_ENDGAME_RESEARCH"
+            json.addProperty("suite", CALIBRATION_COMBAT ? "PHASE6_ENDGAME_CALIBRATION"
+                    : ENDGAME_RESEARCH ? "PHASE6_TNO_ENDGAME_RESEARCH"
                     : SUITE_C ? "BOTH" : "B_TNO_ONLY");
             json.addProperty("diagnostic", DIAGNOSTIC);
             json.addProperty("strongest_legal_endgame_matrix", STRONGEST_LEGAL_PROFILE);
-            json.addProperty("production_stage_observation", ENDGAME_RESEARCH);
-            if (ENDGAME_RESEARCH) {
+            json.addProperty("production_stage_observation", PRODUCTION_OBSERVATION);
+            if (PRODUCTION_OBSERVATION) {
                 json.addProperty("authoritative_L2_level_api",
                         "LHMiscs.MOB.type().getOrCreate(target) -> MobTraitCap.getLevel()");
                 json.addProperty("profile_evidence_source",
                         "accepted Phase 5F strongest-legal profiles/orc_disaster.jsonl");
             }
             json.addProperty("TNO_family", family.id);
+            if (CALIBRATION_COMBAT) {
+                json.addProperty("calibration_mode", CALIBRATION_MODE);
+                json.addProperty("diagnostic_policy_scope",
+                        "eligible native Magic/Holy contribution only at L2 defensive modifier boundaries");
+                json.addProperty("L2_listener_priority", 4501);
+                json.addProperty("generic_health_modifier_order", "PRE_NONLINEAR priority 7435");
+                json.addProperty("Dementor_recovery_modifier_order", "PRE_NONLINEAR priority 7437");
+                json.addProperty("Adaptive_recovery_modifier_order", "POST_MULTIPLICATIVE priority 7437");
+            }
             json.addProperty("engraving", family.enchantment.toString());
             if (family.damageType == null) json.add("damage_source_id", null);
             else json.addProperty("damage_source_id", family.damageType.toString());
@@ -1228,7 +1270,7 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("shots_per_case", MAX_SHOTS);
             json.addProperty("fixed_window_ticks", WINDOW_TICKS);
             json.addProperty("server_tick_sprint_enabled",
-                    ENDGAME_RESEARCH || SUITE_C && Boolean.getBoolean("tno.phase5f.suiteCFastTicks"));
+                    PRODUCTION_OBSERVATION || SUITE_C && Boolean.getBoolean("tno.phase5f.suiteCFastTicks"));
             json.addProperty("distance", TARGET_Z - 0.5D);
             json.addProperty("projectile_control", family == Family.ELEMENTAL
                     ? "real native one-Earth-core Slotting projectile dispatched through its own onHit path in a deterministic two-block final collision lane; owner, velocity, entity and source preserved"
@@ -1240,10 +1282,10 @@ public final class Phase5FSuiteBBenchmark {
                     : "royalvariations namespace Royal Arrow entity");
             json.addProperty("royal_arrow_mark_enabled", false);
             json.addProperty("crit_enabled", SUITE_C);
-            json.addProperty("stage_fixture_only", !ENDGAME_RESEARCH);
+            json.addProperty("stage_fixture_only", !PRODUCTION_OBSERVATION);
             json.addProperty("production_balance_mutated", false);
             json.addProperty("production_combat_mutated", false);
-            json.addProperty("profile_clone_policy", ENDGAME_RESEARCH
+            json.addProperty("profile_clone_policy", PRODUCTION_OBSERVATION
                     ? "accepted strongest legal profile per exact L2 level; pristine serialized clone for S0-S7"
                     : ENDGAME ? "accepted strongest legal Lv1000 profile per boss; pristine serialized clone for Native and S7"
                     : "one legal native L2 roll per boss/level; pristine serialized clones for Native and S0-S7");
@@ -1257,6 +1299,12 @@ public final class Phase5FSuiteBBenchmark {
                 entry.addProperty("level", spec.level);
                 entry.addProperty("level_mode", spec.mode.name());
                 entry.addProperty("TNO_stage", spec.stage.name);
+                if (CALIBRATION_COMBAT) {
+                    entry.addProperty("calibration_case", spec.calibration.id);
+                    entry.addProperty("Q_generic_health", spec.calibration.parameters.genericHealthQ());
+                    entry.addProperty("RD_dementor", spec.calibration.parameters.dementorRD());
+                    entry.addProperty("RA_adaptive", spec.calibration.parameters.adaptiveRA());
+                }
                 if (spec.stage.ep == null) entry.add("EP_or_stage_fixture", null);
                 else entry.addProperty("EP_or_stage_fixture", spec.stage.ep);
                 planned.add(entry);
@@ -1268,10 +1316,23 @@ public final class Phase5FSuiteBBenchmark {
 
     private static List<CaseSpec> buildCases(String filter) {
         List<CaseSpec> result = new ArrayList<>();
+        if (CALIBRATION_COMBAT) {
+            BossSpec boss = BOSSES.stream().filter(value -> value.id.equals(id("tensura", "orc_disaster")))
+                    .findFirst().orElseThrow();
+            if (!filter.isBlank() && !boss.id.toString().equals(filter)) return result;
+            for (int level : List.of(300, 600, 800, 1000)) {
+                for (Stage stage : STAGES.subList(6, STAGES.size())) {
+                    for (CalibrationCase calibration : CalibrationCase.ceilingCases()) {
+                        result.add(new CaseSpec(boss, level, LevelMode.ENDGAME_TARGET, stage, calibration));
+                    }
+                }
+            }
+            return result;
+        }
         for (BossSpec boss : BOSSES) {
             if (!filter.isBlank() && !boss.id.toString().equals(filter)) continue;
             List<LevelEntry> levels = new ArrayList<>();
-            if (ENDGAME_RESEARCH) {
+            if (PRODUCTION_OBSERVATION) {
                 for (int level : List.of(300, 600, 800, 1000)) {
                     levels.add(new LevelEntry(level, LevelMode.ENDGAME_TARGET));
                 }
@@ -1291,14 +1352,15 @@ public final class Phase5FSuiteBBenchmark {
                     : ENDGAME ? List.of(STAGES.get(0), STAGES.get(8))
                     : DIAGNOSTIC ? List.of(STAGES.get(0), STAGES.get(1), STAGES.get(6), STAGES.get(8)) : STAGES;
             for (LevelEntry entry : levels) {
-                for (Stage stage : stages) result.add(new CaseSpec(boss, entry.level, entry.mode, stage));
+                for (Stage stage : stages) result.add(new CaseSpec(
+                        boss, entry.level, entry.mode, stage, CalibrationCase.NONE));
             }
         }
         return result;
     }
 
     private static int endgameBudgetSpent(BossSpec boss, int level) {
-        if (ENDGAME_RESEARCH) {
+        if (PRODUCTION_OBSERVATION) {
             return switch (level) {
                 case 300 -> 290;
                 case 600 -> 590;
@@ -1483,7 +1545,7 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("damage_before_matching_resistance_recovery", hit.familyAfterResistance);
             json.addProperty("damage_after_matching_resistance_recovery", hit.familyAfterRecovery);
             json.addProperty("damage_after_L2_processing", hit.familyPost);
-            if (ENDGAME_RESEARCH) {
+            if (PRODUCTION_OBSERVATION) {
                 json.addProperty("native_event_existed", nativeEventExisted(hit));
                 json.addProperty("value_before_Tensura_defenses", valueBeforeTensura(hit));
                 json.addProperty("value_after_Tensura_defenses", valueAfterTensura(hit));
@@ -1499,6 +1561,7 @@ public final class Phase5FSuiteBBenchmark {
                 json.addProperty("failure_reason_detail", failureReasonDetail(hit));
                 json.addProperty("prerequisite_failure_reason", prerequisiteFailureReason(hit));
             }
+            if (CALIBRATION_COMBAT) addCalibrationTrace(json, hit);
             json.addProperty("matching_resistance_cancelled_before_recovery", hit.familyCanceledBeforeRecovery);
             json.addProperty("tensura_resistance_bypass_level", hit.resistanceBypassLevel);
             json.addProperty("nullification_authoritative", hit.nullificationAuthoritative);
@@ -1534,6 +1597,45 @@ public final class Phase5FSuiteBBenchmark {
                     ? hit.familySourceIds.iterator().next() : "MULTIPLE_OR_NONE");
             json.addProperty("notes", interactionNotes(hit));
             return json;
+        }
+
+        private void addCalibrationTrace(JsonObject json, HitRecord hit) {
+            json.addProperty("calibration_trace_count", hit.calibrationTraces.size());
+            if (hit.calibrationTraces.isEmpty()) {
+                json.add("calibration_trace", null);
+                return;
+            }
+            if (hit.calibrationTraces.size() != 1) {
+                throw new IllegalStateException("expected one eligible calibration trace per release, found "
+                        + hit.calibrationTraces.size());
+            }
+            Phase6CalibrationContext.Snapshot trace = hit.calibrationTraces.getFirst();
+            JsonObject value = new JsonObject();
+            value.addProperty("eligible_amount_before_Tensura_defense", hit.familyStageScaled);
+            value.addProperty("result_after_matching_Tensura_layer", hit.familyAfterRecovery);
+            value.addProperty("DamageData_original", trace.damageOriginal());
+            value.addProperty("generic_L2_health_multiplier", trace.genericHealthMultiplier());
+            value.addProperty("generic_input", trace.genericPre());
+            value.addProperty("generic_diagnostic_output", trace.genericPost());
+            value.addProperty("Dementor_applied", trace.dementorApplied());
+            value.addProperty("Dementor_pre", trace.dementorPre());
+            value.addProperty("Dementor_native_post", trace.dementorNativePost());
+            value.addProperty("Dementor_diagnostic_post", trace.dementorDiagnosticPost());
+            value.addProperty("Adaptive_applied", trace.adaptiveApplied());
+            value.addProperty("Adaptive_source_msgId", trace.sourceMsgId());
+            value.addProperty("Adaptive_trait_rank", trace.adaptiveRank());
+            value.addProperty("Adaptive_memory_capacity", trace.adaptiveMemoryCapacity());
+            value.addProperty("Adaptive_adaptation_count", trace.adaptiveCount());
+            value.addProperty("Adaptive_configured_factor", trace.configuredAdaptFactor());
+            value.addProperty("Adaptive_pre", trace.adaptivePre());
+            value.addProperty("Adaptive_native_factor", trace.adaptiveNativeFactor());
+            value.addProperty("Adaptive_negotiated_factor", trace.adaptiveDiagnosticFactor());
+            value.addProperty("Adaptive_native_result", trace.adaptiveNativePost());
+            value.addProperty("Adaptive_diagnostic_result", trace.adaptiveDiagnosticPost());
+            value.addProperty("final_family_event_amount", hit.familyPost);
+            value.addProperty("target_HP_delta", Math.max(0.0D, hit.preHp - hit.postHp + hit.targetHpRegen));
+            value.addProperty("target_SHP_delta", Math.max(0.0D, hit.preShp - hit.postShp + hit.targetShpRegen));
+            json.add("calibration_trace", value);
         }
 
         private boolean nativeEventExisted(HitRecord hit) {
@@ -1677,6 +1779,28 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("elapsed_ticks", elapsedTicks);
             json.addProperty("DPS", dps());
             json.addProperty("resource_impact_per_second", resourceImpactPerSecond());
+            if (CALIBRATION_COMBAT) {
+                double seconds = elapsedTicks / 20.0D;
+                double familyDamage = hits.stream().mapToDouble(hit -> hit.familyPost).sum();
+                double familyDps = seconds <= 0.0D ? 0.0D : familyDamage / seconds;
+                double totalEventDamage = hits.stream().mapToDouble(HitRecord::directDamage).sum()
+                        + hits.stream().mapToDouble(hit -> hit.dotPost).sum();
+                double totalEventDps = seconds <= 0.0D ? 0.0D : totalEventDamage / seconds;
+                double combined = initialHp + initialShp;
+                json.addProperty("family_event_damage", familyDamage);
+                json.addProperty("family_DPS", familyDps);
+                json.addProperty("total_TNO_only_Royal_Bow_event_DPS", totalEventDps);
+                json.addProperty("target_HP_delta_including_regen", Math.max(0.0D,
+                        initialHp - finalHp + hits.stream().mapToDouble(hit -> hit.targetHpRegen).sum()));
+                json.addProperty("target_SHP_delta_including_regen", Math.max(0.0D,
+                        initialShp - finalShp + hits.stream().mapToDouble(hit -> hit.targetShpRegen).sum()));
+                json.addProperty("combined_target_resources", combined);
+                addFiniteOrNull(json, "estimated_family_TTK_seconds", combined, familyDps);
+                addFiniteOrNull(json, "estimated_total_TNO_only_TTK_seconds", combined, totalEventDps);
+                addFiniteOrNull(json, "estimated_observed_net_TTK_seconds", combined, dps());
+                json.addProperty("calibration_trace_count",
+                        hits.stream().mapToInt(hit -> hit.calibrationTraces.size()).sum());
+            }
             if (htk == null) json.add("HTK", null); else json.addProperty("HTK", htk);
             if (ttk == null) json.add("TTK", null); else json.addProperty("TTK", ttk);
             json.addProperty("attacker_defeated", attackerDefeated);
@@ -1690,7 +1814,8 @@ public final class Phase5FSuiteBBenchmark {
 
         private JsonObject commonJson() {
             JsonObject json = new JsonObject();
-            json.addProperty("suite", ENDGAME_RESEARCH ? "PHASE6_TNO_ENDGAME_RESEARCH"
+            json.addProperty("suite", CALIBRATION_COMBAT ? "PHASE6_ENDGAME_CALIBRATION"
+                    : ENDGAME_RESEARCH ? "PHASE6_TNO_ENDGAME_RESEARCH"
                     : SUITE_C ? "BOTH" : "B_TNO_ONLY");
             json.addProperty("diagnostic", DIAGNOSTIC);
             json.addProperty("boss", spec.boss.id.toString());
@@ -1727,8 +1852,16 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("tensura_l2h_scaling_marker", true);
             json.addProperty("TNO_family", active.family.id);
             json.addProperty("TNO_stage", spec.stage.name);
+            if (CALIBRATION_COMBAT) {
+                json.addProperty("calibration_mode", CALIBRATION_MODE);
+                json.addProperty("calibration_case", spec.calibration.id);
+                json.addProperty("Q_generic_health", spec.calibration.parameters.genericHealthQ());
+                json.addProperty("RD_dementor", spec.calibration.parameters.dementorRD());
+                json.addProperty("RA_adaptive", spec.calibration.parameters.adaptiveRA());
+                json.addProperty("diagnostic_upper_bound_only", CALIBRATION_MODE.equals("ceiling"));
+            }
             if (spec.stage.ep == null) json.add("EP_or_stage_fixture", null); else json.addProperty("EP_or_stage_fixture", spec.stage.ep);
-            if (ENDGAME_RESEARCH) {
+            if (PRODUCTION_OBSERVATION) {
                 json.addProperty("native_gear_EP", active.player.getMainHandItem()
                         .getOrDefault(TensuraDataComponents.EP.get(), 0.0D));
                 json.addProperty("resolved_production_stage", ProductionStageScaling
@@ -1760,6 +1893,11 @@ public final class Phase5FSuiteBBenchmark {
                         active.apoInspection.getAsJsonObject("enchantments").getAsJsonArray("applied").deepCopy());
             }
             return json;
+        }
+
+        private static void addFiniteOrNull(JsonObject json, String name, double numerator, double denominator) {
+            if (denominator <= 0.0D) json.add(name, null);
+            else json.addProperty(name, numerator / denominator);
         }
 
         private boolean unexpectedSourceDuplication(HitRecord hit) {
@@ -1854,6 +1992,7 @@ public final class Phase5FSuiteBBenchmark {
         final Map<String, Integer> physicalEventsByProjectile = new LinkedHashMap<>();
         final Map<String, Double> severanceBasePostByProjectile = new LinkedHashMap<>();
         final Map<String, SeveranceProjection> severanceProjections = new LinkedHashMap<>();
+        final List<Phase6CalibrationContext.Snapshot> calibrationTraces = new ArrayList<>();
         final Set<String> severanceAdmittedProjectileUuids = new LinkedHashSet<>();
         double lastHp;
         double lastShp;
@@ -2050,7 +2189,7 @@ public final class Phase5FSuiteBBenchmark {
             bow.set(DataComponents.BUNDLE_CONTENTS,
                     new BundleContents(List.of(new ItemStack(requiredItem(EARTH_CORE)))));
         }
-        if (ENDGAME_RESEARCH) {
+        if (PRODUCTION_OBSERVATION) {
             // This deterministic benchmark supplies its one selected family itself.
             // Mark the production one-time roll as already handled so equipping the
             // disposable stack cannot add a second random Engraving.
@@ -2339,7 +2478,8 @@ public final class Phase5FSuiteBBenchmark {
     }
 
     private static void log(String kind, JsonObject payload) {
-        payload.addProperty("schema", ENDGAME_RESEARCH ? "tno.phase6.endgame_research.v1"
+        payload.addProperty("schema", CALIBRATION_COMBAT ? "tno.phase6.endgame_calibration.v1"
+                : ENDGAME_RESEARCH ? "tno.phase6.endgame_research.v1"
                 : SUITE_C ? "tno.phase5f.suite_c.v1" : "tno.phase5f.suite_b.v1");
         payload.addProperty("kind", kind);
         LOGGER.info("{} {}", MARKER, GSON.toJson(payload));
@@ -2486,7 +2626,7 @@ public final class Phase5FSuiteBBenchmark {
     private record Stage(String name, Long ep, double bonus, double penetration) {
         double coefficient(Family family) {
             if (name.equals("Native")) return 1.0D;
-            if (ENDGAME_RESEARCH) return 1.0D + bonus;
+            if (PRODUCTION_OBSERVATION) return 1.0D + bonus;
             return switch (family) {
                 case SOUL, ENERGY -> 1.0D + bonus;
                 case SEVERANCE -> 1.0D + bonus * ((2.4D + SEVERANCE_NATIVE_ATTACK_BONUS)
@@ -2499,7 +2639,34 @@ public final class Phase5FSuiteBBenchmark {
     private record ProfileKey(ResourceLocation boss, int level, LevelMode mode) {
     }
 
-    private record CaseSpec(BossSpec boss, int level, LevelMode mode, Stage stage) {
+    private enum CalibrationCase {
+        NONE("NONE", 0.0D, 0.0D, 0.0D),
+        BASELINE("CASE_0_BASELINE", 0.0D, 0.0D, 0.0D),
+        DEMENTOR_FULL("CASE_1_DEMENTOR_100", 0.0D, 1.0D, 0.0D),
+        ADAPTIVE_FULL("CASE_2_ADAPTIVE_100", 0.0D, 0.0D, 1.0D),
+        REDUCERS_FULL("CASE_3_DEMENTOR_ADAPTIVE_100", 0.0D, 1.0D, 1.0D),
+        HEALTH_FULL("CASE_4_GENERIC_HEALTH_100", 1.0D, 0.0D, 0.0D),
+        ALL_FULL("CASE_5_ALL_100", 1.0D, 1.0D, 1.0D);
+
+        final String id;
+        final Phase6CalibrationContext.Parameters parameters;
+
+        CalibrationCase(String id, double q, double rd, double ra) {
+            this.id = id;
+            this.parameters = new Phase6CalibrationContext.Parameters(q, rd, ra);
+        }
+
+        static List<CalibrationCase> ceilingCases() {
+            return List.of(BASELINE, DEMENTOR_FULL, ADAPTIVE_FULL, REDUCERS_FULL, HEALTH_FULL, ALL_FULL);
+        }
+
+        Phase6CalibrationContext.Parameters parameters() {
+            return parameters;
+        }
+    }
+
+    private record CaseSpec(BossSpec boss, int level, LevelMode mode, Stage stage,
+                            CalibrationCase calibration) {
         ProfileKey profileKey() {
             return new ProfileKey(boss.id, level, mode);
         }
