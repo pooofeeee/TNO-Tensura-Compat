@@ -6,10 +6,12 @@ This branch is research-only. It does not authorize or implement a permanent
 Severance change, a generic anti-heal mechanic, or any change to the completed
 Magic/Holy production path.
 
-Checkpoint R1 is complete. Direct inspection of the installed Tensura and L2
-Hostility artifacts establishes conclusion **A: native Severance clearly
-constrains L2 Regenerate**. Runtime checkpoint R2 must still quantify the
-interaction using legitimate Royal Bow / Royal Arrow Severance wounds.
+Checkpoints R1 and R2 are complete. Direct inspection and controlled installed-
+runtime evidence establish conclusion **A: native Severance clearly constrains
+L2 Regenerate**. The interaction is a hard vanilla-HP healing ceiling equal to
+`maxHP - wound`; it is not a proportional reduction in Regenerate's nominal
+rate. The R2 decision gate therefore authorizes the research-only R3 physical-
+wall decomposition, but no production Severance change is authorized.
 
 ## Authoritative installed runtime
 
@@ -156,3 +158,59 @@ R2 must now prove this exact path in the installed server and quantify:
 - errors, duplicate effects, or unexpected bypasses.
 
 No production value or combat behavior is selected by R1.
+
+## R2: direct installed-runtime interaction
+
+Machine-readable evidence is preserved in the four independently validated
+`r2-*.jsonl` captures under
+`docs/benchmarks/phase6-severance-regenerate-research/`. Each capture ran in a
+fresh server process because repeated Orc Disaster instances in one process can
+stop ticking after earlier boss cleanup. Each case contains one catalog, one
+case start, six per-event healing rows, one complete case result, and one
+complete suite result.
+
+The controlled target is `tensura:orc_disaster`. It is the only accepted
+seven-boss Severance benchmark target on which the real Royal Bow / real Royal
+Arrow path produced native wound storage. Each case first released ten arrows
+from an S0, Apotheosis-free Royal Bow carrying only Severance I; all 40 releases
+produced one accepted `minecraft:arrow` event with `minecraft:is_projectile`
+and no magic tag. The no-wound cases then used Tensura's native
+`EffectStorage.clearSeverance`; wound cases retained the naturally produced
+wound. No wound was fabricated.
+
+Orc Disaster has unrelated native 20-HP and 2-HP healing. The development-only
+fixture identifies every synchronous heal callback by its call stack, retains
+only callbacks from installed `RegenTrait.tick`, and cancels/counts the Orc-
+native contaminants. It also resets target age after each accepted tick-20
+Regenerate callback, preserving an exact 20-server-tick Regenerate cadence.
+This isolation changes neither L2 Regenerate nor production combat code.
+
+| Case | L2 / rank | Max HP | Nominal Regenerate | Initial HP | Native wound at start | Six-cycle actual healing | Final HP | Difference from control |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| R4 control | 600 / 4 | 10,000 | 400 HP/s | 9,000 | 0 | 1,000 | 10,000 | 0 |
+| R4 native wound | 600 / 4 | 10,000 | 400 HP/s | 9,000 | 50 | 950 | 9,950 | -50 |
+| R5 control | 800 / 5 | 10,000 | 500 HP/s | 8,750 | 0 | 1,250 | 10,000 | 0 |
+| R5 native wound | 800 / 5 | 10,000 | 500 HP/s | 8,750 | 50 | 1,200 | 9,950 | -50 |
+
+All 24 Regenerate callbacks were stack-verified as
+`RegenTrait.tick -> LivingEntity.heal`, and all occurred at target tick 20.
+Below the ceiling, rank 4 continued to request/heal 400 and rank 5 continued to
+request/heal 500. The crossing callback was truncated to the remaining distance
+to the ceiling; later callbacks were cancelled there. Wound duration counted
+down normally from 300 seconds. SHP changed by exactly zero in every case.
+
+Aggregate R2 invariants: four complete cases, 40 accepted real-arrow events,
+24 native Regenerate events, zero case errors, zero duplicate damage sources,
+and zero unexpected L2 bypasses. The quantitative answer is exact for these
+fixtures: a 50-HP native wound denies exactly 50 HP that Regenerate would
+otherwise restore. The wound does not reduce the 4%/5% per-second rate before
+the ceiling and does not heal or modify SHP.
+
+## R2 decision gate
+
+Native Severance meaningfully counters Regenerate whenever a meaningful wound
+can be stored and kept refreshed. The current ten-arrow S0 setup demonstrated
+only a 50-HP ceiling reduction, which is negligible beside 400-500 HP/s native
+Regenerate, so reliability and achievable wound magnitude through the full L2
+physical wall remain decisive. Continue to R3; do not infer that the current
+production path has solved sustained endgame Regenerate viability.

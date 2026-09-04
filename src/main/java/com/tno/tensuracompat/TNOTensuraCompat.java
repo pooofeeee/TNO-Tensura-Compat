@@ -10,6 +10,7 @@ import com.tno.tensuracompat.debug.Phase5FL2TraitMatrix;
 import com.tno.tensuracompat.debug.Phase5FSuiteABenchmark;
 import com.tno.tensuracompat.debug.Phase5FSuiteBBenchmark;
 import com.tno.tensuracompat.debug.Phase6EndgameCalibration;
+import com.tno.tensuracompat.debug.Phase6SeveranceRegenerateResearch;
 import io.github.manasmods.tensura.Tensura;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.EventPriority;
@@ -78,6 +79,12 @@ public class TNOTensuraCompat {
                     Phase5FL2TraitMatrix::onDamagePost);
             NeoForge.EVENT_BUS.addListener(Phase6EndgameCalibration::onServerStarted);
             NeoForge.EVENT_BUS.addListener(Phase6EndgameCalibration::onServerTick);
+            NeoForge.EVENT_BUS.addListener(Phase6SeveranceRegenerateResearch::onServerStarted);
+            NeoForge.EVENT_BUS.addListener(Phase6SeveranceRegenerateResearch::onServerTick);
+            NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, true,
+                    Phase6SeveranceRegenerateResearch::onIncomingLowest);
+            NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, true,
+                    Phase6SeveranceRegenerateResearch::onHealLowest);
         }
 
         LOGGER.info("TNO Tensura Compat loaded with API linkage to {}", Tensura.class.getName());
