@@ -47,4 +47,17 @@ class MagicHolyEndgamePolicyTest {
         assertFalse(MagicHolyEndgamePolicy.Parameters.NONE.active());
         assertTrue(MagicHolyEndgamePolicy.parameters(Stage.S5, ScalableFamily.HOLY_WEAPON).active());
     }
+
+    @Test
+    void genericHealthUsesExactLockedStageFractions() {
+        double h = 25.0D;
+        assertEquals(1.0D, MagicHolyEndgameMath.genericNormalization(
+                MagicHolyEndgamePolicy.parameters(Stage.S4, ScalableFamily.MAGIC_WEAPON), h));
+        assertEquals(13.0D, MagicHolyEndgameMath.genericNormalization(
+                MagicHolyEndgamePolicy.parameters(Stage.S5, ScalableFamily.MAGIC_WEAPON), h));
+        assertEquals(19.0D, MagicHolyEndgameMath.genericNormalization(
+                MagicHolyEndgamePolicy.parameters(Stage.S6, ScalableFamily.MAGIC_WEAPON), h));
+        assertEquals(25.0D, MagicHolyEndgameMath.genericNormalization(
+                MagicHolyEndgamePolicy.parameters(Stage.S7, ScalableFamily.MAGIC_WEAPON), h));
+    }
 }

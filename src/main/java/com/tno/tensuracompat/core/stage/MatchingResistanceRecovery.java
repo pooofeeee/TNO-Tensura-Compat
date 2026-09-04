@@ -62,7 +62,8 @@ public final class MatchingResistanceRecovery {
         return (float) recovered;
     }
 
-    private static boolean hasActiveMatchingNullification(
+    /** True when native matching Nullification must remain an absolute endgame-negotiation gate. */
+    public static boolean hasActiveMatchingNullification(
             LivingEntity target,
             ScalableFamily family,
             DamageSource source

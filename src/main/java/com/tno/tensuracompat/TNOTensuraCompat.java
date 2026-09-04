@@ -2,6 +2,7 @@ package com.tno.tensuracompat;
 
 import com.mojang.logging.LogUtils;
 import com.tno.tensuracompat.compat.royalvariations.RoyalVariationsRuntimeVerifier;
+import com.tno.tensuracompat.core.endgame.MagicHolyEndgameL2Bridge;
 import com.tno.tensuracompat.data.TNODataGenerators;
 import com.tno.tensuracompat.debug.Phase5FRuntimeInspector;
 import com.tno.tensuracompat.debug.Phase5FApotheosisBenchmark;
@@ -26,6 +27,7 @@ public class TNOTensuraCompat {
     public TNOTensuraCompat(IEventBus modEventBus, ModContainer modContainer) {
         modEventBus.addListener(TNODataGenerators::gatherData);
         NeoForge.EVENT_BUS.addListener(RoyalVariationsRuntimeVerifier::onServerStarted);
+        MagicHolyEndgameL2Bridge.registerIfAvailable();
 
         if (!FMLEnvironment.production) {
             NeoForge.EVENT_BUS.addListener(Phase5FRuntimeInspector::onRegisterCommands);

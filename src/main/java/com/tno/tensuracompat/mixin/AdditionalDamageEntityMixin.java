@@ -4,6 +4,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.tno.tensuracompat.core.stage.MatchingResistanceRecovery;
 import com.tno.tensuracompat.core.stage.NativeScalableDamage;
+import com.tno.tensuracompat.core.endgame.MagicHolyEndgameContext;
 import com.tno.tensuracompat.debug.Phase6CalibrationContext;
 import com.tno.tensuracompat.debug.Phase5FSuiteBBenchmark;
 import io.github.manasmods.tensura.enchantment.effect.AdditionalDamageEntity;
@@ -52,15 +53,20 @@ public abstract class AdditionalDamageEntityMixin {
         }
         var family = NativeScalableDamage.additionalDamageFamily(damageType());
         if (family.isEmpty()) return original.call(damaged, source, recovered);
-        var scope = Phase6CalibrationContext.open(enchantedItem.itemStack(), family.get(), livingTarget,
+        var productionScope = MatchingResistanceRecovery.hasActiveMatchingNullification(
+                livingTarget, family.get(), source)
+                ? java.util.Optional.<MagicHolyEndgameContext.Scope>empty()
+                : MagicHolyEndgameContext.open(enchantedItem.itemStack(), family.get(), livingTarget);
+        var calibrationScope = Phase6CalibrationContext.open(enchantedItem.itemStack(), family.get(), livingTarget,
                 nativeEligibleAmount, scaled, recovered);
         try {
             boolean accepted = original.call(damaged, source, recovered);
-            scope.ifPresent(value -> Phase5FSuiteBBenchmark.captureCalibrationTrace(value.snapshot()));
+            calibrationScope.ifPresent(value -> Phase5FSuiteBBenchmark.captureCalibrationTrace(value.snapshot()));
             return accepted;
         }
         finally {
-            scope.ifPresent(Phase6CalibrationContext.Scope::close);
+            calibrationScope.ifPresent(Phase6CalibrationContext.Scope::close);
+            productionScope.ifPresent(MagicHolyEndgameContext.Scope::close);
         }
     }
 }

@@ -54,7 +54,9 @@ final class L2HostilityTargetAdapter {
 
     private static boolean serverBoolean(String name) throws ReflectiveOperationException {
         Object holder = readField(staticField(L2_CONFIG, "SERVER"), name);
-        return booleanValue(invoke(holder, "get"));
+        Object value = invoke(holder, "get");
+        if (value instanceof Boolean bool) return bool;
+        throw new IllegalArgumentException("expected boolean L2 config value for " + name);
     }
 
     private static Map<String, Integer> relevantTraits(Object capability) throws ReflectiveOperationException {

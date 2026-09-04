@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class L2HealthScalingTest {
     @Test
@@ -26,5 +27,25 @@ class L2HealthScalingTest {
                 () -> L2HealthScaling.nominalMultiplier(800, Double.NaN, 1.0D, false));
         assertThrows(IllegalArgumentException.class,
                 () -> L2HealthScaling.nominalMultiplier(800, 0.03D, -1.0D, false));
+    }
+
+    @Test
+    void configuredLevelResponseIsMonotonicWithoutAnActivationCliff() {
+        double h300 = L2HealthScaling.nominalMultiplier(300, 0.03D, 1.0D, false);
+        double h600 = L2HealthScaling.nominalMultiplier(600, 0.03D, 1.0D, false);
+        double h800 = L2HealthScaling.nominalMultiplier(800, 0.03D, 1.0D, false);
+        double h1000 = L2HealthScaling.nominalMultiplier(1000, 0.03D, 1.0D, false);
+        assertEquals(10.0D, h300);
+        assertEquals(19.0D, h600);
+        assertEquals(25.0D, h800);
+        assertEquals(31.0D, h1000);
+        assertTrue(h300 < h600 && h600 < h800 && h800 < h1000);
+    }
+
+    @Test
+    void missingL2ContextIsRepresentedByExactNativeParity() {
+        assertEquals(1.0D, MagicHolyEndgameMath.genericNormalization(null, 31.0D));
+        assertEquals(1.0D, MagicHolyEndgameMath.genericNormalization(
+                MagicHolyEndgamePolicy.Parameters.NONE, 31.0D));
     }
 }
