@@ -5,6 +5,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.tno.tensuracompat.core.stage.MatchingResistanceRecovery;
 import com.tno.tensuracompat.core.stage.NativeScalableDamage;
 import com.tno.tensuracompat.core.endgame.MagicHolyEndgameContext;
+import com.tno.tensuracompat.core.endgame.MagicHolyEndgamePolicy;
 import com.tno.tensuracompat.debug.Phase6CalibrationContext;
 import com.tno.tensuracompat.debug.Phase5FSuiteBBenchmark;
 import io.github.manasmods.tensura.enchantment.effect.AdditionalDamageEntity;
@@ -53,8 +54,9 @@ public abstract class AdditionalDamageEntityMixin {
         }
         var family = NativeScalableDamage.additionalDamageFamily(damageType());
         if (family.isEmpty()) return original.call(damaged, source, recovered);
-        var productionScope = MatchingResistanceRecovery.hasActiveMatchingNullification(
-                livingTarget, family.get(), source)
+        boolean matchingNullification = MagicHolyEndgamePolicy.supports(family.get())
+                && MatchingResistanceRecovery.hasActiveMatchingNullification(livingTarget, family.get(), source);
+        var productionScope = !MagicHolyEndgamePolicy.permitsNativeEvent(family.get(), matchingNullification)
                 ? java.util.Optional.<MagicHolyEndgameContext.Scope>empty()
                 : MagicHolyEndgameContext.open(enchantedItem.itemStack(), family.get(), livingTarget);
         var calibrationScope = Phase6CalibrationContext.open(enchantedItem.itemStack(), family.get(), livingTarget,

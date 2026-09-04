@@ -22,6 +22,11 @@ public final class MagicHolyEndgamePolicy {
         return family == ScalableFamily.MAGIC_WEAPON || family == ScalableFamily.HOLY_WEAPON;
     }
 
+    /** Matching native Nullification is authoritative and prevents an endgame scope. */
+    public static boolean permitsNativeEvent(ScalableFamily family, boolean matchingNullification) {
+        return supports(family) && !matchingNullification;
+    }
+
     public record Parameters(double genericHealthQ, double dementorRecovery, double adaptiveRecovery) {
         public static final Parameters NONE = new Parameters(0.0D, 0.0D, 0.0D);
 

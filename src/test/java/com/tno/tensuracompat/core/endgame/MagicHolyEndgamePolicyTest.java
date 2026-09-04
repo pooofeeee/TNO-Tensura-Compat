@@ -34,8 +34,17 @@ class MagicHolyEndgamePolicyTest {
     @EnumSource(value = ScalableFamily.class, names = {"SOUL_EATER", "ELEMENTAL_SLOTTING", "ENERGY_STEAL", "SEVERANCE"})
     void rejectsEveryUnrelatedFamily(ScalableFamily family) {
         assertFalse(MagicHolyEndgamePolicy.supports(family));
+        assertFalse(MagicHolyEndgamePolicy.permitsNativeEvent(family, false));
         assertEquals(MagicHolyEndgamePolicy.Parameters.NONE,
                 MagicHolyEndgamePolicy.parameters(Stage.S7, family));
+    }
+
+    @Test
+    void matchingNullificationIsAnAbsoluteAdmissionGate() {
+        assertFalse(MagicHolyEndgamePolicy.permitsNativeEvent(ScalableFamily.MAGIC_WEAPON, true));
+        assertFalse(MagicHolyEndgamePolicy.permitsNativeEvent(ScalableFamily.HOLY_WEAPON, true));
+        assertTrue(MagicHolyEndgamePolicy.permitsNativeEvent(ScalableFamily.MAGIC_WEAPON, false));
+        assertTrue(MagicHolyEndgamePolicy.permitsNativeEvent(ScalableFamily.HOLY_WEAPON, false));
     }
 
     @Test
