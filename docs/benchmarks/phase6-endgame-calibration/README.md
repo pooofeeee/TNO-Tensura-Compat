@@ -245,6 +245,43 @@ Classification for later combined testing:
 Dementor therefore needs partial negotiation, but it is not sufficient alone.
 No fine-grained sweep or permanent RD value is selected.
 
+## Checkpoint G — Adaptive sweep
+
+Status: complete. `adaptive_magic_weapon.jsonl` and
+`adaptive_holy_weapon.jsonl` each contain 120 cases, 1,200 traced hits, and
+zero errors. RA = 0, 0.25, 0.50, 0.75, 1.00 was tested across S5-S7 and all
+four levels on the accepted legal profile and the same legal profile with
+Adaptive removed and its paid budget left unused. Q=RD=0 throughout.
+
+The installed trait's actual semantics were preserved. The source key remains
+`DamageSource.getMsgId()` (`tensura.magic` or `tensura.holy_damage`); L2 owns
+the memory list, adaption map, count, rank, and configured 0.5 factor. Rank is
+memory capacity (3 at Lv600 and 5 at Lv800/Lv1000), not reduction percent.
+With only one source ID, every accepted-profile case advances the count exactly
+1 through 10 and native factor exactly
+`1, .5, .25, .125, .0625, .03125, .015625, .0078125, .00390625,
+.001953125`.
+
+S7 accepted-profile family DPS below is ordered RA = 0, 0.25, 0.50, 0.75,
+1.00:
+
+| Family | Lv600 | Lv800 | Lv1000 |
+|---|---|---|---|
+| Magic | 0.698, 1.394, 2.091, 2.788, 3.485 | 0.696, 1.441, 2.091, 2.788, 3.544 | 0.696, 1.394, 2.091, 2.788, 3.544 |
+| Holy | 0.698, 1.441, 2.091, 2.788, 3.544 | 0.696, 1.394, 2.091, 2.788, 3.544 | 0.701, 1.394, 2.122, 2.788, 3.544 |
+
+At RA=0.75 the negotiated factors are
+`1, .875, .8125, .78125, .765625, .7578125, .75390625, .751953125,
+.750976563, .750488281`. Thus hit ten remains about 25% below hit one; Adaptive
+is visibly and meaningfully harmful. At RA=0.50 the late-hit penalty remains
+about 50%. RA=1 makes every factor 1 and reproduces the no-Adaptive boundary,
+so it is rejected as too strong.
+
+RA 0-0.25 is too weak for the later combined objective, RA 0.50-0.75 is the
+promising coarse interval, and RA 1.00 is too strong architecturally. Even the
+isolated RA ceiling remains nonviable because native Dementor stays active.
+No Adaptive state was reset or rewritten and no permanent RA is selected.
+
 ## Checkpoint B — Magic/Holy classification
 
 Status: complete. `classification.jsonl` contains two runtime registry

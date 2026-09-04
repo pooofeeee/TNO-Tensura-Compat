@@ -301,6 +301,73 @@ switch ($Mode) {
                     '1,2,3,4,5,6,7,8,9,10') { throw 'Dementor sweep reset Adaptive state' }
         }
     }
+    'adaptive' {
+        if (-not $ExpectedFamily) { throw 'adaptive mode requires -ExpectedFamily' }
+        $rows = @($session | Where-Object kind -eq 'row')
+        $cases = @($session | Where-Object kind -eq 'case_result')
+        if ($rows.Count -ne 1200 -or $cases.Count -ne 120 -or
+                [int]$suite[0].case_count -ne 120 -or [int]$suite[0].requested_case_count -ne 120) {
+            throw "Adaptive suite count mismatch: cases=$($cases.Count), rows=$($rows.Count)"
+        }
+        $profiles = @('ACCEPTED_STRONGEST_LEGAL', 'WITHOUT_ADAPTIVE_CONTROL')
+        $expectedRA = @(0.0, 0.25, 0.5, 0.75, 1.0)
+        $keys = [System.Collections.Generic.HashSet[string]]::new()
+        foreach ($case in $cases) {
+            if ($case.status -ne 'ok' -or $case.calibration_mode -ne 'adaptive' -or
+                    $case.TNO_family -ne $ExpectedFamily -or $case.APO_profile -ne 'NONE' -or
+                    $profiles -notcontains $case.L2_profile_variant -or $expectedRA -notcontains [double]$case.RA_adaptive -or
+                    [double]$case.Q_generic_health -ne 0.0 -or [double]$case.RD_dementor -ne 0.0 -or
+                    [int]$case.shots_released -ne 10 -or [int]$case.hits_recorded -ne 10 -or
+                    [int]$case.calibration_trace_count -ne 10) { throw 'Invalid Adaptive case' }
+            if (-not $keys.Add("$($case.level)|$($case.TNO_stage)|$($case.L2_profile_variant)|$($case.RA_adaptive)")) {
+                throw 'Duplicate Adaptive case coordinate'
+            }
+        }
+        foreach ($row in $rows) {
+            $trace = $row.calibration_trace
+            $expectedSource = if ($ExpectedFamily -eq 'MAGIC_WEAPON') { 'tensura.magic' } else { 'tensura.holy_damage' }
+            $withAdaptive = $row.L2_profile_variant -eq 'ACCEPTED_STRONGEST_LEGAL' -and [int]$row.level -ge 600
+            if ($row.TNO_family -ne $ExpectedFamily -or $row.APO_profile -ne 'NONE' -or
+                    [int]$row.calibration_trace_count -ne 1 -or [int]$row.engraving_damage_event_count -ne 1 -or
+                    $trace.Adaptive_source_msgId -ne $expectedSource -or
+                    [bool]$trace.Adaptive_applied -ne $withAdaptive -or
+                    [bool]$row.l2_layer_bypassed_unexpectedly -or [bool]$row.tensura_layer_bypassed_unexpectedly -or
+                    [bool]$row.unexpected_source_duplication -or [bool]$row.event_recursion_observed) {
+                throw 'Invalid Adaptive row identity/invariant'
+            }
+            if ([math]::Abs([double]$trace.generic_diagnostic_output - [double]$trace.generic_input) -gt 0.001 -or
+                    [math]::Abs([double]$trace.Dementor_diagnostic_post - [double]$trace.Dementor_native_post) -gt 0.001) {
+                throw 'Adaptive sweep changed generic or Dementor behavior'
+            }
+            $nativeFactor = if ($withAdaptive) {
+                [math]::Pow([double]$trace.Adaptive_configured_factor,
+                    [int]$trace.Adaptive_adaptation_count - 1)
+            }
+            else { 1.0 }
+            $expectedFactor = $nativeFactor + [double]$row.RA_adaptive * (1.0 - $nativeFactor)
+            if ([math]::Abs([double]$trace.Adaptive_native_factor - $nativeFactor) -gt 0.000001 -or
+                    [math]::Abs([double]$trace.Adaptive_negotiated_factor - $expectedFactor) -gt 0.000001 -or
+                    [math]::Abs([double]$trace.Adaptive_diagnostic_result -
+                        ([double]$trace.Adaptive_pre * $expectedFactor)) -gt 0.001 -or
+                    [double]$trace.Adaptive_diagnostic_result -gt [double]$trace.Adaptive_pre + 0.001) {
+                throw 'Adaptive factor formula/bound failed'
+            }
+            if ([math]::Abs([double]$trace.final_family_event_amount - [double]$row.family_effect_final_event_amount) -gt 0.001) {
+                throw 'Adaptive final family event/trace mismatch'
+            }
+        }
+        foreach ($group in ($rows | Group-Object level, TNO_stage, L2_profile_variant, calibration_case)) {
+            $ordered = @($group.Group | Sort-Object {[int]$_.hit_index})
+            if ($ordered.Count -ne 10) { throw 'Adaptive repeated-hit sequence count mismatch' }
+            if ([bool]$ordered[0].calibration_trace.Adaptive_applied) {
+                $counts = @($ordered | ForEach-Object {[int]$_.calibration_trace.Adaptive_adaptation_count})
+                if (($counts -join ',') -ne '1,2,3,4,5,6,7,8,9,10') { throw 'Adaptive state was reset' }
+                if ([double]$ordered[-1].calibration_trace.Adaptive_negotiated_factor -ge
+                        [double]$ordered[0].calibration_trace.Adaptive_negotiated_factor -and
+                        [double]$ordered[0].RA_adaptive -lt 1.0) { throw 'Adaptive repeated-source penalty disappeared' }
+            }
+        }
+    }
 }
 
 $parent = Split-Path -Parent $OutputPath

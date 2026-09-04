@@ -2691,7 +2691,12 @@ public final class Phase5FSuiteBBenchmark {
         DEMENTOR_RD_25("DEMENTOR_RD_25", 0.0D, 0.25D, 0.0D),
         DEMENTOR_RD_50("DEMENTOR_RD_50", 0.0D, 0.50D, 0.0D),
         DEMENTOR_RD_75("DEMENTOR_RD_75", 0.0D, 0.75D, 0.0D),
-        DEMENTOR_RD_100("DEMENTOR_RD_100", 0.0D, 1.0D, 0.0D);
+        DEMENTOR_RD_100("DEMENTOR_RD_100", 0.0D, 1.0D, 0.0D),
+        ADAPTIVE_RA_0("ADAPTIVE_RA_0", 0.0D, 0.0D, 0.0D),
+        ADAPTIVE_RA_25("ADAPTIVE_RA_25", 0.0D, 0.0D, 0.25D),
+        ADAPTIVE_RA_50("ADAPTIVE_RA_50", 0.0D, 0.0D, 0.50D),
+        ADAPTIVE_RA_75("ADAPTIVE_RA_75", 0.0D, 0.0D, 0.75D),
+        ADAPTIVE_RA_100("ADAPTIVE_RA_100", 0.0D, 0.0D, 1.0D);
 
         final String id;
         final Phase6CalibrationContext.Parameters parameters;
@@ -2711,6 +2716,8 @@ public final class Phase5FSuiteBBenchmark {
                 case "health" -> List.of(HEALTH_Q_0, HEALTH_Q_25, HEALTH_Q_50, HEALTH_Q_75, HEALTH_Q_100);
                 case "dementor" -> List.of(DEMENTOR_RD_0, DEMENTOR_RD_25, DEMENTOR_RD_50,
                         DEMENTOR_RD_75, DEMENTOR_RD_100);
+                case "adaptive" -> List.of(ADAPTIVE_RA_0, ADAPTIVE_RA_25, ADAPTIVE_RA_50,
+                        ADAPTIVE_RA_75, ADAPTIVE_RA_100);
                 default -> throw new IllegalArgumentException("calibration mode is not implemented yet: " + mode);
             };
         }
@@ -2745,6 +2752,7 @@ public final class Phase5FSuiteBBenchmark {
         static List<TraitProfile> forMode(String mode) {
             return switch (mode) {
                 case "dementor" -> List.of(ACCEPTED, WITHOUT_DEMENTOR);
+                case "adaptive" -> List.of(ACCEPTED, WITHOUT_ADAPTIVE);
                 default -> List.of(ACCEPTED);
             };
         }

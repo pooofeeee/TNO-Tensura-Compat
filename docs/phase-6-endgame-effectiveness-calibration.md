@@ -14,7 +14,7 @@ or change any production combat behavior.
 | D — diagnostic ceiling | Complete | `ceiling_magic_weapon.jsonl`, `ceiling_holy_weapon.jsonl` | Neither reducer alone nor both together are sufficient. Generic-H compensation is also required for practical viability in this controlled profile. The all-100% diagnostic bound reaches about 211-242s S7 TTK at Lv600-Lv1000, proving the three-component architecture is mathematically sufficient without selecting production values. |
 | E — generic-health calibration | Complete | `health_magic_weapon.jsonl`, `health_holy_weapon.jsonl` | Q is monotonic but cannot overcome untouched Dementor + Adaptive. Q=1 alone still estimates 10.7-15.0 hour S7 fights at Lv600-Lv1000. No arbitrary L2-level threshold is supported; H naturally scales. |
 | F — Dementor calibration | Complete | `dementor_magic_weapon.jsonl`, `dementor_holy_weapon.jsonl` | RD 0.50-0.75 is the promising coarse interval. RD <=0.25 is too weak; RD=1 erases Dementor and is too strong architecturally. |
-| G — Adaptive calibration | Pending | — | — |
+| G — Adaptive calibration | Complete | `adaptive_magic_weapon.jsonl`, `adaptive_holy_weapon.jsonl` | RA 0.50-0.75 is promising. Both retain a clear repeated-source penalty; RA=1 reproduces no-Adaptive and is rejected. |
 | H — combined candidates | Pending | — | — |
 | I — safety matrix | Pending | — | — |
 
@@ -82,3 +82,17 @@ region: it retains measurable nonlinear harm while recovering enough signal
 for the later combined test. Adaptive remains fully native and is why even
 RD=1 alone still produces multi-hour high-level estimates. No permanent RD is
 selected.
+
+## Checkpoint G — RA sweep
+
+The accepted G matrix has 240 cases and 2,400 traces including legal
+no-Adaptive controls. L2-owned memory is untouched: the source ID remains
+original, count advances 1-10, and native factor follows `0.5^(count-1)` down
+to 0.001953125. Rank remains source-memory capacity rather than a reduction
+percentage.
+
+RA 0.50-0.75 is the promising region. At RA=0.75 the tenth negotiated factor
+is 0.750488 versus 1.0 on hit one, so the trait retains a meaningful repeated-
+source penalty. RA=0.50 retains about a 50% late-hit penalty. RA<=0.25 is too
+weak for the intended combined objective, while RA=1 exactly erases Adaptive
+and is rejected. No permanent RA is selected.
