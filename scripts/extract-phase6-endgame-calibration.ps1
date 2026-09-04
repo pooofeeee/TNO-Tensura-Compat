@@ -368,6 +368,129 @@ switch ($Mode) {
             }
         }
     }
+    'combined' {
+        if (-not $ExpectedFamily) { throw 'combined mode requires -ExpectedFamily' }
+        $rows = @($session | Where-Object kind -eq 'row')
+        $cases = @($session | Where-Object kind -eq 'case_result')
+        if ($rows.Count -ne 1350 -or $cases.Count -ne 135 -or
+                [int]$suite[0].case_count -ne 135 -or [int]$suite[0].requested_case_count -ne 135) {
+            throw "Combined suite count mismatch: cases=$($cases.Count), rows=$($rows.Count)"
+        }
+        $profiles = @(
+            'ACCEPTED_STRONGEST_LEGAL', 'WITHOUT_DEMENTOR_CONTROL',
+            'WITHOUT_ADAPTIVE_CONTROL', 'WITHOUT_DEMENTOR_ADAPTIVE_CONTROL',
+            'WITHOUT_REGENERATE_CONTROL')
+        $parameters = @{
+            'COMBINED_LOW_S5'  = @(0.25,   0.50,  0.50)
+            'COMBINED_LOW_S6'  = @(0.375,  0.625, 0.625)
+            'COMBINED_LOW_S7'  = @(0.50,   0.75,  0.75)
+            'COMBINED_MID_S5'  = @(0.375,  0.50,  0.50)
+            'COMBINED_MID_S6'  = @(0.5625, 0.625, 0.625)
+            'COMBINED_MID_S7'  = @(0.75,   0.75,  0.75)
+            'COMBINED_HIGH_S5' = @(0.50,   0.50,  0.50)
+            'COMBINED_HIGH_S6' = @(0.75,   0.625, 0.625)
+            'COMBINED_HIGH_S7' = @(1.00,   0.75,  0.75)
+        }
+        $keys = [System.Collections.Generic.HashSet[string]]::new()
+        foreach ($case in $cases) {
+            $expected = $parameters[$case.calibration_case]
+            if ($null -eq $expected -or $case.status -ne 'ok' -or $case.calibration_mode -ne 'combined' -or
+                    $case.TNO_family -ne $ExpectedFamily -or $case.APO_profile -ne 'NONE' -or
+                    @(600,800,1000) -notcontains [int]$case.level -or
+                    @('S5','S6','S7') -notcontains $case.TNO_stage -or
+                    $profiles -notcontains $case.L2_profile_variant -or
+                    -not [bool]$case.fresh_L2_attachment_per_case -or [bool]$case.profile_clone_verified -or
+                    [double]$case.Q_generic_health -ne [double]$expected[0] -or
+                    [double]$case.RD_dementor -ne [double]$expected[1] -or
+                    [double]$case.RA_adaptive -ne [double]$expected[2] -or
+                    -not [bool]$case.legal_trait_profile -or
+                    [int]$case.shots_released -ne 10 -or [int]$case.hits_recorded -ne 10 -or
+                    [int]$case.calibration_trace_count -ne 10) { throw 'Invalid combined case' }
+            if ($case.calibration_case -notmatch "_$($case.TNO_stage)$") {
+                throw 'Combined candidate was paired with the wrong Stage'
+            }
+            if (-not $keys.Add("$($case.level)|$($case.TNO_stage)|$($case.L2_profile_variant)|$($case.calibration_case)")) {
+                throw 'Duplicate combined case coordinate'
+            }
+            $hasRegenerate = $case.L2_profile_variant -ne 'WITHOUT_REGENERATE_CONTROL'
+            $expectedRank = if ($hasRegenerate) { if ([int]$case.level -eq 600) { 4 } else { 5 } } else { 0 }
+            if ([int]$case.Regenerate_rank -ne $expectedRank -or
+                    [math]::Abs([double]$case.Regenerate_nominal_HP_per_second -
+                        ([double]$case.HP * [double]$case.Regenerate_config_fraction_per_rank_per_second * $expectedRank)) -gt 0.001) {
+                throw 'Combined Regenerate rank/rate mismatch'
+            }
+            if ($case.L2_profile_variant -eq 'ACCEPTED_STRONGEST_LEGAL') {
+                if (-not [bool]$case.profile_is_accepted_strongest_legal -or [bool]$case.removed_trait_budget_not_reallocated) {
+                    throw 'Accepted combined profile flags are invalid'
+                }
+            }
+            elseif (-not [bool]$case.removed_trait_budget_not_reallocated) {
+                throw 'Combined control reallocated removed trait budget'
+            }
+        }
+        foreach ($row in $rows) {
+            $trace = $row.calibration_trace
+            $expectedSource = if ($ExpectedFamily -eq 'MAGIC_WEAPON') { 'tensura.magic' } else { 'tensura.holy_damage' }
+            $withDementor = @('WITHOUT_DEMENTOR_CONTROL','WITHOUT_DEMENTOR_ADAPTIVE_CONTROL') -notcontains $row.L2_profile_variant
+            $withAdaptive = @('WITHOUT_ADAPTIVE_CONTROL','WITHOUT_DEMENTOR_ADAPTIVE_CONTROL') -notcontains $row.L2_profile_variant
+            if ($row.TNO_family -ne $ExpectedFamily -or $row.APO_profile -ne 'NONE' -or
+                    [int]$row.calibration_trace_count -ne 1 -or [int]$row.engraving_damage_event_count -ne 1 -or
+                    $trace.Adaptive_source_msgId -ne $expectedSource -or
+                    [bool]$trace.Dementor_applied -ne $withDementor -or
+                    [bool]$trace.Adaptive_applied -ne $withAdaptive -or
+                    [bool]$row.l2_layer_bypassed_unexpectedly -or [bool]$row.tensura_layer_bypassed_unexpectedly -or
+                    [bool]$row.unexpected_source_duplication -or [bool]$row.event_recursion_observed) {
+                throw 'Invalid combined row identity/invariant'
+            }
+            $expectedH = 1.0 + [int]$row.level * 0.03 * 1.2
+            $expectedGeneric = [double]$trace.generic_input *
+                (1.0 + [double]$row.Q_generic_health * ($expectedH - 1.0))
+            if ([math]::Abs([double]$trace.generic_L2_health_multiplier - $expectedH) -gt 0.00001 -or
+                    [math]::Abs([double]$trace.generic_diagnostic_output - $expectedGeneric) -gt 0.001) {
+                throw 'Combined generic normalization formula failed'
+            }
+            $x = [double]$trace.Dementor_pre
+            $nativeDementor = if ($withDementor) {
+                if ($x -lt 2.0) { $x / 2.0 } else { [math]::Log($x, 2.0) }
+            }
+            else { $x }
+            $expectedDementor = $nativeDementor + [double]$row.RD_dementor * ($x - $nativeDementor)
+            if ([math]::Abs([double]$trace.Dementor_native_post - $nativeDementor) -gt 0.001 -or
+                    [math]::Abs([double]$trace.Dementor_diagnostic_post - $expectedDementor) -gt 0.001 -or
+                    [double]$trace.Dementor_diagnostic_post -gt $x + 0.001) {
+                throw 'Combined Dementor formula/bound failed'
+            }
+            $nativeAdaptiveFactor = if ($withAdaptive) {
+                [math]::Pow([double]$trace.Adaptive_configured_factor,
+                    [int]$trace.Adaptive_adaptation_count - 1)
+            }
+            else { 1.0 }
+            $expectedAdaptiveFactor = $nativeAdaptiveFactor +
+                [double]$row.RA_adaptive * (1.0 - $nativeAdaptiveFactor)
+            if ([math]::Abs([double]$trace.Adaptive_native_factor - $nativeAdaptiveFactor) -gt 0.000001 -or
+                    [math]::Abs([double]$trace.Adaptive_negotiated_factor - $expectedAdaptiveFactor) -gt 0.000001 -or
+                    [math]::Abs([double]$trace.Adaptive_diagnostic_result -
+                        ([double]$trace.Adaptive_pre * $expectedAdaptiveFactor)) -gt 0.001 -or
+                    [double]$trace.Adaptive_diagnostic_result -gt [double]$trace.Adaptive_pre + 0.001 -or
+                    [math]::Abs([double]$trace.final_family_event_amount - [double]$row.family_effect_final_event_amount) -gt 0.001) {
+                throw 'Combined Adaptive/final-event formula failed'
+            }
+        }
+        foreach ($group in ($rows | Group-Object level, TNO_stage, L2_profile_variant, calibration_case)) {
+            $ordered = @($group.Group | Sort-Object {[int]$_.hit_index})
+            if ($ordered.Count -ne 10 -or (@($ordered.hit_index) -join ',') -ne '1,2,3,4,5,6,7,8,9,10') {
+                throw 'Combined repeated-hit sequence count/order mismatch'
+            }
+            if ([bool]$ordered[0].calibration_trace.Adaptive_applied) {
+                $counts = @($ordered | ForEach-Object {[int]$_.calibration_trace.Adaptive_adaptation_count})
+                if (($counts -join ',') -ne '1,2,3,4,5,6,7,8,9,10') { throw 'Combined candidate reset Adaptive state' }
+                if ([double]$ordered[-1].calibration_trace.Adaptive_negotiated_factor -ge
+                        [double]$ordered[0].calibration_trace.Adaptive_negotiated_factor) {
+                    throw 'Combined candidate erased Adaptive repeated-source harm'
+                }
+            }
+        }
+    }
 }
 
 $parent = Split-Path -Parent $OutputPath

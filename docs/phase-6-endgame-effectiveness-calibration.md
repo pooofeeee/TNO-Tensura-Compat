@@ -15,7 +15,7 @@ or change any production combat behavior.
 | E — generic-health calibration | Complete | `health_magic_weapon.jsonl`, `health_holy_weapon.jsonl` | Q is monotonic but cannot overcome untouched Dementor + Adaptive. Q=1 alone still estimates 10.7-15.0 hour S7 fights at Lv600-Lv1000. No arbitrary L2-level threshold is supported; H naturally scales. |
 | F — Dementor calibration | Complete | `dementor_magic_weapon.jsonl`, `dementor_holy_weapon.jsonl` | RD 0.50-0.75 is the promising coarse interval. RD <=0.25 is too weak; RD=1 erases Dementor and is too strong architecturally. |
 | G — Adaptive calibration | Complete | `adaptive_magic_weapon.jsonl`, `adaptive_holy_weapon.jsonl` | RA 0.50-0.75 is promising. Both retain a clear repeated-source penalty; RA=1 reproduces no-Adaptive and is rejected. |
-| H — combined candidates | Pending | — | — |
+| H — combined candidates | Complete | `combined_magic_weapon.jsonl`, `combined_holy_weapon.jsonl` | Three strictly increasing ramps preserve Dementor and Adaptive harm and produce clear S5 < S6 < S7 gross progression. The upper ramp reaches roughly 5.7-6.7 minute gross S7 estimates, but native Regenerate's 400-500 HP/s configured ceiling exceeds every tested TNO-only result; this is promising damage calibration, not yet a complete endgame solution. |
 | I — safety matrix | Pending | — | — |
 
 Checkpoint A's full formula audit, 16-case table, exact modifier lists, and
@@ -96,3 +96,62 @@ is 0.750488 versus 1.0 on hit one, so the trait retains a meaningful repeated-
 source penalty. RA=0.50 retains about a 50% late-hit penalty. RA<=0.25 is too
 weak for the intended combined objective, while RA=1 exactly erases Adaptive
 and is rejected. No permanent RA is selected.
+
+## Checkpoint H — combined candidates
+
+The accepted H matrix contains 270 cases and 2,700 traced hits: 135 cases per
+family across Lv600/Lv800/Lv1000, S5-S7, three small candidate ramps, and five
+legal profile variants. Every case uses a fresh initialized L2 attachment so
+native ticking traits are not inferred from a serialized clone. The variants
+are the accepted strongest legal Orc profile; the same profile without
+Dementor; without Adaptive; without both; and without Regenerate. Removed
+trait budget is left unused. There are zero case errors, source changes,
+duplicate eligible events, recursions, Tensura bypasses, or L2 bypasses.
+
+The three development-only ramps are:
+
+| Ramp | S5 `(Q,RD,RA)` | S6 `(Q,RD,RA)` | S7 `(Q,RD,RA)` |
+|---|---|---|---|
+| Low | `(0.25,0.50,0.50)` | `(0.375,0.625,0.625)` | `(0.50,0.75,0.75)` |
+| Mid | `(0.375,0.50,0.50)` | `(0.5625,0.625,0.625)` | `(0.75,0.75,0.75)` |
+| High | `(0.50,0.50,0.50)` | `(0.75,0.625,0.625)` | `(1.00,0.75,0.75)` |
+
+All dimensions increase strictly from S5 to S7 and stay inside the promising
+regions established by E-G. No permanent values are selected.
+
+On the accepted profile, the high ramp's family DPS and gross combined-
+resource TTK are:
+
+| Family | Level | S5 DPS / TTK | S6 DPS / TTK | S7 DPS / TTK |
+|---|---:|---:|---:|---:|
+| Magic | 600 | 38.891 / 1,573s | 83.240 / 736s | 161.184 / 380s |
+| Magic | 800 | 54.790 / 1,413s | 108.856 / 712s | 224.632 / 345s |
+| Magic | 1000 | 61.558 / 1,520s | 134.449 / 697s | 262.273 / 357s |
+| Holy | 600 | 40.443 / 1,513s | 96.555 / 634s | 153.459 / 399s |
+| Holy | 800 | 50.237 / 1,540s | 108.856 / 712s | 211.416 / 367s |
+| Holy | 1000 | 61.558 / 1,520s | 141.257 / 663s | 250.364 / 374s |
+
+This is the intended weak-to-strong Stage shape: S5 remains a 25-minute-class
+gross fight, S6 is roughly 10.6-12.3 minutes, and S7 is roughly 5.7-6.7
+minutes. The low and mid S7 ramps remain slower at about 7.7-12 minutes. Magic
+and Holy remain materially equivalent; small differences are repeat-run
+variance.
+
+Dementor and Adaptive still matter. At high S7, removing Dementor raises
+family DPS from 153-262 to 202-348, removing Adaptive raises it to 192-313,
+and removing both raises it to 253-456. Adaptive still advances count 1-10
+with the original source key, and the RA=0.75 tenth-hit factor remains
+0.750488 rather than 1. Tank remains rank 5 and the unscaled base physical
+Royal Arrow adds only about 0.07-0.16 DPS; the candidate affects only the
+eligible native family event.
+
+Regenerate prevents H from being a final viability selection. The runtime
+config is 1% of max vanilla HP per rank each second, so the legal rank-4 Lv600
+profile has a 400 HP/s ceiling and the rank-5 Lv800/Lv1000 profiles have a 500
+HP/s ceiling. Those values exceed even every high-ramp TNO-only gross result,
+including the controls without Dementor and Adaptive. Short-window observed
+healing is timing/resource-path dependent, so a finite sustained TTK with
+Regenerate cannot be defended from the 200-tick damage window. The high ramp
+is therefore the best safety-test candidate, but the three-component
+Q/RD/RA architecture is not yet proven sufficient against Regenerate and no
+production policy should be implemented from H alone.

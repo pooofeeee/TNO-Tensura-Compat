@@ -366,3 +366,53 @@ property. With the property absent, the wrapped call receives the exact same
 bounded to finite `[0,1]` values and is covered by unit tests. The full clean
 build, existing Stage/Resistance/Severance suites, and the new parameter tests
 all pass.
+
+## Checkpoint H — combined candidate matrix
+
+Status: complete. `combined_magic_weapon.jsonl` and
+`combined_holy_weapon.jsonl` each contain 135 cases, 1,350 per-hit rows, and
+1,350 reducer traces. The matrix covers Lv600/Lv800/Lv1000, S5-S7, three
+strictly increasing candidate ramps, and five actual legal profile variants.
+Every case uses a fresh initialized L2 attachment; this avoids treating a
+serialized clone as proof for native ticking traits. Removed traits are legal
+controls whose budget is left unused.
+
+The candidate inputs are:
+
+| Ramp | S5 Q/RD/RA | S6 Q/RD/RA | S7 Q/RD/RA |
+|---|---|---|---|
+| Low | 0.25 / 0.50 / 0.50 | 0.375 / 0.625 / 0.625 | 0.50 / 0.75 / 0.75 |
+| Mid | 0.375 / 0.50 / 0.50 | 0.5625 / 0.625 / 0.625 | 0.75 / 0.75 / 0.75 |
+| High | 0.50 / 0.50 / 0.50 | 0.75 / 0.625 / 0.625 | 1.00 / 0.75 / 0.75 |
+
+The high ramp is the only credible safety-test candidate. On the accepted
+profile its Magic S7 family DPS is 161.184, 224.632, and 262.273 at levels
+600, 800, and 1000; Holy is 153.459, 211.416, and 250.364. Corresponding gross
+combined-resource TTK is 380/345/357 seconds for Magic and 399/367/374 seconds
+for Holy. S5 remains roughly a 25-minute gross fight and S6 roughly an
+11-minute fight, so the desired Stage progression is present without changing
+Curve C or any production value.
+
+The trait comparisons remain material. Across the high-S7 cases, an otherwise
+identical no-Dementor control reaches 202-348 family DPS, no-Adaptive reaches
+192-313, and no-Dementor/no-Adaptive reaches 253-456. The accepted profile is
+therefore still disadvantaged by both traits. Adaptive count remains 1-10 and
+its original `tensura.magic` or `tensura.holy_damage` source key is unchanged;
+the RA=0.75 tenth-hit factor is 0.750488. Tank stays at rank 5 and continues to
+apply to the unscaled physical arrow path.
+
+Regenerate is a blocking qualification, not a value to hide in gross TTK. The
+installed config and bytecode give `maxHealth * 0.01 * rank` healing every
+second: 400 HP/s at the legal Lv600 rank 4 and 500 HP/s at Lv800/Lv1000 rank
+5. This ceiling exceeds all tested TNO-only candidates, even with Dementor and
+Adaptive removed. The 200-tick captures observed only timing/resource-path-
+dependent partial healing, so they do not support a finite sustained TTK under
+continuous Regenerate. H therefore preserves the high ramp only for targeted
+safety validation; it does not select production Q/RD/RA values or establish a
+complete endgame solution.
+
+Strict extraction verifies the exact 135 coordinates per family, ten releases
+and one reducer trace per release, legal profile flags, removed-budget policy,
+Regenerate rank/config/rate, H/Dementor/Adaptive formulas, original source IDs,
+natural Adaptive 1-10 progression, and zero case errors, bypasses, duplicates,
+or recursion.

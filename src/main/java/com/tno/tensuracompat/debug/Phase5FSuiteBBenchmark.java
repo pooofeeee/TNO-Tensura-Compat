@@ -463,7 +463,8 @@ public final class Phase5FSuiteBBenchmark {
                 catalogLogged = true;
             }
             target = createTarget(spec.boss);
-            if (profileTemplate != null && spec.profileKey().equals(templateKey)) {
+            if (!CALIBRATION_MODE.equals("combined")
+                    && profileTemplate != null && spec.profileKey().equals(templateKey)) {
                 CompoundTag copy = profileTemplate.copy();
                 target.load(copy);
                 target.setPos(TEST_X, TEST_Y, TARGET_Z);
@@ -605,14 +606,16 @@ public final class Phase5FSuiteBBenchmark {
                 invoke(l2Cap, "syncToClient", target);
             }
             resetActors();
-            profileTemplate = new CompoundTag();
-            target.saveWithoutId(profileTemplate);
-            profileTemplate.remove("UUID");
-            profileTemplate.remove("Pos");
-            profileTemplate.remove("Motion");
-            profileTemplate.remove("Rotation");
-            templateKey = currentCase().profileKey();
-            templateTraits = GSON.toJson(readTraits(l2Cap));
+            if (!CALIBRATION_MODE.equals("combined")) {
+                profileTemplate = new CompoundTag();
+                target.saveWithoutId(profileTemplate);
+                profileTemplate.remove("UUID");
+                profileTemplate.remove("Pos");
+                profileTemplate.remove("Motion");
+                profileTemplate.remove("Rotation");
+                templateKey = currentCase().profileKey();
+                templateTraits = GSON.toJson(readTraits(l2Cap));
+            }
             beginRun(!STRONGEST_LEGAL_PROFILE);
         }
 
@@ -1289,7 +1292,9 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("stage_fixture_only", !PRODUCTION_OBSERVATION);
             json.addProperty("production_balance_mutated", false);
             json.addProperty("production_combat_mutated", false);
-            json.addProperty("profile_clone_policy", PRODUCTION_OBSERVATION
+            json.addProperty("profile_clone_policy", CALIBRATION_MODE.equals("combined")
+                    ? "fresh initialized L2 attachment and exact legal constructed profile for every case; required for native ticking-trait evidence"
+                    : PRODUCTION_OBSERVATION
                     ? "accepted strongest legal profile per exact L2 level; pristine serialized clone for S0-S7"
                     : ENDGAME ? "accepted strongest legal Lv1000 profile per boss; pristine serialized clone for Native and S7"
                     : "one legal native L2 roll per boss/level; pristine serialized clones for Native and S0-S7");
@@ -1325,10 +1330,13 @@ public final class Phase5FSuiteBBenchmark {
             BossSpec boss = BOSSES.stream().filter(value -> value.id.equals(id("tensura", "orc_disaster")))
                     .findFirst().orElseThrow();
             if (!filter.isBlank() && !boss.id.toString().equals(filter)) return result;
-            for (int level : List.of(300, 600, 800, 1000)) {
+            List<Integer> levels = CALIBRATION_MODE.equals("combined")
+                    ? List.of(600, 800, 1000)
+                    : List.of(300, 600, 800, 1000);
+            for (int level : levels) {
                 for (TraitProfile profile : TraitProfile.forMode(CALIBRATION_MODE)) {
                     for (Stage stage : STAGES.subList(6, STAGES.size())) {
-                        for (CalibrationCase calibration : CalibrationCase.forMode(CALIBRATION_MODE)) {
+                        for (CalibrationCase calibration : CalibrationCase.forMode(CALIBRATION_MODE, stage)) {
                             result.add(new CaseSpec(boss, level, LevelMode.ENDGAME_TARGET,
                                     stage, calibration, profile));
                         }
@@ -1394,6 +1402,9 @@ public final class Phase5FSuiteBBenchmark {
         if (spec.traitProfile.removedTraits.contains("l2hostility:adaptive")) {
             spent -= 80 * reference.getOrDefault("l2hostility:adaptive", 0);
         }
+        if (spec.traitProfile.removedTraits.contains("l2hostility:regenerate")) {
+            spent -= 30 * reference.getOrDefault("l2hostility:regenerate", 0);
+        }
         return spent;
     }
 
@@ -1419,6 +1430,9 @@ public final class Phase5FSuiteBBenchmark {
         final double shpMultiplier;
         final double magiculeMultiplier;
         final double auraMultiplier;
+        final int regenerateRank;
+        final double regenerateFractionPerRankPerSecond;
+        final double nominalRegenerateHpPerSecond;
         int shotsReleased;
         int elapsedTicks;
         Integer ttk;
@@ -1452,6 +1466,13 @@ public final class Phase5FSuiteBBenchmark {
             this.shpMultiplier = multiplier(target, TensuraAttributes.MAX_SPIRITUAL_HEALTH);
             this.magiculeMultiplier = multiplier(target, TensuraAttributes.MAX_MAGICULE);
             this.auraMultiplier = multiplier(target, TensuraAttributes.MAX_AURA);
+            this.regenerateRank = traitRanks.has("l2hostility:regenerate")
+                    ? traitRanks.get("l2hostility:regenerate").getAsInt() : 0;
+            Object serverConfig = staticField("dev.xkmc.l2hostility.init.data.LHConfig", "SERVER");
+            Object regenConfig = readField(serverConfig, "regen");
+            this.regenerateFractionPerRankPerSecond = numberValue(invoke(regenConfig, "get")).doubleValue();
+            this.nominalRegenerateHpPerSecond = initialMaxHp
+                    * regenerateFractionPerRankPerSecond * regenerateRank;
         }
 
         void finish(LivingEntity target) {
@@ -1807,9 +1828,17 @@ public final class Phase5FSuiteBBenchmark {
                         + hits.stream().mapToDouble(hit -> hit.dotPost).sum();
                 double totalEventDps = seconds <= 0.0D ? 0.0D : totalEventDamage / seconds;
                 double combined = initialHp + initialShp;
+                double observedNetDamage = Math.max(0.0D,
+                        initialHp + initialShp - finalHp - finalShp);
+                double observedNetDps = seconds <= 0.0D ? 0.0D : observedNetDamage / seconds;
+                double nominalPostRegenerateDps = Math.max(0.0D,
+                        totalEventDps - nominalRegenerateHpPerSecond);
                 json.addProperty("family_event_damage", familyDamage);
                 json.addProperty("family_DPS", familyDps);
                 json.addProperty("total_TNO_only_Royal_Bow_event_DPS", totalEventDps);
+                json.addProperty("observed_net_resource_damage", observedNetDamage);
+                json.addProperty("observed_net_resource_DPS", observedNetDps);
+                json.addProperty("nominal_total_TNO_only_DPS_after_Regenerate", nominalPostRegenerateDps);
                 json.addProperty("target_HP_delta_including_regen", Math.max(0.0D,
                         initialHp - finalHp + hits.stream().mapToDouble(hit -> hit.targetHpRegen).sum()));
                 json.addProperty("target_SHP_delta_including_regen", Math.max(0.0D,
@@ -1818,6 +1847,8 @@ public final class Phase5FSuiteBBenchmark {
                 addFiniteOrNull(json, "estimated_family_TTK_seconds", combined, familyDps);
                 addFiniteOrNull(json, "estimated_total_TNO_only_TTK_seconds", combined, totalEventDps);
                 addFiniteOrNull(json, "estimated_observed_net_TTK_seconds", combined, dps());
+                addFiniteOrNull(json, "estimated_total_TNO_only_TTK_after_nominal_Regenerate_seconds",
+                        combined, nominalPostRegenerateDps);
                 json.addProperty("calibration_trace_count",
                         hits.stream().mapToInt(hit -> hit.calibrationTraces.size()).sum());
             }
@@ -1850,7 +1881,10 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("legal_profile", STRONGEST_LEGAL_PROFILE || spec.mode != LevelMode.STRESS);
             json.addProperty("legal_trait_profile", true);
             json.addProperty("native_profile_source", nativeProfileSource);
-            json.addProperty("profile_clone_verified", true);
+            json.addProperty("profile_clone_verified", !CALIBRATION_MODE.equals("combined"));
+            if (CALIBRATION_MODE.equals("combined")) {
+                json.addProperty("fresh_L2_attachment_per_case", true);
+            }
             json.addProperty("strongest_legal_endgame_profile", STRONGEST_LEGAL_PROFILE
                     && (!CALIBRATION_COMBAT || spec.traitProfile == TraitProfile.ACCEPTED));
             if (CALIBRATION_COMBAT) {
@@ -1884,6 +1918,10 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("SHP_multiplier", shpMultiplier);
             json.addProperty("Magicules_multiplier", magiculeMultiplier);
             json.addProperty("Aura_multiplier", auraMultiplier);
+            json.addProperty("Regenerate_rank", regenerateRank);
+            json.addProperty("Regenerate_config_fraction_per_rank_per_second",
+                    regenerateFractionPerRankPerSecond);
+            json.addProperty("Regenerate_nominal_HP_per_second", nominalRegenerateHpPerSecond);
             json.addProperty("tensura_l2h_scaling_marker", true);
             json.addProperty("TNO_family", active.family.id);
             json.addProperty("TNO_stage", spec.stage.name);
@@ -2696,7 +2734,16 @@ public final class Phase5FSuiteBBenchmark {
         ADAPTIVE_RA_25("ADAPTIVE_RA_25", 0.0D, 0.0D, 0.25D),
         ADAPTIVE_RA_50("ADAPTIVE_RA_50", 0.0D, 0.0D, 0.50D),
         ADAPTIVE_RA_75("ADAPTIVE_RA_75", 0.0D, 0.0D, 0.75D),
-        ADAPTIVE_RA_100("ADAPTIVE_RA_100", 0.0D, 0.0D, 1.0D);
+        ADAPTIVE_RA_100("ADAPTIVE_RA_100", 0.0D, 0.0D, 1.0D),
+        COMBINED_LOW_S5("COMBINED_LOW_S5", 0.25D, 0.50D, 0.50D),
+        COMBINED_LOW_S6("COMBINED_LOW_S6", 0.375D, 0.625D, 0.625D),
+        COMBINED_LOW_S7("COMBINED_LOW_S7", 0.50D, 0.75D, 0.75D),
+        COMBINED_MID_S5("COMBINED_MID_S5", 0.375D, 0.50D, 0.50D),
+        COMBINED_MID_S6("COMBINED_MID_S6", 0.5625D, 0.625D, 0.625D),
+        COMBINED_MID_S7("COMBINED_MID_S7", 0.75D, 0.75D, 0.75D),
+        COMBINED_HIGH_S5("COMBINED_HIGH_S5", 0.50D, 0.50D, 0.50D),
+        COMBINED_HIGH_S6("COMBINED_HIGH_S6", 0.75D, 0.625D, 0.625D),
+        COMBINED_HIGH_S7("COMBINED_HIGH_S7", 1.00D, 0.75D, 0.75D);
 
         final String id;
         final Phase6CalibrationContext.Parameters parameters;
@@ -2710,7 +2757,7 @@ public final class Phase5FSuiteBBenchmark {
             return List.of(BASELINE, DEMENTOR_FULL, ADAPTIVE_FULL, REDUCERS_FULL, HEALTH_FULL, ALL_FULL);
         }
 
-        static List<CalibrationCase> forMode(String mode) {
+        static List<CalibrationCase> forMode(String mode, Stage stage) {
             return switch (mode) {
                 case "ceiling" -> ceilingCases();
                 case "health" -> List.of(HEALTH_Q_0, HEALTH_Q_25, HEALTH_Q_50, HEALTH_Q_75, HEALTH_Q_100);
@@ -2718,6 +2765,12 @@ public final class Phase5FSuiteBBenchmark {
                         DEMENTOR_RD_75, DEMENTOR_RD_100);
                 case "adaptive" -> List.of(ADAPTIVE_RA_0, ADAPTIVE_RA_25, ADAPTIVE_RA_50,
                         ADAPTIVE_RA_75, ADAPTIVE_RA_100);
+                case "combined" -> switch (stage.name) {
+                    case "S5" -> List.of(COMBINED_LOW_S5, COMBINED_MID_S5, COMBINED_HIGH_S5);
+                    case "S6" -> List.of(COMBINED_LOW_S6, COMBINED_MID_S6, COMBINED_HIGH_S6);
+                    case "S7" -> List.of(COMBINED_LOW_S7, COMBINED_MID_S7, COMBINED_HIGH_S7);
+                    default -> throw new IllegalArgumentException("combined calibration has no " + stage.name);
+                };
                 default -> throw new IllegalArgumentException("calibration mode is not implemented yet: " + mode);
             };
         }
@@ -2753,6 +2806,8 @@ public final class Phase5FSuiteBBenchmark {
             return switch (mode) {
                 case "dementor" -> List.of(ACCEPTED, WITHOUT_DEMENTOR);
                 case "adaptive" -> List.of(ACCEPTED, WITHOUT_ADAPTIVE);
+                case "combined" -> List.of(ACCEPTED, WITHOUT_DEMENTOR, WITHOUT_ADAPTIVE,
+                        WITHOUT_DEMENTOR_ADAPTIVE, WITHOUT_REGENERATE);
                 default -> List.of(ACCEPTED);
             };
         }
