@@ -3,21 +3,29 @@ package com.tno.tensuracompat.mixin;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.tno.tensuracompat.core.stage.SeveranceStageScaling;
+import com.tno.tensuracompat.debug.Phase5FSuiteBBenchmark;
+import com.tno.tensuracompat.debug.Phase6SeveranceWallContext;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.phys.EntityHitResult;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /** Keeps the eligible Severance delta in the one native physical arrow calculation. */
 @Mixin(AbstractArrow.class)
 public abstract class AbstractArrowMixin {
     @Unique
     private SeveranceStageScaling.Adjustment tno$severanceAdjustment;
+    @Unique
+    private Phase6SeveranceWallContext.Scope tno$severanceWallScope;
 
     @WrapOperation(
             method = "onHitEntity",
@@ -63,5 +71,50 @@ public abstract class AbstractArrowMixin {
                 speed, tno$severanceAdjustment);
         tno$severanceAdjustment = null;
         return rounded;
+    }
+
+    @WrapOperation(
+            method = "onHitEntity",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/entity/Entity;hurt(Lnet/minecraft/world/damagesource/DamageSource;F)Z"
+            )
+    )
+    private boolean tno$observeSeverancePhysicalWall(
+            Entity damaged,
+            DamageSource source,
+            float amount,
+            Operation<Boolean> original
+    ) {
+        if (tno$severanceWallScope != null) {
+            throw new IllegalStateException("stale Severance wall observation scope");
+        }
+        tno$severanceWallScope = damaged instanceof LivingEntity living
+                ? Phase6SeveranceWallContext.open((AbstractArrow) (Object) this, living, source, amount).orElse(null)
+                : null;
+        try {
+            boolean accepted = original.call(damaged, source, amount);
+            if (tno$severanceWallScope != null) tno$severanceWallScope.recordHurtResult(accepted);
+            return accepted;
+        }
+        catch (RuntimeException | Error exception) {
+            if (tno$severanceWallScope != null) {
+                tno$severanceWallScope.close();
+                tno$severanceWallScope = null;
+            }
+            throw exception;
+        }
+    }
+
+    @Inject(method = "onHitEntity", at = @At("RETURN"))
+    private void tno$finishSeveranceWallObservation(EntityHitResult hitResult, CallbackInfo callback) {
+        if (tno$severanceWallScope == null) return;
+        try {
+            Phase5FSuiteBBenchmark.captureSeveranceWallTrace(tno$severanceWallScope.snapshot());
+        }
+        finally {
+            tno$severanceWallScope.close();
+            tno$severanceWallScope = null;
+        }
     }
 }

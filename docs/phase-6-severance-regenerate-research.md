@@ -6,12 +6,13 @@ This branch is research-only. It does not authorize or implement a permanent
 Severance change, a generic anti-heal mechanic, or any change to the completed
 Magic/Holy production path.
 
-Checkpoints R1 and R2 are complete. Direct inspection and controlled installed-
-runtime evidence establish conclusion **A: native Severance clearly constrains
-L2 Regenerate**. The interaction is a hard vanilla-HP healing ceiling equal to
-`maxHP - wound`; it is not a proportional reduction in Regenerate's nominal
-rate. The R2 decision gate therefore authorizes the research-only R3 physical-
-wall decomposition, but no production Severance change is authorized.
+Checkpoints R1, R2, and R3 are complete. Direct inspection and controlled
+installed-runtime evidence establish conclusion **A: native Severance clearly
+constrains L2 Regenerate**. The interaction is a hard vanilla-HP healing ceiling
+equal to `maxHP - wound`; it is not a proportional reduction in Regenerate's
+nominal rate. R3 isolates the endgame physical wall and narrowly authorizes a
+development-only R4 eligible-contribution prototype. No production Severance
+change or permanent coefficient is authorized.
 
 ## Authoritative installed runtime
 
@@ -46,13 +47,15 @@ The callback uses the weapon retained by the projectile and the original arrow
 `DamageSource` context. It does not create a second hit or a second damage
 source.
 
-The injection does **not** capture or test the boolean returned by
-`Entity.hurt`. Therefore the installed callback does not, at this layer,
-require a successful `hurt` result, HP loss, or SHP loss. Runtime admission can
-still be prevented by the native target checks below, and the stored amount is
-bounded by the target's post-call HP deficit when `ignoreDefence` is false.
-That distinction is retained for R2/R3 rather than inferring admission from a
-zero aggregate-damage row.
+The injection does **not** capture or explicitly test the boolean returned by
+`Entity.hurt`. Static inspection alone therefore did not prove that the
+callback required a successful `hurt` result. R3 resolves the effective woven
+runtime behavior: all 140 calls that returned true reached the callback, while
+all 580 calls that returned false before L2 `DamageData` did not. The callback
+is therefore effectively downstream of successful hurt admission in this
+installed runtime, even though it does not read the boolean itself. Stored
+amount remains bounded by the target's post-call HP deficit when
+`ignoreDefence` is false.
 
 The current TNO production mixin preserves the same single physical arrow
 source. It changes only the already-eligible native `+3` contribution before
@@ -214,3 +217,143 @@ only a 50-HP ceiling reduction, which is negligible beside 400-500 HP/s native
 Regenerate, so reliability and achievable wound magnitude through the full L2
 physical wall remain decisive. Continue to R3; do not infer that the current
 production path has solved sustained endgame Regenerate viability.
+
+## R3: observation-only physical-wall decomposition
+
+The official capture is preserved as
+`docs/benchmarks/phase6-severance-regenerate-research/r3-physical-wall.jsonl`
+(SHA-256
+`99584764DB3428FC9DF64175214E76D3CC2115FFD550B330851CDC2F64172F9B`).
+The focused extractor accepted one catalog, 72 case starts, 720 rows, 72 case
+results, one complete suite result, and zero error records.
+
+The exact matrix was three levels (600, 800, 1000) by three production Stages
+(S5, S6, S7) by eight profiles: accepted strongest legal; no Tank; no
+Dementor; no Adaptive; no Tank+Dementor; no Tank+Adaptive; no
+Dementor+Adaptive; and no Tank+Dementor+Adaptive. Each case used a fresh L2
+attachment and ten real Royal Arrow releases in 200 ticks. Removed trait budget
+was left unused. `APO_profile` remained `NONE`, the R3 observer used identity
+modifiers only, and Q/RD/RA were all zero.
+
+Every release retained one `royalvariations:royal_arrow`, one physical
+`minecraft:arrow` source, and `minecraft:is_projectile`; none acquired the
+magic tag. All 720 rows preserved the native Severance `+3`, separate Royal
+Arrow base contribution, current production Stage delta, original source,
+unique projectile UUID, and exact profile ranks. There were zero second
+sources, duplicate events, recursion events, unexpected L2 bypasses, unexpected
+Tensura bypasses, or case errors. Tank is not described as an L2 damage
+modifier: its observed profile change is armor/toughness 46/20 to 26/0, before
+the Dementor observation boundary.
+
+### Hurt admission and callback split
+
+Only 140 of 720 releases (19.4444%) entered L2 `DamageData` and returned
+`Entity.hurt=true`. Every one of those 140 invoked the native Severance callback
+exactly once and stored a positive wound. The other 580 releases (80.5556%)
+produced their one uncancelled `LivingIncomingDamageEvent`, but returned false
+before L2 `DamageData`; none ran Dementor or Adaptive, invoked the native wound
+callback, changed HP/SHP, or stored wound. This is an observed pre-`DamageData`
+hurt-admission gate in the real Orc Disaster path. R3 does not identify it as
+Tank, Dementor, or Adaptive, and does not bypass or alter it.
+
+The captured field named `final_physical_after_L2_pipeline` is the
+`LivingDamageEvent.Pre` observation used by the existing harness. When Adaptive
+applies its later post-multiplicative factor, the authoritative Adaptive result
+is `Adaptive_native_result` and the realized result is `final_HP_delta`; the
+document does not misrepresent the earlier event value as the post-Adaptive HP
+loss.
+
+### Profile results
+
+All nine first releases for every profile were admitted, so the last column is
+the cleaner magnitude comparison. Ten-release totals also include the separate,
+non-monotonic hurt-admission gate and must not be read as pure trait effects.
+
+| Profile | Admitted/stored | Admission rate | Wound total | Wound/release | Wound/admitted | Mean first-release wound |
+|---|---:|---:|---:|---:|---:|---:|
+| Accepted | 25/90 | 27.7778% | 26.842773 | 0.298253 | 1.073711 | 1.942600 |
+| No Tank | 18/90 | 20.0000% | 27.323242 | 0.303592 | 1.517958 | 2.449219 |
+| No Dementor | 13/90 | 14.4444% | 41.395508 | 0.459950 | 3.184270 | 4.377279 |
+| No Adaptive | 17/90 | 18.8889% | 22.302734 | 0.247808 | 1.311926 | 1.820421 |
+| No Tank + Dementor | 14/90 | 15.5556% | 55.234375 | 0.613715 | 3.945312 | 5.547743 |
+| No Tank + Adaptive | 17/90 | 18.8889% | 31.306641 | 0.347852 | 1.841567 | 2.667535 |
+| No Dementor + Adaptive | 17/90 | 18.8889% | 39.928711 | 0.443652 | 2.348748 | 3.531576 |
+| No Tank + Dementor + Adaptive | 19/90 | 21.1111% | 64.915039 | 0.721278 | 3.416581 | 5.493815 |
+
+### Causal answers
+
+1. **Tank:** in the clean first-release no-Dementor/no-Adaptive pair, retaining
+   Tank left 61.0714%-67.6692% of the physical amount entering the Dementor
+   boundary (mean 64.3045%). Its measured mean reduction was 35.6955%. This is
+   armor/toughness behavior, not an L2 `DamageModifier` callback.
+2. **Dementor:** across 77 admitted rows carrying Dementor, output/input averaged
+   0.489553 (range 0.314901-0.530615), a mean 51.0447% reduction after the
+   armor/Tank boundary. The nonlinearity makes low inputs vary; it is not a
+   constant resistance percentage.
+3. **Adaptive:** a fully admitted accepted Lv600/S5 sequence recorded source
+   key `arrow`, counts 1 through 10, and factors 1, 1/2, 1/4, 1/8, 1/16, 1/32,
+   1/64, 1/128, 1/256, and 1/512. It is the dominant repeated-same-source
+   magnitude suppressor once a hit has been admitted.
+4. **Magnitude versus reliability:** magnitude collapses through the
+   multiplicative sequence Tank then Dementor then repeated Adaptive. Reliability
+   is dominated by the separate pre-`DamageData` gate: 580/720 releases never
+   reached any of those L2 modifiers or the Severance callback.
+5. **One trait or combination:** no single trait explains both effects. Tank and
+   Dementor reduce the first admitted hit, Adaptive compounds repeated admitted
+   hits, and the independent native admission gate controls most misses.
+6. **Removing Tank alone:** it did not materially improve aggregate reliability
+   or wound/release (0.303592 versus accepted 0.298253), although the mean first
+   admitted wound rose from 1.942600 to 2.449219. The clean control demonstrates
+   Tank's real 35.6955% mean magnitude reduction.
+7. **Removing Dementor alone:** mean first admitted wound rose to 4.377279 and
+   wound per admitted hit to 3.184270. Its aggregate admission rate fell because
+   the separate gate varied between fresh cases, so the aggregate rate is not a
+   causal Dementor result.
+8. **Removing Adaptive alone:** it prevents the 1/2-per-count repeated-source
+   decay, but this capture's aggregate wound/release was 0.247808 because only
+   17/90 releases passed the separate gate. Its first hit is expected to be
+   close to accepted because Adaptive count 1 uses factor 1.
+9. **Removing pairs:** first-release means were 5.547743 without Tank+Dementor,
+   2.667535 without Tank+Adaptive, and 3.531576 without Dementor+Adaptive. Their
+   aggregate wound/release values were 0.613715, 0.347852, and 0.443652,
+   respectively; again, admission-count differences prevent treating those
+   aggregate totals as perfectly paired trait coefficients.
+10. **No-three diagnostic ceiling:** all nine first releases were admitted and
+    stored 5.277344-5.555664 wound from 19-20 pre-L2 physical input. The maximum
+    wound observed anywhere in R3 was 7.376953. This is meaningful relative to
+    accepted first-hit values but remains tiny against 10,000 HP and 400-500
+    HP/s Regenerate.
+11. **Very small final damage:** yes. In the clean accepted Lv600/S5 sequence,
+    Adaptive reached factor 0.001953125 on release ten; every release still
+    invoked the callback and stored wound. Releases three through ten stored the
+    native 0.5 minimum. A tiny admitted result does not itself suppress the
+    callback.
+12. **What constrains wound:** for admitted hits, the native
+    `0.5 * callbackDamage` candidate was 9.5-10.5 and was never limiting.
+    Observed wound averaged 2.208922 (range 0.5-7.376953), with 42 rows at the
+    0.5 floor and no SHP delta. The controlling magnitude is the actual vanilla
+    HP deficit created by the L2-reduced admitted physical result, subject to
+    the native 0.5 floor. The separate pre-`DamageData` hurt-admission gate is
+    the controlling reliability limit because it prevents the callback
+    altogether.
+
+## R3 decision gate
+
+R3 narrowly authorizes R4 as development-only research:
+
+- meaningful native wound exists when the measured wall is relieved;
+- the existing `SeveranceStageScaling` decomposition isolates Royal Arrow base
+  physical damage from the eligible native Severance contribution before their
+  one shared physical source; and
+- a prototype can negotiate only that eligible contribution before the same
+  `Entity.hurt` call, leaving one `minecraft:arrow` source and all native L2 and
+  Tensura processing downstream.
+
+This authorization has a hard limit. A modifier placed only at an L2
+`DamageData` boundary cannot affect the 580 releases rejected before that
+boundary. R4 must neither restore post-L2 damage nor fabricate a wound, split
+the source, buff ordinary Royal Arrow base damage, or bypass Tank globally. It
+must establish a diagnostic ceiling first and fail closed if eligible-only
+pre-hurt negotiation cannot improve real admission while retaining Tank,
+Dementor, Adaptive, and native wound storage. No permanent production value is
+selected by R3.
