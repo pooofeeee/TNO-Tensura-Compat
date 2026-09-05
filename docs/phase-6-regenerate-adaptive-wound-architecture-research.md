@@ -10,8 +10,8 @@ traits, Regenerate, or Tensura's stored wound. It begins from
 | Checkpoint | Status | Result |
 |---|---|---|
 | W1 — exact wound/Adaptive boundaries | Complete | Adaptive reaches stored wound only through realized HP and Tensura's HP-deficit clamp; the native callback amount remains the pre-L2 integer arrow amount. |
-| W2 — candidate architectures | Not started | Pending W1 checkpoint review. |
-| W3 — development-only prototype | Not authorized | Requires a W2 candidate that passes all seven decision-gate invariants. |
+| W2 — candidate architectures | Complete | Candidate C, a partial Adaptive negotiation applied only to eligible Severance wound credit after Tank/Dementor, passes the architecture gate. No coefficient is selected. |
+| W3 — development-only prototype | Authorized | Prototype Candidate C only, production-disabled, beginning with capability extremes rather than tuning. |
 | W4 — trait identity | Not authorized | Requires W3 mechanical success. |
 | W5 — sustained viability | Not authorized | Requires W4 safety success. |
 
@@ -194,3 +194,144 @@ W1 makes no prototype recommendation. In particular, the unused
 ceiling-enforcement damage, source integrity, the absence of a packaged true
 use, and whether a narrower eligible-only semantic can still be expressed
 through the native callback and storage.
+
+## W2 candidate semantic architectures
+
+### Shared notation and hard constraints
+
+W2 evaluates semantics, not balance. For one accepted hit:
+
+- `D` is the one combined physical integer passed to `Entity.hurt` and later
+  supplied unchanged as Tensura's native callback amount;
+- `E` is only the post-round eligible Severance portion of `D` (native +3 plus
+  its existing Curve-C delta), excluding ordinary Royal Arrow base;
+- `K = clamp(D_dementorOut / D, 0, 1)` is the observed combined survival ratio
+  through Tank/armor and Dementor;
+- `E_preA = E * K` is the eligible share at the boundary immediately before
+  Adaptive;
+- `A_native` is L2's own Adaptive factor for the unchanged `arrow` source key;
+  and
+- `W_native` is Tensura's unmodified post-clamp amount offered to native
+  storage.
+
+`E_preA` is an allocation of the observed native wall, not restored physical
+damage. It intentionally remains after Tank and Dementor. A future production
+design would need to prove this allocation against nonlinear boundary cases;
+W2 authorizes only a development diagnostic.
+
+All candidates are rejected if they need another physical `DamageSource`, a
+spoofed source key, an Adaptive memory reset, TNO-owned wound state, direct HP
+subtraction, Regenerate modification, generic heal cancellation, a fabricated
+Tensura event, global defense bypass, or base-arrow scaling.
+
+### Ranked result
+
+| Rank | Candidate | Semantic assessment | Gate result |
+|---:|---|---|---|
+| 1 | C — partial Adaptive recovery for wound credit only | The narrowest candidate capable of addressing the proven limiter while preserving a nonzero Adaptive penalty. It negotiates only the eligible share after Tank/Dementor. | **Pass for development prototype** |
+| 2 | B — full pre-Adaptive eligible wound credit | Source-safe and mechanically expressible, but full recovery makes Adaptive irrelevant to the eligible wound quantity. Useful only as W3's capability extreme, not as a preferred architecture. | Conditional diagnostic only |
+| 3 | A — current native semantics | Maximally native and safe, but R5 falsifies practical viability because its HP-deficit clamp remains the limiting boundary. | Safe but mission-failing |
+| 4 | E — full native `ignoreDefence` semantic | Has real codec/code precedent, but no packaged true use. Applied literally, it credits the whole combined callback (including ordinary base) and may invoke native ceiling-enforcement damage. | Reject as too broad |
+| 5 | D — pre-Dementor/pre-Adaptive credit | Removes both decisive L2 reducers from wound potential and lacks an installed semantic boundary that justifies doing so. | Reject |
+
+### Candidate A — current native semantics
+
+Formula:
+
+```text
+W_offer = min(0.5 * D, max(0.5, maxHP - HP - existingWound))
+```
+
+This preserves every native authority. It also preserves the exact R5
+plateau: enlarging `D` did not enlarge late wound once repeated Adaptive made
+the free HP deficit the smaller operand. A is retained as the mandatory
+control but cannot solve the stated architecture problem.
+
+### Candidate B — pre-Adaptive Severance wound credit
+
+B leaves the physical path untouched and derives wound-only credit from
+`E_preA`. It is expressible without writing storage directly by narrowly
+intercepting the final HP-deficit-clamp result inside the existing native
+`SeveranceDamageEntity.postDamage` callback, then allowing that same callback
+to invoke `increaseSeveranceAmount`.
+
+A safe bounded expression would be:
+
+```text
+eligible_postA_wound = 0.5 * E_preA * A_native
+eligible_preA_wound  = 0.5 * E_preA
+extra                = eligible_preA_wound - eligible_postA_wound
+W_offer_B            = min(nativeCandidate, W_native + max(0, extra))
+```
+
+This is not a second hit, damage restoration, or source-key change. However,
+it fully removes Adaptive from the recovered eligible wound portion. B is
+therefore retained only as the `RW=1` diagnostic capability ceiling for C.
+
+### Candidate C — partial Adaptive recovery for wound credit only
+
+C keeps L2's actual physical result and Adaptive state exactly native and
+defines a separate diagnostic factor only for eligible wound potential:
+
+```text
+A_wound = A_native + RW * (1 - A_native)
+eligible_extra = 0.5 * E_preA * (A_wound - A_native)
+W_offer_C = min(nativeCandidate, W_native + max(0, eligible_extra))
+```
+
+`RW=0` is the exact native control. `RW=1` is B's capability extreme. A
+semantically viable later candidate must use `0 < RW < 1`, so repeat count
+continues to make Adaptive-on wound smaller than Adaptive-off wound. W2 does
+not choose such a value.
+
+The expression preserves the normal native amount first, adds only the
+eligible recovery, and never exceeds Tensura's own `0.5 * D` candidate. Tank
+and Dementor stay in `E_preA`; ordinary base is absent from
+`eligible_extra`; Severance Protection still applies afterward. The physical
+amount, source, and L2 memory are never touched.
+
+Like every architecture that stores more wound than the immediate free HP
+deficit, C may cause `EffectStorage.setSeveranceAmount` to use Tensura's own
+`tensura:severance` ceiling-enforcement damage. That source is not a second
+physical arrow hit and is not created by TNO, but W3/W4 must explicitly count
+it, prove no recursion, and reject the architecture if it produces duplicate
+physical delivery or unsafe re-entry.
+
+### Candidate D — pre-Dementor/pre-Adaptive credit
+
+D would derive the eligible quantity before both nonlinear Dementor and
+Adaptive. It would also have to ignore Tank/armor if placed before the complete
+defensive wall. That is neither required by the W1 causal finding nor
+supported by an active native Tensura use. It would erase too much legal L2
+identity and is rejected without prototype.
+
+### Candidate E — literal native ignore-defence behavior
+
+Literal `ignoreDefence=true` is mechanically narrow inside Tensura but
+semantically broad for this integration. It skips the clamp for the entire
+`0.5 * D` candidate, so ordinary Royal Arrow base contributes to the bypassed
+wound credit. No installed native data enables the mode, and its native
+ceiling enforcement can produce additional nonphysical HP loss. The field is
+useful precedent that native wound potential may be separated from immediate
+deficit; it is not authorization to toggle the installed enchantment or emulate
+the whole behavior.
+
+## W2 decision gate
+
+Candidate C passes all seven requirements for a minimal development-only
+prototype, subject to fail-closed scoping and explicit runtime validation:
+
+| Requirement | Why Candidate C passes |
+|---|---|
+| One physical source | It observes the existing `minecraft:arrow` call and creates no physical source. Native storage may independently use its existing nonphysical `tensura:severance` ceiling source, which must be measured. |
+| Actual physical damage fully native | No L2 modifier or `Entity.hurt` amount is changed. |
+| Adaptive state fully native | Source key, memory, rank, count, and factor are read-only inputs. No reset or spoof occurs. |
+| Ordinary Royal Arrow base unchanged | Only `E`, the existing Severance eligible portion, contributes to the added wound credit. |
+| Existing callback/storage | The final offer remains inside `SeveranceDamageEntity.postDamage`; native `increaseSeveranceAmount` performs the write. |
+| Regenerate unchanged | No tick, configuration, heal amount, or `LivingHealEvent` path is modified. |
+| Defensible Severance relationship | Tensura already separates original-damage candidate from realized-deficit authority and implements an explicit clamp-skipping mode. C is narrower: it partially negotiates only the existing eligible Severance contribution and remains capped by the native candidate. |
+
+W3 is authorized for Candidate C only. The prototype must be inactive in
+production, exact-native at `RW=0`, and fail closed outside an explicitly
+flagged accepted Severance research scope. W3 begins with `RW=0` and `RW=1`
+only to prove mechanical no-op/capability; neither is a production proposal.
