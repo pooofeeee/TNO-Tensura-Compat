@@ -335,3 +335,97 @@ W3 is authorized for Candidate C only. The prototype must be inactive in
 production, exact-native at `RW=0`, and fail closed outside an explicitly
 flagged accepted Severance research scope. W3 begins with `RW=0` and `RW=1`
 only to prove mechanical no-op/capability; neither is a production proposal.
+
+## W3 development-only capability prototype
+
+Status: **complete; mechanical gate passed; W4 authorized**.
+
+The prototype intercepts only the second `Math.min(float, float)` result in
+the installed `SeveranceDamageEntity.postDamage` callback: the native
+HP-deficit-clamped offer. It adds Candidate C's eligible-only amount, caps the
+result by the native candidate, and then returns control to the same native
+callback. Tensura's own `increaseSeveranceAmount` remains the only wound
+writer. The physical arrow event, Tank, Dementor, Adaptive, source key,
+Adaptive memory, Regenerate, and Royal Arrow base are not modified.
+
+The scope is fail-closed: it requires a non-production environment, the
+explicit `adaptive_wound_*` research mode, an active per-case scope, a Royal
+Arrow projection registered from the classified S7 Severance bow, an
+initialized L2 target wall, the native `arrow` source, and the native callback.
+Any missing boundary returns the unmodified native offer. State is a
+thread-local case scope and is removed at case cleanup; there is no persistent
+combat state.
+
+### Official capability matrix
+
+The strict capture contains six cases and 60 real Royal Arrow releases: S7 at
+Lv600, Lv800, and Lv1000, each with the accepted legal L2 profile at `RW=0`
+and `RW=1`. APO is `NONE`; Apothic crit chance is fixed to zero in this
+development harness so it cannot confound the physical boundary. Every case
+completed with 10 hits, 10 native callbacks, 10 native wound writes, and zero
+case errors.
+
+| L2 level | RW | Physical total | Stored wound total | Candidate-C eligible extra | Native ceiling damage |
+|---:|---:|---:|---:|---:|---:|
+| 600 | 0 | 3.667819 | 6.754883 | 0 | 0.311523 |
+| 600 | 1 | 3.674805 | 11.213660 | 4.458778 | 7.539062 |
+| 800 | 0 | 3.669047 | 6.754883 | 0 | 0.041016 |
+| 800 | 1 | 3.737871 | 11.361327 | 4.541991 | 0.758789 |
+| 1000 | 0 | 3.667831 | 6.754883 | 0 | 3.086914 |
+| 1000 | 1 | 3.733394 | 11.256564 | 4.437228 | 0 |
+
+The small cross-case physical-total variation is native runtime variation
+between fresh targets, not Candidate-C output. The decisive per-hit invariant
+is exact within `0.001`: the observed physical result equals the recorded
+native post-Adaptive result, and the prototype never writes the physical
+amount. Each hit retains exactly one `minecraft:arrow` physical event with
+`minecraft:is_projectile`, no magic tag, one wall trace, and no duplicate
+projectile delivery. `D` remained the callback amount, ordinary Royal Arrow
+base remained `2.4` (post-round base `8`), and only the existing S7 eligible
+Severance contribution `E=12` was available to Candidate C.
+
+At `RW=0`, all 30 hits had `A_wound=A_native`, `eligible_extra=0`, and
+`W_offer_C=W_native` within `0.001`. The native Adaptive count advanced 1
+through 10 and its factor remained exactly `0.5^(count-1)`. The stored wound
+increment was the native offer after the observed Severance Protection
+multiplier of 1.0. Thus `RW=0` is the exact no-op control at the intercepted
+boundary.
+
+At `RW=1`, physical damage still used the same native Adaptive factor while
+the wound-only factor became 1.0. All three levels stored more wound than
+their corresponding control: approximately 11.21-11.36 versus 6.75, with
+4.44-4.54 of explicitly attributed eligible extra. This proves the required
+mechanical separation without restoring physical damage or writing wound
+state from TNO.
+
+### Native ceiling-enforcement result
+
+The native `tensura:severance` ceiling source was fully observed. Across the
+six cases it emitted 197 entity-less incoming attempts during the 20-tick hit
+observation windows. Vanilla hurt admission allowed 22 actual Pre/Post damage
+applications totaling 11.737305; the remaining attempts did not pass the
+native hurt admission/invulnerability path. `RW=1` accounted for 105 attempts,
+11 admitted applications, and 8.297852 damage; `RW=0` accounted for 92, 11,
+and 3.439453 respectively. This variability is why ceiling damage is reported
+separately from stored wound and physical arrow damage.
+
+For every attempt, incoming amount before and after the observable L2 boundary
+was identical and uncancelled. The source had neither source nor direct entity,
+so the installed L2 profile produced no visible transformation. Actual Pre and
+Post amounts matched. No event was tagged or counted as the physical arrow;
+there remained one physical arrow event per release. No extra native wound
+callback, duplicate wound write, TNO wall re-entry, recursion, unexpected L2
+bypass, or unexpected Tensura bypass occurred. The ceiling source is therefore
+native Tensura enforcement rather than fabricated TNO damage and does not
+violate the one-physical-hit architecture in this capability matrix.
+
+### W3 decision gate
+
+Candidate C is mechanically valid for further development-only testing. The
+strict extractor validates the formula, source identity, native callback and
+storage ownership, Adaptive rank/count/factor, exact `RW=0` offer parity,
+`RW=1` eligible-only capability, Protection-adjusted storage, ceiling-source
+flow, one-arrow integrity, and zero recursion/bypass. This result does not
+select a production `RW` and does not authorize production implementation.
+W4 may now test a small intermediate diagnostic value against paired trait
+controls.

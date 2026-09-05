@@ -45,8 +45,10 @@ public final class Phase6SeveranceWallContext {
     public static boolean enabled() {
         return !FMLEnvironment.production
                 && Boolean.getBoolean("tno.phase6.calibration")
-                && Set.of("severance_wall", "severance_prototype", "severance_sustained")
-                .contains(System.getProperty("tno.phase6.calibrationMode", ""));
+                && (Set.of("severance_wall", "severance_prototype", "severance_sustained")
+                .contains(System.getProperty("tno.phase6.calibrationMode", ""))
+                || System.getProperty("tno.phase6.calibrationMode", "")
+                .startsWith("adaptive_wound"));
     }
 
     public static synchronized void registerL2Listener() {
@@ -109,6 +111,16 @@ public final class Phase6SeveranceWallContext {
     private static Optional<Frame> current() {
         Deque<Frame> stack = FRAMES.get();
         return stack.isEmpty() ? Optional.empty() : Optional.of(stack.peek());
+    }
+
+    public static Optional<BoundaryView> currentBoundary(Entity target) {
+        Frame frame = current().orElse(null);
+        if (frame == null || frame.target() != target) return Optional.empty();
+        Trace trace = frame.trace();
+        return Optional.of(new BoundaryView(
+                frame.arrow().getUUID(), frame.combinedPhysicalAmount(), trace.sourceMsgId,
+                trace.dementorOutput, trace.adaptiveApplied, trace.adaptiveRank,
+                trace.adaptiveCount, trace.adaptiveFactor, trace.adaptiveResult));
     }
 
     private static void addObservationModifiers(Object defence) throws ReflectiveOperationException {
@@ -352,6 +364,19 @@ public final class Phase6SeveranceWallContext {
             boolean hurtReturned,
             int woundAttemptCount,
             double woundCallbackDamage
+    ) {
+    }
+
+    public record BoundaryView(
+            java.util.UUID projectileUuid,
+            double combinedPhysicalAmount,
+            String sourceMsgId,
+            double dementorOutput,
+            boolean adaptiveApplied,
+            int adaptiveRank,
+            int adaptiveCount,
+            double adaptiveFactor,
+            double adaptiveResult
     ) {
     }
 }
