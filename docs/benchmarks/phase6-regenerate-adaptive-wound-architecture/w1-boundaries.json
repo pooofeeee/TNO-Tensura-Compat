@@ -1,0 +1,71 @@
+{
+  "schema": "tno.phase6.regenerate_adaptive_wound.w1.source_audit.v1",
+  "checkpoint": "W1",
+  "status": "complete",
+  "source_head": "571736da7c4de3e30038b0778a5351da6ace3b26",
+  "production_behavior_changed": false,
+  "artifacts": [
+    {
+      "name": "Tensura",
+      "version": "2.0.1.1",
+      "file": "tensura-neoforge-2.0.1.1.jar",
+      "sha256": "C12EC9AAA1488C662EDE52B4BD0150EC114E7BDAC32AF20C0E723612DD79D8B9"
+    },
+    {
+      "name": "L2 Hostility",
+      "version": "3.0.18",
+      "file": "l2hostility-3.0.18.jar",
+      "sha256": "8821952B49C5E9B1980B4D7CCECBCFA8E957204D39AC62D8D40DFF34FAAAF780"
+    },
+    {
+      "name": "L2 Damage Tracker",
+      "version": "3.0.8+3",
+      "file": "l2damagetracker-3.0.8+3.jar",
+      "sha256": "144DD06F1189DDCCBC065512787260C563F9702B8127A4EAB74864971A7F5E89"
+    }
+  ],
+  "installed_config": {
+    "adaptFactor": 0.5,
+    "dementorDamageReductionBase": 2.0,
+    "regen": 0.01,
+    "severanceRemoveSec": 300
+  },
+  "severance_enchantment": {
+    "native_damage_per_level": 3.0,
+    "amount": 0.5,
+    "severanceCap": 0.5,
+    "multiplyOriginalDamage": true,
+    "ignoreDefence": false,
+    "callback_damage_boundary": "pre-L2 integer projectile damage",
+    "candidate_formula": "min(amount(level), severanceCap) * callbackDamage",
+    "normal_clamp_formula": "min(candidate, max(0.5, maxHP-currentHP-existingWound))",
+    "storage": "tensura:effect_storage"
+  },
+  "l2_order": [
+    "Tank attributes and vanilla armor/toughness",
+    "Dementor PRE_NONLINEAR priority 7436",
+    "Adaptive POST_MULTIPLICATIVE using adaptFactor^(count-1)",
+    "realized HP loss"
+  ],
+  "adaptive_to_wound_dependency": {
+    "direct": false,
+    "path": "Adaptive -> realized HP deficit -> Severance HP-deficit clamp -> stored wound",
+    "callbackDamage_modified_by_adaptive": false,
+    "candidate_modified_by_adaptive": false
+  },
+  "ignore_defence": {
+    "behavior": "skips only the HP-deficit clamp before native storage",
+    "packaged_true_uses": 0,
+    "packaged_false_uses": 1,
+    "still_applies_skill_gate": true,
+    "still_applies_candidate_cap": true,
+    "still_applies_severance_protection": true,
+    "still_uses_native_storage": true,
+    "may_trigger_native_ceiling_enforcement_damage": true
+  },
+  "native_wound_increase_callers": [
+    "io.github.manasmods.tensura.enchantment.effect.SeveranceDamageEntity",
+    "io.github.manasmods.tensura.handler.DamagingHandler"
+  ],
+  "conclusion": "Adaptive suppresses normal enchantment wound indirectly through the native HP-deficit clamp; increasing eligible pre-L2 damage cannot escape that limiting boundary."
+}
