@@ -100,6 +100,10 @@ public final class Phase5FSuiteBBenchmark {
             && CALIBRATION_MODE.equals("severance_sustained");
     private static final boolean ADAPTIVE_WOUND_RESEARCH = Boolean.getBoolean("tno.phase6.calibration")
             && CALIBRATION_MODE.startsWith("adaptive_wound");
+    private static final boolean ADAPTIVE_WOUND_SAFETY = ADAPTIVE_WOUND_RESEARCH
+            && CALIBRATION_MODE.equals("adaptive_wound_safety");
+    private static final boolean NATIVE_REGENERATE_OBSERVATION = SEVERANCE_SUSTAINED
+            || ADAPTIVE_WOUND_SAFETY;
     private static final boolean SEVERANCE_PROTOTYPE = Boolean.getBoolean("tno.phase6.calibration")
             && (CALIBRATION_MODE.equals("severance_prototype") || SEVERANCE_SUSTAINED);
     private static final boolean SEVERANCE_RESEARCH = SEVERANCE_WALL || SEVERANCE_PROTOTYPE
@@ -107,7 +111,7 @@ public final class Phase5FSuiteBBenchmark {
     private static final boolean CALIBRATION_COMBAT = Boolean.getBoolean("tno.phase6.calibration")
             && Set.of("ceiling", "health", "dementor", "adaptive", "combined", "safety",
                     "severance_wall", "severance_prototype", "severance_sustained",
-                    "adaptive_wound_capability")
+                    "adaptive_wound_capability", "adaptive_wound_safety")
                     .contains(CALIBRATION_MODE);
     private static final boolean PRODUCTION_OBSERVATION = ENDGAME_RESEARCH || CALIBRATION_COMBAT
             || PRODUCTION_ACCEPTANCE;
@@ -473,6 +477,10 @@ public final class Phase5FSuiteBBenchmark {
                 throw new IllegalStateException(
                         "R5 sustained evidence requires exactly 60 releases over 1200 ticks");
             }
+            if (ADAPTIVE_WOUND_SAFETY && (MAX_SHOTS != 10 || WINDOW_TICKS != 200)) {
+                throw new IllegalStateException(
+                        "W4 trait-safety evidence requires exactly 10 releases over 200 ticks");
+            }
             if (!PRODUCTION_ACCEPTANCE && PRODUCTION_OBSERVATION && cases.stream().anyMatch(spec ->
                     !spec.boss.id.equals(id("tensura", "orc_disaster")))) {
                 throw new IllegalStateException("Phase 6 endgame research is locked to the accepted Orc Disaster positive-control target");
@@ -502,7 +510,7 @@ public final class Phase5FSuiteBBenchmark {
 
         void tick() throws ReflectiveOperationException {
             stabilize();
-            if (SEVERANCE_SUSTAINED && phase == Phase.RUN && result != null && target != null) {
+            if (NATIVE_REGENERATE_OBSERVATION && phase == Phase.RUN && result != null && target != null) {
                 result.observeNativeRegenerateTick(target, l2Cap, currentHit,
                         (int) (server.getTickCount() - runStartTick));
             }
@@ -523,7 +531,7 @@ public final class Phase5FSuiteBBenchmark {
                     complete = true;
                 }
             }
-            if (SEVERANCE_SUSTAINED && phase == Phase.RUN && result != null && target != null) {
+            if (NATIVE_REGENERATE_OBSERVATION && phase == Phase.RUN && result != null && target != null) {
                 result.captureServerPostHp(target);
             }
         }
@@ -748,7 +756,7 @@ public final class Phase5FSuiteBBenchmark {
             target.setHealth(target.getMaxHealth());
             target.setAbsorptionAmount(0.0F);
             target.invulnerableTime = 0;
-            if (SEVERANCE_SUSTAINED && target instanceof Mob mob) {
+            if (NATIVE_REGENERATE_OBSERVATION && target instanceof Mob mob) {
                 // Match the already-validated R2 native Regenerate fixture: the
                 // controlled target must execute its normal entity/L2 tick path.
                 mob.setNoAi(false);
@@ -773,10 +781,10 @@ public final class Phase5FSuiteBBenchmark {
                 adaptiveWoundParameters = Phase6AdaptiveWoundContext.useRecovery(
                         currentCase().calibration.woundAdaptiveRecovery);
             }
-            selfRegenerationRemovedForIsolation = SEVERANCE_SUSTAINED
+            selfRegenerationRemovedForIsolation = NATIVE_REGENERATE_OBSERVATION
                     && BuiltInRegistries.MOB_EFFECT.getHolder(SELF_REGENERATION)
                     .map(target::removeEffect).orElse(false);
-            if (SEVERANCE_SUSTAINED) {
+            if (NATIVE_REGENERATE_OBSERVATION) {
                 // Align every fresh case to the same real RegenTrait tick boundary.
                 // Reset again only after each native tick-20 cycle so the accepted
                 // trait map is not changed by the unrelated 300-tick validity sweep.
@@ -1051,7 +1059,7 @@ public final class Phase5FSuiteBBenchmark {
         }
 
         private void captureHealLowest(LivingHealEvent event) {
-            if (!SEVERANCE_SUSTAINED || phase != Phase.RUN || result == null
+            if (!NATIVE_REGENERATE_OBSERVATION || phase != Phase.RUN || result == null
                     || event.getEntity() != target) return;
             StackTraceElement[] stack = Thread.currentThread().getStackTrace();
             boolean regenerateCallback = Stream.of(stack)
@@ -1504,7 +1512,16 @@ public final class Phase5FSuiteBBenchmark {
                     }
                 }
                 if (ADAPTIVE_WOUND_RESEARCH) {
-                    json.addProperty("W3_candidate", "C_PARTIAL_ADAPTIVE_RECOVERY_WOUND_ONLY");
+                    if (ADAPTIVE_WOUND_SAFETY) {
+                        json.addProperty("checkpoint", "W4_TRAIT_IDENTITY");
+                        json.addProperty("W4_candidate", "C_PARTIAL_ADAPTIVE_RECOVERY_WOUND_ONLY");
+                        json.addProperty("W4_diagnostic_RW", 0.5D);
+                        json.addProperty("W4_RW_role",
+                                "arithmetic midpoint between proven W3 endpoints; diagnostic trait-identity probe only, not a balance or production recommendation");
+                    }
+                    else {
+                        json.addProperty("W3_candidate", "C_PARTIAL_ADAPTIVE_RECOVERY_WOUND_ONLY");
+                    }
                     json.addProperty("prototype_development_only", true);
                     json.addProperty("prototype_changes_physical_damage", false);
                     json.addProperty("prototype_changes_Royal_Arrow_base", false);
@@ -1679,6 +1696,17 @@ public final class Phase5FSuiteBBenchmark {
             if (!filter.isBlank() && !boss.id.toString().equals(filter)) return result;
             if (ADAPTIVE_WOUND_RESEARCH) {
                 Stage stage = STAGES.get(8);
+                if (ADAPTIVE_WOUND_SAFETY) {
+                    for (int level : List.of(600, 800, 1000)) {
+                        for (TraitProfile profile : List.of(TraitProfile.ACCEPTED,
+                                TraitProfile.WITHOUT_TANK, TraitProfile.WITHOUT_DEMENTOR,
+                                TraitProfile.WITHOUT_ADAPTIVE, TraitProfile.WITHOUT_REGENERATE)) {
+                            result.add(new CaseSpec(boss, level, LevelMode.ENDGAME_TARGET,
+                                    stage, CalibrationCase.WOUND_RW_50, profile));
+                        }
+                    }
+                    return result;
+                }
                 for (int level : List.of(600, 800, 1000)) {
                     result.add(new CaseSpec(boss, level, LevelMode.ENDGAME_TARGET,
                             stage, CalibrationCase.WOUND_RW_0, TraitProfile.ACCEPTED));
@@ -2737,6 +2765,50 @@ public final class Phase5FSuiteBBenchmark {
                     json.addProperty("unexpected_L2_bypass_count", 0);
                     json.addProperty("unexpected_Tensura_bypass_count", 0);
                 }
+                if (ADAPTIVE_WOUND_SAFETY) {
+                    double maximumWound = hits.stream()
+                            .mapToDouble(hit -> hit.maxSeverance).max().orElse(0.0D);
+                    double finalWound = hits.isEmpty() ? 0.0D : hits.getLast().postSeverance;
+                    double actualRegenerate = hits.stream()
+                            .mapToDouble(hit -> hit.targetHpRegen).sum();
+                    json.addProperty("W4_trait_identity", true);
+                    json.addProperty("W4_diagnostic_RW", spec.calibration.woundAdaptiveRecovery);
+                    json.addProperty("severance_physical_damage",
+                            hits.stream().mapToDouble(hit -> hit.physicalPost).sum());
+                    json.addProperty("maximum_wound", maximumWound);
+                    json.addProperty("final_wound", finalWound);
+                    json.addProperty("native_ceiling_incoming_event_count", hits.stream()
+                            .mapToInt(hit -> hit.nativeSeveranceIncomingEventCount).sum());
+                    json.addProperty("native_ceiling_damage_application_count", hits.stream()
+                            .mapToInt(hit -> hit.nativeSeveranceDamagePostEventCount).sum());
+                    json.addProperty("native_ceiling_damage", hits.stream()
+                            .mapToDouble(hit -> hit.nativeSeveranceDamagePostAmount).sum());
+                    json.addProperty("regenerate_callback_count", regenerateCallbackCount);
+                    json.addProperty("regenerate_native_tick_attempt_count",
+                            regenerateNativeTickAttemptCount);
+                    json.addProperty("regenerate_unconstrained_healing_demand",
+                            regenerateUnconstrainedHealingDemand);
+                    json.addProperty("regenerate_actual_healing_at_native_ticks",
+                            regenerateActualHealingAtNativeTicks);
+                    json.addProperty("regenerate_healing_denied_by_wound_ceiling",
+                            regenerateHealingDeniedByWoundCeiling);
+                    json.addProperty("regenerate_actual_healing", actualRegenerate);
+                    json.addProperty("regenerate_actual_healing_clock_vs_observer_delta",
+                            regenerateActualHealingAtNativeTicks - actualRegenerate);
+                    json.addProperty("regenerate_trait_valid_at_start", regenerateTraitValidAtStart);
+                    json.addProperty("regenerate_trait_valid_on_all_observed_attempts",
+                            regenerateTraitValidOnAllObservedAttempts);
+                    json.addProperty("regenerate_trait_rank_at_end", regenerateTraitRankAtEnd);
+                    json.addProperty("regenerate_trait_missing_tick_count", regenerateTraitMissingTickCount);
+                    json.addProperty("native_self_regeneration_removed_for_isolation",
+                            nativeSelfRegenerationRemovedForIsolation);
+                    json.addProperty("net_vanilla_HP_movement", initialHp - finalHp);
+                    json.addProperty("net_SHP_movement", initialShp - finalShp);
+                    json.addProperty("source_event_integrity_failure_count",
+                            hits.stream().filter(this::unexpectedSourceDuplication).count());
+                    json.addProperty("unexpected_L2_bypass_count", 0);
+                    json.addProperty("unexpected_Tensura_bypass_count", 0);
+                }
             }
             if (PRODUCTION_ACCEPTANCE) {
                 json.addProperty("production_rows", hits.size());
@@ -2821,7 +2893,7 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("Regenerate_config_fraction_per_rank_per_second",
                     regenerateFractionPerRankPerSecond);
             json.addProperty("Regenerate_nominal_HP_per_second", nominalRegenerateHpPerSecond);
-            if (SEVERANCE_SUSTAINED) {
+            if (NATIVE_REGENERATE_OBSERVATION) {
                 json.addProperty("Regenerate_trait_valid_at_case_start", regenerateTraitValidAtStart);
             }
             if (PRODUCTION_ACCEPTANCE) {
@@ -3613,7 +3685,7 @@ public final class Phase5FSuiteBBenchmark {
 
     private static void log(String kind, JsonObject payload) {
         payload.addProperty("schema", ADAPTIVE_WOUND_RESEARCH
-                ? "tno.phase6.adaptive_wound.w3.v1"
+                ? adaptiveWoundSchema()
                 : SEVERANCE_SUSTAINED ? "tno.phase6.severance_sustained.r5.v1"
                 : SEVERANCE_PROTOTYPE ? "tno.phase6.severance_prototype.r4.v1"
                 : SEVERANCE_WALL ? "tno.phase6.severance_wall.r3.v1"
@@ -3623,6 +3695,15 @@ public final class Phase5FSuiteBBenchmark {
                 : SUITE_C ? "tno.phase5f.suite_c.v1" : "tno.phase5f.suite_b.v1");
         payload.addProperty("kind", kind);
         LOGGER.info("{} {}", MARKER, GSON.toJson(payload));
+    }
+
+    private static String adaptiveWoundSchema() {
+        return switch (CALIBRATION_MODE) {
+            case "adaptive_wound_capability" -> "tno.phase6.adaptive_wound.w3.v1";
+            case "adaptive_wound_safety" -> "tno.phase6.adaptive_wound.w4.v1";
+            default -> throw new IllegalStateException(
+                    "unsupported Adaptive-wound research mode: " + CALIBRATION_MODE);
+        };
     }
 
     private static double serverDouble(String field) throws ReflectiveOperationException {
@@ -3837,6 +3918,7 @@ public final class Phase5FSuiteBBenchmark {
         SEVERANCE_PROTOTYPE_X16("SEVERANCE_PROTOTYPE_X16", 16.0D),
         SEVERANCE_PROTOTYPE_X64("SEVERANCE_PROTOTYPE_X64_DIAGNOSTIC_CEILING", 64.0D),
         WOUND_RW_0("WOUND_RW_0_NATIVE_CONTROL", 0.0D, 0.0D, 0.0D, 1.0D, 0.0D),
+        WOUND_RW_50("WOUND_RW_50_TRAIT_IDENTITY_DIAGNOSTIC", 0.0D, 0.0D, 0.0D, 1.0D, 0.5D),
         WOUND_RW_100("WOUND_RW_100_CAPABILITY_EXTREME", 0.0D, 0.0D, 0.0D, 1.0D, 1.0D);
 
         final String id;

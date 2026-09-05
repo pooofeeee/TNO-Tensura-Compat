@@ -429,3 +429,104 @@ flow, one-arrow integrity, and zero recursion/bypass. This result does not
 select a production `RW` and does not authorize production implementation.
 W4 may now test a small intermediate diagnostic value against paired trait
 controls.
+
+W3 checkpoint: `e032f1837b137171cafbba6de3711f9a1802fd5c`.
+
+## W4 trait-identity matrix
+
+Status: **complete capture; decision gate failed; W5 is not authorized**.
+
+W4 used only the arithmetic midpoint `RW=0.5`, explicitly as a diagnostic
+between W3's proven endpoints rather than a proposed balance value. At S7,
+Lv600/Lv800/Lv1000 each ran the accepted legal profile and four exact
+single-trait-removed controls: no Tank, no Dementor, no Adaptive, and no
+Regenerate. Removed budget was not reassigned. The result is 15 complete
+cases, 150 real Royal Arrow hits, zero errors, and a strict validated JSONL.
+
+| Level | Profile | Physical | Final wound | Net HP movement | Regen demand / actual / denied |
+|---:|---|---:|---:|---:|---:|
+| 600 | accepted | 3.665912 | 8.955547 | 8.955078 | 49.541992 / 0 / 49.541992 |
+| 600 | no Tank | 4.932803 | 10.766729 | 10.766602 | 67.969727 / 0 / 67.969727 |
+| 600 | no Dementor | 7.133584 | 13.926117 | 13.925781 | 85.680664 / 0 / 85.680664 |
+| 600 | no Adaptive | 18.365018 | 18.369141 | 18.369141 | 101.030273 / 0 / 101.030273 |
+| 600 | no Regenerate | 3.659654 | 8.933073 | 8.932617 | 0 / 0 / 0 |
+| 800 | accepted | 3.659314 | 8.911363 | 8.911133 | 49.400391 / 0 / 49.400391 |
+| 800 | no Tank | 4.958140 | 10.825224 | 10.825195 | 68.733398 / 0 / 68.733398 |
+| 800 | no Dementor | 7.205404 | 14.085970 | 14.085938 | 92.287109 / 0 / 92.287109 |
+| 800 | no Adaptive | 18.365018 | 18.369141 | 18.369141 | 101.030273 / 0 / 101.030273 |
+| 800 | no Regenerate | 3.664249 | 8.933883 | 8.933594 | 0 / 0 / 0 |
+| 1000 | accepted | 3.673965 | 8.956120 | 8.956055 | 54.719727 / 0 / 54.719727 |
+| 1000 | no Tank | 4.932132 | 10.766609 | 10.766602 | 62.574219 / 0 / 62.574219 |
+| 1000 | no Dementor | 7.100120 | 13.875509 | 13.875977 | 92.117188 / 0 / 92.117188 |
+| 1000 | no Adaptive | 18.620926 | 18.625000 | 18.625000 | 103.460938 / 0 / 103.460938 |
+| 1000 | no Regenerate | 3.671416 | 8.987325 | 3.671875 | 0 / 0 / 0 |
+
+### Traits that retained identity
+
+- **Tank passed.** At every level the accepted profile delivered less physical
+  damage and stored less wound than the otherwise-identical no-Tank control.
+- **Dementor passed.** Accepted final wound was 8.91-8.96, versus 13.88-14.09
+  without Dementor. Candidate C therefore did not move credit ahead of
+  Dementor.
+- **Adaptive passed.** Accepted final wound was 8.91-8.96, versus 18.37-18.63
+  without Adaptive. With Adaptive removed, `A_native=A_wound=1` and the
+  diagnostic extra was exactly zero. With Adaptive present, native count still
+  advanced 1-10 and wound credit remained smaller. Candidate C did not erase
+  Adaptive at `RW=0.5`.
+
+### Regenerate gate failure
+
+Regenerate did not retain the required defensive disadvantage in this matrix.
+The 12 Regenerate-bearing cases produced exactly 120 native tick attempts and
+120 callbacks, retained the correct rank throughout, and requested 928.545898
+HP. Native Severance denied all 928.545898; actual healing was exactly zero.
+The no-Regenerate cases produced zero attempts and zero healing.
+
+Consequently, Regenerate-on was not consistently harder for the attacker than
+Regenerate-off. Accepted net HP movement was slightly *greater* at Lv600,
+slightly smaller at Lv800, and materially greater at Lv1000. The independently
+timed native ceiling source and vanilla hurt admission make short-window net HP
+non-monotonic, but they do not change the decisive fact: Regenerate delivered
+no observed healing benefit in any `RW=0.5` case. The W4 rule requires a
+material defensive disadvantage, not merely the continued presence of a trait
+and callback, so the gate fails.
+
+### W4 safety result
+
+All 150 hits retained exactly one physical `minecraft:arrow` source and one
+native wound callback/store, with unchanged projectile tags, Royal Arrow base,
+Tank/Dementor/Adaptive physical output, and no magic classification. There
+were zero duplicate physical events, recursion, unexpected L2 bypasses, or
+unexpected Tensura bypasses. Native ceiling enforcement remained an
+entity-less `tensura:severance` path; 97 actual applications totaled 64.339844
+damage and never re-entered the TNO wall or created a second wound callback.
+SHP movement was zero in every case.
+
+The prototype is scoped only to a registered staged Severance Royal Arrow and
+the existing native callback. It cannot act on Magic, Holy, Soul, Elemental,
+Energy, APO, matching Resistance, or generic damage. A Nullification or
+Arena/Repelling/Teleport veto that prevents the physical hit also prevents the
+native after-damage callback, so the negotiation fails closed; W4 did not
+fabricate forced veto profiles or repeat the already accepted trait matrix.
+
+## Current architecture decision
+
+- Candidate C is **mechanically valid** by W3.
+- Native ceiling enforcement is **structurally safe** in W3/W4: native-owned,
+  separately measured, entity-less, nonphysical, and nonrecursive.
+- Tank, Dementor, and Adaptive remain **meaningful** at diagnostic `RW=0.5`.
+- Regenerate is **not meaningfully defensive** in the isolated W4 path because
+  its entire healing demand is denied.
+- HP viability is not evaluated by this short trait matrix; net HP behavior is
+  non-monotonic under native ceiling timing.
+- SHP viability remains absent: no tested Severance wound path moved SHP.
+- Production architecture authorization: **NO**.
+- W5 sustained viability authorization: **NO**, because its W4 prerequisite
+  failed.
+- A new calibration task is not yet justified. The exact next task is an
+  architecture/protocol decision on how Regenerate is expected to remain a
+  defender advantage while preserving native Severance's purpose as a healing
+  counter. That decision must precede any new `RW` calibration or W5 run.
+
+No production behavior, Curve C value, Stage threshold, L2 mechanic, native
+Tensura mechanic, Royal Bow/Arrow base value, or other family was changed.
