@@ -6,15 +6,18 @@ This branch is research-only. It does not authorize or implement a permanent
 Severance change, a generic anti-heal mechanic, or any change to the completed
 Magic/Holy production path.
 
-Checkpoints R1 through R4 are complete. Direct inspection and controlled
+Checkpoints R1 through R5 and the final analysis are complete. Direct inspection and controlled
 installed-runtime evidence establish conclusion **A: native Severance clearly
 constrains L2 Regenerate**. The interaction is a hard vanilla-HP healing ceiling
 equal to `maxHP - wound`; it is not a proportional reduction in Regenerate's
-nominal rate. R3 isolates the endgame physical wall, and R4 proves that a
+nominal rate. R3/R4 contain valid admitted-hit magnitude and source-isolation
+evidence, but R5 supersedes their pre-`DamageData` reliability attribution as a
+non-ticking harness artifact. R4 proves that a
 development-only eligible-contribution prototype can preserve the one native
-physical source and untouched Royal Arrow base. R5 is authorized only as an
-upper-bound sustained viability test. No production Severance change or
-permanent coefficient is authorized.
+physical source and untouched Royal Arrow base. R5 proves that even its 64x
+upper-bound ceiling is not practically viable against the accepted sustained
+profiles. No production Severance change or permanent coefficient is
+authorized.
 
 ## Authoritative installed runtime
 
@@ -552,3 +555,90 @@ stores, 900 native Regenerate tick attempts/callbacks, 134,961.884 actual
 Regenerate healing, 57,236.606 healing denied across all Regenerate-bearing
 accepted/control cases, and zero errors, duplicate events, second physical
 sources, recursion, unexpected Tensura bypasses, or unexpected L2 bypasses.
+
+## Final research analysis
+
+The completed research checkpoints are:
+
+| Checkpoint | Commit |
+|---|---|
+| R1 native semantics | `5ec27d96322ae09c723e5cc30457eedfa8cd7196` |
+| R2 native runtime interaction | `71054f58882564dcd772f2bf0631b65d1b6afc68` |
+| R3 physical-wall decomposition | `79e3224426ef3e8c4ab4a77aa5c5779a092d6777` |
+| R4 proportional prototype | `314ad42b2c37c7adfdf6f7226c913abce6af892b` |
+| R5 sustained falsification | `a39f0233f57c68e6a4d6a657c5de517479d569c3` |
+
+1. **Does Severance semantically counter Regenerate?** Yes. Native wound sets
+   the exact vanilla-HP healing ceiling `maxHP - wound`. A native 50-HP wound
+   denied exactly 50 healing in R2 while leaving Regenerate's nominal 400/500
+   HP/s rate and SHP untouched.
+2. **Is native Severance large and reliable enough?** It is reliable in the
+   valid entity-ticking fixture: R5 admitted and stored all 360 Severance
+   releases. It is not large enough. Accepted x1 reached only 10 wound, denied
+   2.883%-4.428% of demand, and left a 0.166945 late HP/s slope.
+3. **What does Tank contribute?** It remains native armor/toughness before L2
+   damage modifiers. R3's clean first-hit comparison measured a 35.6955% mean
+   physical reduction. R5's no-Tank control was masked by Dementor, Adaptive,
+   and Regenerate and was nearly indistinguishable from accepted sustained
+   output; Tank was not the limiting R5 term.
+4. **What does Dementor contribute?** R3 measured about 51.0447% mean reduction
+   across admitted rows. At elevated input it is a major early magnitude wall:
+   R5 accepted 64x averaged 11.876 maximum wound, while no-Dementor averaged
+   251.966. Adaptive subsequently drove both to the same 0.166945 late HP/s
+   slope.
+5. **What does Adaptive contribute?** It is the decisive late repeated-source
+   wall. The native `arrow` key decays geometrically across repeated hits. With
+   Adaptive removed, R5 late HP progress averaged 3.192811 HP/s versus 0.166945
+   accepted, although the resulting approximately 52-minute HP projection was
+   still not a reasonable fight.
+6. **What does the alleged separate pre-`DamageData` gate contribute?** No
+   independent L2 gate is supported. R5's valid force-loaded entity-ticking
+   fixture observed zero rejections. The R3/R4 rejection pattern came from a
+   fake-player chunk-ticket defect that allowed direct dispatch while target
+   tick state/hurt cooldown stopped advancing. Its contribution to the real
+   accepted stack is therefore unproven and must be treated as zero observed,
+   not as a design constraint.
+7. **Did the prototype preserve one source and base isolation?** Yes. All 360
+   R5 Severance releases retained one physical `minecraft:arrow` source with
+   the projectile tag, ordinary Royal Arrow base exactly 8, and no magic tag,
+   second source, direct wound write, recursion, or bypass. Only the eligible
+   staged Severance contribution was multiplied before the native combined
+   physical call.
+8. **Did 64x solve sustained viability?** No in any practical sense. It made
+   vanilla HP mathematically decline, but accepted max wound was only
+   11.874-11.880, aggregate healing denial was 4.749%, and the late slope was
+   the same 0.166945 HP/s as x1. HP-only projection was about 59,889 seconds
+   (16.64 hours), while SHP was wholly untouched.
+9. **Is proportional Severance treatment sufficient?** It is mechanically
+   expressible but practically insufficient in this architecture. Raising the
+   eligible term from 1x to the intentionally extreme 64x did not change the
+   accepted late slope. The native wound is bounded by realized HP deficit,
+   after Dementor and especially repeated Adaptive have collapsed the shared
+   physical result and while Regenerate restores everything below the ceiling.
+10. **Is a production Severance implementation justified?** No. R5 neither
+    supports 64x nor identifies any smaller plausible coefficient. Production
+    Severance, Magic/Holy, Curve C, L2 behavior, and all other families remain
+    unchanged.
+11. **What blocker/design question comes next?** The exact question is how an
+    eligible Severance wound can remain meaningful after native repeated-source
+    Adaptive and alongside Regenerate while retaining one physical source,
+    ordinary Royal Arrow base, and native defensive authority. Candidate
+    boundaries—such as which pre/post-Adaptive quantity may legitimately feed
+    native wound semantics—require explicit architectural research; they are
+    not authorized implementations.
+12. **What coefficient interval deserves testing?** None under the current
+    proportional-only architecture. The 1x-to-64x interval already shows a
+    late-output plateau. Any coefficient calibration would be premature until
+    a different, integrity-preserving semantic boundary is proven; that future
+    architecture would need its own new calibration task.
+13. **What is the next major task?** Targeted alternative Regenerate/Adaptive-
+    wound architecture research. It is not production calibration and not an
+    admission-gate workaround; the alleged gate should be revisited only if it
+    can be reproduced with a real player and normally ticking target. Elemental
+    native-event-path research remains separate and is not started here.
+
+The final conclusion deliberately separates semantics from combat viability:
+native Severance is a genuine semantic counter to native Regenerate, but the
+current native magnitude and the tested proportional eligible-only architecture
+do not form a viable endgame combat solution. Production authorization is
+**NO**.
