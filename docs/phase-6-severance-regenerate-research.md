@@ -6,13 +6,15 @@ This branch is research-only. It does not authorize or implement a permanent
 Severance change, a generic anti-heal mechanic, or any change to the completed
 Magic/Holy production path.
 
-Checkpoints R1, R2, and R3 are complete. Direct inspection and controlled
+Checkpoints R1 through R4 are complete. Direct inspection and controlled
 installed-runtime evidence establish conclusion **A: native Severance clearly
 constrains L2 Regenerate**. The interaction is a hard vanilla-HP healing ceiling
 equal to `maxHP - wound`; it is not a proportional reduction in Regenerate's
-nominal rate. R3 isolates the endgame physical wall and narrowly authorizes a
-development-only R4 eligible-contribution prototype. No production Severance
-change or permanent coefficient is authorized.
+nominal rate. R3 isolates the endgame physical wall, and R4 proves that a
+development-only eligible-contribution prototype can preserve the one native
+physical source and untouched Royal Arrow base. R5 is authorized only as an
+upper-bound sustained viability test. No production Severance change or
+permanent coefficient is authorized.
 
 ## Authoritative installed runtime
 
@@ -357,3 +359,96 @@ must establish a diagnostic ceiling first and fail closed if eligible-only
 pre-hurt negotiation cannot improve real admission while retaining Tank,
 Dementor, Adaptive, and native wound storage. No permanent production value is
 selected by R3.
+
+## R4: proportional eligible-only prototype
+
+The official capture is preserved as
+`docs/benchmarks/phase6-severance-regenerate-research/r4-proportional-prototype.jsonl`
+(SHA-256
+`36EB0E47E93D711E500C8168CC07969FB5715D5A6357D3FA7553531F85B1DF3D`).
+The dedicated extractor independently accepted both the raw server log and the
+persisted artifact: 72 cases, 720 rows, one complete suite result, zero errors,
+and 182 admitted hits with exactly 182 native callback attempts and 182 stored
+wounds.
+
+### Prototype boundary and matrix
+
+The development-only scope starts with the existing production decomposition:
+
+`combined base = ordinary Royal Arrow base + staged eligible Severance`
+
+It multiplies only `staged eligible Severance` before projectile velocity and
+the one native integer ceiling, then lets the result rejoin ordinary base in
+the existing `minecraft:arrow` source. It does not add a source, hit, hidden
+damage event, direct HP subtraction, direct wound write, armor bypass, L2
+modifier, or post-L2 restoration. The scope is disabled in production and
+without the explicit `severance_prototype` calibration mode.
+
+The small coarse candidate set was 1x, 4x, 16x, and a 64x diagnostic upper
+bound. All four were run for the accepted profile across Lv600/Lv800/Lv1000 and
+S5/S6/S7. The 16x midpoint was also run with Tank, Dementor, Adaptive, or all
+three removed, with removed budget left unused. Every cell used ten releases
+and a fresh L2 attachment. `APO_profile` stayed `NONE` and Q/RD/RA stayed zero.
+
+Across all 720 rows, the ordinary base was exactly 8 post-round and was never
+changed by the prototype. Each row contained exactly one genuine Royal Arrow,
+one physical `minecraft:arrow` event with the projectile tag, and no magic tag.
+There were zero second sources, duplicate events, recursion events, unexpected
+L2/Tensura bypasses, SHP deltas, or case errors.
+
+### Accepted-profile candidate results
+
+| Eligible factor | Admitted/stored | Final wound across nine cells | Mean final wound/cell | Wound/release | Mean first-release wound | Maximum single increment |
+|---:|---:|---:|---:|---:|---:|---:|
+| 1x | 22/90 | 26.395508 | 2.932834 | 0.293283 | 2.168294 | 3.005859 |
+| 4x | 22/90 | 52.015625 | 5.779514 | 0.577951 | 4.520291 | 5.325195 |
+| 16x | 22/90 | 71.887695 | 7.987522 | 0.798752 | 7.198134 | 7.869141 |
+| 64x upper bound | 26/90 | 99.090820 | 11.010091 | 1.101009 | 9.525825 | 10.143555 |
+
+All nine cells for every candidate stored at least one wound and therefore
+could refresh the native 300-second lifetime. That semantic uptime does not
+make the wound large: the accepted 64x upper bound finished at only
+9.962891-13.552734 wound per cell. Increasing 16x to 64x quadruples eligible
+input but increases mean final wound only from 7.987522 to 11.010091.
+
+Candidate size also did not solve hurt admission. Accepted 1x, 4x, and 16x
+each admitted 22/90 releases; 64x admitted 26/90. Across the complete R4 matrix,
+182/720 entered L2 `DamageData` and 538/720 were rejected before it. Every
+admitted hit still reached the native callback and stored wound, so the
+prototype did not introduce a callback or source-integrity failure.
+
+### X16 trait disadvantages
+
+| X16 profile | Admitted/stored | Mean final wound/cell | Wound/release | Mean first-release wound |
+|---|---:|---:|---:|---:|
+| Accepted | 22/90 | 7.987522 | 0.798752 | 7.198134 |
+| No Tank | 25/90 | 8.838433 | 0.883843 | 7.325846 |
+| No Dementor | 19/90 | 134.718533 | 13.471853 | 101.000000 |
+| No Adaptive | 25/90 | 8.574870 | 0.857487 | 7.112739 |
+| No Tank + Dementor + Adaptive | 21/90 | 162.703016 | 16.270302 | 101.055556 |
+
+At this elevated eligible input, removing Tank alone or Adaptive alone changes
+the accepted final wound only modestly. Removing Dementor changes the scale by
+more than an order of magnitude: its mean first-release wound is 101 instead of
+7.198134, and mean final wound/cell is 134.718533 instead of 7.987522. The
+no-three control reaches 162.703016 mean final wound/cell. This confirms that
+Dementor is the dominant high-input magnitude wall, while the separate
+pre-`DamageData` gate remains the dominant reliability wall. Tank remains
+measurable and Adaptive remains active over repeated admitted source hits; the
+prototype does not bypass either.
+
+## R4 decision gate
+
+R4 succeeds mechanically: eligible-only treatment is isolatable, one physical
+source is preserved, ordinary Royal Arrow base is untouched, and every admitted
+result uses native L2 processing and native Severance storage. It therefore
+authorizes R5 under the task's rule that a safe candidate architecture must
+exist first.
+
+R4 does **not** identify a production coefficient. Even the intentionally
+extreme accepted 64x upper bound stores only about 11 wound per ten-second cell,
+which is negligible beside 10,000 HP and 400-500 HP/s Regenerate. R5 must use
+that 64x value only as a development-only falsification ceiling: if completed
+production Magic/Holy plus this ceiling still cannot produce finite sustained
+progress with Regenerate on, no smaller proportional candidate can justify a
+production Severance implementation from this architecture.

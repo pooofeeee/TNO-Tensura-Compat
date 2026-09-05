@@ -95,17 +95,22 @@ public final class Phase5FSuiteBBenchmark {
     private static final String CALIBRATION_MODE = System.getProperty("tno.phase6.calibrationMode", "");
     private static final boolean SEVERANCE_WALL = Boolean.getBoolean("tno.phase6.calibration")
             && CALIBRATION_MODE.equals("severance_wall");
+    private static final boolean SEVERANCE_PROTOTYPE = Boolean.getBoolean("tno.phase6.calibration")
+            && CALIBRATION_MODE.equals("severance_prototype");
+    private static final boolean SEVERANCE_RESEARCH = SEVERANCE_WALL || SEVERANCE_PROTOTYPE;
     private static final boolean CALIBRATION_COMBAT = Boolean.getBoolean("tno.phase6.calibration")
-            && Set.of("ceiling", "health", "dementor", "adaptive", "combined", "safety", "severance_wall")
+            && Set.of("ceiling", "health", "dementor", "adaptive", "combined", "safety",
+                    "severance_wall", "severance_prototype")
                     .contains(CALIBRATION_MODE);
     private static final boolean PRODUCTION_OBSERVATION = ENDGAME_RESEARCH || CALIBRATION_COMBAT
             || PRODUCTION_ACCEPTANCE;
-    private static final String MARKER = SEVERANCE_WALL ? "TNO_PHASE6_SEVERANCE_WALL"
+    private static final String MARKER = SEVERANCE_PROTOTYPE ? "TNO_PHASE6_SEVERANCE_PROTOTYPE"
+            : SEVERANCE_WALL ? "TNO_PHASE6_SEVERANCE_WALL"
             : CALIBRATION_COMBAT ? "TNO_PHASE6_CALIBRATION"
             : PRODUCTION_ACCEPTANCE ? "TNO_PHASE6_MAGIC_HOLY_PRODUCTION"
             : ENDGAME_RESEARCH ? "TNO_PHASE6_ENDGAME_RESEARCH"
             : SUITE_C ? "TNO_PHASE5F_SUITE_C" : "TNO_PHASE5F_SUITE_B";
-    private static final String TARGET_TAG = SEVERANCE_WALL ? "tno_phase6_severance_wall_target"
+    private static final String TARGET_TAG = SEVERANCE_RESEARCH ? "tno_phase6_severance_wall_target"
             : CALIBRATION_COMBAT ? "tno_phase6_calibration_target"
             : PRODUCTION_ACCEPTANCE ? "tno_phase6_magic_holy_production_target"
             : ENDGAME_RESEARCH ? "tno_phase6_endgame_research_target"
@@ -278,7 +283,7 @@ public final class Phase5FSuiteBBenchmark {
                         "Suite B, Suite C, Phase 6 research, calibration, and production acceptance are mutually exclusive");
             }
             requireMods();
-            if (SEVERANCE_WALL) Phase6SeveranceWallContext.registerL2Listener();
+            if (SEVERANCE_RESEARCH) Phase6SeveranceWallContext.registerL2Listener();
             active = new Session(event.getServer());
             LOGGER.info("{} automatic benchmark started", MARKER);
         }
@@ -405,6 +410,7 @@ public final class Phase5FSuiteBBenchmark {
         private boolean catalogLogged;
         private JsonObject apoInspection;
         private Phase6CalibrationContext.ParameterScope calibrationParameters;
+        private Phase6SeverancePrototypeContext.ParameterScope severancePrototypeParameters;
 
         Session(MinecraftServer server) {
             this.server = server;
@@ -427,8 +433,8 @@ public final class Phase5FSuiteBBenchmark {
             if (PRODUCTION_ACCEPTANCE && family != Family.MAGIC && family != Family.HOLY) {
                 throw new IllegalStateException("production acceptance is limited to Magic/Holy");
             }
-            if (SEVERANCE_WALL && family != Family.SEVERANCE) {
-                throw new IllegalStateException("Severance wall decomposition requires the SEVERANCE family");
+            if (SEVERANCE_RESEARCH && family != Family.SEVERANCE) {
+                throw new IllegalStateException("Severance research requires the SEVERANCE family");
             }
             if (!PRODUCTION_ACCEPTANCE && PRODUCTION_OBSERVATION && cases.stream().anyMatch(spec ->
                     !spec.boss.id.equals(id("tensura", "orc_disaster")))) {
@@ -695,6 +701,10 @@ public final class Phase5FSuiteBBenchmark {
             if (CALIBRATION_COMBAT) {
                 calibrationParameters = Phase6CalibrationContext.useParameters(currentCase().calibration.parameters());
             }
+            if (SEVERANCE_PROTOTYPE) {
+                severancePrototypeParameters = Phase6SeverancePrototypeContext.useEligibleMultiplier(
+                        currentCase().calibration.severanceEligibleMultiplier);
+            }
             result = new CaseResult(currentCase(), target, player, l2Cap, nativeProfileSource);
             shotsReleased = 0;
             currentHit = null;
@@ -824,6 +834,10 @@ public final class Phase5FSuiteBBenchmark {
                         currentHit.severanceBasePostRound += projection.basePost;
                         currentHit.severanceNativePostRound += projection.nativePost;
                         currentHit.severanceStagedPostRound += projection.stagedPost;
+                        currentHit.severancePrototypePreRound += projection.prototypePre;
+                        currentHit.severancePrototypePostRound += projection.prototypePost;
+                        currentHit.severanceProductionEligibleContribution += projection.productionEligible;
+                        currentHit.severancePrototypeEligibleContribution += projection.prototypeEligible;
                         currentHit.familyRaw += projection.nativePost - projection.basePost;
                         currentHit.familyStageScaled += projection.stagedPost - projection.basePost;
                     }
@@ -913,7 +927,7 @@ public final class Phase5FSuiteBBenchmark {
         }
 
         private void captureSeveranceWallTrace(Phase6SeveranceWallContext.Snapshot snapshot) {
-            if (SEVERANCE_WALL && phase == Phase.RUN && currentHit != null) {
+            if (SEVERANCE_RESEARCH && phase == Phase.RUN && currentHit != null) {
                 currentHit.severanceWallTraces.add(snapshot);
             }
         }
@@ -1089,15 +1103,21 @@ public final class Phase5FSuiteBBenchmark {
             double coefficient = currentCase().stage.coefficient(family);
             double stagedBase = nativeBase + SEVERANCE_NATIVE_ATTACK_BONUS * (coefficient - 1.0D);
             if (!PRODUCTION_OBSERVATION) arrow.setBaseDamage(stagedBase);
-            double nativePre = speed * (nativeBase + SEVERANCE_NATIVE_ATTACK_BONUS);
-            double stagedPre = speed * (nativeBase + SEVERANCE_NATIVE_ATTACK_BONUS * coefficient);
+            SeveranceStageScaling.Adjustment production = SeveranceStageScaling.adjustment(
+                    nativeBase + SEVERANCE_NATIVE_ATTACK_BONUS, 1,
+                    com.tno.tensuracompat.core.stage.Stage.valueOf(currentCase().stage.name));
+            SeveranceStageScaling.Adjustment prototype = Phase6SeverancePrototypeContext.apply(production);
+            double nativePre = speed * production.nativeModifiedBase();
+            double stagedPre = speed * production.stagedModifiedBase();
+            double prototypePre = speed * prototype.stagedModifiedBase();
             double basePost = Math.ceil(speed * nativeBase);
             double nativePost = Math.ceil(nativePre);
             double stagedPost = PRODUCTION_OBSERVATION
-                    ? SeveranceStageScaling.roundedProjectileDamage(speed,
-                            SeveranceStageScaling.adjustment(nativeBase + SEVERANCE_NATIVE_ATTACK_BONUS,
-                                    1, com.tno.tensuracompat.core.stage.Stage.valueOf(currentCase().stage.name)))
+                    ? SeveranceStageScaling.roundedProjectileDamage(speed, production)
                     : Math.ceil(stagedPre);
+            double prototypePost = PRODUCTION_OBSERVATION
+                    ? SeveranceStageScaling.roundedProjectileDamage(speed, prototype)
+                    : stagedPost;
             currentHit.severanceConfiguredProjectileCount++;
             currentHit.severanceProjectileSpeed = speed;
             currentHit.severanceBaseProjectileDamage = nativeBase;
@@ -1105,7 +1125,9 @@ public final class Phase5FSuiteBBenchmark {
             currentHit.severanceStagedAttackBonus = SEVERANCE_NATIVE_ATTACK_BONUS * coefficient;
             currentHit.severanceBasePostByProjectile.put(arrow.getUUID().toString(), basePost);
             currentHit.severanceProjections.put(arrow.getUUID().toString(),
-                    new SeveranceProjection(nativePre, stagedPre, basePost, nativePost, stagedPost));
+                    new SeveranceProjection(nativePre, stagedPre, prototypePre,
+                            basePost, nativePost, stagedPost, prototypePost,
+                            production.stagedEligibleContribution(), prototype.stagedEligibleContribution()));
         }
 
         private FakePlayer createPlayer(int index) {
@@ -1217,6 +1239,10 @@ public final class Phase5FSuiteBBenchmark {
                 calibrationParameters.close();
                 calibrationParameters = null;
             }
+            if (severancePrototypeParameters != null) {
+                severancePrototypeParameters.close();
+                severancePrototypeParameters = null;
+            }
             familyProbes.clear();
             beforeCrit.clear();
             currentHit = null;
@@ -1284,18 +1310,27 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("TNO_family", family.id);
             if (CALIBRATION_COMBAT) {
                 json.addProperty("calibration_mode", CALIBRATION_MODE);
-                json.addProperty("diagnostic_policy_scope", SEVERANCE_WALL
+                json.addProperty("diagnostic_policy_scope", SEVERANCE_PROTOTYPE
+                        ? "development-only multiplier on the isolated staged Severance contribution before one native physical arrow source; Royal Arrow base unchanged"
+                        : SEVERANCE_WALL
                         ? "observation-only identity modifiers around native physical Dementor/Adaptive; Tank observed through armor/toughness"
                         : "eligible native Magic/Holy contribution only at L2 defensive modifier boundaries");
-                json.addProperty("L2_listener_priority", SEVERANCE_WALL ? 4502 : 4501);
-                json.addProperty("generic_health_modifier_order", SEVERANCE_WALL
+                json.addProperty("L2_listener_priority", SEVERANCE_RESEARCH ? 4502 : 4501);
+                json.addProperty("generic_health_modifier_order", SEVERANCE_RESEARCH
                         ? "not modified" : "PRE_NONLINEAR priority 7435");
-                json.addProperty("Dementor_recovery_modifier_order", SEVERANCE_WALL
+                json.addProperty("Dementor_recovery_modifier_order", SEVERANCE_RESEARCH
                         ? "observation identity PRE_NONLINEAR priorities 7435/7437"
                         : "PRE_NONLINEAR priority 7437");
-                json.addProperty("Adaptive_recovery_modifier_order", SEVERANCE_WALL
+                json.addProperty("Adaptive_recovery_modifier_order", SEVERANCE_RESEARCH
                         ? "observation identity POST_MULTIPLICATIVE priority 7437"
                         : "POST_MULTIPLICATIVE priority 7437");
+                if (SEVERANCE_PROTOTYPE) {
+                    json.addProperty("prototype_development_only", true);
+                    json.addProperty("prototype_changes_Royal_Arrow_base", false);
+                    json.addProperty("prototype_creates_second_source", false);
+                    json.addProperty("prototype_writes_wound_directly", false);
+                    json.addProperty("prototype_candidate_set", "1x,4x,16x,64x eligible staged Severance only");
+                }
             }
             if (PRODUCTION_ACCEPTANCE) {
                 json.addProperty("production_feature_active_without_calibration_property",
@@ -1358,6 +1393,7 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("stage_fixture_only", !PRODUCTION_OBSERVATION);
             json.addProperty("production_balance_mutated", false);
             json.addProperty("production_combat_mutated", false);
+            json.addProperty("development_only_combat_fixture_active", SEVERANCE_PROTOTYPE);
             json.addProperty("profile_clone_policy", freshCalibrationAttachment()
                     ? "fresh initialized L2 attachment and exact legal constructed profile for every case; required for native ticking-trait evidence"
                     : PRODUCTION_OBSERVATION
@@ -1380,6 +1416,12 @@ public final class Phase5FSuiteBBenchmark {
                     entry.addProperty("Q_generic_health", spec.calibration.parameters.genericHealthQ());
                     entry.addProperty("RD_dementor", spec.calibration.parameters.dementorRD());
                     entry.addProperty("RA_adaptive", spec.calibration.parameters.adaptiveRA());
+                    if (SEVERANCE_PROTOTYPE) {
+                        entry.addProperty("Severance_eligible_multiplier",
+                                spec.calibration.severanceEligibleMultiplier);
+                        entry.addProperty("diagnostic_ceiling_candidate",
+                                spec.calibration == CalibrationCase.SEVERANCE_PROTOTYPE_X64);
+                    }
                 }
                 if (PRODUCTION_ACCEPTANCE) {
                     entry.addProperty("L2_profile_variant", spec.traitProfile.id);
@@ -1433,6 +1475,32 @@ public final class Phase5FSuiteBBenchmark {
             BossSpec boss = BOSSES.stream().filter(value -> value.id.equals(id("tensura", "orc_disaster")))
                     .findFirst().orElseThrow();
             if (!filter.isBlank() && !boss.id.toString().equals(filter)) return result;
+            if (SEVERANCE_PROTOTYPE) {
+                if (Boolean.getBoolean("tno.phase6.severancePrototypeCeilingOnly")) {
+                    Stage stage = STAGES.get(6);
+                    result.add(new CaseSpec(boss, 600, LevelMode.ENDGAME_TARGET, stage,
+                            CalibrationCase.SEVERANCE_PROTOTYPE_X64, TraitProfile.ACCEPTED));
+                    result.add(new CaseSpec(boss, 600, LevelMode.ENDGAME_TARGET, stage,
+                            CalibrationCase.SEVERANCE_PROTOTYPE_X64,
+                            TraitProfile.WITHOUT_TANK_DEMENTOR_ADAPTIVE));
+                    return result;
+                }
+                for (int level : List.of(600, 800, 1000)) {
+                    for (Stage stage : STAGES.subList(6, STAGES.size())) {
+                        for (CalibrationCase calibration : CalibrationCase.severancePrototypeCases()) {
+                            result.add(new CaseSpec(boss, level, LevelMode.ENDGAME_TARGET,
+                                    stage, calibration, TraitProfile.ACCEPTED));
+                        }
+                        for (TraitProfile profile : List.of(TraitProfile.WITHOUT_TANK,
+                                TraitProfile.WITHOUT_DEMENTOR, TraitProfile.WITHOUT_ADAPTIVE,
+                                TraitProfile.WITHOUT_TANK_DEMENTOR_ADAPTIVE)) {
+                            result.add(new CaseSpec(boss, level, LevelMode.ENDGAME_TARGET,
+                                    stage, CalibrationCase.SEVERANCE_PROTOTYPE_X16, profile));
+                        }
+                    }
+                }
+                return result;
+            }
             List<Integer> levels = switch (CALIBRATION_MODE) {
                 case "combined", "severance_wall" -> List.of(600, 800, 1000);
                 case "safety" -> List.of(300, 600, 800, 1000);
@@ -1535,7 +1603,8 @@ public final class Phase5FSuiteBBenchmark {
 
     private static boolean freshCalibrationAttachment() {
         return PRODUCTION_ACCEPTANCE || CALIBRATION_MODE.equals("combined")
-                || CALIBRATION_MODE.equals("safety") || CALIBRATION_MODE.equals("severance_wall");
+                || CALIBRATION_MODE.equals("safety") || CALIBRATION_MODE.equals("severance_wall")
+                || CALIBRATION_MODE.equals("severance_prototype");
     }
 
     private static final class CaseResult {
@@ -1748,7 +1817,7 @@ public final class Phase5FSuiteBBenchmark {
                 json.addProperty("failure_reason_detail", failureReasonDetail(hit));
                 json.addProperty("prerequisite_failure_reason", prerequisiteFailureReason(hit));
             }
-            if (SEVERANCE_WALL) addSeveranceWallTrace(json, hit);
+            if (SEVERANCE_RESEARCH) addSeveranceWallTrace(json, hit);
             else if (CALIBRATION_COMBAT) addCalibrationTrace(json, hit);
             if (PRODUCTION_ACCEPTANCE) addProductionExpectation(json, hit);
             json.addProperty("matching_resistance_cancelled_before_recovery", hit.familyCanceledBeforeRecovery);
@@ -1764,6 +1833,17 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("severance_base_only_post_round", hit.severanceBasePostRound);
             json.addProperty("severance_native_post_round", hit.severanceNativePostRound);
             json.addProperty("severance_after_stage_post_round", hit.severanceStagedPostRound);
+            json.addProperty("severance_prototype_eligible_multiplier",
+                    spec.calibration.severanceEligibleMultiplier);
+            json.addProperty("severance_production_eligible_contribution",
+                    hit.severanceProductionEligibleContribution);
+            json.addProperty("severance_prototype_eligible_contribution",
+                    hit.severancePrototypeEligibleContribution);
+            json.addProperty("severance_prototype_pre_round", hit.severancePrototypePreRound);
+            json.addProperty("severance_prototype_post_round", hit.severancePrototypePostRound);
+            json.addProperty("severance_prototype_delta_over_production_post_round",
+                    hit.severancePrototypePostRound - hit.severanceStagedPostRound);
+            json.addProperty("severance_base_affected_by_prototype", false);
             json.addProperty("severance_configured_projectile_count", hit.severanceConfiguredProjectileCount);
             json.addProperty("severance_admitted_projectile_count", hit.severanceAdmittedProjectileCount);
             json.addProperty("severance_pre_amount", hit.preSeverance);
@@ -1805,6 +1885,13 @@ public final class Phase5FSuiteBBenchmark {
                     hit.severanceNativePostRound - hit.severanceBasePostRound);
             value.addProperty("TNO_Stage_delta_post_round",
                     hit.severanceStagedPostRound - hit.severanceNativePostRound);
+            value.addProperty("prototype_eligible_multiplier", spec.calibration.severanceEligibleMultiplier);
+            value.addProperty("prototype_eligible_pre_velocity",
+                    hit.severancePrototypeEligibleContribution);
+            value.addProperty("prototype_combined_post_round", hit.severancePrototypePostRound);
+            value.addProperty("prototype_delta_over_production_post_round",
+                    hit.severancePrototypePostRound - hit.severanceStagedPostRound);
+            value.addProperty("Royal_Arrow_base_changed_by_prototype", false);
             value.addProperty("pre_L2_combined_physical", hit.physicalIncoming);
             value.addProperty("context_combined_physical", trace.combinedPhysicalAmount());
             value.addProperty("DamageData_original", trace.damageOriginal());
@@ -1827,6 +1914,8 @@ public final class Phase5FSuiteBBenchmark {
             value.addProperty("Adaptive_native_factor", trace.adaptiveFactor());
             value.addProperty("Adaptive_native_result", trace.adaptiveResult());
             value.addProperty("final_physical_after_L2_pipeline", hit.physicalAfterL2);
+            value.addProperty("LivingDamageEvent_Pre_amount", hit.physicalAfterL2);
+            value.addProperty("post_Adaptive_projected_physical", trace.adaptiveResult());
             value.addProperty("incoming_event_cancelled_after_L2", hit.physicalIncomingCanceled);
             value.addProperty("final_hurt_returned_success", trace.hurtReturned());
             value.addProperty("final_HP_delta",
@@ -1840,8 +1929,9 @@ public final class Phase5FSuiteBBenchmark {
             value.addProperty("wound_before", hit.preSeverance);
             value.addProperty("wound_after", hit.postSeverance);
             value.addProperty("wound_delta", Math.max(0.0D, hit.postSeverance - hit.preSeverance));
-            value.addProperty("observation_only", true);
+            value.addProperty("observation_only", !SEVERANCE_PROTOTYPE);
             value.addProperty("modifier_values_changed", false);
+            value.addProperty("eligible_pre_hurt_prototype_active", SEVERANCE_PROTOTYPE);
             json.add("severance_wall_trace", value);
         }
 
@@ -2095,7 +2185,7 @@ public final class Phase5FSuiteBBenchmark {
                         combined, nominalPostRegenerateDps);
                 json.addProperty("calibration_trace_count",
                         hits.stream().mapToInt(hit -> hit.calibrationTraces.size()).sum());
-                if (SEVERANCE_WALL) {
+                if (SEVERANCE_RESEARCH) {
                     json.addProperty("severance_wall_trace_count",
                             hits.stream().mapToInt(hit -> hit.severanceWallTraces.size()).sum());
                     json.addProperty("hurt_success_count", hits.stream()
@@ -2210,6 +2300,13 @@ public final class Phase5FSuiteBBenchmark {
                 json.addProperty("RD_dementor", spec.calibration.parameters.dementorRD());
                 json.addProperty("RA_adaptive", spec.calibration.parameters.adaptiveRA());
                 json.addProperty("diagnostic_upper_bound_only", CALIBRATION_MODE.equals("ceiling"));
+                if (SEVERANCE_PROTOTYPE) {
+                    json.addProperty("Severance_eligible_multiplier",
+                            spec.calibration.severanceEligibleMultiplier);
+                    json.addProperty("diagnostic_ceiling_candidate",
+                            spec.calibration == CalibrationCase.SEVERANCE_PROTOTYPE_X64);
+                    json.addProperty("prototype_development_only", true);
+                }
             }
             if (PRODUCTION_ACCEPTANCE) {
                 json.addProperty("production_policy_case", spec.calibration.id);
@@ -2421,9 +2518,13 @@ public final class Phase5FSuiteBBenchmark {
         double severanceStagedAttackBonus;
         double severanceNativePreRound;
         double severanceStagedPreRound;
+        double severancePrototypePreRound;
         double severanceBasePostRound;
         double severanceNativePostRound;
         double severanceStagedPostRound;
+        double severancePrototypePostRound;
+        double severanceProductionEligibleContribution;
+        double severancePrototypeEligibleContribution;
         String elementalProjectileId = "";
         String projectileEntityId = "";
         boolean elementalOwnerRetained;
@@ -2840,7 +2941,8 @@ public final class Phase5FSuiteBBenchmark {
     }
 
     private static void log(String kind, JsonObject payload) {
-        payload.addProperty("schema", SEVERANCE_WALL ? "tno.phase6.severance_wall.r3.v1"
+        payload.addProperty("schema", SEVERANCE_PROTOTYPE ? "tno.phase6.severance_prototype.r4.v1"
+                : SEVERANCE_WALL ? "tno.phase6.severance_wall.r3.v1"
                 : CALIBRATION_COMBAT ? "tno.phase6.endgame_calibration.v1"
                 : PRODUCTION_ACCEPTANCE ? "tno.phase6.magic_holy_production.v1"
                 : ENDGAME_RESEARCH ? "tno.phase6.endgame_research.v1"
@@ -3055,18 +3157,37 @@ public final class Phase5FSuiteBBenchmark {
         SAFETY_S5("SAFETY_S5_HIGH_CANDIDATE", 0.50D, 0.50D, 0.50D),
         SAFETY_S6("SAFETY_S6_HIGH_CANDIDATE", 0.75D, 0.625D, 0.625D),
         SAFETY_S7("SAFETY_S7_HIGH_CANDIDATE", 1.00D, 0.75D, 0.75D),
-        SEVERANCE_WALL_NATIVE("SEVERANCE_WALL_NATIVE_POLICY", 0.0D, 0.0D, 0.0D);
+        SEVERANCE_WALL_NATIVE("SEVERANCE_WALL_NATIVE_POLICY", 0.0D, 0.0D, 0.0D),
+        SEVERANCE_PROTOTYPE_X1("SEVERANCE_PROTOTYPE_X1", 1.0D),
+        SEVERANCE_PROTOTYPE_X4("SEVERANCE_PROTOTYPE_X4", 4.0D),
+        SEVERANCE_PROTOTYPE_X16("SEVERANCE_PROTOTYPE_X16", 16.0D),
+        SEVERANCE_PROTOTYPE_X64("SEVERANCE_PROTOTYPE_X64_DIAGNOSTIC_CEILING", 64.0D);
 
         final String id;
         final Phase6CalibrationContext.Parameters parameters;
+        final double severanceEligibleMultiplier;
 
         CalibrationCase(String id, double q, double rd, double ra) {
+            this(id, q, rd, ra, 1.0D);
+        }
+
+        CalibrationCase(String id, double severanceEligibleMultiplier) {
+            this(id, 0.0D, 0.0D, 0.0D, severanceEligibleMultiplier);
+        }
+
+        CalibrationCase(String id, double q, double rd, double ra, double severanceEligibleMultiplier) {
             this.id = id;
             this.parameters = new Phase6CalibrationContext.Parameters(q, rd, ra);
+            this.severanceEligibleMultiplier = severanceEligibleMultiplier;
         }
 
         static List<CalibrationCase> ceilingCases() {
             return List.of(BASELINE, DEMENTOR_FULL, ADAPTIVE_FULL, REDUCERS_FULL, HEALTH_FULL, ALL_FULL);
+        }
+
+        static List<CalibrationCase> severancePrototypeCases() {
+            return List.of(SEVERANCE_PROTOTYPE_X1, SEVERANCE_PROTOTYPE_X4,
+                    SEVERANCE_PROTOTYPE_X16, SEVERANCE_PROTOTYPE_X64);
         }
 
         static List<CalibrationCase> forMode(String mode, Stage stage) {
@@ -3173,8 +3294,10 @@ public final class Phase5FSuiteBBenchmark {
                                Set<String> tags, boolean l2Magic) {
     }
 
-    private record SeveranceProjection(double nativePre, double stagedPre, double basePost,
-                                        double nativePost, double stagedPost) {
+    private record SeveranceProjection(double nativePre, double stagedPre, double prototypePre,
+                                        double basePost, double nativePost, double stagedPost,
+                                        double prototypePost, double productionEligible,
+                                        double prototypeEligible) {
     }
 
     private record ResourceState(double shp, double maxShp, double magicules, double aura) {

@@ -4,6 +4,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.tno.tensuracompat.core.stage.SeveranceStageScaling;
 import com.tno.tensuracompat.debug.Phase5FSuiteBBenchmark;
+import com.tno.tensuracompat.debug.Phase6SeverancePrototypeContext;
 import com.tno.tensuracompat.debug.Phase6SeveranceWallContext;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
@@ -46,6 +47,7 @@ public abstract class AbstractArrowMixin {
                 level, weapon, target, source, nativeModifiedBaseInput);
         tno$severanceAdjustment = SeveranceStageScaling
                 .adjustment(weapon, nativeModifiedBase)
+                .map(Phase6SeverancePrototypeContext::apply)
                 .orElse(null);
         return tno$severanceAdjustment == null
                 ? nativeModifiedBase

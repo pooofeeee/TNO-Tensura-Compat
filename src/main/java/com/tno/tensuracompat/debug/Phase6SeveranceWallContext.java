@@ -44,7 +44,8 @@ public final class Phase6SeveranceWallContext {
     public static boolean enabled() {
         return !FMLEnvironment.production
                 && Boolean.getBoolean("tno.phase6.calibration")
-                && System.getProperty("tno.phase6.calibrationMode", "").equals("severance_wall");
+                && (System.getProperty("tno.phase6.calibrationMode", "").equals("severance_wall")
+                || System.getProperty("tno.phase6.calibrationMode", "").equals("severance_prototype"));
     }
 
     public static synchronized void registerL2Listener() {
