@@ -66,6 +66,8 @@ public class TNOTensuraCompat {
                     Phase5FSuiteBBenchmark::onDamagePre);
             NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST,
                     Phase5FSuiteBBenchmark::onDamagePost);
+            NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, true,
+                    Phase5FSuiteBBenchmark::onHealLowest);
             Phase5FSuiteBBenchmark.registerTensuraEvents();
             NeoForge.EVENT_BUS.addListener(Phase5FL2TraitMatrix::onServerTick);
             NeoForge.EVENT_BUS.addListener(Phase5FL2TraitMatrix::onServerStarted);

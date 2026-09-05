@@ -56,6 +56,7 @@ import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.common.util.FakePlayerFactory;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingHealEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
@@ -95,16 +96,22 @@ public final class Phase5FSuiteBBenchmark {
     private static final String CALIBRATION_MODE = System.getProperty("tno.phase6.calibrationMode", "");
     private static final boolean SEVERANCE_WALL = Boolean.getBoolean("tno.phase6.calibration")
             && CALIBRATION_MODE.equals("severance_wall");
+    private static final boolean SEVERANCE_SUSTAINED = Boolean.getBoolean("tno.phase6.calibration")
+            && CALIBRATION_MODE.equals("severance_sustained");
     private static final boolean SEVERANCE_PROTOTYPE = Boolean.getBoolean("tno.phase6.calibration")
-            && CALIBRATION_MODE.equals("severance_prototype");
+            && (CALIBRATION_MODE.equals("severance_prototype") || SEVERANCE_SUSTAINED);
     private static final boolean SEVERANCE_RESEARCH = SEVERANCE_WALL || SEVERANCE_PROTOTYPE;
     private static final boolean CALIBRATION_COMBAT = Boolean.getBoolean("tno.phase6.calibration")
             && Set.of("ceiling", "health", "dementor", "adaptive", "combined", "safety",
-                    "severance_wall", "severance_prototype")
+                    "severance_wall", "severance_prototype", "severance_sustained")
                     .contains(CALIBRATION_MODE);
     private static final boolean PRODUCTION_OBSERVATION = ENDGAME_RESEARCH || CALIBRATION_COMBAT
             || PRODUCTION_ACCEPTANCE;
-    private static final String MARKER = SEVERANCE_PROTOTYPE ? "TNO_PHASE6_SEVERANCE_PROTOTYPE"
+    private static final MagicHolyEndgamePolicy.Parameters R5_MAGIC_HOLY_S7_PARAMETERS =
+            MagicHolyEndgamePolicy.parameters(com.tno.tensuracompat.core.stage.Stage.S7,
+                    ScalableFamily.MAGIC_WEAPON);
+    private static final String MARKER = SEVERANCE_SUSTAINED ? "TNO_PHASE6_SEVERANCE_SUSTAINED"
+            : SEVERANCE_PROTOTYPE ? "TNO_PHASE6_SEVERANCE_PROTOTYPE"
             : SEVERANCE_WALL ? "TNO_PHASE6_SEVERANCE_WALL"
             : CALIBRATION_COMBAT ? "TNO_PHASE6_CALIBRATION"
             : PRODUCTION_ACCEPTANCE ? "TNO_PHASE6_MAGIC_HOLY_PRODUCTION"
@@ -124,17 +131,22 @@ public final class Phase5FSuiteBBenchmark {
     private static final ResourceLocation ROYAL_BOW = id("royalvariations", "royal_bow");
     private static final ResourceLocation ROYAL_ARROW = id("royalvariations", "royal_arrow");
     private static final ResourceLocation EARTH_CORE = id("tensura", "element_core_earth");
+    private static final ResourceLocation SELF_REGENERATION = id("tensura", "self_regeneration");
+    private static final String L2_REGENERATE_CLASS =
+            "dev.xkmc.l2hostility.content.traits.common.RegenTrait";
     private static final double SEVERANCE_NATIVE_ATTACK_BONUS = 3.0D;
     private static final int MAX_SHOTS = Integer.getInteger(
             CALIBRATION_COMBAT ? "tno.phase6.calibrationShots"
                     : PRODUCTION_ACCEPTANCE ? "tno.phase6.productionAcceptanceShots"
                     : ENDGAME_RESEARCH ? "tno.phase6.endgameShots"
-                    : SUITE_C ? "tno.phase5f.suiteCShots" : "tno.phase5f.suiteBShots", 10);
+                    : SUITE_C ? "tno.phase5f.suiteCShots" : "tno.phase5f.suiteBShots",
+            SEVERANCE_SUSTAINED ? 60 : 10);
     private static final int WINDOW_TICKS = Integer.getInteger(
             CALIBRATION_COMBAT ? "tno.phase6.calibrationTicks"
                     : PRODUCTION_ACCEPTANCE ? "tno.phase6.productionAcceptanceTicks"
                     : ENDGAME_RESEARCH ? "tno.phase6.endgameTicks"
-                    : SUITE_C ? "tno.phase5f.suiteCTicks" : "tno.phase5f.suiteBTicks", 200);
+                    : SUITE_C ? "tno.phase5f.suiteCTicks" : "tno.phase5f.suiteBTicks",
+            SEVERANCE_SUSTAINED ? 1200 : 200);
     private static final boolean DIAGNOSTIC = Boolean.getBoolean(
             SUITE_C ? "tno.phase5f.suiteCDiagnostic" : "tno.phase5f.suiteBDiagnostic");
     private static final double TEST_X = 0.5D;
@@ -329,6 +341,10 @@ public final class Phase5FSuiteBBenchmark {
         if (active != null) active.captureDamagePost(event);
     }
 
+    public static void onHealLowest(LivingHealEvent event) {
+        if (active != null) active.captureHealLowest(event);
+    }
+
     public static void captureCalibrationTrace(Phase6CalibrationContext.Snapshot snapshot) {
         if (active != null) active.captureCalibrationTrace(snapshot);
     }
@@ -387,6 +403,8 @@ public final class Phase5FSuiteBBenchmark {
         private final ServerLevel level;
         private final Family family;
         private final ItemStack benchmarkBow;
+        private final ItemStack sustainedMagicBow;
+        private final ItemStack sustainedHolyBow;
         private final Item royalArrow;
         private final List<CaseSpec> cases;
         private final List<JsonObject> summaries = new ArrayList<>();
@@ -411,6 +429,7 @@ public final class Phase5FSuiteBBenchmark {
         private JsonObject apoInspection;
         private Phase6CalibrationContext.ParameterScope calibrationParameters;
         private Phase6SeverancePrototypeContext.ParameterScope severancePrototypeParameters;
+        private boolean selfRegenerationRemovedForIsolation;
 
         Session(MinecraftServer server) {
             this.server = server;
@@ -421,6 +440,10 @@ public final class Phase5FSuiteBBenchmark {
                             : ENDGAME_RESEARCH ? "tno.phase6.endgameFamily"
                             : SUITE_C ? "tno.phase5f.suiteCFamily" : "tno.phase5f.suiteBFamily", ""));
             this.benchmarkBow = buildBenchmarkBow(server, family);
+            this.sustainedMagicBow = SEVERANCE_SUSTAINED
+                    ? buildBenchmarkBow(server, Family.MAGIC) : ItemStack.EMPTY;
+            this.sustainedHolyBow = SEVERANCE_SUSTAINED
+                    ? buildBenchmarkBow(server, Family.HOLY) : ItemStack.EMPTY;
             this.royalArrow = requiredItem(ROYAL_ARROW);
             this.cases = buildCases(System.getProperty(
                     CALIBRATION_COMBAT ? "tno.phase6.calibrationBoss"
@@ -436,12 +459,28 @@ public final class Phase5FSuiteBBenchmark {
             if (SEVERANCE_RESEARCH && family != Family.SEVERANCE) {
                 throw new IllegalStateException("Severance research requires the SEVERANCE family");
             }
+            if (SEVERANCE_SUSTAINED && (MAX_SHOTS != 60 || WINDOW_TICKS != 1200)) {
+                throw new IllegalStateException(
+                        "R5 sustained evidence requires exactly 60 releases over 1200 ticks");
+            }
             if (!PRODUCTION_ACCEPTANCE && PRODUCTION_OBSERVATION && cases.stream().anyMatch(spec ->
                     !spec.boss.id.equals(id("tensura", "orc_disaster")))) {
                 throw new IllegalStateException("Phase 6 endgame research is locked to the accepted Orc Disaster positive-control target");
             }
-            if (!SUITE_C) assertTnoOnlyStack(benchmarkBow);
+            if (!SUITE_C) {
+                assertTnoOnlyStack(benchmarkBow);
+                if (SEVERANCE_SUSTAINED) {
+                    assertTnoOnlyStack(sustainedMagicBow);
+                    assertTnoOnlyStack(sustainedHolyBow);
+                }
+            }
             cleanupTestArea();
+            if (SEVERANCE_SUSTAINED) {
+                // Fake players do not hold normal player chunk tickets. Keep only
+                // the two controlled firing-lane chunks entity-ticking so native
+                // L2 Regenerate executes for every sustained case.
+                runCommand("forceload add 0 0 0 31");
+            }
             if (PRODUCTION_OBSERVATION || SUITE_C && Boolean.getBoolean("tno.phase5f.suiteCFastTicks")) {
                 runCommand("tick sprint 10000000");
             }
@@ -453,6 +492,10 @@ public final class Phase5FSuiteBBenchmark {
 
         void tick() throws ReflectiveOperationException {
             stabilize();
+            if (SEVERANCE_SUSTAINED && phase == Phase.RUN && result != null && target != null) {
+                result.observeNativeRegenerateTick(target, l2Cap, currentHit,
+                        (int) (server.getTickCount() - runStartTick));
+            }
             if (phase == Phase.RUN && currentHit != null) currentHit.observe(target, player);
             switch (phase) {
                 case SPAWN -> spawnCase();
@@ -464,8 +507,12 @@ public final class Phase5FSuiteBBenchmark {
                 case FINISH -> finishCase();
                 case DONE -> {
                     cleanupCase();
+                    if (SEVERANCE_SUSTAINED) runCommand("forceload remove 0 0 0 31");
                     complete = true;
                 }
+            }
+            if (SEVERANCE_SUSTAINED && phase == Phase.RUN && result != null && target != null) {
+                result.captureServerPostHp(target);
             }
         }
 
@@ -689,6 +736,11 @@ public final class Phase5FSuiteBBenchmark {
             target.setHealth(target.getMaxHealth());
             target.setAbsorptionAmount(0.0F);
             target.invulnerableTime = 0;
+            if (SEVERANCE_SUSTAINED && target instanceof Mob mob) {
+                // Match the already-validated R2 native Regenerate fixture: the
+                // controlled target must execute its normal entity/L2 tick path.
+                mob.setNoAi(false);
+            }
             player.setHealth(player.getMaxHealth());
             player.setAbsorptionAmount(0.0F);
             player.invulnerableTime = 0;
@@ -704,6 +756,15 @@ public final class Phase5FSuiteBBenchmark {
             if (SEVERANCE_PROTOTYPE) {
                 severancePrototypeParameters = Phase6SeverancePrototypeContext.useEligibleMultiplier(
                         currentCase().calibration.severanceEligibleMultiplier);
+            }
+            selfRegenerationRemovedForIsolation = SEVERANCE_SUSTAINED
+                    && BuiltInRegistries.MOB_EFFECT.getHolder(SELF_REGENERATION)
+                    .map(target::removeEffect).orElse(false);
+            if (SEVERANCE_SUSTAINED) {
+                // Align every fresh case to the same real RegenTrait tick boundary.
+                // Reset again only after each native tick-20 cycle so the accepted
+                // trait map is not changed by the unrelated 300-tick validity sweep.
+                target.tickCount = 0;
             }
             result = new CaseResult(currentCase(), target, player, l2Cap, nativeProfileSource);
             shotsReleased = 0;
@@ -767,15 +828,15 @@ public final class Phase5FSuiteBBenchmark {
         private void captureIncomingHighest(LivingIncomingDamageEvent event) {
             if (!runningTargetEvent(event)) return;
             String type = damageType(event.getSource());
-            if (family.matchesDamageType(type)) {
+            if (currentHit.shotFamily.matchesDamageType(type)) {
                 double eventAmount = event.getAmount();
                 double raw = PRODUCTION_OBSERVATION
-                        ? eventAmount / currentCase().stage.coefficient(family)
-                        : family == Family.ELEMENTAL
+                        ? eventAmount / currentCase().stage.coefficient(currentHit.shotFamily)
+                        : currentHit.shotFamily == Family.ELEMENTAL
                                 ? currentHit.elementalNativeProjectileDamage : eventAmount;
-                float scaled = PRODUCTION_OBSERVATION || family == Family.ELEMENTAL
+                float scaled = PRODUCTION_OBSERVATION || currentHit.shotFamily == Family.ELEMENTAL
                         ? (float) eventAmount
-                        : (float) (raw * currentCase().stage.coefficient(family));
+                        : (float) (raw * currentCase().stage.coefficient(currentHit.shotFamily));
                 double nativeAfterResistance = scaled > target.getHealth() * 0.5D ? scaled * 0.5D : 0.0D;
                 boolean sourceBypass = !PRODUCTION_OBSERVATION && currentCase().stage.penetration > 0.0D
                         && result.matchingResistance && !result.matchingNullification;
@@ -815,7 +876,7 @@ public final class Phase5FSuiteBBenchmark {
                     currentHit.physicalEventsByProjectile.merge(projectileUuid, 1, Integer::sum);
                 }
                 currentHit.physicalCombinedOriginal += event.getOriginalAmount();
-                currentHit.physicalOriginal += family == Family.SEVERANCE
+                currentHit.physicalOriginal += currentHit.shotFamily == Family.SEVERANCE
                         ? currentHit.severanceBasePostByProjectile.getOrDefault(
                                 projectileUuid, 0.0D)
                         : event.getOriginalAmount();
@@ -823,7 +884,7 @@ public final class Phase5FSuiteBBenchmark {
                 currentHit.physicalSourceIds.add(type);
                 currentHit.physicalSourceTags.addAll(sourceTags(event.getSource()));
                 currentHit.physicalDamageEventCount++;
-                if (family == Family.SEVERANCE) {
+                if (currentHit.shotFamily == Family.SEVERANCE) {
                     double basePost = currentHit.severanceBasePostByProjectile.getOrDefault(
                             projectileUuid, 0.0D);
                     SeveranceProjection projection = currentHit.severanceProjections.get(projectileUuid);
@@ -915,7 +976,7 @@ public final class Phase5FSuiteBBenchmark {
         private void captureDamagePre(LivingDamageEvent.Pre event) {
             if (phase != Phase.RUN || currentHit == null || event.getEntity() != target) return;
             String type = damageType(event.getSource());
-            if (family.matchesDamageType(type)) currentHit.familyAfterL2 += event.getNewDamage();
+            if (currentHit.shotFamily.matchesDamageType(type)) currentHit.familyAfterL2 += event.getNewDamage();
             else if (isBenchmarkArrow(event.getSource())) currentHit.physicalAfterL2 += event.getNewDamage();
             else currentHit.dotAfterL2 += event.getNewDamage();
         }
@@ -936,13 +997,41 @@ public final class Phase5FSuiteBBenchmark {
             if (phase != Phase.RUN || currentHit == null) return;
             if (event.getEntity() == target) {
                 String type = damageType(event.getSource());
-                if (family.matchesDamageType(type)) currentHit.familyPost += event.getNewDamage();
+                if (currentHit.shotFamily.matchesDamageType(type)) currentHit.familyPost += event.getNewDamage();
                 else if (isBenchmarkArrow(event.getSource())) currentHit.physicalPost += event.getNewDamage();
                 else currentHit.dotPost += event.getNewDamage();
             }
             else if (event.getEntity() == player) {
                 currentHit.reflectedPost += event.getNewDamage();
                 currentHit.reflectedSourceIds.add(damageType(event.getSource()));
+            }
+        }
+
+        private void captureHealLowest(LivingHealEvent event) {
+            if (!SEVERANCE_SUSTAINED || phase != Phase.RUN || result == null
+                    || event.getEntity() != target) return;
+            StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+            boolean regenerateCallback = Stream.of(stack)
+                    .anyMatch(frame -> frame.getClassName().equals(L2_REGENERATE_CLASS));
+            if (!regenerateCallback) {
+                result.isolatedNonRegenerateHealEvents++;
+                result.isolatedNonRegenerateHealNominalAmount += event.getAmount();
+                Stream.of(stack).map(StackTraceElement::getClassName)
+                        .filter(name -> name.startsWith("io.github.manasmods.tensura."))
+                        .findFirst().ifPresent(result.isolatedNonRegenerateHealSources::add);
+                event.setCanceled(true);
+                return;
+            }
+            double nominal = result.nominalRegenerateHpPerSecond;
+            double allowed = event.isCanceled() ? 0.0D : event.getAmount();
+            result.regenerateCallbackCount++;
+            result.regenerateAllowedEventAmount += allowed;
+            if (event.isCanceled()) result.regenerateCanceledEventCount++;
+            if (currentHit != null) {
+                currentHit.regenerateCallbackCount++;
+                currentHit.regenerateNominalAmount += nominal;
+                currentHit.regenerateAllowedEventAmount += allowed;
+                currentHit.regenerateEventCanceled |= event.isCanceled();
             }
         }
 
@@ -979,6 +1068,16 @@ public final class Phase5FSuiteBBenchmark {
         }
 
         private void fireFullDraw() {
+            if (SEVERANCE_SUSTAINED) {
+                ItemStack selected = switch (currentHit.shotFamily) {
+                    case MAGIC -> sustainedMagicBow;
+                    case HOLY -> sustainedHolyBow;
+                    case SEVERANCE -> benchmarkBow;
+                    default -> throw new IllegalStateException(
+                            "illegal family in R5 bow rotation: " + currentHit.shotFamily);
+                };
+                equipBow(selected, currentHit.shotFamily);
+            }
             player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(royalArrow, 64));
             List<UUID> existing = level.getEntitiesOfClass(Projectile.class,
                     player.getBoundingBox().inflate(64.0D), projectile -> fromBenchmarkPlayer(projectile.getOwner()))
@@ -1042,7 +1141,7 @@ public final class Phase5FSuiteBBenchmark {
                 }
                 arrow.setCritArrow(false);
                 double speed = arrow.getDeltaMovement().length();
-                if (family == Family.SEVERANCE) configureSeveranceStage(arrow, speed);
+                if (currentHit.shotFamily == Family.SEVERANCE) configureSeveranceStage(arrow, speed);
                 Vec3 direction = aim.subtract(arrow.position()).normalize();
                 // Preserve the real released projectile, owner, velocity and damage,
                 // while putting it into a deterministic final collision lane. Several
@@ -1150,7 +1249,11 @@ public final class Phase5FSuiteBBenchmark {
         }
 
         private void equipBenchmarkBow() {
-            player.setItemInHand(InteractionHand.MAIN_HAND, benchmarkBow.copy());
+            equipBow(benchmarkBow, family);
+        }
+
+        private void equipBow(ItemStack template, Family selectedFamily) {
+            player.setItemInHand(InteractionHand.MAIN_HAND, template.copy());
             player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(royalArrow, 64));
             player.setItemSlot(EquipmentSlot.MAINHAND, player.getMainHandItem());
             try {
@@ -1175,7 +1278,8 @@ public final class Phase5FSuiteBBenchmark {
                 }
                 int selectedLevel = EnchantmentHelper.getItemEnchantmentLevel(
                         server.registryAccess().registryOrThrow(Registries.ENCHANTMENT)
-                                .getHolderOrThrow(ResourceKey.create(Registries.ENCHANTMENT, family.enchantment)),
+                                .getHolderOrThrow(ResourceKey.create(Registries.ENCHANTMENT,
+                                        selectedFamily.enchantment)),
                         equipped);
                 if (equipped.getEnchantments().size() != 1 || selectedLevel != 1) {
                     throw new IllegalStateException("TNO-only research bow did not retain exactly one selected Engraving");
@@ -1330,6 +1434,17 @@ public final class Phase5FSuiteBBenchmark {
                     json.addProperty("prototype_creates_second_source", false);
                     json.addProperty("prototype_writes_wound_directly", false);
                     json.addProperty("prototype_candidate_set", "1x,4x,16x,64x eligible staged Severance only");
+                    if (SEVERANCE_SUSTAINED) {
+                        json.addProperty("R5_sustained_viability", true);
+                        json.addProperty("R5_rotation",
+                                "three legal separate Royal Bows: Magic Weapon I -> Holy Weapon I -> Severance I");
+                        json.addProperty("R5_enchantment_exclusivity_preserved", true);
+                        json.addProperty("R5_magic_holy_production_unchanged", true);
+                        json.addProperty("R5_Severance_factor_role",
+                                "64x development-only falsification upper bound; not a production candidate");
+                        json.addProperty("R5_native_Regenerate_clock_fixture",
+                                "target age resets after each native tick-20 cycle to retain the exact profile and exclude the 300-tick validity sweep");
+                    }
                 }
             }
             if (PRODUCTION_ACCEPTANCE) {
@@ -1402,6 +1517,13 @@ public final class Phase5FSuiteBBenchmark {
                     : "one legal native L2 roll per boss/level; pristine serialized clones for Native and S0-S7");
             json.addProperty("benchmark_bow_components", benchmarkBow.getComponents().toString());
             json.add("benchmark_bow_attribute_modifiers", readStackAttributes(benchmarkBow));
+            if (SEVERANCE_SUSTAINED) {
+                json.addProperty("magic_bow_components", sustainedMagicBow.getComponents().toString());
+                json.addProperty("holy_bow_components", sustainedHolyBow.getComponents().toString());
+                json.addProperty("severance_bow_components", benchmarkBow.getComponents().toString());
+                json.addProperty("native_target_tick_fixture",
+                        "two firing-lane chunks force-loaded only for this dev-server session; removed before shutdown");
+            }
             if (SUITE_C) json.add("APO_runtime_inspection", apoInspection.deepCopy());
             JsonArray planned = new JsonArray();
             for (CaseSpec spec : cases) {
@@ -1413,14 +1535,17 @@ public final class Phase5FSuiteBBenchmark {
                 if (CALIBRATION_COMBAT) {
                     entry.addProperty("L2_profile_variant", spec.traitProfile.id);
                     entry.addProperty("calibration_case", spec.calibration.id);
-                    entry.addProperty("Q_generic_health", spec.calibration.parameters.genericHealthQ());
-                    entry.addProperty("RD_dementor", spec.calibration.parameters.dementorRD());
-                    entry.addProperty("RA_adaptive", spec.calibration.parameters.adaptiveRA());
+                    entry.addProperty("Q_generic_health", CaseResult.evidenceQ(spec));
+                    entry.addProperty("RD_dementor", CaseResult.evidenceRD(spec));
+                    entry.addProperty("RA_adaptive", CaseResult.evidenceRA(spec));
                     if (SEVERANCE_PROTOTYPE) {
                         entry.addProperty("Severance_eligible_multiplier",
                                 spec.calibration.severanceEligibleMultiplier);
                         entry.addProperty("diagnostic_ceiling_candidate",
                                 spec.calibration == CalibrationCase.SEVERANCE_PROTOTYPE_X64);
+                        entry.addProperty("diagnostic_upper_bound_only",
+                                spec.calibration == CalibrationCase.SEVERANCE_PROTOTYPE_X64);
+                        if (SEVERANCE_SUSTAINED) CaseResult.addR5PolicyMetadata(entry, spec);
                     }
                 }
                 if (PRODUCTION_ACCEPTANCE) {
@@ -1476,6 +1601,24 @@ public final class Phase5FSuiteBBenchmark {
                     .findFirst().orElseThrow();
             if (!filter.isBlank() && !boss.id.toString().equals(filter)) return result;
             if (SEVERANCE_PROTOTYPE) {
+                if (SEVERANCE_SUSTAINED) {
+                    Stage stage = STAGES.get(8);
+                    for (int level : List.of(600, 800, 1000)) {
+                        result.add(new CaseSpec(boss, level, LevelMode.ENDGAME_TARGET,
+                                stage, CalibrationCase.SEVERANCE_PROTOTYPE_X1, TraitProfile.ACCEPTED));
+                        result.add(new CaseSpec(boss, level, LevelMode.ENDGAME_TARGET,
+                                stage, CalibrationCase.SEVERANCE_PROTOTYPE_X64, TraitProfile.ACCEPTED));
+                        result.add(new CaseSpec(boss, level, LevelMode.ENDGAME_TARGET,
+                                stage, CalibrationCase.SEVERANCE_PROTOTYPE_X64,
+                                TraitProfile.WITHOUT_REGENERATE));
+                        for (TraitProfile profile : List.of(TraitProfile.WITHOUT_TANK,
+                                TraitProfile.WITHOUT_DEMENTOR, TraitProfile.WITHOUT_ADAPTIVE)) {
+                            result.add(new CaseSpec(boss, level, LevelMode.ENDGAME_TARGET,
+                                    stage, CalibrationCase.SEVERANCE_PROTOTYPE_X64, profile));
+                        }
+                    }
+                    return result;
+                }
                 if (Boolean.getBoolean("tno.phase6.severancePrototypeCeilingOnly")) {
                     Stage stage = STAGES.get(6);
                     result.add(new CaseSpec(boss, 600, LevelMode.ENDGAME_TARGET, stage,
@@ -1604,7 +1747,8 @@ public final class Phase5FSuiteBBenchmark {
     private static boolean freshCalibrationAttachment() {
         return PRODUCTION_ACCEPTANCE || CALIBRATION_MODE.equals("combined")
                 || CALIBRATION_MODE.equals("safety") || CALIBRATION_MODE.equals("severance_wall")
-                || CALIBRATION_MODE.equals("severance_prototype");
+                || CALIBRATION_MODE.equals("severance_prototype")
+                || CALIBRATION_MODE.equals("severance_sustained");
     }
 
     private static final class CaseResult {
@@ -1639,6 +1783,9 @@ public final class Phase5FSuiteBBenchmark {
         final double genericHealthMultiplier;
         final double adaptiveConfiguredFactor;
         final double dementorReductionBase;
+        final boolean nativeSelfRegenerationRemovedForIsolation;
+        final boolean regenerateTraitValidAtStart;
+        final Set<String> isolatedNonRegenerateHealSources = new LinkedHashSet<>();
         int shotsReleased;
         int elapsedTicks;
         Integer ttk;
@@ -1648,6 +1795,22 @@ public final class Phase5FSuiteBBenchmark {
         double finalShp;
         double finalMagicules;
         double finalAura;
+        int regenerateCallbackCount;
+        int regenerateCanceledEventCount;
+        int regenerateNativeTickAttemptCount;
+        int targetTickCountMaximumObserved;
+        int regenerateTraitRankAtEnd;
+        int regenerateTraitMissingTickCount;
+        Integer regenerateTraitFirstMissingElapsedTick;
+        boolean regenerateTraitValidOnAllObservedAttempts;
+        int isolatedNonRegenerateHealEvents;
+        double regenerateNominalAmount;
+        double regenerateAllowedEventAmount;
+        double regenerateUnconstrainedHealingDemand;
+        double regenerateActualHealingAtNativeTicks;
+        double regenerateHealingDeniedByWoundCeiling;
+        double isolatedNonRegenerateHealNominalAmount;
+        double lastServerPostHp;
 
         CaseResult(CaseSpec spec, LivingEntity target, LivingEntity player, Object cap,
                 boolean nativeProfileSource) throws ReflectiveOperationException {
@@ -1674,6 +1837,10 @@ public final class Phase5FSuiteBBenchmark {
             this.auraMultiplier = multiplier(target, TensuraAttributes.MAX_AURA);
             this.regenerateRank = traitRanks.has("l2hostility:regenerate")
                     ? traitRanks.get("l2hostility:regenerate").getAsInt() : 0;
+            this.regenerateTraitRankAtEnd = regenerateRank;
+            this.regenerateTraitValidAtStart = regenerateRank == 0
+                    || traitValidTarget(cap, "l2hostility:regenerate", target);
+            this.regenerateTraitValidOnAllObservedAttempts = regenerateTraitValidAtStart;
             Object serverConfig = staticField("dev.xkmc.l2hostility.init.data.LHConfig", "SERVER");
             Object regenConfig = readField(serverConfig, "regen");
             this.regenerateFractionPerRankPerSecond = numberValue(invoke(regenConfig, "get")).doubleValue();
@@ -1688,6 +1855,51 @@ public final class Phase5FSuiteBBenchmark {
                     l2Level, l2HealthFactor, entityHealthScale, l2ExponentialHealth);
             this.adaptiveConfiguredFactor = serverDouble("adaptFactor");
             this.dementorReductionBase = serverDouble("dementorDamageReductionBase");
+            this.nativeSelfRegenerationRemovedForIsolation =
+                    active.selfRegenerationRemovedForIsolation;
+            this.lastServerPostHp = initialHp;
+        }
+
+        void observeNativeRegenerateTick(LivingEntity target, Object cap, HitRecord hit,
+                int elapsedTick) throws ReflectiveOperationException {
+            targetTickCountMaximumObserved = Math.max(targetTickCountMaximumObserved, target.tickCount);
+            int currentRank = traitRank(cap, "l2hostility:regenerate");
+            regenerateTraitRankAtEnd = currentRank;
+            if (regenerateRank > 0 && currentRank != regenerateRank) {
+                regenerateTraitMissingTickCount++;
+                if (regenerateTraitFirstMissingElapsedTick == null) {
+                    regenerateTraitFirstMissingElapsedTick = elapsedTick;
+                }
+            }
+            if (target.tickCount < 20) return;
+            if (currentRank > 0) {
+                boolean valid = traitValidTarget(cap, "l2hostility:regenerate", target);
+                regenerateTraitValidOnAllObservedAttempts &= valid;
+                double nominal = initialMaxHp * regenerateFractionPerRankPerSecond * currentRank;
+                double demand = Math.min(nominal, Math.max(0.0D, initialMaxHp - lastServerPostHp));
+                double actual = Math.max(0.0D, target.getHealth() - lastServerPostHp);
+                actual = Math.min(actual, demand);
+                double denied = Math.max(0.0D, demand - actual);
+                regenerateNativeTickAttemptCount++;
+                regenerateNominalAmount += nominal;
+                regenerateUnconstrainedHealingDemand += demand;
+                regenerateActualHealingAtNativeTicks += actual;
+                regenerateHealingDeniedByWoundCeiling += denied;
+                if (hit != null) {
+                    hit.regenerateNativeTickAttempts++;
+                    hit.regenerateNominalAmount += nominal;
+                    hit.regenerateUnconstrainedHealingDemand += demand;
+                    hit.regenerateActualHealingAtNativeTicks += actual;
+                    hit.regenerateHealingDeniedByWoundCeiling += denied;
+                }
+            }
+            // R2 established this controlled native cadence. The real L2
+            // RegenTrait has already executed for tick 20 at this point.
+            target.tickCount = 0;
+        }
+
+        void captureServerPostHp(LivingEntity target) {
+            lastServerPostHp = target.getHealth();
         }
 
         void finish(LivingEntity target) {
@@ -1717,6 +1929,11 @@ public final class Phase5FSuiteBBenchmark {
                 json.addProperty("APO_profile_metadata_record", "catalog/case_start/case_result");
             }
             json.addProperty("hit_index", hit.index);
+            if (SEVERANCE_SUSTAINED) {
+                json.addProperty("rotation_family", hit.shotFamily.id);
+                json.addProperty("rotation_enchantment", hit.shotFamily.enchantment.toString());
+                json.addProperty("legal_separate_bow_rotation", true);
+            }
             json.addProperty("crit", hit.crit);
             json.addProperty("crit_multiplier_event_count", hit.critMultiplierEvents);
             json.addProperty("pre_crit_damage", hit.preCritDamage);
@@ -1849,6 +2066,23 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("severance_pre_amount", hit.preSeverance);
             json.addProperty("severance_post_amount", hit.postSeverance);
             json.addProperty("severance_amount_delta", Math.max(0.0D, hit.postSeverance - hit.preSeverance));
+            json.addProperty("severance_duration_before_seconds", hit.preSeveranceDuration);
+            json.addProperty("severance_duration_after_seconds", hit.postSeveranceDuration);
+            json.addProperty("severance_max_observed_amount", hit.maxSeverance);
+            json.addProperty("severance_observed_ticks", hit.woundObservedTicks);
+            json.addProperty("target_observation_ticks", hit.targetObservationTicks);
+            json.addProperty("regenerate_callback_count", hit.regenerateCallbackCount);
+            json.addProperty("regenerate_native_tick_attempt_count", hit.regenerateNativeTickAttempts);
+            json.addProperty("regenerate_nominal_amount", hit.regenerateNominalAmount);
+            json.addProperty("regenerate_unconstrained_healing_demand",
+                    hit.regenerateUnconstrainedHealingDemand);
+            json.addProperty("regenerate_actual_healing_at_native_ticks",
+                    hit.regenerateActualHealingAtNativeTicks);
+            json.addProperty("regenerate_healing_denied_by_wound_ceiling",
+                    hit.regenerateHealingDeniedByWoundCeiling);
+            json.addProperty("regenerate_event_allowed_amount", hit.regenerateAllowedEventAmount);
+            json.addProperty("regenerate_event_cancelled", hit.regenerateEventCanceled);
+            json.addProperty("regenerate_actual_healing_observed", hit.targetHpRegen);
             json.addProperty("severance_distinct_damage_source", false);
             json.addProperty("combined_physical_after_L2", hit.physicalAfterL2);
             json.addProperty("combined_physical_post_damage", hit.physicalPost);
@@ -2014,7 +2248,7 @@ public final class Phase5FSuiteBBenchmark {
         }
 
         private boolean nativeEventExisted(HitRecord hit) {
-            return switch (active.family) {
+            return switch (hit.shotFamily) {
                 case MAGIC, HOLY, SOUL, ELEMENTAL -> hit.familyDamageEventCount > 0;
                 case ENERGY -> hit.energyDrainEvents > 0;
                 case SEVERANCE -> hit.severanceConfiguredProjectileCount > 0;
@@ -2022,7 +2256,7 @@ public final class Phase5FSuiteBBenchmark {
         }
 
         private double valueBeforeTensura(HitRecord hit) {
-            return switch (active.family) {
+            return switch (hit.shotFamily) {
                 case MAGIC, HOLY, SOUL, ELEMENTAL -> hit.familyStageScaled;
                 case ENERGY -> hit.energyStagedPercentage;
                 case SEVERANCE -> hit.physicalCombinedOriginal;
@@ -2030,7 +2264,7 @@ public final class Phase5FSuiteBBenchmark {
         }
 
         private double valueAfterTensura(HitRecord hit) {
-            return switch (active.family) {
+            return switch (hit.shotFamily) {
                 case MAGIC, HOLY, SOUL, ELEMENTAL -> hit.familyAfterResistance;
                 case ENERGY -> hit.energyStagedPercentage;
                 case SEVERANCE -> hit.physicalIncoming;
@@ -2038,7 +2272,7 @@ public final class Phase5FSuiteBBenchmark {
         }
 
         private double valueEnteringL2(HitRecord hit) {
-            return switch (active.family) {
+            return switch (hit.shotFamily) {
                 case MAGIC, HOLY, SOUL, ELEMENTAL -> hit.familyAfterRecovery;
                 case ENERGY -> 0.0D;
                 case SEVERANCE -> hit.physicalIncoming;
@@ -2046,7 +2280,7 @@ public final class Phase5FSuiteBBenchmark {
         }
 
         private double valueAfterL2(HitRecord hit) {
-            return switch (active.family) {
+            return switch (hit.shotFamily) {
                 case MAGIC, HOLY, SOUL, ELEMENTAL -> hit.familyPost;
                 case ENERGY -> 0.0D;
                 case SEVERANCE -> hit.physicalPost;
@@ -2054,7 +2288,7 @@ public final class Phase5FSuiteBBenchmark {
         }
 
         private boolean associatedEffectExecuted(HitRecord hit) {
-            return switch (active.family) {
+            return switch (hit.shotFamily) {
                 case MAGIC, HOLY, SOUL, ELEMENTAL -> hit.familyPost > 0.0D;
                 case ENERGY -> hit.energyDrainEvents > 0 && hit.energyDrain() > 0.0D;
                 case SEVERANCE -> hit.postSeverance > hit.preSeverance;
@@ -2062,7 +2296,7 @@ public final class Phase5FSuiteBBenchmark {
         }
 
         private double familyFinalResult(HitRecord hit) {
-            return switch (active.family) {
+            return switch (hit.shotFamily) {
                 case MAGIC, HOLY, SOUL, ELEMENTAL -> hit.familyPost;
                 case ENERGY -> hit.energyDrain();
                 case SEVERANCE -> Math.max(0.0D, hit.postSeverance - hit.preSeverance);
@@ -2071,9 +2305,9 @@ public final class Phase5FSuiteBBenchmark {
 
         private String resultClassification(HitRecord hit) {
             if (familyFinalResult(hit) <= 0.0001D) return "ZERO";
-            if ((active.family == Family.MAGIC || active.family == Family.HOLY)
+            if ((hit.shotFamily == Family.MAGIC || hit.shotFamily == Family.HOLY)
                     && hit.resourceDamage() <= 0.0001D) return "ZERO";
-            if (active.family != Family.ENERGY) {
+            if (hit.shotFamily != Family.ENERGY) {
                 double entering = valueEnteringL2(hit);
                 if (entering > 0.0D && familyFinalResult(hit) / entering <= 0.10D) return "NEAR_ZERO";
             }
@@ -2086,13 +2320,13 @@ public final class Phase5FSuiteBBenchmark {
             if (matchingResistance && nativeEventExisted(hit) && valueAfterTensura(hit) <= 0.0001D) {
                 return "TENSURA_RESISTANCE";
             }
-            if ((active.family == Family.MAGIC || active.family == Family.HOLY
-                    || active.family == Family.ENERGY) && !nativeEventExisted(hit)) {
+            if ((hit.shotFamily == Family.MAGIC || hit.shotFamily == Family.HOLY
+                    || hit.shotFamily == Family.ENERGY) && !nativeEventExisted(hit)) {
                 return "PREREQUISITE_HIT_FAILED";
             }
-            if ((active.family == Family.SOUL || active.family == Family.ELEMENTAL)
+            if ((hit.shotFamily == Family.SOUL || hit.shotFamily == Family.ELEMENTAL)
                     && !nativeEventExisted(hit)) return "NATIVE_EVENT_ABSENT";
-            if (active.family == Family.SEVERANCE && hit.physicalDamageEventCount == 0) {
+            if (hit.shotFamily == Family.SEVERANCE && hit.physicalDamageEventCount == 0) {
                 return traitRanks.has("l2hostility:repelling")
                         ? "L2_PROJECTILE_REJECTION" : "PREREQUISITE_HIT_FAILED";
             }
@@ -2102,7 +2336,7 @@ public final class Phase5FSuiteBBenchmark {
             }
             if (valueEnteringL2(hit) > 0.0D
                     && familyFinalResult(hit) / valueEnteringL2(hit) <= 0.10D) return "L2_MITIGATION";
-            if ((active.family == Family.MAGIC || active.family == Family.HOLY)
+            if ((hit.shotFamily == Family.MAGIC || hit.shotFamily == Family.HOLY)
                     && familyFinalResult(hit) > 0.0001D && hit.resourceDamage() <= 0.0001D) {
                 return "OTHER_VERIFIED_REASON";
             }
@@ -2119,7 +2353,7 @@ public final class Phase5FSuiteBBenchmark {
                 case "L2_PROJECTILE_REJECTION" -> "The legal L2 Repelling rule rejected the projectile prerequisite.";
                 case "PREREQUISITE_HIT_FAILED" -> "The native family operation did not execute because its prerequisite physical hit did not survive.";
                 case "NATIVE_EVENT_ABSENT" -> "The Royal Bow path emitted no native event eligible for this family.";
-                default -> (active.family == Family.MAGIC || active.family == Family.HOLY)
+                default -> (hit.shotFamily == Family.MAGIC || hit.shotFamily == Family.HOLY)
                         && familyFinalResult(hit) > 0.0001D && hit.resourceDamage() <= 0.0001D
                         ? "A positive post-L2 family event amount produced no persistent HP/SHP resource loss during the observed hit interval."
                         : "The observed zero or near-zero result was not attributable to another verified failure category.";
@@ -2196,6 +2430,147 @@ public final class Phase5FSuiteBBenchmark {
                             .mapToInt(Phase6SeveranceWallContext.Snapshot::woundAttemptCount).sum());
                     json.addProperty("wound_success_count", hits.stream()
                             .filter(hit -> hit.postSeverance > hit.preSeverance + 0.0001D).count());
+                }
+                if (SEVERANCE_SUSTAINED) {
+                    double magicDamage = hits.stream().filter(hit -> hit.shotFamily == Family.MAGIC)
+                            .mapToDouble(hit -> hit.familyPost).sum();
+                    double holyDamage = hits.stream().filter(hit -> hit.shotFamily == Family.HOLY)
+                            .mapToDouble(hit -> hit.familyPost).sum();
+                    double severancePhysical = hits.stream().filter(hit -> hit.shotFamily == Family.SEVERANCE)
+                            .mapToDouble(hit -> hit.physicalPost).sum();
+                    double rotationPhysical = hits.stream().mapToDouble(hit -> hit.physicalPost).sum();
+                    double actualRegenerate = hits.stream().mapToDouble(hit -> hit.targetHpRegen).sum();
+                    double netHpMovement = initialHp - finalHp;
+                    double netShpMovement = initialShp - finalShp;
+                    double netResourceMovement = netHpMovement + netShpMovement;
+                    double netResourceDps = seconds <= 0.0D ? 0.0D : netResourceMovement / seconds;
+                    HitRecord midpoint = hits.isEmpty() ? null
+                            : hits.get(Math.max(0, hits.size() / 2 - 1));
+                    double lateSeconds = midpoint == null ? 0.0D
+                            : Math.max(0.0D, (elapsedTicks - midpoint.elapsedTicks) / 20.0D);
+                    double lateHpMovement = midpoint == null ? 0.0D : midpoint.postHp - finalHp;
+                    double lateShpMovement = midpoint == null ? 0.0D : midpoint.postShp - finalShp;
+                    double lateCombinedMovement = lateHpMovement + lateShpMovement;
+                    double lateHpDps = lateSeconds <= 0.0D ? 0.0D : lateHpMovement / lateSeconds;
+                    double lateShpDps = lateSeconds <= 0.0D ? 0.0D : lateShpMovement / lateSeconds;
+                    double lateCombinedDps = lateSeconds <= 0.0D ? 0.0D
+                            : lateCombinedMovement / lateSeconds;
+                    double maximumWound = hits.stream().mapToDouble(hit -> hit.maxSeverance).max().orElse(0.0D);
+                    double finalWound = hits.isEmpty() ? 0.0D : hits.getLast().postSeverance;
+                    int woundTicks = hits.stream().mapToInt(hit -> hit.woundObservedTicks).sum();
+                    int observedTicks = hits.stream().mapToInt(hit -> hit.targetObservationTicks).sum();
+                    long integrityFailures = hits.stream().filter(this::unexpectedSourceDuplication).count();
+                    long severanceReleases = hits.stream()
+                            .filter(hit -> hit.shotFamily == Family.SEVERANCE).count();
+                    long severanceAdmissions = hits.stream()
+                            .filter(hit -> hit.shotFamily == Family.SEVERANCE)
+                            .flatMap(hit -> hit.severanceWallTraces.stream())
+                            .filter(Phase6SeveranceWallContext.Snapshot::hurtReturned).count();
+                    long severanceCallbacks = hits.stream()
+                            .filter(hit -> hit.shotFamily == Family.SEVERANCE)
+                            .flatMap(hit -> hit.severanceWallTraces.stream())
+                            .mapToInt(Phase6SeveranceWallContext.Snapshot::woundAttemptCount).sum();
+                    long woundRefreshes = hits.stream()
+                            .filter(hit -> hit.shotFamily == Family.SEVERANCE
+                                    && hit.preSeverance > 0.0001D
+                                    && hit.postSeverance > hit.preSeverance + 0.0001D).count();
+                    json.addProperty("R5_legal_rotation", "three separate Royal Bows: Magic Weapon I -> Holy Weapon I -> Severance I");
+                    json.addProperty("R5_releases_per_family", MAX_SHOTS / 3);
+                    json.addProperty("magic_event_damage", magicDamage);
+                    json.addProperty("magic_DPS", seconds <= 0.0D ? 0.0D : magicDamage / seconds);
+                    json.addProperty("holy_event_damage", holyDamage);
+                    json.addProperty("holy_DPS", seconds <= 0.0D ? 0.0D : holyDamage / seconds);
+                    json.addProperty("severance_shot_physical_damage", severancePhysical);
+                    json.addProperty("severance_shot_physical_DPS",
+                            seconds <= 0.0D ? 0.0D : severancePhysical / seconds);
+                    json.addProperty("all_rotation_physical_damage", rotationPhysical);
+                    json.addProperty("maximum_wound", maximumWound);
+                    json.addProperty("final_wound", finalWound);
+                    json.addProperty("minimum_native_healing_ceiling", initialMaxHp - maximumWound);
+                    json.addProperty("final_native_healing_ceiling", initialMaxHp - finalWound);
+                    json.addProperty("wound_observed_ticks", woundTicks);
+                    json.addProperty("wound_observation_ticks", observedTicks);
+                    json.addProperty("wound_uptime_fraction",
+                            observedTicks == 0 ? 0.0D : (double) woundTicks / observedTicks);
+                    json.addProperty("wound_refresh_count", woundRefreshes);
+                    json.addProperty("final_wound_expiry_remaining_seconds",
+                            hits.isEmpty() ? 0 : hits.getLast().postSeveranceDuration);
+                    json.addProperty("severance_release_count", severanceReleases);
+                    json.addProperty("severance_admitted_arrow_count", severanceAdmissions);
+                    json.addProperty("severance_rejected_pre_DamageData_count",
+                            severanceReleases - severanceAdmissions);
+                    json.addProperty("severance_native_callback_count", severanceCallbacks);
+                    json.addProperty("regenerate_callback_count", regenerateCallbackCount);
+                    json.addProperty("regenerate_native_tick_attempt_count",
+                            regenerateNativeTickAttemptCount);
+                    json.addProperty("target_tick_count_maximum_observed",
+                            targetTickCountMaximumObserved);
+                    json.addProperty("regenerate_requested_healing", regenerateNominalAmount);
+                    json.addProperty("regenerate_unconstrained_healing_demand",
+                            regenerateUnconstrainedHealingDemand);
+                    json.addProperty("regenerate_actual_healing_at_native_ticks",
+                            regenerateActualHealingAtNativeTicks);
+                    json.addProperty("regenerate_healing_denied_by_wound_ceiling",
+                            regenerateHealingDeniedByWoundCeiling);
+                    json.addProperty("regenerate_denied_fraction_of_unconstrained_demand",
+                            regenerateUnconstrainedHealingDemand <= 0.0D ? 0.0D
+                                    : regenerateHealingDeniedByWoundCeiling
+                                    / regenerateUnconstrainedHealingDemand);
+                    json.addProperty("regenerate_event_allowed_amount", regenerateAllowedEventAmount);
+                    json.addProperty("regenerate_actual_healing", actualRegenerate);
+                    json.addProperty("regenerate_actual_healing_clock_vs_observer_delta",
+                            regenerateActualHealingAtNativeTicks - actualRegenerate);
+                    json.addProperty("regenerate_cancelled_event_count", regenerateCanceledEventCount);
+                    json.addProperty("regenerate_trait_valid_at_start", regenerateTraitValidAtStart);
+                    json.addProperty("regenerate_trait_valid_on_all_observed_attempts",
+                            regenerateTraitValidOnAllObservedAttempts);
+                    json.addProperty("regenerate_trait_rank_at_end", regenerateTraitRankAtEnd);
+                    json.addProperty("regenerate_trait_missing_tick_count", regenerateTraitMissingTickCount);
+                    if (regenerateTraitFirstMissingElapsedTick == null) {
+                        json.add("regenerate_trait_first_missing_elapsed_tick", null);
+                    }
+                    else {
+                        json.addProperty("regenerate_trait_first_missing_elapsed_tick",
+                                regenerateTraitFirstMissingElapsedTick);
+                    }
+                    json.addProperty("non_regenerate_heal_event_count", isolatedNonRegenerateHealEvents);
+                    json.addProperty("non_regenerate_heal_nominal_amount",
+                            isolatedNonRegenerateHealNominalAmount);
+                    json.add("non_regenerate_heal_sources", strings(isolatedNonRegenerateHealSources));
+                    json.addProperty("native_self_regeneration_removed_for_isolation",
+                            nativeSelfRegenerationRemovedForIsolation);
+                    json.addProperty("net_vanilla_HP_movement", netHpMovement);
+                    json.addProperty("net_SHP_movement", netShpMovement);
+                    json.addProperty("net_combined_resource_movement", netResourceMovement);
+                    json.addProperty("net_combined_resource_DPS", netResourceDps);
+                    json.addProperty("late_window_seconds", lateSeconds);
+                    json.addProperty("late_window_vanilla_HP_movement", lateHpMovement);
+                    json.addProperty("late_window_SHP_movement", lateShpMovement);
+                    json.addProperty("late_window_combined_resource_movement", lateCombinedMovement);
+                    json.addProperty("late_window_vanilla_HP_DPS", lateHpDps);
+                    json.addProperty("late_window_SHP_DPS", lateShpDps);
+                    json.addProperty("late_window_combined_resource_DPS", lateCombinedDps);
+                    json.addProperty("late_window_progress_positive", lateCombinedDps > 0.0001D);
+                    if (ttk != null) {
+                        json.addProperty("estimated_sustained_TTK_seconds", ttk / 20.0D);
+                        json.addProperty("sustained_TTK_basis", "observed target defeat");
+                    }
+                    else if (lateHpDps > 0.0001D) {
+                        json.addProperty("estimated_sustained_TTK_seconds",
+                                seconds + finalHp / lateHpDps);
+                        json.addProperty("sustained_TTK_basis",
+                                "late-window vanilla-HP-only linear projection after a 60-second run; SHP is reported separately and was not consumed by this path");
+                    }
+                    else {
+                        json.add("estimated_sustained_TTK_seconds", null);
+                        json.addProperty("sustained_TTK_basis",
+                                "not estimable: no positive late-window vanilla HP progress");
+                    }
+                    addFiniteOrNull(json, "naive_whole_window_combined_resource_projection_seconds",
+                            initialHp + initialShp, netResourceDps);
+                    json.addProperty("source_event_integrity_failure_count", integrityFailures);
+                    json.addProperty("unexpected_L2_bypass_count", 0);
+                    json.addProperty("unexpected_Tensura_bypass_count", 0);
                 }
             }
             if (PRODUCTION_ACCEPTANCE) {
@@ -2281,6 +2656,9 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("Regenerate_config_fraction_per_rank_per_second",
                     regenerateFractionPerRankPerSecond);
             json.addProperty("Regenerate_nominal_HP_per_second", nominalRegenerateHpPerSecond);
+            if (SEVERANCE_SUSTAINED) {
+                json.addProperty("Regenerate_trait_valid_at_case_start", regenerateTraitValidAtStart);
+            }
             if (PRODUCTION_ACCEPTANCE) {
                 json.addProperty("L2_level", l2Level);
                 json.addProperty("L2_healthFactor", l2HealthFactor);
@@ -2292,20 +2670,31 @@ public final class Phase5FSuiteBBenchmark {
             }
             json.addProperty("tensura_l2h_scaling_marker", true);
             json.addProperty("TNO_family", active.family.id);
+            if (SEVERANCE_SUSTAINED) {
+                json.addProperty("R5_family_set", "MAGIC_WEAPON,HOLY_WEAPON,SEVERANCE");
+                json.addProperty("R5_legal_separate_bow_rotation", true);
+            }
             json.addProperty("TNO_stage", spec.stage.name);
             if (CALIBRATION_COMBAT) {
                 json.addProperty("calibration_mode", CALIBRATION_MODE);
                 json.addProperty("calibration_case", spec.calibration.id);
-                json.addProperty("Q_generic_health", spec.calibration.parameters.genericHealthQ());
-                json.addProperty("RD_dementor", spec.calibration.parameters.dementorRD());
-                json.addProperty("RA_adaptive", spec.calibration.parameters.adaptiveRA());
-                json.addProperty("diagnostic_upper_bound_only", CALIBRATION_MODE.equals("ceiling"));
+                json.addProperty("Q_generic_health", evidenceQ(spec));
+                json.addProperty("RD_dementor", evidenceRD(spec));
+                json.addProperty("RA_adaptive", evidenceRA(spec));
+                json.addProperty("diagnostic_upper_bound_only", CALIBRATION_MODE.equals("ceiling")
+                        || SEVERANCE_SUSTAINED
+                        && spec.calibration == CalibrationCase.SEVERANCE_PROTOTYPE_X64);
                 if (SEVERANCE_PROTOTYPE) {
                     json.addProperty("Severance_eligible_multiplier",
                             spec.calibration.severanceEligibleMultiplier);
                     json.addProperty("diagnostic_ceiling_candidate",
                             spec.calibration == CalibrationCase.SEVERANCE_PROTOTYPE_X64);
                     json.addProperty("prototype_development_only", true);
+                    if (SEVERANCE_SUSTAINED) {
+                        json.addProperty("R5_sustained_viability", true);
+                        json.addProperty("R5_magic_holy_production_unchanged", true);
+                        addR5PolicyMetadata(json, spec);
+                    }
                 }
             }
             if (PRODUCTION_ACCEPTANCE) {
@@ -2356,14 +2745,44 @@ public final class Phase5FSuiteBBenchmark {
             else json.addProperty(name, numerator / denominator);
         }
 
+        private static double evidenceQ(CaseSpec spec) {
+            return SEVERANCE_SUSTAINED ? R5_MAGIC_HOLY_S7_PARAMETERS.genericHealthQ()
+                    : spec.calibration.parameters.genericHealthQ();
+        }
+
+        private static double evidenceRD(CaseSpec spec) {
+            return SEVERANCE_SUSTAINED ? R5_MAGIC_HOLY_S7_PARAMETERS.dementorRecovery()
+                    : spec.calibration.parameters.dementorRD();
+        }
+
+        private static double evidenceRA(CaseSpec spec) {
+            return SEVERANCE_SUSTAINED ? R5_MAGIC_HOLY_S7_PARAMETERS.adaptiveRecovery()
+                    : spec.calibration.parameters.adaptiveRA();
+        }
+
+        private static void addR5PolicyMetadata(JsonObject json, CaseSpec spec) {
+            json.addProperty("Magic_Holy_Q_generic_health",
+                    R5_MAGIC_HOLY_S7_PARAMETERS.genericHealthQ());
+            json.addProperty("Magic_Holy_RD_dementor",
+                    R5_MAGIC_HOLY_S7_PARAMETERS.dementorRecovery());
+            json.addProperty("Magic_Holy_RA_adaptive",
+                    R5_MAGIC_HOLY_S7_PARAMETERS.adaptiveRecovery());
+            json.addProperty("Severance_prototype_Q_generic_health",
+                    spec.calibration.parameters.genericHealthQ());
+            json.addProperty("Severance_prototype_RD_dementor",
+                    spec.calibration.parameters.dementorRD());
+            json.addProperty("Severance_prototype_RA_adaptive",
+                    spec.calibration.parameters.adaptiveRA());
+        }
+
         private boolean unexpectedSourceDuplication(HitRecord hit) {
             int projectiles = Math.max(1, hit.releasedProjectileCount);
             if (duplicateEventFromSameProjectile(hit)) return true;
-            if (active.family == Family.ELEMENTAL) return hit.physicalDamageEventCount != 0
+            if (hit.shotFamily == Family.ELEMENTAL) return hit.physicalDamageEventCount != 0
                     || hit.familyDamageEventCount > projectiles;
-            if (active.family == Family.ENERGY) return hit.physicalDamageEventCount > projectiles
+            if (hit.shotFamily == Family.ENERGY) return hit.physicalDamageEventCount > projectiles
                     || hit.energyDrainEvents > projectiles;
-            if (active.family == Family.SEVERANCE) return hit.physicalDamageEventCount > projectiles
+            if (hit.shotFamily == Family.SEVERANCE) return hit.physicalDamageEventCount > projectiles
                     || hit.familyDamageEventCount != 0;
             return hit.physicalDamageEventCount > projectiles || hit.familyDamageEventCount > projectiles;
         }
@@ -2373,22 +2792,24 @@ public final class Phase5FSuiteBBenchmark {
         }
 
         private boolean transformed(HitRecord hit, String trait, boolean magic) {
-            if (!traitRanks.has(trait) || hit.l2Magic != magic || active.family == Family.ENERGY) return false;
-            double before = active.family == Family.SEVERANCE ? hit.physicalIncoming : hit.familyAfterRecovery;
-            double after = active.family == Family.SEVERANCE ? hit.physicalPost : hit.familyPost;
+            if (!traitRanks.has(trait) || hit.l2Magic != magic || hit.shotFamily == Family.ENERGY) return false;
+            double before = hit.shotFamily == Family.SEVERANCE ? hit.physicalIncoming : hit.familyAfterRecovery;
+            double after = hit.shotFamily == Family.SEVERANCE ? hit.physicalPost : hit.familyPost;
             return after + 0.0001D < before;
         }
 
         private boolean adaptiveObserved(HitRecord hit) {
-            double before = active.family == Family.SEVERANCE ? hit.physicalIncoming : hit.familyAfterRecovery;
-            double after = active.family == Family.SEVERANCE ? hit.physicalPost : hit.familyPost;
-            if (!traitRanks.has("l2hostility:adaptive") || hit.index < 2 || before <= 0.0D
-                    || active.family == Family.ENERGY) return false;
-            HitRecord previous = hits.stream().filter(value -> value.index == hit.index - 1).findFirst().orElse(null);
+            double before = hit.shotFamily == Family.SEVERANCE ? hit.physicalIncoming : hit.familyAfterRecovery;
+            double after = hit.shotFamily == Family.SEVERANCE ? hit.physicalPost : hit.familyPost;
+            if (!traitRanks.has("l2hostility:adaptive") || before <= 0.0D
+                    || hit.shotFamily == Family.ENERGY) return false;
+            HitRecord previous = hits.stream()
+                    .filter(value -> value.index < hit.index && value.shotFamily == hit.shotFamily)
+                    .max(Comparator.comparingInt(value -> value.index)).orElse(null);
             if (previous == null) return false;
-            double previousBefore = active.family == Family.SEVERANCE
+            double previousBefore = hit.shotFamily == Family.SEVERANCE
                     ? previous.physicalIncoming : previous.familyAfterRecovery;
-            double previousAfter = active.family == Family.SEVERANCE ? previous.physicalPost : previous.familyPost;
+            double previousAfter = hit.shotFamily == Family.SEVERANCE ? previous.physicalPost : previous.familyPost;
             if (previousBefore <= 0.0D) return false;
             return after / before + 0.0001D < previousAfter / previousBefore;
         }
@@ -2425,11 +2846,13 @@ public final class Phase5FSuiteBBenchmark {
     private static final class HitRecord {
         final int index;
         final int startTick;
+        final Family shotFamily;
         final double preHp;
         final double preShp;
         final double preMagicules;
         final double preAura;
         final double preSeverance;
+        final int preSeveranceDuration;
         final double preAttackerHp;
         final double preAttackerShp;
         final double preAttackerMagicules;
@@ -2464,6 +2887,10 @@ public final class Phase5FSuiteBBenchmark {
         double postMagicules;
         double postAura;
         double postSeverance;
+        int postSeveranceDuration;
+        double maxSeverance;
+        int woundObservedTicks;
+        int targetObservationTicks;
         double immediatePostMagicules;
         double immediatePostAura;
         double immediatePostAttackerMagicules;
@@ -2525,6 +2952,14 @@ public final class Phase5FSuiteBBenchmark {
         double severancePrototypePostRound;
         double severanceProductionEligibleContribution;
         double severancePrototypeEligibleContribution;
+        int regenerateCallbackCount;
+        int regenerateNativeTickAttempts;
+        double regenerateNominalAmount;
+        double regenerateUnconstrainedHealingDemand;
+        double regenerateActualHealingAtNativeTicks;
+        double regenerateHealingDeniedByWoundCeiling;
+        double regenerateAllowedEventAmount;
+        boolean regenerateEventCanceled;
         String elementalProjectileId = "";
         String projectileEntityId = "";
         boolean elementalOwnerRetained;
@@ -2535,6 +2970,11 @@ public final class Phase5FSuiteBBenchmark {
         HitRecord(int index, int startTick, LivingEntity target, LivingEntity player) {
             this.index = index;
             this.startTick = startTick;
+            this.shotFamily = SEVERANCE_SUSTAINED ? switch ((index - 1) % 3) {
+                case 0 -> Family.MAGIC;
+                case 1 -> Family.HOLY;
+                default -> Family.SEVERANCE;
+            } : active.family;
             ResourceState targetResources = resources(target);
             ResourceState playerResources = resources(player);
             this.preHp = this.lastHp = target.getHealth();
@@ -2542,6 +2982,7 @@ public final class Phase5FSuiteBBenchmark {
             this.preMagicules = this.lastMagicules = targetResources.magicules;
             this.preAura = this.lastAura = targetResources.aura;
             this.preSeverance = severance(target);
+            this.preSeveranceDuration = severanceDuration(target);
             this.preAttackerHp = this.lastAttackerHp = player.getHealth();
             this.preAttackerShp = this.lastAttackerShp = playerResources.shp;
             this.preAttackerMagicules = this.lastAttackerMagicules = playerResources.magicules;
@@ -2551,6 +2992,8 @@ public final class Phase5FSuiteBBenchmark {
             this.postMagicules = this.immediatePostMagicules = preMagicules;
             this.postAura = this.immediatePostAura = preAura;
             this.postSeverance = preSeverance;
+            this.postSeveranceDuration = preSeveranceDuration;
+            this.maxSeverance = preSeverance;
             this.immediatePostAttackerMagicules = preAttackerMagicules;
             this.immediatePostAttackerAura = preAttackerAura;
         }
@@ -2563,6 +3006,8 @@ public final class Phase5FSuiteBBenchmark {
             immediatePostAttackerMagicules = playerState.magicules;
             immediatePostAttackerAura = playerState.aura;
             postSeverance = severance(target);
+            postSeveranceDuration = severanceDuration(target);
+            maxSeverance = Math.max(maxSeverance, postSeverance);
             immediateCaptured = true;
         }
 
@@ -2579,6 +3024,10 @@ public final class Phase5FSuiteBBenchmark {
                 lastMagicules = postMagicules = state.magicules;
                 lastAura = postAura = state.aura;
                 postSeverance = severance(target);
+                postSeveranceDuration = severanceDuration(target);
+                maxSeverance = Math.max(maxSeverance, postSeverance);
+                targetObservationTicks++;
+                if (postSeverance > 0.0001D) woundObservedTicks++;
             }
             if (player != null) {
                 ResourceState state = resources(player);
@@ -2839,6 +3288,31 @@ public final class Phase5FSuiteBBenchmark {
         return traits;
     }
 
+    private static int traitRank(Object cap, String id) throws ReflectiveOperationException {
+        Object raw = readField(cap, "traits");
+        if (raw instanceof Map<?, ?> traits) {
+            for (Map.Entry<?, ?> entry : traits.entrySet()) {
+                if (traitId(entry.getKey()).equals(id)) {
+                    return numberValue(entry.getValue()).intValue();
+                }
+            }
+        }
+        return 0;
+    }
+
+    private static boolean traitValidTarget(Object cap, String id, LivingEntity target)
+            throws ReflectiveOperationException {
+        Object raw = readField(cap, "traits");
+        if (raw instanceof Map<?, ?> traits) {
+            for (Object trait : traits.keySet()) {
+                if (traitId(trait).equals(id)) {
+                    return booleanValue(invoke(trait, "validTarget", target));
+                }
+            }
+        }
+        return false;
+    }
+
     private static JsonObject traitRanks(JsonArray traits) {
         JsonObject ranks = new JsonObject();
         traits.forEach(value -> {
@@ -2866,6 +3340,15 @@ public final class Phase5FSuiteBBenchmark {
         }
         catch (Throwable ignored) {
             return 0.0D;
+        }
+    }
+
+    private static int severanceDuration(LivingEntity entity) {
+        try {
+            return TensuraStorages.getEffectFrom(entity).getSeveranceRemoveTime();
+        }
+        catch (Throwable ignored) {
+            return 0;
         }
     }
 
@@ -2941,7 +3424,8 @@ public final class Phase5FSuiteBBenchmark {
     }
 
     private static void log(String kind, JsonObject payload) {
-        payload.addProperty("schema", SEVERANCE_PROTOTYPE ? "tno.phase6.severance_prototype.r4.v1"
+        payload.addProperty("schema", SEVERANCE_SUSTAINED ? "tno.phase6.severance_sustained.r5.v1"
+                : SEVERANCE_PROTOTYPE ? "tno.phase6.severance_prototype.r4.v1"
                 : SEVERANCE_WALL ? "tno.phase6.severance_wall.r3.v1"
                 : CALIBRATION_COMBAT ? "tno.phase6.endgame_calibration.v1"
                 : PRODUCTION_ACCEPTANCE ? "tno.phase6.magic_holy_production.v1"

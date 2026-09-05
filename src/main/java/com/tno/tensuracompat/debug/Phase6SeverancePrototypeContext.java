@@ -3,6 +3,8 @@ package com.tno.tensuracompat.debug;
 import com.tno.tensuracompat.core.stage.SeveranceStageScaling;
 import net.neoforged.fml.loading.FMLEnvironment;
 
+import java.util.Set;
+
 /**
  * Development-only R4 parameter scope. It multiplies only the already-isolated
  * staged Severance contribution before that contribution rejoins the ordinary
@@ -17,8 +19,8 @@ public final class Phase6SeverancePrototypeContext {
     public static boolean enabled() {
         return !FMLEnvironment.production
                 && Boolean.getBoolean("tno.phase6.calibration")
-                && System.getProperty("tno.phase6.calibrationMode", "")
-                .equals("severance_prototype");
+                && Set.of("severance_prototype", "severance_sustained")
+                .contains(System.getProperty("tno.phase6.calibrationMode", ""));
     }
 
     public static ParameterScope useEligibleMultiplier(double multiplier) {

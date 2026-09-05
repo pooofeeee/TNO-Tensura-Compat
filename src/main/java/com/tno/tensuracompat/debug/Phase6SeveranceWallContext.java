@@ -17,6 +17,7 @@ import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Development-only, observation-only context for the R3 Severance physical-wall
@@ -44,8 +45,8 @@ public final class Phase6SeveranceWallContext {
     public static boolean enabled() {
         return !FMLEnvironment.production
                 && Boolean.getBoolean("tno.phase6.calibration")
-                && (System.getProperty("tno.phase6.calibrationMode", "").equals("severance_wall")
-                || System.getProperty("tno.phase6.calibrationMode", "").equals("severance_prototype"));
+                && Set.of("severance_wall", "severance_prototype", "severance_sustained")
+                .contains(System.getProperty("tno.phase6.calibrationMode", ""));
     }
 
     public static synchronized void registerL2Listener() {

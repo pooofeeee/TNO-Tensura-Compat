@@ -452,3 +452,103 @@ that 64x value only as a development-only falsification ceiling: if completed
 production Magic/Holy plus this ceiling still cannot produce finite sustained
 progress with Regenerate on, no smaller proportional candidate can justify a
 production Severance implementation from this architecture.
+
+## R5: sustained viability falsification
+
+The official capture is preserved as
+`docs/benchmarks/phase6-severance-regenerate-research/r5-sustained-viability.jsonl`.
+Its SHA-256 is
+`ACD67472CF3E5E9817D8FC54C4C5F3B715C75380A2F0D6E32F0AF9B47A89F872`.
+The dedicated strict extractor accepted one catalog, 18 case starts, 1,080
+per-release rows, 18 case results, and one complete suite result with no error
+records. Every case used S7 production Magic/Holy exactly as shipped
+(`Q=1.00`, `RD=.75`, `RA=.75`), `APO_profile=NONE`, and a three-bow legal
+rotation: Magic Weapon I, Holy Weapon I, then Severance I. The engravings could
+not be placed together because the installed data puts all three in
+`#tensura:engraving_exclusive`; separate otherwise-identical Royal Bows preserve
+that legal restriction.
+
+Each case ran for 1,200 ticks/60 seconds and released 60 genuine Royal Arrows,
+20 per engraving. Levels 600, 800, and 1000 each covered accepted 1x, accepted
+64x, and otherwise-identical 64x controls without Regenerate, Tank, Dementor,
+or Adaptive. Removed trait budget was not reassigned. The 64x value remains a
+development-only falsification ceiling, not a production candidate.
+
+The fake player does not hold a normal player chunk ticket. R5 therefore
+force-loaded only the two firing-lane chunks for the dev-server session and
+removed them before shutdown. This was necessary for the target's native
+entity clock, L2 Regenerate, wound expiry, and vanilla hurt cooldown to advance.
+All 15 Regenerate-bearing cases recorded exactly 60 native tick attempts and
+callbacks, retained the expected trait rank on every attempt, and matched the
+independent HP observer exactly. The three Regenerate-removed controls recorded
+none. Unrelated Orc Disaster/Self Regeneration heals were identified and
+cancelled for isolation; production behavior was not changed.
+
+### Accepted profiles
+
+| Level / profile | Exact accepted traits | Magic DPS | Holy DPS | Severance physical DPS | Max wound | Regenerate demand / actual / denied | Denied | Net HP DPS | Late HP DPS | Projected HP-only TTK |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 600 / 1x | Adaptive 3, Dementor 1, Drain 2, Regenerate 4, Tank 5, Wither 1 | 49.557611 | 53.124215 | 0.008754 | 10.000 | 6,447.656 / 6,162.132 / 285.524 | 4.428% | 0.166667 | 0.166945 | 59,900.100 s |
+| 600 / 64x | same | 50.747487 | 49.557611 | 0.045230 | 11.874 | 6,423.222 / 6,019.528 / 403.693 | 6.285% | 0.197900 | 0.166945 | 59,888.875 s |
+| 800 / 1x | Adaptive 5, Dementor 1, Drain 2, Regenerate 5, Tank 5, Wither 1 | 65.207378 | 65.207378 | 0.008745 | 10.000 | 8,121.494 / 7,826.494 / 295.000 | 3.632% | 0.166667 | 0.166945 | 59,900.100 s |
+| 800 / 64x | same | 66.773707 | 65.207378 | 0.045243 | 11.875 | 8,323.839 / 7,920.089 / 403.750 | 4.851% | 0.197917 | 0.166945 | 59,888.869 s |
+| 1000 / 1x | Adaptive 5, Dementor 1, Dispell 2, Drain 2, Regenerate 5, Tank 5, Wither 1 | 80.851543 | 84.740535 | 0.008745 | 10.000 | 10,231.747 / 9,936.747 / 295.000 | 2.883% | 0.166667 | 0.166945 | 59,900.100 s |
+| 1000 / 64x | same | 82.876884 | 86.695444 | 0.045323 | 11.880 | 10,570.436 / 10,175.562 / 394.874 | 3.736% | 0.197998 | 0.166945 | 59,888.840 s |
+
+The accepted x1 cases denied 875.524 of 24,800.897 unconstrained healing
+demand across the three levels. The accepted 64x cases denied 1,202.317 of
+25,317.496, only 4.749% in aggregate. All accepted wounds stayed active for
+96.664% of observed ticks, refreshed 19 times, and ended with 299 seconds left,
+but 64x increased mean maximum wound only from 10.000 to 11.876. Vanilla HP
+ended at 9,988.120-9,988.126 and SHP remained exactly 51,300/67,500/83,700.
+
+The HP-only TTK column is a late-window linear projection made only after the
+full 60-second observation, not a ten-second snapshot. It is about 16.64 hours
+for both accepted factors. A deliberately labeled naive combined-resource
+projection is still worse: 309,751.789, 391,578.947, and 473,236.991 seconds
+for accepted 64x. Neither is remotely difficult-but-fightable.
+
+### Trait and Regenerate controls
+
+Across levels, accepted 64x averaged 11.876 maximum wound and 0.166945 late HP
+DPS. Removing Tank was effectively indistinguishable in this combined outcome
+(11.896 and 0.166945), because later walls dominated. Removing Dementor raised
+mean wound to 251.966, but repeated Adaptive still collapsed late HP progress
+to 0.166945 DPS. Removing Adaptive raised mean wound to 191.620 and late HP
+progress to 3.192811 DPS, still an approximately 3,132-second average HP-only
+projection. Removing Regenerate raised mean wound to 7,429.235 and late HP
+progress to 129.813502 DPS; the Lv600/Lv800/Lv1000 HP-only projections were
+99.788/74.945/61.103 seconds. Regenerate is therefore the decisive sustain
+disadvantage, Adaptive is the decisive late repeated-source magnitude wall,
+Dementor materially constrains early wound magnitude, and Tank remains a real
+upstream armor disadvantage whose marginal sustained effect is masked here.
+
+### R5 reliability correction
+
+R5 recorded 360 Severance releases and **360/360 admissions**, native callbacks,
+and wound stores. There were zero pre-`DamageData` rejections. This supersedes
+the R3/R4 interpretation of their rejection counts as a separate L2
+reliability wall. Those older captures dispatched projectiles into chunks that
+the fake player did not keep entity-ticking; the target's native clock and hurt
+cooldown could stop advancing while direct projectile dispatch continued. The
+R5 force-loaded fixture demonstrates that the rejection pattern was a harness
+artifact, not evidence of an L2 admission mechanic. R1-R4 artifacts and their
+valid semantic, source-isolation, and admitted-hit magnitude observations are
+retained unchanged, but their admission-rate causal conclusion must not be used
+for production design.
+
+### R5 decision
+
+The 64x upper bound produces mathematically positive vanilla-HP movement, but
+only 0.166945 late HP/s in every accepted profile and no SHP movement at all.
+It therefore does not establish combat viability or a plausible smaller
+coefficient interval. Proportional eligible-Severance-only treatment is
+mechanically possible but practically insufficient under the accepted
+Tank+Dementor+Adaptive+Regenerate stack. No production Severance implementation
+or coefficient is authorized by R5.
+
+R5 integrity totals are 1,080 releases, 360 Severance admissions/callbacks/
+stores, 900 native Regenerate tick attempts/callbacks, 134,961.884 actual
+Regenerate healing, 57,236.606 healing denied across all Regenerate-bearing
+accepted/control cases, and zero errors, duplicate events, second physical
+sources, recursion, unexpected Tensura bypasses, or unexpected L2 bypasses.
