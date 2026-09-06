@@ -11,7 +11,7 @@ R1-R5, W1-W4 and P1-P4 remain accepted historical evidence.
 |---|---|
 | V1 sustained harness | Complete: focused tests, strict extraction and full-stack smoke passed |
 | V2 official 15-case matrix | Complete: strict evidence and clean build passed |
-| V3 analysis | Not started; requires V2 push and remote verification |
+| V3 analysis | Complete: all 15 cells strictly recomputed; six ON/OFF comparisons passed |
 | V4 terminal decision | Not started |
 
 This is the last architecture-level Candidate C viability study. Its only
@@ -206,4 +206,114 @@ The reused generic benchmark serializer retains legacy gross/estimated TTK
 fields in the raw capture. These are not sustained-viability projections and
 are excluded from V3. Only the recorded trajectories, observed defeat times,
 and explicitly justified late-window projections are authoritative for this
-study. V3/V4 have not been decided at this checkpoint.
+study. V3/V4 had not been decided at the V2 checkpoint.
+
+## V3 sustained analysis
+
+V2 was pushed and its live remote SHA verified as
+d494aa6e321908f6d66691e40ef6b3e124533aeb before analysis began.
+The immutable v3-analysis.json answers all ten required questions for every
+cell, retains all interval slopes and separates physical/family/ceiling damage.
+The analysis script strictly revalidates V2 before computing its results;
+its --check mode reproduces the stored analysis exactly. Strict extraction,
+analysis recomputation and all four extractor corruption tests passed.
+
+### Accepted profile: Regenerate ON
+
+All cases start with 10,000 HP. SHP starts and ends at 51,300 / 67,500 / 83,700
+for Lv600 / Lv800 / Lv1000 respectively, with zero observed SHP progress
+in every interval. The final living slopes pass the declared convergence rule
+in all nine cells. The two living Lv600 OFF controls also pass. No living case
+needed extension; the four defeated controls have no living trajectory to extend.
+
+| Level | RW | HP end | Maximum/final wound | Late HP/s | Late SHP/s | Late HP+SHP/s | HP projection, total hours |
+|---|---|---|---|---|---|---|---|
+| 600 | 0 | 9980.000 | 20.000 | 0.166667 | 0 | 0.166667 | 16.666667 |
+| 600 | .5 | 9969.003 | 30.997 | 0.258496 | 0 | 0.258496 | 10.745942 |
+| 600 | 1 | 9958.063 | 41.938 | 0.350326 | 0 | 0.350326 | 7.929214 |
+| 800 | 0 | 9980.000 | 20.000 | 0.166667 | 0 | 0.166667 | 16.666667 |
+| 800 | .5 | 9968.917 | 31.083 | 0.258496 | 0 | 0.258496 | 10.745850 |
+| 800 | 1 | 9958.005 | 41.995 | 0.350326 | 0 | 0.350326 | 7.929168 |
+| 1000 | 0 | 9980.000 | 20.000 | 0.166667 | 0 | 0.166667 | 16.666667 |
+| 1000 | .5 | 9968.974 | 31.026 | 0.258496 | 0 | 0.258496 | 10.745910 |
+| 1000 | 1 | 9958.005 | 41.995 | 0.354134 | 0 | 0.354134 | 7.844251 |
+
+Each ON cell has 40 wound refreshes and 98.2917% wound uptime across the whole
+120-second horizon. Wound quantities in the table are stored native values;
+small differences from HP loss are float rounding. The native ceiling still
+limits vanilla HP to M-W. It does not wound SHP.
+
+HP projections are conditional, multi-hour estimates, calculated as 120 seconds
+already observed plus remaining HP divided by the final 30-second HP slope.
+Remaining-only estimates are separately stored in JSON. They assume the current
+cadence, defenses, native healing, wound refresh and late rate continue.
+No hours-long kill was observed. All are worse than the accepted unreasonable
+~52-minute context; RW=0 is consistent with the prior ~16.64-hour failure.
+This interpretation introduces no new numerical viability cutoff.
+
+SHP-only projections are non-finite at the observed zero slope. There is no
+representative slope for depletion of the full combined resource pool, so no
+finite combined-resource TTK is supported. Positive HP+SHP sums above reflect
+HP movement alone and do not establish practical combined viability.
+
+### Matched Regenerate OFF controls
+
+| Level | RW | HP end | Maximum/final wound | Observed HP defeat | Conditional HP projection |
+|---|---|---|---|---|---|
+| 600 | .5 | 1436.258 | 402.5 / 402.5 | None within 120s | ~141.9s total |
+| 600 | 1 | 1436.264 | 402.5 / 402.5 | None within 120s | ~141.9s total |
+| 800 | .5 | 0 | 323 / 0 | 97.1s | Not extrapolated |
+| 800 | 1 | 0 | 321 / 0 | 97.1s | Not extrapolated |
+| 1000 | .5 | 0 | 241 / 0 | 73.1s | Not extrapolated |
+| 1000 | 1 | 0 | 240.5 / 0 | 73.1s | Not extrapolated |
+
+Both Lv600 OFF late HP slopes are ~65.5846 HP/s and stable. The Lv800 late
+windows include death, and Lv1000 late windows are corpse plateaus. These four
+terminal windows are not representative combat slopes and receive no TTK
+projection or living convergence claim. All scheduled genuine releases continue
+through 120 seconds; post-defeat arrows are discarded without collision.
+Targets and resources are never reset. Native death clears their wound.
+
+The OFF controls demonstrate native HP death with SHP still present. Thus SHP
+depletion is not a prerequisite for killing this fixture. It remains a separate
+requested viability criterion, and the accepted Regenerate-ON profile already
+fails practical HP viability independently. No ON target died.
+
+### Counter protocol and native authority
+
+All nine ON cases preserve native rank, configuration, one-second cadence and
+request: Lv600 rank 4 requests 400 HP; Lv800/Lv1000 rank 5 request 500 HP.
+Each has 80 State-B and 40 State-C transactions. Actual legal healing per cell
+is approximately 9,893.21 / 13,588.57 / 17,282.62 HP by level. State A does not
+occur in this sustained matrix; its arithmetic is covered by the focused tests
+and the accepted P4 protocol. Every observed transaction independently matches
+min(requested, legal space) within 0.001 HP. Wounded HP and SHP are not healed.
+The 0.01-HP classification tolerance does not relax that formula check.
+
+All six matched ON/OFF comparisons show material defense: ON retains 8,521.80
+to 9,968.97 more HP at 120 seconds. The ON fixture heals meaningful legal space
+and survives while OFF loses most HP or dies. Valid State-C denial is not a
+Regenerate failure. Other native healing remains present in both variants.
+
+Adaptive keeps the arrow key, rank/memory capacity 3 at Lv600 and 5 at
+Lv800/Lv1000. Native physical counts advance from 1 through 120 in every ON
+case; its factor falls from 1 to 1.504632769052528e-36. OFF physical counts end
+at 120 / 98 / 74 by level. The reused raw last-Severance summary reaches only
+96 / 72 for the defeated controls; V3 reports the true all-physical progression.
+RW=1 yields wound-credit factor 1, while physical damage still uses the tiny
+native factor. This is diagnostic wound recovery only.
+
+Tank remains rank 5 with armor 46 and toughness 20. Dementor remains rank 1,
+with observed input/output ranges and native formula validation in every cell.
+Their accepted relevance tests are not repeated. Independent replay of every
+living Magic/Holy amount matches the locked S7 Q=1, RD=.75, RA=.75 policy within
+0.001 HP. Fixture health-scaling assumptions are disclosed in the JSON.
+
+There are 1,664 living physical source events, 136 post-defeat releases and 552
+native wound callbacks. Every living arrow has exactly one physical source.
+Native entityless tensura:severance ceiling enforcement has 1,238 incoming
+attempts, 360 applied damage events totaling 274.314453125 HP, and no additional
+physical delivery, wound reentry or recursion. All applications are in ON cases.
+Tensura remains the sole wound owner and the native ceiling remains the healing
+counter. Errors, duplicate physical events, recursion and unexpected bypasses
+are zero. No practical combined-resource region is demonstrated at any tested RW.
