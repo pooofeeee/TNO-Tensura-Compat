@@ -12,13 +12,12 @@ R1-R5, W1-W4 and P1-P4 remain accepted historical evidence.
 | V1 sustained harness | Complete: focused tests, strict extraction and full-stack smoke passed |
 | V2 official 15-case matrix | Complete: strict evidence and clean build passed |
 | V3 analysis | Complete: all 15 cells strictly recomputed; six ON/OFF comparisons passed |
-| V4 terminal decision | Not started |
+| V4 terminal decision | Complete: rejected; final validation passed; stop for owner review |
 
-This is the last architecture-level Candidate C viability study. Its only
-permitted terminal decisions are `CANDIDATE_C_REJECTED` and
-`CANDIDATE_C_CALIBRATION_AUTHORIZED`. No calibration or production change is
-authorized here. RW=1 failure exhausts Candidate C; the default subsequent
-project task is Elemental native-event-path research, subject to owner review.
+This is the last architecture-level Candidate C viability study. Candidate C
+is rejected and exhausted. No calibration or production change is authorized.
+The default subsequent project task is Elemental native-event-path research,
+subject to owner review; it has not started.
 
 ## Locked architecture and official matrix
 
@@ -55,7 +54,7 @@ capability ceiling. No other RW is permitted.
 ## V1 harness changes and observation integrity
 
 The new modes are `adaptive_wound_sustained` (official) and
-`adaptive_wound_sustained_smoke` (V1 only). They reuse the accepted real
+`adaptive_wound_sustained_smoke` (V1 and final runtime validation). They reuse the accepted real
 Bow/Arrow collision dispatch, production Magic/Holy, native wound callback,
 and existing development-only Candidate C. Targets are fresh, normally
 ticking, and the two firing-lane chunks are force-loaded.
@@ -317,3 +316,72 @@ physical delivery, wound reentry or recursion. All applications are in ON cases.
 Tensura remains the sole wound owner and the native ceiling remains the healing
 counter. Errors, duplicate physical events, recursion and unexpected bypasses
 are zero. No practical combined-resource region is demonstrated at any tested RW.
+
+## V4 final decision
+
+V3 was pushed and its live remote SHA verified as
+98231ef3218ccdd3297519e7c2ad6d8f24cac442 before the terminal decision.
+The machine-readable decision and validation record is v4-decision.json.
+
+| Required answer | Decision |
+|---|---|
+| 1. RW=0 viable? | No, at all three accepted-profile levels. |
+| 2. RW=.5 viable? | No, at all three accepted-profile levels. |
+| 3. RW=1 viable? | No, including the maximum diagnostic wound-credit capability. |
+| 4. HP viability? | Positive late progress but impractical multi-hour projections with Regenerate ON. |
+| 5. SHP viability? | Effectively stalled: zero observed progress in all 15 cells. |
+| 6. Combined viability? | No practical full-resource region. Positive scalar sums reflect HP alone. |
+| 7. Stable late slopes? | All nine ON and both living Lv600 OFF cases pass. Four defeated OFF cases have no representative terminal combat window. |
+| 8. Projected TTKs? | ON HP: RW0 16.667h; RW.5 10.746h; RW1 7.844-7.929h. Conditional late-rate projections only. SHP non-finite; no finite combined-resource projection supported. OFF controls are minutes-scale as detailed in V3. |
+| 9. Regenerate protocol preserved? | Yes: native rank/configuration/cadence/request, correct observed B/C transactions, wounded-HP protection and material ON/OFF defense. A has zero runtime occurrences here; its arithmetic remains tested. |
+| 10. Adaptive physical authority preserved? | Yes: native arrow source, rank, memory, count and physical factor. Only eligible wound credit uses the diagnostic recovery. |
+| 11. Tank preserved? | Yes, native rank 5, armor 46 and toughness 20. |
+| 12. Dementor preserved? | Yes, native rank 1 and verified input/output formula. |
+| 13. One physical source preserved? | Yes, exactly one per living hit; post-defeat releases cause no collision or damage. |
+| 14. Native wound ownership preserved? | Yes, Tensura writes/stores wound and enforces M-W; enforcement is nonrecursive. |
+| 15. Candidate C exhausted or calibration-worthy? | Exhausted. RW=1 fails practical HP and combined-resource viability while SHP remains unchanged. |
+| 16. Exact authorized calibration interval? | None. Calibration is not authorized. |
+| 17. Exact next task? | ELEMENTAL NATIVE-EVENT-PATH RESEARCH, pending project-owner review. Not started. |
+
+The rejection follows the explicit RW=1 exhaustion rule. Native HP kills in
+OFF controls do not imply SHP depletion, and no SHP-depletion prerequisite for
+fixture death is asserted. Even judged independently on HP, the accepted ON
+profile remains far beyond the already rejected ~52-minute practical context.
+Mechanical and protocol correctness therefore do not rescue viability.
+
+Candidate C remains development-only. No permanent RW is selected. There is
+no further Candidate C architecture recommendation, no new Severance candidate,
+and no RW above 1. Calibration, production implementation, Elemental, Soul,
+Energy and original Phase 7 are unstarted. The task ends for owner review.
+
+### Final validation and checkpoint protection
+
+Strict revalidation of the immutable V2 evidence passed and is saved as
+v4-official-revalidation.json. V3 analysis reproduced exactly; all four
+extractor corruption tests passed. The three focused Java classes were rerun:
+21 tests passed. A final clean build passed with 54 total Java tests and zero
+failures/errors; eligible build/test results were reused from Gradle's cache.
+
+The final full compatibility-stack server run passed in 23 wall-clock seconds.
+It used the existing 660-tick smoke: 33 genuine releases, 33 native Regenerate
+transactions, A=0/B=22/C=11, and zero integrity errors. Startup reached Done,
+the suite completed, both force-load tickets were released, and shutdown saved
+all dimensions successfully. v4-runtime-smoke.jsonl and
+v4-runtime-validation.json preserve this separate check. Their raw V1 smoke
+checkpoint label identifies the harness mode; they do not replace or augment
+the official 15-case V2 viability matrix.
+
+Final source comparison confirms the five locked files and the entire core
+directory unchanged from the required source. All previously committed V1-V3
+machine evidence matches its committed contents. Runtime dependency hashes
+still match V1. v4-decision.json records those proofs and the test results.
+Historical branches and prior research evidence have not been rewritten.
+
+| Protected checkpoint | SHA verified against live remote before proceeding |
+|---|---|
+| V1 | 4b0bfc6d47409b7642eb88da8e723fbda7b6fbf3 |
+| V2 | d494aa6e321908f6d66691e40ef6b3e124533aeb |
+| V3 | 98231ef3218ccdd3297519e7c2ad6d8f24cac442 |
+| V4 | The commit containing this final decision; its full SHA and live remote equality are reported in the final response. |
+
+CANDIDATE_C_REJECTED
