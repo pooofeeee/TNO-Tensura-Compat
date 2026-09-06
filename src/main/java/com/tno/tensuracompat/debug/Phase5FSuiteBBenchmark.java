@@ -104,8 +104,11 @@ public final class Phase5FSuiteBBenchmark {
             && CALIBRATION_MODE.equals("adaptive_wound_safety");
     private static final boolean ADAPTIVE_WOUND_COUNTER_STATES = ADAPTIVE_WOUND_RESEARCH
             && CALIBRATION_MODE.equals("adaptive_wound_counter_states");
+    private static final boolean CANDIDATE_C_SUSTAINED = ADAPTIVE_WOUND_RESEARCH
+            && Set.of("adaptive_wound_sustained", "adaptive_wound_sustained_smoke").contains(CALIBRATION_MODE);
+    private static final boolean SUSTAINED_SMOKE = CALIBRATION_MODE.equals("adaptive_wound_sustained_smoke");
     private static final boolean ADAPTIVE_WOUND_DYNAMIC = ADAPTIVE_WOUND_RESEARCH
-            && CALIBRATION_MODE.equals("adaptive_wound_dynamic");
+            && (CALIBRATION_MODE.equals("adaptive_wound_dynamic") || CANDIDATE_C_SUSTAINED);
     private static final boolean NATIVE_REGENERATE_OBSERVATION = SEVERANCE_SUSTAINED
             || ADAPTIVE_WOUND_SAFETY || ADAPTIVE_WOUND_COUNTER_STATES
             || ADAPTIVE_WOUND_DYNAMIC;
@@ -119,7 +122,8 @@ public final class Phase5FSuiteBBenchmark {
             && Set.of("ceiling", "health", "dementor", "adaptive", "combined", "safety",
                     "severance_wall", "severance_prototype", "severance_sustained",
                     "adaptive_wound_capability", "adaptive_wound_safety",
-                    "adaptive_wound_counter_states", "adaptive_wound_dynamic")
+                    "adaptive_wound_counter_states", "adaptive_wound_dynamic",
+                    "adaptive_wound_sustained", "adaptive_wound_sustained_smoke")
                     .contains(CALIBRATION_MODE);
     private static final boolean PRODUCTION_OBSERVATION = ENDGAME_RESEARCH || CALIBRATION_COMBAT
             || PRODUCTION_ACCEPTANCE;
@@ -157,13 +161,13 @@ public final class Phase5FSuiteBBenchmark {
                     : PRODUCTION_ACCEPTANCE ? "tno.phase6.productionAcceptanceShots"
                     : ENDGAME_RESEARCH ? "tno.phase6.endgameShots"
                     : SUITE_C ? "tno.phase5f.suiteCShots" : "tno.phase5f.suiteBShots",
-            SUSTAINED_ROTATION ? 60 : ADAPTIVE_WOUND_COUNTER_STATES ? 1 : 10);
+            CANDIDATE_C_SUSTAINED ? (SUSTAINED_SMOKE ? 33 : 120) : SUSTAINED_ROTATION ? 60 : ADAPTIVE_WOUND_COUNTER_STATES ? 1 : 10);
     private static final int WINDOW_TICKS = Integer.getInteger(
             CALIBRATION_COMBAT ? "tno.phase6.calibrationTicks"
                     : PRODUCTION_ACCEPTANCE ? "tno.phase6.productionAcceptanceTicks"
                     : ENDGAME_RESEARCH ? "tno.phase6.endgameTicks"
                     : SUITE_C ? "tno.phase5f.suiteCTicks" : "tno.phase5f.suiteBTicks",
-            SUSTAINED_ROTATION ? 1200 : ADAPTIVE_WOUND_COUNTER_STATES ? 40 : 200);
+            CANDIDATE_C_SUSTAINED ? (SUSTAINED_SMOKE ? 660 : 2400) : SUSTAINED_ROTATION ? 1200 : ADAPTIVE_WOUND_COUNTER_STATES ? 40 : 200);
     private static final boolean DIAGNOSTIC = Boolean.getBoolean(
             SUITE_C ? "tno.phase5f.suiteCDiagnostic" : "tno.phase5f.suiteBDiagnostic");
     private static final double TEST_X = 0.5D;
@@ -419,6 +423,46 @@ public final class Phase5FSuiteBBenchmark {
         }
     }
 
+    public static void sustainedHealBoundary(LivingEntity entity, float requested, boolean before) {
+        Session session = active;
+        if (!CANDIDATE_C_SUSTAINED || FMLEnvironment.production || session == null
+                || session.phase != Phase.RUN || session.target != entity || session.result == null) return;
+        boolean nativeRegenerate = Stream.of(Thread.currentThread().getStackTrace())
+                .anyMatch(frame -> frame.getClassName().equals(L2_REGENERATE_CLASS));
+        if (!nativeRegenerate) return;
+        try {
+            int elapsed = (int) (session.server.getTickCount() - session.runStartTick);
+            if (before) {
+                if (session.sustainedPendingHeal != null) throw new IllegalStateException("recursive Regenerate heal");
+                int rank = traitRank(session.l2Cap, "l2hostility:regenerate");
+                RegenerateCycle cycle = new RegenerateCycle(session.result.regenerateCycles.size() + 1,
+                        session.result.nativeTickBoundaryCount + 1, elapsed, entity.tickCount, rank,
+                        entity.getMaxHealth(), entity.getHealth(), resources(entity).shp, severance(entity),
+                        requested, requested, false);
+                if (rank != session.result.regenerateRank || entity.tickCount % 20 != 0
+                        || Math.abs(requested - entity.getMaxHealth()
+                        * session.result.regenerateFractionPerRankPerSecond * rank) > 0.001D) {
+                    throw new IllegalStateException("native Regenerate rank/cadence/request changed");
+                }
+                session.sustainedPendingHeal = cycle;
+                session.result.regenerateCycles.add(cycle);
+                session.result.regenerateNativeTickAttemptCount++;
+            }
+            else {
+                RegenerateCycle cycle = session.sustainedPendingHeal;
+                if (cycle == null) throw new IllegalStateException("Regenerate RETURN without HEAD");
+                session.result.captureDynamicHealPost(entity, elapsed);
+                CandidateCSustainedProtocol.requireTransaction(cycle.hpBefore, cycle.shpBefore,
+                        cycle.woundBefore, cycle.maxHp, cycle.requested,
+                        cycle.hpAfter, cycle.shpAfter, cycle.woundAfter);
+                session.sustainedPendingHeal = null;
+            }
+        }
+        catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("sustained native heal observation failed", exception);
+        }
+    }
+
     private static final class Session {
         private final MinecraftServer server;
         private final ServerLevel level;
@@ -453,6 +497,10 @@ public final class Phase5FSuiteBBenchmark {
         private Phase6AdaptiveWoundContext.ParameterScope adaptiveWoundParameters;
         private boolean selfRegenerationRemovedForIsolation;
         private boolean counterStateSetupComplete;
+        private int sustainedEndTick;
+        private String sustainedExtensionReason = "NOT_REQUIRED";
+        private int sustainedLastTargetTick;
+        private RegenerateCycle sustainedPendingHeal;
 
         Session(MinecraftServer server) {
             this.server = server;
@@ -494,9 +542,13 @@ public final class Phase5FSuiteBBenchmark {
                 throw new IllegalStateException(
                         "P2 counter-state evidence requires one setup release over at most 40 ticks");
             }
-            if (ADAPTIVE_WOUND_DYNAMIC && (MAX_SHOTS != 60 || WINDOW_TICKS != 1200)) {
+            if (ADAPTIVE_WOUND_DYNAMIC && !CANDIDATE_C_SUSTAINED && (MAX_SHOTS != 60 || WINDOW_TICKS != 1200)) {
                 throw new IllegalStateException(
                         "P3 dynamic evidence requires exactly 60 releases over 1200 ticks");
+            }
+            if (CANDIDATE_C_SUSTAINED && (MAX_SHOTS != (SUSTAINED_SMOKE ? 33 : 120)
+                    || WINDOW_TICKS != (SUSTAINED_SMOKE ? 660 : 2400))) {
+                throw new IllegalStateException("Candidate C duration/schedule are fixed by the sustained protocol");
             }
             if (!PRODUCTION_ACCEPTANCE && PRODUCTION_OBSERVATION && cases.stream().anyMatch(spec ->
                     !spec.boss.id.equals(id("tensura", "orc_disaster")))) {
@@ -802,7 +854,7 @@ public final class Phase5FSuiteBBenchmark {
                         currentCase().calibration.woundAdaptiveRecovery);
             }
             selfRegenerationRemovedForIsolation = NATIVE_REGENERATE_OBSERVATION
-                    && BuiltInRegistries.MOB_EFFECT.getHolder(SELF_REGENERATION)
+                    && !CANDIDATE_C_SUSTAINED && BuiltInRegistries.MOB_EFFECT.getHolder(SELF_REGENERATION)
                     .map(target::removeEffect).orElse(false);
             if (NATIVE_REGENERATE_OBSERVATION) {
                 // Align every fresh case to the same real RegenTrait tick boundary.
@@ -811,6 +863,10 @@ public final class Phase5FSuiteBBenchmark {
                 target.tickCount = 0;
             }
             result = new CaseResult(currentCase(), target, player, l2Cap, nativeProfileSource);
+            sustainedEndTick = WINDOW_TICKS;
+            sustainedExtensionReason = "NOT_REQUIRED";
+            sustainedLastTargetTick = target.tickCount;
+            sustainedPendingHeal = null;
             shotsReleased = 0;
             currentHit = null;
             counterStateSetupComplete = false;
@@ -818,20 +874,34 @@ public final class Phase5FSuiteBBenchmark {
             nextShotTick = runStartTick;
             phase = Phase.RUN;
             log("case_start", result.caseJson());
+            if (CANDIDATE_C_SUSTAINED) result.sampleSustained(target, 0);
         }
 
         private void runCase() {
             long now = server.getTickCount();
             int elapsed = (int) (now - runStartTick);
+            if (CANDIDATE_C_SUSTAINED) {
+                result.sampleSustained(target, elapsed);
+                if (!SUSTAINED_SMOKE && elapsed == WINDOW_TICKS && target.isAlive()
+                        && !result.sustainedSlopesStable(elapsed)) {
+                    sustainedEndTick = CandidateCSustainedProtocol.MAX_TICKS;
+                    sustainedExtensionReason = "HP_OR_SHP_FINAL_30S_DIFFERS_FROM_PREVIOUS_30S";
+                }
+            }
             if (ADAPTIVE_WOUND_COUNTER_STATES) {
                 runCounterStateCase(elapsed);
                 return;
             }
-            if (currentHit != null && now >= nextShotTick && shotsReleased < MAX_SHOTS) closeCurrentHit(elapsed);
+            if (currentHit != null && now >= nextShotTick && shotsReleased < (CANDIDATE_C_SUSTAINED ? sustainedEndTick / 20 : MAX_SHOTS)) closeCurrentHit(elapsed);
 
             boolean targetDead = target == null || target.isRemoved() || target.isDeadOrDying() || target.getHealth() <= 0.0F;
             boolean playerDead = player == null || player.isRemoved() || player.isDeadOrDying() || player.getHealth() <= 0.0F;
-            if (targetDead || playerDead || elapsed >= WINDOW_TICKS) {
+            if (CANDIDATE_C_SUSTAINED && targetDead && result.ttk == null) {
+                result.ttk = elapsed;
+                result.htk = shotsReleased;
+            }
+            if ((!CANDIDATE_C_SUSTAINED && targetDead) || playerDead
+                    || elapsed >= (CANDIDATE_C_SUSTAINED ? sustainedEndTick : WINDOW_TICKS)) {
                 if (currentHit != null) closeCurrentHit(elapsed);
                 if (targetDead && result.ttk == null) {
                     result.ttk = elapsed;
@@ -843,7 +913,7 @@ public final class Phase5FSuiteBBenchmark {
                 return;
             }
 
-            if (now >= nextShotTick && shotsReleased < MAX_SHOTS) {
+            if (now >= nextShotTick && shotsReleased < (CANDIDATE_C_SUSTAINED ? sustainedEndTick / 20 : MAX_SHOTS)) {
                 clearArrows();
                 currentHit = new HitRecord(shotsReleased + 1, elapsed, target, player);
                 fireFullDraw();
@@ -910,6 +980,9 @@ public final class Phase5FSuiteBBenchmark {
                 for (RegenerateCycle cycle : result.regenerateCycles) {
                     log("regenerate_cycle", result.regenerateCycleJson(cycle));
                 }
+            }
+            if (CANDIDATE_C_SUSTAINED) {
+                for (JsonObject sample : result.sustainedTrajectory) log("trajectory", sample);
             }
             JsonObject summary = result.summaryJson();
             summaries.add(summary.deepCopy());
@@ -1142,7 +1215,15 @@ public final class Phase5FSuiteBBenchmark {
                 Stream.of(stack).map(StackTraceElement::getClassName)
                         .filter(name -> name.startsWith("io.github.manasmods.tensura."))
                         .findFirst().ifPresent(result.isolatedNonRegenerateHealSources::add);
-                event.setCanceled(true);
+                if (!CANDIDATE_C_SUSTAINED) event.setCanceled(true);
+                return;
+            }
+            if (CANDIDATE_C_SUSTAINED) {
+                if (sustainedPendingHeal == null) throw new IllegalStateException("missing heal HEAD observation");
+                sustainedPendingHeal.allowed = event.isCanceled() ? 0.0D : event.getAmount();
+                sustainedPendingHeal.canceled = event.isCanceled();
+                result.regenerateCallbackCount++;
+                if (event.isCanceled()) result.regenerateCanceledEventCount++;
                 return;
             }
             double nominal = result.nominalRegenerateHpPerSecond;
@@ -1796,6 +1877,25 @@ public final class Phase5FSuiteBBenchmark {
             if (!filter.isBlank() && !boss.id.toString().equals(filter)) return result;
             if (ADAPTIVE_WOUND_RESEARCH) {
                 Stage stage = STAGES.get(8);
+                if (CANDIDATE_C_SUSTAINED) {
+                    for (int level : (SUSTAINED_SMOKE ? List.of(600) : List.of(600, 800, 1000))) {
+                        if (SUSTAINED_SMOKE) {
+                            result.add(new CaseSpec(boss, level, LevelMode.ENDGAME_TARGET,
+                                    stage, CalibrationCase.WOUND_RW_100, TraitProfile.ACCEPTED));
+                            continue;
+                        }
+                        for (CalibrationCase policy : List.of(CalibrationCase.WOUND_RW_0,
+                                CalibrationCase.WOUND_RW_50, CalibrationCase.WOUND_RW_100)) {
+                            result.add(new CaseSpec(boss, level, LevelMode.ENDGAME_TARGET,
+                                    stage, policy, TraitProfile.ACCEPTED));
+                        }
+                        for (CalibrationCase policy : List.of(CalibrationCase.WOUND_RW_50, CalibrationCase.WOUND_RW_100)) {
+                            result.add(new CaseSpec(boss, level, LevelMode.ENDGAME_TARGET,
+                                    stage, policy, TraitProfile.WITHOUT_REGENERATE));
+                        }
+                    }
+                    return result;
+                }
                 if (ADAPTIVE_WOUND_DYNAMIC) {
                     for (int level : List.of(600, 800, 1000)) {
                         result.add(new CaseSpec(boss, level, LevelMode.ENDGAME_TARGET,
@@ -2004,6 +2104,11 @@ public final class Phase5FSuiteBBenchmark {
         final JsonObject bowAttributes;
         final List<HitRecord> hits = new ArrayList<>();
         final List<RegenerateCycle> regenerateCycles = new ArrayList<>();
+        final List<JsonObject> sustainedTrajectory = new ArrayList<>();
+        int sustainedWoundTicks;
+        int sustainedRefreshCount;
+        int sustainedPriorDuration;
+        double sustainedPriorWound;
         final boolean nativeProfileSource;
         final boolean matchingResistance;
         final boolean matchingNullification;
@@ -2138,6 +2243,20 @@ public final class Phase5FSuiteBBenchmark {
 
         void observeNativeRegenerateTick(LivingEntity target, Object cap, HitRecord hit,
                 int elapsedTick) throws ReflectiveOperationException {
+            if (CANDIDATE_C_SUSTAINED) {
+                if (!target.isAlive() || target.isRemoved()) return;
+                if (target.tickCount != active.sustainedLastTargetTick + 1) {
+                    throw new IllegalStateException("sustained target clock did not advance exactly once");
+                }
+                active.sustainedLastTargetTick = target.tickCount;
+                targetTickCountMaximumObserved = target.tickCount;
+                if (!traitRanks(readTraits(cap)).equals(traitRanks)) {
+                    throw new IllegalStateException("native target trait profile changed at tick " + target.tickCount
+                            + ": " + readTraits(cap));
+                }
+                if (target.tickCount % 20 == 0) nativeTickBoundaryCount++;
+                return;
+            }
             targetTickCountMaximumObserved = Math.max(targetTickCountMaximumObserved, target.tickCount);
             int currentRank = traitRank(cap, "l2hostility:regenerate");
             regenerateTraitRankAtEnd = currentRank;
@@ -2300,6 +2419,96 @@ public final class Phase5FSuiteBBenchmark {
             cycle.complete = true;
         }
 
+        void sampleSustained(LivingEntity target, int tick) {
+            double wound = severance(target);
+            int duration = severanceDuration(target);
+            ResourceState resource = resources(target);
+            JsonObject sample = new JsonObject();
+            sample.addProperty("level", spec.level);
+            sample.addProperty("RW", spec.calibration.woundAdaptiveRecovery);
+            sample.addProperty("Regenerate_ON", regenerateRank > 0);
+            sample.addProperty("tick", tick);
+            sample.addProperty("target_tick", target.tickCount);
+            sample.addProperty("HP", target.getHealth());
+            sample.addProperty("SHP", resource.shp);
+            sample.addProperty("max_HP", target.getMaxHealth());
+            sample.addProperty("max_SHP", resource.maxShp);
+            sample.addProperty("wound", wound);
+            sample.addProperty("wound_seconds_remaining", duration);
+            sample.addProperty("ceiling", target.getMaxHealth() - wound);
+            sample.addProperty("alive", target.isAlive() && !target.isRemoved());
+            sustainedTrajectory.add(sample);
+            if (tick > 0 && wound > 0.0001D) sustainedWoundTicks++;
+            if (tick > 0 && (duration > sustainedPriorDuration || wound > sustainedPriorWound + 0.0001D)) {
+                sustainedRefreshCount++;
+            }
+            sustainedPriorDuration = duration;
+            sustainedPriorWound = wound;
+        }
+
+        double sustainedSlope(String resource, int from, int to) {
+            return CandidateCSustainedProtocol.slope(
+                    sustainedTrajectory.get(from).get(resource).getAsDouble(),
+                    sustainedTrajectory.get(to).get(resource).getAsDouble(), to - from);
+        }
+
+        boolean sustainedSlopesStable(int end) {
+            if (end < 1200) return false;
+            return CandidateCSustainedProtocol.stable(sustainedSlope("HP", end - 1200, end - 600),
+                    sustainedSlope("HP", end - 600, end))
+                    && CandidateCSustainedProtocol.stable(sustainedSlope("SHP", end - 1200, end - 600),
+                    sustainedSlope("SHP", end - 600, end));
+        }
+
+        void addSustainedFields(JsonObject json) {
+            json.addProperty("RW", spec.calibration.woundAdaptiveRecovery);
+            json.addProperty("Regenerate_ON", regenerateRank > 0);
+            json.addProperty("measurement_ticks", elapsedTicks);
+            json.addProperty("extension_reason", active.sustainedExtensionReason);
+            json.addProperty("target_tick_maximum", targetTickCountMaximumObserved);
+            json.addProperty("wound_uptime_fraction", (double) sustainedWoundTicks / elapsedTicks);
+            json.addProperty("wound_refresh_count", sustainedRefreshCount);
+            json.addProperty("maximum_wound", sustainedTrajectory.stream()
+                    .mapToDouble(v -> v.get("wound").getAsDouble()).max().orElse(0.0D));
+            json.addProperty("final_wound", sustainedTrajectory.getLast().get("wound").getAsDouble());
+            json.addProperty("native_ceiling_incoming_attempts", hits.stream()
+                    .mapToInt(hit -> hit.nativeSeveranceIncomingEventCount).sum());
+            json.addProperty("native_ceiling_damage_applications", hits.stream()
+                    .mapToInt(hit -> hit.nativeSeveranceDamagePostEventCount).sum());
+            json.addProperty("native_ceiling_damage", hits.stream()
+                    .mapToDouble(hit -> hit.nativeSeveranceDamagePostAmount).sum());
+            json.addProperty("physical_source_count", hits.stream().mapToInt(hit -> hit.physicalDamageEventCount).sum());
+            json.addProperty("non_regenerate_native_heal_events", isolatedNonRegenerateHealEvents);
+            json.addProperty("non_regenerate_native_heals_cancelled_by_harness", 0);
+            json.addProperty("target_clock_rewinds_during_measurement", 0);
+            json.addProperty("regenerate_total_legal_space", regenerateCycles.stream()
+                    .mapToDouble(cycle -> cycle.legalSpace).sum());
+            for (String state : List.of("A", "B", "C")) {
+                json.addProperty("state_" + state + "_count", regenerateCycles.stream().filter(cycle ->
+                        CandidateCSustainedProtocol.state(cycle.hpBefore, cycle.ceilingBefore, cycle.requested)
+                                .equals(state)).count());
+            }
+            json.addProperty("final_slope_stable", sustainedSlopesStable(elapsedTicks));
+            JsonArray intervals = new JsonArray();
+            int[][] bounds = elapsedTicks >= 1200
+                    ? new int[][]{{0, 600}, {600, elapsedTicks - 600}, {elapsedTicks - 600, elapsedTicks},
+                            {0, elapsedTicks}, {elapsedTicks - 1200, elapsedTicks - 600}}
+                    : new int[][]{{0, elapsedTicks}};
+            for (int[] bound : bounds) {
+                if (bound[1] <= bound[0]) continue;
+                JsonObject interval = new JsonObject();
+                interval.addProperty("start_tick", bound[0]);
+                interval.addProperty("end_tick", bound[1]);
+                double hp = sustainedSlope("HP", bound[0], bound[1]);
+                double shp = sustainedSlope("SHP", bound[0], bound[1]);
+                interval.addProperty("HP_per_second", hp);
+                interval.addProperty("SHP_per_second", shp);
+                interval.addProperty("combined_per_second", hp + shp);
+                intervals.add(interval);
+            }
+            json.add("progress_intervals", intervals);
+        }
+
         void observeDynamicCounterPosition(LivingEntity target) {
             double wound = severance(target);
             double ceiling = target.getMaxHealth() - wound;
@@ -2407,6 +2616,10 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("regen", hit.targetHpRegen + hit.targetShpRegen);
             json.addProperty("reflected_damage", hit.reflectedPost);
             json.addProperty("elapsed_ticks", hit.elapsedTicks);
+            if (CANDIDATE_C_SUSTAINED) {
+                json.addProperty("release_tick", hit.startTick);
+                json.addProperty("post_defeat_release", hit.preHp <= 0.0D);
+            }
             if (htk == null) json.add("HTK", null); else json.addProperty("HTK", htk);
             if (ttk == null) json.add("TTK", null); else json.addProperty("TTK", ttk);
             json.addProperty("DPS", dps());
@@ -3153,6 +3366,7 @@ public final class Phase5FSuiteBBenchmark {
                 json.addProperty("unexpected_L2_bypass_count", 0);
             }
             if (ADAPTIVE_WOUND_COUNTER_STATES) addCounterStateFields(json);
+            if (CANDIDATE_C_SUSTAINED) addSustainedFields(json);
             if (htk == null) json.add("HTK", null); else json.addProperty("HTK", htk);
             if (ttk == null) json.add("TTK", null); else json.addProperty("TTK", ttk);
             json.addProperty("attacker_defeated", attackerDefeated);
@@ -3211,6 +3425,12 @@ public final class Phase5FSuiteBBenchmark {
                     cycle.hpBefore < cycle.ceilingBefore - 0.01D ? "BELOW_CEILING"
                             : cycle.hpBefore > cycle.ceilingBefore + 0.01D
                             ? "ABOVE_CEILING" : "AT_CEILING");
+            if (CANDIDATE_C_SUSTAINED) {
+                json.addProperty("state", CandidateCSustainedProtocol.state(
+                        cycle.hpBefore, cycle.ceilingBefore, cycle.requested));
+                json.addProperty("state_classification_tolerance_HP", CandidateCSustainedProtocol.STATE_TOLERANCE);
+                json.addProperty("formula_validation_tolerance_HP", CandidateCSustainedProtocol.FORMULA_TOLERANCE);
+            }
             json.addProperty("diagnostic_RW", spec.calibration.woundAdaptiveRecovery);
             json.addProperty("production_Magic_Holy_behavior_changed", false);
             json.addProperty("direct_TNO_wound_write", false);
@@ -3221,6 +3441,8 @@ public final class Phase5FSuiteBBenchmark {
         }
 
         private String dynamicProfileRole() {
+            if (CANDIDATE_C_SUSTAINED) return "RW_" + spec.calibration.woundAdaptiveRecovery
+                    + (regenerateRank > 0 ? "_REGENERATE_ON" : "_REGENERATE_OFF");
             if (spec.calibration == CalibrationCase.DYNAMIC_NATIVE_RW_0) {
                 return "NATIVE_RW_0_REGENERATE_ON_CONTROL";
             }
@@ -3693,8 +3915,8 @@ public final class Phase5FSuiteBBenchmark {
         final double ceilingBefore;
         final double legalSpace;
         final double requested;
-        final double allowed;
-        final boolean canceled;
+        double allowed;
+        boolean canceled;
         final boolean sourceStackVerified = true;
         int postElapsedTick;
         double hpAfter;
@@ -4324,6 +4546,28 @@ public final class Phase5FSuiteBBenchmark {
     }
 
     private static void log(String kind, JsonObject payload) {
+        if (CANDIDATE_C_SUSTAINED) {
+            for (String key : new ArrayList<>(payload.keySet())) {
+                if (key.startsWith("P3_")) payload.add("V2_" + key.substring(3), payload.remove(key));
+            }
+            payload.addProperty("checkpoint", SUSTAINED_SMOKE ? "V1_HARNESS_SMOKE" : "V2_SUSTAINED");
+            if (kind.equals("catalog")) {
+                payload.remove("V2_diagnostic_RW");
+                payload.remove("V2_native_control_RW");
+                payload.addProperty("V2_window_role", SUSTAINED_SMOKE
+                        ? "V1 harness validation only; 660 natural target ticks"
+                        : "decisive sustained viability; 2400 ticks, affected cases extend to 3600");
+                payload.addProperty("state_classification_tolerance_HP", CandidateCSustainedProtocol.STATE_TOLERANCE);
+                payload.addProperty("formula_validation_tolerance_HP", CandidateCSustainedProtocol.FORMULA_TOLERANCE);
+                payload.addProperty("minimum_case_ticks", WINDOW_TICKS);
+                payload.addProperty("maximum_case_ticks", SUSTAINED_SMOKE ? WINDOW_TICKS : 3600);
+                payload.addProperty("official_RW_values", "0,0.5,1");
+                payload.addProperty("target_clock_rewind_during_measurement", false);
+                payload.addProperty("other_native_healing_cancelled", false);
+                payload.addProperty("initial_resource_and_profile_preparation", "SETUP_ONLY_BEFORE_MEASUREMENT");
+                payload.addProperty("heal_observation", "LivingEntity.heal HEAD and RETURN; no argument or event mutation");
+            }
+        }
         payload.addProperty("schema", ADAPTIVE_WOUND_RESEARCH
                 ? adaptiveWoundSchema()
                 : SEVERANCE_SUSTAINED ? "tno.phase6.severance_sustained.r5.v1"
@@ -4345,6 +4589,8 @@ public final class Phase5FSuiteBBenchmark {
                     "tno.phase6.regenerate_severance_counter_protocol.p2.v1";
             case "adaptive_wound_dynamic" ->
                     "tno.phase6.regenerate_severance_counter_protocol.p3.v1";
+            case "adaptive_wound_sustained", "adaptive_wound_sustained_smoke" ->
+                    "tno.phase6.candidate_c_sustained.v1";
             default -> throw new IllegalStateException(
                     "unsupported Adaptive-wound research mode: " + CALIBRATION_MODE);
         };
