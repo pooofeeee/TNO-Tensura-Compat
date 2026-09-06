@@ -127,7 +127,8 @@ def validate(records, smoke=False):
             i = row["hit_index"]
             family = ["MAGIC_WEAPON","HOLY_WEAPON","SEVERANCE"][(i-1)%3]
             require(row["rotation_family"] == family and row["released_projectile_count"] == 1
-                    and row["projectile_entity_id"] == "royalvariations:royal_arrow", label+" native release")
+                    and row["released_projectile_entity_ids"] == ["royalvariations:royal_arrow"],
+                    label+" native release")
             uuid = row["released_projectile_uuids"][0]
             require(uuid not in global_uuids, "duplicate physical projectile")
             global_uuids.add(uuid)
@@ -135,11 +136,13 @@ def validate(records, smoke=False):
                          "l2_layer_bypassed_unexpectedly","tensura_layer_bypassed_unexpectedly"]:
                 require(row[flag] is False, label+" "+flag)
             if row["post_defeat_release"]:
-                require(row["physical_damage_event_count"] == 0 and row["engraving_damage_event_count"] == 0,
+                require(row["physical_damage_event_count"] == 0 and row["engraving_damage_event_count"] == 0
+                        and row["projectiles_discarded_after_target_defeat"] == 1,
                         label+" damage after defeat")
                 continue
             admitted += 1
-            require(row["physical_damage_event_count"] == 1
+            require(row["projectile_entity_id"] == "royalvariations:royal_arrow"
+                    and row["physical_damage_event_count"] == 1
                     and row["physical_damage_source_id"] == "minecraft:arrow"
                     and row["severance_wall_trace_count"] == 1, label+" one physical source")
             wall = row["severance_wall_trace"]
@@ -234,4 +237,3 @@ def main():
 
 if __name__=="__main__":
     main()
-

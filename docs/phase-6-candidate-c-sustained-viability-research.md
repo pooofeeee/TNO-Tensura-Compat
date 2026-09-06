@@ -10,7 +10,7 @@ R1-R5, W1-W4 and P1-P4 remain accepted historical evidence.
 | Checkpoint | Status |
 |---|---|
 | V1 sustained harness | Complete: focused tests, strict extraction and full-stack smoke passed |
-| V2 official 15-case matrix | Not started; requires V1 push and remote verification |
+| V2 official 15-case matrix | Complete: strict evidence and clean build passed |
 | V3 analysis | Not started; requires V2 push and remote verification |
 | V4 terminal decision | Not started |
 
@@ -173,3 +173,37 @@ trajectory data, replaced physical Adaptive factors, healing through the
 ceiling, and changed native requests. The full compatibility-stack server
 reached Done, completed the final smoke and shut down successfully. No
 Candidate C, Magic/Holy, core Stage or historical evidence file was changed.
+
+## V2 official capture and validation
+
+V1 was pushed and its live remote SHA verified as
+4b0bfc6d47409b7642eb88da8e723fbda7b6fbf3 before this run started.
+
+The official v2-sustained.jsonl contains 15 complete cases, each 2400 ticks.
+No case required extension. Total observation is 36,000 ticks / 1,800 simulated
+seconds (30 minutes); the full-stack Gradle runtime completed in 2m 9s using
+native tick sprint. There are 1,800 genuine releases (600 per family), 36,015
+trajectory samples including the initial samples, and 1,080 native Regenerate
+transactions. A=0, B=720, C=360. Requests totaled 504,000 HP; actual healing
+122,293.2041015625 HP; denied requests 381,706.7958984375 HP. Denied request
+is not presented as wholly wound-specific denial: ordinary max-HP capacity
+also limits requests before a wound exists.
+
+All runtime cases passed. The strict extractor independently verified the
+entire stored capture. Post-defeat spawn records required a validator
+correction: a discarded real arrow retains its type/UUID in the released
+projectile arrays, but has no hit-derived projectile identity. The extractor
+now requires that spawn identity plus exactly one discard and zero damage
+for such rows; living-target rows still require one exact physical source.
+No runtime data or historical evidence was changed to satisfy this correction.
+
+Full clean build and all Java tests passed; the four extractor corruption
+tests passed. The runtime reached Done, completed all cases, released its
+force-load tickets and shut down successfully. Error records, duplicated
+physical projectiles, recursion and unexpected bypasses are zero.
+
+The reused generic benchmark serializer retains legacy gross/estimated TTK
+fields in the raw capture. These are not sustained-viability projections and
+are excluded from V3. Only the recorded trajectories, observed defeat times,
+and explicitly justified late-window projections are authoritative for this
+study. V3/V4 have not been decided at this checkpoint.
