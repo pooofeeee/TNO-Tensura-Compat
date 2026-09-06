@@ -1,0 +1,93 @@
+{
+  "schema": "tno.phase6.regenerate_severance_counter_protocol.p1.v1",
+  "kind": "protocol_definition",
+  "checkpoint": "P1_FORMAL_COUNTER_STATE_MODEL",
+  "source_head": "d0f619ccddb21e7a7f35f9d2d70bfba5d5d4de50",
+  "production_mutation": false,
+  "candidate_c_mutation": false,
+  "rw_calibration": false,
+  "definitions": {
+    "M": "maximum vanilla HP",
+    "W": "native stored Severance wound",
+    "C": "M - W; native healing ceiling",
+    "H": "vanilla HP immediately before the Regenerate heal",
+    "R": "native requested Regenerate healing",
+    "L": "max(0, C - H); legal healing space below the ceiling"
+  },
+  "states": [
+    {
+      "id": "A_BELOW_CEILING",
+      "condition": "H + R <= C",
+      "expected_actual_heal": "R",
+      "expected_wound_denial": "0"
+    },
+    {
+      "id": "B_CROSSING_CEILING",
+      "condition": "H < C && H + R > C",
+      "expected_actual_heal": "C - H",
+      "expected_wound_denial": "R - (C - H)"
+    },
+    {
+      "id": "C_AT_OR_ABOVE_CEILING",
+      "condition": "H >= C",
+      "expected_actual_heal": "0",
+      "expected_wound_denial": "R"
+    }
+  ],
+  "installed_runtime": {
+    "tensura_version": "2.0.1.1",
+    "l2hostility_version": "3.0.18",
+    "regenerate_config_fraction_per_rank_per_second": 0.01,
+    "rank4_request_on_10000_hp": 400.0,
+    "rank5_request_on_10000_hp": 500.0,
+    "cadence_target_ticks": 20,
+    "resource": "vanilla_HP_only"
+  },
+  "w4_state_c_observation": {
+    "regenerate_callback_count": 120,
+    "cancelled_callback_count": 120,
+    "requested_healing": 928.545898,
+    "allowed_healing": 0.0,
+    "actual_healing": 0.0,
+    "denied_healing": 928.545898,
+    "rows_at_ceiling_within_0_001_hp": 120,
+    "maximum_observed_distance_from_ceiling": 0.00048828125,
+    "interpretation": "complete denial is exact native State C behavior"
+  },
+  "protocols": {
+    "H_HARD_COUNTER": {
+      "native_compatible": true,
+      "p1_status": "SEMANTICALLY_VALID_REQUIRES_P2_RUNTIME_PROOF"
+    },
+    "S_SOFT_COUNTER": {
+      "native_compatible": false,
+      "p1_status": "NOT_AUTHORIZED",
+      "reason": "positive healing at or above the native wound ceiling requires changing or bypassing native Severance or Regenerate semantics"
+    },
+    "D_DYNAMIC_DEFENDER_ADVANTAGE": {
+      "native_compatible": true,
+      "p1_status": "AUTHORIZED_FOR_P3_ONLY_AFTER_P2",
+      "criterion": "Regenerate ON must improve defender trajectory versus OFF whenever combat repeatedly creates meaningful legal healing space below the wound ceiling"
+    }
+  },
+  "p1_answers": {
+    "regenerate_intact_under_abc": true,
+    "candidate_c_alters_requested_amount": false,
+    "candidate_c_alters_tick_cadence": false,
+    "candidate_c_alters_rank": false,
+    "candidate_c_alters_heal_event": false,
+    "candidate_c_alters_source": false,
+    "candidate_c_alters_configuration": false,
+    "w4_zero_healing_explained_by_state_c": true,
+    "forcing_positive_heal_in_state_c_changes_native_semantics": true,
+    "positive_healing_every_window_is_valid_identity_gate": false
+  },
+  "decision": {
+    "w4_old_gate": "CONCEPTUALLY_OVERBROAD_FOR_STATE_C",
+    "candidate_c_status": "UNRESOLVED_PENDING_P2_AND_P3",
+    "p2_authorized": true,
+    "p3_authorized": false,
+    "w5_authorized": false,
+    "production_authorized": false
+  }
+}
