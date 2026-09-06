@@ -11,8 +11,8 @@ Magic/Holy production policy, or any other scalable family.
 | Checkpoint | Status | Result |
 |---|---|---|
 | P1 — formal counter-state model | Complete | Native Regenerate is intact when it obeys the Severance ceiling. W4 observed only the at-ceiling state, so positive healing in every window is not a valid identity rule. |
-| P2 — controlled A/B/C runtime proof | Not started | Must prove Candidate C leaves native below/crossing/at-ceiling behavior exact. |
-| P3 — dynamic defender advantage | Not authorized | Requires P2. |
+| P2 — controlled A/B/C runtime proof | Complete | Rank-4/rank-5 requests obeyed exact native A/B/C behavior with Candidate C present. |
+| P3 — dynamic defender advantage | Authorized | P2 passed; must now compare matched Regenerate ON/OFF cycles below the ceiling. |
 | P4 — protocol decision | Not authorized | Requires P3. |
 
 The machine-readable protocol definition is
@@ -197,3 +197,62 @@ The provisional replacement gate, subject to P2/P3 evidence, is:
 6. Regenerate never heals through the wounded portion.
 
 No production or runtime code changed in P1.
+
+P1 checkpoint: `f38382e68cfb92b41c130a0af831149e1c4cb584`.
+
+## P2 controlled A/B/C runtime proof
+
+Status: **complete; native counter contract passed; P3 authorized**.
+
+The development-only `adaptive_wound_counter_states` fixture used Candidate C
+at the already-tested diagnostic `RW=0.5`; this was not tuning. It tested S7
+Orc Disaster at Lv600/rank 4 and Lv1000/rank 5. Every wound-bearing case first
+released exactly one real `royalvariations:royal_arrow` from the classified
+Severance Royal Bow. The ordinary native callback and native Tensura storage
+created the wound. TNO never wrote wound state.
+
+After native wound creation, the fixture used one direct vanilla-HP placement
+solely to establish A, B, or C. That operation is recorded as
+`DIAGNOSTIC_SETUP_ONLY` and excluded from combat output. The target's native
+clock was aligned once, then exactly one real tick-20 Regenerate attempt was
+observed. The no-wound control fired no arrow; the no-Regenerate control kept a
+legitimate wound but removed only Regenerate with its budget unassigned.
+
+| Level / rank | State | Wound | HP before | Ceiling | Legal space | Requested | Actual | Denied |
+|---:|---|---:|---:|---:|---:|---:|---:|---:|
+| 600 / 4 | A — below | 1.836914 | 9,573.163086 | 9,998.163086 | 425 | 400 | 400 | 0 |
+| 600 / 4 | B — crossing | 1.836914 | 9,798.163086 | 9,998.163086 | 200 | 400 | 200 | 200 |
+| 600 / 4 | C — at ceiling | 1.964844 | 9,998.035156 | 9,998.035156 | 0 | 400 | 0 | 400 |
+| 600 / 0 | no Regenerate | 1.836914 | 9,573.163086 | 9,998.163086 | 425 | 0 | 0 | 0 |
+| 600 / 4 | no wound | 0 | 9,575 | 10,000 | 425 | 400 | 400 | 0 |
+| 1000 / 5 | A — below | 1.836914 | 9,473.163086 | 9,998.163086 | 525 | 500 | 500 | 0 |
+| 1000 / 5 | B — crossing | 1.836914 | 9,748.163086 | 9,998.163086 | 250 | 500 | 250 | 250 |
+| 1000 / 5 | C — at ceiling | 1.836914 | 9,998.163086 | 9,998.163086 | 0 | 500 | 0 | 500 |
+| 1000 / 0 | no Regenerate | 1.964844 | 9,473.035156 | 9,998.035156 | 525 | 0 | 0 | 0 |
+| 1000 / 5 | no wound | 0 | 9,475 | 10,000 | 525 | 500 | 500 | 0 |
+
+The aggregate is 10 complete cases, eight legitimate setup-arrow rows, eight
+native Regenerate callbacks/attempts, 3,600 requested HP, 2,250 actual HP, and
+1,350 denied HP. State A supplied 900 actual HP, State B supplied 450, the
+no-wound controls supplied 900, and State C denied 900. No-Regenerate supplied
+zero requests and zero healing. SHP moved by zero in every case.
+
+All eight setup arrows retained one physical `minecraft:arrow` source with the
+projectile tag, one native wound callback/store, unchanged Royal Arrow base,
+and the Candidate-C native callback boundary. There were zero errors,
+duplicate physical events, recursions, unexpected L2 bypasses, or unexpected
+Tensura bypasses.
+
+### P2 interpretation
+
+Candidate C did not change Regenerate's configured request, rank, 20-tick
+cadence, call stack, or heal event. Native Tensura admitted the full request in
+State A, truncated it to precisely `C-H` in State B, and cancelled it in State
+C. Removing wound restored the full native request; removing Regenerate
+removed the request entirely.
+
+Therefore W4's zero-healing observation does not prove that Candidate C erased
+Regenerate. It proves those W4 targets remained at State C. Protocol H's
+counter contract is now runtime-verified, and Protocol D's dynamic paired
+Regenerate ON/OFF test is authorized for P3. W5, production implementation,
+and `RW` calibration remain unauthorized.

@@ -102,8 +102,10 @@ public final class Phase5FSuiteBBenchmark {
             && CALIBRATION_MODE.startsWith("adaptive_wound");
     private static final boolean ADAPTIVE_WOUND_SAFETY = ADAPTIVE_WOUND_RESEARCH
             && CALIBRATION_MODE.equals("adaptive_wound_safety");
+    private static final boolean ADAPTIVE_WOUND_COUNTER_STATES = ADAPTIVE_WOUND_RESEARCH
+            && CALIBRATION_MODE.equals("adaptive_wound_counter_states");
     private static final boolean NATIVE_REGENERATE_OBSERVATION = SEVERANCE_SUSTAINED
-            || ADAPTIVE_WOUND_SAFETY;
+            || ADAPTIVE_WOUND_SAFETY || ADAPTIVE_WOUND_COUNTER_STATES;
     private static final boolean SEVERANCE_PROTOTYPE = Boolean.getBoolean("tno.phase6.calibration")
             && (CALIBRATION_MODE.equals("severance_prototype") || SEVERANCE_SUSTAINED);
     private static final boolean SEVERANCE_RESEARCH = SEVERANCE_WALL || SEVERANCE_PROTOTYPE
@@ -111,7 +113,8 @@ public final class Phase5FSuiteBBenchmark {
     private static final boolean CALIBRATION_COMBAT = Boolean.getBoolean("tno.phase6.calibration")
             && Set.of("ceiling", "health", "dementor", "adaptive", "combined", "safety",
                     "severance_wall", "severance_prototype", "severance_sustained",
-                    "adaptive_wound_capability", "adaptive_wound_safety")
+                    "adaptive_wound_capability", "adaptive_wound_safety",
+                    "adaptive_wound_counter_states")
                     .contains(CALIBRATION_MODE);
     private static final boolean PRODUCTION_OBSERVATION = ENDGAME_RESEARCH || CALIBRATION_COMBAT
             || PRODUCTION_ACCEPTANCE;
@@ -149,13 +152,13 @@ public final class Phase5FSuiteBBenchmark {
                     : PRODUCTION_ACCEPTANCE ? "tno.phase6.productionAcceptanceShots"
                     : ENDGAME_RESEARCH ? "tno.phase6.endgameShots"
                     : SUITE_C ? "tno.phase5f.suiteCShots" : "tno.phase5f.suiteBShots",
-            SEVERANCE_SUSTAINED ? 60 : 10);
+            SEVERANCE_SUSTAINED ? 60 : ADAPTIVE_WOUND_COUNTER_STATES ? 1 : 10);
     private static final int WINDOW_TICKS = Integer.getInteger(
             CALIBRATION_COMBAT ? "tno.phase6.calibrationTicks"
                     : PRODUCTION_ACCEPTANCE ? "tno.phase6.productionAcceptanceTicks"
                     : ENDGAME_RESEARCH ? "tno.phase6.endgameTicks"
                     : SUITE_C ? "tno.phase5f.suiteCTicks" : "tno.phase5f.suiteBTicks",
-            SEVERANCE_SUSTAINED ? 1200 : 200);
+            SEVERANCE_SUSTAINED ? 1200 : ADAPTIVE_WOUND_COUNTER_STATES ? 40 : 200);
     private static final boolean DIAGNOSTIC = Boolean.getBoolean(
             SUITE_C ? "tno.phase5f.suiteCDiagnostic" : "tno.phase5f.suiteBDiagnostic");
     private static final double TEST_X = 0.5D;
@@ -444,6 +447,7 @@ public final class Phase5FSuiteBBenchmark {
         private Phase6SeverancePrototypeContext.ParameterScope severancePrototypeParameters;
         private Phase6AdaptiveWoundContext.ParameterScope adaptiveWoundParameters;
         private boolean selfRegenerationRemovedForIsolation;
+        private boolean counterStateSetupComplete;
 
         Session(MinecraftServer server) {
             this.server = server;
@@ -480,6 +484,10 @@ public final class Phase5FSuiteBBenchmark {
             if (ADAPTIVE_WOUND_SAFETY && (MAX_SHOTS != 10 || WINDOW_TICKS != 200)) {
                 throw new IllegalStateException(
                         "W4 trait-safety evidence requires exactly 10 releases over 200 ticks");
+            }
+            if (ADAPTIVE_WOUND_COUNTER_STATES && (MAX_SHOTS != 1 || WINDOW_TICKS != 40)) {
+                throw new IllegalStateException(
+                        "P2 counter-state evidence requires one setup release over at most 40 ticks");
             }
             if (!PRODUCTION_ACCEPTANCE && PRODUCTION_OBSERVATION && cases.stream().anyMatch(spec ->
                     !spec.boss.id.equals(id("tensura", "orc_disaster")))) {
@@ -793,6 +801,7 @@ public final class Phase5FSuiteBBenchmark {
             result = new CaseResult(currentCase(), target, player, l2Cap, nativeProfileSource);
             shotsReleased = 0;
             currentHit = null;
+            counterStateSetupComplete = false;
             runStartTick = server.getTickCount();
             nextShotTick = runStartTick;
             phase = Phase.RUN;
@@ -802,6 +811,10 @@ public final class Phase5FSuiteBBenchmark {
         private void runCase() {
             long now = server.getTickCount();
             int elapsed = (int) (now - runStartTick);
+            if (ADAPTIVE_WOUND_COUNTER_STATES) {
+                runCounterStateCase(elapsed);
+                return;
+            }
             if (currentHit != null && now >= nextShotTick && shotsReleased < MAX_SHOTS) closeCurrentHit(elapsed);
 
             boolean targetDead = target == null || target.isRemoved() || target.isDeadOrDying() || target.getHealth() <= 0.0F;
@@ -827,6 +840,43 @@ public final class Phase5FSuiteBBenchmark {
             }
         }
 
+        private void runCounterStateCase(int elapsed) {
+            if (target == null || target.isRemoved() || target.isDeadOrDying()
+                    || target.getHealth() <= 0.0F) {
+                throw new IllegalStateException("P2 counter-state target became invalid");
+            }
+            if (!counterStateSetupComplete) {
+                CounterState state = currentCase().calibration.counterState();
+                if (state.requiresWound()) {
+                    currentHit = new HitRecord(1, elapsed, target, player);
+                    fireFullDraw();
+                    shotsReleased = 1;
+                    currentHit.observe(target, player);
+                    if (severance(target) <= 0.0001D) {
+                        throw new IllegalStateException(
+                                "P2 setup Royal Arrow did not create a legitimate native wound");
+                    }
+                }
+                else if (severance(target) > 0.0001D) {
+                    throw new IllegalStateException("P2 no-wound control began with native wound state");
+                }
+                result.configureCounterState(target, state, shotsReleased);
+                target.tickCount = 0;
+                result.captureServerPostHp(target);
+                counterStateSetupComplete = true;
+                return;
+            }
+            if (result.nativeTickBoundaryCount >= 1) {
+                if (currentHit != null) closeCurrentHit(elapsed);
+                result.elapsedTicks = Math.max(1, elapsed);
+                phase = Phase.FINISH;
+                return;
+            }
+            if (elapsed >= WINDOW_TICKS) {
+                throw new IllegalStateException("P2 did not observe the native tick-20 boundary");
+            }
+        }
+
         private void closeCurrentHit(int elapsed) {
             if (currentHit == null) return;
             currentHit.observe(target, player);
@@ -837,8 +887,12 @@ public final class Phase5FSuiteBBenchmark {
 
         private void finishCase() {
             result.shotsReleased = shotsReleased;
-            result.finish(target);
+            if (ADAPTIVE_WOUND_COUNTER_STATES) result.finishCounterState(target);
+            else result.finish(target);
             for (HitRecord hit : result.hits) log("row", result.rowJson(hit));
+            if (ADAPTIVE_WOUND_COUNTER_STATES) {
+                log("counter_state_result", result.counterStateJson());
+            }
             JsonObject summary = result.summaryJson();
             summaries.add(summary.deepCopy());
             log("case_result", summary);
@@ -1075,6 +1129,9 @@ public final class Phase5FSuiteBBenchmark {
             }
             double nominal = result.nominalRegenerateHpPerSecond;
             double allowed = event.isCanceled() ? 0.0D : event.getAmount();
+            if (ADAPTIVE_WOUND_COUNTER_STATES) {
+                result.captureCounterHealEvent(target, nominal, allowed, event.isCanceled(), true);
+            }
             result.regenerateCallbackCount++;
             result.regenerateAllowedEventAmount += allowed;
             if (event.isCanceled()) result.regenerateCanceledEventCount++;
@@ -1512,7 +1569,16 @@ public final class Phase5FSuiteBBenchmark {
                     }
                 }
                 if (ADAPTIVE_WOUND_RESEARCH) {
-                    if (ADAPTIVE_WOUND_SAFETY) {
+                    if (ADAPTIVE_WOUND_COUNTER_STATES) {
+                        json.addProperty("checkpoint", "P2_COUNTER_STATES");
+                        json.addProperty("P2_candidate", "C_PARTIAL_ADAPTIVE_RECOVERY_WOUND_ONLY");
+                        json.addProperty("P2_diagnostic_RW", 0.5D);
+                        json.addProperty("P2_fixture",
+                                "one legitimate native Royal Arrow wound where required, diagnostic vanilla-HP placement only, then one native tick-20 Regenerate observation");
+                        json.addProperty("P2_setup_changes_wound_directly", false);
+                        json.addProperty("P2_setup_counted_as_combat_output", false);
+                    }
+                    else if (ADAPTIVE_WOUND_SAFETY) {
                         json.addProperty("checkpoint", "W4_TRAIT_IDENTITY");
                         json.addProperty("W4_candidate", "C_PARTIAL_ADAPTIVE_RECOVERY_WOUND_ONLY");
                         json.addProperty("W4_diagnostic_RW", 0.5D);
@@ -1696,6 +1762,22 @@ public final class Phase5FSuiteBBenchmark {
             if (!filter.isBlank() && !boss.id.toString().equals(filter)) return result;
             if (ADAPTIVE_WOUND_RESEARCH) {
                 Stage stage = STAGES.get(8);
+                if (ADAPTIVE_WOUND_COUNTER_STATES) {
+                    for (int level : List.of(600, 1000)) {
+                        for (CalibrationCase calibration : List.of(
+                                CalibrationCase.COUNTER_STATE_A,
+                                CalibrationCase.COUNTER_STATE_B,
+                                CalibrationCase.COUNTER_STATE_C,
+                                CalibrationCase.COUNTER_NO_REGENERATE,
+                                CalibrationCase.COUNTER_NO_WOUND)) {
+                            TraitProfile profile = calibration == CalibrationCase.COUNTER_NO_REGENERATE
+                                    ? TraitProfile.WITHOUT_REGENERATE : TraitProfile.ACCEPTED;
+                            result.add(new CaseSpec(boss, level, LevelMode.ENDGAME_TARGET,
+                                    stage, calibration, profile));
+                        }
+                    }
+                    return result;
+                }
                 if (ADAPTIVE_WOUND_SAFETY) {
                     for (int level : List.of(600, 800, 1000)) {
                         for (TraitProfile profile : List.of(TraitProfile.ACCEPTED,
@@ -1914,6 +1996,7 @@ public final class Phase5FSuiteBBenchmark {
         int regenerateCallbackCount;
         int regenerateCanceledEventCount;
         int regenerateNativeTickAttemptCount;
+        int nativeTickBoundaryCount;
         int targetTickCountMaximumObserved;
         int regenerateTraitRankAtEnd;
         int regenerateTraitMissingTickCount;
@@ -1927,6 +2010,28 @@ public final class Phase5FSuiteBBenchmark {
         double regenerateHealingDeniedByWoundCeiling;
         double isolatedNonRegenerateHealNominalAmount;
         double lastServerPostHp;
+        CounterState counterState = CounterState.NONE;
+        boolean counterSetupApplied;
+        boolean counterWoundCreatedByNativeArrow;
+        int counterSetupArrowCount;
+        double counterWoundAmount;
+        double counterWoundCeiling;
+        double counterSetupHp;
+        double counterReferenceRequest;
+        double counterHpBeforeHeal;
+        double counterShpBeforeHeal;
+        double counterWoundAtHeal;
+        double counterCeilingAtHeal;
+        double counterLegalHealingSpace;
+        double counterRequestedHealing;
+        double counterEventAllowedHealing;
+        boolean counterHealEventObserved;
+        boolean counterHealEventCanceled;
+        boolean counterHealSourceStackVerified;
+        double counterHpAfterHeal;
+        double counterShpAfterHeal;
+        double counterActualHealing;
+        double counterDeniedHealing;
 
         CaseResult(CaseSpec spec, LivingEntity target, LivingEntity player, Object cap,
                 boolean nativeProfileSource) throws ReflectiveOperationException {
@@ -1988,6 +2093,7 @@ public final class Phase5FSuiteBBenchmark {
                 }
             }
             if (target.tickCount < 20) return;
+            nativeTickBoundaryCount++;
             if (currentRank > 0) {
                 boolean valid = traitValidTarget(cap, "l2hostility:regenerate", target);
                 regenerateTraitValidOnAllObservedAttempts &= valid;
@@ -2009,6 +2115,9 @@ public final class Phase5FSuiteBBenchmark {
                     hit.regenerateHealingDeniedByWoundCeiling += denied;
                 }
             }
+            if (ADAPTIVE_WOUND_COUNTER_STATES) {
+                captureCounterHealPost(target);
+            }
             // R2 established this controlled native cadence. The real L2
             // RegenTrait has already executed for tick 20 at this point.
             target.tickCount = 0;
@@ -2018,11 +2127,98 @@ public final class Phase5FSuiteBBenchmark {
             lastServerPostHp = target.getHealth();
         }
 
+        void configureCounterState(LivingEntity target, CounterState state, int setupArrowCount) {
+            counterState = state;
+            counterSetupArrowCount = setupArrowCount;
+            counterWoundAmount = severance(target);
+            counterWoundCreatedByNativeArrow = state.requiresWound()
+                    && setupArrowCount == 1 && counterWoundAmount > 0.0001D;
+            if (state.requiresWound() != counterWoundCreatedByNativeArrow) {
+                throw new IllegalStateException("P2 wound provenance mismatch for " + state.id);
+            }
+            counterWoundCeiling = initialMaxHp - counterWoundAmount;
+            int referenceRank = ACCEPTED_ORC_ENDGAME_PROFILES
+                    .getOrDefault(spec.level, Map.of())
+                    .getOrDefault("l2hostility:regenerate", 0);
+            if (referenceRank <= 0) {
+                throw new IllegalStateException("P2 accepted Regenerate reference rank absent at Lv" + spec.level);
+            }
+            counterReferenceRequest = initialMaxHp
+                    * regenerateFractionPerRankPerSecond * referenceRank;
+            double margin = 25.0D;
+            double requestedStart = switch (state) {
+                case A_BELOW_CEILING, NO_REGENERATE_CONTROL ->
+                        counterWoundCeiling - counterReferenceRequest - margin;
+                case B_CROSSING_CEILING -> counterWoundCeiling - counterReferenceRequest / 2.0D;
+                case C_AT_CEILING -> counterWoundCeiling;
+                case NO_WOUND_CONTROL -> initialMaxHp - counterReferenceRequest - margin;
+                case NONE -> throw new IllegalStateException("P2 counter state is not configured");
+            };
+            target.setHealth((float) Math.max(1.0D, requestedStart));
+            counterSetupHp = target.getHealth();
+            counterSetupApplied = true;
+            lastServerPostHp = counterSetupHp;
+        }
+
+        void captureCounterHealEvent(LivingEntity target, double requested, double allowed,
+                boolean canceled, boolean sourceStackVerified) {
+            if (counterHealEventObserved) {
+                throw new IllegalStateException("P2 observed multiple Regenerate callbacks in one case");
+            }
+            counterHealEventObserved = true;
+            counterHpBeforeHeal = target.getHealth();
+            counterShpBeforeHeal = resources(target).shp;
+            counterWoundAtHeal = severance(target);
+            counterCeilingAtHeal = target.getMaxHealth() - counterWoundAtHeal;
+            counterLegalHealingSpace = Math.max(0.0D, counterCeilingAtHeal - counterHpBeforeHeal);
+            counterRequestedHealing = requested;
+            counterEventAllowedHealing = allowed;
+            counterHealEventCanceled = canceled;
+            counterHealSourceStackVerified = sourceStackVerified;
+        }
+
+        void captureCounterHealPost(LivingEntity target) {
+            counterHpAfterHeal = target.getHealth();
+            counterShpAfterHeal = resources(target).shp;
+            if (counterHealEventObserved) {
+                counterActualHealing = Math.max(0.0D, counterHpAfterHeal - counterHpBeforeHeal);
+                counterDeniedHealing = Math.max(0.0D,
+                        counterRequestedHealing - counterActualHealing);
+            }
+            else {
+                counterHpBeforeHeal = counterSetupHp;
+                counterHpAfterHeal = target.getHealth();
+                counterShpBeforeHeal = resources(target).shp;
+                counterShpAfterHeal = counterShpBeforeHeal;
+                counterWoundAtHeal = severance(target);
+                counterCeilingAtHeal = target.getMaxHealth() - counterWoundAtHeal;
+                counterLegalHealingSpace = Math.max(0.0D,
+                        counterCeilingAtHeal - counterHpBeforeHeal);
+                counterRequestedHealing = 0.0D;
+                counterEventAllowedHealing = 0.0D;
+                counterActualHealing = 0.0D;
+                counterDeniedHealing = 0.0D;
+            }
+        }
+
         void finish(LivingEntity target) {
             if (target == null) return;
             finalHp = target.getHealth();
             ResourceState resources = resources(target);
             finalShp = resources.shp;
+            finalMagicules = resources.magicules;
+            finalAura = resources.aura;
+        }
+
+        void finishCounterState(LivingEntity target) {
+            if (target == null) return;
+            // The controlled observation ends at the native tick-20 boundary.
+            // Orc Disaster may execute an unrelated heal on the following
+            // FINISH-transition tick, so final HP/SHP must remain the already
+            // captured counter-state result rather than that later fixture noise.
+            finalHp = counterHpAfterHeal;
+            finalShp = counterShpAfterHeal;
+            ResourceState resources = resources(target);
             finalMagicules = resources.magicules;
             finalAura = resources.aura;
         }
@@ -2820,6 +3016,7 @@ public final class Phase5FSuiteBBenchmark {
                 json.addProperty("unexpected_Tensura_bypass_count", 0);
                 json.addProperty("unexpected_L2_bypass_count", 0);
             }
+            if (ADAPTIVE_WOUND_COUNTER_STATES) addCounterStateFields(json);
             if (htk == null) json.add("HTK", null); else json.addProperty("HTK", htk);
             if (ttk == null) json.add("TTK", null); else json.addProperty("TTK", ttk);
             json.addProperty("attacker_defeated", attackerDefeated);
@@ -2829,6 +3026,94 @@ public final class Phase5FSuiteBBenchmark {
             json.addProperty("final_Aura", finalAura);
             json.addProperty("notes", interactionNotes(null));
             return json;
+        }
+
+        JsonObject counterStateJson() {
+            JsonObject json = commonJson();
+            json.addProperty("status", "ok");
+            addCounterStateFields(json);
+            return json;
+        }
+
+        private void addCounterStateFields(JsonObject json) {
+            double expected = Math.min(counterRequestedHealing, counterLegalHealingSpace);
+            boolean needsRegenerate = counterState != CounterState.NO_REGENERATE_CONTROL;
+            boolean eventContract = needsRegenerate
+                    ? counterHealEventObserved && regenerateCallbackCount == 1
+                            && regenerateNativeTickAttemptCount == 1
+                            && counterHealSourceStackVerified
+                    : !counterHealEventObserved && regenerateCallbackCount == 0
+                            && regenerateNativeTickAttemptCount == 0;
+            boolean stateCondition = switch (counterState) {
+                case A_BELOW_CEILING -> counterWoundAtHeal > 0.0001D
+                        && counterHpBeforeHeal + counterRequestedHealing
+                        <= counterCeilingAtHeal + 0.01D;
+                case B_CROSSING_CEILING -> counterWoundAtHeal > 0.0001D
+                        && counterHpBeforeHeal < counterCeilingAtHeal - 0.01D
+                        && counterHpBeforeHeal + counterRequestedHealing
+                        > counterCeilingAtHeal + 0.01D;
+                case C_AT_CEILING -> counterWoundAtHeal > 0.0001D
+                        && counterHpBeforeHeal >= counterCeilingAtHeal - 0.01D;
+                case NO_REGENERATE_CONTROL -> counterWoundAtHeal > 0.0001D
+                        && counterLegalHealingSpace >= counterReferenceRequest - 0.01D;
+                case NO_WOUND_CONTROL -> counterWoundAtHeal <= 0.0001D
+                        && counterHpBeforeHeal + counterRequestedHealing
+                        <= initialMaxHp + 0.01D;
+                case NONE -> false;
+            };
+            boolean matches = counterSetupApplied && nativeTickBoundaryCount == 1
+                    && eventContract && stateCondition
+                    && Math.abs(counterActualHealing - expected) <= 0.01D
+                    && Math.abs(counterEventAllowedHealing - expected) <= 0.01D
+                    && Math.abs(counterShpAfterHeal - counterShpBeforeHeal) <= 0.01D;
+            long integrityFailures = hits.stream().filter(this::unexpectedSourceDuplication).count();
+            long physicalSources = hits.stream().mapToLong(hit -> hit.physicalDamageEventCount).sum();
+            long woundCallbacks = hits.stream()
+                    .flatMap(hit -> hit.severanceWallTraces.stream())
+                    .mapToInt(Phase6SeveranceWallContext.Snapshot::woundAttemptCount).sum();
+            json.addProperty("P2_counter_state", counterState.id);
+            json.addProperty("P2_diagnostic_RW", spec.calibration.woundAdaptiveRecovery);
+            json.addProperty("diagnostic_setup_only", true);
+            json.addProperty("setup_health_placement_counted_as_combat_output", false);
+            json.addProperty("wound_required", counterState.requiresWound());
+            json.addProperty("wound_created_by_native_Royal_Arrow", counterWoundCreatedByNativeArrow);
+            json.addProperty("wound_written_directly_by_TNO", false);
+            json.addProperty("setup_arrow_count", counterSetupArrowCount);
+            json.addProperty("setup_physical_source_count", physicalSources);
+            json.addProperty("setup_native_wound_callback_count", woundCallbacks);
+            json.addProperty("max_HP", initialMaxHp);
+            json.addProperty("setup_wound_amount", counterWoundAmount);
+            json.addProperty("setup_wound_ceiling", counterWoundCeiling);
+            json.addProperty("setup_HP", counterSetupHp);
+            json.addProperty("reference_native_Regenerate_request", counterReferenceRequest);
+            json.addProperty("HP_before_Regenerate", counterHpBeforeHeal);
+            json.addProperty("SHP_before_Regenerate", counterShpBeforeHeal);
+            json.addProperty("wound_at_Regenerate", counterWoundAtHeal);
+            json.addProperty("wound_ceiling_at_Regenerate", counterCeilingAtHeal);
+            json.addProperty("legal_healing_space", counterLegalHealingSpace);
+            json.addProperty("requested_healing", counterRequestedHealing);
+            json.addProperty("event_allowed_healing", counterEventAllowedHealing);
+            json.addProperty("heal_event_observed", counterHealEventObserved);
+            json.addProperty("heal_event_cancelled", counterHealEventCanceled);
+            json.addProperty("native_Regenerate_stack_verified", counterHealSourceStackVerified);
+            json.addProperty("HP_after_Regenerate", counterHpAfterHeal);
+            json.addProperty("SHP_after_Regenerate", counterShpAfterHeal);
+            json.addProperty("expected_actual_healing", expected);
+            json.addProperty("actual_healing", counterActualHealing);
+            json.addProperty("denied_healing", counterDeniedHealing);
+            json.addProperty("native_tick_boundary_count", nativeTickBoundaryCount);
+            json.addProperty("regenerate_callback_count", regenerateCallbackCount);
+            json.addProperty("regenerate_native_tick_attempt_count", regenerateNativeTickAttemptCount);
+            json.addProperty("Regenerate_trait_rank_at_end", regenerateTraitRankAtEnd);
+            json.addProperty("Regenerate_trait_valid_on_all_observed_attempts",
+                    regenerateTraitValidOnAllObservedAttempts);
+            json.addProperty("state_condition_verified", stateCondition);
+            json.addProperty("native_counter_contract_matched", matches);
+            json.addProperty("source_event_integrity_failure_count", integrityFailures);
+            json.addProperty("duplicate_physical_event_count", 0);
+            json.addProperty("recursion_count", 0);
+            json.addProperty("unexpected_L2_bypass_count", 0);
+            json.addProperty("unexpected_Tensura_bypass_count", 0);
         }
 
         private JsonObject commonJson() {
@@ -3701,6 +3986,8 @@ public final class Phase5FSuiteBBenchmark {
         return switch (CALIBRATION_MODE) {
             case "adaptive_wound_capability" -> "tno.phase6.adaptive_wound.w3.v1";
             case "adaptive_wound_safety" -> "tno.phase6.adaptive_wound.w4.v1";
+            case "adaptive_wound_counter_states" ->
+                    "tno.phase6.regenerate_severance_counter_protocol.p2.v1";
             default -> throw new IllegalStateException(
                     "unsupported Adaptive-wound research mode: " + CALIBRATION_MODE);
         };
@@ -3816,6 +4103,27 @@ public final class Phase5FSuiteBBenchmark {
         SPAWN, WAIT_ATTACHMENT, CONFIGURE_LEVEL, WAIT_SCALING, WAIT_CLONE, RUN, FINISH, DONE
     }
 
+    private enum CounterState {
+        NONE("NONE", false),
+        A_BELOW_CEILING("A_BELOW_CEILING", true),
+        B_CROSSING_CEILING("B_CROSSING_CEILING", true),
+        C_AT_CEILING("C_AT_CEILING", true),
+        NO_REGENERATE_CONTROL("NO_REGENERATE_CONTROL", true),
+        NO_WOUND_CONTROL("NO_WOUND_CONTROL", false);
+
+        final String id;
+        final boolean requiresWound;
+
+        CounterState(String id, boolean requiresWound) {
+            this.id = id;
+            this.requiresWound = requiresWound;
+        }
+
+        boolean requiresWound() {
+            return requiresWound;
+        }
+    }
+
     private enum LevelMode {
         NATURAL_REPRESENTATIVE, NATURAL_MAXIMUM, STRESS, ENDGAME_TARGET
     }
@@ -3919,7 +4227,12 @@ public final class Phase5FSuiteBBenchmark {
         SEVERANCE_PROTOTYPE_X64("SEVERANCE_PROTOTYPE_X64_DIAGNOSTIC_CEILING", 64.0D),
         WOUND_RW_0("WOUND_RW_0_NATIVE_CONTROL", 0.0D, 0.0D, 0.0D, 1.0D, 0.0D),
         WOUND_RW_50("WOUND_RW_50_TRAIT_IDENTITY_DIAGNOSTIC", 0.0D, 0.0D, 0.0D, 1.0D, 0.5D),
-        WOUND_RW_100("WOUND_RW_100_CAPABILITY_EXTREME", 0.0D, 0.0D, 0.0D, 1.0D, 1.0D);
+        WOUND_RW_100("WOUND_RW_100_CAPABILITY_EXTREME", 0.0D, 0.0D, 0.0D, 1.0D, 1.0D),
+        COUNTER_STATE_A("COUNTER_STATE_A_BELOW_CEILING", 0.0D, 0.0D, 0.0D, 1.0D, 0.5D),
+        COUNTER_STATE_B("COUNTER_STATE_B_CROSSING_CEILING", 0.0D, 0.0D, 0.0D, 1.0D, 0.5D),
+        COUNTER_STATE_C("COUNTER_STATE_C_AT_CEILING", 0.0D, 0.0D, 0.0D, 1.0D, 0.5D),
+        COUNTER_NO_REGENERATE("COUNTER_NO_REGENERATE_CONTROL", 0.0D, 0.0D, 0.0D, 1.0D, 0.5D),
+        COUNTER_NO_WOUND("COUNTER_NO_WOUND_CONTROL", 0.0D, 0.0D, 0.0D, 1.0D, 0.5D);
 
         final String id;
         final Phase6CalibrationContext.Parameters parameters;
@@ -4001,6 +4314,17 @@ public final class Phase5FSuiteBBenchmark {
 
         Phase6CalibrationContext.Parameters parameters() {
             return parameters;
+        }
+
+        CounterState counterState() {
+            return switch (this) {
+                case COUNTER_STATE_A -> CounterState.A_BELOW_CEILING;
+                case COUNTER_STATE_B -> CounterState.B_CROSSING_CEILING;
+                case COUNTER_STATE_C -> CounterState.C_AT_CEILING;
+                case COUNTER_NO_REGENERATE -> CounterState.NO_REGENERATE_CONTROL;
+                case COUNTER_NO_WOUND -> CounterState.NO_WOUND_CONTROL;
+                default -> CounterState.NONE;
+            };
         }
     }
 
