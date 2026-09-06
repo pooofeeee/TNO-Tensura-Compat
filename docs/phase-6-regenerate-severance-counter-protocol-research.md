@@ -13,7 +13,7 @@ Magic/Holy production policy, or any other scalable family.
 | P1 — formal counter-state model | Complete | Native Regenerate is intact when it obeys the Severance ceiling. W4 observed only the at-ceiling state, so positive healing in every window is not a valid identity rule. |
 | P2 — controlled A/B/C runtime proof | Complete | Rank-4/rank-5 requests obeyed exact native A/B/C behavior with Candidate C present. |
 | P3 — dynamic defender advantage | Complete | In all three matched levels, Regenerate used legal space below the ceiling and left the defender near the wound ceiling; removing only Regenerate caused 5,948.66-9,703.97 HP of attacker progress. |
-| P4 — protocol decision | Authorized | P3 passed the dynamic defender-advantage gate; the final protocol decision remains to be recorded. |
+| P4 — protocol decision | Complete | Outcome 1: native hard-counter semantics plus the dynamic defender-advantage gate are valid. Candidate C's architecture is protocol-valid but is not production-approved or calibrated. |
 
 The machine-readable protocol definition is
 `docs/benchmarks/phase6-regenerate-severance-counter-protocol/p1-protocol.json`.
@@ -342,3 +342,67 @@ W4 positive-healing-in-every-window rule was a State-C false negative, not an
 architecture failure. This result authorizes only the P4 protocol decision;
 it does not approve `RW=0.5`, W5, production implementation, or any balance
 change.
+
+P3 checkpoint: `9ff8ab04ae2d3e2a04bb0d758be736fc768bebc9`.
+
+## P4 protocol decision
+
+Decision: **Outcome 1 — hard/dynamic counter valid**.
+
+P2 and P3 jointly establish the complete required contract:
+
+- Regenerate's trait, rank, configuration, 20-tick cadence, requested amount,
+  synchronous native heal event, and vanilla-HP-only resource stayed native;
+- State A admitted the complete request;
+- State B admitted exactly the legal space `C-H` and denied only the excess;
+- State C denied the complete request through native Tensura Severance;
+- in a real repeated damage/heal sequence, Regenerate ON used legal room and
+  gave the defender a large measured advantage over the matched OFF control;
+- none of 360 dynamic Regenerate transactions healed through its post-cycle
+  wound ceiling; and
+- one physical `minecraft:arrow` source, native Adaptive state, and native
+  Tensura wound storage remained authoritative, with no duplication,
+  recursion, or unexpected bypass.
+
+The W4 result was therefore a protocol false negative: W4 correctly measured
+120 State-C denials, but its old rule incorrectly required positive healing in
+a state where native Severance is explicitly supposed to cancel healing. It
+did not demonstrate loss of Regenerate identity or defender value.
+
+### Corrected future Regenerate gate
+
+Future Candidate-C sustained testing must replace the old W4 rule with this
+evidence-derived gate:
+
+1. Regenerate's trait, rank, cadence, request, configuration, heal-event source,
+   and vanilla-HP-only resource remain native.
+2. In State A, Regenerate heals the complete request.
+3. In State B, Regenerate heals exactly the legal space below the wound
+   ceiling and no more.
+4. In State C, native Severance may deny the complete request.
+5. When combat repeatedly creates meaningful legal room below the ceiling,
+   Regenerate ON must measurably improve defender HP trajectory, cumulative
+   recovery, attacker progress, or equivalent-time survival versus an
+   otherwise identical OFF control.
+6. Regenerate must never restore the wounded portion.
+7. The one-source physical arrow, native L2 processing, and native Tensura
+   wound storage must remain intact without duplicate delivery or recursion.
+
+This gate preserves both mechanics' identities: Regenerate is powerful in
+legal unwounded HP space, while maintained Severance remains its genuine hard
+counter over the wounded portion.
+
+### Candidate C status and next task
+
+Candidate C is **protocol-valid**, not failed. That conclusion is limited to
+architecture and counter semantics. Diagnostic `RW=0.5` is still uncalibrated;
+Candidate C is not approved for production; and no sustained endgame balance
+conclusion follows from this functional 60-second probe.
+
+The exact next task is a **new Candidate-C sustained-viability study using the
+corrected hard/dynamic Regenerate gate**. It may consider `RW` calibration only
+when separately and explicitly authorized. This research does not start that
+task, W5, production implementation, another scalable family, or Phase 7.
+
+The machine-readable final decision is
+`docs/benchmarks/phase6-regenerate-severance-counter-protocol/p4-decision.json`.
