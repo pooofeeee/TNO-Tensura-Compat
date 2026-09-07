@@ -91,3 +91,34 @@ E2 supplies a reproducible comparison using normal native ticking.
 No production correction or development prerequisite-restoration prototype has
 been implemented. A native fix is justified only if runtime evidence identifies
 a legitimate missing prerequisite in production, rather than a fixture defect.
+
+## E2a: continuity recovery on 2026-09-08
+
+Fetched all origin heads. The newest remote and local HEAD was
+`57d733755bca4acafa995e42a498f69e7b504dbe` on
+`codex/post-phase6-elemental-native-event-path-research`, a direct descendant of
+the supplied Candidate-C terminal checkpoint. No newer remote work or applicable
+AGENTS.md was found. Three modified tracked files and five untracked files
+contained an unfinished opt-in Elemental runner, three read-only observers, and
+a strict extractor. All were retained, with no reset or overwrite, on the
+owner-requested `phase-6-elemental-native-event-path-research` branch.
+
+The recovered local trials are not accepted runtime evidence. Trials 1-5 failed
+during fixture setup. Trial 6 completed 90 cases but fails the current extractor
+at case 6 because its L2 initialization evidence is invalid. Trial 7 failed in
+L2Complements construction before the research catalog. None can establish an
+accepted E2 result. The current runner adds an explicit initialized-attachment
+assertion; its runtime acceptance remains pending. The recovery build and all
+54 Java tests pass. `e2a-recovery.json` preserves input hashes and trial status.
+
+The runner compares six delivery modes per element and target: an unclassified
+vanilla bow's untouched flight, historical Royal dispatch/discard, the same
+historically dispatched projectile allowed to fly, Royal ordinary ticks from a
+positioned lane at S0/S7, and Royal untouched flight at S0. Targets are the
+neutral pre-flight-style adapter and the accepted Lv1000 Orc/Luminous profiles.
+Setup-only positioning/resources/profile installation are explicit. All native
+collision results, owner skills, utility settings, damage sources, and matching
+defenses remain authoritative. The neutral adapter makes itself pickable; boss
+eligibility is never overridden. No production prerequisite-restoration
+prototype exists. The exact next task is strict E2 runtime acceptance, then E3
+interpretation and owner review. Candidate C remains rejected and exhausted.
