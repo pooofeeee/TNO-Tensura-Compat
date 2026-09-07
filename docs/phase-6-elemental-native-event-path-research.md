@@ -1,5 +1,9 @@
 # Post-Phase-6 Elemental native-event-path research
 
+Current status: **E1-E3 COMPLETE; STOP FOR OWNER REVIEW.** Final branch:
+`phase-6-elemental-native-event-path-research`. No production native-path fix
+is indicated by this study. See E3 for the terminal decision and scope limits.
+
 ## Recovery and scope
 
 Source: `b50061eb9040474a7fb8bdeb780f46a30201d63f`, verified against live
@@ -86,7 +90,7 @@ E2 supplies a reproducible comparison using normal native ticking.
 |---|---|
 | E1 recovery and installed bytecode audit | Complete; static assertions pass; runtime hypothesis pending |
 | E2 bounded native flight and historical-dispatch comparison | Complete; 90 cases validated, including native Fire Resistance before event dispatch |
-| E3 final interpretation and decision | Pending |
+| E3 final interpretation and decision | Complete; historical fixture defect proven; no production prerequisite restoration indicated; owner review next |
 
 No production correction or development prerequisite-restoration prototype has
 been implemented. A native fix is justified only if runtime evidence identifies
@@ -234,3 +238,55 @@ The runtime artifact hashes are in provenance; local third-party JARs are not
 committed. E1 and E2 inspect different generated Minecraft archives; both pass
 the same callback assertions, and E2 additionally inspects the patched runtime
 hurt method. Their archive hashes are recorded separately without rewriting E1.
+
+## E3: terminal interpretation and decision
+
+E2 was committed, pushed, and verified against the live remote as
+`db8d2583085aa7bd9ff6580adba70f271b97633f` before E3 analysis. The independently
+recomputed decision is `benchmarks/phase6-elemental-native-event-path/e3-decision.json`.
+Reproduce it with `scripts/analyze-phase6-elemental-native-path.ps1 -Check
+docs/benchmarks/phase6-elemental-native-event-path/e3-decision.json`.
+
+**Proven root cause of the historical Earth absence:** benchmark collision
+dispatch chose the wrong overload and immediately discarded the projectile.
+Native projectile existence and Stage scaling therefore did not imply that the
+native collision/damage path had run. The first missing prerequisite was ordinary
+native flight/collision dispatch. All five elements reproduce that distinction.
+
+**Safe correction:** future Elemental research fixtures should let real native
+projectiles tick, observe their native collision admission, and distinguish
+source construction from incoming-event dispatch and applied damage. The E2
+runner already provides this path without a replacement source or forced hit.
+No missing production prerequisite was demonstrated, so no production fix or
+development prerequisite-restoration prototype is justified. Fire Resistance,
+matching Nullification, and any native projectile veto remain authoritative.
+
+**Historical evidence:** the 320 absent Earth rows and the 90 accepted positive-
+control rows remain byte-for-byte equivalent to their protected Git blobs.
+Their observations are retained. The older blanket inference that the empty
+dispatch proves boss-dependent native-event unavailability is superseded for
+that harness. The removed pre-flight fixture cannot be reconstructed from its
+single commit, and this study does not invent its implementation. E2 establishes
+a reproducible positive control independently.
+
+**Production boundary:** the entire core directory and every pre-existing combat
+mixin remain unchanged from Candidate-C terminal HEAD. The only modified
+pre-existing integration files register opt-in development observations and the
+run property; added observers pass through the original native call once and
+return its result. They cannot start a research session in production and are
+dormant without the explicit development property. No Candidate-C/RW work,
+Magic/Holy policy revision, Stage revision, or historical benchmark rewrite was
+performed. No new production-mode runtime test is claimed by this study.
+
+**Exact next task:** project-owner review of these Elemental findings. If accepted
+and separately authorized, the next family in the established sequence is Soul
+Eater's native `tensura:soul_scatter` eligibility research. It has not started.
+Permanent production, another family, and original Phase 7 do not start
+automatically. Candidate C remains rejected and exhausted.
+
+| Protected checkpoint | Remote SHA verified before proceeding |
+|---|---|
+| E1 installed dispatch audit, recovered | `57d733755bca4acafa995e42a498f69e7b504dbe` |
+| E2a recovered local harness and pending gate | `c4b2c47b33574f0cdc8d16ec41bf3b4f36a15780` |
+| E2 accepted native-flight and defense evidence | `db8d2583085aa7bd9ff6580adba70f271b97633f` |
+| E3 terminal decision | The commit containing this section; final response reports its verified SHA. |
