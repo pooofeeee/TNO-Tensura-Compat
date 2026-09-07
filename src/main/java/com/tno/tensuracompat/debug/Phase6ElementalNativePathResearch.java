@@ -99,6 +99,13 @@ public final class Phase6ElementalNativePathResearch {
         if (result != null) trace.addProperty("result", result);
         trace.addProperty("hp", active.target.getHealth());
         trace.addProperty("shp", TensuraStorages.getExistenceFrom(active.target).getSpiritualHealth());
+        trace.addProperty("target_fire_resistance", active.target.hasEffect(net.minecraft.world.effect.MobEffects.FIRE_RESISTANCE));
+        trace.addProperty("target_fire_immune", active.target.fireImmune());
+        trace.addProperty("target_invulnerable_time", active.target.invulnerableTime);
+        trace.addProperty("source_is_fire", source.is(net.minecraft.tags.DamageTypeTags.IS_FIRE));
+        JsonArray effects = new JsonArray();
+        active.target.getActiveEffects().forEach(effect -> effects.add(effect.toString()));
+        trace.add("target_effects", effects);
         active.traces.add(trace);
     }
 

@@ -52,6 +52,7 @@ $luminous = [pscustomobject]@{'l2hostility:adaptive'=5;'l2hostility:dementor'=1;
 $uuids = [Collections.Generic.HashSet[string]]::new()
 $summaries = [Collections.Generic.List[object]]::new()
 $expectedCase = 0
+$nativeSources = 0; $nativeIncoming = 0; $nativePost = 0; $nullified = 0; $fireResisted = 0
 foreach ($element in $elements) { foreach ($target in $targets) { foreach ($mode in $modes) {
     $row = $rows[$expectedCase]
     $label = "case $expectedCase $element/$target/$mode"
@@ -90,22 +91,26 @@ foreach ($element in $elements) { foreach ($target in $targets) { foreach ($mode
     }
     else { Require ($legacy.Count -eq 0) "$label unexpected legacy dispatch" }
     $run = @($row.traces | Where-Object phase -eq RUN)
+    $outcome = 'HISTORICAL_EMPTY_DISPATCH'
     if ($mode -eq 'royal_legacy') {
         Require ($run.Count -eq 0 -and $row.projectile_age_end -eq 0) "$label historical discard unexpectedly ticked"
     }
     else {
         Require ($row.projectile_age_end -gt 0 -and $row.target_ticks_elapsed -gt 0) "$label did not tick naturally"
         $expectedStart = 'native_projectile_gate,two_argument_hit,one_argument_hit,deal_damage,native_hurt_call'
-        Require ($run.Count -ge 8 -and ($run[0..4].boundary -join ',') -ceq $expectedStart) "$label native call sequence changed"
+        Require ($run.Count -ge 6 -and ($run[0..4].boundary -join ',') -ceq $expectedStart) "$label native call sequence changed"
         Require ($run[0].detail -ceq 'DEFAULT/NONE') "$label unexpected native gate/deflection"
         foreach ($boundary in @('native_projectile_gate','two_argument_hit','deal_damage','native_hurt_call','native_hurt_return')) {
             Require (@($run | Where-Object boundary -eq $boundary).Count -eq 1) "$label $boundary duplicated/missing"
         }
         $family = @($run | Where-Object source -eq $source)
-        foreach ($boundary in @('native_hurt_call','incoming_highest','incoming_lowest','native_hurt_return')) {
+        foreach ($boundary in @('native_hurt_call','native_hurt_return')) {
             Require (@($family | Where-Object boundary -eq $boundary).Count -eq 1) "$label missing/duplicated $source at $boundary"
         }
         $call = @($family | Where-Object boundary -eq native_hurt_call)[0]
+        $nativeSources++
+        Require ($call.target_fire_resistance -is [bool] -and $call.source_is_fire -is [bool]) "$label missing fire guard observation"
+        Require ($call.source_is_fire -eq ($element -eq 'fire')) "$label fire classification changed"
         Close $call.amount $amount "$label wrong native hurt amount"
         foreach ($trace in $family) {
             Require ($trace.direct -ceq $projectile -and $trace.direct_uuid -ceq $row.projectile_uuid -and $trace.owner_retained) "$label changed native source identity"
@@ -113,26 +118,47 @@ foreach ($element in $elements) { foreach ($target in $targets) { foreach ($mode
             Require ($trace.resistance_bypass -eq 0) "$label unexpected resistance bypass"
         }
         $post = @($family | Where-Object boundary -eq damage_post)
-        $low = @($family | Where-Object boundary -eq incoming_lowest)[0]
         $returned = @($family | Where-Object boundary -eq native_hurt_return)[0]
-        if ($target -eq 'luminous_valentine') {
-            Require ($low.canceled -and !$returned.result -and $post.Count -eq 0) "$label Nullification did not remain authoritative"
-            $skill = 'skill:"tensura:' + $nullification[$ei] + '_attack_nullification"'
-            Require (@($row.target_skills | Where-Object { $_.Contains($skill) -and $_.Contains('Toggled:1b') }).Count -eq 1) "$label missing native matching Nullification"
+        if ($call.source_is_fire -and $call.target_fire_resistance) {
+            Require ($element -eq 'fire' -and $target -eq 'orc_disaster') "$label unexpected early fire guard target"
+            Require (@($call.target_effects | Where-Object { $_.StartsWith('effect.minecraft.fire_resistance,') }).Count -eq 1) "$label missing actual Fire Resistance effect"
+            Require (($family.boundary -join ',') -ceq 'native_hurt_call,native_hurt_return' -and !$returned.result) "$label bypassed native pre-event Fire Resistance"
+            Close $returned.hp $call.hp "$label rejected native call damaged HP"
+            Close $returned.shp $call.shp "$label rejected native call damaged SHP"
+            $fireResisted++; $outcome = 'NATIVE_FIRE_RESISTANCE_PRE_EVENT'
         }
-        else { Require (!$low.canceled -and $returned.result -and $post.Count -eq 1 -and $post[0].amount -gt 0) "$label working native path failed" }
+        else {
+            foreach ($boundary in @('incoming_highest','incoming_lowest')) {
+                Require (@($family | Where-Object boundary -eq $boundary).Count -eq 1) "$label missing/duplicated $source at $boundary"
+            }
+            $nativeIncoming++
+            $low = @($family | Where-Object boundary -eq incoming_lowest)[0]
+            if ($target -eq 'luminous_valentine') {
+                Require ($low.canceled -and !$returned.result -and $post.Count -eq 0) "$label Nullification did not remain authoritative"
+                $skill = 'skill:"tensura:' + $nullification[$ei] + '_attack_nullification"'
+                Require (@($row.target_skills | Where-Object { $_.Contains($skill) -and $_.Contains('Toggled:1b') }).Count -eq 1) "$label missing native matching Nullification"
+                $nullified++; $outcome = 'MATCHING_NULLIFICATION'
+            }
+            else {
+                Require (!$low.canceled -and $returned.result -and $post.Count -eq 1 -and $post[0].amount -gt 0) "$label working native path failed"
+                $nativePost++; $outcome = 'NATIVE_DAMAGE_APPLIED'
+            }
+            $expectedFamily = 'native_hurt_call,incoming_highest,incoming_lowest,' + $(if ($post.Count -eq 1) {'damage_post,'} else {''}) + 'native_hurt_return'
+            Require (($family.boundary -join ',') -ceq $expectedFamily) "$label unexpected native family event sequence"
+        }
         $otherSources = @($run | Where-Object { $_.source -and $_.source -ne $source } | ForEach-Object source | Sort-Object -Unique)
         foreach ($other in $otherSources) { Require ($element -eq 'fire' -and $other -eq 'minecraft:on_fire') "$label unexpected extra damage source $other" }
     }
     $summaries.Add([ordered]@{case=$expectedCase;element=$element;target=$target;mode=$mode;
-        native_event_created=($mode -ne 'royal_legacy');nullified=($mode -ne 'royal_legacy' -and $target -eq 'luminous_valentine');
+        native_source_created=($mode -ne 'royal_legacy');outcome=$outcome;
         native_damage=$row.damage;projectile_age=$row.projectile_age_end})
     $expectedCase++
 } } }
-$validation = [ordered]@{schema='tno.phase6.elemental_native_path.validation.v1';status='PASS';cases=90;
-    historical_empty_dispatch_cases=15;same_projectile_rescues=15;native_family_events=75;
-    native_family_post_events=50;nullified_native_family_events=25;duplicate_family_events=0;
+Require ($nativeSources -eq 75 -and $nullified -eq 25 -and $nativeIncoming + $fireResisted -eq 75 -and $nativePost + $fireResisted -eq 50) 'Native outcome accounting mismatch'
+$validation = [ordered]@{schema='tno.phase6.elemental_native_path.validation.v2';status='PASS';cases=90;
+    historical_empty_dispatch_cases=15;same_projectile_native_path_rescues=15;native_source_creations=$nativeSources;native_family_events=$nativeIncoming;
+    native_family_post_events=$nativePost;nullified_native_family_events=$nullified;native_fire_resistance_pre_event=$fireResisted;duplicate_family_events=0;
     injected_skills=0;unexpected_bypass=0;unique_projectiles=$uuids.Count;rows=@($summaries)}
 Save-New $OutputPath ($lines -join "`n")
 Save-New $ValidationPath ($validation | ConvertTo-Json -Depth 10)
-$validation | Select-Object status,cases,historical_empty_dispatch_cases,same_projectile_rescues,native_family_events,native_family_post_events,nullified_native_family_events,unique_projectiles | ConvertTo-Json
+[pscustomobject]$validation | Select-Object status,cases,historical_empty_dispatch_cases,same_projectile_native_path_rescues,native_source_creations,native_family_events,native_family_post_events,nullified_native_family_events,native_fire_resistance_pre_event,unique_projectiles | ConvertTo-Json

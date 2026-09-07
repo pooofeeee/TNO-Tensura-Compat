@@ -85,7 +85,7 @@ E2 supplies a reproducible comparison using normal native ticking.
 | Checkpoint | Status |
 |---|---|
 | E1 recovery and installed bytecode audit | Complete; static assertions pass; runtime hypothesis pending |
-| E2 bounded native flight and historical-dispatch comparison | Pending |
+| E2 bounded native flight and historical-dispatch comparison | Complete; 90 cases validated, including native Fire Resistance before event dispatch |
 | E3 final interpretation and decision | Pending |
 
 No production correction or development prerequisite-restoration prototype has
@@ -122,3 +122,115 @@ defenses remain authoritative. The neutral adapter makes itself pickable; boss
 eligibility is never overridden. No production prerequisite-restoration
 prototype exists. The exact next task is strict E2 runtime acceptance, then E3
 interpretation and owner review. Candidate C remains rejected and exhausted.
+
+## E2: runtime proof
+
+E2a was pushed and its live remote equality verified as
+`c4b2c47b33574f0cdc8d16ec41bf3b4f36a15780` before new runtime work.
+The accepted capture is `benchmarks/phase6-elemental-native-event-path/e2-runtime.jsonl`:
+one catalog, 90 per-release rows, and one successful suite result. The full
+compatibility stack reached Done, completed the matrix, restored the original
+force-load state and shut down successfully. No synthetic damage, spell grant,
+affinity grant, callback-result override, or production correction was needed.
+
+The first resumed 90-case run exposed an overly restrictive inherited extractor
+assumption that every native source must reach an incoming event. It is retained
+as unaccepted diagnostic evidence in `e2-diagnostic.jsonl`. Extra read-only fields
+were then added at the existing native hurt boundary; the second run proves the
+Fire Resistance guard described below. The accepted capture was never edited to
+satisfy the extractor. Its independently validated outcomes are:
+
+| Element | Cases | Empty historical dispatch | Native source creations | Incoming family events | Applied family events | Matching Nullification | Native Fire Resistance before event |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Earth | 18 | 3 | 15 | 15 | 10 | 5 | 0 |
+| Fire | 18 | 3 | 15 | 11 | 6 | 5 | 4 |
+| Space | 18 | 3 | 15 | 15 | 10 | 5 | 0 |
+| Water | 18 | 3 | 15 | 15 | 10 | 5 | 0 |
+| Wind | 18 | 3 | 15 | 15 | 10 | 5 | 0 |
+| Total | 90 | 15 | 75 | 71 | 46 | 25 | 4 |
+
+### First missing prerequisite: Earth
+
+All three historical Earth controls enter `Projectile.onHit(HitResult)` and
+the empty one-argument `onHitEntity(EntityHitResult)` at projectile age zero.
+They produce no native hurt call or damage event and leave HP/SHP unchanged.
+Each corresponding rescue uses the **same already-released projectile UUID**:
+after the empty call, ordinary world ticks invoke the native swept collision
+search, `canHitEntity`, `EntityEvents.PROJECTILE_HIT` (DEFAULT/NONE), and the
+two-argument callback. That callback calls the empty superclass callback and
+then continues into `applyHitEntity -> hitEntity -> dealDamage -> target.hurt`.
+
+Earth sources then exist on neutral, Orc and Luminous. Neutral/Orc reach applied
+damage; Luminous cancels the existing incoming event. The first missing
+prerequisite in the historical absence evidence is native collision dispatch,
+not a missing skill, affinity, cost, owner, Stage or fabricated damage type.
+Unmodified-position/velocity vanilla-bow and Royal-bow flight controls agree.
+Slotting intercepts release and produces a native projectile, not a Royal Arrow.
+
+### Other elements and authoritative target guards
+
+Fire, Space, Water and Wind reproduce the same empty historical overload and
+successful source-creation path after native flight. All five work through
+untouched Royal flight on the neutral adapter, with one native family event.
+At native/S0/S7, the native damage argument is 1.00/1.05/1.40 for every element.
+Speed, knockback, burn, gravity, core count/capacity, owner and source identities
+match the installed values; no double scaling or unexpected source appears.
+Water retains `elementalAttack=false` and null magic type while still creating
+`tensura:water_elemental`. Wind retains its native two-argument override and
+non-damaging wind explosion; no extra damaging wind source is observed.
+Fire's ordinary later `minecraft:on_fire` attempts are recorded separately.
+
+Four Fire/Orc cases reach native `dealDamage` and construct the correct
+`tensura:fire_elemental` source, but have `IS_FIRE=true` and the real vanilla
+Fire Resistance effect active. The native call returns false with unchanged
+HP/SHP and no incoming event. Installed `LivingEntity.hurt` tests that exact
+combination before `CommonHooks.onEntityIncomingDamage`; `e2-static.json`
+reproducibly asserts the bytecode order. The remaining Fire/Orc case has no Fire
+Resistance and reaches one incoming/applied family event. Thus source creation,
+incoming event dispatch, and applied damage are three distinct observations.
+
+All 25 Luminous native-flight cases have their respective Earth, Flame, Spatial,
+Water or Wind Attack Nullification toggled on. Their source and incoming event
+exist, the event becomes cancelled, native hurt returns false, and no family
+Post event follows, including at S7. No matching-defense bypass is introduced.
+
+### Fixture limits
+
+The boss trait maps are the accepted initialized Lv1000 profiles at release and
+after measurement. Setup replaces randomly generated L2 traits but does not
+clear their already-applied temporary effects. The Fire Resistance cases and
+some Gravity/Moonwalk residue are explicitly visible in the new effect traces.
+Installed L2 `FieryTrait`/`SelfEffectTrait` supplies a native Fire Resistance
+precedent; this capture does not trace which earlier callback originally applied
+each effect. The **active effect and its native damage gate** are proven; an
+innate Orc immunity or a Fiery trait in the final accepted profile is not claimed.
+Effects are never removed to force a successful attack.
+
+Native boss resource values vary with setup and are preserved in every row.
+These single-release, 20-tick observations establish event-path availability,
+not sustained DPS, calibrated damage balance, SHP viability, or exact equivalence
+to earlier endgame durability fixtures. This is a fresh survival FakePlayer
+comparison, not a new human-client multiplayer acceptance run. Other bosses,
+multi-core combinations, and active PASS/HIT_NO_DAMAGE vetoes are outside this
+bounded matrix; installed code retains those gates and no callback is forced.
+
+### Validation and reproduction
+
+Java 21 `gradlew.bat build` passes with 54 tests and zero failures/errors.
+The strict extractor replays all 90 rows; eight corrupted-capture tests reject
+missing events, overridden gates, replaced projectile identity, double scaling,
+uninitialized L2, fabricated legacy damage, Nullification bypass, and an unproven
+Fire Resistance exception. Evidence includes `e2-validation.json`,
+`e2-extractor-tests.json`, `e2-static.json`, and `e2-provenance.json`.
+
+```powershell
+./gradlew.bat runServer -Pphase6_elemental_native_path=true -Pphase5f_runtime_mods_dir=run/elemental-runtime-mods
+./scripts/extract-phase6-elemental-native-path.ps1 -LogPath <capture-log>
+./scripts/test-elemental-native-path-extractor.ps1
+./scripts/audit-phase6-elemental-native-path.ps1 -TensuraJar <installed-jar> -MinecraftJar build/moddev/artifacts/neoforge-21.1.248.jar -JavaHome <jdk21> -IncludeFireGuard
+```
+
+The runtime artifact hashes are in provenance; local third-party JARs are not
+committed. E1 and E2 inspect different generated Minecraft archives; both pass
+the same callback assertions, and E2 additionally inspects the patched runtime
+hurt method. Their archive hashes are recorded separately without rewriting E1.

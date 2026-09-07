@@ -2,6 +2,7 @@ param(
     [Parameter(Mandatory=$true)][string]$TensuraJar,
     [Parameter(Mandatory=$true)][string]$MinecraftJar,
     [Parameter(Mandatory=$true)][string]$JavaHome,
+    [switch]$IncludeFireGuard,
     [string]$OutputPath
 )
 $ErrorActionPreference = 'Stop'
@@ -66,6 +67,15 @@ $report = [ordered]@{
     elements=@($audit); runtime_status='PENDING'; production_changed=$false
 }
 $json = $report | ConvertTo-Json -Depth 20
+if ($IncludeFireGuard) {
+    $living = Inspect-Class $MinecraftJar 'net.minecraft.world.entity.LivingEntity'
+    $hurt = [regex]::Match($living, '(?s)public boolean hurt\(net.minecraft.world.damagesource.DamageSource, float\);.*?(?=\n  (public|protected|private) )').Value
+    Require ($hurt -match '(?s)DamageTypeTags.IS_FIRE:.*?MobEffects.FIRE_RESISTANCE:.*?Method hasEffect:.*?iconst_0\s+\d+: ireturn') 'Native Fire Resistance rejection changed'
+    Require ($hurt.IndexOf('CommonHooks.onEntityIncomingDamage:') -gt $hurt.IndexOf('MobEffects.FIRE_RESISTANCE:')) 'Incoming event no longer follows Fire Resistance gate'
+    $report['checkpoint'] = 'E2'; $report['schema'] = 'tno.phase6.elemental_native_path.static.v2'
+    $report['fire_guard'] = 'LivingEntity.hurt: IS_FIRE && FIRE_RESISTANCE -> false, before CommonHooks.onEntityIncomingDamage'
+    $json = $report | ConvertTo-Json -Depth 20
+}
 if ($OutputPath) {
     if (Test-Path -LiteralPath $OutputPath) { throw 'Refusing to overwrite evidence' }
     New-Item -ItemType Directory -Force (Split-Path $OutputPath) | Out-Null
