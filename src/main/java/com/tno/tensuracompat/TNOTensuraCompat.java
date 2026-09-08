@@ -12,6 +12,7 @@ import com.tno.tensuracompat.debug.Phase5FSuiteBBenchmark;
 import com.tno.tensuracompat.debug.Phase6EndgameCalibration;
 import com.tno.tensuracompat.debug.Phase6SeveranceRegenerateResearch;
 import com.tno.tensuracompat.debug.Phase6ElementalNativePathResearch;
+import com.tno.tensuracompat.debug.Phase6SoulNativePathResearch;
 import io.github.manasmods.tensura.Tensura;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.EventPriority;
@@ -32,6 +33,11 @@ public class TNOTensuraCompat {
         MagicHolyEndgameL2Bridge.registerIfAvailable();
 
         if (!FMLEnvironment.production) {
+            NeoForge.EVENT_BUS.addListener(Phase6SoulNativePathResearch::onServerStarted);
+            NeoForge.EVENT_BUS.addListener(Phase6SoulNativePathResearch::onServerTick);
+            NeoForge.EVENT_BUS.addListener(EventPriority.HIGHEST, true, Phase6SoulNativePathResearch::onIncomingHighest);
+            NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, true, Phase6SoulNativePathResearch::onIncomingLowest);
+            NeoForge.EVENT_BUS.addListener(Phase6SoulNativePathResearch::onDamagePost);
             NeoForge.EVENT_BUS.addListener(Phase6ElementalNativePathResearch::onServerStarted);
             NeoForge.EVENT_BUS.addListener(Phase6ElementalNativePathResearch::onServerTick);
             NeoForge.EVENT_BUS.addListener(EventPriority.HIGHEST, true,
