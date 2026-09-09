@@ -1,6 +1,6 @@
 # Energy Steal physical-prerequisite research
 
-Bounded post-Phase-6 / pre-Phase-7 causal research. **ES1 source audit complete; runtime decision pending.** No production correction or bypass is authorized or implemented.
+Bounded post-Phase-6 / pre-Phase-7 causal research. **ES1 and ES2 complete; Royal causal comparison and final decision pending.** No production correction or bypass is authorized or implemented.
 
 Branch: `phase-6-energy-steal-physical-prerequisite-research`.
 Accepted base: `38262bfa99ca4cecd3a2ba58cdb8cc6595893a4c` (Soul final, `SOUL_NATIVE_PATH_VALID_NO_FIX`). Fetch found no newer local or remote Energy work; the working tree was clean. No applicable `AGENTS.md` was found. Stage/Curve C/native EP and Magic/Holy production remain locked. Candidate C remains rejected and exhausted. Elemental and Soul are accepted, completed research; original Phase 7 remains unstarted.
@@ -53,13 +53,30 @@ Testable hypothesis: the 269 absent operations may combine physical rejection, t
 
 Use a naturally spawned and ticking neutral Iron Golem and survival FakePlayer, with no resource or capacity grants. Compare legal vanilla bow/plain arrow with and without Energy I, using real release and collision. Preserve native owner, weapon, crit and damage. Record read-only physical attempt/incoming/applied/return, callback/apply/drain entry/return, percentage before/after TNO, cooldown, capacities and all HP/SHP/MP/AP writes. Model native player cooldown ticking in the fixture scheduler; never reset it in an observer. Strict extraction must reject missing or forged boundaries, duplicates, source/percentage errors, wrong resource accounting, bad ordering/cooldown and unexplained mutations.
 
+## ES2 — legitimate native positive control
+
+ES1 was pushed and live-verified at `7bcbcdd4c4f43712e0fbe33a13ae5001a53e2d99` before implementation. The opt-in `phase6_energy_native_path` runner uses real vanilla bow release and naturally ticking arrow collision against normally spawned Iron Golems. It preserves native crit, source, owner and stored weapon. Targets tick with AI enabled; no HP/SHP/MP/AP or capacity grants/reset, manual hit dispatch, forced cooldown success or direct Energy invocation occurs. FakePlayer's native cooldown tracker is advanced once per server tick because FakePlayers are not in the real player list. This scheduler action is separately observed.
+
+| Control | Attempt / incoming / applied / hurt true | Callback / apply / drain / true | Physical HP loss | SHP delta |
+|---|---|---|---:|---:|
+| Vanilla plain | 1 / 1 / 1 / 1 | 0 / 0 / 0 / 0 | 7 | 0 |
+| Vanilla Energy I | 1 / 1 / 1 / 1 | 1 / 1 / 1 / 1 | 6 | 0 |
+
+Both retain `minecraft:arrow` and its five installed tags, with zero Resistance bypass metadata. Native crit and independent native mob initialization account for different physical inputs/maxima; this is an admission/accounting control, not a paired damage-balance claim. Vanilla bow is unclassified by TNO, so the observed percentage remains widened native float `0.009999999776482582`, with no Stage gain.
+
+The Energy target begins with 6,156 Magicules and 57 Aura. The drain removes **61.559998624026775 MP and 0.5699999872595072 AP**. The attacker remains at its native 50/50 capacities, receiving **0 MP and 0 AP**. Four observed native writes occur in exact Aura gain/subtract, Magicule gain/subtract order. Later native regeneration adds 15 MP and restores the lost Aura; the final MP is 6,109.440001375973. The plain target's energy is unchanged. Neither SHP pool changes. No normal drain DamageSource is created.
+
+Cooldown is zero at callback/apply, set to 20 before drain entry, still 20 at drain return, then decrements through the native clock to zero. The capture records 25 native cooldown ticks per control. All 60 HP/SHP/energy setter pairs reconcile against every trace snapshot and final state, including Apotheosis's unchanged-health bookkeeping and later Tensura resource regeneration. No phantom operation, duplicate drain, recursion, unexplained resource change or unexpected defense bypass was observed.
+
+Artifacts: `es2-runtime.jsonl`, `es2-validation.json`, `es2-extractor-tests.json`, `es2-observer-audit.json`, `es2-provenance.json`. Strict extraction independently recomputes percentage, target subtraction, native capped gain, operation ordering and cooldown transitions. All **15** corruption tests reject, including coherently altered transfer ledgers whose snapshots still balance: the independent native formula rejects the false loss/gain. Full compatibility-stack `runServer` completed successfully; `compileJava test` passed **54 tests**, zero failures/errors/skips. Static audit confirms opt-in/read-only instrumentation, one original physical call and unchanged locked production code. Final `clean build` remains required at ES4. Optional-mod startup diagnostics are not represented as research failures.
+
 ## Checkpoint ledger and resume point
 
 | Checkpoint | State |
 |---|---|
-| ES1 | Source/bytecode and historical audit passes; commit containing this section is pushed and live-verified before ES2. |
-| ES2 | Pending legitimate native positive control and strict corruption-tested runtime evidence. |
+| ES1 | `7bcbcdd4c4f43712e0fbe33a13ae5001a53e2d99`, pushed and live-verified. |
+| ES2 | Complete and validated; commit containing ES2 evidence is pushed/live-verified before ES3. |
 | ES3 | Pending Royal causal comparison and only evidence-implicated L2 decomposition. |
 | ES4 | Pending bounded final decision, clean build and final push. |
 
-No runtime result, production fix decision or final Energy classification is claimed at ES1. Exact next action: implement and run the ES2 read-only native positive control after remotely protecting ES1. After Energy closes, the next separately reviewed project task is a consolidated readiness assessment of all six Phase-6 families and remaining endgame limitations. Do not start that assessment or original Phase 7 automatically.
+No Royal result, production fix decision or final Energy classification is claimed at ES2. Exact next action: extend the read-only runner to genuine Royal plain/S0/S7 against neutral and accepted Lv1000 Orc, preserving physical return, target timer and item cooldown boundaries; then add only controls needed to identify the first divergence. After Energy closes, the next separately reviewed project task is a consolidated readiness assessment of all six Phase-6 families and remaining endgame limitations. Do not start that assessment or original Phase 7 automatically.

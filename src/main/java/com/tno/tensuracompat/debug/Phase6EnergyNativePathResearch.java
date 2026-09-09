@@ -1,0 +1,359 @@
+package com.tno.tensuracompat.debug;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.mojang.authlib.GameProfile;
+import com.tno.tensuracompat.TNOTensuraCompat;
+import com.tno.tensuracompat.core.stage.ProductionStageScaling;
+import io.github.manasmods.tensura.util.EnergyHelper;
+import io.github.manasmods.tensura.registry.attribute.TensuraAttributes;
+import io.github.manasmods.tensura.enchantment.effect.EnergyStealEntity;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemCooldowns;
+import net.minecraft.world.item.enchantment.EnchantedItemInUse;
+import dev.architectury.event.EventResult;
+import java.lang.reflect.Proxy;
+import io.github.manasmods.tensura.registry.item.misc.TensuraDataComponents;
+import io.github.manasmods.tensura.storage.TensuraStorages;
+import io.github.manasmods.tensura.storage.ep.IExistence;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.Vec3;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.common.util.FakePlayerFactory;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.server.ServerStartedEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+
+/** Opt-in research; all damage and resource changes originate in unchanged native calls. */
+public final class Phase6EnergyNativePathResearch {
+    private static final boolean ENABLED = !FMLEnvironment.production && Boolean.getBoolean("tno.phase6.energyNativePath");
+    private static Session active;
+    private Phase6EnergyNativePathResearch() { }
+    public static void onServerStarted(ServerStartedEvent event) {
+        if (ENABLED) { registerEnergyEvent(); active = new Session(event.getServer()); }
+    }
+    private static void registerEnergyEvent() {
+        Class<?> listenerType=type("io.github.manasmods.tensura.event.TensuraEntityEvents$EnergyDrainEvent");
+        Object listener=Proxy.newProxyInstance(listenerType.getClassLoader(),new Class<?>[]{listenerType},(proxy,method,args)->{
+            if(method.getDeclaringClass()==Object.class) return switch(method.getName()) {
+                case "toString" -> "TNO read-only Energy research";
+                case "hashCode" -> System.identityHashCode(proxy);
+                case "equals" -> proxy==args[0]; default -> null;
+            };
+            if(active!=null && active.running && args[0]==active.target && args[1]==active.player) {
+                drain("energy_event",(LivingEntity)args[0],(Entity)args[1],((Number)call(args[4],"get")).doubleValue(),
+                        (Boolean)call(args[5],"get"),(EnergyHelper.DrainType)call(args[2],"get"),(EnergyHelper.GainType)call(args[3],"get"),null);
+            }
+            return EventResult.pass();
+        });
+        call(staticField("io.github.manasmods.tensura.event.TensuraEntityEvents","ENERGY_DRAIN_EVENT"),"register",listener);
+    }
+    public static void effect(String boundary,EnergyStealEntity effect,int level,EnchantedItemInUse item,Entity target) {
+        if(active==null || !active.running || target!=active.target) return;
+        JsonObject trace=active.trace(boundary);
+        trace.addProperty("native_percentage",(double)effect.percentage().calculate(level));
+        trace.addProperty("configured_cooldown",effect.cooldown()); trace.addProperty("enchantment_level",level);
+        trace.addProperty("effect_owner_retained",item.owner()==active.player);
+        trace.addProperty("effect_item",item.itemStack().getItem().toString());
+        trace.addProperty("effect_stage",ProductionStageScaling.stage(item.itemStack()).map(Enum::name).orElse("NONE"));
+        trace.addProperty("effect_weapon_same_components",ItemStack.isSameItemSameComponents(item.itemStack(),active.projectile.getWeaponItem()));
+        active.traces.add(trace);
+    }
+    public static void drain(String boundary,LivingEntity target,Entity owner,double amount,boolean percentage,
+                             EnergyHelper.DrainType drainType,EnergyHelper.GainType gainType,Boolean result) {
+        if(active==null || !active.running || target!=active.target || owner!=active.player) return;
+        JsonObject trace=active.trace(boundary);trace.addProperty("percentage",percentage);trace.addProperty("amount",amount);
+        trace.addProperty("drain_type",drainType.name());trace.addProperty("gain_type",gainType.name());
+        if(result!=null) trace.addProperty("result",result); active.traces.add(trace);
+    }
+    public static void cooldown(ItemCooldowns tracker,String boundary,Item item,Integer ticks) {
+        if(active==null || !active.running || tracker!=active.player.getCooldowns()) return;
+        JsonObject trace=active.trace(boundary); if(item!=null) trace.addProperty("item",item.toString());
+        if(ticks!=null) trace.addProperty("requested_ticks",ticks); active.traces.add(trace);
+    }
+    public static void onServerTick(ServerTickEvent.Post event) {
+        if (active == null) return;
+        try { active.tick(); } catch (Throwable error) {
+            JsonObject failure = new JsonObject(); failure.addProperty("error", error.toString());
+            TNOTensuraCompat.LOGGER.error("Energy native-path research failed", error);
+            log("error", failure); active.finish(false);
+        }
+    }
+    public static void observe(String boundary, Entity target, DamageSource source, float amount, Boolean result) {
+        if (active == null || !active.running || target != active.target) return;
+        JsonObject trace = active.trace(boundary);
+        trace.addProperty("amount", amount);
+        if (source != null) {
+            trace.addProperty("source", source.typeHolder().unwrapKey().orElseThrow().location().toString());
+            trace.addProperty("source_object", System.identityHashCode(source));
+            trace.addProperty("message", source.getMsgId());
+            trace.addProperty("direct", entityId(source.getDirectEntity()));
+            trace.addProperty("direct_uuid", source.getDirectEntity() == null ? "NONE" : source.getDirectEntity().getStringUUID());
+            trace.addProperty("owner_retained", source.getEntity() == active.player);
+            JsonArray tags = new JsonArray(); source.typeHolder().tags().map(tag -> tag.location().toString()).sorted().forEach(tags::add);
+            trace.add("tags", tags);
+            trace.addProperty("resistance_bypass", ((Number)call(source, "tensura$getResistanceBypassLevel")).doubleValue());
+        }
+        if (result != null) trace.addProperty("result", result);
+        active.traces.add(trace);
+    }
+    public static void health(LivingEntity target, float value, boolean after) {
+        if(active==null || !active.running || (target!=active.target && target!=active.player)) return;
+        ledger(target==active.target ? "hp":"owner_hp",value,after);
+    }
+    public static void energy(IExistence storage, String resource, double value, boolean after) {
+        if(active==null || !active.running) return;
+        if(storage==TensuraStorages.getExistenceFrom(active.target)) ledger(resource,value,after);
+        else if(storage==TensuraStorages.getExistenceFrom(active.player)) ledger(resource.equals("shp") ? "owner_shp" : resource.replace("target_","owner_"),value,after);
+    }
+    private static void ledger(String resource,double value,boolean after) {
+        JsonObject trace=active.trace(after ? "resource_after":"resource_before");
+        trace.addProperty("resource",resource); trace.addProperty("requested",value);
+        JsonArray callers=new JsonArray(); StackWalker.getInstance().walk(frames -> frames
+                .map(frame -> frame.getClassName()+"."+frame.getMethodName())
+                .filter(name -> !name.startsWith("com.tno.") && !name.contains("tno$") && !name.endsWith(".setHealth") && !name.endsWith(".setMagicule") && !name.endsWith(".setAura"))
+                .limit(9).toList()).forEach(callers::add);
+        trace.add("native_callers",callers); active.traces.add(trace);
+    }
+    public static void onIncomingHighest(LivingIncomingDamageEvent event) { incoming(event, "incoming_highest"); }
+    public static void onIncomingLowest(LivingIncomingDamageEvent event) { incoming(event, "incoming_lowest"); }
+    private static void incoming(LivingIncomingDamageEvent event, String name) {
+        observe(name, event.getEntity(), event.getSource(), event.getAmount(), !event.isCanceled());
+    }
+    public static void onDamagePost(LivingDamageEvent.Post event) {
+        observe("damage_post", event.getEntity(), event.getSource(), event.getNewDamage(), null);
+    }
+    private static final class Session {
+        final MinecraftServer server; final ServerLevel level; final boolean alreadyForced;
+        final List<Case> cases = new ArrayList<>();
+        final double laneX = 1288.5, startZ = 1282.5, targetZ = 1288.5;
+        FakePlayer player; LivingEntity target; AbstractArrow projectile; Object l2Cap;
+        JsonObject row; JsonArray traces = new JsonArray();
+        int index, step, releaseTick, readyWait; boolean running;
+        Session(MinecraftServer server) {
+            this.server = server; level = server.overworld();
+            if (!ModList.get().isLoaded("l2hostility") || !ModList.get().isLoaded("apotheosis"))
+                throw new IllegalStateException("Full stack required");
+            cases.add(new Case("neutral", "vanilla_plain")); cases.add(new Case("neutral", "vanilla_energy"));
+            alreadyForced = level.getForcedChunks().contains(new net.minecraft.world.level.ChunkPos(80,80).toLong());
+            level.setChunkForced(80,80,true); level.getChunk(80,80);
+            server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withSuppressedOutput(), "tick sprint 1000000");
+            JsonObject catalog = new JsonObject(); catalog.addProperty("requested_cases", cases.size());
+            catalog.addProperty("baseline", "7bcbcdd4c4f43712e0fbe33a13ae5001a53e2d99");
+            catalog.addProperty("checkpoint","ES2");
+            catalog.addProperty("setup", "Native spawned ticking targets; survival FakePlayer without skill/resource/capacity grants; native cooldown tracker ticked once/server tick by fixture scheduler; no cooldown resets; legal isolated enchantment/gear EP fixture");
+            JsonObject mods = new JsonObject(); ModList.get().getMods().forEach(mod -> mods.addProperty(mod.getModId(), mod.getVersion().toString()));
+            catalog.add("mods", mods); log("catalog", catalog);
+        }
+        void tick() {
+            if (step == 0) { if(index == cases.size()) { finish(true); return; } setup(); }
+            // FakePlayer is absent from the real player list. Advance its native clock exactly once here.
+            // Read-only observers record this scheduler action; they never modify cooldown or its result.
+            player.getCooldowns().tick();
+            if(step == 1 && (target.tickCount == 0 || level.getEntity(target.getUUID()) != target)) {
+                if(++readyWait > 2000) throw new IllegalStateException("Target not ticking"); return;
+            }
+            if(step == 5) configureL2();
+            if(step == 10) installProfile();
+            if(step == 20) release();
+            if(step == 45) { complete(); return; }
+            step++;
+        }
+        void setup() {
+            running = false; traces = new JsonArray(); readyWait = 0;
+            Case spec = cases.get(index);
+            player = FakePlayerFactory.get(level, new GameProfile(UUID.nameUUIDFromBytes(("energy-"+spec).getBytes(StandardCharsets.UTF_8)), "TNO_E_"+index));
+            player.getInventory().clearContent(); player.setPos(laneX,200,startZ);
+            player.getAbilities().instabuild = false; player.getAbilities().invulnerable = false;
+            ResourceLocation targetId = id(spec.target.equals("neutral") ? "minecraft:iron_golem"
+                    : (spec.target.equals("luminous_valentine") ? "tensura_neb:" : "tensura:")+spec.target);
+            if(!BuiltInRegistries.ENTITY_TYPE.containsKey(targetId)) throw new IllegalStateException("Missing target "+targetId);
+            target = (LivingEntity)BuiltInRegistries.ENTITY_TYPE.get(targetId).create(level);
+            if(target == null) throw new IllegalStateException("Cannot spawn target");
+            target.setPos(laneX,200,targetZ); target.setNoGravity(true);
+            level.addFreshEntity(target); l2Cap = null;
+        }
+        void configureL2() {
+            Object type = call(staticField("dev.xkmc.l2hostility.init.registrate.LHMiscs", "MOB"), "type");
+            l2Cap = call(type,"getOrCreate",target);
+            Object config = call(l2Cap,"getConfigCache",target);
+            if(config == null && cases.get(index).target.equals("neutral")) { l2Cap=null; return; }
+            if(config == null) throw new IllegalStateException("Missing native L2 config");
+            Field max = field(config.getClass(),"maxLevel");
+            try { int previous=max.getInt(config);
+                try { max.setInt(config,1000); call(l2Cap,"reinit",target,cases.get(index).target.equals("neutral") ? 0 : 1000,false); }
+                finally { max.setInt(config,previous); }
+            } catch(IllegalAccessException e) { throw new IllegalStateException(e); }
+        }
+        @SuppressWarnings("unchecked")
+        void installProfile() {
+            if(l2Cap == null) return;
+            Case spec = cases.get(index);
+            Map<String,Integer> expected = spec.target.equals("neutral") ? Map.of() : spec.target.equals("orc_disaster")
+                    ? ((Map<Integer,Map<String,Integer>>)staticPrivate("ACCEPTED_ORC_ENDGAME_PROFILES")).get(1000)
+                    : ((Map<String,Map<String,Integer>>)staticPrivate("ACCEPTED_ENDGAME_PROFILES")).get(entityId(target));
+            if(expected == null) throw new IllegalStateException("No accepted profile for "+entityId(target));
+            Map<Object,Integer> traits = (Map<Object,Integer>)read(l2Cap,"traits");
+            for(Object trait : new ArrayList<>(traits.keySet())) { call(trait,"initialize",target,0); call(trait,"postInit",target,0); }
+            traits.clear(); ((Map<?,?>)read(l2Cap,"data")).clear(); ((Collection<?>)read(l2Cap,"pending")).clear();
+            Object registry=call(staticField("dev.xkmc.l2hostility.init.registrate.LHTraits","TRAITS"),"get");
+            for(Object trait : (Iterable<?>)registry) if(expected.containsKey(traitId(trait))) {
+                traits.put(trait,expected.get(traitId(trait))); call(trait,"initialize",target,expected.get(traitId(trait)));
+            }
+            ((Collection<?>)read(l2Cap,"pending")).clear();
+            JsonObject wanted=new JsonObject(); expected.forEach(wanted::addProperty);
+            if(!traits().equals(wanted)) throw new IllegalStateException("Profile mismatch");
+        }
+        void release() {
+            Case spec=cases.get(index); installProfile();
+            target.setPos(laneX,200,targetZ); target.setDeltaMovement(Vec3.ZERO);
+            boolean royal=spec.mode.startsWith("royal");
+            ItemStack bow=new ItemStack(BuiltInRegistries.ITEM.get(id(royal ? "royalvariations:royal_bow" : "minecraft:bow")));
+            player.setItemInHand(InteractionHand.MAIN_HAND,bow);
+            player.setItemInHand(InteractionHand.OFF_HAND,new ItemStack(BuiltInRegistries.ITEM.get(id(royal ? "royalvariations:royal_arrow" : "minecraft:arrow")),64));
+            call(player,"detectEquipmentUpdates"); bow.set(DataComponents.ENCHANTMENTS,ItemEnchantments.EMPTY);
+            var engraving=server.registryAccess().registryOrThrow(Registries.ENCHANTMENT).getHolderOrThrow(ResourceKey.create(Registries.ENCHANTMENT,id("tensura:energy_steal")));
+            if(!engraving.value().canEnchant(bow)) throw new IllegalStateException("Illegal Energy Steal item");
+            if(!spec.mode.contains("plain")) bow.enchant(engraving,1);
+            if(royal) {
+                if(!bow.has(TensuraDataComponents.EP.get())) throw new IllegalStateException("No native gear conversion");
+                bow.set(TensuraDataComponents.EP.get(),spec.mode.endsWith("s7") ? 2_490_000D : 1000D);
+            }
+            Vec3 delta=target.getBoundingBox().getCenter().subtract(player.getEyePosition());
+            player.setYRot((float)Math.toDegrees(Math.atan2(-delta.x,delta.z)));
+            player.setXRot((float)-Math.toDegrees(Math.atan2(delta.y,delta.horizontalDistance()))); player.yHeadRot=player.getYRot();
+            row=new JsonObject(); row.addProperty("case",index); row.addProperty("mode",spec.mode); row.addProperty("target",spec.target);
+            row.addProperty("target_id",entityId(target)); row.addProperty("target_uuid",target.getStringUUID()); row.addProperty("owner_uuid",player.getStringUUID());
+            row.addProperty("bow",bow.getItem().toString()); row.addProperty("legal_enchantment",true); row.addProperty("enchanted",!spec.mode.contains("plain"));
+            row.addProperty("stage",ProductionStageScaling.stage(bow).map(Enum::name).orElse("NONE"));
+            row.addProperty("owner_creative",player.getAbilities().instabuild); row.add("owner_skills",skills(player)); row.add("target_skills",skills(target));
+            row.addProperty("l2_initialized",l2Cap!=null && Boolean.TRUE.equals(call(l2Cap,"isInitialized"))); row.addProperty("l2_level",l2Cap==null ? 0 : ((Number)call(l2Cap,"getLevel")).intValue());
+            if(!spec.target.equals("neutral") && !row.get("l2_initialized").getAsBoolean()) throw new IllegalStateException("L2 not initialized");
+            row.addProperty("target_no_ai",target instanceof Mob mob && mob.isNoAi()); row.add("traits",traits());
+            row.addProperty("target_tick_at_release",target.tickCount); row.addProperty("native_immune",EnergyHelper.hasEnergyDrainImmunity(target,player));
+            row.addProperty("energy_protection",((Number)call(type("io.github.manasmods.tensura.enchantment.TensuraEnchantmentHelper"),"getEnchantmentLevel",level,
+                    staticField("io.github.manasmods.tensura.enchantment.TensuraEnchantments","ENERGY_PROTECTION"),target)).intValue());
+            row.addProperty("physical_resistance",toggled(target,"PHYSICAL_ATTACK_RESISTANCE")); row.addProperty("physical_nullification",toggled(target,"PHYSICAL_ATTACK_NULLIFICATION"));
+            row.add("pre",snapshot());
+            bow.use(level,player,InteractionHand.MAIN_HAND);
+            if(!player.isUsingItem()) throw new IllegalStateException("Bow use rejected");
+            bow.releaseUsing(level,player,bow.getUseDuration(player)-20); player.stopUsingItem();
+            var spawned=level.getEntitiesOfClass(Projectile.class,player.getBoundingBox().inflate(32),entity -> entity.getOwner()==player);
+            row.addProperty("spawn_count",spawned.size());
+            if(spawned.size()!=1 || !(spawned.getFirst() instanceof AbstractArrow)) throw new IllegalStateException("Unexpected release");
+            projectile=(AbstractArrow)spawned.getFirst();
+            row.addProperty("projectile",entityId(projectile)); row.addProperty("projectile_uuid",projectile.getStringUUID());
+            row.addProperty("owner_retained",projectile.getOwner()==player); row.addProperty("weapon_retained",projectile.getWeaponItem()!=null);
+            row.addProperty("weapon_energy_level",projectile.getWeaponItem()==null ? -1 : projectile.getWeaponItem().getEnchantmentLevel(engraving));
+            row.addProperty("weapon_item",projectile.getWeaponItem().getItem().toString());
+            row.addProperty("weapon_components",projectile.getWeaponItem().getComponents().toString());
+            row.addProperty("can_hit",Boolean.TRUE.equals(call(projectile,"canHitEntity",target)));
+            row.addProperty("base_damage",projectile.getBaseDamage()); row.addProperty("speed",projectile.getDeltaMovement().length());
+            row.addProperty("delivery",royal ? "native_final_lane_ticks" : "native_free_ticks");
+            if(royal) {
+                // The same final lane as the accepted historical fixture, followed by real ticks in native mode.
+                // No collision, hit-admission, damage, critical roll or cooldown is supplied by this setup.
+                Vec3 aim=target.getBoundingBox().getCenter(); Vec3 direction=aim.subtract(projectile.position()).normalize();
+                double speed=projectile.getDeltaMovement().length(); projectile.setPos(aim.subtract(direction.scale(2))); projectile.setDeltaMovement(direction.scale(speed));
+            }
+            releaseTick=server.getTickCount(); running=true;
+        }
+        JsonObject snapshot() {
+            JsonObject value=new JsonObject(); var targetStorage=TensuraStorages.getExistenceFrom(target); var ownerStorage=TensuraStorages.getExistenceFrom(player);
+            value.addProperty("hp",target.getHealth()); value.addProperty("shp",targetStorage.getSpiritualHealth());
+            value.addProperty("target_magicule",targetStorage.getMagicule()); value.addProperty("target_aura",targetStorage.getAura());
+            value.addProperty("owner_hp",player.getHealth()); value.addProperty("owner_shp",ownerStorage.getSpiritualHealth());
+            value.addProperty("owner_magicule",ownerStorage.getMagicule()); value.addProperty("owner_aura",ownerStorage.getAura());
+            value.addProperty("owner_max_magicule",EnergyHelper.getMaxMagicule(player));value.addProperty("owner_max_aura",EnergyHelper.getMaxAura(player));
+            value.addProperty("target_max_magicule",EnergyHelper.getMaxMagicule(target));value.addProperty("target_max_aura",EnergyHelper.getMaxAura(target));
+            value.addProperty("owner_magicule_attribute",player.getAttributeValue(TensuraAttributes.MAX_MAGICULE));value.addProperty("owner_aura_attribute",player.getAttributeValue(TensuraAttributes.MAX_AURA));
+            value.addProperty("owner_magicule_limit",player.getAttributeValue(TensuraAttributes.LIMITED_SPIRITUAL_MAX_MAGICULE));value.addProperty("owner_aura_limit",player.getAttributeValue(TensuraAttributes.LIMITED_SPIRITUAL_MAX_AURA));
+            value.addProperty("target_max_hp",target.getMaxHealth());value.addProperty("target_max_shp",target.getAttributeValue(TensuraAttributes.MAX_SPIRITUAL_HEALTH));
+            value.addProperty("owner_alive",player.isAlive());value.addProperty("target_alive",target.isAlive());
+            int clock=((Number)read(player.getCooldowns(),"tickCount")).intValue();
+            Object itemCooldown=((Map<?,?>)read(player.getCooldowns(),"cooldowns")).get(player.getMainHandItem().getItem());
+            value.addProperty("item_clock",clock);value.addProperty("item_cooldown",itemCooldown==null ? 0 : Math.max(0,((Number)read(itemCooldown,"endTime")).intValue()-clock));
+            value.addProperty("cooldown",target.invulnerableTime); value.addProperty("target_tick",target.tickCount);
+            value.addProperty("target_position",target.position().toString());
+            if(projectile!=null) { value.addProperty("projectile_position",projectile.position().toString()); value.addProperty("projectile_motion",projectile.getDeltaMovement().toString()); }
+            if(cases.get(index).target.equals("gazel_dwargo")) value.addProperty("native_phase",((Number)call(target,"getPhase")).intValue());
+            JsonArray effects=new JsonArray(); target.getActiveEffects().forEach(effect -> effects.add(effect.toString())); value.add("effects",effects);
+            return value;
+        }
+        JsonObject trace(String name) {
+            JsonObject trace=snapshot(); trace.addProperty("boundary",name); trace.addProperty("relative_tick",server.getTickCount()-releaseTick);
+            trace.addProperty("sequence",traces.size());trace.addProperty("projectile_uuid",projectile.getStringUUID());
+            trace.addProperty("target_uuid",target.getStringUUID());trace.addProperty("owner_uuid",player.getStringUUID());
+            trace.addProperty("projectile_age",projectile.tickCount); return trace;
+        }
+        JsonObject traits() {
+            JsonObject result=new JsonObject(); if(l2Cap!=null) ((Map<?,?>)read(l2Cap,"traits")).forEach((trait,rank)->result.addProperty(traitId(trait),(Number)rank)); return result;
+        }
+        void complete() {
+            row.add("post",snapshot()); row.add("traits_after",traits()); row.add("traces",traces);
+            row.addProperty("projectile_age_end",projectile.tickCount); row.addProperty("projectile_removed",projectile.isRemoved());
+            row.addProperty("observation_ticks",server.getTickCount()-releaseTick); log("row",row);
+            cleanup(); index++; step=0;
+        }
+        void cleanup() {
+            running=false; if(projectile!=null) projectile.discard(); if(target!=null) target.discard();
+            if(player!=null) { player.getInventory().clearContent(); player.setPos(1280.5,-200,1280.5); }
+            projectile=null; target=null; player=null; l2Cap=null;
+        }
+        void finish(boolean success) {
+            cleanup(); if(!alreadyForced) level.setChunkForced(80,80,false);
+            JsonObject result=new JsonObject(); result.addProperty("status",success ? "complete":"error"); result.addProperty("completed_cases",index);
+            result.addProperty("requested_cases",cases.size()); result.addProperty("force_load_restored",true); log("suite_result",result);
+            active=null; server.halt(false);
+        }
+    }
+    private record Case(String target,String mode) { }
+    private static boolean toggled(LivingEntity entity,String name) {
+        Object skill=call(staticField("io.github.manasmods.tensura.registry.skill.ResistanceSkills",name),"get");
+        return Boolean.TRUE.equals(call(type("io.github.manasmods.tensura.ability.SkillUtils"),"isSkillToggled",entity,skill));
+    }
+    private static JsonArray skills(LivingEntity entity) {
+        JsonArray result=new JsonArray(); Object skills=call(type("io.github.manasmods.manascore.skill.api.SkillAPI"),"getSkillsFrom",entity);
+        for(Object skill:(Collection<?>)call(skills,"getLearnedSkills")) result.add(call(skill,"toNBT").toString()); return result;
+    }
+    private static String entityId(Entity entity) { return entity==null ? "NONE":BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString(); }
+    private static ResourceLocation id(String id) { return ResourceLocation.parse(id); }
+    private static String traitId(Object trait) { return String.valueOf(call(Phase5FSuiteBBenchmark.class,"traitId",trait)); }
+    private static Class<?> type(String name) { try { return Class.forName(name); } catch(ReflectiveOperationException e) { throw new IllegalStateException(e); } }
+    private static Object staticField(String name,String field) { try { return type(name).getField(field).get(null); } catch(ReflectiveOperationException e) { throw new IllegalStateException(e); } }
+    private static Field field(Class<?> type,String name) {
+        for(Class<?> current=type;current!=null;current=current.getSuperclass()) {
+            try { Field field=current.getDeclaredField(name); field.setAccessible(true); return field; } catch(NoSuchFieldException ignored) { }
+        } throw new IllegalStateException("Missing field "+name);
+    }
+    private static Object read(Object object,String name) { try { return field(object.getClass(),name).get(object); } catch(ReflectiveOperationException e) { throw new IllegalStateException(e); } }
+    private static Object staticPrivate(String name) { try { return field(Phase5FSuiteBBenchmark.class,name).get(null); } catch(ReflectiveOperationException e) { throw new IllegalStateException(e); } }
+    private static Object call(Object target,String name,Object... args) {
+        try { Method method=Phase5FSuiteBBenchmark.class.getDeclaredMethod("invoke",Object.class,String.class,Object[].class); method.setAccessible(true); return method.invoke(null,target,name,args); }
+        catch(ReflectiveOperationException e) { throw new IllegalStateException("Native read/call failed: "+name,e); }
+    }
+    private static void log(String kind,JsonObject value) {
+        value.addProperty("schema","tno.phase6.energy_native_path.runtime.v1"); value.addProperty("kind",kind); TNOTensuraCompat.LOGGER.info("TNO_ENERGY_NATIVE_PATH "+value);
+    }
+}
