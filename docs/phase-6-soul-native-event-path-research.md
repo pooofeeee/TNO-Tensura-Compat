@@ -1,5 +1,7 @@
 # Soul Eater native-event-path research
 
+**Final decision: `SOUL_NATIVE_PATH_VALID_NO_FIX`.** Research is complete. No production fix or prototype was introduced. Stop for owner review; Energy Steal physical-prerequisite research is the next separate task and has not started.
+
 ## Recovery and scope
 
 Recovered accepted Elemental HEAD `deeb10247883b1825338349b8a6250e39d026a2e` after a clean working-tree inspection, fetch and live remote verification. No newer local/remote Soul work or interrupted runtime existed. Dedicated branch: `phase-6-soul-native-event-path-research`.
@@ -75,3 +77,27 @@ HP is independently attributed to the ordinary physical event and paired native 
 No selected profile has active **spiritual** Nullification. Its unchanged native early return is source-proven, not claimed exercised at runtime. Physical Nullification is exercised by Luminous. Hinata's native direct spiritual Resistance still uses HP/2 even when the existing S7 recovery code sets source Resistance metadata to 1; this is a native target limitation, not evidence of a missing Soul callback prerequisite. SHP-zero death, Berserker conversion and Training Dummy special behavior are source-only observations.
 
 S3 checks: both strict captures pass; 13 comparison corruption tests and eight focused follow-up corruption tests pass. Full-stack runtime completed normally. The original 320-row evidence and accepted production files remain unchanged. S4 remains pending until this checkpoint is pushed and verified.
+
+## S4 — final decision and validation
+
+S3 was pushed and remote-verified at `cabc3a658ff53800bcd3fcafd49eb7edafcb8435` before S4. Final machine decision: [s4-decision.json](benchmarks/phase6-soul-native-event-path/s4-decision.json).
+
+**Root cause of the historical conclusion:** ordinary NeoForge HP-event observation was used to infer absence of an effect delivered through Tensura's separate spiritual event and SHP storage. All 320 original rows already showed SHP loss. Both historical Royal collision delivery and real native ticking reach Soul Eater when native conditions allow it. This is not the Elemental empty-collision-overload defect. No missing production prerequisite is proved, so there is no justified native-path fix and no prototype.
+
+Exact path: native bow release creates an owned arrow retaining its enchanted weapon; native `AbstractArrow.onHitEntity` attempts ordinary physical `Entity.hurt`; Tensura's AFTER_ATTACK hook runs independently of that result; `TensuraEnchantmentHelper.doAdditionalAfterAttack` selects Soul Eater; `EnchantmentPostDamageWithTypeEffect.apply` passes TOTAL_ATTACK_MULTIPLY damage; `SpiritualDamageEntity.postDamage` checks cooldown/living target and constructs the native `tensura:soul_scatter` holder source with the owner; existing TNO Stage/Resistance integration runs once; native `directSpiritualHurt` enforces spiritual eligibility/defenses and dispatches `SPIRITUAL_HURT_EVENT`; accepted continuation writes SHP and syncs. Ordinary Soul HP incoming/applied events are absent by design in this branch.
+
+Permanent Stage, Magic/Holy, Royal physical damage, Resistance/Nullification, L2 and Candidate-C behavior remain unchanged. Git comparison against accepted Elemental HEAD verifies all pre-existing core, compatibility, production mixin and data files unchanged; historical viability and Elemental evidence are unchanged. New runner activation requires the explicit research flag and a non-production environment; observer calls return without work outside the active research session. No observer changes damage/source/eligibility arguments or event results; wrapped calls invoke the original once.
+
+`gradlew.bat clean build -Pphase5f_runtime_mods_dir=run/elemental-runtime-mods` passed. The 54 Java test results contain zero failures/errors/skips; Gradle reused three matching cached tasks. Before cleaning generated output, the entire prior build directory (including earlier ignored Elemental inspection work) was copied into `run/soul-preclean-build.zip`. Raw logs remain under `run/`; machine evidence and diagnostics are committed. Both formal comparison captures pass strict extraction; 21 S3/S3F corruption tests pass, in addition to the accepted nine S2 tests. Formal runtimes complete and shut down without research/mixin failures; existing optional-mod startup warnings are not claimed absent.
+
+Checkpoint record:
+
+| Checkpoint | Verified commit |
+| --- | --- |
+| S1 source audit | `5f83978c06dfdd620ce33f14f46511aa50378df0` |
+| S2 native control | `34457ee5eb2a9c1eba76353faf711da0e1f9bce4` |
+| S3a recovered partial protection | `c882e1885ed925f1dc24e47cf6c8960ad1400caa` |
+| S3 completed comparison | `cabc3a658ff53800bcd3fcafd49eb7edafcb8435` |
+| S4 final decision | The commit containing this final section and `s4-decision.json`; full live-verified SHA is reported to the owner after push. |
+
+This is a bounded native-path result, not sustained viability, full-roster, multiplayer or damage calibration. Native target limitations remain documented above, including the preserved flight miss and reconstructed NEB recovery attribution. Original Phase 7, Energy Steal and renewed Severance/Candidate-C work remain unstarted. **Next task after owner review: Energy Steal physical-prerequisite research.**
