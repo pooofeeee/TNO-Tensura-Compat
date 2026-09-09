@@ -11,6 +11,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 /** Read-only ledger for native Soul damage and later native SHP recovery. */
 @Mixin(value = ExistenceStorage.class, remap = false)
 public abstract class SoulStorageObservationMixin {
+    @Inject(method = "setMagicule", at = @At("HEAD"))
+    private void tno$soulMagiculeBefore(double value, CallbackInfo ci) { Phase6SoulNativePathResearch.energy((IExistence)this,"target_magicule",value,false); }
+    @Inject(method = "setMagicule", at = @At("RETURN"))
+    private void tno$soulMagiculeAfter(double value, CallbackInfo ci) { Phase6SoulNativePathResearch.energy((IExistence)this,"target_magicule",value,true); }
+    @Inject(method = "setAura", at = @At("HEAD"))
+    private void tno$soulAuraBefore(double value, CallbackInfo ci) { Phase6SoulNativePathResearch.energy((IExistence)this,"target_aura",value,false); }
+    @Inject(method = "setAura", at = @At("RETURN"))
+    private void tno$soulAuraAfter(double value, CallbackInfo ci) { Phase6SoulNativePathResearch.energy((IExistence)this,"target_aura",value,true); }
     @Inject(method = "setSpiritualHealth", at = @At("HEAD"))
     private void tno$soulStorageBefore(double value, CallbackInfo ci) {
         Phase6SoulNativePathResearch.storage((IExistence)this, value, false);

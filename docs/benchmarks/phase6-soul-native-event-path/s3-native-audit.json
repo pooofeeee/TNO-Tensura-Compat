@@ -1,0 +1,44 @@
+{
+  "schema": "tno.phase6.soul_native_path.comparison_static.v1",
+  "status": "PASS",
+  "tensura_sha256": "c12ec9aaa1488c662ede52b4bd0150ec114e7bdac32af20c0e723612dd79d8b9",
+  "neb_sha256": "99ce6e9fd6737278182e055a3fb98b5013a5c53cc7a62700078daa21e158778c",
+  "facts": [
+    {
+      "class": "io.github.manasmods.tensura.entity.human.GazelDwargoEntity",
+      "method": "hurt(DamageSource,float):boolean",
+      "finding": "phase 0 opening changes phase to 1, sets target and invulnerableTime=80, returns false before superclass HP events",
+      "runtime": "physical_return phase 1/cooldown 80, then Soul callback at cooldown 80 and no source"
+    },
+    {
+      "class": "io.github.manasmods.tensura_neb.entity.LuminousValentineEntity",
+      "method": "tick():void",
+      "bytecode": "415..433",
+      "finding": "heal(10) immediately followed by current SHP + 50 setter in non-phase-2 periodic branch; no clamp in this addition",
+      "runtime": "S3 row 15 has adjacent native NEB HP heal(10) stack and SHP+50; old SHP-only stack filter omitted addon namespace, so attribution combines adjacency and installed bytecode"
+    },
+    {
+      "class": "io.github.manasmods.tensura.util.EnergyHelper",
+      "method": "gainMagicule(LivingEntity,double,GainType):void",
+      "bytecode": "NORMAL branch 80..150",
+      "finding": "native NORMAL gain caps at max Magicule (with limited spiritual max), except when already over cap; drain victim loss can exceed recipient gain",
+      "scope": "Incidental Luminous AI accounting only; not Energy Steal engraving research"
+    },
+    {
+      "class": "io.github.manasmods.tensura.storage.ep.ExistenceStorage",
+      "method": "handleSpiritualHealthRegen(MinecraftServer,LivingEntity,IExistence):void",
+      "finding": "native SHP regeneration attribute with maximum clamp"
+    },
+    {
+      "class": "io.github.manasmods.tensura.effect.ability.InstantRegenerationEffect",
+      "method": "applyEffectTick(LivingEntity,int):boolean / healSHP(LivingEntity,IExistence,double,double,double):void",
+      "finding": "native SHP healing may consume Magicule; separate from Soul effect"
+    },
+    {
+      "class": "io.github.manasmods.tensura.ability.skill.resist.ResistSkill",
+      "method": "native event handling",
+      "finding": "matching physical Resistance uses configured HP damage threshold; Hinata active physical Resistance cancels ordinary physical incoming. Her separate direct spiritual Resistance gate is audited in S1."
+    }
+  ],
+  "production_changed": false
+}

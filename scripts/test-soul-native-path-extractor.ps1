@@ -1,18 +1,24 @@
-param([string]$EvidencePath='docs/benchmarks/phase6-soul-native-event-path/s2-runtime.jsonl',[string]$OutputPath)
+param([string]$EvidencePath='docs/benchmarks/phase6-soul-native-event-path/s2-runtime.jsonl',[ValidateSet('S2','S3')][string]$Checkpoint='S2',[string]$OutputPath)
 $ErrorActionPreference='Stop'
 $extractor=Join-Path $PSScriptRoot 'extract-phase6-soul-native-path.ps1'
 $baseline=Get-Content -LiteralPath $EvidencePath
-& $extractor -LogPath $EvidencePath | Out-Null
+& $extractor -LogPath $EvidencePath -Checkpoint $Checkpoint | Out-Null
 $mutations=[ordered]@{
     missing_spiritual_event={param($r) $r[2].traces=@($r[2].traces | Where-Object boundary -ne spiritual_event)}
     missing_physical_event={param($r) $r[2].traces=@($r[2].traces | Where-Object boundary -ne incoming_highest)}
     source_substitution={param($r) ($r[2].traces | Where-Object boundary -eq soul_source).source='tensura:magic'}
     duplicate_delivery={param($r) $r[2].projectile_uuid=$r[1].projectile_uuid}
     invalid_prerequisite={param($r) $r[2].can_hit=$false}
+    non_ticking_target={param($r) $r[2].target_tick_at_release=0}
     incorrect_resource_accounting={param($r) $r[2].post.shp+=1}
     duplicate_soul_write={param($r) $r[2].traces+=@($r[2].traces | Where-Object boundary -eq shp_write_after)}
     callback_order={param($r) $callback=@($r[2].traces | Where-Object boundary -eq soul_callback);$r[2].traces=@($callback)+@($r[2].traces | Where-Object boundary -ne soul_callback)}
     changed_source_tags={param($r) ($r[2].traces | Where-Object boundary -eq soul_source).tags+=@('tno:synthetic')}
+}
+if($Checkpoint -eq 'S3') {
+    $mutations['resistance_bypassed']={param($r) ($r[18].traces | Where-Object boundary -eq soul_return).result=$true}
+    $mutations['l2_profile_changed']={param($r) $r[5].traits.'l2hostility:tank'=0}
+    $mutations['native_cost_missing']={param($r) $r[13].traces=@($r[13].traces | Where-Object { !($_.boundary -eq 'resource_after' -and $_.resource -eq 'target_magicule') })}
 }
 $results=@()
 foreach($name in $mutations.Keys) {
@@ -21,7 +27,7 @@ foreach($name in $mutations.Keys) {
     try {
         [IO.File]::WriteAllLines($temp,@($records | ForEach-Object { $_ | ConvertTo-Json -Depth 60 -Compress }))
         $rejected=$false;$reason=''
-        try { & $extractor -LogPath $temp | Out-Null } catch { $rejected=$true;$reason=$_.Exception.Message }
+        try { & $extractor -LogPath $temp -Checkpoint $Checkpoint | Out-Null } catch { $rejected=$true;$reason=$_.Exception.Message }
         if(!$rejected) { throw "Accepted corruption: $name" }
         $results += [ordered]@{mutation=$name;rejected=$true;reason=$reason}
     } finally { Remove-Item -LiteralPath $temp }

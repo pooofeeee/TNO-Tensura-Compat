@@ -76,6 +76,7 @@ public final class Phase6SoulNativePathResearch {
         trace.addProperty("requested_shp", requested); active.traces.add(trace);
     }
     public static void storage(IExistence storage, double requested, boolean after) {
+        if(active!=null && active.running && storage==TensuraStorages.getExistenceFrom(active.player)) { ledger("owner_shp",requested,after); return; }
         if (active == null || !active.running || storage != TensuraStorages.getExistenceFrom(active.target)) return;
         JsonObject trace = active.trace(after ? "storage_after" : "storage_before");
         trace.addProperty("requested_shp", requested);
@@ -84,6 +85,24 @@ public final class Phase6SoulNativePathResearch {
                 .filter(name -> name.startsWith("io.github.manasmods.tensura.") && !name.contains("tno$") && !name.endsWith(".setSpiritualHealth"))
                 .limit(6).toList()).forEach(callers::add);
         trace.add("native_callers", callers); active.traces.add(trace);
+    }
+    public static void health(LivingEntity target, float value, boolean after) {
+        if(active==null || !active.running || (target!=active.target && target!=active.player)) return;
+        ledger(target==active.target ? "hp":"owner_hp",value,after);
+    }
+    public static void energy(IExistence storage, String resource, double value, boolean after) {
+        if(active==null || !active.running) return;
+        if(storage==TensuraStorages.getExistenceFrom(active.target)) ledger(resource,value,after);
+        else if(storage==TensuraStorages.getExistenceFrom(active.player)) ledger(resource.replace("target_","owner_"),value,after);
+    }
+    private static void ledger(String resource,double value,boolean after) {
+        JsonObject trace=active.trace(after ? "resource_after":"resource_before");
+        trace.addProperty("resource",resource); trace.addProperty("requested",value);
+        JsonArray callers=new JsonArray(); StackWalker.getInstance().walk(frames -> frames
+                .map(frame -> frame.getClassName()+"."+frame.getMethodName())
+                .filter(name -> !name.startsWith("com.tno.") && !name.contains("tno$") && !name.endsWith(".setHealth") && !name.endsWith(".setMagicule") && !name.endsWith(".setAura"))
+                .limit(9).toList()).forEach(callers::add);
+        trace.add("native_callers",callers); active.traces.add(trace);
     }
     public static void onIncomingHighest(LivingIncomingDamageEvent event) { incoming(event, "incoming_highest"); }
     public static void onIncomingLowest(LivingIncomingDamageEvent event) { incoming(event, "incoming_lowest"); }
@@ -104,7 +123,7 @@ public final class Phase6SoulNativePathResearch {
             if (!ModList.get().isLoaded("l2hostility") || !ModList.get().isLoaded("apotheosis"))
                 throw new IllegalStateException("Full stack required");
             if (Boolean.getBoolean("tno.phase6.soulComparison")) {
-                for (String target : List.of("neutral", "orc_disaster", "gazel_dwargo", "luminous_valentine"))
+                for (String target : List.of("neutral", "orc_disaster", "gazel_dwargo", "luminous_valentine", "hinata_sakaguchi"))
                     for (String mode : List.of("royal_legacy_s0", "royal_legacy_s7", "royal_native_s0", "royal_native_s7"))
                         cases.add(new Case(target, mode));
             } else {
@@ -216,6 +235,13 @@ public final class Phase6SoulNativePathResearch {
             row.addProperty("weapon_soul_level",projectile.getWeaponItem()==null ? -1 : projectile.getWeaponItem().getEnchantmentLevel(engraving));
             row.addProperty("can_hit",Boolean.TRUE.equals(call(projectile,"canHitEntity",target)));
             row.addProperty("base_damage",projectile.getBaseDamage()); row.addProperty("speed",projectile.getDeltaMovement().length());
+            row.addProperty("delivery",royal ? (spec.mode.contains("legacy") ? "legacy_collision" : "native_final_lane_ticks") : "native_free_ticks");
+            if(royal) {
+                // The same final lane as the accepted historical fixture, followed by real ticks in native mode.
+                // No collision, hit-admission, damage, critical roll or cooldown is supplied by this setup.
+                Vec3 aim=target.getBoundingBox().getCenter(); Vec3 direction=aim.subtract(projectile.position()).normalize();
+                double speed=projectile.getDeltaMovement().length(); projectile.setPos(aim.subtract(direction.scale(2))); projectile.setDeltaMovement(direction.scale(speed));
+            }
             releaseTick=server.getTickCount(); running=true;
             if(spec.mode.contains("legacy")) {
                 call(projectile,"setMarking",false); projectile.setCritArrow(false);
@@ -232,6 +258,7 @@ public final class Phase6SoulNativePathResearch {
             value.addProperty("owner_hp",player.getHealth()); value.addProperty("owner_shp",ownerStorage.getSpiritualHealth());
             value.addProperty("owner_magicule",ownerStorage.getMagicule()); value.addProperty("owner_aura",ownerStorage.getAura());
             value.addProperty("cooldown",target.invulnerableTime); value.addProperty("target_tick",target.tickCount);
+            if(cases.get(index).target.equals("gazel_dwargo")) value.addProperty("native_phase",((Number)call(target,"getPhase")).intValue());
             JsonArray effects=new JsonArray(); target.getActiveEffects().forEach(effect -> effects.add(effect.toString())); value.add("effects",effects);
             return value;
         }
@@ -244,6 +271,7 @@ public final class Phase6SoulNativePathResearch {
         }
         void complete() {
             row.add("post",snapshot()); row.add("traits_after",traits()); row.add("traces",traces);
+            row.addProperty("projectile_age_end",projectile.tickCount); row.addProperty("projectile_removed",projectile.isRemoved());
             row.addProperty("observation_ticks",server.getTickCount()-releaseTick); log("row",row);
             cleanup(); index++; step=0;
         }
