@@ -82,7 +82,7 @@ public final class Phase6SoulNativePathResearch {
         trace.addProperty("requested_shp", requested);
         JsonArray callers = new JsonArray();
         StackWalker.getInstance().walk(frames -> frames.map(frame -> frame.getClassName()+"."+frame.getMethodName())
-                .filter(name -> name.startsWith("io.github.manasmods.tensura.") && !name.contains("tno$") && !name.endsWith(".setSpiritualHealth"))
+                .filter(name -> name.startsWith("io.github.manasmods.") && !name.contains("tno$") && !name.endsWith(".setSpiritualHealth"))
                 .limit(6).toList()).forEach(callers::add);
         trace.add("native_callers", callers); active.traces.add(trace);
     }
@@ -115,6 +115,10 @@ public final class Phase6SoulNativePathResearch {
     private static final class Session {
         final MinecraftServer server; final ServerLevel level; final boolean alreadyForced;
         final List<Case> cases = new ArrayList<>();
+        final boolean followup = Boolean.getBoolean("tno.phase6.soulFollowup");
+        final double laneX = followup ? 1288.5 : 1280.5;
+        final double startZ = followup ? 1282.5 : 1280.5;
+        final double targetZ = followup ? 1288.5 : 1286.5;
         FakePlayer player; LivingEntity target; AbstractArrow projectile; Object l2Cap;
         JsonObject row; JsonArray traces = new JsonArray();
         int index, step, releaseTick, readyWait; boolean running;
@@ -122,7 +126,11 @@ public final class Phase6SoulNativePathResearch {
             this.server = server; level = server.overworld();
             if (!ModList.get().isLoaded("l2hostility") || !ModList.get().isLoaded("apotheosis"))
                 throw new IllegalStateException("Full stack required");
-            if (Boolean.getBoolean("tno.phase6.soulComparison")) {
+            if (followup) {
+                cases.add(new Case("neutral","royal_plain_s0"));
+                cases.add(new Case("neutral","royal_plain_s7"));
+                cases.add(new Case("hinata_sakaguchi","royal_native_s7"));
+            } else if (Boolean.getBoolean("tno.phase6.soulComparison")) {
                 for (String target : List.of("neutral", "orc_disaster", "gazel_dwargo", "luminous_valentine", "hinata_sakaguchi"))
                     for (String mode : List.of("royal_legacy_s0", "royal_legacy_s7", "royal_native_s0", "royal_native_s7"))
                         cases.add(new Case(target, mode));
@@ -133,7 +141,8 @@ public final class Phase6SoulNativePathResearch {
             level.setChunkForced(80,80,true); level.getChunk(80,80);
             server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withSuppressedOutput(), "tick sprint 1000000");
             JsonObject catalog = new JsonObject(); catalog.addProperty("requested_cases", cases.size());
-            catalog.addProperty("baseline", "5f83978c06dfdd620ce33f14f46511aa50378df0");
+            catalog.addProperty("baseline", "c882e1885ed925f1dc24e47cf6c8960ad1400caa");
+            catalog.addProperty("focused_followup",followup);
             catalog.addProperty("setup", "Native spawned ticking targets; native L2 initialization/profile; survival FakePlayer without skill/resource grants; no HP/SHP/cooldown setters; legal isolated enchantment/gear EP fixture");
             JsonObject mods = new JsonObject(); ModList.get().getMods().forEach(mod -> mods.addProperty(mod.getModId(), mod.getVersion().toString()));
             catalog.add("mods", mods); log("catalog", catalog);
@@ -153,14 +162,14 @@ public final class Phase6SoulNativePathResearch {
             running = false; traces = new JsonArray(); readyWait = 0;
             Case spec = cases.get(index);
             player = FakePlayerFactory.get(level, new GameProfile(UUID.nameUUIDFromBytes(("soul-"+spec).getBytes(StandardCharsets.UTF_8)), "TNO_S_"+index));
-            player.getInventory().clearContent(); player.setPos(1280.5,200,1280.5);
+            player.getInventory().clearContent(); player.setPos(laneX,200,startZ);
             player.getAbilities().instabuild = false; player.getAbilities().invulnerable = false;
             ResourceLocation targetId = id(spec.target.equals("neutral") ? "minecraft:iron_golem"
                     : (spec.target.equals("luminous_valentine") ? "tensura_neb:" : "tensura:")+spec.target);
             if(!BuiltInRegistries.ENTITY_TYPE.containsKey(targetId)) throw new IllegalStateException("Missing target "+targetId);
             target = (LivingEntity)BuiltInRegistries.ENTITY_TYPE.get(targetId).create(level);
             if(target == null) throw new IllegalStateException("Cannot spawn target");
-            target.setPos(1280.5,200,1286.5); target.setNoGravity(true);
+            target.setPos(laneX,200,targetZ); target.setNoGravity(true);
             level.addFreshEntity(target); l2Cap = null;
         }
         void configureL2() {
@@ -196,7 +205,7 @@ public final class Phase6SoulNativePathResearch {
         }
         void release() {
             Case spec=cases.get(index); installProfile();
-            target.setPos(1280.5,200,1286.5); target.setDeltaMovement(Vec3.ZERO);
+            target.setPos(laneX,200,targetZ); target.setDeltaMovement(Vec3.ZERO);
             boolean royal=spec.mode.startsWith("royal");
             ItemStack bow=new ItemStack(BuiltInRegistries.ITEM.get(id(royal ? "royalvariations:royal_bow" : "minecraft:bow")));
             player.setItemInHand(InteractionHand.MAIN_HAND,bow);
@@ -204,7 +213,7 @@ public final class Phase6SoulNativePathResearch {
             call(player,"detectEquipmentUpdates"); bow.set(DataComponents.ENCHANTMENTS,ItemEnchantments.EMPTY);
             var engraving=server.registryAccess().registryOrThrow(Registries.ENCHANTMENT).getHolderOrThrow(ResourceKey.create(Registries.ENCHANTMENT,id("tensura:soul_eater")));
             if(!engraving.value().canEnchant(bow)) throw new IllegalStateException("Illegal Soul Eater item");
-            if(!spec.mode.endsWith("plain")) bow.enchant(engraving,1);
+            if(!spec.mode.contains("plain")) bow.enchant(engraving,1);
             if(royal) {
                 if(!bow.has(TensuraDataComponents.EP.get())) throw new IllegalStateException("No native gear conversion");
                 bow.set(TensuraDataComponents.EP.get(),spec.mode.endsWith("s7") ? 2_490_000D : 1000D);
@@ -214,7 +223,7 @@ public final class Phase6SoulNativePathResearch {
             player.setXRot((float)-Math.toDegrees(Math.atan2(delta.y,delta.horizontalDistance()))); player.yHeadRot=player.getYRot();
             row=new JsonObject(); row.addProperty("case",index); row.addProperty("mode",spec.mode); row.addProperty("target",spec.target);
             row.addProperty("target_id",entityId(target)); row.addProperty("target_uuid",target.getStringUUID()); row.addProperty("owner_uuid",player.getStringUUID());
-            row.addProperty("bow",bow.getItem().toString()); row.addProperty("legal_enchantment",true); row.addProperty("enchanted",!spec.mode.endsWith("plain"));
+            row.addProperty("bow",bow.getItem().toString()); row.addProperty("legal_enchantment",true); row.addProperty("enchanted",!spec.mode.contains("plain"));
             row.addProperty("stage",ProductionStageScaling.stage(bow).map(Enum::name).orElse("NONE"));
             row.addProperty("owner_creative",player.getAbilities().instabuild); row.add("owner_skills",skills(player)); row.add("target_skills",skills(target));
             row.addProperty("l2_initialized",l2Cap!=null && Boolean.TRUE.equals(call(l2Cap,"isInitialized"))); row.addProperty("l2_level",l2Cap==null ? 0 : ((Number)call(l2Cap,"getLevel")).intValue());
@@ -258,6 +267,8 @@ public final class Phase6SoulNativePathResearch {
             value.addProperty("owner_hp",player.getHealth()); value.addProperty("owner_shp",ownerStorage.getSpiritualHealth());
             value.addProperty("owner_magicule",ownerStorage.getMagicule()); value.addProperty("owner_aura",ownerStorage.getAura());
             value.addProperty("cooldown",target.invulnerableTime); value.addProperty("target_tick",target.tickCount);
+            value.addProperty("target_position",target.position().toString());
+            if(projectile!=null) { value.addProperty("projectile_position",projectile.position().toString()); value.addProperty("projectile_motion",projectile.getDeltaMovement().toString()); }
             if(cases.get(index).target.equals("gazel_dwargo")) value.addProperty("native_phase",((Number)call(target,"getPhase")).intValue());
             JsonArray effects=new JsonArray(); target.getActiveEffects().forEach(effect -> effects.add(effect.toString())); value.add("effects",effects);
             return value;

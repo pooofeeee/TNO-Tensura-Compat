@@ -1,4 +1,4 @@
-param([string]$EvidencePath='docs/benchmarks/phase6-soul-native-event-path/s2-runtime.jsonl',[ValidateSet('S2','S3')][string]$Checkpoint='S2',[string]$OutputPath)
+param([string]$EvidencePath='docs/benchmarks/phase6-soul-native-event-path/s2-runtime.jsonl',[ValidateSet('S2','S3','S3F')][string]$Checkpoint='S2',[string]$OutputPath)
 $ErrorActionPreference='Stop'
 $extractor=Join-Path $PSScriptRoot 'extract-phase6-soul-native-path.ps1'
 $baseline=Get-Content -LiteralPath $EvidencePath
@@ -19,6 +19,18 @@ if($Checkpoint -eq 'S3') {
     $mutations['resistance_bypassed']={param($r) ($r[18].traces | Where-Object boundary -eq soul_return).result=$true}
     $mutations['l2_profile_changed']={param($r) $r[5].traits.'l2hostility:tank'=0}
     $mutations['native_cost_missing']={param($r) $r[13].traces=@($r[13].traces | Where-Object { !($_.boundary -eq 'resource_after' -and $_.resource -eq 'target_magicule') })}
+}
+if($Checkpoint -eq 'S3F') {
+    $mutations=[ordered]@{
+        soul_added_to_plain_control={param($r) $r[1].traces+=@($r[3].traces | Where-Object boundary -eq soul_callback)}
+        missing_physical_attempt={param($r) $r[3].traces=@($r[3].traces | Where-Object boundary -ne physical_attempt)}
+        substituted_soul_source={param($r) ($r[3].traces | Where-Object boundary -eq soul_source).source='tensura:magic'}
+        repeated_projectile={param($r) $r[3].projectile_uuid=$r[1].projectile_uuid}
+        resistance_bypassed={param($r) ($r[3].traces | Where-Object boundary -eq soul_return).result=$true}
+        invented_shp_loss={param($r) $r[3].post.shp-=1}
+        incorrect_stage={param($r) $r[2].stage='S0'}
+        non_ticking_target={param($r) $r[3].target_tick_at_release=0}
+    }
 }
 $results=@()
 foreach($name in $mutations.Keys) {

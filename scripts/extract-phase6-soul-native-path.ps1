@@ -1,4 +1,4 @@
-param([Parameter(Mandatory=$true)][string]$LogPath,[ValidateSet('S2','S3')][string]$Checkpoint='S2',
+param([Parameter(Mandatory=$true)][string]$LogPath,[ValidateSet('S2','S3','S3F')][string]$Checkpoint='S2',
       [string]$OutputPath,[string]$ValidationPath)
 $ErrorActionPreference='Stop'
 function Require($condition,$message) { if(!$condition) { throw $message } }
@@ -13,7 +13,7 @@ $records=@(foreach($line in [IO.File]::ReadLines((Resolve-Path -LiteralPath $Log
     $lines.Add($line);$value
 })
 $catalog=@($records | Where-Object kind -eq catalog);$suite=@($records | Where-Object kind -eq suite_result);$rows=@($records | Where-Object kind -eq row)
-$count=if($Checkpoint -eq 'S2'){2}else{20}
+$count=switch($Checkpoint){S2{2} S3{20} S3F{3}}
 Require ($catalog.Count -eq 1 -and $suite.Count -eq 1 -and $rows.Count -eq $count -and $records.Count -eq $count+2) 'Incomplete/error capture'
 Require ($catalog[0].requested_cases -eq $count -and $suite[0].completed_cases -eq $count -and $suite[0].status -eq 'complete' -and $suite[0].force_load_restored) 'Incomplete suite'
 foreach($mod in @('tensura','l2hostility','apotheosis','royalvariations','tensura_neb')) { Require ($null -ne $catalog[0].mods.$mod) "Missing mod $mod" }
@@ -26,6 +26,10 @@ foreach($row in $rows) {
     Require ($row.case -eq $i) "$label order"
     if($Checkpoint -eq 'S2') {
         Require ($row.mode -ceq @('vanilla_plain','vanilla_soul')[$i] -and $row.target -ceq 'neutral' -and $row.stage -ceq 'NONE') "$label matrix"
+    } elseif($Checkpoint -eq 'S3F') {
+        Require ($row.target -ceq @('neutral','neutral','hinata_sakaguchi')[$i] -and $row.mode -ceq @('royal_plain_s0','royal_plain_s7','royal_native_s7')[$i]) "$label follow-up matrix"
+        Require ($row.stage -ceq $(if($i -eq 0){'S0'}else{'S7'}) -and $row.enchanted -eq ($i -eq 2) -and $catalog[0].focused_followup) "$label follow-up Stage/enchantment"
+        Require ($row.delivery -ceq 'native_final_lane_ticks') "$label follow-up native delivery"
     } else {
         Require ($row.target -ceq @('neutral','orc_disaster','gazel_dwargo','luminous_valentine','hinata_sakaguchi')[[int][Math]::Floor($i/4)] -and $row.mode -ceq @('royal_legacy_s0','royal_legacy_s7','royal_native_s0','royal_native_s7')[$i%4]) "$label matrix"
         Require ($row.stage -ceq $(if($i%2 -eq 0){'S0'}else{'S7'})) "$label Stage"

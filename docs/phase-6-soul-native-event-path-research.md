@@ -55,3 +55,23 @@ Two extractor assumptions were corrected from evidence: recipient Magicule gain 
 One old observer filter omitted the NEB addon namespace. Row 15's SHP +50 is attributed by its immediately adjacent native `LuminousValentineEntity.tick` HP heal(10) and the exact installed bytecode sequence (see `s3-native-audit.json`). The SHP write and persistent amount are directly captured; that specific caller attribution is a reconstruction from adjacent runtime evidence and installed code. Native NEB addition can exceed SHP maximum until later ticks. No normalization was introduced.
 
 Row 19 (Hinata natural S7) has **no physical attempt**, a still-live projectile aged four ticks after 25 server ticks, and no Soul callback or resource change. It is explicitly a flight observation gap, not a Soul defense result. A focused native-flight follow-up and two Royal no-Soul controls remain unfinished. The prior diagnostics preserve shorter observer versions and actual trajectory misses unchanged. S3 is not complete until those follow-ups, final validation and remote protection; S4 has not started.
+
+## S3 — completed causal comparison
+
+Recovered work was first pushed and remote-verified as S3a `c882e1885ed925f1dc24e47cf6c8960ad1400caa`. Only the three unfinished cases were then run with `-Pphase6_soul_followup=true`, in a lane centered inside the forced chunk. No S1/S2 runtime or completed S3 case was repeated. The two Royal no-Soul controls (S0/S7) applied 9 and 8 physical HP damage, with no Soul callback/source/event and unchanged SHP. The Hinata S7 follow-up reached one real physical attempt, one incoming cancellation by physical Resistance, one Soul callback/source and the native spiritual HP/2 rejection. The earlier missing collision is preserved; its exact trajectory cause is not claimed proved.
+
+Formal follow-up: `s3f-runtime.jsonl`, `s3f-validation.json`, `s3f-extractor-tests.json`. `s3-comparison.json` is reproduced by `scripts/analyze-phase6-soul-native-path.ps1`, which revalidates both captures and cross-run projectile uniqueness. Across 23 Royal releases (including the preserved missed shot), there are **22 physical attempts, 18 physical incoming events, 10 physical applied events, 20 Soul callbacks, 16 native Soul sources and 12 accepted spiritual events/SHP subtractions**. Ordinary Soul HP incoming/applied counts are zero. Each spiritual-event acceptance is established by its native SHP write and true helper return. No duplicate physical/Soul delivery or recursion occurs.
+
+| Target | Physical attempts / incoming / applied | Soul callback / source / spiritual event | Gross SHP loss | Later SHP recovery |
+| --- | --- | --- | ---: | ---: |
+| Neutral (includes two plain controls) | 6 / 6 / 6 | 4 / 4 / 4 | 48.30 | 10.00 |
+| Orc | 4 / 4 / 4 | 4 / 4 / 4 | 40.25 | 10.00 |
+| Gazel | 4 / 0 / 0 | 4 / 0 / 0 | 0 | 0 |
+| Luminous | 4 / 4 / 0 | 4 / 4 / 4 | 46.20 | 78.00 |
+| Hinata (plus one preserved miss) | 4 / 4 / 0 | 4 / 4 / 0 | 0 | 0 |
+
+HP is independently attributed to the ordinary physical event and paired native health setters. Orc's L2/ordinary HP mitigation and healing remain active. Its SHP loss does not pass through ordinary L2 HP-event mitigation. Luminous's later SHP gains come from installed regeneration/NEB tick behavior, with actual costs and capped boss-AI drains separately recorded. No Soul invocation itself costs or transfers the observed owner/target Magicules or Aura. Soul source IDs/tags remain exact native values; Stage scales the legitimate amount once (S0 1.05, S7 1.40), with no added physical multiplier or Soul effect in plain controls.
+
+No selected profile has active **spiritual** Nullification. Its unchanged native early return is source-proven, not claimed exercised at runtime. Physical Nullification is exercised by Luminous. Hinata's native direct spiritual Resistance still uses HP/2 even when the existing S7 recovery code sets source Resistance metadata to 1; this is a native target limitation, not evidence of a missing Soul callback prerequisite. SHP-zero death, Berserker conversion and Training Dummy special behavior are source-only observations.
+
+S3 checks: both strict captures pass; 13 comparison corruption tests and eight focused follow-up corruption tests pass. Full-stack runtime completed normally. The original 320-row evidence and accepted production files remain unchanged. S4 remains pending until this checkpoint is pushed and verified.
