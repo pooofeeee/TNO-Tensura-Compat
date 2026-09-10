@@ -1,6 +1,6 @@
 # Energy Steal physical-prerequisite research
 
-Bounded post-Phase-6 / pre-Phase-7 causal research. **ES1, ES2, ES3a and ES3 are validated. ES3 proves the historical empty-world entity-tick suspension mechanism; ES4 and final clean build remain pending.** No production correction or bypass is authorized or implemented. Earlier ES3a uncertainty below records that checkpoint's status; ES3b supersedes it.
+Bounded post-Phase-6 / pre-Phase-7 causal research. **Complete: `ENERGY_NATIVE_PATH_VALID_NO_FIX`. ES1 through ES4 and the final clean build pass.** The historical empty-world entity-tick suspension mechanism is proven; no production correction or bypass is justified or implemented. Earlier pending states below record their checkpoint's status and are superseded by ES4. Stop for owner review; the six-family readiness assessment requires separate authorization.
 
 Branch: `phase-6-energy-steal-physical-prerequisite-research`.
 Accepted base: `38262bfa99ca4cecd3a2ba58cdb8cc6595893a4c` (Soul final, `SOUL_NATIVE_PATH_VALID_NO_FIX`). Fetch found no newer local or remote Energy work; the working tree was clean. No applicable `AGENTS.md` was found. Stage/Curve C/native EP and Magic/Holy production remain locked. Candidate C remains rejected and exhausted. Elemental and Soul are accepted, completed research; original Phase 7 remains unstarted.
@@ -114,8 +114,8 @@ The **historical 269/320 absent operations remain causally unresolved**: this li
 | ES1 | `7bcbcdd4c4f43712e0fbe33a13ae5001a53e2d99`, pushed and live-verified. |
 | ES2 | `86e0b6c24e619c6e3d6216590016478af7ed28ec`, pushed and live-verified. |
 | ES3a | `b414ffafa67ff989a6e61cbe5eb618a756a9b924`, validated 35-release native Royal comparison, pushed and live-verified. |
-| ES3 | Complete bounded causal reproduction below; protect the commit containing ES3b before starting ES4. |
-| ES4 | Pending bounded final decision, clean build and final push. |
+| ES3 | `6eaeabf7816177cdd0d95659c159a46d62f94c0e`, complete bounded causal reproduction, pushed and live-verified before ES4. |
+| ES4 | Complete final decision and validation; the commit containing the ES4 section/final-decision evidence is the final checkpoint. Resolve its full SHA from Git, not from a recursive self-reference. |
 
 No final Energy classification or production correction is claimed at ES3a. Resume the historical timing/physical-return comparison described above. After Energy closes, the next separately reviewed project task is a consolidated readiness assessment of all six Phase-6 families and remaining endgame limitations. Do not start that assessment or original Phase 7 automatically.
 
@@ -161,3 +161,17 @@ The source and differential establish the exact suspension/invulnerability mecha
 `es3b-historical-timing-audit.json` retains original/current fixture methods and installed world/hurt/Adaptive/healing bytecode. `es3-historical-reassessment.json` distinguishes new causal proof from old observational signatures. **28 corruption tests** reject manipulated returns, timers, world/target clocks, callback/drain counts, cooldowns, resource accounting, source identity, ordering and Adaptive memory. Both full-stack server runs completed successfully; the Java suite passed **54/54**, zero failures/errors/skips. Observer and locked-production audits pass. Original Phase 6, Magic/Holy, Candidate C, Elemental and Soul evidence remains unchanged.
 
 ES3 is complete and must be committed, pushed and live-SHA-verified before ES4. Exact next task: make the bounded terminal Energy decision, rerun the required evidence/test checks, perform the final clean build, protect ES4 remotely, then stop for owner review. Do not begin the six-family readiness assessment or original Phase 7.
+
+## ES4 — terminal decision and final validation
+
+**`ENERGY_NATIVE_PATH_VALID_NO_FIX`.** ES3 was pushed and live-verified at `6eaeabf7816177cdd0d95659c159a46d62f94c0e` with a clean working tree before this decision. The actual Royal path works whenever native physical admission and Energy eligibility allow it. ES3a's full-profile Lv1000 Orc results remain 10/10 at both S0 and S7; native Gazel and Luminous defenses still reject their controls. ES3b establishes that the historical fixture can stop native target ticks after the world's empty-time limit while continuing its own immediate collisions. Frozen post-hit invulnerability then legitimately rejects equal/lower incoming amounts before Energy callbacks. A development chunk ticket restores native entity ticking and all 20 tested operations without bypassing those rules.
+
+This evidence proves no missing production compatibility prerequisite. No permanent patch, fallback drain, resource subtraction, forced eligibility, resistance/nullification bypass, or L2 bypass was added. The opted-in historical observation and ticket control are research tools only. Native source identity, the existing Stage percentage wrapper, capacity rules, cooldown and eligibility remain authoritative. Normal Energy transfer removes current MP/AP, with no HP/SHP damage source; these admission results do not establish a standalone endgame kill-time or balance claim.
+
+Final strict validation passes **77 protected decisive rows**: ES2 2, ES3a 35, historical baseline 20, ticket counterpart 20. All Energy corruption suites pass: **15 + 19 + 28 = 62 rejections**. The final full-stack validation cross-checks all 40 ES3b records against the original benchmark's independently emitted projectile identities, incoming/drain counts, Stage and final resource observations. The full-stack runtime code is unchanged since ES3; accepted experiments were not repeated merely to close ES4.
+
+`gradlew.bat clean build -Pphase5f_runtime_mods_dir=run/elemental-runtime-mods --console=plain` completed successfully: eight actionable tasks, five executed and three restored from cache. The Java suite contains **54 tests, zero failures/errors/skips**; the same suite had also passed at ES3. Relevant pre-clean build outputs were preserved in `run/energy-es3-preclean-build.zip`. Final artifact/test/log hashes and the restored test results are recorded in `es4-build-validation.json`. Final observer audit, strict evidence/corruption results and full-stack cross-checks are retained in the ES4 artifacts.
+
+Locked production remains unchanged. The only Java changes since ES3a are the opt-in research observer and historical debug-fixture hooks. All pre-existing Phase 6, Magic/Holy, Candidate C, Elemental, Soul and Energy evidence remains untouched. Stage framework and Magic/Holy production remain complete and locked; Candidate C remains rejected and exhausted. No new family or original Phase 7 work started.
+
+The old 269 absences are structurally explained, with the per-row attribution limitation explicitly retained in ES3 and the final decision evidence. The protected ES3a and ES3b experiments must not be repeated on recovery without a new, specific evidence defect. **Exact next project task, only after owner authorization: consolidated readiness assessment of the six Phase-6 families and remaining endgame limitations. STOP for owner review after committing, pushing and verifying the ES4 remote SHA.**
