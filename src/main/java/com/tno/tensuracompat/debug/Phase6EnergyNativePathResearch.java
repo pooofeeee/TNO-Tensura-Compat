@@ -48,10 +48,51 @@ import java.util.*;
 /** Opt-in research; all damage and resource changes originate in unchanged native calls. */
 public final class Phase6EnergyNativePathResearch {
     private static final boolean ENABLED = !FMLEnvironment.production && Boolean.getBoolean("tno.phase6.energyNativePath");
+    private static final boolean HISTORICAL = !FMLEnvironment.production && Boolean.getBoolean("tno.phase6.energyHistorical");
+    private static final boolean HISTORICAL_TICKET = HISTORICAL && Boolean.getBoolean("tno.phase6.energyHistoricalTicket");
     private static Session active;
     private Phase6EnergyNativePathResearch() { }
     public static void onServerStarted(ServerStartedEvent event) {
-        if (ENABLED) { registerEnergyEvent(); active = new Session(event.getServer()); }
+        if (ENABLED && HISTORICAL) throw new IllegalStateException("Energy fixtures are mutually exclusive");
+        if (ENABLED || HISTORICAL) { registerEnergyEvent(); active = new Session(event.getServer()); }
+    }
+    public static boolean historicalEnabled() { return HISTORICAL; }
+    /** Bind observers to original fixture actors. The historical fixture owns every mutation and its schedule. */
+    public static void historicalShotBegin(FakePlayer player, LivingEntity target, AbstractArrow arrow,
+                                           Object l2Cap, int caseIndex, int shot) {
+        if (!HISTORICAL || active == null) return;
+        Session s=active;
+        if(s.running) throw new IllegalStateException("Overlapping historical release");
+        s.player=player; s.target=target; s.projectile=arrow; s.l2Cap=l2Cap; s.shot=shot;
+        s.releaseTick=s.server.getTickCount(); s.traces=new JsonArray(); s.row=new JsonObject();
+        JsonObject r=s.row;
+        r.addProperty("case",caseIndex);r.addProperty("shot",shot);r.addProperty("mode",HISTORICAL_TICKET ? "historical_with_native_ticket":"historical_original");
+        r.addProperty("target_id",entityId(target));r.addProperty("target_uuid",target.getStringUUID());r.addProperty("owner_uuid",player.getStringUUID());
+        r.addProperty("projectile",entityId(arrow));r.addProperty("projectile_uuid",arrow.getStringUUID());
+        r.addProperty("owner_retained",arrow.getOwner()==player);r.addProperty("weapon_retained",arrow.getWeaponItem()!=null);
+        r.addProperty("weapon_item",arrow.getWeaponItem().getItem().toString());r.addProperty("weapon_components",arrow.getWeaponItem().getComponents().toString());
+        r.addProperty("stage",ProductionStageScaling.stage(arrow.getWeaponItem()).map(Enum::name).orElse("NONE"));
+        r.addProperty("owner_creative",player.getAbilities().instabuild);r.add("owner_skills",skills(player));r.add("target_skills",skills(target));
+        r.addProperty("target_no_ai",target instanceof Mob mob && mob.isNoAi());r.addProperty("l2_level",((Number)call(l2Cap,"getLevel")).intValue());
+        r.addProperty("l2_initialized",Boolean.TRUE.equals(call(l2Cap,"isInitialized")));r.add("traits",s.traits());
+        r.addProperty("native_immune",EnergyHelper.hasEnergyDrainImmunity(target,player));
+        r.addProperty("can_hit",Boolean.TRUE.equals(call(arrow,"canHitEntity",target)));
+        r.addProperty("delivery","original_direct_collision_then_discard");
+        r.add("pre",s.snapshot());s.running=true;
+    }
+    public static void historicalShotEnd() {
+        if(!HISTORICAL || active==null || !active.running) return;
+        Session s=active;s.row.add("post",s.snapshot());s.row.add("traits_after",s.traits());s.row.add("traces",s.traces);
+        s.row.addProperty("observation_ticks",s.server.getTickCount()-s.releaseTick);
+        s.row.addProperty("projectile_removed",s.projectile.isRemoved());s.row.addProperty("projectile_age_end",s.projectile.tickCount);
+        log("row",s.row);s.completedRows++;s.running=false;
+    }
+    public static void historicalFinish() {
+        if(!HISTORICAL || active==null) return;
+        JsonObject r=new JsonObject();r.addProperty("status","complete");r.addProperty("completed_rows",active.completedRows);
+        if(HISTORICAL_TICKET && !active.alreadyForced) active.level.setChunkForced(0,1,false);
+        r.addProperty("target_chunk_force_restored",active.level.getForcedChunks().contains(new net.minecraft.world.level.ChunkPos(0,1).toLong())==active.alreadyForced);
+        r.addProperty("observer_did_not_schedule_actors",true);log("suite_result",r);active=null;
     }
     private static void registerEnergyEvent() {
         Class<?> listenerType=type("io.github.manasmods.tensura.event.TensuraEntityEvents$EnergyDrainEvent");
@@ -94,6 +135,10 @@ public final class Phase6EnergyNativePathResearch {
     }
     public static void onServerTick(ServerTickEvent.Post event) {
         if (active == null) return;
+        if (HISTORICAL) {
+            if(active.running) active.traces.add(active.trace("server_tick"));
+            return;
+        }
         try { active.tick(); } catch (Throwable error) {
             JsonObject failure = new JsonObject(); failure.addProperty("error", error.toString());
             TNOTensuraCompat.LOGGER.error("Energy native-path research failed", error);
@@ -156,6 +201,21 @@ public final class Phase6EnergyNativePathResearch {
             this.server = server; level = server.overworld();
             if (!ModList.get().isLoaded("l2hostility") || !ModList.get().isLoaded("apotheosis"))
                 throw new IllegalStateException("Full stack required");
+            if(HISTORICAL) {
+                alreadyForced=level.getForcedChunks().contains(new net.minecraft.world.level.ChunkPos(0,1).toLong());
+                // Single causal control, after the unchanged baseline proved world empty-time suspension.
+                // A legitimate chunk ticket keeps native entity ticks alive; no target timer is written.
+                if(HISTORICAL_TICKET) { level.setChunkForced(0,1,true);level.getChunk(0,1); }
+                cases.add(new Case("orc_disaster","historical_original",10));
+                JsonObject catalog=new JsonObject();catalog.addProperty("checkpoint","ES3B");
+                catalog.addProperty("baseline","b414ffafa67ff989a6e61cbe5eb618a756a9b924");
+                catalog.addProperty("mode",HISTORICAL_TICKET ? "historical_with_native_ticket":"historical_original");catalog.addProperty("requested_rows",20);
+                catalog.addProperty("target_chunk_previously_forced",alreadyForced);
+                catalog.addProperty("forced_chunks",level.getForcedChunks().toString());
+                catalog.addProperty("setup","Original Phase5FSuiteBBenchmark Energy actors and scheduler, restricted to Lv1000 S0/S7; observers supply no mutations");
+                JsonObject mods=new JsonObject();ModList.get().getMods().forEach(mod->mods.addProperty(mod.getModId(),mod.getVersion().toString()));
+                catalog.add("mods",mods);log("catalog",catalog);return;
+            }
             if(comparison) {
                 for(String target:List.of("neutral","orc_disaster"))
                     for(String mode:List.of("royal_plain_s0","royal_native_s0","royal_native_s7"))
@@ -306,6 +366,23 @@ public final class Phase6EnergyNativePathResearch {
             Object itemCooldown=((Map<?,?>)read(player.getCooldowns(),"cooldowns")).get(player.getMainHandItem().getItem());
             value.addProperty("item_clock",clock);value.addProperty("item_cooldown",itemCooldown==null ? 0 : Math.max(0,((Number)read(itemCooldown,"endTime")).intValue()-clock));
             value.addProperty("cooldown",target.invulnerableTime); value.addProperty("target_tick",target.tickCount);
+            if(HISTORICAL) {
+                value.addProperty("server_tick",server.getTickCount());
+                value.addProperty("world_empty_time",(Number)read(level,"emptyTime"));
+                value.addProperty("world_player_count",level.players().size());
+                value.addProperty("world_forced_chunks",level.getForcedChunks().size());
+                value.addProperty("entity_ticking_chunk",level.isPositionEntityTicking(target.blockPosition()));
+                value.addProperty("hurt_time",target.hurtTime);value.addProperty("hurt_duration",target.hurtDuration);
+                value.addProperty("last_hurt",(Number)read(target,"lastHurt"));
+                JsonObject adaptive=new JsonObject();
+                if(l2Cap!=null) for(Object data:((Map<?,?>)read(l2Cap,"data")).values())
+                    if(data.getClass().getName().endsWith("AdaptingTrait$Data")) {
+                        JsonArray memory=new JsonArray();((Collection<?>)read(data,"memory")).forEach(key->memory.add(key.toString()));
+                        adaptive.add("memory",memory);JsonObject counts=new JsonObject();
+                        ((Map<?,?>)read(data,"adaption")).forEach((key,count)->counts.addProperty(key.toString(),(Number)count));adaptive.add("counts",counts);
+                    }
+                value.add("adaptive",adaptive);
+            }
             value.addProperty("target_position",target.position().toString());
             if(projectile!=null) { value.addProperty("projectile_position",projectile.position().toString()); value.addProperty("projectile_motion",projectile.getDeltaMovement().toString()); }
             if(cases.get(index).target.equals("gazel_dwargo")) value.addProperty("native_phase",((Number)call(target,"getPhase")).intValue());

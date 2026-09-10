@@ -332,6 +332,7 @@ public final class Phase5FSuiteBBenchmark {
         try {
             session.tick();
             if (session.complete) {
+                Phase6EnergyNativePathResearch.historicalFinish();
                 active = null;
                 event.getServer().halt(false);
             }
@@ -521,6 +522,11 @@ public final class Phase5FSuiteBBenchmark {
                             : PRODUCTION_ACCEPTANCE ? "tno.phase6.productionAcceptanceBoss"
                             : ENDGAME_RESEARCH ? "tno.phase6.endgameBoss"
                             : SUITE_C ? "tno.phase5f.suiteCBoss" : "tno.phase5f.suiteBBoss", ""));
+            if (Phase6EnergyNativePathResearch.historicalEnabled()) {
+                if (!ENDGAME_RESEARCH || family != Family.ENERGY || MAX_SHOTS != 10 || WINDOW_TICKS != 200)
+                    throw new IllegalStateException("Historical Energy observation requires original ten-shot Energy schedule");
+                cases.removeIf(spec -> spec.level != 1000 || !(spec.stage.name.equals("S0") || spec.stage.name.equals("S7")));
+            }
             if (cases.isEmpty()) throw new IllegalStateException((CALIBRATION_COMBAT ? "Calibration"
                     : PRODUCTION_ACCEPTANCE ? "Production acceptance"
                     : "Suite " + (SUITE_C ? "C" : "B")) + " boss filter matched no targets");
@@ -961,6 +967,7 @@ public final class Phase5FSuiteBBenchmark {
 
         private void closeCurrentHit(int elapsed) {
             if (currentHit == null) return;
+            Phase6EnergyNativePathResearch.historicalShotEnd();
             currentHit.observe(target, player);
             currentHit.elapsedTicks = elapsed;
             result.hits.add(currentHit);
@@ -1361,6 +1368,7 @@ public final class Phase5FSuiteBBenchmark {
                 arrow.setDeltaMovement(direction.scale(speed));
                 arrow.hasImpulse = true;
                 try {
+                    Phase6EnergyNativePathResearch.historicalShotBegin(player, target, arrow, l2Cap, caseIndex, shotsReleased);
                     invoke(arrow, "onHitEntity", new EntityHitResult(target));
                     currentHit.captureImmediate(target, player);
                     arrow.discard();

@@ -1,6 +1,6 @@
 # Energy Steal physical-prerequisite research
 
-Bounded post-Phase-6 / pre-Phase-7 causal research. **ES1, ES2 and intermediate ES3a are validated. Historical failure diagnosis and ES4 remain unfinished.** No production correction or bypass is authorized or implemented.
+Bounded post-Phase-6 / pre-Phase-7 causal research. **ES1, ES2, ES3a and ES3 are validated. ES3 proves the historical empty-world entity-tick suspension mechanism; ES4 and final clean build remain pending.** No production correction or bypass is authorized or implemented. Earlier ES3a uncertainty below records that checkpoint's status; ES3b supersedes it.
 
 Branch: `phase-6-energy-steal-physical-prerequisite-research`.
 Accepted base: `38262bfa99ca4cecd3a2ba58cdb8cc6595893a4c` (Soul final, `SOUL_NATIVE_PATH_VALID_NO_FIX`). Fetch found no newer local or remote Energy work; the working tree was clean. No applicable `AGENTS.md` was found. Stage/Curve C/native EP and Magic/Holy production remain locked. Candidate C remains rejected and exhausted. Elemental and Soul are accepted, completed research; original Phase 7 remains unstarted.
@@ -113,8 +113,51 @@ The **historical 269/320 absent operations remain causally unresolved**: this li
 |---|---|
 | ES1 | `7bcbcdd4c4f43712e0fbe33a13ae5001a53e2d99`, pushed and live-verified. |
 | ES2 | `86e0b6c24e619c6e3d6216590016478af7ed28ec`, pushed and live-verified. |
-| ES3a | Validated 35-release native Royal comparison; commit containing this section and its evidence is remotely protected before continuing. |
-| ES3 | Historical 269 failures not causally reproduced; only evidence-implicated L2 decomposition is permitted. |
+| ES3a | `b414ffafa67ff989a6e61cbe5eb618a756a9b924`, validated 35-release native Royal comparison, pushed and live-verified. |
+| ES3 | Complete bounded causal reproduction below; protect the commit containing ES3b before starting ES4. |
 | ES4 | Pending bounded final decision, clean build and final push. |
 
 No final Energy classification or production correction is claimed at ES3a. Resume the historical timing/physical-return comparison described above. After Energy closes, the next separately reviewed project task is a consolidated readiness assessment of all six Phase-6 families and remaining endgame limitations. Do not start that assessment or original Phase 7 automatically.
+
+## ES3b — historical empty-world suspension reproduced
+
+Recovery found a clean working tree at ES3a `b414ffafa67ff989a6e61cbe5eb618a756a9b924`; fetch and live remote lookup matched it. No newer or unfinished Energy work existed. ES1, ES2 and the accepted ES3a experiments were not repeated. The owner's resume instruction specifically authorized observation of the unchanged historical fixture and one-property causal controls.
+
+The historical fixture was traced back to `0cc6005` and compared with its current source. It creates the first native target at each level, saves a pristine pre-combat NBT template, and uses fresh clones for subsequent Stages. Within each case it reuses the target, FakePlayer and mainhand bow for ten releases. Original setup fills target pools/HP, empties attacker MP/AP, and resets invulnerability once per case. The historical creative attacker has explicitly configured capacity attributes; these existing fixture grants are observed, not introduced by this research or proposed as gameplay requirements. The new observer supplies none.
+
+`ServerTick.Post` stabilizes positions and advances the FakePlayer's native item cooldown exactly once. Releases remain 20 server ticks apart in a 200-tick window; the final observation lasts 19 ticks. The original bow `releaseUsing` creates the real Royal Arrow. Its native eligibility is checked, marking and critical-arrow state retain the historical isolation settings, then its own `onHitEntity` is invoked and it is discarded immediately. Its age is zero. No native Energy function is invoked by the fixture. AI is enabled; position stabilization does not advance native entity ticks. Native trait memory is retained across shots and reset only at the next case's profile initialization.
+
+An initial single S7 startup control succeeded **10/10** (`es3b-startup-control.jsonl`). It ended at server tick 212, before the relevant native boundary. This valid diagnostic is preserved separately and is not included in the decisive differential. It rules out immediate dispatch alone as a sufficient cause in this fixture.
+
+The smallest original sequence crossing the boundary is two Lv1000 cases, S0 then S7, retaining the historical pristine-clone policy. The seven accepted Orc traits remain present in both cases. The baseline changes only case selection and adds the existing read-only boundary/resource observers. Its actual physical `hurt` return is captured by the original-once arrow wrapper.
+
+| Capture / Stage | Attempts / incoming / applied / hurt true | Callback / apply / drain / successful drain | Target MP loss | Target AP loss | Physical HP loss / healing |
+|---|---|---|---:|---:|---:|
+| Original, S0 | 10 / 10 / 10 / 10 | 10 / 10 / 10 / 10 | 520,021.946634 | 110.249998 | 1.522461 / 1.522461 |
+| Original, S7 | 10 / 10 / 5 / 5 | 5 / 5 / 5 / 5 | 353,340.540006 | 73.499998 | 1.383789 / 1.338867 |
+| Native ticket, S0 | 10 / 10 / 10 / 10 | 10 / 10 / 10 / 10 | 522,617.885268 | 110.249998 | 1.426758 / 1.426758 |
+| Native ticket, S7 | 10 / 10 / 10 / 10 | 10 / 10 / 10 / 10 | 686,048.098119 | 146.999997 | 1.426758 / 1.426758 |
+
+**First fixture divergence:** installed NeoForge `ServerLevel.tick` runs its entity loop when the level has real players or `ForcedChunkManager.hasForcedChunks`, or while `emptyTime++ < 300`. The benchmark's FakePlayer is not in `ServerLevel.players`. Without a forced chunk the world stops advancing entities after tick 300, even though the target's chunk still reports `isPositionEntityTicking=true`. The benchmark's server-post-tick scheduler continues issuing immediate collisions and ticking the item's cooldown. The distinction is a suspended world entity loop, not necessarily an unloaded chunk.
+
+The baseline S7 target reaches age **86** at server tick **300**. That shot returns true, sets target invulnerability to **20**, and drains normally. The next five releases at server ticks **320, 340, 360, 380 and 400** find the same age 86, invulnerability 20, `hurtTime=10`, `hurtDuration=10`, and `lastHurt=8`. Incoming is accepted with amount 8. Native `LivingEntity.hurt` then tests `invulnerableTime > 10 && amount <= lastHurt`, returns **false**, and stops before `actuallyHurt` and arrow `after_damage`. This directly proves five instances of `HISTORICAL_PHYSICAL_HURT_FALSE_INVULNERABILITY`. All later Energy boundaries and HP/resource writes are absent on those shots.
+
+**Single-property control:** after preserving that failure trace, the same two-case fixture receives one legitimate native forced-chunk ticket at target chunk `(0,1)`. This keeps the native world loop active and is restored to its previous state at completion. No timer is reset, no entity tick is directly called, and no hit/cooldown/resource/trait rule is bypassed. Empty time remains zero; the S7 target reaches age 106 at server tick 320 and invulnerability has decayed to zero. Both cases succeed 10/10. This is a development fixture control, not a proposed production patch.
+
+Item cooldown is zero at every apply and at all five rejected attempts. Successful calls add 20 before draining; normal FakePlayer clock ticks expire it. The two captures each contain **398** observed tracker ticks, with no reset or phantom cooldown. The separate Energy target timer threshold `<60` does not cause these failures: the arrow never reaches Energy apply. Native Adaptive stores message key `arrow`; its admitted count stops at **5** on the five rejected shots. In the ticket control it reaches **10**. Installed Adaptive applies `pow(0.5, count-1)` only on its admitted `onDamaged` path. No L2 trait caused the first observed rejection; no trait removal is warranted. Accepted ES3a already proves that extremely small physical damage with the full profile can still admit Energy.
+
+Both Stages retain their native percentages exactly once: S0 `0.010499999765306712`, S7 `0.013999999687075614`. In this historical setup attacker headroom permits gains equal to the table's target losses; this differs legitimately from ES2/ES3a's capped attackers. Every setter pair reconciles against the native formulas and all snapshots. HP healing comes from observed native Orc healing, L2 Regenerate or native Self Regeneration; no SHP movement occurs. The original S7 baseline ends 0.044921875 HP below full because its healing loop is suspended. Native initial MP and physical critical rolls vary between runs, so totals are accounting observations, not a paired balance claim.
+
+### Reassessment of the old 269 absences
+
+The old 320 rows remain byte-for-byte untouched: 51 native operations, 269 absent, and 320 incoming observations. All 269 absent rows have zero recorded physical applied amount and no observed MP regeneration. Regeneration first stops at Lv300/S1 hit 5 (zero-based row 14), and is absent in all **306** rows from there onward. Every case's first shot succeeds, consistent with the original per-case invulnerability reset. Six later-than-first successes outside the initial two cases are consistent with the native `amount > lastHurt` exception, which admits only the difference during invulnerability; the old trace cannot prove which incoming event increased the amount.
+
+The source and differential establish the exact suspension/invulnerability mechanism and structurally explain the historical fixture's missing operations. **Zero of the old 269 rows have sufficient direct timer/return data for individual causal attribution.** All 269 remain individually unassigned; they must not be relabeled as 269 directly observed invulnerability failures. No remaining evidence justifies an L2 bypass or a production Energy fix. The corrected live Royal behavior remains the accepted ES3a result; it is separate from this historical fixture diagnosis.
+
+### ES3 validation and checkpoint boundary
+
+`es3b-runtime.jsonl` and `es3b-ticket-runtime.jsonl` retain the complete new observations. Their strict reports pass all **40** decisive rows: **40 attempts, 40 incoming, 35 applied/true hurt returns, 35 callbacks/apply/drain/successes, five directly proven rejections**. Source identity remains native `minecraft:arrow`, five installed tags, original owner/projectile, and zero Resistance bypass. No duplicate drains, recursion, case errors, unexplained resource movement or unexpected bypasses occur. The native ticket is restored.
+
+`es3b-historical-timing-audit.json` retains original/current fixture methods and installed world/hurt/Adaptive/healing bytecode. `es3-historical-reassessment.json` distinguishes new causal proof from old observational signatures. **28 corruption tests** reject manipulated returns, timers, world/target clocks, callback/drain counts, cooldowns, resource accounting, source identity, ordering and Adaptive memory. Both full-stack server runs completed successfully; the Java suite passed **54/54**, zero failures/errors/skips. Observer and locked-production audits pass. Original Phase 6, Magic/Holy, Candidate C, Elemental and Soul evidence remains unchanged.
+
+ES3 is complete and must be committed, pushed and live-SHA-verified before ES4. Exact next task: make the bounded terminal Energy decision, rerun the required evidence/test checks, perform the final clean build, protect ES4 remotely, then stop for owner review. Do not begin the six-family readiness assessment or original Phase 7.
