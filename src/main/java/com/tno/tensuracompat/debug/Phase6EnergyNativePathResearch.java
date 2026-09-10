@@ -150,18 +150,26 @@ public final class Phase6EnergyNativePathResearch {
         final double laneX = 1288.5, startZ = 1282.5, targetZ = 1288.5;
         FakePlayer player; LivingEntity target; AbstractArrow projectile; Object l2Cap;
         JsonObject row; JsonArray traces = new JsonArray();
-        int index, step, releaseTick, readyWait; boolean running;
+        final boolean comparison=Boolean.getBoolean("tno.phase6.energyComparison");
+        int index, step, releaseTick, readyWait, shot, completedRows; boolean running;
         Session(MinecraftServer server) {
             this.server = server; level = server.overworld();
             if (!ModList.get().isLoaded("l2hostility") || !ModList.get().isLoaded("apotheosis"))
                 throw new IllegalStateException("Full stack required");
-            cases.add(new Case("neutral", "vanilla_plain")); cases.add(new Case("neutral", "vanilla_energy"));
+            if(comparison) {
+                for(String target:List.of("neutral","orc_disaster"))
+                    for(String mode:List.of("royal_plain_s0","royal_native_s0","royal_native_s7"))
+                        cases.add(new Case(target,mode,target.equals("neutral") ? 1 : 10));
+                cases.add(new Case("gazel_dwargo","royal_native_s7"));
+                cases.add(new Case("luminous_valentine","royal_native_s7"));
+            } else { cases.add(new Case("neutral", "vanilla_plain")); cases.add(new Case("neutral", "vanilla_energy")); }
             alreadyForced = level.getForcedChunks().contains(new net.minecraft.world.level.ChunkPos(80,80).toLong());
             level.setChunkForced(80,80,true); level.getChunk(80,80);
             server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withSuppressedOutput(), "tick sprint 1000000");
             JsonObject catalog = new JsonObject(); catalog.addProperty("requested_cases", cases.size());
-            catalog.addProperty("baseline", "7bcbcdd4c4f43712e0fbe33a13ae5001a53e2d99");
-            catalog.addProperty("checkpoint","ES2");
+            catalog.addProperty("baseline",comparison ? "86e0b6c24e619c6e3d6216590016478af7ed28ec" : "7bcbcdd4c4f43712e0fbe33a13ae5001a53e2d99");
+            catalog.addProperty("checkpoint",comparison ? "ES3":"ES2");
+            catalog.addProperty("requested_rows",cases.stream().mapToInt(Case::shots).sum());
             catalog.addProperty("setup", "Native spawned ticking targets; survival FakePlayer without skill/resource/capacity grants; native cooldown tracker ticked once/server tick by fixture scheduler; no cooldown resets; legal isolated enchantment/gear EP fixture");
             JsonObject mods = new JsonObject(); ModList.get().getMods().forEach(mod -> mods.addProperty(mod.getModId(), mod.getVersion().toString()));
             catalog.add("mods", mods); log("catalog", catalog);
@@ -177,11 +185,11 @@ public final class Phase6EnergyNativePathResearch {
             if(step == 5) configureL2();
             if(step == 10) installProfile();
             if(step == 20) release();
-            if(step == 45) { complete(); return; }
+            if(step == (comparison ? 40 : 45)) { complete(); return; }
             step++;
         }
         void setup() {
-            running = false; traces = new JsonArray(); readyWait = 0;
+            running = false; traces = new JsonArray(); readyWait = 0; shot=0;
             Case spec = cases.get(index);
             player = FakePlayerFactory.get(level, new GameProfile(UUID.nameUUIDFromBytes(("energy-"+spec).getBytes(StandardCharsets.UTF_8)), "TNO_E_"+index));
             player.getInventory().clearContent(); player.setPos(laneX,200,startZ);
@@ -226,17 +234,19 @@ public final class Phase6EnergyNativePathResearch {
             if(!traits().equals(wanted)) throw new IllegalStateException("Profile mismatch");
         }
         void release() {
-            Case spec=cases.get(index); installProfile();
-            target.setPos(laneX,200,targetZ); target.setDeltaMovement(Vec3.ZERO);
+            Case spec=cases.get(index);
+            if(shot==0) { installProfile(); target.setPos(laneX,200,targetZ); target.setDeltaMovement(Vec3.ZERO); }
             boolean royal=spec.mode.startsWith("royal");
-            ItemStack bow=new ItemStack(BuiltInRegistries.ITEM.get(id(royal ? "royalvariations:royal_bow" : "minecraft:bow")));
-            player.setItemInHand(InteractionHand.MAIN_HAND,bow);
-            player.setItemInHand(InteractionHand.OFF_HAND,new ItemStack(BuiltInRegistries.ITEM.get(id(royal ? "royalvariations:royal_arrow" : "minecraft:arrow")),64));
-            call(player,"detectEquipmentUpdates"); bow.set(DataComponents.ENCHANTMENTS,ItemEnchantments.EMPTY);
+            ItemStack bow=shot==0 ? new ItemStack(BuiltInRegistries.ITEM.get(id(royal ? "royalvariations:royal_bow" : "minecraft:bow"))) : player.getMainHandItem();
+            if(shot==0) {
+                player.setItemInHand(InteractionHand.MAIN_HAND,bow);
+                player.setItemInHand(InteractionHand.OFF_HAND,new ItemStack(BuiltInRegistries.ITEM.get(id(royal ? "royalvariations:royal_arrow" : "minecraft:arrow")),64));
+                call(player,"detectEquipmentUpdates"); bow.set(DataComponents.ENCHANTMENTS,ItemEnchantments.EMPTY);
+            }
             var engraving=server.registryAccess().registryOrThrow(Registries.ENCHANTMENT).getHolderOrThrow(ResourceKey.create(Registries.ENCHANTMENT,id("tensura:energy_steal")));
             if(!engraving.value().canEnchant(bow)) throw new IllegalStateException("Illegal Energy Steal item");
-            if(!spec.mode.contains("plain")) bow.enchant(engraving,1);
-            if(royal) {
+            if(shot==0 && !spec.mode.contains("plain")) bow.enchant(engraving,1);
+            if(royal && shot==0) {
                 if(!bow.has(TensuraDataComponents.EP.get())) throw new IllegalStateException("No native gear conversion");
                 bow.set(TensuraDataComponents.EP.get(),spec.mode.endsWith("s7") ? 2_490_000D : 1000D);
             }
@@ -244,6 +254,7 @@ public final class Phase6EnergyNativePathResearch {
             player.setYRot((float)Math.toDegrees(Math.atan2(-delta.x,delta.z)));
             player.setXRot((float)-Math.toDegrees(Math.atan2(delta.y,delta.horizontalDistance()))); player.yHeadRot=player.getYRot();
             row=new JsonObject(); row.addProperty("case",index); row.addProperty("mode",spec.mode); row.addProperty("target",spec.target);
+            row.addProperty("shot",shot);row.addProperty("case_shots",spec.shots);
             row.addProperty("target_id",entityId(target)); row.addProperty("target_uuid",target.getStringUUID()); row.addProperty("owner_uuid",player.getStringUUID());
             row.addProperty("bow",bow.getItem().toString()); row.addProperty("legal_enchantment",true); row.addProperty("enchanted",!spec.mode.contains("plain"));
             row.addProperty("stage",ProductionStageScaling.stage(bow).map(Enum::name).orElse("NONE"));
@@ -314,6 +325,11 @@ public final class Phase6EnergyNativePathResearch {
             row.add("post",snapshot()); row.add("traits_after",traits()); row.add("traces",traces);
             row.addProperty("projectile_age_end",projectile.tickCount); row.addProperty("projectile_removed",projectile.isRemoved());
             row.addProperty("observation_ticks",server.getTickCount()-releaseTick); log("row",row);
+            completedRows++;shot++;
+            if(shot<cases.get(index).shots) {
+                // Preserve target, native trait memory, resources, weapon and item cooldown across real releases.
+                running=false;projectile.discard();projectile=null;traces=new JsonArray();release();step=21;return;
+            }
             cleanup(); index++; step=0;
         }
         void cleanup() {
@@ -324,11 +340,12 @@ public final class Phase6EnergyNativePathResearch {
         void finish(boolean success) {
             cleanup(); if(!alreadyForced) level.setChunkForced(80,80,false);
             JsonObject result=new JsonObject(); result.addProperty("status",success ? "complete":"error"); result.addProperty("completed_cases",index);
+            result.addProperty("completed_rows",completedRows);
             result.addProperty("requested_cases",cases.size()); result.addProperty("force_load_restored",true); log("suite_result",result);
             active=null; server.halt(false);
         }
     }
-    private record Case(String target,String mode) { }
+    private record Case(String target,String mode,int shots) { Case(String target,String mode){this(target,mode,1);} }
     private static boolean toggled(LivingEntity entity,String name) {
         Object skill=call(staticField("io.github.manasmods.tensura.registry.skill.ResistanceSkills",name),"get");
         return Boolean.TRUE.equals(call(type("io.github.manasmods.tensura.ability.SkillUtils"),"isSkillToggled",entity,skill));
