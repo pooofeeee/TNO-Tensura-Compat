@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "checkpoint", "source_baseline", "conclusion", "classification_rule", "invariants", "coverage_limits"],
+  "properties": {
+    "schema": {"const": "tno.post_phase6.readiness.non_interaction.v1"},
+    "checkpoint": {"const": "R3"},
+    "source_baseline": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "conclusion": {"const": "NO_KNOWN_VIOLATION_IN_ACCEPTED_SCOPE"},
+    "classification_rule": {"type": "string", "minLength": 1},
+    "invariants": {"type": "array", "minItems": 14, "maxItems": 14, "items": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "rule", "classification", "scope", "evidence", "evidence_sources", "runtime_limit"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^G(0[1-9]|1[0-4])$"},
+        "rule": {"type": "string", "minLength": 1},
+        "classification": {"$ref": "#/$defs/proof"},
+        "scope": {"type": "string", "minLength": 1},
+        "evidence": {"type": "string", "minLength": 1},
+        "evidence_sources": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "runtime_limit": {"type": "string", "minLength": 1}
+      }
+    }},
+    "coverage_limits": {"type": "array", "minItems": 1, "items": {
+      "type": "object", "additionalProperties": false, "required": ["scope", "classification", "reason"],
+      "properties": {"scope": {"type": "string", "minLength": 1}, "classification": {"$ref": "#/$defs/proof"}, "reason": {"type": "string", "minLength": 1}}
+    }}
+  },
+  "$defs": {"proof": {"enum": ["RUNTIME_PROVEN", "SOURCE_PROVEN", "INDIRECTLY_SUPPORTED", "NOT_TESTED"]}}
+}

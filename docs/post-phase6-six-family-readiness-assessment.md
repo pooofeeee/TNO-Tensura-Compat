@@ -42,11 +42,11 @@ Historical files and their checkpoint-local next-task statements remain unchange
 | Checkpoint | State |
 |---|---|
 | R1 | `09cd5158fb3ddd27ad5f2acef828a48b8279c084`, pushed and live-verified before R2. |
-| R2 | Six-family matrix complete; commit containing this update is R2. |
-| R3 | Pending: scoped cross-family non-interaction assessment. |
+| R2 | `8e722681522fa02a558474def5c80bc517a754a9`, pushed and live-verified before R3. |
+| R3 | Cross-family/non-interaction assessment complete; commit containing this update is R3. |
 | R4 | Pending: project decision, owner questions if needed, final clean build and validation. |
 
-Resume after remotely protecting R2 with R3. Project decision and final build remain pending; no Phase-7 authorization is claimed.
+Resume after remotely protecting R3 with R4. Project decision and final build remain pending; no Phase-7 authorization is claimed.
 
 ## R2 — six-family readiness matrix
 
@@ -97,3 +97,30 @@ The counter protocol establishes native healing states A/B/C: full request below
 Candidate C attempted bounded **wound-only** recovery of the Adaptive-suppressed eligible Severance contribution, excluding Royal base and preserving physical Adaptive and the native writer. That protocol-valid development architecture still failed practical sustained viability: RW=0/.5/1 gives roughly 16.67/10.75/**7.84-7.93 hours** conditional HP-only projections on accepted Regenerate ON profiles. No ON target died; all 15 cases showed zero SHP progress. Native OFF HP deaths with SHP remaining show that these channels cannot be treated as a required combined depletion pool.
 
 **Candidate C remains rejected and exhausted.** Its failure neither invalidates current Severance nor authorizes RW calibration, Candidate D or Regenerate redesign. The precise remaining question is whether the owner accepts current mechanically valid, severely Regenerate-limited Severance as the baseline for progression to original Phase 7. That is a design decision, not an automatic engineering blocker. R4 will record the project-level consequence after the non-interaction review.
+
+## R3 — global non-interaction review
+
+**No known violation is established within the accepted evidence scope.** [The machine-readable review](benchmarks/post-phase6-six-family-readiness/non-interaction-review.json) states each rule's classification, concrete evidence, immutable references and runtime limits. `RUNTIME_PROVEN` means the specified accepted captures, never an exhaustive claim about all gameplay. `SOURCE_PROVEN` means the reviewed production/installed boundaries; it does not upgrade unselected native gates to runtime coverage.
+
+| Rule | Assessment level | Scope / qualification |
+|---|---|---|
+| No global external-weapon buff | SOURCE_PROVEN | Explicit gear/family classification; no global attribute multiplier |
+| No duplicated DamageSource delivery | RUNTIME_PROVEN | Accepted captures; legitimate native family and ceiling sources are separate effects |
+| No phantom native event | RUNTIME_PROVEN | Plain, empty-dispatch and native-denial controls |
+| No fabricated HP/SHP/resource subtraction | SOURCE_PROVEN | Production wraps native operations; native storage accounting supports selected paths |
+| Stage creates no absent native mechanic | RUNTIME_PROVEN | Selected plain/denied controls, plus source classification guards |
+| No duplicate drain | RUNTIME_PROVEN | 77 decisive Energy rows; invalid early debug diagnostic excluded |
+| No duplicate Soul effect | RUNTIME_PROVEN | Accepted spiritual continuations and SHP writes |
+| No duplicate Elemental delivery | RUNTIME_PROVEN | 90 one-core cases; utility/later fire damage tracked separately |
+| No persistent TNO Gear EP progression | SOURCE_PROVEN | Native EP read; projectile Stage snapshot and conversion marker are not progression |
+| No unexpected L2 bypass | SOURCE_PROVEN | Approved Magic/Holy negotiation only; other native channels/defenses retained |
+| No unexpected Tensura bypass | SOURCE_PROVEN | Scoped Resistance metadata and native Soul tags preserved; not a zero-metadata assertion |
+| No matching Nullification bypass | SOURCE_PROVEN | Runtime support for all five elements; Magic/Holy and Soul matching gates source-only in final studies |
+| No APO contribution folded into Stage | SOURCE_PROVEN | Eligible amount isolation; original 6F APO run only indirectly supported by retained documentation |
+| Royal base stays outside family scaling | SOURCE_PROVEN | Family argument/percentage/coefficient or isolated Severance +3 delta |
+
+The one-physical-source rule permits native Magic/Holy additional events and the native entity-less Severance ceiling source; it forbids fabricating a second physical hit. Likewise, preserving Soul's native spiritual channel is not an L2 bypass. Existing scoped matching Resistance recovery deliberately sets native metadata to prevent double application of that Resistance; this does not grant matching Nullification penetration or override Soul's direct spiritual gate.
+
+The rejected Energy double-release diagnostic was an opt-in research scheduler defect and is excluded from the corrected accepted capture. It is not hidden or promoted to a production duplication finding. Diagnostic setup actions such as controlled P2 HP placement are also distinguished from production behavior.
+
+**Indirectly supported:** original foundation 6F/APO acceptance, because only its document summary survives in Git. **Not tested:** comprehensive all-six combinations, all affixes/bosses/defenses, multi-core Elemental, sustained Soul/Elemental/Energy balance and human-client multiplayer acceptance. These are coverage limits, not evidence of a compatibility defect, and this consolidation does not automatically start those programs.
