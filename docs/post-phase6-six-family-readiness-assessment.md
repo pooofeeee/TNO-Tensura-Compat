@@ -41,9 +41,59 @@ Historical files and their checkpoint-local next-task statements remain unchange
 
 | Checkpoint | State |
 |---|---|
-| R1 | Evidence inventory and supersession complete; commit containing this section is the R1 checkpoint. |
-| R2 | Pending: six-family mechanical/Stage/channel/defense/production/endgame/balance matrix. |
+| R1 | `09cd5158fb3ddd27ad5f2acef828a48b8279c084`, pushed and live-verified before R2. |
+| R2 | Six-family matrix complete; commit containing this update is R2. |
 | R3 | Pending: scoped cross-family non-interaction assessment. |
 | R4 | Pending: project decision, owner questions if needed, final clean build and validation. |
 
-Resume after remotely protecting R1 with R2. No project-level readiness decision or Phase-7 authorization is claimed at this checkpoint.
+Resume after remotely protecting R2 with R3. Project decision and final build remain pending; no Phase-7 authorization is claimed.
+
+## R2 — six-family readiness matrix
+
+[The authoritative matrix](benchmarks/post-phase6-six-family-readiness/readiness-matrix.json) distinguishes production status, native-path research closure, mechanical correctness, endgame viability and balance completeness. Its JSON schema rejects missing fields, invalid categories and malformed records; the assessment validator also requires exactly these six distinct families and pinned citations.
+
+| Family | Mechanical / Stage | Actual channel | Production status | Endgame and balance limit | Phase-7 blocker? |
+|---|---|---|---|---|---|
+| MAGIC | Valid / eligible contribution once; Q/RD/RA only S5-S7 | Native HP hurt path | `PRODUCTION_READY_WITH_NATIVE_LIMITATIONS` | Damage progression proven; strong native healing and broader sustained balance remain | NO |
+| HOLY | Valid / same approved policy, native Holy distinctions | Native HP hurt path | `PRODUCTION_READY_WITH_NATIVE_LIMITATIONS` | Independently validated damage progression; same bounded sustained coverage | NO |
+| SOUL | Valid / native spiritual argument once | SHP, native special death branches separate | `PRODUCTION_READY_WITH_NATIVE_LIMITATIONS` | Spiritual gates and recovery; causal single-shot PASS is not sustained balance | NO |
+| ELEMENTAL | Valid / native coefficient once for all five | HP plus unscaled native utility | `PRODUCTION_READY_WITH_NATIVE_LIMITATIONS` | Native immunity/collision conditions; single-core, selected-target coverage | NO |
+| ENERGY_STEAL | Valid / native EP percentage once | Magicules + Aura | `PRODUCTION_READY_WITH_NATIVE_LIMITATIONS` | Actual hurt prerequisite, cooldown, immunity and capped gains; no kill-time claim | NO |
+| SEVERANCE | Valid / only native +3 delta, one rounded physical hit | HP + native wound/healing ceiling | `IMPLEMENTED_BUT_ENDGAME_LIMITED` | Reliable callback, severe Regenerate-limited sustained progress | OWNER_DECISION_REQUIRED |
+
+“Production ready with native limitations” refers to the **existing approved implementation**, not a new production approval or a claim of complete gameplay balance. Soul, Elemental and Energy research separately closed with **no production fix**. `REJECTED_ARCHITECTURE` applies to Candidate C, not to the Severance family. No family has a proven unresolved engineering blocker.
+
+### Locked Stage and Magic/Holy policy
+
+Native Tensura Gear EP is authoritative. Rare thresholds remain `0, 41500, 207500, 830000, 1245000, 1660000, 2075000, 2490000`; Curve C remains `1.05, 1.10, 1.15, 1.20, 1.25, 1.30, 1.35, 1.40`. Common classification remains separately capped at S3. Matching Resistance recovery remains zero at S0-S4, .25/.50/1 at S5/S6/S7. Active matching Nullification remains authoritative subject to its own native enable/disable rules. Soul's separate direct-helper HP/2 gate is **not** overridden by S7 Resistance metadata.
+
+| Stage | Q | RD | RA |
+|---|---:|---:|---:|
+| S0-S4 | 0 | 0 | 0 |
+| S5 | .50 | .50 | .50 |
+| S6 | .75 | .625 | .625 |
+| S7 | 1.00 | .75 | .75 |
+
+Magic/Holy production exists at the accepted source baseline. It scales only the classified native family, then uses `1 + Q*(H-1)` for the live generic L2 health multiplier; Tank, native HP caps, SHP and regeneration are excluded. RD restores a bounded fraction of native Dementor reduction; RA negotiates the native Adaptive factor as `A + RA*(1-A)`. The native source holder/message and modifier order remain unchanged. Both traits remain harmful. Installed Magic and Holy sources lack NeoForge `IS_MAGIC`: Dementor applies and Dispell does not, by native classification.
+
+P5 independently captures 43 cases/430 physical + 430 family events for each family. Across both, 42 S0-S4 cases/420 hits have no Q/RD/RA; all accepted S5-S7 trajectories progress correctly. Eight paired Dementor checks and six paired Adaptive checks retain measurable harm. Matching Magic/Holy Nullification is guarded in source/focused tests but was not active in the selected P5 runtime targets. Base Royal Arrow remains outside compensation. The L2 adapter reads only an existing initialized attachment, introduces no persistent TNO level/target state, and fails closed when unavailable. Neither P5 nor a clean build proves sustained boss balance.
+
+### Native paths and remaining evidence limits
+
+**Soul** follows `after_ATTACK` after the native first physical attempt, even when `hurt` returns false; Energy instead requires admitted `after_DAMAGE`. Soul constructs its native source only after its own eligibility and uses spiritual events/SHP. Royal results are 23 releases, 22 physical attempts, 18 incoming, 10 physical applied, 20 Soul callbacks, 16 native Soul sources and 12 accepted spiritual events. Ordinary Soul HP events remain zero. Neutral/Orc gross SHP damage is about 48.30/40.25 with 10 recovery each; Luminous takes 46.20 SHP and recovers 78, demonstrating why a native-path PASS cannot imply net viability. Gazel's phase and Hinata's native spiritual gate deny their controls. Selected Spiritual Nullification, SHP-zero death and some special gates are source-only; the preserved Hinata miss and reconstructed NEB caller retain their documented limits.
+
+**Elemental** intercepts the Royal Bow release into a native projectile, with no Royal Arrow or base physical event in the one-core cases. Earth/Space/Water/Wind each have 15 sources, 15 incoming and 10 applied; Fire has 15/11/6. Each has five matching Nullification denials; four additional Fire Resistance denials precede incoming dispatch. Those retained active effects are not evidence of innate Orc fire immunity. Native speed, utility, Wind's observed non-damaging explosion and later `on_fire` damage remain unscaled. No all-boss, multi-core, sustained or human multiplayer acceptance is inferred.
+
+**Energy** uses normal native MP/AP operations without an ordinary damage source. ES3a's 35 attempts have 34 incoming, 33 admitted physical hits and 22 native drains, including full-profile Orc S0/S7 at 10/10 each. Tiny admitted damage still permits Energy. Gazel/Luminous retain their native denials. The 40-row historical differential has 40 incoming and 35 true returns/drains: 15/20 without and 20/20 with one native chunk ticket. Resource losses and each side's cap-limited gains reconcile independently; HP changes remain physical/native-healing observations and SHP does not change in these controls. Historical per-row attribution, unselected immunity branches and broader resource-denial balance remain bounded unknowns, not production defects.
+
+### Severance: valid integration, limited endgame capability
+
+Current production isolates native `+3` per enchantment level and adds only that contribution's Stage delta before projectile velocity and the one integer rounding step. Its guard preserves a real positive delta that would otherwise share the same integer bucket. Royal base/APO damage is not multiplied by Severance. The combined `minecraft:arrow` source and native wound callback/storage remain authoritative; rejected/zero hits cannot fabricate wounds.
+
+Native wound limits healing to `maxHP - wound`, without changing max HP or SHP. R2 establishes that 50 wound denies exactly 50 healing in controlled rank-4/rank-5 regeneration cases. R5's 18-case/1,080-release sustained rotation admits **360/360** Severance arrows and callbacks, correcting earlier admission-wall attribution. Native-scale maximum wound is 10; diagnostic x64 raises it only to about 11.874-11.880. Late HP progress remains about .166945 HP/s, a conditional roughly **16.64-hour HP-only** projection; SHP stays unchanged. This is severe native mitigation/healing limitation, not a broken callback.
+
+The counter protocol establishes native healing states A/B/C: full request below the ceiling, exactly the legal space across it, and valid zero healing at the ceiling. P2 requests 3,600 HP, heals 2,250 and denies 1,350. P3 demonstrates strong Regenerate ON defender advantage when combat opens legal space. Regenerate was not erased by wound.
+
+Candidate C attempted bounded **wound-only** recovery of the Adaptive-suppressed eligible Severance contribution, excluding Royal base and preserving physical Adaptive and the native writer. That protocol-valid development architecture still failed practical sustained viability: RW=0/.5/1 gives roughly 16.67/10.75/**7.84-7.93 hours** conditional HP-only projections on accepted Regenerate ON profiles. No ON target died; all 15 cases showed zero SHP progress. Native OFF HP deaths with SHP remaining show that these channels cannot be treated as a required combined depletion pool.
+
+**Candidate C remains rejected and exhausted.** Its failure neither invalidates current Severance nor authorizes RW calibration, Candidate D or Regenerate redesign. The precise remaining question is whether the owner accepts current mechanically valid, severely Regenerate-limited Severance as the baseline for progression to original Phase 7. That is a design decision, not an automatic engineering blocker. R4 will record the project-level consequence after the non-interaction review.
