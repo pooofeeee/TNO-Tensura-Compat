@@ -1,5 +1,7 @@
 # Post-Phase-6 six-family readiness assessment
 
+**Final decision: `POST_PHASE6_READY_WITH_OWNER_DECISIONS`.** No known unresolved engineering/compatibility defect requires correction before architectural progression. The owner must decide whether current mechanically valid but severely Regenerate-limited Severance is an acceptable Phase-7 baseline. No production change or new runtime experiment was made. **Stop for owner review; original Phase 7 is not authorized or started.**
+
 Source baseline: `d212695c006f503f1b175e4b9a7a57e2f0ebf5ac`, accepted Energy final. Assessment branch: `post-phase6-six-family-readiness-assessment`.
 
 ## R1 — recovery, evidence inventory and supersession
@@ -43,10 +45,10 @@ Historical files and their checkpoint-local next-task statements remain unchange
 |---|---|
 | R1 | `09cd5158fb3ddd27ad5f2acef828a48b8279c084`, pushed and live-verified before R2. |
 | R2 | `8e722681522fa02a558474def5c80bc517a754a9`, pushed and live-verified before R3. |
-| R3 | Cross-family/non-interaction assessment complete; commit containing this update is R3. |
-| R4 | Pending: project decision, owner questions if needed, final clean build and validation. |
+| R3 | `5d71569502aec771f49c8f1dbe33154e6f7809b5`, pushed and live-verified before R4. |
+| R4 | Complete final decision, build and validation. The commit introducing `readiness-decision.json` is R4; resolve its full SHA from Git and verify live remote after push. |
 
-Resume after remotely protecting R3 with R4. Project decision and final build remain pending; no Phase-7 authorization is claimed.
+Final checkpoint protocol: save/validate, commit, push, verify live remote SHA equals HEAD, then stop. This document does not embed its own recursive commit SHA; the final report supplies it.
 
 ## R2 — six-family readiness matrix
 
@@ -90,13 +92,13 @@ P5 independently captures 43 cases/430 physical + 430 family events for each fam
 
 Current production isolates native `+3` per enchantment level and adds only that contribution's Stage delta before projectile velocity and the one integer rounding step. Its guard preserves a real positive delta that would otherwise share the same integer bucket. Royal base/APO damage is not multiplied by Severance. The combined `minecraft:arrow` source and native wound callback/storage remain authoritative; rejected/zero hits cannot fabricate wounds.
 
-Native wound limits healing to `maxHP - wound`, without changing max HP or SHP. R2 establishes that 50 wound denies exactly 50 healing in controlled rank-4/rank-5 regeneration cases. R5's 18-case/1,080-release sustained rotation admits **360/360** Severance arrows and callbacks, correcting earlier admission-wall attribution. Native-scale maximum wound is 10; diagnostic x64 raises it only to about 11.874-11.880. Late HP progress remains about .166945 HP/s, a conditional roughly **16.64-hour HP-only** projection; SHP stays unchanged. This is severe native mitigation/healing limitation, not a broken callback.
+Native wound limits healing to `maxHP - wound`, without changing max HP or SHP. R2 establishes that 50 wound denies exactly 50 healing in controlled rank-4/rank-5 regeneration cases. R5's 18-case/1,080-release sustained rotation admits **360/360** Severance arrows and callbacks, correcting earlier admission-wall attribution. On its accepted full profiles, native-scale maximum wound is 10; diagnostic x64 raises it only to about 11.874-11.880. Late HP progress remains about .166945 HP/s, a conditional roughly **16.64-hour HP-only** projection; SHP stays unchanged. These particular values do not describe the separate trait-removal controls. This is severe native mitigation/healing limitation, not a broken callback.
 
 The counter protocol establishes native healing states A/B/C: full request below the ceiling, exactly the legal space across it, and valid zero healing at the ceiling. P2 requests 3,600 HP, heals 2,250 and denies 1,350. P3 demonstrates strong Regenerate ON defender advantage when combat opens legal space. Regenerate was not erased by wound.
 
 Candidate C attempted bounded **wound-only** recovery of the Adaptive-suppressed eligible Severance contribution, excluding Royal base and preserving physical Adaptive and the native writer. That protocol-valid development architecture still failed practical sustained viability: RW=0/.5/1 gives roughly 16.67/10.75/**7.84-7.93 hours** conditional HP-only projections on accepted Regenerate ON profiles. No ON target died; all 15 cases showed zero SHP progress. Native OFF HP deaths with SHP remaining show that these channels cannot be treated as a required combined depletion pool.
 
-**Candidate C remains rejected and exhausted.** Its failure neither invalidates current Severance nor authorizes RW calibration, Candidate D or Regenerate redesign. The precise remaining question is whether the owner accepts current mechanically valid, severely Regenerate-limited Severance as the baseline for progression to original Phase 7. That is a design decision, not an automatic engineering blocker. R4 will record the project-level consequence after the non-interaction review.
+**Candidate C remains rejected and exhausted.** Its failure neither invalidates current Severance nor authorizes RW calibration, Candidate D or Regenerate redesign. The precise remaining question is whether the owner accepts current mechanically valid, severely Regenerate-limited Severance as the baseline for progression to original Phase 7. That is a design decision, not an automatic engineering blocker; R4 records its consequence below.
 
 ## R3 — global non-interaction review
 
@@ -124,3 +126,47 @@ The one-physical-source rule permits native Magic/Holy additional events and the
 The rejected Energy double-release diagnostic was an opt-in research scheduler defect and is excluded from the corrected accepted capture. It is not hidden or promoted to a production duplication finding. Diagnostic setup actions such as controlled P2 HP placement are also distinguished from production behavior.
 
 **Indirectly supported:** original foundation 6F/APO acceptance, because only its document summary survives in Git. **Not tested:** comprehensive all-six combinations, all affixes/bosses/defenses, multi-core Elemental, sustained Soul/Elemental/Energy balance and human-client multiplayer acceptance. These are coverage limits, not evidence of a compatibility defect, and this consolidation does not automatically start those programs.
+
+## R4 — final readiness decision and owner review
+
+[The final decision artifact](benchmarks/post-phase6-six-family-readiness/readiness-decision.json) selects exactly **`POST_PHASE6_READY_WITH_OWNER_DECISIONS`**. All six implemented native paths are mechanically valid within their accepted scope. The engineering-blocker list is empty. The evidence is sufficient and consistent once superseded fixture/observation conclusions are separated from current findings, so the assessment is neither engineering-blocked nor inconclusive.
+
+| Family | Mechanical | Stage | Production status | Endgame status | Known limitation | Phase-7 blocker? |
+|---|---|---|---|---|---|---|
+| MAGIC | Valid | Valid, scoped once | `PRODUCTION_READY_WITH_NATIVE_LIMITATIONS` | Damage-side progression proven | Native healing; sustained balance bounded | NO |
+| HOLY | Valid | Valid, scoped once | `PRODUCTION_READY_WITH_NATIVE_LIMITATIONS` | Damage-side progression proven | Native Holy defenses/healing; balance bounded | NO |
+| SOUL | Valid | Valid, spiritual argument once | `PRODUCTION_READY_WITH_NATIVE_LIMITATIONS` | Native SHP path proven | Spiritual gates/recovery; sustained balance unproven | NO |
+| ELEMENTAL | Valid, five elements | Valid, native coefficient once | `PRODUCTION_READY_WITH_NATIVE_LIMITATIONS` | Native delivery proven | Native immunity; single-core selected-target coverage | NO |
+| ENERGY_STEAL | Valid | Valid, native percentage once | `PRODUCTION_READY_WITH_NATIVE_LIMITATIONS` | Lv1000 operation proven | Physical hurt prerequisite, cooldown/caps; broader balance unproven | NO |
+| SEVERANCE | Valid | Valid, isolated native +3 | `IMPLEMENTED_BUT_ENDGAME_LIMITED` | Severe Regenerate-ON limitation proven | Very slow net HP progress; no SHP progress in accepted rotation | OWNER_DECISION_REQUIRED |
+
+**OD1 — Severance Phase-7 baseline acceptance:** accept current native/production Severance, including severe sustained limitations against the accepted Regenerate profiles, as the baseline for original Phase 7 **without requiring another Severance architecture or a practical strongest-boss kill guarantee first**. Acceptance of research facts and Candidate-C rejection does not by itself decide that remaining design tradeoff.
+
+The exact owner question is: **Do you accept the current mechanically correct Severance implementation, including its severe Regenerate-limited sustained endgame performance, as the baseline going into original Phase 7?**
+
+If accepted, current native/production Severance remains unchanged, its limitation stays documented, Candidate C stays rejected, and no further Severance architecture is required before Phase 7. Future design work requires separate owner authorization. This assessment then identifies no engineering blocker to architectural progression, but the owner must still explicitly authorize original Phase 7 and its scope. If not accepted, stop for an owner-defined requirement and a separately authorized design task; R4 does not invent that task or infer approval for Candidate D, RW calibration, Regenerate redesign, new Q/RD/RA, global buffs or synthetic resource/damage systems.
+
+Other retained unknowns are limits of completed research, not unfinished native-path fixes: exact per-row attribution of old Energy absences, the retained Soul flight/caller details, Elemental effect origin, unselected source-only native gates, missing original 6F raw evidence, and comprehensive sustained/boss/combination/multiplayer balance. The matrix states their practical limits and confidence separately. No claim of complete gameplay balance is made for any causal-path PASS.
+
+### Validation
+
+| Check | Result |
+|---|---|
+| Accepted provenance | 12 accepted checkpoint commits exist and are ancestors of the fixed Energy baseline; 157 artifact paths, Git blob identities and immutable SHA-256 hashes verified |
+| Authoritative decisions | Eight decision/document records checked: six family authorities plus counter-protocol and Candidate-C decisions; absent standalone Magic/Holy/Severance final JSONs are not invented |
+| Supersession | Nine explicitly linked findings; historical files untouched |
+| Readiness schemas | Five schemas cover manifest, supersession map, matrix, 14-rule non-interaction review and final decision; six unique families, pinned citations and final-summary agreement enforced |
+| Counter consolidation | Soul, Elemental, Energy and Candidate-C counts cross-checked against accepted machine decisions; source scope retained |
+| Corruption tests | **19/19 rejected**, with a valid positive control; includes manifest role, duplicate supersession, final-summary drift and missing review reference checks. Pre-resume 15/15 report is preserved unchanged. |
+| Assessment scripts | All four PowerShell scripts parse; validator/tests and requested clean-build script pass. The protected inventory producer was not rerun. |
+| Clean compatibility build | **PASS**, `JAVA_HOME=C:/Program Files/Java/jdk-21`; `./gradlew.bat clean build -Pphase5f_runtime_mods_dir=run/elemental-runtime-mods --console=plain` |
+| Java results | **54 tests, 0 failures, 0 errors, 0 skips**; 8 actionable Gradle tasks, 5 executed and 3 restored from cache, including test results |
+| Production and historical integrity | Only new assessment documentation/evidence/scripts differ from the accepted baseline; no accepted production, configuration, tests or historical evidence changed |
+| Git whitespace | `git diff --check` passes |
+| New combat experiments | **0**; no matrices repeated and no runtime prototype introduced |
+
+Reproduce assessment validation with `./scripts/readiness/validate.ps1 -Checkpoint R4`. The new validator checks provenance, schemas, references, selected accepted counters and decision consistency; it does not replace or rerun historical combat extractors. `./scripts/readiness/test-validator.ps1` mutates isolated copies of small assessment files under ignored `run/`, preserving the accepted evidence. [Corruption results](benchmarks/post-phase6-six-family-readiness/validator-corruption-tests.json), [build record](benchmarks/post-phase6-six-family-readiness/build-validation.json), [build log](benchmarks/post-phase6-six-family-readiness/clean-build.log) and [final validation](benchmarks/post-phase6-six-family-readiness/r4-validation.json) are retained. Prior build reports/results/libs were archived under `run/` before the requested clean. A clean build is code-health evidence, not combat-balance evidence.
+
+R4 resume recovered remote and local HEAD at protected R3, with valid uncommitted R4 decision/build/test work. Those results are preserved in the `*-before-resume` records. R1-R3 classifications and artifacts were not redone or rewritten. R4 adds explicit schemas for the accepted manifest/supersession data and a six-family summary plus direct review references in the final decision; the validator compares that summary with the unchanged R2 matrix and verifies protected R1-R3 Git blobs. The requested final compatibility clean build passed again with the same 54-test results; no family runtime was repeated.
+
+**Exact next task:** owner review of this pushed assessment and resolution of OD1. Only after acceptance and separate explicit authorization may the original Phase-7 scope be confirmed and work begin. Stop here; do not start Phase 7, another family, a balance program, or new architecture automatically.

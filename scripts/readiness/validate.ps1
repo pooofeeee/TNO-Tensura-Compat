@@ -56,6 +56,16 @@ foreach ($line in @(Git @('diff','--name-status',$base))) {
 foreach ($path in @(Git @('ls-files','--others','--exclude-standard'))) { Assert ($path -match $allowed) "Untracked out-of-scope work: $path" }
 Git @('diff','--check',$base) | Out-Null
 $schemaCount=0
+if ($Checkpoint -eq 'R4') {
+ CheckSchema 'evidence-manifest'; CheckSchema 'supersession-map'; $schemaCount+=2
+ Assert (@($supersession.findings.id | Sort-Object -Unique).Count -eq 9) 'Duplicate supersession'
+ # R4 consumes the protected R1-R3 records without modifying their accepted content.
+ $protectedR3='5d71569502aec771f49c8f1dbe33154e6f7809b5'
+ foreach ($name in @('evidence-manifest.json','supersession-map.json','readiness-matrix.json','readiness-matrix.schema.json','non-interaction-review.json','non-interaction-review.schema.json','r1-validation.json','r2-validation.json','r3-validation.json')) {
+  $path="docs/benchmarks/post-phase6-six-family-readiness/$name"
+  Assert ((Git @('hash-object','--',$path)) -eq (Git @('rev-parse',"${protectedR3}:$path"))) "Protected R1-R3 record changed: $name"
+ }
+}
 if ($Checkpoint -in @('R2','R3','R4')) {
  CheckSchema 'readiness-matrix'; $schemaCount++
  $matrix=ReadJson 'readiness-matrix.json'
@@ -66,6 +76,26 @@ if ($Checkpoint -in @('R2','R3','R4')) {
  Assert (($matrix.families | Where-Object family -eq 'SOUL').resource_channel -contains 'SHP') 'Soul channel lost'
  Assert ((@(($matrix.families | Where-Object family -eq 'ENERGY_STEAL').resource_channel) -join ',') -eq 'MAGICULES,AURA') 'Energy channels conflated'
  Assert (($matrix.families | Where-Object family -eq 'SEVERANCE').production_status -ne 'REJECTED_ARCHITECTURE') 'Candidate C rejection incorrectly applied to production Severance'
+ # Cross-check the consolidated counters directly against pinned accepted decisions.
+ function CheckCounts($Actual,$Expected,[string]$Family) {
+  foreach ($key in $Expected.Keys) { Assert ($Actual.$key -eq $Expected[$key]) "Counter differs from accepted evidence: $Family/$key" }
+ }
+ $soul=Get-Content -Raw docs/benchmarks/phase6-soul-native-event-path/s4-decision.json | ConvertFrom-Json -Depth 100
+ CheckCounts ($matrix.families | Where-Object family -eq 'SOUL').runtime_evidence.counts @{
+  royal_releases=$soul.royal_counts.releases;physical_attempts=$soul.royal_counts.physical_attempts;physical_incoming=$soul.royal_counts.physical_incoming;physical_applied=$soul.royal_counts.physical_applied;soul_callbacks=$soul.royal_counts.soul_callbacks;soul_sources=$soul.royal_counts.soul_sources;accepted_spiritual_events=$soul.royal_counts.spiritual_accepted;ordinary_soul_hp_events=$soul.royal_counts.ordinary_soul_hp_incoming;duplicate_deliveries=$soul.validation.duplicate_deliveries
+ } 'SOUL'
+ $elemental=Get-Content -Raw docs/benchmarks/phase6-elemental-native-event-path/e2-validation.json | ConvertFrom-Json -Depth 100
+ CheckCounts ($matrix.families | Where-Object family -eq 'ELEMENTAL').runtime_evidence.counts @{
+  cases=$elemental.unique_projectiles;historical_empty_dispatch=$elemental.historical_empty_dispatch_cases;same_projectile_rescues=$elemental.same_projectile_native_path_rescues;native_sources=$elemental.native_source_creations;incoming=$elemental.native_family_events;applied=$elemental.native_family_post_events;matching_nullification=$elemental.nullified_native_family_events;fire_resistance_pre_event=$elemental.native_fire_resistance_pre_event;duplicate_family_events=$elemental.duplicate_family_events
+ } 'ELEMENTAL'
+ $energy=Get-Content -Raw docs/benchmarks/phase6-energy-steal-physical-prerequisite/es4-final-decision.json | ConvertFrom-Json -Depth 100
+ CheckCounts ($matrix.families | Where-Object family -eq 'ENERGY_STEAL').runtime_evidence.counts @{
+  strict_rows=$energy.validation.strict_rows;live_attempts=$energy.accepted_live_royal.attempts;live_incoming=$energy.accepted_live_royal.incoming;live_applied_hurt_true=$energy.accepted_live_royal.hurt_true;live_callbacks_apply_drains=$energy.accepted_live_royal.drain;historical_differential_attempts=$energy.historical_differential.attempts;historical_differential_incoming=$energy.historical_differential.incoming;historical_differential_hurt_true_drains=$energy.historical_differential.drain;directly_proven_new_invulnerability_failures=$energy.first_proven_combat_divergence.server_ticks.Count;old_absences_individually_attributed=$energy.historical_reassessment.old_rows_individually_attributed_with_direct_timer_return_evidence;duplicate_drains=$energy.validation.duplicate_drains
+ } 'ENERGY_STEAL'
+ $candidate=Get-Content -Raw docs/benchmarks/phase6-candidate-c-sustained-viability/v4-decision.json | ConvertFrom-Json -Depth 100
+ CheckCounts ($matrix.families | Where-Object family -eq 'SEVERANCE').runtime_evidence.counts @{
+  candidate_c_cases=$candidate.official_validation.case_count;candidate_c_releases=$candidate.official_validation.release_count;candidate_c_regenerate_cycles=$candidate.official_validation.Regenerate_events;candidate_c_trajectory_samples=$candidate.official_validation.counts.trajectory
+ } 'SEVERANCE/CANDIDATE_C'
 }
 if ($Checkpoint -in @('R3','R4')) {
  CheckSchema 'non-interaction-review'; $schemaCount++
@@ -78,6 +108,12 @@ if ($Checkpoint -eq 'R4') {
  CheckSchema 'readiness-decision'; $schemaCount++
  $decision=ReadJson 'readiness-decision.json'
  Assert ($decision.source_baseline -eq $base) 'Decision baseline mismatch'
+ Assert ((($decision.six_family_summary.family | Sort-Object) -join ',') -eq (($matrix.families.family | Sort-Object) -join ',')) 'Decision family summary missing or duplicated'
+ foreach ($summary in $decision.six_family_summary) {
+  $accepted=$matrix.families | Where-Object family -eq $summary.family
+  foreach ($field in @('mechanical_status','stage_status','production_status','endgame_status','phase7_blocker')) { Assert ($summary.$field -ceq $accepted.$field) "Decision summary differs from accepted matrix: $($summary.family)/$field" }
+  Assert (($summary.known_limitations -join "`n") -ceq ($accepted.known_limitations -join "`n")) "Decision summary limitations differ: $($summary.family)"
+ }
  Assert (-not $decision.phase7_started -and -not $decision.phase7_authorized) 'Phase 7 authorization invented'
  Assert (-not $decision.production_changed -and -not $decision.historical_evidence_changed) 'Locked work changed'
  Assert ($decision.candidate_c -eq 'REJECTED_EXHAUSTED') 'Candidate C reopened'
@@ -86,6 +122,7 @@ if ($Checkpoint -eq 'R4') {
  if ($decision.decision -eq 'POST_PHASE6_READY_WITH_OWNER_DECISIONS') { Assert ($owners.Count -gt 0 -and $decision.owner_decisions.Count -gt 0 -and $blockers.Count -eq 0 -and $decision.engineering_blockers.Count -eq 0) 'Owner decision inconsistent with matrix' }
  if ($decision.decision -eq 'POST_PHASE6_READY_FOR_PHASE7') { Assert ($owners.Count -eq 0 -and $blockers.Count -eq 0 -and $decision.owner_decisions.Count -eq 0 -and $decision.engineering_blockers.Count -eq 0) 'Unresolved question marked ready' }
  if ($decision.decision -eq 'POST_PHASE6_NOT_READY_BLOCKED') { Assert ($blockers.Count -gt 0 -and $decision.engineering_blockers.Count -gt 0) 'Weakness mislabeled engineering blocker' }
+ foreach ($owner in $decision.owner_decisions) { Assert ($owner.family -eq 'GLOBAL' -or $owner.family -in $owners.family) 'Owner question not reflected in matrix' }
  $build=ReadJson 'build-validation.json'
  Assert ($build.exit_code -eq 0 -and $build.tests -eq 54 -and $build.failures -eq 0 -and $build.errors -eq 0 -and $build.skipped -eq 0) 'Required build did not pass'
  Assert ($build.log_sha256 -eq (Get-FileHash -Algorithm SHA256 -LiteralPath "$EvidenceDirectory/clean-build.log").Hash.ToLowerInvariant()) 'Build log hash mismatch'
