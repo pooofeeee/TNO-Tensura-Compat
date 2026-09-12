@@ -1,10 +1,534 @@
 {
   "schema": "tno.external_effects.catalog.v1",
   "status": "PARTIAL",
-  "checkpoint": "R1",
+  "checkpoint": "R2a_PARTIAL",
   "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
-  "note": "Empty arrays mean discovery not performed yet, never no effects. R2 discovery, R3 comparison and R4 acceptance remain pending.",
-  "effects": [],
+  "note": "These are provisional native findings, not a final distinct-effect count. Null comparison/classification means R3 has not been performed. R2 semantic coverage remains incomplete.",
+  "effects": [
+    {
+      "id": "variantsandventures:poison_payload",
+      "display_name": "Thicket melee / Verdant arrow Poison payload",
+      "registry_id": "minecraft:poison",
+      "native_status": "STATIC_VERIFIED",
+      "primary_classification": null,
+      "actual_behavior": "Thicket calls super.doHurtTarget first, then on success with empty main hand and a LivingEntity target applies vanilla POISON through LivingEntity.addEffect with itself as source. Verdant calls super.getArrow and adds a POISON MobEffectInstance only when the returned projectile is an Arrow. These are separate application paths.",
+      "numerical_parameters": {
+        "constructed_payload_duration_ticks": 100,
+        "constructed_payload_amplifier": 0
+      },
+      "flags": {
+        "uses_vanilla_mob_effects": true,
+        "custom_attributes": false,
+        "custom_entity_state": false,
+        "custom_damage_source": false,
+        "custom_stacking": false,
+        "buildup": false,
+        "threshold": false,
+        "custom_immunity_logic": false,
+        "custom_cure_logic": false,
+        "duration_matters": true,
+        "strength_matters": true
+      },
+      "scalable_parameters": [
+        "payload duration",
+        "MobEffectInstance amplifier"
+      ],
+      "binary_parameters": [
+        "successful melee admission",
+        "empty main hand",
+        "Arrow type check"
+      ],
+      "delivery_paths": [
+        "vv-thicket-melee-poison",
+        "vv-verdant-arrow-poison"
+      ],
+      "primary_test_source": "variantsandventures:thicket with empty main hand",
+      "alternate_sources": [
+        "variantsandventures:verdant using its native bow attack; distinct mandatory projectile representative"
+      ],
+      "evidence_ids": [
+        "vv-thicket",
+        "vv-verdant",
+        "vv-entities"
+      ],
+      "pending": [
+        "Trace actual Minecraft 1.21.1 Arrow payload-to-target duration and poison ticking/immunities/merge behavior before final comparison."
+      ],
+      "mod_key": "variantsandventures",
+      "inspection_status": "PARTIAL",
+      "closest_vanilla_equivalent": null,
+      "vanilla_similarities": null,
+      "vanilla_differences": null,
+      "existing_compat_modification": "UNKNOWN",
+      "compat_note": "No pack-wide absence claim is made. The four separately pinned compat candidates and other installed injection/data surfaces still require relevance review.",
+      "native_findings_file": "docs/benchmarks/external-effects-catalog/native-findings/variantsandventures.json",
+      "implementation": [
+        {
+          "entry": "com/faboslav/variantsandventures/common/entity/mob/ThicketEntity.class",
+          "methods": [
+            "doHurtTarget",
+            "canBeAffected"
+          ]
+        },
+        {
+          "entry": "com/faboslav/variantsandventures/common/entity/mob/VerdantEntity.class",
+          "methods": [
+            "getArrow",
+            "performRangedAttack",
+            "canFreeze"
+          ]
+        },
+        {
+          "entry": "com/faboslav/variantsandventures/common/init/VariantsAndVenturesEntityTypes.class",
+          "methods": [
+            "<clinit>",
+            "lambda$static$0",
+            "lambda$static$1",
+            "lambda$static$2",
+            "lambda$static$3"
+          ]
+        }
+      ],
+      "confidence": "Native bytecode-backed finding; final comparison, delivery deduplication and pack-wide compat relevance unfinished."
+    },
+    {
+      "id": "variantsandventures:frozen_ticks_set",
+      "display_name": "Gelid absolute frozen-timer assignment",
+      "registry_id": null,
+      "native_status": "STATIC_VERIFIED",
+      "primary_classification": null,
+      "actual_behavior": "Melee: successful super.doHurtTarget, empty main hand, LivingEntity and canFreeze gates precede setTicksFrozen(240). Snowball: ProjectileHitEvent listener checks Snowball owned by Gelid and a LivingEntity hit, requests 4 damage through the owner's vanilla thrown-source factory, then sets frozen ticks to 240 without checking canFreeze or the hurt return value. Assignment replaces the timer; it does not add 240. This is not a registered freezing MobEffect.",
+      "numerical_parameters": {
+        "absolute_frozen_ticks": 240,
+        "snowball_requested_damage": 4.0,
+        "native_snowball_launch_speed": 1.6,
+        "native_snowball_inaccuracy": 7.0,
+        "goal_range_parameter": 10.0
+      },
+      "flags": {
+        "uses_vanilla_mob_effects": false,
+        "custom_attributes": false,
+        "custom_entity_state": false,
+        "custom_damage_source": false,
+        "custom_stacking": false,
+        "buildup": false,
+        "threshold": null,
+        "custom_immunity_logic": true,
+        "custom_cure_logic": false,
+        "duration_matters": true,
+        "strength_matters": false
+      },
+      "scalable_parameters": [
+        "assigned frozen ticks",
+        "snowball requested damage"
+      ],
+      "binary_parameters": [
+        "melee canFreeze admission",
+        "successful melee hit",
+        "Gelid projectile owner",
+        "LivingEntity target",
+        "offhand snowball inventory"
+      ],
+      "delivery_paths": [
+        "vv-gelid-melee-freeze",
+        "vv-gelid-snowball-freeze"
+      ],
+      "primary_test_source": "variantsandventures:gelid with empty main hand for melee",
+      "alternate_sources": [
+        "Native Gelid ranged goal consumes one offhand minecraft:snowball and launches a genuinely owned Snowball; distinct required path"
+      ],
+      "evidence_ids": [
+        "vv-gelid",
+        "vv-gelid-goal",
+        "vv-snowball",
+        "vv-projectile-hook",
+        "vv-main",
+        "vv-entities"
+      ],
+      "pending": [
+        "Trace Snowball.onHitEntity -> Projectile.onHitEntity and actual vanilla damage/frozen-tick processing. Do not equate 240 timer units with a guaranteed 12-second control effect or 4 lost HP.",
+        "No explicit cooldown in Gelid goal tick; launch consumes the offhand stack. Radius parameter is a navigation/aim parameter, not an enforced hit radius."
+      ],
+      "mod_key": "variantsandventures",
+      "inspection_status": "PARTIAL",
+      "closest_vanilla_equivalent": null,
+      "vanilla_similarities": null,
+      "vanilla_differences": null,
+      "existing_compat_modification": "UNKNOWN",
+      "compat_note": "No pack-wide absence claim is made. The four separately pinned compat candidates and other installed injection/data surfaces still require relevance review.",
+      "native_findings_file": "docs/benchmarks/external-effects-catalog/native-findings/variantsandventures.json",
+      "implementation": [
+        {
+          "entry": "com/faboslav/variantsandventures/common/entity/mob/GelidEntity.class",
+          "methods": [
+            "doHurtTarget",
+            "throwSnowball",
+            "populateDefaultEquipmentSlots",
+            "registerGoals"
+          ]
+        },
+        {
+          "entry": "com/faboslav/variantsandventures/common/entity/ai/GelidSnowballRangedAttackGoal.class",
+          "methods": [
+            "canUse",
+            "tick"
+          ]
+        },
+        {
+          "entry": "com/faboslav/variantsandventures/common/entity/event/GelidOnSnowballHitEvent.class",
+          "methods": [
+            "handleSnowballHit"
+          ]
+        },
+        {
+          "entry": "com/faboslav/variantsandventures/common/mixin/ProjectileEntityMixin.class",
+          "methods": [
+            "variantsandventures$onEntityHit"
+          ]
+        },
+        {
+          "entry": "com/faboslav/variantsandventures/common/VariantsAndVentures.class",
+          "methods": [
+            "init"
+          ]
+        },
+        {
+          "entry": "com/faboslav/variantsandventures/common/init/VariantsAndVenturesEntityTypes.class",
+          "methods": [
+            "<clinit>",
+            "lambda$static$0",
+            "lambda$static$1",
+            "lambda$static$2",
+            "lambda$static$3"
+          ]
+        }
+      ],
+      "confidence": "Native bytecode-backed finding; final comparison, delivery deduplication and pack-wide compat relevance unfinished."
+    },
+    {
+      "id": "variantsandventures:poison_rejection",
+      "display_name": "Thicket Poison rejection",
+      "registry_id": null,
+      "native_status": "STATIC_VERIFIED",
+      "primary_classification": null,
+      "actual_behavior": "Thicket.canBeAffected returns false for an instance whose holder is MobEffects.POISON, delegating other effects to its superclass. Whether this adds a new protection over vanilla undead eligibility remains for R3.",
+      "numerical_parameters": {},
+      "flags": {
+        "uses_vanilla_mob_effects": true,
+        "custom_attributes": false,
+        "custom_entity_state": false,
+        "custom_damage_source": false,
+        "custom_stacking": false,
+        "buildup": false,
+        "threshold": false,
+        "custom_immunity_logic": true,
+        "custom_cure_logic": false,
+        "duration_matters": false,
+        "strength_matters": false
+      },
+      "scalable_parameters": [],
+      "binary_parameters": [
+        "POISON holder rejection"
+      ],
+      "delivery_paths": [
+        "vv-thicket-poison-eligibility"
+      ],
+      "primary_test_source": "variantsandventures:thicket as recipient of a legitimate vanilla Poison delivery",
+      "alternate_sources": [],
+      "evidence_ids": [
+        "vv-thicket"
+      ],
+      "pending": [
+        "Compare superclass/native undead immunity; do not count redundant code as a new primitive."
+      ],
+      "mod_key": "variantsandventures",
+      "inspection_status": "PARTIAL",
+      "closest_vanilla_equivalent": null,
+      "vanilla_similarities": null,
+      "vanilla_differences": null,
+      "existing_compat_modification": "UNKNOWN",
+      "compat_note": "No pack-wide absence claim is made. The four separately pinned compat candidates and other installed injection/data surfaces still require relevance review.",
+      "native_findings_file": "docs/benchmarks/external-effects-catalog/native-findings/variantsandventures.json",
+      "implementation": [
+        {
+          "entry": "com/faboslav/variantsandventures/common/entity/mob/ThicketEntity.class",
+          "methods": [
+            "doHurtTarget",
+            "canBeAffected"
+          ]
+        }
+      ],
+      "confidence": "Native bytecode-backed finding; final comparison, delivery deduplication and pack-wide compat relevance unfinished."
+    },
+    {
+      "id": "variantsandventures:freeze_rejection",
+      "display_name": "Zombie / Murk / Verdant freeze eligibility overrides",
+      "registry_id": null,
+      "native_status": "STATIC_VERIFIED",
+      "primary_classification": null,
+      "actual_behavior": "Murk and Verdant explicitly return false from canFreeze. A LivingEntity WrapMethod shim is overridden through the Zombie mixin superclass chain; ZombieMixin's implementation returns false. The latter is a Zombie-wide native modification, not just a Gelid override. The entity type builder also marks Gelid immune to powder snow blocks. Static mixin declarations and plugin eligibility are pinned; transformed runtime behavior is not tested here.",
+      "numerical_parameters": {},
+      "flags": {
+        "uses_vanilla_mob_effects": false,
+        "custom_attributes": false,
+        "custom_entity_state": false,
+        "custom_damage_source": false,
+        "custom_stacking": false,
+        "buildup": false,
+        "threshold": false,
+        "custom_immunity_logic": true,
+        "custom_cure_logic": false,
+        "duration_matters": false,
+        "strength_matters": false
+      },
+      "scalable_parameters": [],
+      "binary_parameters": [
+        "canFreeze false",
+        "powder-snow block immunity"
+      ],
+      "delivery_paths": [
+        "vv-zombie-freeze-eligibility",
+        "vv-murk-freeze-eligibility",
+        "vv-verdant-freeze-eligibility"
+      ],
+      "primary_test_source": "minecraft:zombie exposed to native powder snow (mixin path)",
+      "alternate_sources": [
+        "variantsandventures:murk",
+        "variantsandventures:verdant",
+        "variantsandventures:gelid (powder-snow entity-type flag in addition to inherited Zombie path)"
+      ],
+      "evidence_ids": [
+        "vv-zombie",
+        "vv-living-shim",
+        "vv-murk",
+        "vv-verdant",
+        "vv-entities",
+        "vv-mixin-config",
+        "vv-mixin-plugin"
+      ],
+      "pending": [
+        "Trace superclass shim chain and vanilla freeze cleanup/damage/tag interactions; classify each materially distinct protection path in R3."
+      ],
+      "mod_key": "variantsandventures",
+      "inspection_status": "PARTIAL",
+      "closest_vanilla_equivalent": null,
+      "vanilla_similarities": null,
+      "vanilla_differences": null,
+      "existing_compat_modification": "UNKNOWN",
+      "compat_note": "No pack-wide absence claim is made. The four separately pinned compat candidates and other installed injection/data surfaces still require relevance review.",
+      "native_findings_file": "docs/benchmarks/external-effects-catalog/native-findings/variantsandventures.json",
+      "implementation": [
+        {
+          "entry": "com/faboslav/variantsandventures/common/mixin/ZombieMixin.class",
+          "methods": [
+            "variantsandventures$canFreeze",
+            "variantsandventures$tick",
+            "variantsandventures$startFreezeConversion",
+            "variantsandventures$doFreezeConversion"
+          ]
+        },
+        {
+          "entry": "com/faboslav/variantsandventures/common/mixin/ZombieLivingEntityMixin.class",
+          "methods": [
+            "variantsandventures$canFreeze"
+          ]
+        },
+        {
+          "entry": "com/faboslav/variantsandventures/common/entity/mob/MurkEntity.class",
+          "methods": [
+            "canFreeze",
+            "performRangedAttack"
+          ]
+        },
+        {
+          "entry": "com/faboslav/variantsandventures/common/entity/mob/VerdantEntity.class",
+          "methods": [
+            "getArrow",
+            "performRangedAttack",
+            "canFreeze"
+          ]
+        },
+        {
+          "entry": "com/faboslav/variantsandventures/common/init/VariantsAndVenturesEntityTypes.class",
+          "methods": [
+            "<clinit>",
+            "lambda$static$0",
+            "lambda$static$1",
+            "lambda$static$2",
+            "lambda$static$3"
+          ]
+        },
+        {
+          "entry": "variantsandventures-common.mixins.json",
+          "methods": []
+        },
+        {
+          "entry": "com/faboslav/variantsandventures/common/mixin/plugin/VariantsAndVenturesMixinPlugin.class",
+          "methods": [
+            "shouldApplyMixin"
+          ]
+        }
+      ],
+      "confidence": "Native bytecode-backed finding; final comparison, delivery deduplication and pack-wide compat relevance unfinished."
+    },
+    {
+      "id": "variantsandventures:underwater_arrow_inertia",
+      "display_name": "Murk underwater arrow velocity retention",
+      "registry_id": null,
+      "native_status": "STATIC_VERIFIED",
+      "primary_classification": null,
+      "actual_behavior": "AbstractArrow.getWaterInertia return value is replaced by 0.99F when the arrow's owner is a MurkEntity; other owners keep the original value. This changes projectile delivery in water, not a target status or damage-source identity. It must remain visible in future delivery coverage even if R3 excludes it as a standalone effect.",
+      "numerical_parameters": {
+        "water_inertia": 0.99
+      },
+      "flags": {
+        "uses_vanilla_mob_effects": false,
+        "custom_attributes": false,
+        "custom_entity_state": false,
+        "custom_damage_source": false,
+        "custom_stacking": false,
+        "buildup": false,
+        "threshold": false,
+        "custom_immunity_logic": false,
+        "custom_cure_logic": false,
+        "duration_matters": false,
+        "strength_matters": false
+      },
+      "scalable_parameters": [
+        "water velocity retention coefficient"
+      ],
+      "binary_parameters": [
+        "Murk projectile owner",
+        "underwater projectile processing"
+      ],
+      "delivery_paths": [
+        "vv-murk-underwater-arrow"
+      ],
+      "primary_test_source": "variantsandventures:murk native bow attack through water",
+      "alternate_sources": [],
+      "evidence_ids": [
+        "vv-arrow-inertia",
+        "vv-murk",
+        "vv-mixin-config"
+      ],
+      "pending": [
+        "Compare actual AbstractArrow tick use and original getWaterInertia return in Minecraft 1.21.1."
+      ],
+      "mod_key": "variantsandventures",
+      "inspection_status": "PARTIAL",
+      "closest_vanilla_equivalent": null,
+      "vanilla_similarities": null,
+      "vanilla_differences": null,
+      "existing_compat_modification": "UNKNOWN",
+      "compat_note": "No pack-wide absence claim is made. The four separately pinned compat candidates and other installed injection/data surfaces still require relevance review.",
+      "native_findings_file": "docs/benchmarks/external-effects-catalog/native-findings/variantsandventures.json",
+      "implementation": [
+        {
+          "entry": "com/faboslav/variantsandventures/common/mixin/AbstractArrowMixin.class",
+          "methods": [
+            "variantsandventures$getWaterInertia"
+          ]
+        },
+        {
+          "entry": "com/faboslav/variantsandventures/common/entity/mob/MurkEntity.class",
+          "methods": [
+            "canFreeze",
+            "performRangedAttack"
+          ]
+        },
+        {
+          "entry": "variantsandventures-common.mixins.json",
+          "methods": []
+        }
+      ],
+      "confidence": "Native bytecode-backed finding; final comparison, delivery deduplication and pack-wide compat relevance unfinished."
+    },
+    {
+      "id": "variantsandventures:zombie_powder_snow_conversion",
+      "display_name": "Zombie powder-snow conversion to Gelid",
+      "registry_id": null,
+      "native_status": "STATIC_VERIFIED",
+      "primary_classification": null,
+      "actual_behavior": "ZombieMixin tracks powder-snow time on server while alive and with AI enabled. At 140 exposure ticks it starts a 300-tick conversion countdown; subsequent in-powder-snow ticks decrement it and a negative countdown converts to the Gelid entity type, passing true to convertTo. Leaving powder snow resets exposure to -1 and cancels the converting flag. This replaces the attack-capable entity with the variant providing the freeze/snowball paths above; it is not merely an animation.",
+      "numerical_parameters": {
+        "exposure_start_threshold": 140,
+        "initial_countdown": 300,
+        "conversion_trigger": "countdown < 0",
+        "outside_powder_snow_exposure_reset": -1
+      },
+      "flags": {
+        "uses_vanilla_mob_effects": false,
+        "custom_attributes": false,
+        "custom_entity_state": true,
+        "custom_damage_source": false,
+        "custom_stacking": false,
+        "buildup": true,
+        "threshold": true,
+        "custom_immunity_logic": false,
+        "custom_cure_logic": true,
+        "duration_matters": true,
+        "strength_matters": false
+      },
+      "scalable_parameters": [
+        "exposure threshold",
+        "conversion countdown"
+      ],
+      "binary_parameters": [
+        "server side",
+        "alive",
+        "AI enabled",
+        "in powder snow",
+        "converting state"
+      ],
+      "delivery_paths": [
+        "vv-zombie-powder-snow-conversion"
+      ],
+      "primary_test_source": "minecraft:zombie held in native powder snow",
+      "alternate_sources": [],
+      "evidence_ids": [
+        "vv-zombie",
+        "vv-entities",
+        "vv-mixin-config"
+      ],
+      "pending": [
+        "Compare vanilla conversion machinery and equipment/state preservation; determine final standalone-mechanic versus source-enabling prerequisite treatment in R3."
+      ],
+      "mod_key": "variantsandventures",
+      "inspection_status": "PARTIAL",
+      "closest_vanilla_equivalent": null,
+      "vanilla_similarities": null,
+      "vanilla_differences": null,
+      "existing_compat_modification": "UNKNOWN",
+      "compat_note": "No pack-wide absence claim is made. The four separately pinned compat candidates and other installed injection/data surfaces still require relevance review.",
+      "native_findings_file": "docs/benchmarks/external-effects-catalog/native-findings/variantsandventures.json",
+      "implementation": [
+        {
+          "entry": "com/faboslav/variantsandventures/common/mixin/ZombieMixin.class",
+          "methods": [
+            "variantsandventures$canFreeze",
+            "variantsandventures$tick",
+            "variantsandventures$startFreezeConversion",
+            "variantsandventures$doFreezeConversion"
+          ]
+        },
+        {
+          "entry": "com/faboslav/variantsandventures/common/init/VariantsAndVenturesEntityTypes.class",
+          "methods": [
+            "<clinit>",
+            "lambda$static$0",
+            "lambda$static$1",
+            "lambda$static$2",
+            "lambda$static$3"
+          ]
+        },
+        {
+          "entry": "variantsandventures-common.mixins.json",
+          "methods": []
+        }
+      ],
+      "confidence": "Native bytecode-backed finding; final comparison, delivery deduplication and pack-wide compat relevance unfinished."
+    }
+  ],
   "existing_tno_coverage": [
     {
       "family": "MAGIC",

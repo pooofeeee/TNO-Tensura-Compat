@@ -30,6 +30,30 @@ def validate():
         if effect.get('primary_classification') is not None:
             assert effect['primary_classification'] in CLASSIFICATIONS
         assert effect['mod_key'] in {key for key,_ in TARGETS if key!='tensura'}
+    if (OUT/'discovery-scan.json').exists():
+        from audit_discovery import audit
+        assert audit()==read_json(OUT/'discovery-audit.json'), 'Discovery audit stale'
+        from native_evidence import collect
+        from assemble_native import assemble
+        for path in (OUT/'native-findings').glob('*.json'):
+            document=read_json(path)
+            assert collect(document)==read_json(OUT/'native-evidence'/path.name), 'Native witness changed: '+path.name
+            known={e['id'] for e in document['evidence_specifications']}
+            for finding in document['findings']:
+                assert set(finding['evidence_ids'])<=known
+        assert catalog['effects']==assemble(), 'Catalog does not match native findings'
+        compat_path=OUT/'compat-findings'/'antarchy-tensura-data.json'
+        if compat_path.exists():
+            compat=read_json(compat_path)
+            target=next(t for t in inventory['compat_candidates'] if t['key']==compat['mod_key'])
+            assert target['sha256']==compat['compat_jar_sha256']
+            assert compat['definitions']==len(compat['entries'])
+            with zipfile.ZipFile(target['path']) as jar:
+                for entry in compat['entries']:
+                    raw=jar.read(entry['entry'])
+                    assert byte_hash(raw)==entry['sha256'] and json.loads(raw)==entry['data']
+        parser=read_json(OUT/'parser-validation.json')
+        assert parser['status']=='PASS' and parser['tests']==5 and not parser['failures'] and not parser['errors']
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():
