@@ -1,0 +1,43 @@
+{
+  "schema": "tno.external_effects.native_prerequisites.v1",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "status": "PARTIAL",
+  "mod_key": "variantsandventures",
+  "evidence": ["native-evidence/variantsandventures.json", "vanilla-evidence/variants-prerequisites.json"],
+  "runtime_tested": false,
+  "findings": [
+    {
+      "id": "verdant-payload-duration",
+      "conclusion": "Verdant calls Arrow.addEffect, which uses PotionContents.withEffectAdded. Arrow.doPostHurtEffects passes customEffects directly to LivingEntity.addEffect. The separate base-potion branch divides duration by 8; it does not divide the custom-effects branch. The constructed Verdant Poison payload reaches target addEffect with its 100-tick duration unchanged, conditional on reaching post-hurt handling and native effect admission.",
+      "pending": "Full AbstractArrow hit admission, effect merging and installed loader/event modifications are not finalized."
+    },
+    {
+      "id": "poison-source-authority",
+      "conclusion": "Raw Minecraft 1.21.1 PoisonMobEffect requests 1 magic-source damage while HP >1; scheduling uses 25 >> amplifier and duration modulo that interval. The local mapped NeoForge 21.1.248 source aid instead contains a loader poison-DamageType patch. That patch is not vanilla and is not attributed to Variants & Ventures.",
+      "installed_instance_loader": "The new instance's manifest declares neoforge-21.1.244, not the 21.1.248 development source aid.",
+      "pending": "Inspect the already located installed 21.1.244 client/universal artifacts before making pack-effective poison source claims. Base vanilla comparison is pinned independently."
+    },
+    {
+      "id": "gelid-snowball-hook-order",
+      "conclusion": "Raw Snowball.onHitEntity calls its superclass first, then requests 3 thrown damage against Blaze or 0 otherwise. The native Projectile.onHitEntity body is empty. The mod wraps that inherited Projectile callback, invokes its Gelid listener, then the original body. Therefore the mod's 4-damage request and setTicksFrozen(240) occur before the ordinary Snowball 3/0 request along this callback chain. They are separate requests, not proven additive lost HP.",
+      "pending": "Loader impact admission and other installed handlers remain outside this static partial review."
+    },
+    {
+      "id": "frozen-timer-is-not-stun-duration",
+      "conclusion": "Raw Entity freezing threshold is 140 and percentFrozen clamps at that threshold. LivingEntity server aiStep increments/clamps frozen ticks in eligible powder snow, otherwise decreases by 2 toward zero. It requests 1 freeze-source damage every 40 entity ticks when fully frozen and canFreeze. Thus a 240 timer assignment is not a 12-second stun, nor a guaranteed amount of HP loss. Outside snow without refresh/reset, nominal timer decay is 120 living ticks."
+    },
+    {
+      "id": "freeze-slow-and-eligibility-differ",
+      "conclusion": "Raw tryAddFrost, when the legacy supporting block is not air and frozen ticks are positive, applies a transient MOVEMENT_SPEED ADD_VALUE modifier of -0.05 * percentFrozen. It does not check canFreeze. Frost modifier removal/reapplication is separate from damage admission. Consequently Gelid's ungated snowball timer write can still reach this vanilla speed-modifier branch on a freeze-ineligible target, while the freeze-DOT branch checks canFreeze. This is a static control-flow observation, not a runtime-tested immunity bypass claim or a proposed fix."
+    },
+    {
+      "id": "tag-inheritance-and-redundancy",
+      "conclusion": "The source mod appends Gelid/Thicket to minecraft:zombies and Murk/Verdant to minecraft:skeletons. Raw vanilla undead includes both tags; ignores_poison_and_regen and can_breathe_under_water include undead. Thicket's explicit poison rejection therefore overlaps its vanilla tag protection under these data contributions. The extra Murk underwater-breathing tag entry is also redundant under that tag graph. Pack resource replacement could alter the final graph and has not been resolved. Gelid is separately appended to freeze_immune_entity_types and powder_snow_walkable_mobs."
+    },
+    {
+      "id": "murk-arrow-inertia",
+      "conclusion": "Raw AbstractArrow.getWaterInertia returns 0.6F; its tick uses that return value to scale the velocity when in water. The mod's Murk-owner return of 0.99F therefore changes water velocity retention through a native delivery parameter. It does not introduce a new damage type."
+    }
+  ],
+  "exact_resume": "Keep these proven raw-vanilla distinctions. Finish full delivery eligibility, entity-type/tag and conversion source coverage; inspect the actual 21.1.244 loader where relevant. Classifications, final deduplication and whole-mod coverage remain unfinished."
+}

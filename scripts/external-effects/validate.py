@@ -54,6 +54,20 @@ def validate():
                     assert byte_hash(raw)==entry['sha256'] and json.loads(raw)==entry['data']
         parser=read_json(OUT/'parser-validation.json')
         assert parser['status']=='PASS' and parser['tests']==5 and not parser['failures'] and not parser['errors']
+        notes=OUT/'partial-notes'/'cultofazazel.json'
+        if notes.exists():
+            assert collect(read_json(notes))==read_json(OUT/'native-evidence'/'cultofazazel-partial.json')
+        vanilla_spec=OUT/'vanilla-specifications'/'variants-prerequisites.json'
+        if vanilla_spec.exists():
+            from vanilla_reference import prepare
+            raw=read_json(OUT/'vanilla-evidence'/'variants-prerequisites.json')
+            assert prepare(read_json(vanilla_spec))==raw, 'Raw vanilla witness changed'
+            poison=next(c for c in raw['classes'] if c['class_name'].endswith('/PoisonMobEffect'))
+            tick=next(m for m in poison['methods'] if m['name']=='applyEffectTick')
+            assert any(i['operand']=='net/minecraft/world/damagesource/DamageSources.magic()Lnet/minecraft/world/damagesource/DamageSource;' for i in tick['instructions'])
+            loader=read_json(OUT/'instance-loader-reference.json')
+            assert sha256(loader['manifest_path'])==loader['manifest_sha256']
+            for artifact in loader['artifacts']: assert sha256(artifact['path'])==artifact['sha256']
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():

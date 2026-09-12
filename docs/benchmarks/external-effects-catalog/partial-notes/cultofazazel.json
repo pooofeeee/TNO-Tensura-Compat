@@ -1,0 +1,67 @@
+{
+  "schema": "tno.external_effects.partial_notes.v1",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "cultofazazel",
+  "status": "PARTIAL",
+  "semantic_coverage_complete": false,
+  "reason_not_assembled_into_final_catalog": "Save mode began during initial class review. Registry IDs, additional deliveries, superclass handling, Curios lookup and event-order interactions have not been traced. These valid local findings are preserved without presenting them as complete effect records or final counts.",
+  "findings": [
+    {
+      "name": "Manipulation player-target aggro",
+      "native_fact": "ManipulationEffect extends harmful MobEffect. On server, only an affected Player triggers its logic: Piglin and ZombifiedPiglin instances within the player's bounding box inflated by 20 have their target changed to that player. It ticks when remaining duration modulo 20 equals zero; amplifier is unused in its implementation.",
+      "observed_deliveries": "ManipulatorStickItem.hurtEnemy and its ordinary use path each add NetherExp.MANIPULATION_EFFECT with duration 600 and amplifier 0. The effect can be installed on other LivingEntities, but this class's tick action requires Player.",
+      "registry_id": null,
+      "primary_classification": null,
+      "evidence_ids": ["coa-manipulation", "coa-stick"]
+    },
+    {
+      "name": "Manipulator Stick pull",
+      "native_fact": "Non-sneaking use rejects insufficient remaining durability (<20). It samples the player's eye/look ray from 0.5 to 15 in steps of 0.5, querying living entities in a box inflated by 0.6 at each point, choosing the first alive non-user target encountered. On a target it applies Manipulation, sets velocity x/z from normalize(player.position - target.position)*1.4 and y=0.4, sets hurtMarked, spends 20 durability and returns success. No block-ray obstruction test or ordinary-use cooldown was present in the reviewed method.",
+      "delivery": "ACTIVE_ITEM",
+      "registry_id": null,
+      "primary_classification": null,
+      "evidence_ids": ["coa-stick"]
+    },
+    {
+      "name": "Held-stick fleeing navigation",
+      "native_fact": "ManipulatorStickEvents.onEntityTick runs server-side every fourth entity tick. For Villager or AbstractPiglin, it finds the nearest player within 12 holding the stick in either hand, asks DefaultRandomPos.getPosAway with horizontal/vertical ranges 16/7, and if a position exists asks navigation to move there at speed 1.3. This is a navigation request, not a guaranteed action lock or a named fear MobEffect.",
+      "delivery": "PASSIVE_ITEM",
+      "registry_id": null,
+      "primary_classification": null,
+      "evidence_ids": ["coa-stick-events"]
+    },
+    {
+      "name": "Owned Wither Skeleton summon and target filtering",
+      "native_fact": "Sneaking stick use requires 50 available durability, attempts five Wither Skeleton creations, equips gold armor/sword, suppresses equipment drops, writes SummonerUUID, spends 50 durability and sets item cooldown 40. Every fourth server entity tick, an owned skeleton without a target selects the first eligible Player/Monster in a box inflated by 16, excluding owner, AzazelEntity and WitherSkeleton. LivingChangeTargetEvent also cancels those excluded targets and targets outside Player/Monster categories.",
+      "delivery": "SUMMONED_ATTACK",
+      "registry_id": null,
+      "primary_classification": null,
+      "pending": "Native Wither Skeleton hit payload and exact source/delivery representation require vanilla follow-up; no new damage mechanic is inferred merely from spawning a vanilla mob.",
+      "evidence_ids": ["coa-stick", "coa-stick-events"]
+    },
+    {
+      "name": "Chance Totem death cancellation, relocation and effect bundle",
+      "native_fact": "HIGH-priority LivingDeathEvent handler for ServerPlayer checks main hand, then offhand, then Curios helper if loaded. With a non-null totem it cancels death, sets HP to 1, removes all effects, consumes one item, teleports to the recorded respawn dimension/position (overworld/shared-spawn fallbacks), then adds vanilla Resistance amplifier 4, Invisibility 0, Blindness 1, Weakness 2, Regeneration 4 and Slowness 0, all duration 600. No random success test occurs in this reviewed handler despite the display name.",
+      "deliveries": ["PASSIVE_ITEM", "ACCESSORY_PROC"],
+      "registry_id": null,
+      "primary_classification": null,
+      "pending": "Curios helper, exact registry ID, vanilla totem comparison, and death-event interaction/eligibility remain unreviewed. This is observed source-mod behavior; no such action was executed by research.",
+      "evidence_ids": ["coa-chance-totem"]
+    },
+    {
+      "name": "ZoneEffect marker requires consumer review",
+      "native_fact": "ZoneEffect only invokes the neutral MobEffect constructor with its supplied color. Other event/client consumers were not reviewed, so this is not evidence that zone states are cosmetic or combat-inert.",
+      "registry_id": null,
+      "primary_classification": null,
+      "evidence_ids": ["coa-zone"]
+    }
+  ],
+  "evidence_specifications": [
+    {"id": "coa-manipulation", "mod_key": "cultofazazel", "entry": "com/benji/netherman/effect/ManipulationEffect.class", "methods": ["<init>", "applyEffectTick", "shouldApplyEffectTickThisTick"]},
+    {"id": "coa-zone", "mod_key": "cultofazazel", "entry": "com/benji/netherman/effect/ZoneEffect.class", "methods": ["<init>"]},
+    {"id": "coa-stick", "mod_key": "cultofazazel", "entry": "com/benji/netherman/item/ManipulatorStickItem.class", "methods": ["hurtEnemy", "use"]},
+    {"id": "coa-stick-events", "mod_key": "cultofazazel", "entry": "com/benji/netherman/event/ManipulatorStickEvents.class", "methods": ["onEntityTick", "onTargetChange", "lambda$onEntityTick$0", "lambda$onEntityTick$1"]},
+    {"id": "coa-chance-totem", "mod_key": "cultofazazel", "entry": "com/benji/netherman/event/ChanceTotemEvents.class", "methods": ["onPlayerDeath"]}
+  ],
+  "exact_resume": "Resume class review at NetherExp registration, CuriosCompat, ZoneEffect consumers and remaining item/entity/event damage paths. Do not reread the five pinned witnesses unless resolving one of the stated pending questions. Whole-mod discovery is unfinished."
+}
