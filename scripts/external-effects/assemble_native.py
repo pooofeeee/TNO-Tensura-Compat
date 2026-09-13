@@ -3,8 +3,10 @@ from catalog_common import *
 
 def assemble():
     effects=[]
+    reviews={read_json(p)['mod_key']:read_json(p) for p in sorted((OUT/'mod-reviews').glob('*.json'))}
     for path in sorted((OUT/'native-findings').glob('*.json')):
         document=read_json(path)
+        if document['mod_key'] in reviews:continue
         assert document['baseline']==BASELINE
         byid={x['id']:x for x in document['evidence_specifications']}
         for finding in document['findings']:
@@ -16,6 +18,7 @@ def assemble():
                 implementation=[dict(entry=byid[e]['entry'],methods=byid[e].get('methods',[])) for e in finding['evidence_ids']],
                 confidence='Native bytecode-backed finding; final comparison, delivery deduplication and pack-wide compat relevance unfinished.')
             effects.append(effect)
+    for review in reviews.values():effects.extend(review['effects'])
     return effects
 
 if __name__=='__main__':

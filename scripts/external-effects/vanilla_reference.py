@@ -97,6 +97,9 @@ def prepare(spec):
                                 mapped_source_entry=source_entry,mapped_source_sha256=byte_hash(source_data)))
         for entry in spec.get('resources',[]):
             data=jar.read(entry);resources.append(dict(entry=entry,sha256=byte_hash(data),data=json.loads(data)))
+        for entry in spec.get('absent_resources',[]):
+            assert entry not in jar.namelist(), 'Expected resource absence changed: '+entry
+            resources.append(dict(entry=entry,present=False))
     return dict(schema='tno.external_effects.vanilla_witness.v1',baseline=BASELINE,status='RAW_VANILLA_BYTECODE_PINNED',
         version='1.21.1',client_jar_sha256=sha256(CLIENT),mappings_sha256=sha256(MAPPING),manifest_sha256=sha256(MANIFEST),
         cached_manifest_sha1_checks_passed=True,mapped_source_jar=sources,classes=records,resources=resources,

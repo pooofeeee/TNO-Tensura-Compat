@@ -1,8 +1,240 @@
 {
   "schema": "tno.external_effects.vanilla_comparison.v1",
   "status": "PARTIAL",
-  "checkpoint": "R1",
+  "checkpoint": "R2c1",
   "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
-  "note": "Empty arrays mean discovery not performed yet, never no effects. R2 discovery, R3 comparison and R4 acceptance remain pending.",
-  "comparisons": []
+  "note": "Completed per-mod mappings only. Cross-mod normalization/source minimization waits for R3.",
+  "comparisons": [
+    {
+      "effect_id": "variantsandventures:poison_payload",
+      "mod_key": "variantsandventures",
+      "primary_classification": "VANILLA_DIRECT",
+      "closest_vanilla": "minecraft:poison",
+      "similarities": "The actual vanilla effect, constructor and target merge/tick implementation. 100-tick amplifier-0 custom arrow payload is not divided by eight.",
+      "differences": "External delivery sources only. Installed NeoForge 21.1.244 selects neoforge:poison (magic fallback) whereas raw vanilla requests minecraft:magic; this is loader behavior, not a source-mod damage channel.",
+      "components": [
+        {
+          "primitive": "DOT",
+          "implementation": "PoisonMobEffect.applyEffectTick / shouldApplyEffectTickThisTick",
+          "formula": "If health >1, request 1 damage; interval=max cadence(25 >> amplifier), every tick when shift result <=0.",
+          "vanilla_relation": "VANILLA_DIRECT",
+          "numerical_parameters": {
+            "payload_ticks": 100,
+            "amplifier": 0,
+            "requested_tick_damage": 1,
+            "base_interval": 25
+          },
+          "binary_parameters": [
+            "HP >1",
+            "native effect admission"
+          ]
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "variantsandventures:frozen_ticks_set",
+      "mod_key": "variantsandventures",
+      "primary_classification": "VANILLA_DIRECT",
+      "closest_vanilla": "Entity frozenTicks + LivingEntity frost/freezing + thrown-source damage",
+      "similarities": "Literal vanilla frozen-timer and hurt factories; no custom freezing status class.",
+      "differences": "Mod sets an absolute timer of 240, instead of environmental accumulation. Snowball ignores canFreeze and hurt result for assignment; melee checks both. Native speed modifier does not itself check canFreeze, but native freeze DOT does.",
+      "components": [
+        {
+          "primitive": "FREEZE",
+          "implementation": "Entity.setTicksFrozen; LivingEntity.aiStep",
+          "formula": "Assign 240; environmental update min(140,n+1) or max(0,n-2).",
+          "vanilla_relation": "VANILLA_DIRECT",
+          "numerical_parameters": {
+            "assignment": 240,
+            "threshold": 140,
+            "decay_per_tick": 2
+          },
+          "binary_parameters": [
+            "canFreeze used by melee and DOT"
+          ]
+        },
+        {
+          "primitive": "MOVEMENT_REDUCTION",
+          "implementation": "LivingEntity.tryAddFrost",
+          "formula": "MOVEMENT_SPEED ADD_VALUE = -0.05 * min(frozenTicks,140)/140, while supporting legacy block is not air and frozenTicks>0.",
+          "vanilla_relation": "VANILLA_DIRECT",
+          "numerical_parameters": {
+            "maximum_flat_reduction": 0.05
+          },
+          "binary_parameters": [
+            "supporting block",
+            "positive timer"
+          ]
+        },
+        {
+          "primitive": "DOT",
+          "implementation": "LivingEntity.aiStep",
+          "formula": "Every 40 entity ticks when fully frozen and canFreeze: request 1 freeze damage.",
+          "vanilla_relation": "VANILLA_DIRECT",
+          "numerical_parameters": {
+            "interval": 40,
+            "damage": 1
+          },
+          "binary_parameters": [
+            "fully frozen",
+            "canFreeze"
+          ]
+        },
+        {
+          "primitive": "DIRECT_DAMAGE",
+          "implementation": "GelidOnSnowballHitEvent.handleSnowballHit",
+          "formula": "Request 4 thrown damage before timer write; later Snowball callback separately requests Blaze=3/other=0.",
+          "vanilla_relation": "VANILLA_DIRECT",
+          "numerical_parameters": {
+            "mod_request": 4,
+            "vanilla_blaze_request": 3,
+            "vanilla_other_request": 0
+          },
+          "binary_parameters": []
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "variantsandventures:poison_rejection",
+      "mod_key": "variantsandventures",
+      "primary_classification": "BINARY_MECHANIC",
+      "closest_vanilla": "minecraft:ignores_poison_and_regen tag admission",
+      "similarities": "Uses native effect-holder admission and vanilla entity-type tags.",
+      "differences": "New tagged entity types and a redundant Thicket override; loader Applicable APPLY may override DEFAULT admission.",
+      "components": [
+        {
+          "primitive": "EFFECT_IMMUNITY",
+          "implementation": "LivingEntity.canBeAffected and ThicketEntity.canBeAffected",
+          "formula": "Reject Poison/Regeneration via tag graph; explicit Thicket POISON false return.",
+          "vanilla_relation": "VANILLA_DIRECT",
+          "numerical_parameters": {},
+          "binary_parameters": [
+            "holder identity",
+            "tag membership",
+            "Applicable event result"
+          ]
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "variantsandventures:freeze_rejection",
+      "mod_key": "variantsandventures",
+      "primary_classification": "BINARY_MECHANIC",
+      "closest_vanilla": "canFreeze and minecraft:freeze_immune_entity_types",
+      "similarities": "False freeze eligibility is the same native predicate used by entity tags and freeze-immune wearables.",
+      "differences": "Mod globally overrides Zombie freeze eligibility through its mixin hierarchy; Murk and Verdant use separate overrides. Gelid adds the native freeze-immune tag. Its builder immuneTo(POWDER_SNOW) flag makes EntityType.isBlockDangerous return false; this registration flag is not a general hurt immunity. No general immunity to arbitrary timer assignment or every frost speed modifier is implied.",
+      "components": [
+        {
+          "primitive": "FREEZE_IMMUNITY",
+          "implementation": "ZombieMixin shim; MurkEntity.canFreeze; VerdantEntity.canFreeze; Gelid tag",
+          "formula": "Return false / native tag membership.",
+          "vanilla_relation": "VANILLA_DIRECT",
+          "numerical_parameters": {},
+          "binary_parameters": [
+            "recipient class",
+            "freeze-immune entity tag"
+          ]
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "variantsandventures:underwater_arrow_inertia",
+      "mod_key": "variantsandventures",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "AbstractArrow water velocity drag",
+      "similarities": "Existing native water inertia scalar multiplies velocity in the arrow tick.",
+      "differences": "0.99F when owner instanceof MurkEntity instead of vanilla 0.6F. No new source or target status.",
+      "components": [
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "implementation": "AbstractArrowMixin.getWaterInertia -> AbstractArrow.tick",
+          "formula": "velocity *= 0.99 instead of 0.6 in water for Murk owner.",
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED",
+          "numerical_parameters": {
+            "water_retention": 0.99,
+            "vanilla_water_retention": 0.6
+          },
+          "binary_parameters": [
+            "Murk owner",
+            "in water"
+          ]
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "variantsandventures:zombie_powder_snow_conversion",
+      "mod_key": "variantsandventures",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "Skeleton powder-snow conversion to Stray",
+      "similarities": "Same 140 exposure / 300 countdown pattern, in-snow countdown, cancellation outside snow, native Mob.convertTo(...,true).",
+      "differences": "Applies to Zombie hierarchy and creates Gelid instead of Stray. The mod does not persist its custom exposure/countdown fields or call the installed Skeleton conversion events. Vanilla Skeleton persists StrayConversionTime and NeoForge wraps its conversion in conversion events.",
+      "components": [
+        {
+          "primitive": "TIMED_TRANSFORMATION",
+          "implementation": "ZombieMixin.tick -> doFreezeConversion -> Mob.convertTo",
+          "formula": "Expose to 140, start at 300, decrement while in snow and convert at <0.",
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED",
+          "numerical_parameters": {
+            "exposure": 140,
+            "countdown": 300
+          },
+          "binary_parameters": [
+            "server",
+            "alive",
+            "AI enabled",
+            "powder snow",
+            "successful entity creation"
+          ]
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "variantsandventures:powder_snow_walking",
+      "mod_key": "variantsandventures",
+      "primary_classification": "VANILLA_DIRECT",
+      "closest_vanilla": "PowderSnowBlock tag/footwear walking predicate",
+      "similarities": "Literal vanilla tag-driven mechanic.",
+      "differences": "Adds external entity types; no custom formula.",
+      "components": [
+        {
+          "primitive": "ENVIRONMENTAL_TRAVERSAL",
+          "implementation": "PowderSnowBlock.canEntityWalkOnPowderSnow / getCollisionShape; EntityType.isBlockDangerous",
+          "formula": "Native entity-type predicate.",
+          "vanilla_relation": "VANILLA_DIRECT",
+          "numerical_parameters": {},
+          "binary_parameters": [
+            "tag membership"
+          ]
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "variantsandventures:underwater_breathing",
+      "mod_key": "variantsandventures",
+      "primary_classification": "VANILLA_DIRECT",
+      "closest_vanilla": "minecraft:can_breathe_under_water",
+      "similarities": "Literal vanilla tag-driven mechanic.",
+      "differences": "Adds external entity types; no custom formula.",
+      "components": [
+        {
+          "primitive": "DROWNING_IMMUNITY",
+          "implementation": "Vanilla LivingEntity breathing and entity-type tags",
+          "formula": "Native entity-type predicate.",
+          "vanilla_relation": "VANILLA_DIRECT",
+          "numerical_parameters": {},
+          "binary_parameters": [
+            "tag membership"
+          ]
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    }
+  ]
 }

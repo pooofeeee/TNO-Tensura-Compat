@@ -1,8 +1,205 @@
 {
   "schema": "tno.external_effects.delivery.v1",
   "status": "PARTIAL",
-  "checkpoint": "R1",
+  "checkpoint": "R2c1",
   "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
-  "note": "Empty arrays mean discovery not performed yet, never no effects. R2 discovery, R3 comparison and R4 acceptance remain pending.",
-  "paths": []
+  "note": "Completed per-mod mappings only. Cross-mod normalization/source minimization waits for R3.",
+  "paths": [
+    {
+      "id": "vv-thicket-melee-poison",
+      "effect_ids": [
+        "variantsandventures:poison_payload"
+      ],
+      "labels": [
+        "MELEE"
+      ],
+      "primary_source": "variantsandventures:thicket",
+      "setup": "Empty main hand; admitted native hit then addEffect",
+      "implementation": "ThicketEntity.doHurtTarget",
+      "mod_key": "variantsandventures",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "vv-verdant-arrow-poison",
+      "effect_ids": [
+        "variantsandventures:poison_payload"
+      ],
+      "labels": [
+        "PROJECTILE"
+      ],
+      "primary_source": "variantsandventures:verdant",
+      "setup": "Native bow and Arrow; successful hurt before post-hurt effect application",
+      "implementation": "VerdantEntity.getArrow -> Arrow.doPostHurtEffects",
+      "mod_key": "variantsandventures",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "vv-gelid-melee-freeze",
+      "effect_ids": [
+        "variantsandventures:frozen_ticks_set"
+      ],
+      "labels": [
+        "MELEE"
+      ],
+      "primary_source": "variantsandventures:gelid",
+      "setup": "Empty main hand; admitted hit; living canFreeze target",
+      "implementation": "GelidEntity.doHurtTarget",
+      "mod_key": "variantsandventures",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "vv-gelid-snowball-freeze",
+      "effect_ids": [
+        "variantsandventures:frozen_ticks_set"
+      ],
+      "labels": [
+        "THROWN_PROJECTILE"
+      ],
+      "primary_source": "variantsandventures:gelid",
+      "setup": "Native offhand snowball is consumed by ranged goal; listener needs Gelid owner and LivingEntity",
+      "implementation": "GelidSnowballRangedAttackGoal -> GelidEntity.throwSnowball -> GelidOnSnowballHitEvent",
+      "mod_key": "variantsandventures",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "vv-thicket-poison-eligibility",
+      "effect_ids": [
+        "variantsandventures:poison_rejection"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "primary_source": "variantsandventures:thicket",
+      "setup": "Recipient of legitimate Poison and Regeneration; explicit Poison override plus tags",
+      "implementation": "ThicketEntity.canBeAffected",
+      "mod_key": "variantsandventures",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "vv-tag-undead-eligibility",
+      "effect_ids": [
+        "variantsandventures:poison_rejection"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "primary_source": "variantsandventures:murk",
+      "setup": "Recipient of legitimate Poison/Regeneration; no Thicket override",
+      "implementation": "LivingEntity.canBeAffected + undead tags",
+      "mod_key": "variantsandventures",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "vv-zombie-freeze-eligibility",
+      "effect_ids": [
+        "variantsandventures:freeze_rejection"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "primary_source": "minecraft:zombie",
+      "setup": "Ordinary Zombie in powder snow; inherited by Gelid/Thicket",
+      "implementation": "Zombie mixin canFreeze shim",
+      "mod_key": "variantsandventures",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "vv-murk-freeze-eligibility",
+      "effect_ids": [
+        "variantsandventures:freeze_rejection"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "primary_source": "variantsandventures:murk",
+      "setup": "Murk in powder snow",
+      "implementation": "MurkEntity.canFreeze",
+      "mod_key": "variantsandventures",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "vv-verdant-freeze-eligibility",
+      "effect_ids": [
+        "variantsandventures:freeze_rejection"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "primary_source": "variantsandventures:verdant",
+      "setup": "Verdant in powder snow",
+      "implementation": "VerdantEntity.canFreeze",
+      "mod_key": "variantsandventures",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "vv-gelid-tag-freeze-eligibility",
+      "effect_ids": [
+        "variantsandventures:freeze_rejection"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "primary_source": "variantsandventures:gelid",
+      "setup": "Gelid native freeze-immune type tag and powder-snow block flag coexist with Zombie shim",
+      "implementation": "Gelid type registration + freeze_immune_entity_types",
+      "mod_key": "variantsandventures",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "vv-murk-underwater-arrow",
+      "effect_ids": [
+        "variantsandventures:underwater_arrow_inertia"
+      ],
+      "labels": [
+        "PROJECTILE"
+      ],
+      "primary_source": "variantsandventures:murk",
+      "setup": "Native bow arrow travels through water",
+      "implementation": "AbstractArrowMixin.getWaterInertia",
+      "mod_key": "variantsandventures",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "vv-zombie-powder-snow-conversion",
+      "effect_ids": [
+        "variantsandventures:zombie_powder_snow_conversion"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "primary_source": "minecraft:zombie",
+      "setup": "Sustained powder-snow exposure with AI enabled",
+      "implementation": "ZombieMixin.tick / Mob.convertTo",
+      "mod_key": "variantsandventures",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "vv-powder-snow-walking",
+      "effect_ids": [
+        "variantsandventures:powder_snow_walking"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "primary_source": "variantsandventures:gelid",
+      "setup": "Native powder snow; above surface and not descending",
+      "implementation": "PowderSnowBlock.getCollisionShape",
+      "mod_key": "variantsandventures",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "vv-underwater-breathing",
+      "effect_ids": [
+        "variantsandventures:underwater_breathing"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "primary_source": "variantsandventures:murk",
+      "setup": "Submerge native tagged variant",
+      "implementation": "LivingEntity breathing predicate",
+      "mod_key": "variantsandventures",
+      "status": "VERIFIED"
+    }
+  ]
 }

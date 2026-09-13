@@ -1,6 +1,6 @@
 # External combat effects catalog — separate research track
 
-**Status: PARTIAL, protected R2b save-mode checkpoint.** Phase 6 is complete and closed. This track does not reopen, supersede, recalibrate or change Phase 6, its Stage behavior, accepted family integrations, or production combat. Original Phase 7 is not started by this research.
+**Status: PARTIAL overall; R2c1 completes Variants & Ventures native discovery.** Phase 6 is complete and closed. This track does not reopen, supersede, recalibrate or change Phase 6, its Stage behavior, accepted family integrations, or production combat. Original Phase 7 is not started by this research.
 
 Baseline: `a5e85e610349120e21d62f4a80f1b607e36607fe`. Branch: `external-effects-catalog-research`. Recovery found a clean working tree and the live readiness remote at this baseline; no earlier external-effects track existed. No applicable `AGENTS.md` was found. The dedicated branch was created from the verified baseline without resetting or discarding work.
 
@@ -42,7 +42,8 @@ The final human table will contain mod, mechanic, registry ID, classification, a
 |---|---|
 | R1 | Complete, pushed and live-verified: `1a362b65e075177f78792cbad12fb979203f2890` |
 | R2a | Pushed and live-verified `2e9d999ca68c101ac26c9e41415a696db7c5f65b`: all external outer-JAR classes scanned, source aids prepared, first six provisional native findings pinned; not R2 completion |
-| R2b | Save-mode partial increment: raw vanilla callback prerequisites, installed-loader distinction, and initial Cult of Azazel notes; resolve this checkpoint's SHA from its commit and live branch verification |
+| R2b | Pushed and verified `e380f8a2afce27ec768ec23ae4c6f19b3fb21483`: raw vanilla callback prerequisites and initial Cult of Azazel notes |
+| R2c1 | Variants & Ventures native semantics COMPLETE; eight records, fourteen paths/predicates, five actor types; further Cult of Azazel work preserved as PARTIAL |
 | R2 | In progress: semantic discovery across every available external target, including non-MobEffect mechanics and compatibility candidates |
 | R3 | Pending: vanilla comparisons, classifications, code-proven deduplication and complete delivery/source mapping |
 | R4 | Pending: final validation, report and owner-review decision |
@@ -95,3 +96,26 @@ An important authority distinction is preserved in [instance-loader-reference.js
 **Exact resume:** verify this branch/HEAD/live remote without resetting; read the two R2b finding files above. Finish Variants & Ventures delivery/exclusion, tag/conversion and exact-loader prerequisites from the saved evidence. Continue Cult of Azazel at `NetherExp` registration, `CuriosCompat`, ZoneEffect consumers and remaining item/entity/event damage paths. Then review the remaining external mods, six nested archives, nine JSON anomalies, relevant failed decompiler bodies and compatibility attribution. Reuse the protected R1/R2a evidence and source aids. Do not repeat accepted Phase 6 or begin boss/L2/Stage work.
 
 To validate a resumed checkout with the installed artifacts unchanged, run the research reader tests and `scripts/external-effects/validate.py --report <new-checkpoint>-validation.json`, then `git diff --check`. Large `run/` aids are reproducible with the committed scan/decompile tooling if missing; do not regenerate accepted data merely because the next checkpoint is unfinished. Finish and protect R2 before claiming R3/R4 completion. The final owner-review decision remains pending.
+
+## R2c1 completed native discovery: Variants & Ventures
+
+Recovery on the continuation found a clean tree, local/live remote at R2b, no newer work and no applicable `AGENTS.md`. All 49 existing JSON evidence files were read and recovery validation passed. Protected R1/R2a/R2b findings remain available; current completion is recorded separately in [mod-reviews/variantsandventures.json](benchmarks/external-effects-catalog/mod-reviews/variantsandventures.json). [mod-completion-ledger.json](benchmarks/external-effects-catalog/mod-completion-ledger.json) explicitly tracks all 23 targets. Base Tensura is complete only for its reference-only scope; other unreviewed mods remain UNSTARTED, not effect-free.
+
+| Mod | Named effect/mechanic | Actual behavior | Vanilla? / closest mechanic | Composite? | Custom behavior | Delivery | Minimum actor required later |
+|---|---|---|---|---|---|---|---|
+| Variants & Ventures | Poison payload | Poison I, 100 ticks before native merging | VANILLA_DIRECT; actual Poison | No | External melee/arrow producers | Thicket melee; Verdant native Arrow | Both Thicket and Verdant |
+| Variants & Ventures | Gelid freeze | Set frozen ticks to 240; native frost slowdown and conditional freeze DOT; snowball additionally requests 4 thrown damage | VANILLA_DIRECT; native frozenTicks and damage factories | Components recorded | Melee admission differs from snowball callback | Melee and native thrown snowball | Gelid, exercising both paths |
+| Variants & Ventures | Poison/Regeneration rejection | Native undead tag rejection plus redundant explicit Thicket Poison guard | BINARY_MECHANIC; native effect eligibility | Two rejected holders | New tagged entity types; explicit guard | Recipient predicate | Thicket plus a tag-only variant |
+| Variants & Ventures | Freeze rejection | Zombie mixin and separate Murk/Verdant predicates; Gelid tag | BINARY_MECHANIC; native canFreeze | Predicate variants | Global Zombie eligibility modification | Environment/recipient predicates | Zombie, Murk, Verdant, Gelid |
+| Variants & Ventures | Murk arrow inertia | Water velocity retention 0.99 rather than 0.6 | VANILLA_LIKE_EXTENDED; arrow drag | No | Owner-specific coefficient | Native bow projectile through water | Murk |
+| Variants & Ventures | Zombie → Gelid | Timed powder-snow conversion using native entity replacement | VANILLA_LIKE_EXTENDED; Skeleton → Stray pattern | Timer and replacement | Different recipient/output; no custom timer persistence or Skeleton conversion events | Environment | Ordinary Zombie |
+| Variants & Ventures | Powder-snow walking | Gelid tag enables native surface collision; type flag marks powder snow not dangerous | VANILLA_DIRECT; powder-snow predicates | Two native predicates | New tagged/type-flagged recipient | Environment | Gelid |
+| Variants & Ventures | Underwater breathing | Vanilla undead tag graph prevents ordinary drowning-air consumption | VANILLA_DIRECT; underwater breathing | No | Adds variant entity types; explicit Murk tag redundant | Environment | Murk representative; other variants recorded |
+
+Fourteen code-distinct delivery/predicate cases require five actor types across their setups: Zombie, Gelid, Thicket, Verdant and Murk. This is not five total test cases or a claim that five spawn-egg items must be tested. Cross-mod source minimization remains R3. No gameplay was run.
+
+The exact installed NeoForge **21.1.244** witnesses resolve R2b's loader uncertainty: Poison selects the NeoForge poison holder with magic fallback, effect admission passes through `MobEffectEvent.Applicable` (DEFAULT consults native eligibility; APPLY/DENY can override it), and projectile impact cancellation remains before downstream delivery. Vanilla tag identity, default merging/expiration, actual arrow post-hurt admission, freezing, conversion and water predicates are pinned independently. Pack-wide modifications from other mods remain explicitly UNKNOWN pending R2h; this does not turn a native-source completion into a claim about runtime interactions.
+
+Conversion preserves equipment and several entity properties but creates a fresh target rather than copying HP/effects/arbitrary state. It does **not** call spawn initialization, so conversion alone does not grant the default offhand snowball; retained main-hand gear can also prevent unarmed freeze delivery. The source mod's conversion omits the installed Skeleton conversion events and does not persist its custom timers. The R2b shorthand “powder-snow block immunity” is now clarified: the entity-type `immuneTo` registration affects the native block-danger predicate, and is not a general damage immunity.
+
+Cult of Azazel remains PARTIAL. [R2c1 notes](benchmarks/external-effects-catalog/partial-notes/cultofazazel-r2c1.json) protect registry identities, the newly traced client Manipulation controls, actual Curios totem lookup, Crimson Arrow ricochet, mask death/fire/repair behavior and zone-marker consumers. **Exact next target:** finish Azazel entity/goal attacks and remaining entity/environment paths, configuration parameters and source mapping, then protect the completed Cult review before moving to Royal Variations. No protected Variants & Ventures research needs restarting.

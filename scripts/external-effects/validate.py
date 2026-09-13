@@ -57,6 +57,8 @@ def validate():
         notes=OUT/'partial-notes'/'cultofazazel.json'
         if notes.exists():
             assert collect(read_json(notes))==read_json(OUT/'native-evidence'/'cultofazazel-partial.json')
+        for notes in (OUT/'partial-notes').glob('*-r2c*.json'):
+            assert collect(read_json(notes))==read_json(OUT/'native-evidence'/notes.name)
         vanilla_spec=OUT/'vanilla-specifications'/'variants-prerequisites.json'
         if vanilla_spec.exists():
             from vanilla_reference import prepare
@@ -68,6 +70,29 @@ def validate():
             loader=read_json(OUT/'instance-loader-reference.json')
             assert sha256(loader['manifest_path'])==loader['manifest_sha256']
             for artifact in loader['artifacts']: assert sha256(artifact['path'])==artifact['sha256']
+        for spec_path in (OUT/'reference-specifications').glob('*.json'):
+            from selected_reference import collect as collect_reference
+            assert collect_reference(read_json(spec_path))==read_json(OUT/'reference-evidence'/spec_path.name)
+        for spec_path in (OUT/'vanilla-specifications').glob('*.json'):
+            assert prepare(read_json(spec_path))==read_json(OUT/'vanilla-evidence'/spec_path.name)
+        reviews=[read_json(p) for p in (OUT/'mod-reviews').glob('*.json')]
+        paths=records['delivery-path-matrix.json']['paths']
+        assert len({p['id'] for p in paths})==len(paths)
+        path_ids={p['id'] for p in paths}
+        for review in reviews:
+            assert review['baseline']==BASELINE
+            if review['status']=='COMPLETE':
+                assert all(review[k] for k in ('semantic_discovery_complete','special_damage_discovery_complete','source_mapping_complete','delivery_mapping_complete'))
+                for e in review['effects']:
+                    assert e['inspection_status']=='VERIFIED' and e['primary_classification'] in CLASSIFICATIONS
+                    assert e['components'] and e['implementation'] and e['primary_test_source']
+                    assert set(e['delivery_paths'])<=path_ids
+            for p in review['paths']:
+                assert set(p['labels'])<=set(DELIVERIES) and set(p['effect_ids'])<=set(ids)
+        if reviews:
+            ledger=read_json(OUT/'mod-completion-ledger.json')
+            assert {t['mod_key'] for t in ledger['targets']}=={k for k,_ in TARGETS}
+            assert len(ledger['targets'])==23
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():
