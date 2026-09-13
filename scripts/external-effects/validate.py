@@ -58,7 +58,26 @@ def validate():
         if notes.exists():
             assert collect(read_json(notes))==read_json(OUT/'native-evidence'/'cultofazazel-partial.json')
         for notes in (OUT/'partial-notes').glob('*-r2c*.json'):
-            assert collect(read_json(notes))==read_json(OUT/'native-evidence'/notes.name)
+            document=read_json(notes)
+            assert collect(document)==read_json(OUT/'native-evidence'/notes.name)
+            known={e['id'] for e in document['evidence_specifications']}
+            for finding in document['findings']:
+                assert set(finding.get('source_witness_ids',[]))<=known
+        for config_path in (OUT/'config-evidence').glob('*.json'):
+            import tomllib
+            config=read_json(config_path)
+            assert config['baseline']==BASELINE
+            assert sha256(config['path'])==config['sha256'], 'Installed config changed: '+config['path']
+            assert Path(config['path']).read_bytes().decode('utf-8-sig')==config['text']
+            assert tomllib.loads(config['text'])==config['values']
+        cult_continuation=OUT/'native-evidence/cultofazazel-r2c2.json'
+        if cult_continuation.exists():
+            witnesses=read_json(cult_continuation)['witnesses']
+            config=next(w for w in witnesses if w['id']=='coa2-config')
+            instructions=config['methods'][0]['instructions']
+            builds=[i['offset'] for i in instructions if 'ModConfigSpec$Builder.build(' in str(i.get('operand'))]
+            defines=[i['offset'] for i in instructions if 'ModConfigSpec$Builder.define' in str(i.get('operand'))]
+            assert len(builds)==1 and defines and max(defines)<builds[0], 'Use actual bytecode initialization order'
         vanilla_spec=OUT/'vanilla-specifications'/'variants-prerequisites.json'
         if vanilla_spec.exists():
             from vanilla_reference import prepare

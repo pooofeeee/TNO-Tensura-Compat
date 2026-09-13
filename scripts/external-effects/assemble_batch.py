@@ -21,7 +21,7 @@ def refresh(checkpoint):
         elif key in reviews:
             state=reviews[key]['status'];detail=reviews[key].get('scope','Native semantic review')
         elif key=='cultofazazel':
-            state='PARTIAL';detail='Continue preserved native notes: registries/client Manipulation/Curios/mask/arrow findings; remaining entity/environment damage paths and final mappings pending.'
+            state='PARTIAL';detail='Reuse R2b/R2c1/R2c2 notes. Remaining environment/inherited behavior, vanilla comparisons, exact source/delivery and final package mappings are pending; latest exact_resume is in partial-notes/cultofazazel-r2c2.json.'
         else:
             state='UNSTARTED';detail='Broad scan/source aids exist; semantic review not started. No absence-of-effects conclusion.'
         ledger.append(dict(mod_key=key,filename=filename,state=state,detail=detail,
