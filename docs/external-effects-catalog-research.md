@@ -154,3 +154,38 @@ The usage check reached **81%**, triggering the owner's save mode. **Cult remain
 **Exact resume:** use the detailed notes and draft, resolve the flagged block-property/collision and remaining exact vanilla comparisons, then continue final assembly after Gilded Golem. Complete all mechanic/source/exclusion and compatibility mappings before promoting Cult to COMPLETE. Protect that completed checkpoint before Royal Variations. R2 remains unfinished; R3/R4 and the final owner-review decision remain unavailable. Validation at this checkpoint covers research tooling, hashes, references and allowed file scope; it is not gameplay or semantic approval.
 
 Validation: all five research-reader tests passed; selected native/raw/installed-loader witness regeneration and draft reference checks passed in [r2c3-partial-validation.json](benchmarks/external-effects-catalog/r2c3-partial-validation.json). JSON parsing and comparison to protected HEAD confirmed that accepted effect and delivery arrays did not change. The research-only boundary and `git diff --check` passed. The remote was rechecked before commit and still matched protected R2c2. Commit/push/live-SHA verification completes this checkpoint; its exact hash is reported to the owner rather than embedded self-referentially.
+
+## R2c3-complete — CULT_OF_AZAZEL_SEMANTIC_REVIEW_COMPLETE
+
+Starting checkpoint: `a65d652571578156c93a78986ef4a28ae895113d`. Recovery found a clean tree and exact live-remote match with no newer work. The protected partial draft and all earlier evidence remain unchanged. This continuation completed the focused gaps and promoted the audited [Cult review](benchmarks/external-effects-catalog/mod-reviews/cultofazazel.json) into the accepted catalog and completion ledger.
+
+**Cult is COMPLETE for installed native semantic/source/delivery review: 51 mechanic/package records, 64 distinct delivery or predicate cases, zero unresolved native REVIEW_REQUIRED items.** All 151 installed Cult classes and 62 data JSON resources have explicit dispositions. Evidence uses installed `cultofazazelneo-1.1.3.1.jar`, raw Minecraft 1.21.1 and exact installed NeoForge 21.1.244; no substitution of the development loader or gameplay testing. [Owner table and future source cover](benchmarks/external-effects-catalog/cult-owner-table.md) provide the readable index; the JSON contains exact behavior, component formulas, parameters, eligibility, state, source identities, comparisons and references.
+
+| Primary classification | Count |
+|---|---:|
+| VANILLA_DIRECT | 10 |
+| VANILLA_EQUIVALENT | 0 |
+| VANILLA_COMPOSITE | 1 |
+| VANILLA_LIKE_EXTENDED | 8 |
+| CUSTOM_STATUS | 1 |
+| CUSTOM_DAMAGE | 2 |
+| CUSTOM_CONTROL | 17 |
+| CUSTOM_RESOURCE | 4 |
+| BINARY_MECHANIC | 8 |
+| REVIEW_REQUIRED | 0 |
+
+The final focused audit established:
+
+- Crimson Web, Entrance and Traphive copy **Nether Wart Block**, retaining collision. They do not inherit vanilla cobweb slowing. Their native stage/open shapes change actual collision. Exact IDs include `netherman:eye_block`, `netherman:void_midcorner` and `netherman:voidnether_midcorner`; class-name guesses are not registry identities.
+- Native Invisibility retains armor-coverage visibility calculation and the installed visibility hook. Milk/Honey/totem use distinct installed cure sets; Cult `removeAllEffects` attempts all effects but still permits individual removal-event vetoes.
+- Statue observation uses plain server fields, not synchronized MobEffect state or `frozenTicks`. Guardian's third greeting roar, rather than every greeting phase, toggles eligible Grand Doors. The door modifies actual Player aim. Altar-created Azazel has a separate 40-tick protected spawn state, making its admission path distinct from egg creation.
+- Wither and Bossunit statuses use their real vanilla holders; summoned Wither Skeletons and Evoker Fangs retain native attack/source identities. Doctor produces a parameterized actual potion and does not own the selected holder's semantics. Ghastly's direct HP/death branch, Midas inventory replacement, prisoner capture/release and custom motion/control remain explicitly distinguished from normal damage.
+- Empty ZoneEffects, cosmetic phases, ordinary summons/arrows, trades/food, empty Nether Void variants and rendering/support behavior have explicit exclusions or source-context records. Crimson Honey Bottle has no native Honey/Poison cure. No custom Cult DamageType registry, attribute registry, attachment or Mixin was found.
+
+[Compatibility attribution](benchmarks/external-effects-catalog/compat-findings/cultofazazel.json) maps 30 records to specific **GENERIC_CONDITIONAL_PRESENT** hooks and 21 to **NONE_PROVEN within the reviewed hook scope**. It does not mark everything PRESENT or assert universal pack isolation. No direct Cult-named external patch was found in the four pinned candidates; Cult's own optional Curios totem integration is separately identified. Withered Bracelet, Antidote Vessel, Obsidian Skull, Cross Necklace, Power/Vampiric Gloves, Umbrella, Kitty Slippers, Chorus Totem, Thorn/Shock Pendants and Cowboy Hat have explicit recipient/source/equipment gates. Full-pack runtime composition/resource precedence remains UNKNOWN outside this Cult-specific review.
+
+The future matrix provides **25 fixture families covering all 64 cases**, with native descendants and shared participants retained. It is a local source/setup cover, not a proved mathematical minimum number of actors, items, spawn eggs or runs. Cross-mod source minimization remains R3 and was not started. No runtime source was exercised.
+
+Validation: all five reader tests passed; final artifact checks verify per-record methods, raw/loader references, registry IDs, bidirectional effect/path links, duplicate IDs, compatibility mappings, fixture coverage, all class/resource hashes, reproducible assembly and unchanged accepted Variants & Ventures review. [Cult integrity results](benchmarks/external-effects-catalog/cult-final-integrity.json) and [full validation report](benchmarks/external-effects-catalog/r2c3-complete-validation.json) record the checks. The full report also verifies every pinned target/compatibility artifact and the immutable pre-track production boundary. Accepted catalog now contains 59 records and 78 delivery cases across Cult and Variants; those are current per-mod totals, not a finished global R2/R3 catalog.
+
+Usage reached **82% during final validation**, so no new mod research began. Protect this COMPLETE checkpoint by commit/push/live-SHA equality and stop. **Exact next task: Royal Variations 2.0.4 semantic review**, after recovering the verified checkpoint. Royal Variations remains UNSTARTED. R2 remains PARTIAL: three target scopes are COMPLETE (Cult, Variants, reference-only Tensura), twenty UNSTARTED. Phase 6, production and Stage remain unchanged; no boss/L2 tests, compatibility fixes, or original Phase 7 work occurred.

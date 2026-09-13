@@ -135,6 +135,9 @@ def validate():
             ledger=read_json(OUT/'mod-completion-ledger.json')
             assert {t['mod_key'] for t in ledger['targets']}=={k for k,_ in TARGETS}
             assert len(ledger['targets'])==23
+        if (OUT/'mod-reviews/cultofazazel.json').exists():
+            from validate_cult_review import validate_cult
+            assert validate_cult()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():
