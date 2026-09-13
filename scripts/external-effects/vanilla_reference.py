@@ -90,7 +90,7 @@ def prepare(spec):
                         code_sha256=byte_hash(m.get('code',b'')),code_hex=m.get('code',b'').hex(),
                         instructions=names.instructions(cls,m.get('code',b''))))
             assert set(wanted)<={m['name'] for m in methods}, (named,wanted)
-            source_entry=named+'.java';source_data=aid.read(source_entry)
+            source_entry=named.split('$',1)[0]+'.java';source_data=aid.read(source_entry)
             destination=WORK/'vanilla-mapped-source'/source_entry;destination.parent.mkdir(parents=True,exist_ok=True)
             destination.write_bytes(source_data)
             records.append(dict(class_name=named,raw_entry=entry,raw_class_sha256=byte_hash(data),methods=methods,

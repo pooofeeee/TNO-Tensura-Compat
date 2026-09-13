@@ -35,6 +35,29 @@ def validate():
         assert audit()==read_json(OUT/'discovery-audit.json'), 'Discovery audit stale'
         from native_evidence import collect
         from assemble_native import assemble
+        for spec_path in (OUT/'native-specifications').glob('*.json'):
+            assert collect(read_json(spec_path))==read_json(OUT/'native-evidence'/spec_path.name), 'Native specification witness changed: '+spec_path.name
+        for draft_path in (OUT/'partial-drafts').glob('*.json'):
+            draft=read_json(draft_path)
+            assert draft['baseline']==BASELINE and draft['status']=='PARTIAL'
+            assert draft['semantic_coverage_complete'] is False
+            assert draft['promoted_to_catalog'] is False
+            draft_ids={e['id'] for e in draft['effects']}
+            draft_paths={p['id'] for p in draft['paths']}
+            assert len(draft_ids)==len(draft['effects']) and len(draft_paths)==len(draft['paths'])
+            for row in draft['effects']+draft['paths']:
+                for ref in row['implementation']:
+                    witnesses=read_json(OUT/ref['evidence_file'])['witnesses']
+                    witness=next(w for w in witnesses if w['id']==ref['witness_id'])
+                    assert witness['entry']==ref['entry']
+                    assert set(ref['methods'])<={m['name'] for m in witness.get('methods',[])}
+            for e in draft['effects']:
+                assert e['inspection_status']=='DRAFT' and e['primary_classification'] in CLASSIFICATIONS
+                assert e['pending'] and e['unresolved_ambiguities'] is None
+                assert set(e['delivery_paths'])<=draft_paths
+            for p in draft['paths']:
+                assert p['status']=='DRAFT' and set(p['effect_ids'])<=draft_ids
+                assert set(p['labels'])<=set(DELIVERIES)
         for path in (OUT/'native-findings').glob('*.json'):
             document=read_json(path)
             assert collect(document)==read_json(OUT/'native-evidence'/path.name), 'Native witness changed: '+path.name
