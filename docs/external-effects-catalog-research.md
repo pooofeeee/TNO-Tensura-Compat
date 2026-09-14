@@ -189,3 +189,78 @@ The future matrix provides **25 fixture families covering all 64 cases**, with n
 Validation: all five reader tests passed; final artifact checks verify per-record methods, raw/loader references, registry IDs, bidirectional effect/path links, duplicate IDs, compatibility mappings, fixture coverage, all class/resource hashes, reproducible assembly and unchanged accepted Variants & Ventures review. [Cult integrity results](benchmarks/external-effects-catalog/cult-final-integrity.json) and [full validation report](benchmarks/external-effects-catalog/r2c3-complete-validation.json) record the checks. The full report also verifies every pinned target/compatibility artifact and the immutable pre-track production boundary. Accepted catalog now contains 59 records and 78 delivery cases across Cult and Variants; those are current per-mod totals, not a finished global R2/R3 catalog.
 
 Usage reached **82% during final validation**, so no new mod research began. Protect this COMPLETE checkpoint by commit/push/live-SHA equality and stop. **Exact next task: Royal Variations 2.0.4 semantic review**, after recovering the verified checkpoint. Royal Variations remains UNSTARTED. R2 remains PARTIAL: three target scopes are COMPLETE (Cult, Variants, reference-only Tensura), twenty UNSTARTED. Phase 6, production and Stage remain unchanged; no boss/L2 tests, compatibility fixes, or original Phase 7 work occurred.
+## R2d — Royal Variations semantic review complete
+
+Recovered a clean `external-effects-catalog-research` at
+`94532221ac23681deef5462f7932a8a405f5979e`; fetch and live GitHub comparison found
+no newer work. Cult and Variants reviews remain byte-for-byte equivalent to their
+protected inputs. Phase 6 stays COMPLETE/CLOSED; production and Stage unchanged.
+
+Installed authority: `royal-variations-[NeoForge]_1.21.1_2.0.4.jar`, SHA-256
+`fa60862af8b7416fbb707c39e384d5c832a8f014b2e82c869e73a38658501f24`.
+The completed [Royal review](benchmarks/external-effects-catalog/mod-reviews/royalvariations.json)
+contains **26 semantic packages and 37 legitimate delivery cases**, with
+**zero unresolved native REVIEW_REQUIRED items**. The
+[owner table](benchmarks/external-effects-catalog/royal-owner-table.md) separates
+the actual behavior, vanilla comparison, composite components and future sources.
+All 172 native classes and 58 data resources have coverage dispositions; selected
+method bytes, raw Minecraft 1.21.1 and exact installed NeoForge 21.1.244 are pinned.
+This is static evidence, not observed damage, HP/SHP or gameplay testing.
+
+Ten registered effects: Knightly Fortitude, Royal Blessing, Dazed, Undead Rush,
+Chosen Victim, Marked, Trapped, Time Bomb, Pressing Gaze and Heaviness of the End.
+Dazed modifies MOVEMENT_SPEED and ATTACK_DAMAGE by `-0.6*(amplifier+1)` with
+ADD_MULTIPLIED_TOTAL. Its misleading attack_speed modifier identifier does not
+change the actual ATTACK_DAMAGE holder. Vanilla Weakness is flat subtraction;
+Dazed is not equivalent. Mark modifies movement/damage/attack speed by
+`-0.1*(amplifier+1)` and armor by `-0.25*(amplifier+1)`, adds glowing, and has a
+conditional nonplayer-owner hostile recruitment path. It is not direct damage
+amplification. Both retain native attribute clamping and effect lifecycle rules.
+
+Important delivery distinctions:
+
+- Royal Arrow post-hurt/Mark requires native arrow hit success. Royal Bow enables
+  Mark only on Royal Arrow; other bows use the unmarked createArrow path. The
+  Royal Skeleton has its own marking constructor. `asProjectile` exists, but Royal
+  registers no dispenser behavior, so it is excluded as a native delivery source.
+- Bomb and Royal Creeper Dazed shells do not depend on successful explosion damage
+  or positive block exposure. They retain explosion eligibility checks. Time Bomb
+  separately requests fixed ownerless `minecraft:explosion` damage9 in radius6;
+  its carrier is excluded. Its in-memory task is not restored after restart merely
+  because a saved TIME_BOMB effect remains.
+- Anvil, Royal Pearl and Royal Enderman arrival use `minecraft:indirect_magic`
+  (8/7/4 respectively); Heaviness requires true hurt return. Source identity,
+  armor bypass, normal Resistance/shield/cooldown processing and callbacks are
+  documented separately from requested amounts. Royal defines no custom DamageType.
+- Trapped combines native attributes with position pinning and jump/push/knockback
+  vetoes. The net requires a nonboss-tag target with maxHP<=100 and effect eligibility.
+- Skeleton Knighting checks `c:tools/bow`, while Royal writes `c:tools/bows`.
+  Vanilla Bow is the proven minimum upgrade source; plural resource membership
+  alone does not satisfy the singular queried tag.
+
+Classification counts: VANILLA_DIRECT3, VANILLA_EQUIVALENT1, VANILLA_COMPOSITE4,
+VANILLA_LIKE_EXTENDED11, CUSTOM_STATUS3, CUSTOM_CONTROL2, CUSTOM_RESOURCE1,
+BINARY_MECHANIC1; CUSTOM_DAMAGE0 as a primary package label. Time Bomb's custom
+damage primitive remains explicitly decomposed inside its CUSTOM_STATUS package.
+Global verified catalog now contains 85 records and 115 delivery cases. R2 remains
+PARTIAL overall; R3/R4 are not started by this checkpoint.
+
+[Compatibility attribution](benchmarks/external-effects-catalog/compat-findings/royalvariations.json)
+matches the pinned external hooks to actual recipient, owner, effect-category and
+callback predicates. No Royal-specific modification was found in the four audited
+external candidates. Generic conditional hooks are distinguished from Royal's own
+Curios integration and the repository's locked production context. Full-pack dynamic
+composition remains outside this native review, not a fabricated native ambiguity.
+
+Validation artifacts: `royal-final-integrity.json`, `parser-validation.json` and
+`validation-r2d-complete.json` under the catalog directory. The first two cover
+26/37 package/path reassembly, references, classifications, duplicate IDs, source
+cover, ledger, unchanged accepted reviews and all five parser/javap tooling tests.
+The full validation also rechecks installed evidence and the immutable-baseline
+scope boundary. No Minecraft process, boss/L2 tests, balancing or fixes were used.
+
+Checkpoint meaning: **ROYAL_VARIATIONS_SEMANTIC_REVIEW_COMPLETE**. Exact commit SHA
+is recorded by final local/live remote equality verification (a commit cannot store
+its own SHA). Usage reached78% before final validation; save mode protects this
+completed checkpoint and stops. **Friends & Foes remains UNSTARTED** and is the exact
+next semantic review; do not repeat Royal, Cult or Variants or reopen Phase 6.
