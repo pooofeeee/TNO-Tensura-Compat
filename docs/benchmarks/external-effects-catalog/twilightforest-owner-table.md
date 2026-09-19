@@ -31,3 +31,5 @@ Particles, sounds, color/icon, repair/acquisition and registration infrastructur
 Details: [reviewed section](semantic-sections/twilightforest-frosted.json), [current drafts](partial-drafts/twilightforest-r2f2-partial.json), [compat mapping](compat-findings/twilightforest-frosted.json), [progress validation](twilightforest-progress-integrity.json), [full validation](r2f2-partial-validation.json).
 
 Next: Naga and Lich systematic boss review, especially actual Lich shield-source admission. All remaining bosses, mobs, items, damage callers and final promotion remain pending. Ice and Fire is UNSTARTED. Phase6/production/Stage remain unchanged. R2f1 evidence remains preserved rather than redone.
+
+Protected Frosted checkpoint: `9de2fa52b435b49296e7e59472864e3a1e49e52b` (local/live equality and clean tree verified). Save mode began at76% usage after validation/push. No boss semantic section was started. Exact next action: trace Lich.hurt/getPhase/shield state and legitimate source paths, then complete Lich and continue Naga/remaining bosses. Stop for owner review; do not repeat Frosted.
