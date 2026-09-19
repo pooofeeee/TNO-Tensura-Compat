@@ -1,6 +1,6 @@
 # External combat effects catalog — separate research track
 
-**Status: PARTIAL overall; R2c2 saves expanded Cult of Azazel findings at the usage boundary. R2c1 completed Variants & Ventures native discovery.** Phase 6 is complete and closed. This track does not reopen, supersede, recalibrate or change Phase 6, its Stage behavior, accepted family integrations, or production combat. Original Phase 7 is not started by this research.
+**Status: PARTIAL overall; R2e completes Friends & Foes. Variants & Ventures, Cult of Azazel and Royal Variations remain protected COMPLETE. Twilight Forest is UNSTARTED.** Phase 6 is complete and closed. This track does not reopen, supersede, recalibrate or change Phase 6, its Stage behavior, accepted family integrations, or production combat. Original Phase 7 is not started by this research.
 
 Baseline: `a5e85e610349120e21d62f4a80f1b607e36607fe`. Branch: `external-effects-catalog-research`. Recovery found a clean working tree and the live readiness remote at this baseline; no earlier external-effects track existed. No applicable `AGENTS.md` was found. The dedicated branch was created from the verified baseline without resetting or discarding work.
 
@@ -264,3 +264,37 @@ is recorded by final local/live remote equality verification (a commit cannot st
 its own SHA). Usage reached78% before final validation; save mode protects this
 completed checkpoint and stops. **Friends & Foes remains UNSTARTED** and is the exact
 next semantic review; do not repeat Royal, Cult or Variants or reopen Phase 6.
+
+
+## R2e — Friends & Foes semantic review COMPLETE
+
+Recovered `external-effects-catalog-research` from clean local HEAD and fetched live GitHub HEAD `7dcdcc4c03516928aa516fe10a1cd0d1fc1a9a91`; divergence 0/0, no newer work. No accepted checkpoints were reset or rescanned. Installed JAR `friendsandfoes-neoforge-4.0.23+mc1.21.1.jar`, SHA-256 `9fce7512691302b4512b30bf33fd1d4fc5b4c91abe7cbbe8cbce9e38afd6bd14`, is the native authority. Raw Minecraft 1.21.1 bytecode and exact installed NeoForge 21.1.244 overrides are pinned separately; mapped source was only a reading aid.
+
+Decision: **FRIENDS_AND_FOES_SEMANTIC_REVIEW_COMPLETE**. There are **31 combat mechanic packages / 46 materially distinct paths / 13 local fixture families / 0 REVIEW_REQUIRED**. Global catalog now holds **116 mechanics / 161 paths**. All 341 native classes and 237 data/mixin resources have explicit dispositions. The global catalog remains PARTIAL: R3 source minimization and R4 final closure are unfinished.
+
+- [Owner-readable mechanic table](benchmarks/external-effects-catalog/friendsandfoes-owner-table.md)
+- [Completed review, formulas, sources, exclusions and native damage profiles](benchmarks/external-effects-catalog/mod-reviews/friendsandfoes.json)
+- [Installed configuration snapshot](benchmarks/external-effects-catalog/friendsandfoes-config-snapshot.json)
+- [Review integrity validation](benchmarks/external-effects-catalog/friendsandfoes-final-integrity.json)
+- [Full checkpoint validation](benchmarks/external-effects-catalog/r2e-complete-validation.json)
+
+Classification counts: VANILLA_DIRECT 1, VANILLA_EQUIVALENT 1, VANILLA_COMPOSITE 3, VANILLA_LIKE_EXTENDED 17, CUSTOM_CONTROL 5, CUSTOM_RESOURCE 3, BINARY_MECHANIC 1; CUSTOM_STATUS/CUSTOM_DAMAGE/REVIEW_REQUIRED 0. The one registered custom MobEffect, `friendsandfoes:reach`, modifies **block** interaction range and is explicitly excluded from combat. No custom DamageType is registered.
+
+Distinct findings include native frozen-gauge assignments (not fixed-duration stun), the ice chunk's native magic source, real Illusioner decoy entities, pre-hit low-health custom totems, Wildfire's shield resource, Mauler's enchantment reserve/attribute coupling, Copper Golem statue state, Rascal's three-callback disappearance, and Glare's native healing/reveal producers. Compound packages retain their individual primitives. Special damage remains native magic, mob, arrow, fireball, thrown, freeze, lightning or fire damage; values are requests, not measured HP loss.
+
+The pinned installed configuration has **enableWildfire=false**. Its native implementation is reviewed, but it is not an available positive runtime source in this configuration; no setting was changed. Glare direct hand-heal is dormant because its caller's negative food test contradicts the installed glow-berry tag; dropped-berry healing and passive regeneration are retained separately. Tuff-only temptation can leave the original scared TemptGoal with a null Player reference before the return-value mixin runs. This static failure case is recorded without claiming a successful lure or repairing it. Copper/Tuff owner-instance lightning rejection is not natural-lightning immunity: the vanilla lightning source is ownerless. Rascal counters are synced but not custom-saved. These are resolved native-code observations, not uninspected REVIEW_REQUIRED placeholders.
+
+Validation: native JAR/specification and reference reproducibility; effect/path IDs, classifications, source/fixture cover, registry/tag/config checks, complete ledger, shared matrices and immutable accepted review/view rows; five parser/tooling tests; baseline scope and whitespace checks. Results are saved in the linked validation artifacts. No Minecraft process, boss/L2 test, compatibility fix, Stage change, balance/Curve C work or production edit was performed. Phase 6 remains COMPLETE/CLOSED; original Phase 7 remains unstarted.
+
+Checkpoint discipline: save and validate this completed review, commit with meaning `FRIENDS_AND_FOES_SEMANTIC_REVIEW_COMPLETE`, push this branch and verify local HEAD equals live remote HEAD. Exact self SHA is reported after push rather than embedded recursively in its own commit.
+
+Save boundary: finalization began at 76% five-hour usage; no new family research was started. **Twilight Forest remains UNSTARTED. Exact next task: its installed-JAR semantic review**, continuing the same side catalog track from this protected checkpoint. Do not repeat the four completed mod reviews or Tensura research. Stop after remote verification for owner review.
+
+
+### R2e recovery and protection — 2026-09-19
+
+The prior run completed local semantics and validation but was interrupted before commit/push. Recovery preserved all local Friends & Foes files. Branch/local HEAD and newly fetched/live GitHub HEAD still matched `7dcdcc4c03516928aa516fe10a1cd0d1fc1a9a91` (0/0 divergence); no conflicting or newer work existed. The completed research was reused rather than restarted.
+
+The future source plan now explicitly names **15 necessary native producer families**, organized into the existing 13 fixture groups, covering all 31 mechanics and 46 paths. Each producer has a mapped path and a reason it cannot be substituted by the other listed producers. Recipient/control permutations and derived summons do not inflate independent source counts. The list and scope of its minimality claim are in `minimum_future_sources` and the owner table. This is not a claim about a minimum number of gameplay runs. A complete runtime cover remains unavailable with the pinned `enableWildfire=false`; no configuration or gameplay was changed.
+
+Fresh review integrity and all five tooling tests passed. Full evidence/reference, shared-catalog, ledger, immutable-input, scope and whitespace validation is refreshed before committing. The three accepted prior mod reviews and their shared catalog rows remain identical to the protected starting SHA. Only side-research documentation, evidence and scripts are changed.

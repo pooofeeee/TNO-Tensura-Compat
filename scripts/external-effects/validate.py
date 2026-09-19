@@ -141,6 +141,9 @@ def validate():
         if (OUT/'mod-reviews/royalvariations.json').exists():
             from validate_royal_review import validate_royal
             assert validate_royal()['status']=='PASS'
+        if (OUT/'mod-reviews/friendsandfoes.json').exists():
+            from validate_friends_review import validate_friends
+            assert validate_friends()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():
