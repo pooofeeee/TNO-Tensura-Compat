@@ -1,0 +1,602 @@
+{
+  "schema": "tno.external_effects.partial_draft.v1",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "twilightforest",
+  "status": "PARTIAL",
+  "checkpoint": "R2f1-partial",
+  "starting_sha": "3f3587aed34fea3670fdcbe26c2bb1d60094023c",
+  "semantic_coverage_complete": false,
+  "promoted_to_catalog": false,
+  "effects": [
+    {
+      "id": "twilightforest:frosted_package",
+      "mod_key": "twilightforest",
+      "display_name": "Frosted status package (draft)",
+      "inspection_status": "DRAFT",
+      "primary_classification": "CUSTOM_STATUS",
+      "classification_provisional": true,
+      "registry_ids": [
+        "twilightforest:frosted"
+      ],
+      "actual_behavior": [
+        "TFMobEffects registers one custom MobEffect: twilightforest:frosted; holder name FROSTY.",
+        "FrostedEffect is HARMFUL and defines movement modifier twilightforest:frosted_slowdown, coefficient -0.15 ADD_MULTIPLIED_TOTAL. Native amplifier scaling makes contribution -0.15*(amplifier+1); total attributes still follow native combination/clamping.",
+        "Every effect tick sets isInPowderSnow=true. If amplifier>0 and canFreeze(), assigns min(requiredFreezeTicks,currentFrozenTicks+amplifier). This is not just a renamed Slowness effect. Complete net gauge/tick-order comparison remains pending.",
+        "Helper admission requires shouldHit, no freeze-immune entity tag, no freeze-immune-wearables tag in HEAD/CHEST/LEGS/FEET, and no creative Player. It does not explicitly inspect BODY, spectator or canFreeze. Native addEffect admission still applies.",
+        "Incoming-damage callback skips canceled events. With Frosted and exact DamageTypes.FREEZE, replaces container newDamage with originalDamage+(float)(amplifier/2), using integer division. This does not match every freeze-like custom DamageType.",
+        "Otherwise incoming IS_FIRE removes Frosted, decrements the same MobEffectInstance amplifier, then re-adds that instance if amplifier>=0. It does not require successful final HP loss. Effect removal/addition hooks and native fire immunity ordering still need final comparison."
+      ],
+      "closest_vanilla_equivalent": "Slowness modifier plus native powder-snow/freezing state; no direct vanilla equivalent for the entire package.",
+      "vanilla_similarities": [
+        "Movement coefficient/operation match Slowness; inherited effect merging, attribute lifecycle and normal cures require exact reference linkage."
+      ],
+      "vanilla_differences": [
+        "Sets powder-snow flag and conditionally frozen gauge; incoming exact-freeze damage addition; incoming fire down-ranks amplifier."
+      ],
+      "components": [
+        {
+          "primitive": "MOVEMENT_ATTRIBUTE",
+          "formula": "-0.15*(amplifier+1), ADD_MULTIPLIED_TOTAL",
+          "vanilla_relation": "Shared Slowness coefficient; distinct modifier id"
+        },
+        {
+          "primitive": "POWDER_SNOW_STATE",
+          "formula": "setIsInPowderSnow(true) each effect tick",
+          "vanilla_relation": "Custom status drives native environment flag"
+        },
+        {
+          "primitive": "FROZEN_GAUGE",
+          "formula": "if amp>0 and canFreeze: min(required,current+amp)",
+          "vanilla_relation": "Additional gauge assignment; net cadence pending"
+        },
+        {
+          "primitive": "FREEZE_DAMAGE_ADJUSTMENT",
+          "formula": "newDamage=originalDamage+floor(amp/2) for nonnegative amp and exact minecraft:freeze",
+          "vanilla_relation": "Custom incoming-container replacement"
+        },
+        {
+          "primitive": "FIRE_DOWNRANK",
+          "formula": "remove; amp--; re-add same instance if amp>=0",
+          "vanilla_relation": "Custom conditional removal/reapplication"
+        }
+      ],
+      "numerical_parameters": {
+        "movement_coefficient": -0.15,
+        "effect_interval_ticks": 1,
+        "helper_sword_arrow_duration_ticks": 200,
+        "helper_sword_arrow_amplifier": 2
+      },
+      "scalable_parameter_candidates": [
+        "duration",
+        "amplifier",
+        "movement coefficient",
+        "freeze damage increment"
+      ],
+      "binary_parameters": [
+        "helper eligibility",
+        "canFreeze gate for explicit increment",
+        "exact freeze DamageType",
+        "IS_FIRE membership"
+      ],
+      "scalability_note": "Observations only; no Stage design or balance recommendations.",
+      "delivery_paths": [
+        "twilightforest:frosted:ice_sword",
+        "twilightforest:frosted:ice_arrow",
+        "twilightforest:frosted:ice_bomb_contact",
+        "twilightforest:frosted:ice_bomb_zone",
+        "twilightforest:frosted:yeti_armor_retaliation",
+        "twilightforest:frosted:frost_enforcement",
+        "twilightforest:frosted:enchantment_codec"
+      ],
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:init/TFMobEffects",
+          "entry": "twilightforest/init/TFMobEffects.class",
+          "methods": [
+            "<clinit>",
+            "<init>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:potions/FrostedEffect",
+          "entry": "twilightforest/potions/FrostedEffect.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "applyEffectTick",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:enchantment/ApplyFrostedEffect",
+          "entry": "twilightforest/enchantment/ApplyFrostedEffect.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "amplifier",
+            "apply",
+            "codec",
+            "doChillAuraEffect",
+            "duration",
+            "equals",
+            "hashCode",
+            "lambda$static$0",
+            "toString"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "entityHurts",
+            "getGearCoverage",
+            "reduceFrostedEffectIfOnFire",
+            "lambda$reduceFrostedEffectIfOnFire$1"
+          ]
+        }
+      ],
+      "primary_test_source": "Provisional Ice Sword for eligible-target status; not a complete path cover.",
+      "alternate_sources": [
+        "twilightforest:ice_bow -> IceArrow",
+        "IceBomb contact; player item proven locally; alternate producers pending",
+        "IceBomb after block hit",
+        "Living wearer with YetiArmorItem pieces; Living causing attacker",
+        "Progression-gated player biome enforcement",
+        "ApplyFrostedEffect enchantment entity effect; native configured source not yet resolved"
+      ],
+      "existing_compat_modification": "UNKNOWN",
+      "compat_note": "Relevant pinned external hooks not yet matched to Twilight recipients/callbacks; UNKNOWN is unfinished inspection, not a native ambiguity.",
+      "pending": [
+        "Pin exact Minecraft1.21.1/NeoForge21.1.244 tick order, merge/cure and fire/freezing mitigation references; determine net frozen gauge cadence.",
+        "Close every producer path and source registry/config predicate; provisional codec path may be dormant.",
+        "Inspect relevant four pinned compatibility candidates and apply predicate-specific attribution.",
+        "Review all remaining mechanics before package/delivery deduplication and final fixture minimization."
+      ],
+      "unresolved_ambiguities": null
+    }
+  ],
+  "paths": [
+    {
+      "id": "twilightforest:frosted:ice_sword",
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "effect_ids": [
+        "twilightforest:frosted_package"
+      ],
+      "labels": [
+        "MELEE",
+        "ACTIVE_ITEM"
+      ],
+      "primary_source": "twilightforest:ice_sword",
+      "setup": "IceSwordItem.hurtEnemy returns false if super.hurtEnemy returns false; otherwise calls helper with duration200/amplifier2. This item callback is not itself proof of target.hurt success.",
+      "actual_native_contract": "IceSwordItem.hurtEnemy returns false if super.hurtEnemy returns false; otherwise calls helper with duration200/amplifier2. This item callback is not itself proof of target.hurt success.",
+      "pending": [
+        "Trace exact installed Player/ItemStack/SwordItem callback admission; pin registry factory and all nonplayer callers."
+      ],
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:item/IceSwordItem",
+          "entry": "twilightforest/item/IceSwordItem.class",
+          "methods": [
+            "<init>",
+            "hurtEnemy"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:enchantment/ApplyFrostedEffect",
+          "entry": "twilightforest/enchantment/ApplyFrostedEffect.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "amplifier",
+            "apply",
+            "codec",
+            "doChillAuraEffect",
+            "duration",
+            "equals",
+            "hashCode",
+            "lambda$static$0",
+            "toString"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:frosted:ice_arrow",
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "effect_ids": [
+        "twilightforest:frosted_package"
+      ],
+      "labels": [
+        "PROJECTILE",
+        "ACTIVE_ITEM"
+      ],
+      "primary_source": "twilightforest:ice_bow -> IceArrow",
+      "setup": "IceBowItem.customArrow wraps the parent arrow. IceArrow.onHitEntity first invokes super, then on server calls helper200/2 for any LivingEntity hit, without testing hurt return. TFArrow forwards parent doPostHurtEffects only inside the inherited post-hurt callback.",
+      "actual_native_contract": "IceBowItem.customArrow wraps the parent arrow. IceArrow.onHitEntity first invokes super, then on server calls helper200/2 for any LivingEntity hit, without testing hurt return. TFArrow forwards parent doPostHurtEffects only inside the inherited post-hurt callback.",
+      "pending": [
+        "Pin installed Bow/ProjectileWeaponItem customArrow invocation, impact/parry and inherited hit admission; resolve parent tipped/spectral alternate payloads separately."
+      ],
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:item/IceBowItem",
+          "entry": "twilightforest/item/IceBowItem.class",
+          "methods": [
+            "<init>",
+            "customArrow",
+            "isValidRepairItem"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:entity/projectile/IceArrow",
+          "entry": "twilightforest/entity/projectile/IceArrow.class",
+          "methods": [
+            "<init>",
+            "onHitEntity",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:entity/projectile/TFArrow",
+          "entry": "twilightforest/entity/projectile/TFArrow.class",
+          "methods": [
+            "<init>",
+            "doPostHurtEffects",
+            "getDefaultPickupItem"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:enchantment/ApplyFrostedEffect",
+          "entry": "twilightforest/enchantment/ApplyFrostedEffect.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "amplifier",
+            "apply",
+            "codec",
+            "doChillAuraEffect",
+            "duration",
+            "equals",
+            "hashCode",
+            "lambda$static$0",
+            "toString"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:frosted:ice_bomb_contact",
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "effect_ids": [
+        "twilightforest:frosted_package"
+      ],
+      "labels": [
+        "THROWN_PROJECTILE"
+      ],
+      "primary_source": "IceBomb contact; player item proven locally; alternate producers pending",
+      "setup": "LivingEntity contact calls inflictDamage(target,2). Unless type is freeze-immune, request twilightforest:frozen for 2*(5 if freeze-hurts-extra type else1), direct entity bomb/causing entity owner, then helper200/0 regardless of hurt return. Player use consumes one item and launches speed1.25/inaccuracy1/pitch offset-5. asProjectile creates an ownerless bomb; dispenser registration and boss launch chain need final evidence.",
+      "actual_native_contract": "LivingEntity contact calls inflictDamage(target,2). Unless type is freeze-immune, request twilightforest:frozen for 2*(5 if freeze-hurts-extra type else1), direct entity bomb/causing entity owner, then helper200/0 regardless of hurt return. Player use consumes one item and launches speed1.25/inaccuracy1/pitch offset-5. asProjectile creates an ownerless bomb; dispenser registration and boss launch chain need final evidence.",
+      "pending": [
+        "Finish complete bomb package including inherited impact admission, source tags/mitigation, all producers and dispenser registration."
+      ],
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:entity/projectile/IceBomb",
+          "entry": "twilightforest/entity/projectile/IceBomb.class",
+          "methods": [
+            "<init>",
+            "addAdditionalSaveData",
+            "doTerrainEffect",
+            "doTerrainEffects",
+            "getBlockState",
+            "getDefaultGravity",
+            "hitNearbyEntities",
+            "inflictDamage",
+            "makeIceZone",
+            "makeTrail",
+            "onHitBlock",
+            "onHitEntity",
+            "readAdditionalSaveData",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:item/IceBombItem",
+          "entry": "twilightforest/item/IceBombItem.class",
+          "methods": [
+            "<init>",
+            "asProjectile",
+            "use"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:init/TFDamageTypes",
+          "entry": "twilightforest/init/TFDamageTypes.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "bootstrap",
+            "create",
+            "getDamageSource",
+            "getEntityDamageSource",
+            "getIndirectEntityDamageSource"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:enchantment/ApplyFrostedEffect",
+          "entry": "twilightforest/enchantment/ApplyFrostedEffect.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "amplifier",
+            "apply",
+            "codec",
+            "doChillAuraEffect",
+            "duration",
+            "equals",
+            "hashCode",
+            "lambda$static$0",
+            "toString"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:frosted:ice_bomb_zone",
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "effect_ids": [
+        "twilightforest:frosted_package"
+      ],
+      "labels": [
+        "AOE",
+        "ENVIRONMENT"
+      ],
+      "primary_source": "IceBomb after block hit",
+      "setup": "Block hit sets hasHit and zero motion; initial timer101 decrements each tick. Server zone processes multiples of20, including0 before discard; AABB inflated(3,2,3) excludes owner. Non-Yeti gets same request with multiplier1 and helper100/0, independent of hurt return. Yeti branch places two ice blocks and discards entity instead. These are separate package components, not proven HP damage.",
+      "actual_native_contract": "Block hit sets hasHit and zero motion; initial timer101 decrements each tick. Server zone processes multiples of20, including0 before discard; AABB inflated(3,2,3) excludes owner. Non-Yeti gets same request with multiplier1 and helper100/0, independent of hurt return. Yeti branch places two ice blocks and discards entity instead. These are separate package components, not proven HP damage.",
+      "pending": [
+        "Keep Yeti replacement and terrain changes in complete bomb package; validate lifecycle/repeated block hits, producer cover and exact source mitigation."
+      ],
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:entity/projectile/IceBomb",
+          "entry": "twilightforest/entity/projectile/IceBomb.class",
+          "methods": [
+            "<init>",
+            "addAdditionalSaveData",
+            "doTerrainEffect",
+            "doTerrainEffects",
+            "getBlockState",
+            "getDefaultGravity",
+            "hitNearbyEntities",
+            "inflictDamage",
+            "makeIceZone",
+            "makeTrail",
+            "onHitBlock",
+            "onHitEntity",
+            "readAdditionalSaveData",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:init/TFDamageTypes",
+          "entry": "twilightforest/init/TFDamageTypes.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "bootstrap",
+            "create",
+            "getDamageSource",
+            "getEntityDamageSource",
+            "getIndirectEntityDamageSource"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:enchantment/ApplyFrostedEffect",
+          "entry": "twilightforest/enchantment/ApplyFrostedEffect.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "amplifier",
+            "apply",
+            "codec",
+            "doChillAuraEffect",
+            "duration",
+            "equals",
+            "hashCode",
+            "lambda$static$0",
+            "toString"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:frosted:yeti_armor_retaliation",
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "effect_ids": [
+        "twilightforest:frosted_package"
+      ],
+      "labels": [
+        "ARMOR_PROC"
+      ],
+      "primary_source": "Living wearer with YetiArmorItem pieces; Living causing attacker",
+      "setup": "EntityEvents.entityHurts(LivingDamageEvent.Post) requires nonnull causing entity and originalDamage>0. chillLevel counts nonempty armor slots whose item is YetiArmorItem. Living causing attacker gets helper(5*pieces+5,pieces,pieces>0). No extra check of final positive damage is made in this handler.",
+      "actual_native_contract": "EntityEvents.entityHurts(LivingDamageEvent.Post) requires nonnull causing entity and originalDamage>0. chillLevel counts nonempty armor slots whose item is YetiArmorItem. Living causing attacker gets helper(5*pieces+5,pieces,pieces>0). No extra check of final positive damage is made in this handler.",
+      "pending": [
+        "Pin event registration/lifecycle and exact Post reachability, piece item registry and generic external hooks."
+      ],
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "entityHurts",
+            "getGearCoverage",
+            "reduceFrostedEffectIfOnFire",
+            "lambda$reduceFrostedEffectIfOnFire$1"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:enchantment/ApplyFrostedEffect",
+          "entry": "twilightforest/enchantment/ApplyFrostedEffect.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "amplifier",
+            "apply",
+            "codec",
+            "doChillAuraEffect",
+            "duration",
+            "equals",
+            "hashCode",
+            "lambda$static$0",
+            "toString"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:frosted:frost_enforcement",
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "effect_ids": [
+        "twilightforest:frosted_package"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "primary_source": "Progression-gated player biome enforcement",
+      "setup": "Progression callback checks ServerPlayer/server level, tickCount%20==0, progression enforced, noncreative and nonspectator. Restriction lookup requires biome-key restriction and unmet required advancements. FROST consumer at tickCount%60==0 with normal tick rate directly adds Frosted100/(int)restriction.multiplier, ambient false/visible true. It does not use the helper equipment filter.",
+      "actual_native_contract": "Progression callback checks ServerPlayer/server level, tickCount%20==0, progression enforced, noncreative and nonspectator. Restriction lookup requires biome-key restriction and unmet required advancements. FROST consumer at tickCount%60==0 with normal tick rate directly adds Frosted100/(int)restriction.multiplier, ambient false/visible true. It does not use the helper equipment filter.",
+      "pending": [
+        "Pin listener registration, actual restriction JSON, progression predicate and advancement predicate; evaluate configuration and runtime accessibility."
+      ],
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:events/ProgressionEvents",
+          "entry": "twilightforest/events/ProgressionEvents.class",
+          "methods": [
+            "performProtectionAndPortalChecks"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:util/Restriction",
+          "entry": "twilightforest/util/Restriction.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "advancements",
+            "create",
+            "enforcement",
+            "equals",
+            "getRestrictionForBiome",
+            "hashCode",
+            "hintStructureKey",
+            "isBiomeSafeFor",
+            "lambda$static$0",
+            "lambda$static$1",
+            "lambda$static$2",
+            "lockedBiomeToast",
+            "multiplier",
+            "toString"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:util/Enforcement",
+          "entry": "twilightforest/util/Enforcement.class",
+          "methods": [
+            "<init>",
+            "consumer",
+            "enforceBiomeProgression",
+            "equals",
+            "hashCode",
+            "lambda$enforceBiomeProgression$0",
+            "toString"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:init/custom/Enforcements",
+          "entry": "twilightforest/init/custom/Enforcements.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "lambda$static$0",
+            "lambda$static$1",
+            "lambda$static$2",
+            "lambda$static$3",
+            "lambda$static$4",
+            "lambda$static$5",
+            "lambda$static$6",
+            "lambda$static$7",
+            "lambda$static$8",
+            "lambda$static$9"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:frosted:enchantment_codec",
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "effect_ids": [
+        "twilightforest:frosted_package"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "primary_source": "ApplyFrostedEffect enchantment entity effect; native configured source not yet resolved",
+      "setup": "apply requires LivingEntity then helper(round(duration.calculate(level)),max(0,round(amplifier.calculate(level))),true). Existence of this codec is not evidence that an installed enchantment currently invokes it.",
+      "actual_native_contract": "apply requires LivingEntity then helper(round(duration.calculate(level)),max(0,round(amplifier.calculate(level))),true). Existence of this codec is not evidence that an installed enchantment currently invokes it.",
+      "pending": [
+        "Resolve registration and data-driven producer JSON before claiming an obtainable enchantment path or counting it as final delivery."
+      ],
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:enchantment/ApplyFrostedEffect",
+          "entry": "twilightforest/enchantment/ApplyFrostedEffect.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "amplifier",
+            "apply",
+            "codec",
+            "doChillAuraEffect",
+            "duration",
+            "equals",
+            "hashCode",
+            "lambda$static$0",
+            "toString"
+          ]
+        }
+      ]
+    }
+  ]
+}

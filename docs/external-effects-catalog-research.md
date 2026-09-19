@@ -301,3 +301,22 @@ Fresh review integrity and all five tooling tests passed. Full evidence/referenc
 
 
 R2e COMPLETE was committed, pushed and verified at `148a9e435b76118162695c5979f2ebce5e77307f`. A follow-up tooling correction scopes immutable shared-row comparisons to the already protected mod keys and removes the permanent assertion that the next target must remain UNSTARTED. This preserves accepted rows while allowing later catalog additions. It changes no Friends & Foes classification, evidence, source/path count or production behavior. Twilight Forest is still UNSTARTED at this checkpoint.
+
+## R2f1 — Twilight Forest semantic review PARTIAL
+
+Recovered clean branch `external-effects-catalog-research` at local/fetched/live GitHub `3f3587aed34fea3670fdcbe26c2bb1d60094023c`, divergence0/0. No newer/conflicting work existed. Accepted reviews and the existing broad scan were reused. Installed Twilight Forest4.8.3345 is the native authority; selected class/method bytes and resources are pinned in `native-evidence/twilightforest-r2f1-partial.json`.
+
+**TWILIGHT_FOREST_SEMANTIC_REVIEW_PARTIAL**: one draft Frosted package, seven provisional paths,79 witnesses (16 classes,40 damage declarations,23 damage-tag contributions). Zero Twilight records are finalized/promoted; the final mechanic/path/boss/item counts and minimum complete fixture cover remain unknown. The global accepted116 mechanics/161 paths/217 components are unchanged. The ledger now honestly records Twilight PARTIAL.
+
+Frosted is not just Slowness: it sets the powder-snow flag each effect tick, conditionally increments the frozen gauge, adjusts incoming exact vanilla freeze damage, and down-ranks on incoming fire. Ice Arrow's local status callback does not check arrow hurt return. Helper, armor, bomb and progression producer contracts are saved without claiming complete delivery admission. The optional entity list in EntityExcludedDamageSource changes localized death attribution, not damage eligibility. Damage declarations are not counted as reviewed combat paths.
+
+- [Owner table and limitations](benchmarks/external-effects-catalog/twilightforest-owner-table.md)
+- [Draft package and paths](benchmarks/external-effects-catalog/partial-drafts/twilightforest-r2f1-partial.json)
+- [Pinned declaration values, inspected areas and exact resume](benchmarks/external-effects-catalog/partial-notes/twilightforest-r2f1-partial.json)
+- [Partial review entry](benchmarks/external-effects-catalog/mod-reviews/twilightforest.json)
+- [Partial integrity checks](benchmarks/external-effects-catalog/twilightforest-partial-integrity.json)
+- [Full checkpoint validation](benchmarks/external-effects-catalog/r2f1-partial-validation.json)
+
+Save mode began at77% five-hour usage to preserve validation/push capacity before the approximate80% research boundary. This is a capacity stop, not an invented native ambiguity. REVIEW_REQUIRED remains0; unresolved-ambiguity census is null because review is unfinished. Relevant external compatibility predicates are still uninspected. All boss reviews, most items and the rest of semantic discovery remain open.
+
+Exact next task: finish the existing Frosted draft against raw Minecraft1.21.1 and installed NeoForge21.1.244 tick order, lifecycle, mitigation, producer registration and data prerequisites; then continue the ordered unfinished Twilight coverage in partial notes. Do not redo accepted work. Ice and Fire remains UNSTARTED until Twilight COMPLETE is protected. No runtime, boss/L2 tests, production/Stage edits, fixes, balancing or original Phase7 work. Validate, commit, push, verify local/live SHA equality and STOP; the final response supplies the protected self SHA.
