@@ -147,6 +147,9 @@ def validate():
         if (OUT/'semantic-sections/twilightforest-lich.json').exists():
             from validate_twilight_lich import validate_lich
             assert validate_lich()['status']=='PASS'
+        if (OUT/'semantic-sections/twilightforest-naga.json').exists():
+            from validate_twilight_naga import validate_naga
+            assert validate_naga()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():
