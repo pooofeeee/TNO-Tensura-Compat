@@ -144,6 +144,9 @@ def validate():
         if (OUT/'mod-reviews/friendsandfoes.json').exists():
             from validate_friends_review import validate_friends
             assert validate_friends()['status']=='PASS'
+        if (OUT/'semantic-sections/twilightforest-lich.json').exists():
+            from validate_twilight_lich import validate_lich
+            assert validate_lich()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():

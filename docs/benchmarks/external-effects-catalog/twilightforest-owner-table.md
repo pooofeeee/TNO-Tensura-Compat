@@ -1,6 +1,6 @@
-# Twilight Forest — R2f2 partial, Frosted section reviewed
+# Twilight Forest — R2f3 partial, Frosted and Lich reviewed
 
-The installed4.8.3345 review is **PARTIAL**. Frosted and its seven original producer contracts are now resolved, with two reviewed package drafts and13 source/path cases. **Zero final Twilight records are promoted.** Full mod mechanic, boss, defense, item and final source totals remain unknown. The four accepted reviews remain116 mechanics/161 paths/217 components. No runtime tests were performed.
+The installed4.8.3345 review is **PARTIAL**. Frosted remains protected at two reviewed package drafts and13 cases. Lich is now semantically complete at nine additional reviewed package drafts and24 delivery cases (14 shield-source cases): combined11 package drafts /37 delivery cases. **Zero final Twilight records are promoted.** Full mod mechanic, boss, defense, item and final source totals remain unknown. The four accepted reviews remain116 mechanics/161 paths/217 components. No runtime tests were performed.
 
 | Mechanic | Native behavior | Vanilla comparison | Classification / source coverage |
 |---|---|---|---|
@@ -22,7 +22,7 @@ Frosted's helper rejects freeze-immune entity types, freeze-immune head/chest/le
 
 Ice Bomb's `twilightforest:frozen` is tagged magic and bypasses wolf armor, **not ordinary armor**. It lacks IS_FREEZING, projectile, fire, explosion, normal armor/shield/enchantment/Resistance/iframe bypass and no-knockback tags in the scoped native sources. Its explicit heat-sensitive multiplier occurs once. Normal mitigation applies. Save/load omits parent projectile serialization, losing owner and therefore original-thrower zone exclusion. Requests are not measured HP loss.
 
-One registered custom MobEffect: `twilightforest:frosted`. Forty custom damage declarations remain pinned from R2f1; **frozen now has a reviewed caller profile**, while39 caller dispositions remain unfinished. They are not classified as unused. REVIEW_REQUIRED0; unfinished review is not ambiguity. Final VANILLA_DIRECT/COMPOSITE/EXTENDED lists are not available yet. No boss or boss-defense review is closed.
+One registered custom MobEffect: `twilightforest:frosted`. Forty custom damage declarations remain pinned from R2f1; **frozen, lich_bolt, lich_bomb and twilight_scepter have reviewed caller profiles**, while36 caller dispositions remain unfinished. They are not classified as unused. REVIEW_REQUIRED0; unfinished review is not ambiguity. Final VANILLA_DIRECT/COMPOSITE/EXTENDED lists are not available yet. Lich boss/defense semantics are closed; the remaining boss reviews are pending.
 
 Four pinned compatibility candidates have no direct Twilight name hits; generic conditional hooks remain, including Antidote duration reduction and player recipient/owner damage hooks. This is scoped static attribution, not pack-wide compatibility. No production fixes were made.
 
@@ -30,6 +30,28 @@ Particles, sounds, color/icon, repair/acquisition and registration infrastructur
 
 Details: [reviewed section](semantic-sections/twilightforest-frosted.json), [current drafts](partial-drafts/twilightforest-r2f2-partial.json), [compat mapping](compat-findings/twilightforest-frosted.json), [progress validation](twilightforest-progress-integrity.json), [full validation](r2f2-partial-validation.json).
 
-Next: Naga and Lich systematic boss review, especially actual Lich shield-source admission. All remaining bosses, mobs, items, damage callers and final promotion remain pending. Ice and Fire is UNSTARTED. Phase6/production/Stage remain unchanged. R2f1 evidence remains preserved rather than redone.
+## R2f3 — LICH_SEMANTIC_REVIEW_COMPLETE
 
-Protected Frosted checkpoint: `9de2fa52b435b49296e7e59472864e3a1e49e52b` (local/live equality and clean tree verified). Save mode began at76% usage after validation/push. No boss semantic section was started. Exact next action: trace Lich.hurt/getPhase/shield state and legitimate source paths, then complete Lich and continue Naga/remaining bosses. Stop for owner review; do not repeat Frosted.
+| Reviewed package | Native result | Classification |
+|---|---|---|
+| Shield resource | Default6, subtract1 only for admitted tagged request strictly>2; false return, no HP damage from the request | CUSTOM_RESOURCE |
+| HP admission / projectile defense | Cloak, clone and causing-Lich gates precede shield and native HP processing; phase2 already admits HP damage | BINARY_MECHANIC |
+| Lich Bolt | Custom6; phase1 Lich collision requires Player owner; native attack/projectile/parry reflection paths transfer ownership | CUSTOM_DAMAGE |
+| Lich Bomb | Custom radius2 entity explosion, no block destruction/fire; not shield-breaking; direct strikes detonate | CUSTOM_DAMAGE |
+| Phase summons | Real clone cap2, minion reserve9/active cap3; failed spawn attempt still spends reserve | CUSTOM_RESOURCE |
+| Mob absorption | Native discard then heal2 or owned-minion current HP; no damage source | CUSTOM_RESOURCE |
+| Teleport | Candidate/home search, cloak20, extinguish, combat goal/admission effects | CUSTOM_CONTROL |
+| Minion enrage | Successful inherited hurt from any causing Lich grants native Speed200/2 and Strength200/1 | VANILLA_LIKE_EXTENDED |
+| Twilight Scepter bolt | Native item launch; custom6 with ordinary armor processing, unlike Lich Bolt | CUSTOM_DAMAGE |
+
+**Shield break and HP damage remain separate.** `breaks_lich_shields` has five values; the tag alone is insufficient. Cloak/clone/causing-Lich rejection, raw amount>2, shield state and source delivery predicates still apply. Final shield break returns false; a separate later request from a compound attack can hit exposed HP. Phase2 does not require all minions dead to admit HP damage.
+
+Native reflection distinguishes direction from ownership. Player attack uses redirectable-projectile AIM before Bolt.hurt. Later-phase Lich deflection restores a prior nonnull owner; an initially ownerless projectile instead keeps the callback's new Lich owner because setOwner(null) is a no-op. Bombs never directly collide with Lich and do not carry the shield-breaking tag; a player-parried bomb can only attempt exposed HP damage through its later explosion.
+
+All21 requested semantic conclusions, 14 shield-source cases, rejected controls, custom/vanilla source tags and hurt-return dependencies are saved in the [Lich owner review](twilightforest-lich-review.md) and [machine-readable section](semantic-sections/twilightforest-lich.json). Source coverage includes all native tag identities and Minecraft factory caller dispositions, plus exact reuse of accepted Cult, Royal and Friends producers. This is static native-source coverage, not an assertion about all unreviewed modpack/datapack producers or runtime results.
+
+The [combined draft](partial-drafts/twilightforest-r2f3-partial.json) retains Frosted unchanged. [Lich integrity](twilightforest-lich-integrity.json), [shared progress integrity](twilightforest-progress-integrity.json), five tooling tests and [full validation](r2f3-lich-validation.json) protect this bounded checkpoint. Accepted global116 mechanics /161 paths /217 components remain unchanged; Twilight final totals and R3/R4 remain unfinished.
+
+Exact next task: **Naga**, then Minoshroom / Knight Phantom, Hydra / Ur-Ghast, Alpha Yeti / Snow Queen. Do not repeat Lich or Frosted. Ice and Fire remains UNSTARTED. No runtime boss/L2 tests, production, Stage, Phase6 reopening, balancing or original Phase7 work.
+
+Save boundary: usage reached75% during Lich finalization. Stop new research and protect R2f3 by validated commit/push/live-SHA equality. Naga has not started; it is the exact resume point.
