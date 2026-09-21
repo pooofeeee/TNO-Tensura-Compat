@@ -1,6 +1,6 @@
-# Twilight Forest — R2f4 partial, Frosted, Lich and Naga reviewed
+# Twilight Forest — R2f5 partial, five reviewed subsections
 
-The installed4.8.3345 review is **PARTIAL**. Frosted remains protected at two reviewed package drafts and13 cases. Lich is now semantically complete at nine additional reviewed package drafts and24 delivery cases (14 shield-source cases): Naga adds eight reviewed packages and18 delivery cases: combined19 package drafts /55 delivery cases. **Zero final Twilight records are promoted.** Full mod mechanic, boss, defense, item and final source totals remain unknown. The four accepted reviews remain116 mechanics/161 paths/217 components. No runtime tests were performed.
+The installed4.8.3345 review is **PARTIAL**. Frosted remains protected at two reviewed package drafts and13 cases. Lich is now semantically complete at nine additional reviewed package drafts and24 delivery cases (14 shield-source cases): Naga adds eight reviewed packages and18 delivery cases: Minoshroom and Knight Phantom add10 packages /28 delivery cases: current combined29 package drafts /83 delivery cases. **Zero final Twilight records are promoted.** Full mod mechanic, boss, defense, item and final source totals remain unknown. The four accepted reviews remain116 mechanics/161 paths/217 components. No runtime tests were performed.
 
 | Mechanic | Native behavior | Vanilla comparison | Classification / source coverage |
 |---|---|---|---|
@@ -22,7 +22,7 @@ Frosted's helper rejects freeze-immune entity types, freeze-immune head/chest/le
 
 Ice Bomb's `twilightforest:frozen` is tagged magic and bypasses wolf armor, **not ordinary armor**. It lacks IS_FREEZING, projectile, fire, explosion, normal armor/shield/enchantment/Resistance/iframe bypass and no-knockback tags in the scoped native sources. Its explicit heat-sensitive multiplier occurs once. Normal mitigation applies. Save/load omits parent projectile serialization, losing owner and therefore original-thrower zone exclusion. Requests are not measured HP loss.
 
-One registered custom MobEffect: `twilightforest:frosted`. Forty custom damage declarations remain pinned from R2f1; **frozen, lich_bolt, lich_bomb and twilight_scepter have reviewed caller profiles**, while36 caller dispositions remain unfinished. They are not classified as unused. REVIEW_REQUIRED0; unfinished review is not ambiguity. Final VANILLA_DIRECT/COMPOSITE/EXTENDED lists are not available yet. Lich and Naga boss/defense semantics are closed; the remaining boss reviews are pending.
+One registered custom MobEffect: `twilightforest:frosted`. Forty custom damage declarations remain pinned from R2f1; **nine custom damage caller profiles are reviewed**: frozen, lich_bolt, lich_bomb, twilight_scepter, axing, slam, haunt, thrown_axe and thrown_pickaxe. Another31 remain unfinished. They are not classified as unused. REVIEW_REQUIRED0; unfinished review is not ambiguity. Final VANILLA_DIRECT/COMPOSITE/EXTENDED lists are not available yet. Lich, Naga, Minoshroom and Knight Phantom boss/defense semantics are closed; the remaining boss reviews are pending.
 
 Four pinned compatibility candidates have no direct Twilight name hits; generic conditional hooks remain, including Antidote duration reduction and player recipient/owner damage hooks. This is scoped static attribution, not pack-wide compatibility. No production fixes were made.
 
@@ -80,3 +80,30 @@ Constructor health-per-segment remains12 before difficulty HP finalization (Easy
 [Complete review](twilightforest-naga-review.md), [semantic section and future controls](semantic-sections/twilightforest-naga.json), [combined draft](partial-drafts/twilightforest-r2f4-partial.json), [Naga integrity](twilightforest-naga-integrity.json), [full validation](r2f4-naga-validation.json). Future native fixtures distinguish home-bound spawner encounters from unrestricted spawn eggs, head/part/overlap hits, genuine Player blocking and charge state, mitigation/return versus HP, HP thresholds/regeneration, and terrain grief/helper predicates. No runtime fixtures executed.
 
 Save mode began at70% usage to reserve protection capacity. Minoshroom and Knight Phantom were not started. Exact next task: their semantic review using existing installed source aids, followed by Hydra / Ur-Ghast and Alpha Yeti / Snow Queen. Twilight remains PARTIAL with19/55 reviewed drafts and zero promoted records. Accepted116/161/217 totals are unchanged. No Ice and Fire, runtime boss/L2, Stage, production, fixes, balancing, Phase6 reopening or Phase7 work.
+
+
+## R2f5 — MINOSHROOM_KNIGHT_PHANTOM_SEMANTIC_REVIEW_COMPLETE
+
+Recovered clean local/fetched/live branch at `c30b8c98fbbd8aefad86088cd027d4156b22924f`, divergence0/0. No newer or conflicting work. Existing source aids and protected comparisons were reused; none of Frosted/Lich/Naga was reopened.
+
+| Boss | Reviewed packages | Delivery cases | Classification totals |
+|---|---:|---:|---|
+| Minoshroom | 4 | 11 | VANILLA_LIKE_EXTENDED1, CUSTOM_DAMAGE1, CUSTOM_CONTROL2 |
+| Knight Phantom | 6 | 17 | VANILLA_LIKE_EXTENDED2, CUSTOM_DAMAGE1, CUSTOM_CONTROL2, BINARY_MECHANIC1 |
+| New total | 10 | 28 | VANILLA_LIKE_EXTENDED3, CUSTOM_DAMAGE2, CUSTOM_CONTROL4, BINARY_MECHANIC1 |
+
+REVIEW_REQUIRED0. Current Twilight drafts29/83; zero promotions. Accepted global116 mechanics/161 paths/217 components remain unchanged.
+
+Minoshroom uses `axing` through its custom melee helper, with settled unenchanted attack11 and a sprinting Minotaur-axe incoming bonus7. Native Player difficulty scaling precedes that bonus. Charge is a snapshot navigation/one-attempt path; ground slam is a separate Player-only grounded AABB request at half effective attack, bypassing armor and transitively shields, with upward push before hurt. Ordinary axe shield disabling is native behavior. No special home damage gate, HP phase or regeneration is present. Charge terrain clearing and inherited accepted-lava cleanup have different predicates.
+
+Knight Phantom has independent HP and local nearby-Knight coordination, not a shared health/resource pool. Charging changes attack+7, armor multiplier and dimensions; inactive armor normally clamps30 versus charged11 with supplied equipment. Early guard false skips the normal shield damage/events pipeline. Actual block traversal does not imply damage immunity. Final-survivor random weapon selection is overwritten by setNumber(0), producing sword. Formation/progress persistence does not immediately restore charging flags or transient armor/attack modifiers.
+
+Native thrown axe6/pick3 retain a projectile owner but create DamageSources with direct=null and causing=null. Consequently native entity-owner difficulty scaling and directional source-position shield blocking do not apply. Native timed parry remains possible, but no reflected throw damages any Knight. Any accepted impact discards the projectile regardless of hurt result; payload is unsaved, so reloaded pick becomes default axe6/gravity.001 with owner retained. No pickup/ammunition resource or thrown-block attack is invented.
+
+The shared melee helper also passes the attacker, rather than victim, into EnchantmentHelper.modifyDamage and records lastHurtMob=self; exact bytecode comparisons preserve these differences. No fixes were made.
+
+Five custom profiles newly USED: **axing, slam, haunt, thrown_axe, thrown_pickaxe**. Nine of40 profiles are now reviewed;31 remain unfinished, not unused. Alternate Minotaur/Player tool paths and limited Wraith HAUNT caller evidence are explicit; full Wraith and unrelated knightmetal-block/thrown-block reviews are pending. No other family was begun.
+
+[Complete owner review](twilightforest-minoshroom-knight-review.md), [machine-readable packages and paths](semantic-sections/twilightforest-minoshroom-knight.json), [current combined draft](partial-drafts/twilightforest-r2f5-partial.json), [integrity](twilightforest-minoshroom-knight-integrity.json), [full validation](r2f5-minoshroom-knight-validation.json). Five future fixture groups cover native boss spawns, equipment/Player alternatives, native projectile/parry/load behavior, state/home/defense and group death controls. No runtime fixtures executed.
+
+Research stopped at68% usage to reserve protection capacity. Hydra and Ur-Ghast have NOT STARTED. They are the exact next task after review, followed by Alpha Yeti / Snow Queen. Twilight remains PARTIAL. No Ice and Fire, runtime boss/L2 tests, Stage/production, compatibility fixes, balancing, Phase6 reopening or Phase7 work. Validate, commit, push, verify live equality and STOP.
