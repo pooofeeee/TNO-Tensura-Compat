@@ -1,6 +1,6 @@
 # Twilight Forest — R2f8i partial, summon and scepter resources also reviewed
 
-The installed4.8.3345 review is **PARTIAL** at **R2f8p**: **185 reviewed mechanic-package drafts / 584 delivery cases**, **30/40 custom DamageType caller profiles** closed and10 unfinished, REVIEW_REQUIRED0. **Zero final Twilight records are promoted.** All protected subsections through Travellers core and movement remain preserved in the checkpoint sections below. Final whole-mod totals remain unknown. Four accepted reviews remain116 mechanics/161 paths/217 components; runtime tests0.
+The installed4.8.3345 review is **PARTIAL** at **R2f8q**: **190 reviewed mechanic-package drafts / 613 delivery cases**, **30/40 custom DamageType caller profiles** closed and10 unfinished, REVIEW_REQUIRED0. **Zero final Twilight records are promoted.** All protected subsections through all Travellers core/movement/utility contracts remain preserved in the checkpoint sections below. Final whole-mod totals remain unknown. Four accepted reviews remain116 mechanics/161 paths/217 components; runtime tests0.
 
 | Mechanic | Native behavior | Vanilla comparison | Classification / source coverage |
 |---|---|---|---|
@@ -22,7 +22,7 @@ Frosted's helper rejects freeze-immune entity types, freeze-immune head/chest/le
 
 Ice Bomb's `twilightforest:frozen` is tagged magic and bypasses wolf armor, **not ordinary armor**. It lacks IS_FREEZING, projectile, fire, explosion, normal armor/shield/enchantment/Resistance/iframe bypass and no-knockback tags in the scoped native sources. Its explicit heat-sensitive multiplier occurs once. Normal mitigation applies. Save/load omits parent projectile serialization, losing owner and therefore original-thrower zone exclusion. Requests are not measured HP loss.
 
-One registered custom MobEffect: `twilightforest:frosted`. Forty custom damage declarations are pinned from R2f1; **30 caller profiles reviewed**,10 unfinished. Subsequent closed sources include lifedrain, moonworm and stale_sandwich in addition to the earlier27. Unfinished declarations are not classified as unused. REVIEW_REQUIRED0; unfinished review is not ambiguity. Boss/defense sections and all protected nonboss sections remain closed. Current remaining content starts with belt/display/zoom/red-thread/Emperor cloth, followed by the outstanding utilities, food, passive entities, hazards and ASM/source closure.
+One registered custom MobEffect: `twilightforest:frosted`. Forty custom damage declarations are pinned from R2f1; **30 caller profiles reviewed**,10 unfinished. Subsequent closed sources include lifedrain, moonworm and stale_sandwich in addition to the earlier27. Unfinished declarations are not classified as unused. REVIEW_REQUIRED0; unfinished review is not ambiguity. Boss/defense sections and all protected nonboss sections remain closed. Current remaining content starts with other utilities/maps, food/flasks, passive entities, hazards and ASM/source closure.
 
 Four pinned compatibility candidates have no direct Twilight name hits; generic conditional hooks remain, including Antidote duration reduction and player recipient/owner damage hooks. This is scoped static attribution, not pack-wide compatibility. No production fixes were made.
 
@@ -318,3 +318,15 @@ Water Walk still requires native exposed source-fluid collision admission. Slimy
 [Integrity](twilightforest-travellers-movement-integrity.json) and [full validation](r2f8p-travellers-movement-validation.json) cover evidence reproduction, semantic/source/path checks, five tooling tests and previous-checkpoint preservation. Accepted116/161/217 catalog bodies remain unchanged. Runtime0; Stage/production/Phase6/7 untouched.
 
 Next: Travellers belt/hotbar/item-display/zoom/red-thread and Emperor cloth/render hooks, then remaining utilities/food/passive entities/hazards, ten custom DamageTypes, all remaining ASM/compatibility/source exclusions, R2f8 and final Twilight promotion. Leash pathfinder ASM is a separate unfinished structure mechanic. Continue automatically while current usage allows; IceAndFire only after Twilight COMPLETE is pushed and live-verified.
+
+## R2f8q — Travellers storage/view and Emperor cloth
+
+Protected input R2f8p `0ed32df8aa5e3dad148f742d25492f90fab4323a`. Adds **5 reviewed packages / 29 delivery cases**, reaching **190 mechanic drafts / 613 delivery cases**, PARTIAL, zero promoted, REVIEW_REQUIRED0. Custom DamageTypes remain **30/40**, ten unfinished. Travellers core, movement and remaining storage/view contracts are now reviewed together; other Twilight content remains unfinished.
+
+[Reviewed contracts](twilightforest-travellers-utility-review.md) close Belt/Wings hotbar storage, Item Display and genuine map callbacks, Goggles zoom/mouse state, Red Thread visibility and Emperor cloth. Four exact installed nested armor/map transformers are pinned with native/NeoForge references. Inactive belt gear can retrieve into empty hotbar slots. Map tracking's two injected inventory checks both use the original method Player argument. Zoom FOV requires active gear, while the mouse-sensitivity handler only checks the component/key and retains its native zero-sensitivity nonfinite boundary.
+
+Cloth changes armor's contribution only inside native Invisibility visibility calculation, preserves armor/enchantment/flight behavior, and retains ordinary targeting limits. Exact humanoid/cape render targets are verified; the separate native Elytra layer is not hidden by those cloth hooks. Storage, view, rendering and native detection remain distinct. Item Display codec/cycle behavior, genuine insertion/removal/overflow, red-thread local toggle/death-copy limits and administrative modifier source differences are saved without executing commands or making fixes.
+
+[Integrity](twilightforest-travellers-utility-integrity.json) and [full validation](r2f8q-travellers-utility-validation.json) cover source/reference reproduction, full declared class coverage, native anchors, semantic/path checks, five tooling tests, protected checkpoint and accepted116/161/217 preservation. Runtime0; no L2/Stage/production/Phase6/7 changes.
+
+Next: remaining utility/map/food/flask and passive-entity contracts, environmental hazards and all ten unfinished custom DamageTypes, then complete the remaining installed ASM/compatibility/source exclusions. Protect R2f8, deduplicate and promote full Twilight COMPLETE, push/live verify, then begin IceAndFire only while actual usage remains healthy.

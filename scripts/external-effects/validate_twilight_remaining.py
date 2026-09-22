@@ -498,6 +498,47 @@ def validate_remaining():
             for name in TRANSFORMERS:assert any(name+'.<init>' in str(x['operand']) for w in reg for m in w.get('methods',[]) for x in m['instructions'])
             cfg=read_json(OUT/'config-evidence/twilightforest-client.json');assert sha256(cfg['path'])==cfg['sha256'] and cfg['values']['travellersWingsGradualGlide'] is True
             assert not s['damage_profiles'] and d['damage_census']['reviewed_profiles_after']==30 and d['damage_census']['remaining_profiles']==10
+        if d['slug']=='travellers-utility':
+            from collect_twilight_travellers_utility import scan_callers,T,TRANSFORMERS
+            scan=read_json(OUT/'twilightforest-travellers-utility-caller-scan.json');assert scan==scan_callers(target)
+            A=T+'TravellersArmorBeltItem';G=T+'TravellersGogglesItem';S='components/item/ItemDisplayContents';M=S+'$Mutable';C='client/event/TravellersClientEvents';H='asmhooks/ArmorHooks'
+            swap=ins(A,'travellersTrySwapHotbar');assert pos(swap,'.getArmor(')<pos(swap,'.hasSwapHotbar(')<pos(swap,'.isSwapHotbarActive(')<pos(swap,'.canFitInsideContainerItems(')<pos(swap,'TRAVELLERS_BELT_BLACKLISTED')<pos(swap,'.setItem(')<pos(swap,'ItemContainerContents.fromItems(')
+            assert any(x['operand']==9 for x in swap) and not any('.addCooldown(' in str(x['operand']) or '.getOffhandItem(' in str(x['operand']) for x in swap)
+            has=ins(A,'hasSwapHotbar');assert any('.hasTravellersModifier(' in str(x['operand']) for x in has) and not any('.isModifierActive(' in str(x['operand']) for x in has)
+            insert=next(m['instructions'] for m in methods(M) if m['name']=='trySwap' and 'BiConsumer' in m['descriptor']);assert pos(insert,'.canFitInsideContainerItems(')<pos(insert,'.findInsertSlot(')<pos(insert,'.findSwapSlot(')<pos(insert,'.isSameItemSameComponents(')<pos(insert,'.split(')<pos(insert,'.set(')
+            cycle=ins(M,'cycleChosenMapSlot');assert not any('.tryResetChosenMapSlot(' in str(x['operand']) for x in cycle) and any(int(x['opcode'],16)==0x02 for x in cycle)
+            isempty=ins(S,'isEmpty');assert any('NonNullList.isEmpty(' in str(x['operand']) for x in isempty) and not any('ItemStack.isEmpty(' in str(x['operand']) for x in isempty)
+            decode=ins(S,'fromSlots');assert pos(decode,'.isEmpty(')<pos(decode,'ItemDisplayContents.EMPTY')<pos(decode,'.getAsInt(')
+            tick=ins(G,'inventoryTick');assert pos(tick,'EquipmentSlot.HEAD')<pos(tick,'.isClientSide(')<pos(tick,'.isModifierActive(')<pos(tick,'.inventoryTick(')<pos(tick,'.getUpdatePacket(')
+            assert any(x['operand']==36 for x in tick) and not any('.hurt(' in str(x['operand']) or '.addEffect(' in str(x['operand']) for x in tick)
+            maphelper=ins('asmhooks/MapHooks','updateMapsInGoggles');assert pos(maphelper,'EquipmentSlot.HEAD')<pos(maphelper,'.isModifierActive(')<pos(maphelper,'.findActiveMapSlot(')<pos(maphelper,'.isSameItemSameComponents(')
+            zoom=ins(C,'updateZoomState');assert pos(zoom,'.isZoomKeyHeld(')<pos(zoom,'.isModifierActive(')<pos(zoom,'.setNewFovModifier(')<max(x['offset'] for x in zoom if 'IS_USING_GOGGLES_ZOOM_MODIFIER' in str(x['operand']))
+            mouse=ins(C,'slowZoomSensitivity');assert pos(mouse,'.getCinematicCameraEnabled(')<pos(mouse,'ZOOM_ABILITY_MODIFIER')<pos(mouse,'.isZoomKeyHeld(')<pos(mouse,'.getMouseSensitivity(')<pos(mouse,'.setMouseSensitivity(')
+            assert not any('.isModifierActive(' in str(x['operand']) or '.clamp(' in str(x['operand']) for x in mouse)
+            packet=[x for m in methods('network/GogglesZoomPacket') if m['name'].startswith('lambda$handle') for x in m['instructions']]
+            assert pos(packet,'.getPlayerByUUID(')<pos(packet,'.isModifierActive(')<pos(packet,'.sendToPlayersTrackingEntity(') and not any('.equals(' in str(x['operand']) for x in packet)
+            recipe=ins('item/recipe/EmperorsClothRecipe','matches');assert pos(recipe,'EMPERORS_CLOTH_APPLICABLE')<pos(recipe,'.hasCraftingRemainingItem(')<pos(recipe,'TFDataComponents.EMPERORS_CLOTH')
+            smith=ins('item/recipe/NoTemplateSmithingRecipe','matches');assert pos(smith,'.isEmpty(')<pos(smith,'Ingredient.test(')<pos(smith,'ItemStack.has(')
+            wash=ins('events/MiscEvents','washOffCloth');assert pos(wash,'.isCanceled(')<pos(wash,'WATER_CAULDRON')<pos(wash,'.lowerFillLevel(')<pos(wash,'.remove(')<pos(wash,'.setCanceled(')
+            assert not any('.isClientSide(' in str(x['operand']) or '.giveItemToPlayer(' in str(x['operand']) for x in wash)
+            fraction=ins('util/ArmorUtil','getShroudedArmorPercentage');assert pos(fraction,'.getArmorSlots(')<pos(fraction,'.isEmpty(')<pos(fraction,'EMPERORS_CLOTH') and any(int(x['opcode'],16)==0x6e for x in fraction)
+            assert any(int(x['opcode'],16)==0x66 for x in ins(H,'modifyArmorVisibility')) and not any('.addEffect(' in str(x['operand']) or '.getAttribute(' in str(x['operand']) for m in methods(H) for x in m['instructions'])
+            assert any(x['operand']==519 for x in ins('client/renderer/block/RedThreadRenderer','<clinit>'))
+            toggle=ins(C,'toggleBooleanDataAttachment');assert any('.setData(' in str(x['operand']) for x in toggle) and not any('.send(' in str(x['operand']) for x in toggle)
+            refs=[w for p in (OUT/'reference-evidence').glob('*.json') for w in read_json(p).get('witnesses',[]) if w.get('archive_sha256') in ['8e3563a078289f0f07ee6f87f1c8651294387639c8355983ee207cb753f08b7f','d874b2aa4d511919a567ae73f13510e63e16f7318194eb2c03824cd68a59df6f']]
+            def rm(c,fn):return [m for w in refs if w['entry']==c+'.class' for m in w.get('methods',[]) if m['name']==fn]
+            vis=rm('net/minecraft/world/entity/LivingEntity','getVisibilityPercent')[0];vi=vis['instructions'];vcode=bytes.fromhex(vis['code_hex']);anchor=next(x for x in vi if int(x['opcode'],16)==0x38 and vcode[x['offset']+1]==4)
+            assert pos(vi,'.isInvisible(')<pos(vi,'.getArmorCoverPercentage(')<anchor['offset']<pos(vi,'.getEntityVisibilityMultiplier(')
+            armor=next(m for m in rm('net/minecraft/client/renderer/entity/layers/HumanoidArmorLayer','renderArmorPiece') if m['descriptor'].endswith('FFFFFF)V'));acode=bytes.fromhex(armor['code_hex']);ai=armor['instructions'];anchor=next(x for x in ai if int(x['opcode'],16)==0xc1)
+            assert any(int(x['opcode'],16)==0x3a and acode[x['offset']+1]==13 for x in ai if x['offset']<anchor['offset']),'exact installed local13 item stack'
+            elytra=rm('net/minecraft/client/renderer/entity/layers/ElytraLayer','shouldRender')[0]['instructions'];assert any('Items.ELYTRA' in str(x['operand']) for x in elytra) and not any('EMPERORS_CLOTH' in str(x['operand']) for x in elytra)
+            setter=rm('net/neoforged/neoforge/client/event/CalculatePlayerTurnEvent','setMouseSensitivity')[0]['instructions'];assert len(setter)==4 and int(setter[-2]['opcode'],16)==0xb5
+            raw=[c for p in (OUT/'vanilla-evidence').glob('*.json') for c in read_json(p).get('classes',[])]
+            carried=next(m['instructions'] for c in raw if c['class_name']=='net/minecraft/world/level/saveddata/maps/MapItemSavedData' for m in c['methods'] if m['name']=='tickCarriedBy');assert len([x for x in carried if 'Inventory.contains(Ljava/util/function/Predicate;)' in str(x['operand'])])==2
+            asm=read_json(OUT/'reference-evidence/twilight-travellers-utility-asm.json')['witnesses'];assert {w['entry'].rsplit('/',1)[-1][:-6] for w in asm}==set(TRANSFORMERS)
+            reg=read_json(OUT/'reference-evidence/twilight-equipment-asm.json')['witnesses']
+            for name in TRANSFORMERS:assert any(name+'.<init>' in str(x['operand']) for w in reg for m in w.get('methods',[]) for x in m['instructions'])
+            assert not s['damage_profiles'] and d['damage_census']['reviewed_profiles_after']==30 and d['damage_census']['remaining_profiles']==10
         result=dict(schema='tno.external_effects.remaining_subsection_integrity.v1',status='PASS',checkpoint=d['checkpoint'],decision=d['decision'],starting_sha=d['starting_sha'],counts=s['counts'],protected_prior_files=len(protected),full_declared_class_coverage=len(d['full_classes']),twilight_reviewed_drafts=len(new['effects']),twilight_delivery_drafts=len(new['paths']),damage_profiles_reviewed=d['damage_census']['reviewed_profiles_after'],damage_profiles_remaining=d['damage_census']['remaining_profiles'],accepted_counts_unchanged=previous['accepted_counts_unchanged'],runtime_tests=0,promoted_twilight_records=0,**boundary_flags())
         results.append((d['slug'],result))
     assert results
