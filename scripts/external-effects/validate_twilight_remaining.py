@@ -172,6 +172,32 @@ def validate_remaining():
             assert '#neoforge:is_poison' in tags['data/minecraft/tags/damage_type/always_triggers_silverfish.json']['values']
             assert 'neoforge:poison' in tags['data/neoforge/tags/damage_type/is_poison.json']['values']
             assert d['damage_census']['reviewed_profiles_after']==25 and d['damage_census']['remaining_profiles']==15
+        if d['slug']=='tactical-mobs':
+            from collect_twilight_tactical_mobs import scan_callers
+            scan=read_json(OUT/'twilightforest-tactical-mobs-caller-scan.json');assert scan==scan_callers(target)
+            assert [r['entry'] for r in scan['boggard_class_references']]==['twilightforest/entity/monster/Boggard.class']
+            assert not any('boggard' in p['id'] for p in s['paths'])
+            runtime=[h for h in scan['hits'] if 'TFDamageTypes.THROWN_BLOCKL' in str(h['instruction']['operand']) and '/init/' not in h['entry'] and '/data/' not in h['entry']]
+            assert len(runtime)==1 and runtime[0]['entry']=='twilightforest/entity/projectile/ThrownBlock.class'
+            p=s['damage_profiles'][0];assert p['type']=='twilightforest:thrown_block' and p['tags']==['minecraft:damages_helmet','minecraft:is_projectile','neoforge:is_physical']
+            M='entity/monster/';G='entity/ai/goal/';P='entity/projectile/ThrownBlock'
+            light=ins(G+'RedcapLightTNTGoal','tick');assert pos(light,'.onCaughtFire(')<pos(light,'.setBlock(')
+            assert not any('.hurtAndBreak(' in str(x['operand']) for x in light)
+            plant=ins(G+'RedcapPlantTNTGoal','start');assert pos(plant,'.isEmptyBlock(')<pos(plant,'.shrink(')<pos(plant,'.setBlockAndUpdate(')
+            assert not any('.setFlags(' in str(x['operand']) for x in ins(G+'RedcapPlantTNTGoal','<init>'))
+            assert not any('.setFlags(' in str(x['operand']) for x in ins(G+'FlockToSameKindGoal','<init>'))
+            pickup=ins(M+'Kobold','pickUpItem');assert pos(pickup,'.canHoldItem(')<pos(pickup,'.setItemSlot(')<pos(pickup,'.setTarget(')
+            assert not any('.heal(' in str(x['operand']) or '.setHealth(' in str(x['operand']) for x in ins(M+'Kobold','aiStep'))
+            assert 'canContinueToUse' not in {m['name'] for m in methods(M+'Kobold$KoboldAttackPlayerTarget')}
+            troll=ins(M+'Troll','tick');assert pos(troll,'BASE_STONE_OVERWORLD')<pos(troll,'.removeBlock(')<pos(troll,'.setHasRock(')<pos(troll,'ThrownBlock.<init>')
+            assert not any('canEntityGrief' in str(x['operand']) for x in troll)
+            hit=ins(P,'onHitEntity');assert pos(hit,'monster/Troll')<pos(hit,'TFDamageTypes.getDamageSource(')<pos(hit,'.hurt(')<pos(hit,'.discard(')
+            ci=next(n for n,x in enumerate(hit) if 'TFDamageTypes.getDamageSource(' in str(x['operand']));assert str(hit[ci]['operand']).endswith('(Lnet/minecraft/world/level/Level;Lnet/minecraft/resources/ResourceKey;[Lnet/minecraft/world/entity/EntityType;)Lnet/minecraft/world/damagesource/DamageSource;')
+            assert int(hit[ci-2]['opcode'],16)==0x03 and hit[ci-1]['operand']=='net/minecraft/world/entity/EntityType'
+            i=next(n for n,x in enumerate(hit) if '.hurt(' in str(x['operand']));assert int(hit[i+1]['opcode'],16)==0x57
+            read=ins(M+'Troll','readAdditionalSaveData');assert pos(read,'.setHasRock(')<pos(read,'NbtUtils.readBlockState(')
+            assert not any('.contains(' in str(x['operand']) for x in read)
+            assert d['damage_census']['reviewed_profiles_after']==26 and d['damage_census']['remaining_profiles']==14
         result=dict(schema='tno.external_effects.remaining_subsection_integrity.v1',status='PASS',checkpoint=d['checkpoint'],decision=d['decision'],starting_sha=d['starting_sha'],counts=s['counts'],protected_prior_files=len(protected),full_declared_class_coverage=len(d['full_classes']),twilight_reviewed_drafts=len(new['effects']),twilight_delivery_drafts=len(new['paths']),damage_profiles_reviewed=d['damage_census']['reviewed_profiles_after'],damage_profiles_remaining=d['damage_census']['remaining_profiles'],accepted_counts_unchanged=previous['accepted_counts_unchanged'],runtime_tests=0,promoted_twilight_records=0,**boundary_flags())
         results.append((d['slug'],result))
     assert results

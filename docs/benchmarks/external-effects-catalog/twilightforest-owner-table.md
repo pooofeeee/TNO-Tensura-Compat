@@ -1,6 +1,6 @@
-# Twilight Forest — R2f8e partial, spiders/swarm/borers also reviewed
+# Twilight Forest — R2f8f partial, tactical mobs also reviewed
 
-The installed4.8.3345 review is **PARTIAL**. Frosted remains protected at two reviewed package drafts and13 cases. Lich is now semantically complete at nine additional reviewed package drafts and24 delivery cases (14 shield-source cases): Naga adds eight reviewed packages and18 delivery cases: Minoshroom and Knight Phantom add10 packages /28 delivery cases: Hydra and Ur-Ghast add16 packages /43 cases: Alpha Yeti and Snow Queen add15 packages /41 cases: remaining ranged-mob subsection adds13 packages /28 cases: mounted knights/PinchBeetle/Yeti add8 packages /20 cases: chain/spike paths add7 packages /22 cases: giants/tools add4 packages /16 cases: spiders/swarm/borers add7 packages /24 cases: current combined99 package drafts /277 delivery cases. **Zero final Twilight records are promoted.** Full mod mechanic, boss, defense, item and final source totals remain unknown. The four accepted reviews remain116 mechanics/161 paths/217 components. No runtime tests were performed.
+The installed4.8.3345 review is **PARTIAL**. Frosted remains protected at two reviewed package drafts and13 cases. Lich is now semantically complete at nine additional reviewed package drafts and24 delivery cases (14 shield-source cases): Naga adds eight reviewed packages and18 delivery cases: Minoshroom and Knight Phantom add10 packages /28 delivery cases: Hydra and Ur-Ghast add16 packages /43 cases: Alpha Yeti and Snow Queen add15 packages /41 cases: remaining ranged-mob subsection adds13 packages /28 cases: mounted knights/PinchBeetle/Yeti add8 packages /20 cases: chain/spike paths add7 packages /22 cases: giants/tools add4 packages /16 cases: spiders/swarm/borers add7 packages /24 cases: tactical mobs add8 packages /28 cases: current combined107 package drafts /305 delivery cases. **Zero final Twilight records are promoted.** Full mod mechanic, boss, defense, item and final source totals remain unknown. The four accepted reviews remain116 mechanics/161 paths/217 components. No runtime tests were performed.
 
 | Mechanic | Native behavior | Vanilla comparison | Classification / source coverage |
 |---|---|---|---|
@@ -200,3 +200,15 @@ Full declared bodies for HedgeSpider, KingSpider, SwarmSpider, TowerBroodling, M
 See [semantic review](twilightforest-arthropods-review.md), [machine-readable section](semantic-sections/twilightforest-arthropods.json) and [validation](r2f8e-arthropods-validation.json). Exact244 loader hooks/tags, full raw Spider/Hunger authority, zero native getReinforcementType callers and earlier protected evidence support the conclusions. No runtime or production changes.
 
 Next: remaining melee/control mobs and unfinished undead/summon bodies, then remaining items/hazards/custom callers and whole-Twilight promotion. IceAndFire remains unstarted until Twilight COMPLETE is pushed.
+
+## R2f8f — Redcap/Sapper, Kobold and Troll
+
+Protected predecessor: `ce8cafbf6c2fb8108f8db7cba46eb4a3cc9a12ff` (R2f8e, live verified). Adds **8 reviewed packages /28 delivery cases**, bringing Twilight to **107/305 drafts**, zero promoted. `thrown_block` is USED through its actual caller: custom census **26/40**,14 unfinished; REVIEW_REQUIRED0.
+
+Redcap and Sapper have native equipped melee5, ordinary armor2/4, shyness/TNT avoidance, TNT lighting and Sapper-only three-charge planting. Their blast uses ordinary native TNT; actual igniter, chain and reload state control source ownership. Kobold bread pickup/consumption, acquisition versus retaliation, panic and flock navigation are separate contracts. Troll uses a real carried projectile and a new thrown projectile, follow-range/task state and a saved-state Air fallback. Its projectile requests6 with **no direct entity, causing entity or source position**, retaining helmet processing and native mitigation; timed parry changes projectile ownership but does not repair that source identity.
+
+Boggard is an assessed exclusion: full registration and all-class reference evidence find no registered entity/native producer, so no mechanic or delivery is promoted from its unused class. Troll death ripening and Kobold munch visuals are also documented exclusions.
+
+[Semantic review](twilightforest-tactical-mobs-review.md), [packages and paths](semantic-sections/twilightforest-tactical-mobs.json), [integrity](twilightforest-tactical-mobs-integrity.json), [validation](r2f8f-tactical-mobs-validation.json). Full19 class surfaces, exact244/raw references, actual caller census, five tooling tests and preservation checks protect this subsection.
+
+Next: CarminiteGolem, Adherent/HarbingerCube registration/body status, MazeSlime, SnowGuardian, RisingZombie/LoyalZombie and remaining Wraith/Minotaur bodies; then items/hazards/callers and final Twilight promotion. No runtime, L2, Stage, production, Phase6/7 work. IceAndFire remains unstarted.
