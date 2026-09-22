@@ -1,0 +1,1316 @@
+{
+  "slug": "ominous-progression",
+  "checkpoint_short": "r2f8y",
+  "checkpoint": "R2f8y-ominous-progression-complete",
+  "decision": "TWILIGHT_OMINOUS_PROGRESSION_SEMANTIC_REVIEW_COMPLETE",
+  "starting_sha": "3c40f7c261350d75dca3e22e018ddd2162d2d433",
+  "previous_checkpoint": "R2f8x-mechanical-hazards-complete",
+  "previous_draft": "partial-drafts/twilightforest-r2f8x-partial.json",
+  "facts": {
+    "authority": "Installed TF4.8.3345 and exact Minecraft1.21.1/NeoForge21.1.244. Ominous Fire and Acid Rain are USED; all40 custom DamageType profiles now reviewed. This does not close whole Twilight: remaining structures/events/ASM/compatibility/source exclusions and final assembly still unfinished. Static only; runtime0; production/Stage/L2/Phase6/7 untouched.",
+    "identity": "Both use TFDamageTypes.getDamageSource: direct=null,causing=null,explicit/source position=null. Ominous exhaustion.1 and Acid Rain0, declarations when_caused_by_living_non_player but no causing entity so no difficulty scaling. Ominous tags BYPASSES_ARMOR,BYPASSES_SHIELD,NO_KNOCKBACK,PANIC_CAUSES,PANIC_ENVIRONMENTAL_CAUSES,WITHER_IMMUNE_TO,neoforge:is_magic; NOT IS_FIRE/IS_EXPLOSION/IS_PROJECTILE or environment/physical. Acid Rain tags BYPASSES_ARMOR,BYPASSES_SHIELD,BYPASSES_WOLF_ARMOR,NO_KNOCKBACK,WITCH_RESISTANT_TO,neoforge:is_environment/is_magic; NOT fire/projectile/explosion. Feedback effects=burning on Ominous is not ignition.",
+    "native_admission": "Both retain recipient invulnerability/client/dead, normal hurt cooldown, incoming/damage events, Resistance max(1-.2*(amp+1),0), applicable protection and absorption. Armor/shield are bypassed by actual tags, not by the source name; neither bypasses effects, Resistance, enchantments, cooldown or invulnerability. NO_KNOCKBACK suppresses ordinary fresh-hit hurt movement. Fire Resistance and fireImmune provide no type-based immunity because neither source is IS_FIRE. Native directional shield geometry is irrelevant to bypass tag, though loader shield hooks remain. Ominous lacks IGNITES_ARMOR_STANDS/CAN_BREAK_ARMOR_STAND; native stand override rejects. ItemEntity uses native item-health handling; ordinary fire-resistant item tagging is not an Ominous immunity. Wither own WITHER_IMMUNE_TO rejection and Witch WITCH_RESISTANT_TO reduction remain native; acid caller is Player-only, so do not fabricate Witch/Wolf exposure.",
+    "ominous_contact": "OminousFireBlock extends BaseFireBlock but overrides entityInside WITHOUT parent call. It skips any EntityType tagged minecraft:undead; all other Entity recipients request ownerless ominous_fire1. Hurt return discarded. No fireImmune, living-only, movement, age, crouch or explicit side predicate in body; native recipient performs admission. No native in_fire request, fire-timer increment,8second ignition or Frosted fire-downrank from this custom type. Fire-immune non-undead targets are not exempt here. Undead tag is independent of inverted heal/harm.",
+    "ominous_block": "Survival requires below face sturdyUP and current fluid empty. updateShape returns default Ominous Fire ifvalid elseAIR. canBurn always true only supplies inherited base-fire behavior; there is no FireBlock spreading/random-age tick in this class hierarchy. Registered no collision/replaceable/light15; actual loot table has no drops. Native BaseFireBlock.onPlace remains: on actual block change, Ominous block is in minecraft:fire block tag (independent of DamageType tags); Overworld/Nether empty portal shape and onTrySpawnPortal hook can replace with ordinary Nether portal, else native survival/removal. No guaranteed permanent fire or invented dimension bypass. Native player destroy/extinguish handling remains; clone pick gives Exanimate Essence.",
+    "essence_delivery": "ExanimateEssence.useOn first checks clicked real CandleBlock in17-entry vanilla CANDLE_MAP and LIT: replaces with matching Ominous Candle, preserving count1..4. Otherwise uses clickedPos.relative(face), requires canBeReplaced and OminousFire.canSurvive then writes Ominous Fire. Sound/BLOCK_PLACE and true flag follow branch; shrink1 whenflag, regardless setBlock return and without local creative exemption; sidedSuccess. Actual native ServerPlayerGameMode creative path restores original count after item use. Normal use/placement/event admission remains; no private helper or free damage delivery. Existing loot/recipe resources supply actual essence; protected Renewal use remains unchanged.",
+    "candle_exclusion": "Ominous Candle extends BaseEntityBlock, not OminousFireBlock/AbstractCandleBlock. No hurt, fire timer, conversion, entityInside override or ticking combat payload. CANDLES geometry/light and visual BE height fields are cosmetic/native terrain state. Empty-hand mayBuild interaction replaces with corresponding unlit ordinary candle at same count and calls extinguish; matching candle BlockItem can add until4, consumes1 via native infinite-material handling, sends actual placement criterion/stat/event. BE only stores transient visual heights, no custom persistent attack/owner. Candelabra separate OMINOUS lighting use accepts scepter or essence only from NORMAL, with no essence consumption in that branch; no Ominous Fire block or custom damage is emitted by that inspected callback. Wider Candelabra/source exclusions remain global closure.",
+    "death_conversion": "Registered EntityEvents LivingDeathEvent callback requires not canceled and exact source key OMINOUS_FIRE. A mere burning timer or class named OminousFireDamageSource is insufficient. Native totem/death prevention before die means no conversion event. For non-ServerPlayer, actual OMINOUS_FIRE entity-type data map must exist and level must beServerLevel; installed mappings Horse->ZombieHorse, Piglin->ZombifiedPiglin, Villager->ZombieVillager. Calls protected EntityUtil.convertEntity and ignores return; no event cancellation or alternate new type guessed from undead names.",
+    "conversion_consequences": "Protected generic conversion creates target, honors canLivingConvert for Living target, uses Mob.convertTo for Mob pairs (copy/clear equipment, native entity add, discardold), otherwise real addition/discard. Then overlays old NBT onto new NBT, restoresnewUUID, sets Living health to resultingmax, drops/clears equipment, preserves passenger rides and conversion callback. It is replacement/full-health initialization, not native heal or direct attack. On ordinary LivingEntity.die, death event precedes !isRemoved&&!dead: successful discard of old Mob suppresses its later normal death-loot branch. Failed/vetoed conversion leaves ordinary death to continue. Generic helper behavior reused unchanged; no duplicate Powder package.",
+    "player_zombie": "ServerPlayer death branch takes precedence over data-map membership: creates actual EntityType.ZOMBIE, attaches deceased GameProfile, custom player name, copiesposition, requests canPickUpLoottrue and babyfalse, THEN EventHooks.finalizeMobSpawn(CONVERSION,null), THEN addFreshEntity. No inventory/XP/player-health transfer, resurrection, allegiance or owner assignment. Native Zombie.finalizeSpawn can overwrite loot pickup withrandom<.55*specialDifficulty and can setbabytrue from native groupdata; thus adult/loottrue setters are NOT final guarantees. Native equipment/enchantment/door/jockey/difficulty attributes can apply; no spawn-obstruction check in TF caller, native finalization/add hooks remain. No null guard after Zombie.create in caller; no invented fallback. Player death event is not canceled and normal player death/keep-inventory processing continues. Profile attachment serializes SIMPLE_GAME_PROFILE; customname/native Zombie state save normally, no custom lifespan.",
+    "zombie_reentry": "Registered LivingIncomingDamageEvent callback: source not already OminousFireDamageSource, causingentity instanceof Zombie, zombie.hasData(ZOMBIFIED_PLAYER). Captures event.getAmount, cancels original, then recipient.hurt(new OminousFireDamageSource(original),amount), ignores nested return. Wrapper retains original typeHolder, but constructor passes original.getEntity as native DIRECT and original.getDirectEntity as native CAUSING; explicitposition=original.getSourcePosition. For genuine melee both entities are the same Zombie, so attribution is unchanged. A conditional indirect source would swap them; no native ranged-zombie source is invented. Guard prevents this callback recursively wrapping its own nested source. Normal nested native eligibility/defenses/events remain; it is not type ominous_fire unless original already was.",
+    "reentry_effects": "Original IncomingDamage cancellation makes ordinary LivingEntity.hurt returnfalse while nested hurt can independently succeed. Genuine Zombie melee therefore skips caller success-only Mob extra knockback/EnchantmentHelper.doPostAttackEffects/setLastHurtMob/playAttackSound and Zombie burning-attacker ignition; native recipient hurt feedback from nested hit can still occur. Player.hurt applies source scaling before Living incoming event, so nested virtual Player.hurt applies it again. With ordinary default mob_attack, no modifying external hooks and standard defenses pending: Hard maps inputx to2.25x across two1.5 passes; Easy applies min(x/2+1,x) twice; Normal unchanged; Peaceful returnszero before event. Not double damage requests that both admit: outer canceled, one nested processing path. Other subscribed incoming hooks may observe both dispatches according to native event order; no pack-wide count guarantee.",
+    "death_message": "Wrapper getLocalizedDeathMessage checks living.getKillCredit instanceof Zombie carrying profile. If victim isPlayer and its profileNAME equals stored profileNAME, selects self message; otherwise includes profile name. Not UUID ownership/hostility logic. Fallback delegates ordinary source death message. Genuine Zombie attack keeps mob_attack damage tags/mitigation and does not by itself trigger Ominous death conversion.",
+    "enforcement_delivery": "Actual registered PlayerTick.Post callback requires ServerPlayer/ServerLevel; every20player ticks, tfEnforcedProgression gameruletrue, !creative&&!spectator invokes Enforcement.enforceBiomeProgression. No TF dimension, rain, sky visibility, shelter, height, biome-weather or line-of-sight gate in this chain. Level biome at player.blockPosition -> same-ID Restriction registry lookup; missing biomekey/registry/restriction ->none. Requires player lacks required advancement. Calls registered enforcement consumer then optional StructureHints.tryHintForStructure regardless whether consumer applied payload that tick. Hint-monster mechanics and structure protection are separate subsequent closure work. Gamerule defaulttrue; actual world value remains runtime state, not inferred installedtrue.",
+    "advancement_gate": "Restriction stores rawfloat multiplier, optionalhint/toast and nonempty advancement list. PlayerHelper.playerHasRequiredAdvancements consumes ONLY FIRST iterable entry: emptylisttrue; server first advancement mustexist and isDone, missing=false; client first progressanalog. It does not AND all entries. Installed nine restriction lists each have one so no default contradiction, but reload/custom multi-entry behavior must be preserved. This exact helper was already pinned during Frosted review; no reopening of Frosted mechanics.",
+    "acid_payload": "Acid Rain consumer checks player.tickCount%5==0 and tickRateManager.runsNormally, then hurt(ownerlessacid_rain,restriction.multiplier); only ifhurtreturnsTRUE plays burn sound atplayer. Actual every20 outer caller means opportunities every20 ticks, not5; no native weather requirement. Installed Highlands .5 requires progress_merge, Thornlands1 requires progress_troll, FinalPlateau1.5 requires progress_troll. No secondary potion, fire timer, armor corrosion, equipment damage or native poison. Normal cooldown/absorption/Resistance/protection can change HP and return; a sound is not guaranteed positive HP loss.",
+    "other_consumers": "Same real outer biome path: Darkness every60ticks+normaltickrate adds vanillaDARKNESS duration200, amplifier(int)multiplier(default0), ambientfalse,particlestrue; native darkness blend22/no damaging server effect. Hunger every60 adds vanillaHUNGER duration100 withamp=currentamp+(int)multiplier else(int)multiplier(default1), native add/merge/cure; stacks while current persists. Native Hunger server effect adds .005*(amp+1) exhaustion per callback through native player food processing, not direct HP. Fire every60+normaltickrate invokes igniteForSeconds((float)(int)multiplier), default8 forFireSwamp, requiring progress_labyrinth. Native floor(seconds*20), then Living ceil(ticks*BURNING_TIME attribute), then Entity monotonic timer extension retained; subsequent on_fire source separate. Frost every60 adds protected Frosted100 amp0 SnowyForest or1 Glacier; reuse accepted package/path, no repeat review. Darkness sitesDarkForest progress_lich andDarkForestCenter progress_knights; Swamp Hunger progress_lich.",
+    "essence_repair": "Distinct genuine CRAFTING EssenceRepairRecipe requires one nonempty damaged SCEPTERS-tag stack plus one nonempty exact ExanimateEssence stack and no other occupiedslots; two essence slots or two scepters reject, stackcounts are not slotcounts. Output copies original scepter including components/count and setsDamage0. assemble alone does not revalidate essence, but actual recipe lookup/matches is admission. Dimensions area>=2. Native ResultSlot consumes one per occupiedslot and ordinary recipe remainders; no creative exemption invented. No enchantment restriction or requirement for fully exhausted charges. This fully repairs custom scepter charge resource without casting; distinct from protected nine-point manual recipes and automatic Renewal.",
+    "compatibility": "GENERIC_CONDITIONAL_PRESENT for loader hurt/incoming/death/conversion/finalize/add/placement/effect/recipe hooks. Source-specific TF wrapper and TF advancement/restriction consumers are native TF mechanics. Recipe-viewer Ominous displays describe mappings, not actual conversion callers. Other external combat overrides scoped NONE_PROVEN; additional mod interactions UNKNOWN, no pack-wide compatibility certification. Protected Frosted, Powder conversion and scepter Renewal preserved. Remaining structures,portal/hints,events,ASM and source exclusions still ordinary unfinished review."
+  },
+  "packages": [
+    {
+      "id": "twilightforest:ominous_fire_native_contact",
+      "display_name": "Ominous Fire native non-fire contact damage",
+      "owner": "ominous_fire_native_contact",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "facts": [
+        "identity",
+        "native_admission",
+        "ominous_contact",
+        "ominous_block",
+        "essence_delivery",
+        "candle_exclusion"
+      ],
+      "classes": [
+        "block/OminousFireBlock",
+        "item/ExanimateEssenceItem"
+      ],
+      "parameters": {
+        "request": 1
+      },
+      "gates": [
+        "genuinecontact",
+        "notundeadtag",
+        "nativehurt"
+      ],
+      "relation": "Custom magic type, no native fire ignition.",
+      "primary_test_source": "Actual Essence-created Ominous Fire",
+      "alternate_sources": [
+        "FireResistance",
+        "fireimmune",
+        "undead",
+        "ArmorStand",
+        "ItemEntity",
+        "nativeportal"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_death_entity_conversion",
+      "display_name": "Ominous death native mapped entity replacement",
+      "owner": "ominous_death_entity_conversion",
+      "primary_classification": "CUSTOM_CONTROL",
+      "facts": [
+        "death_conversion",
+        "conversion_consequences"
+      ],
+      "classes": [
+        "events/EntityEvents",
+        "util/entities/EntityUtil"
+      ],
+      "parameters": {
+        "installed_mappings": 3
+      },
+      "gates": [
+        "uncanceledLivingDeath",
+        "exacttypekey",
+        "realmap",
+        "ServerLevel",
+        "nativeconversionveto"
+      ],
+      "relation": "Native entity replacement via protected generic helper, independent from damage admission.",
+      "primary_test_source": "Native lethal Ominous contact on actual mapped mob",
+      "alternate_sources": [
+        "Horse",
+        "Piglin",
+        "Villager",
+        "totem",
+        "veto",
+        "removedoldloot",
+        "equipment"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_player_zombie_production",
+      "display_name": "Ominous player death profile-bearing Zombie",
+      "owner": "ominous_player_zombie_production",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "facts": [
+        "death_conversion",
+        "player_zombie"
+      ],
+      "classes": [
+        "events/EntityEvents"
+      ],
+      "parameters": {
+        "create_attempts": 1,
+        "native_baby_odds": 0.05
+      },
+      "gates": [
+        "ServerPlayer",
+        "uncanceledexacttypeDeath",
+        "nativefinalize/add"
+      ],
+      "relation": "Native Zombie creation and profile state, not player resurrection.",
+      "primary_test_source": "Genuine player death from Ominous Fire",
+      "alternate_sources": [
+        "normaldeath",
+        "keepInventory",
+        "profileNBT",
+        "finalization",
+        "baby",
+        "lootpickup"
+      ]
+    },
+    {
+      "id": "twilightforest:zombified_player_source_reentry",
+      "display_name": "Zombified-player incoming source wrapper and native re-entry",
+      "owner": "zombified_player_source_reentry",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "facts": [
+        "zombie_reentry",
+        "reentry_effects",
+        "death_message"
+      ],
+      "classes": [
+        "events/EntityEvents",
+        "util/entities/OminousFireDamageSource"
+      ],
+      "parameters": {
+        "hard_two_pass_multiplier": 2.25
+      },
+      "gates": [
+        "sourcecausingZombie",
+        "hasprofile",
+        "notalreadywrapped",
+        "nativeevent/hurt"
+      ],
+      "relation": "Custom event cancellation/retry preserving DamageType and real recipient pipeline.",
+      "primary_test_source": "Actual profile-bearing Zombie melee",
+      "alternate_sources": [
+        "nestedhurtreject",
+        "outerfalse",
+        "nativepostattack",
+        "difficulty",
+        "sourceidentity",
+        "deathmessage"
+      ]
+    },
+    {
+      "id": "twilightforest:acid_rain_native_biome_damage",
+      "display_name": "Acid Rain native biome damage",
+      "owner": "acid_rain_native_biome_damage",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "facts": [
+        "identity",
+        "native_admission",
+        "enforcement_delivery",
+        "advancement_gate",
+        "acid_payload"
+      ],
+      "classes": [
+        "events/ProgressionEvents",
+        "util/Enforcement",
+        "init/custom/Enforcements",
+        "util/Restriction"
+      ],
+      "parameters": {
+        "outer_period": 20,
+        "inner_period": 5,
+        "highlands": 0.5,
+        "thornlands": 1,
+        "final_plateau": 1.5
+      },
+      "gates": [
+        "ServerPlayer",
+        "gamerule",
+        "notcreative/spectator",
+        "missingadvancement",
+        "normaltickrate"
+      ],
+      "relation": "Custom magic/environment source from real biome progression callback.",
+      "primary_test_source": "Actual locked Highlands player-tick delivery",
+      "alternate_sources": [
+        "Thornlands",
+        "FinalPlateau",
+        "indoors",
+        "clearweather",
+        "hurtreturn_sound",
+        "gamerule"
+      ]
+    },
+    {
+      "id": "twilightforest:biome_darkness_native_status",
+      "display_name": "Locked Dark Forest native Darkness",
+      "owner": "biome_darkness_native_status",
+      "primary_classification": "VANILLA_DIRECT",
+      "facts": [
+        "enforcement_delivery",
+        "advancement_gate",
+        "other_consumers"
+      ],
+      "classes": [
+        "events/ProgressionEvents",
+        "util/Enforcement",
+        "init/custom/Enforcements"
+      ],
+      "parameters": {
+        "period": 60,
+        "duration": 200,
+        "amplifier": 0,
+        "blend": 22
+      },
+      "gates": [
+        "actualrestriction",
+        "normaltickrate",
+        "nativeaddEffect"
+      ],
+      "relation": "Direct vanilla Darkness with real native merge/removal.",
+      "primary_test_source": "Player missing Lich advancement in Dark Forest",
+      "alternate_sources": [
+        "DarkForestCenter",
+        "knightsadvancement",
+        "nativecure",
+        "creative"
+      ]
+    },
+    {
+      "id": "twilightforest:biome_hunger_native_stacking",
+      "display_name": "Locked Swamp native Hunger stacking",
+      "owner": "biome_hunger_native_stacking",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "facts": [
+        "enforcement_delivery",
+        "advancement_gate",
+        "other_consumers"
+      ],
+      "classes": [
+        "events/ProgressionEvents",
+        "util/Enforcement",
+        "init/custom/Enforcements"
+      ],
+      "parameters": {
+        "period": 60,
+        "duration": 100,
+        "amplifier_increment": 1,
+        "exhaustion_coefficient": 0.005
+      },
+      "gates": [
+        "actualSwamprestriction",
+        "normaltickrate",
+        "currentHunger",
+        "nativeaddEffect"
+      ],
+      "relation": "Custom stacking producer over native Hunger/food processing.",
+      "primary_test_source": "Player missing Lich advancement in Swamp",
+      "alternate_sources": [
+        "existingamplifier",
+        "cure",
+        "leavebiome",
+        "nativeexhaustion"
+      ]
+    },
+    {
+      "id": "twilightforest:biome_native_fire_enforcement",
+      "display_name": "Locked Fire Swamp native ignition",
+      "owner": "biome_native_fire_enforcement",
+      "primary_classification": "VANILLA_DIRECT",
+      "facts": [
+        "enforcement_delivery",
+        "advancement_gate",
+        "other_consumers"
+      ],
+      "classes": [
+        "events/ProgressionEvents",
+        "util/Enforcement",
+        "init/custom/Enforcements"
+      ],
+      "parameters": {
+        "period": 60,
+        "configured_seconds": 8
+      },
+      "gates": [
+        "actualFireSwamprestriction",
+        "normaltickrate",
+        "nativeignite"
+      ],
+      "relation": "Native ignition/timer and later on_fire damage; no custom source.",
+      "primary_test_source": "Player missing Labyrinth advancement in Fire Swamp",
+      "alternate_sources": [
+        "FireResistance",
+        "fireprotection",
+        "longertimer",
+        "water",
+        "leavebiome"
+      ]
+    },
+    {
+      "id": "twilightforest:scepter_essence_crafting_full_repair",
+      "display_name": "Exanimate Essence native full scepter crafting repair",
+      "owner": "scepter_essence_crafting_full_repair",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "facts": [
+        "essence_repair"
+      ],
+      "classes": [
+        "item/recipe/EssenceRepairRecipe"
+      ],
+      "parameters": {
+        "damage_after": 0,
+        "ingredient_slots": 2
+      },
+      "gates": [
+        "actualrecipe",
+        "damagedSCEPTERS",
+        "oneessenceslot",
+        "noextras"
+      ],
+      "relation": "Full custom charge-resource repair via native crafting, preserving components.",
+      "primary_test_source": "Actual crafting grid with damaged scepter and essence",
+      "alternate_sources": [
+        "partialcharges",
+        "allfourscepters",
+        "components",
+        "extraessenceslot",
+        "stackcount"
+      ]
+    }
+  ],
+  "paths": [
+    {
+      "id": "twilightforest:ominous_progression_path:essence_place",
+      "source": "Native Essence-created Ominous Fire",
+      "facts": [
+        "essence_delivery",
+        "ominous_block"
+      ],
+      "effect_ids": [
+        "twilightforest:ominous_fire_native_contact"
+      ],
+      "classes": [
+        "item/ExanimateEssenceItem",
+        "block/OminousFireBlock"
+      ],
+      "labels": [
+        "ACTIVE_ITEM",
+        "ENVIRONMENT"
+      ],
+      "setup": "Native Essence-created Ominous Fire through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "clickedface",
+        "replaceable",
+        "sturdy",
+        "fluidempty",
+        "cost"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:essence_creative",
+      "source": "Native creative Essence interaction",
+      "facts": [
+        "essence_delivery"
+      ],
+      "effect_ids": [
+        "twilightforest:ominous_fire_native_contact"
+      ],
+      "classes": [
+        "item/ExanimateEssenceItem"
+      ],
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "setup": "Native creative Essence interaction through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "localshrink",
+        "outercountrestore",
+        "placementveto"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:ominous_overlap",
+      "source": "Native Ominous overlap custom source",
+      "facts": [
+        "ominous_contact",
+        "native_admission"
+      ],
+      "effect_ids": [
+        "twilightforest:ominous_fire_native_contact"
+      ],
+      "classes": [
+        "block/OminousFireBlock"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Native Ominous overlap custom source through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "request1",
+        "cooldown",
+        "armor/shieldbypass",
+        "Resistance"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:ominous_undead",
+      "source": "Native Ominous undead-tag exclusion",
+      "facts": [
+        "ominous_contact"
+      ],
+      "effect_ids": [
+        "twilightforest:ominous_fire_native_contact"
+      ],
+      "classes": [
+        "block/OminousFireBlock"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Native Ominous undead-tag exclusion through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "actualtag",
+        "invertedhealharmdifferent",
+        "nohurt"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:ominous_fireimmune",
+      "source": "Ominous non-fire recipient admission",
+      "facts": [
+        "identity",
+        "native_admission"
+      ],
+      "effect_ids": [
+        "twilightforest:ominous_fire_native_contact"
+      ],
+      "classes": [
+        "block/OminousFireBlock"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Ominous non-fire recipient admission through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "Blaze",
+        "FireResistance",
+        "noFrosteddownrank",
+        "noignite"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:ominous_subtypes",
+      "source": "Ominous item/stand native overrides",
+      "facts": [
+        "native_admission"
+      ],
+      "effect_ids": [
+        "twilightforest:ominous_fire_native_contact"
+      ],
+      "classes": [
+        "block/OminousFireBlock"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Ominous item/stand native overrides through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "itemhealth",
+        "fireResistantitem",
+        "ArmorStandreject"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:ominous_survival",
+      "source": "Ominous block survival and native portal parent",
+      "facts": [
+        "ominous_block"
+      ],
+      "effect_ids": [
+        "twilightforest:ominous_fire_native_contact"
+      ],
+      "classes": [
+        "block/OminousFireBlock"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Ominous block survival and native portal parent through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "support",
+        "fluid",
+        "Netherportalframe",
+        "nativeportalhook",
+        "noFireBlockspread"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:ominous_horse",
+      "source": "Native lethal Ominous Horse conversion",
+      "facts": [
+        "death_conversion",
+        "conversion_consequences"
+      ],
+      "effect_ids": [
+        "twilightforest:ominous_death_entity_conversion",
+        "twilightforest:ominous_fire_native_contact"
+      ],
+      "classes": [
+        "events/EntityEvents",
+        "block/OminousFireBlock",
+        "util/entities/EntityUtil"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Native lethal Ominous Horse conversion through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "ZombieHorse",
+        "realmap",
+        "fullhealthnew",
+        "oldremoved"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:ominous_piglin",
+      "source": "Native lethal Ominous Piglin conversion",
+      "facts": [
+        "death_conversion",
+        "conversion_consequences"
+      ],
+      "effect_ids": [
+        "twilightforest:ominous_death_entity_conversion",
+        "twilightforest:ominous_fire_native_contact"
+      ],
+      "classes": [
+        "events/EntityEvents",
+        "block/OminousFireBlock",
+        "util/entities/EntityUtil"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Native lethal Ominous Piglin conversion through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "ZombifiedPiglin",
+        "equipmentdrop",
+        "noordinaryoldloot"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:ominous_villager",
+      "source": "Native lethal Ominous Villager conversion",
+      "facts": [
+        "death_conversion",
+        "conversion_consequences"
+      ],
+      "effect_ids": [
+        "twilightforest:ominous_death_entity_conversion",
+        "twilightforest:ominous_fire_native_contact"
+      ],
+      "classes": [
+        "events/EntityEvents",
+        "block/OminousFireBlock",
+        "util/entities/EntityUtil"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Native lethal Ominous Villager conversion through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "ZombieVillager",
+        "genericNBT",
+        "nativeconvertveto"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:ominous_survivalcontrol",
+      "source": "Ominous totem/nonlethal/death-veto controls",
+      "facts": [
+        "death_conversion"
+      ],
+      "effect_ids": [
+        "twilightforest:ominous_death_entity_conversion",
+        "twilightforest:ominous_player_zombie_production"
+      ],
+      "classes": [
+        "events/EntityEvents"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Ominous totem/nonlethal/death-veto controls through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "totempreventsDeath",
+        "nonlethal",
+        "exactkey",
+        "eventcanceled"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:ominous_unmapped",
+      "source": "Ominous unmapped non-player death",
+      "facts": [
+        "death_conversion"
+      ],
+      "effect_ids": [
+        "twilightforest:ominous_death_entity_conversion"
+      ],
+      "classes": [
+        "events/EntityEvents"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Ominous unmapped non-player death through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "nodata",
+        "noinventedundead",
+        "normaldeath"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:ominous_player",
+      "source": "Ominous actual player-death Zombie producer",
+      "facts": [
+        "player_zombie"
+      ],
+      "effect_ids": [
+        "twilightforest:ominous_player_zombie_production"
+      ],
+      "classes": [
+        "events/EntityEvents"
+      ],
+      "labels": [
+        "ENVIRONMENT",
+        "SUMMONED_ATTACK"
+      ],
+      "setup": "Ominous actual player-death Zombie producer through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "actualdeath",
+        "namedprofile",
+        "position",
+        "noinventorytransfer"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:ominous_finalize",
+      "source": "Native Zombie finalization after TF setters",
+      "facts": [
+        "player_zombie"
+      ],
+      "effect_ids": [
+        "twilightforest:ominous_player_zombie_production"
+      ],
+      "classes": [
+        "events/EntityEvents"
+      ],
+      "labels": [
+        "SUMMONED_ATTACK"
+      ],
+      "setup": "Native Zombie finalization after TF setters through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "lootrandomoverwrite",
+        "baby5percent",
+        "equipment",
+        "jockey",
+        "addhook"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:ominous_profile",
+      "source": "Native Zombie profile persistence and later melee",
+      "facts": [
+        "player_zombie",
+        "zombie_reentry"
+      ],
+      "effect_ids": [
+        "twilightforest:ominous_player_zombie_production",
+        "twilightforest:zombified_player_source_reentry"
+      ],
+      "classes": [
+        "events/EntityEvents",
+        "util/entities/OminousFireDamageSource"
+      ],
+      "labels": [
+        "MOB_ATTACK"
+      ],
+      "setup": "Native Zombie profile persistence and later melee through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "save/load",
+        "attachmentpresence",
+        "nativeZombieAI",
+        "noallegiance"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:zombie_melee",
+      "source": "Profile-bearing Zombie genuine native melee",
+      "facts": [
+        "zombie_reentry",
+        "reentry_effects"
+      ],
+      "effect_ids": [
+        "twilightforest:zombified_player_source_reentry"
+      ],
+      "classes": [
+        "events/EntityEvents",
+        "util/entities/OminousFireDamageSource"
+      ],
+      "labels": [
+        "MELEE",
+        "MOB_ATTACK"
+      ],
+      "setup": "Profile-bearing Zombie genuine native melee through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "mob_attacktype",
+        "sameentityfields",
+        "nestedpipeline",
+        "outerfalse"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:zombie_defenses",
+      "source": "Wrapped melee native defense and return controls",
+      "facts": [
+        "zombie_reentry",
+        "reentry_effects"
+      ],
+      "effect_ids": [
+        "twilightforest:zombified_player_source_reentry"
+      ],
+      "classes": [
+        "events/EntityEvents",
+        "util/entities/OminousFireDamageSource"
+      ],
+      "labels": [
+        "MELEE"
+      ],
+      "setup": "Wrapped melee native defense and return controls through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "shield",
+        "armor",
+        "Resistance",
+        "cooldown",
+        "nestedfalse"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:zombie_difficulty",
+      "source": "Wrapped melee actual Player scaling re-entry",
+      "facts": [
+        "reentry_effects"
+      ],
+      "effect_ids": [
+        "twilightforest:zombified_player_source_reentry"
+      ],
+      "classes": [
+        "events/EntityEvents",
+        "util/entities/OminousFireDamageSource"
+      ],
+      "labels": [
+        "MELEE"
+      ],
+      "setup": "Wrapped melee actual Player scaling re-entry through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "EasyTwice",
+        "Hard2.25",
+        "Normal",
+        "Peacefulnoevent"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:zombie_postattack",
+      "source": "Wrapped melee outer attacker callbacks",
+      "facts": [
+        "reentry_effects"
+      ],
+      "effect_ids": [
+        "twilightforest:zombified_player_source_reentry"
+      ],
+      "classes": [
+        "events/EntityEvents",
+        "util/entities/OminousFireDamageSource"
+      ],
+      "labels": [
+        "MELEE"
+      ],
+      "setup": "Wrapped melee outer attacker callbacks through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "noMobpostenchant",
+        "noextraattackerknockback",
+        "noburningZombieignite",
+        "nativevictimfeedback"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:zombie_deathmessage",
+      "source": "Native wrapped-source death message",
+      "facts": [
+        "death_message"
+      ],
+      "effect_ids": [
+        "twilightforest:zombified_player_source_reentry"
+      ],
+      "classes": [
+        "util/entities/OminousFireDamageSource"
+      ],
+      "labels": [
+        "MELEE"
+      ],
+      "setup": "Native wrapped-source death message through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "killcredit",
+        "profileNAME",
+        "self",
+        "fallback",
+        "notOminouskey"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:acid_highlands",
+      "source": "Native Highlands Acid Rain",
+      "facts": [
+        "acid_payload",
+        "enforcement_delivery"
+      ],
+      "effect_ids": [
+        "twilightforest:acid_rain_native_biome_damage"
+      ],
+      "classes": [
+        "events/ProgressionEvents",
+        "util/Enforcement",
+        "init/custom/Enforcements"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Native Highlands Acid Rain through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        ".5",
+        "progress_merge",
+        "20outerticks",
+        "noactualrain"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:acid_thornlands",
+      "source": "Native Thornlands Acid Rain",
+      "facts": [
+        "acid_payload",
+        "enforcement_delivery"
+      ],
+      "effect_ids": [
+        "twilightforest:acid_rain_native_biome_damage"
+      ],
+      "classes": [
+        "events/ProgressionEvents",
+        "util/Enforcement",
+        "init/custom/Enforcements"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Native Thornlands Acid Rain through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "1",
+        "progress_troll",
+        "indoors",
+        "noheightgate"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:acid_plateau",
+      "source": "Native Final Plateau Acid Rain",
+      "facts": [
+        "acid_payload",
+        "enforcement_delivery"
+      ],
+      "effect_ids": [
+        "twilightforest:acid_rain_native_biome_damage"
+      ],
+      "classes": [
+        "events/ProgressionEvents",
+        "util/Enforcement",
+        "init/custom/Enforcements"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Native Final Plateau Acid Rain through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "1.5",
+        "progress_troll",
+        "clearweather",
+        "noLOS"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:acid_gate",
+      "source": "Native biome progression gamerule/admission",
+      "facts": [
+        "enforcement_delivery",
+        "advancement_gate"
+      ],
+      "effect_ids": [
+        "twilightforest:acid_rain_native_biome_damage",
+        "twilightforest:biome_darkness_native_status",
+        "twilightforest:biome_hunger_native_stacking",
+        "twilightforest:biome_native_fire_enforcement"
+      ],
+      "classes": [
+        "events/ProgressionEvents",
+        "util/Enforcement",
+        "util/Restriction",
+        "util/PlayerHelper"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Native biome progression gamerule/admission through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "gameruleoff",
+        "creative",
+        "spectator",
+        "advancementmissing",
+        "firstentryonly"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:acid_return",
+      "source": "Acid Rain native mitigation and sound return",
+      "facts": [
+        "native_admission",
+        "acid_payload"
+      ],
+      "effect_ids": [
+        "twilightforest:acid_rain_native_biome_damage"
+      ],
+      "classes": [
+        "init/custom/Enforcements"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Acid Rain native mitigation and sound return through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "Resistance",
+        "Protection",
+        "absorption",
+        "truehurt_sound",
+        "zeroHP"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:dark_forest",
+      "source": "Native Dark Forest Darkness",
+      "facts": [
+        "other_consumers",
+        "enforcement_delivery"
+      ],
+      "effect_ids": [
+        "twilightforest:biome_darkness_native_status"
+      ],
+      "classes": [
+        "events/ProgressionEvents",
+        "util/Enforcement",
+        "init/custom/Enforcements"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Native Dark Forest Darkness through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "progress_lich",
+        "200ticks",
+        "amp0",
+        "60period"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:dark_center",
+      "source": "Native Dark Forest Center Darkness",
+      "facts": [
+        "other_consumers"
+      ],
+      "effect_ids": [
+        "twilightforest:biome_darkness_native_status"
+      ],
+      "classes": [
+        "events/ProgressionEvents",
+        "util/Enforcement",
+        "init/custom/Enforcements"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Native Dark Forest Center Darkness through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "progress_knights",
+        "nativeeffectmerge",
+        "visionnotAIcontrol"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:swamp_hunger",
+      "source": "Native Swamp Hunger accumulation",
+      "facts": [
+        "other_consumers"
+      ],
+      "effect_ids": [
+        "twilightforest:biome_hunger_native_stacking"
+      ],
+      "classes": [
+        "events/ProgressionEvents",
+        "util/Enforcement",
+        "init/custom/Enforcements"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Native Swamp Hunger accumulation through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "currentampplus1",
+        "100ticks",
+        "60period",
+        "nativefood"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:hunger_exit",
+      "source": "Native Hunger cure/expiry and biome exit",
+      "facts": [
+        "other_consumers",
+        "enforcement_delivery"
+      ],
+      "effect_ids": [
+        "twilightforest:biome_hunger_native_stacking"
+      ],
+      "classes": [
+        "events/ProgressionEvents",
+        "util/Enforcement",
+        "init/custom/Enforcements"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Native Hunger cure/expiry and biome exit through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "leavebiome",
+        "effectnotremovedbygate",
+        "nativecure",
+        "exhaustion"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:swamp_fire",
+      "source": "Native locked Fire Swamp ignition",
+      "facts": [
+        "other_consumers"
+      ],
+      "effect_ids": [
+        "twilightforest:biome_native_fire_enforcement"
+      ],
+      "classes": [
+        "events/ProgressionEvents",
+        "util/Enforcement",
+        "init/custom/Enforcements"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Native locked Fire Swamp ignition through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "progress_labyrinth",
+        "8seconds",
+        "nativeontimer",
+        "on_fire"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:fire_controls",
+      "source": "Biome ignition native duration and recipient controls",
+      "facts": [
+        "other_consumers"
+      ],
+      "effect_ids": [
+        "twilightforest:biome_native_fire_enforcement"
+      ],
+      "classes": [
+        "events/ProgressionEvents",
+        "util/Enforcement",
+        "init/custom/Enforcements"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Biome ignition native duration and recipient controls through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "FireResistance",
+        "nativefireprotection",
+        "water",
+        "longertimer",
+        "tickfreeze"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:essence_craft",
+      "source": "Native Essence full scepter crafting repair",
+      "facts": [
+        "essence_repair"
+      ],
+      "effect_ids": [
+        "twilightforest:scepter_essence_crafting_full_repair"
+      ],
+      "classes": [
+        "item/recipe/EssenceRepairRecipe"
+      ],
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "setup": "Native Essence full scepter crafting repair through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "actualmatches",
+        "damagedtag",
+        "outputdamage0",
+        "components"
+      ]
+    },
+    {
+      "id": "twilightforest:ominous_progression_path:essence_craft_slots",
+      "source": "Native Essence recipe slot/stack controls",
+      "facts": [
+        "essence_repair"
+      ],
+      "effect_ids": [
+        "twilightforest:scepter_essence_crafting_full_repair"
+      ],
+      "classes": [
+        "item/recipe/EssenceRepairRecipe"
+      ],
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "setup": "Native Essence recipe slot/stack controls through genuine native item/block/entity/event path; future fixture only, runtime0.",
+      "future_controls": [
+        "twooccupiedslots",
+        "countvsitemslot",
+        "extrareject",
+        "nativeonTake"
+      ]
+    }
+  ],
+  "damage_profiles": [
+    {
+      "type": "twilightforest:ominous_fire",
+      "status": "USED",
+      "amount": "1 per overlap callback; request not finalHP.",
+      "direct_and_causing_entities": "Both use TFDamageTypes.getDamageSource: direct=null,causing=null,explicit/source position=null. Ominous exhaustion.1 and Acid Rain0, declarations when_caused_by_living_non_player but no causing entity so no difficulty scaling. Ominous tags BYPASSES_ARMOR,BYPASSES_SHIELD,NO_KNOCKBACK,PANIC_CAUSES,PANIC_ENVIRONMENTAL_CAUSES,WITHER_IMMUNE_TO,neoforge:is_magic; NOT IS_FIRE/IS_EXPLOSION/IS_PROJECTILE or environment/physical. Acid Rain tags BYPASSES_ARMOR,BYPASSES_SHIELD,BYPASSES_WOLF_ARMOR,NO_KNOCKBACK,WITCH_RESISTANT_TO,neoforge:is_environment/is_magic; NOT fire/projectile/explosion. Feedback effects=burning on Ominous is not ignition.",
+      "callers": [
+        {
+          "entry": "twilightforest/block/OminousFireBlock.class",
+          "method": "entityInside"
+        }
+      ],
+      "admission": "OminousFireBlock extends BaseFireBlock but overrides entityInside WITHOUT parent call. It skips any EntityType tagged minecraft:undead; all other Entity recipients request ownerless ominous_fire1. Hurt return discarded. No fireImmune, living-only, movement, age, crouch or explicit side predicate in body; native recipient performs admission. No native in_fire request, fire-timer increment,8second ignition or Frosted fire-downrank from this custom type. Fire-immune non-undead targets are not exempt here. Undead tag is independent of inverted heal/harm. Both retain recipient invulnerability/client/dead, normal hurt cooldown, incoming/damage events, Resistance max(1-.2*(amp+1),0), applicable protection and absorption. Armor/shield are bypassed by actual tags, not by the source name; neither bypasses effects, Resistance, enchantments, cooldown or invulnerability. NO_KNOCKBACK suppresses ordinary fresh-hit hurt movement. Fire Resistance and fireImmune provide no type-based immunity because neither source is IS_FIRE. Native directional shield geometry is irrelevant to bypass tag, though loader shield hooks remain. Ominous lacks IGNITES_ARMOR_STANDS/CAN_BREAK_ARMOR_STAND; native stand override rejects. ItemEntity uses native item-health handling; ordinary fire-resistant item tagging is not an Ominous immunity. Wither own WITHER_IMMUNE_TO rejection and Witch WITCH_RESISTANT_TO reduction remain native; acid caller is Player-only, so do not fabricate Witch/Wolf exposure.",
+      "hurt_return_dependency": "Ominous caller discards return; exact-source uncanceled death gates conversion. Acid sound alone requires truehurt. Registered EntityEvents LivingDeathEvent callback requires not canceled and exact source key OMINOUS_FIRE. A mere burning timer or class named OminousFireDamageSource is insufficient. Native totem/death prevention before die means no conversion event. For non-ServerPlayer, actual OMINOUS_FIRE entity-type data map must exist and level must beServerLevel; installed mappings Horse->ZombieHorse, Piglin->ZombifiedPiglin, Villager->ZombieVillager. Calls protected EntityUtil.convertEntity and ignores return; no event cancellation or alternate new type guessed from undead names. Protected generic conversion creates target, honors canLivingConvert for Living target, uses Mob.convertTo for Mob pairs (copy/clear equipment, native entity add, discardold), otherwise real addition/discard. Then overlays old NBT onto new NBT, restoresnewUUID, sets Living health to resultingmax, drops/clears equipment, preserves passenger rides and conversion callback. It is replacement/full-health initialization, not native heal or direct attack. On ordinary LivingEntity.die, death event precedes !isRemoved&&!dead: successful discard of old Mob suppresses its later normal death-loot branch. Failed/vetoed conversion leaves ordinary death to continue. Generic helper behavior reused unchanged; no duplicate Powder package. ServerPlayer death branch takes precedence over data-map membership: creates actual EntityType.ZOMBIE, attaches deceased GameProfile, custom player name, copiesposition, requests canPickUpLoottrue and babyfalse, THEN EventHooks.finalizeMobSpawn(CONVERSION,null), THEN addFreshEntity. No inventory/XP/player-health transfer, resurrection, allegiance or owner assignment. Native Zombie.finalizeSpawn can overwrite loot pickup withrandom<.55*specialDifficulty and can setbabytrue from native groupdata; thus adult/loottrue setters are NOT final guarantees. Native equipment/enchantment/door/jockey/difficulty attributes can apply; no spawn-obstruction check in TF caller, native finalization/add hooks remain. No null guard after Zombie.create in caller; no invented fallback. Player death event is not canceled and normal player death/keep-inventory processing continues. Profile attachment serializes SIMPLE_GAME_PROFILE; customname/native Zombie state save normally, no custom lifespan.",
+      "secondary_callbacks": "Registered EntityEvents LivingDeathEvent callback requires not canceled and exact source key OMINOUS_FIRE. A mere burning timer or class named OminousFireDamageSource is insufficient. Native totem/death prevention before die means no conversion event. For non-ServerPlayer, actual OMINOUS_FIRE entity-type data map must exist and level must beServerLevel; installed mappings Horse->ZombieHorse, Piglin->ZombifiedPiglin, Villager->ZombieVillager. Calls protected EntityUtil.convertEntity and ignores return; no event cancellation or alternate new type guessed from undead names. Protected generic conversion creates target, honors canLivingConvert for Living target, uses Mob.convertTo for Mob pairs (copy/clear equipment, native entity add, discardold), otherwise real addition/discard. Then overlays old NBT onto new NBT, restoresnewUUID, sets Living health to resultingmax, drops/clears equipment, preserves passenger rides and conversion callback. It is replacement/full-health initialization, not native heal or direct attack. On ordinary LivingEntity.die, death event precedes !isRemoved&&!dead: successful discard of old Mob suppresses its later normal death-loot branch. Failed/vetoed conversion leaves ordinary death to continue. Generic helper behavior reused unchanged; no duplicate Powder package. ServerPlayer death branch takes precedence over data-map membership: creates actual EntityType.ZOMBIE, attaches deceased GameProfile, custom player name, copiesposition, requests canPickUpLoottrue and babyfalse, THEN EventHooks.finalizeMobSpawn(CONVERSION,null), THEN addFreshEntity. No inventory/XP/player-health transfer, resurrection, allegiance or owner assignment. Native Zombie.finalizeSpawn can overwrite loot pickup withrandom<.55*specialDifficulty and can setbabytrue from native groupdata; thus adult/loottrue setters are NOT final guarantees. Native equipment/enchantment/door/jockey/difficulty attributes can apply; no spawn-obstruction check in TF caller, native finalization/add hooks remain. No null guard after Zombie.create in caller; no invented fallback. Player death event is not canceled and normal player death/keep-inventory processing continues. Profile attachment serializes SIMPLE_GAME_PROFILE; customname/native Zombie state save normally, no custom lifespan.",
+      "source_identity": "Both use TFDamageTypes.getDamageSource: direct=null,causing=null,explicit/source position=null. Ominous exhaustion.1 and Acid Rain0, declarations when_caused_by_living_non_player but no causing entity so no difficulty scaling. Ominous tags BYPASSES_ARMOR,BYPASSES_SHIELD,NO_KNOCKBACK,PANIC_CAUSES,PANIC_ENVIRONMENTAL_CAUSES,WITHER_IMMUNE_TO,neoforge:is_magic; NOT IS_FIRE/IS_EXPLOSION/IS_PROJECTILE or environment/physical. Acid Rain tags BYPASSES_ARMOR,BYPASSES_SHIELD,BYPASSES_WOLF_ARMOR,NO_KNOCKBACK,WITCH_RESISTANT_TO,neoforge:is_environment/is_magic; NOT fire/projectile/explosion. Feedback effects=burning on Ominous is not ignition."
+    },
+    {
+      "type": "twilightforest:acid_rain",
+      "status": "USED",
+      "amount": "restriction.multiplier: .5/1/1.5 installed; request not finalHP.",
+      "direct_and_causing_entities": "Both use TFDamageTypes.getDamageSource: direct=null,causing=null,explicit/source position=null. Ominous exhaustion.1 and Acid Rain0, declarations when_caused_by_living_non_player but no causing entity so no difficulty scaling. Ominous tags BYPASSES_ARMOR,BYPASSES_SHIELD,NO_KNOCKBACK,PANIC_CAUSES,PANIC_ENVIRONMENTAL_CAUSES,WITHER_IMMUNE_TO,neoforge:is_magic; NOT IS_FIRE/IS_EXPLOSION/IS_PROJECTILE or environment/physical. Acid Rain tags BYPASSES_ARMOR,BYPASSES_SHIELD,BYPASSES_WOLF_ARMOR,NO_KNOCKBACK,WITCH_RESISTANT_TO,neoforge:is_environment/is_magic; NOT fire/projectile/explosion. Feedback effects=burning on Ominous is not ignition.",
+      "callers": [
+        {
+          "entry": "twilightforest/init/custom/Enforcements.class",
+          "method": "lambda$static$8"
+        }
+      ],
+      "admission": "Actual registered PlayerTick.Post callback requires ServerPlayer/ServerLevel; every20player ticks, tfEnforcedProgression gameruletrue, !creative&&!spectator invokes Enforcement.enforceBiomeProgression. No TF dimension, rain, sky visibility, shelter, height, biome-weather or line-of-sight gate in this chain. Level biome at player.blockPosition -> same-ID Restriction registry lookup; missing biomekey/registry/restriction ->none. Requires player lacks required advancement. Calls registered enforcement consumer then optional StructureHints.tryHintForStructure regardless whether consumer applied payload that tick. Hint-monster mechanics and structure protection are separate subsequent closure work. Gamerule defaulttrue; actual world value remains runtime state, not inferred installedtrue. Acid Rain consumer checks player.tickCount%5==0 and tickRateManager.runsNormally, then hurt(ownerlessacid_rain,restriction.multiplier); only ifhurtreturnsTRUE plays burn sound atplayer. Actual every20 outer caller means opportunities every20 ticks, not5; no native weather requirement. Installed Highlands .5 requires progress_merge, Thornlands1 requires progress_troll, FinalPlateau1.5 requires progress_troll. No secondary potion, fire timer, armor corrosion, equipment damage or native poison. Normal cooldown/absorption/Resistance/protection can change HP and return; a sound is not guaranteed positive HP loss. Both retain recipient invulnerability/client/dead, normal hurt cooldown, incoming/damage events, Resistance max(1-.2*(amp+1),0), applicable protection and absorption. Armor/shield are bypassed by actual tags, not by the source name; neither bypasses effects, Resistance, enchantments, cooldown or invulnerability. NO_KNOCKBACK suppresses ordinary fresh-hit hurt movement. Fire Resistance and fireImmune provide no type-based immunity because neither source is IS_FIRE. Native directional shield geometry is irrelevant to bypass tag, though loader shield hooks remain. Ominous lacks IGNITES_ARMOR_STANDS/CAN_BREAK_ARMOR_STAND; native stand override rejects. ItemEntity uses native item-health handling; ordinary fire-resistant item tagging is not an Ominous immunity. Wither own WITHER_IMMUNE_TO rejection and Witch WITCH_RESISTANT_TO reduction remain native; acid caller is Player-only, so do not fabricate Witch/Wolf exposure.",
+      "hurt_return_dependency": "Ominous caller discards return; exact-source uncanceled death gates conversion. Acid sound alone requires truehurt. Acid Rain consumer checks player.tickCount%5==0 and tickRateManager.runsNormally, then hurt(ownerlessacid_rain,restriction.multiplier); only ifhurtreturnsTRUE plays burn sound atplayer. Actual every20 outer caller means opportunities every20 ticks, not5; no native weather requirement. Installed Highlands .5 requires progress_merge, Thornlands1 requires progress_troll, FinalPlateau1.5 requires progress_troll. No secondary potion, fire timer, armor corrosion, equipment damage or native poison. Normal cooldown/absorption/Resistance/protection can change HP and return; a sound is not guaranteed positive HP loss.",
+      "secondary_callbacks": "Acid Rain consumer checks player.tickCount%5==0 and tickRateManager.runsNormally, then hurt(ownerlessacid_rain,restriction.multiplier); only ifhurtreturnsTRUE plays burn sound atplayer. Actual every20 outer caller means opportunities every20 ticks, not5; no native weather requirement. Installed Highlands .5 requires progress_merge, Thornlands1 requires progress_troll, FinalPlateau1.5 requires progress_troll. No secondary potion, fire timer, armor corrosion, equipment damage or native poison. Normal cooldown/absorption/Resistance/protection can change HP and return; a sound is not guaranteed positive HP loss.",
+      "source_identity": "Both use TFDamageTypes.getDamageSource: direct=null,causing=null,explicit/source position=null. Ominous exhaustion.1 and Acid Rain0, declarations when_caused_by_living_non_player but no causing entity so no difficulty scaling. Ominous tags BYPASSES_ARMOR,BYPASSES_SHIELD,NO_KNOCKBACK,PANIC_CAUSES,PANIC_ENVIRONMENTAL_CAUSES,WITHER_IMMUNE_TO,neoforge:is_magic; NOT IS_FIRE/IS_EXPLOSION/IS_PROJECTILE or environment/physical. Acid Rain tags BYPASSES_ARMOR,BYPASSES_SHIELD,BYPASSES_WOLF_ARMOR,NO_KNOCKBACK,WITCH_RESISTANT_TO,neoforge:is_environment/is_magic; NOT fire/projectile/explosion. Feedback effects=burning on Ominous is not ignition."
+    }
+  ],
+  "new_damage_types": 2,
+  "full_classes": [
+    "block/OminousFireBlock",
+    "block/OminousCandleBlock",
+    "block/entity/OminousCandleBlockEntity",
+    "item/ExanimateEssenceItem",
+    "item/recipe/EssenceRepairRecipe",
+    "util/entities/OminousFireDamageSource",
+    "init/custom/Enforcements",
+    "init/custom/Restrictions",
+    "util/Enforcement",
+    "util/Restriction"
+  ],
+  "limited_classes": {
+    "events/EntityEvents": [
+      "registered Ominous death/reentry and protected Frosted comparison"
+    ],
+    "events/ProgressionEvents": [
+      "registered player-tick biome producer; portal/structure protection still pending"
+    ],
+    "util/PlayerHelper": [
+      "actual first-entry advancement helper"
+    ],
+    "util/landmarks/LandmarkUtil": [
+      "actual gamerule predicate"
+    ],
+    "util/entities/EntityUtil": [
+      "protected native conversion reuse"
+    ],
+    "block/CandelabraBlock": [
+      "Ominous light branch is not a hazard producer"
+    ],
+    "world/components/structures/util/StructureHints": [
+      "dispatch only; hint spawning next"
+    ]
+  },
+  "registration_classes": [
+    "init/TFBlocks",
+    "init/TFItems",
+    "init/TFBlockEntities",
+    "init/TFRecipes",
+    "init/TFDataAttachments",
+    "init/TFDataMaps",
+    "init/TFGameRules",
+    "events/RegistrationEvents"
+  ],
+  "closure_checklist": [
+    "lasttwoactualcallers",
+    "native_damage_tags_anddefenses",
+    "ominous_no_basefire_contact",
+    "legitimate_essenceproducer",
+    "native_portal_parent_notspread",
+    "death_event_exactkey_map",
+    "conversion_removed_old_beforeloot",
+    "player_profile_spawn_finalizeordering",
+    "reentry_sourceidentity_swap",
+    "outerfalse_nestedadmission",
+    "player_difficulty_two_passes",
+    "native_attacker_success_only_callbacks",
+    "biome20outer5inner",
+    "firstadvancementonly",
+    "actualrestrictedbiomes",
+    "independentvanilla_consumers",
+    "essence_recipe_resource",
+    "candle_exclusion_persistence"
+  ],
+  "compatibility_scope": "Installed TF4.8.3345 and exact Minecraft1.21.1/NeoForge21.1.244. Ominous Fire and Acid Rain are USED; all40 custom DamageType profiles now reviewed. This does not close whole Twilight: remaining structures/events/ASM/compatibility/source exclusions and final assembly still unfinished. Static only; runtime0; production/Stage/L2/Phase6/7 untouched.",
+  "current_scope": "Prior Twilight plus Ominous contact/death/profile source reentry, all biome enforcement consumers and Exanimate Essence crafting repair. All40 custom types reviewed; remaining global source/structure/event/ASM work unfinished, Twilight PARTIAL zero promoted.",
+  "exact_next_task": "All40 custom DamageTypes are reviewed. Continue remaining Twilight structure defenses/hint producers and portal/control blocks, then remaining events/nested ASM/compatibility/source exclusions. Protect R2f8 complete and final Twilight dedup/promotion; IceAndFire only after live-verified Twilight COMPLETE. Static only.",
+  "damage_census": {
+    "total_custom_declarations": 40,
+    "previous_reviewed_profiles": 38,
+    "new_used_profiles": 2,
+    "reviewed_profiles_after": 40,
+    "remaining_profiles": 0,
+    "remaining_disposition": "None:40 actual caller profiles USED. Whole-mod source/ASM/compatibility closure and final promotion still pending."
+  },
+  "comparison_files": [
+    "vanilla-evidence/twilight-ominous-progression.json",
+    "reference-evidence/twilight-ominous-progression-244.json",
+    "reference-routing/twilight-ominous-progression.json",
+    "twilightforest-ominous-progression-caller-scan.json",
+    "semantic-sections/twilightforest-active-utilities.json",
+    "semantic-sections/twilightforest-summon-resources.json"
+  ],
+  "exclusions": [
+    "Ominous Candle visual names do not emit the Ominous Fire damage source; Candelabra OMINOUS lighting callback is also not a damage/conversion producer.",
+    "Protected Frosted biome payload and Powder generic conversion reused; no duplicate Frosted or Powder mechanic.",
+    "Essence automatic Renewal was already protected; only distinct Essence CRAFTING recipe is new.",
+    "Source-wrapper death message is not a new DamageType or proof of Ominous conversion on mob_attack deaths.",
+    "All40 custom types reviewed, but remaining portal/hints/structure defenses, events, ASM and global compatibility/source closure prevent Twilight COMPLETE until finished."
+  ],
+  "fixture_groups": [
+    "Genuine Essence/block overlap with source/type/undead/native defenses, no-fire side effects and base-fire portal controls.",
+    "Actual lethal Ominous mapped Mob conversion versus veto/totem/nonlethal and removed-old death-loot behavior.",
+    "Real player death/profile Zombie finalization/persistence and subsequent native melee re-entry, difficulty, defenses and outer success-only callbacks.",
+    "Actual PlayerTick biome enforcement with gamerule/advancement/tickrate/20tick cadence and allnine installed restrictions; no synthetic weather source.",
+    "Distinct native Essence crafting full repair versus existing Renewal/manual recharge."
+  ],
+  "expected_counts": {
+    "mechanic_packages": 9,
+    "delivery_cases": 33,
+    "classification_totals": {
+      "CUSTOM_DAMAGE": 3,
+      "CUSTOM_CONTROL": 1,
+      "CUSTOM_RESOURCE": 2,
+      "VANILLA_DIRECT": 2,
+      "VANILLA_LIKE_EXTENDED": 1
+    },
+    "review_required": 0,
+    "new_custom_types_resolved": 2
+  }
+}

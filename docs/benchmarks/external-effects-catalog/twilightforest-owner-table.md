@@ -1,6 +1,6 @@
 # Twilight Forest — partial semantic owner table
 
-The installed4.8.3345 review is **PARTIAL** at **R2f8x**: **238 mechanic-package drafts / 815 delivery cases**, **38/40 custom DamageType profiles**, two unfinished, REVIEW_REQUIRED0. Zero final Twilight records promoted. All protected subsections and R2f8t cloth erratum preserved. Accepted four mods remain116 mechanics/161 paths/217 components; runtime0.
+The installed4.8.3345 review is **PARTIAL** at **R2f8y**: **247 mechanic-package drafts /848 delivery cases**, **40/40 custom DamageType profiles USED**, zero unfinished types, REVIEW_REQUIRED0. Whole-mod structures/events/ASM/source closure remains unfinished. Zero final Twilight records promoted. Protected sections/cloth erratum and accepted four mods116/161/217 preserved; runtime0.
 
 | Mechanic | Native behavior | Vanilla comparison | Classification / source coverage |
 |---|---|---|---|
@@ -428,3 +428,19 @@ Adds7/32; four custom sources closed. [Contracts and future fixtures](twilightfo
 | Slider motion | Same full-state connection,20warmup,.04acceleration,reverse60,restore/item fallback | Discarded.98multiply result; collision check is entity obstruction; saved state/time/direction |
 
 [Reviewed packages, all33 source paths and fixtures](semantic-sections/twilightforest-mechanical-hazards.json). Adds8 packages;238/815 total. Smoker particles excluded after class review. Remaining Ominous Fire/Acid Rain and global structures/events/ASM/source closure are unfinished ordinary work, not REVIEW_REQUIRED. Next: close those two types, then complete R2f8 and final Twilight promotion; IceAndFire waits for live-verified Twilight COMPLETE.
+
+## R2f8y — last two types and native Ominous/progression paths
+
+| Mechanic | Native contract | Source/fixture distinction |
+|---|---|---|
+| Ominous contact | ominous_fire1, non-undead types only; no fire/ignite payload | Essence creates actual block; native armor/shield bypass, Resistance/protection/cooldown remain |
+| Mapped death replacement | Exact-type uncanceled death; Horse/Piglin/Villager map | Native conversion veto, old removal before death loot, full-health new entity and equipment behavior reused |
+| Player-death Zombie | Actual profile/name/position producer, normal player death continues | Finalization can alter baby/loot/equipment; profile saved, no owner or inventory copy |
+| Zombie source re-entry | Cancel original, nested hurt with same type; wrapper guard | Genuine melee both entity fields equal; outerfalse, repeated Player scaling, skipped attacker success callbacks |
+| Acid Rain | .5/1/1.5 per Highlands/Thornlands/FinalPlateau request |20tick outer producer, gamerule/advancement gates; no rain/shelter predicate; hurttrue sound |
+| Darkness | Vanilla200ticks amp0 every60ticks | Two Dark Forest restrictions, native merge/removal/visual blend |
+| Hunger | Vanilla100ticks, current amplifier+1 every60ticks | Native exhaustion .005*(amp+1), cure/expiry/exit controls |
+| Fire Swamp ignition | Native8second request every60ticks | BURNING_TIME duration, monotonic timer, actual later on_fire; not Acid/Ominous source |
+| Essence crafting | One damaged scepter slot +one essence slot, copied output damage0 | Actual matches/ResultSlot costs; separate from nine-point repair/automatic Renewal |
+
+[All40 custom source profiles](twilightforest-r2f8y-damage-type-closure.json) and [9 packages/33 paths](semantic-sections/twilightforest-ominous-progression.json). Candles and Candelabra lighting do not emit Ominous damage. Protected Frosted biome mechanic reused. Next: structure defenses/hints, portal/control blocks, events/ASM and source/compatibility closure before final Twilight COMPLETE; no IceAndFire yet.

@@ -1,6 +1,6 @@
 # External combat effects catalog — separate research track
 
-**Status: PARTIAL overall; R2f8x completes Fire Jet, Reactor and Slider mechanical hazards. Twilight remains PARTIAL at 238 mechanic drafts / 815 paths, with 38/40 custom DamageTypes reviewed. Ominous Fire and Acid Rain are next. Four accepted mod reviews remain COMPLETE.** Phase 6 and production remain closed; original Phase 7 has not started.
+**Status: PARTIAL overall; R2f8y completes Ominous Fire and biome enforcement, closing all40 custom Twilight DamageTypes. Twilight remains PARTIAL at247 mechanic drafts /848 paths while structure/event/ASM/source closure continues. Four accepted mod reviews remain COMPLETE.** Phase6/production remain closed; original Phase7 has not started.
 
 Baseline: `a5e85e610349120e21d62f4a80f1b607e36607fe`. Branch: `external-effects-catalog-research`. Recovery found a clean working tree and the live readiness remote at this baseline; no earlier external-effects track existed. No applicable `AGENTS.md` was found. The dedicated branch was created from the verified baseline without resetting or discarding work.
 
@@ -664,3 +664,15 @@ Fire Jet has13 pulse opportunities across61 flame callbacks, including counter r
 Validation for this checkpoint: exact installed evidence/reference integrity, mechanical source/ordering guards, all five tooling tests, previous accepted records and protected draft preservation, duplicate/source/delivery/classification/registry checks, research-only scope and staged diff check. Static runtime tests remain0. Twilight238/815 drafts,38/40 types, REVIEW_REQUIRED0, zero promoted; accepted four mods116/161/217 unchanged.
 
 Exact next task: Ominous Fire damage/conversion and Acid Rain/progression to close the last two types; then remaining structures/events/nested ASM/compatibility/source exclusions, R2f8 closure and final Twilight COMPLETE promotion. Only after pushed/live-verified COMPLETE may IceAndFire start. Continue automatically while actual current usage remains healthy.
+
+## R2f8y — Ominous Fire, biome enforcement and DamageType closure
+
+Continues protected mechanical research `2c9c1157531d499945ec9551196e612cd3831d4a` plus its published integrity report at live-verified `3c40f7c261350d75dca3e22e018ddd2162d2d433`. Adds9 packages /33 paths: Ominous contact, mapped death conversion, player-profile Zombie creation and native incoming-source re-entry, Acid Rain, native Darkness/Hunger/ignition biome consumers, and distinct Essence crafting repair. [Full reviewed contracts](benchmarks/external-effects-catalog/twilightforest-ominous-progression-review.md).
+
+[The machine-readable40-type closure](benchmarks/external-effects-catalog/twilightforest-r2f8y-damage-type-closure.json) maps every installed custom declaration to exactly one USED native semantic profile. No missing/duplicate profile and no declared-without-caller disposition. This closes DamageTypes, not the whole mod. Twilight247/848 drafts; REVIEW_REQUIRED0; zero promoted; accepted four mods116/161/217 unchanged; runtime0.
+
+Ominous contact is armor/shield-bypassing magic, not IS_FIRE: no parent ignition or fire immunity is inferred. Exact-key uncanceled death drives three mapped replacements or a profile-bearing native Zombie. Zombie spawn finalization can overwrite earlier adult/loot setters. Its incoming wrapper cancels the original hit, retries native hurt, preserves DamageType, swaps direct/causing constructor arguments (same Zombie on real melee), and can repeat Player difficulty scaling while outer success-only attacker callbacks are skipped. Acid Rain actually arrives through a20tick outer player callback, with no weather/sky gate; only its sound requires truehurt.
+
+Validation: source/return/order/cadence guards, exact native/reference integrity, allfive tooling tests,40-type census, prior accepted records/draft preservation, source/delivery/classification/duplicate/registry checks, research-only scope and diff check. Per-section integrity and full validation are saved with this checkpoint.
+
+Exact next task: remaining structure protection/hint producers and portal/control blocks, remaining callbacks, nested ASM, compatibility/source exclusions; then R2f8 remaining-content closure and final Twilight dedup/promotion. IceAndFire remains unstarted until Twilight COMPLETE is pushed and live-verified. Continue automatically while enforced current usage remains healthy.
