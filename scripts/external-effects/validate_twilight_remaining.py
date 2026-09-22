@@ -50,6 +50,9 @@ def validate_remaining():
             for c in d['full_classes']:
                 actual={(m['name'],m['descriptor']) for m in ClassFile(jar.read('twilightforest/'+c+'.class')).methods}
                 assert actual=={(m['name'],m['descriptor']) for m in methods(c)},c
+        if d['slug']=='structure-gates':
+            from validate_twilight_structure_gates import validate_structure_gates
+            validate_structure_gates(d,s,old,new,methods,ins,pos,target)
         if d['slug']=='ranged-mobs':
             from collect_twilight_ranged_mobs import scan_callers,FIELDS
             scan=read_json(OUT/'twilightforest-ranged-mobs-caller-scan.json');assert scan==scan_callers(target)

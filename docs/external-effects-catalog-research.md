@@ -676,3 +676,13 @@ Ominous contact is armor/shield-bypassing magic, not IS_FIRE: no parent ignition
 Validation: source/return/order/cadence guards, exact native/reference integrity, allfive tooling tests,40-type census, prior accepted records/draft preservation, source/delivery/classification/duplicate/registry checks, research-only scope and diff check. Per-section integrity and full validation are saved with this checkpoint.
 
 Exact next task: remaining structure protection/hint producers and portal/control blocks, remaining callbacks, nested ASM, compatibility/source exclusions; then R2f8 remaining-content closure and final Twilight dedup/promotion. IceAndFire remains unstarted until Twilight COMPLETE is pushed and live-verified. Continue automatically while enforced current usage remains healthy.
+
+## R2f8z — structure admission, hints and physical barriers
+
+Continues live-verified `1aec32ae7cb9d2ce04887268c1e8ba1759f42576`. Adds six packages and28 native delivery cases: protected player actions, player-caused hostile damage admission, real hint Kobold/book production, directional Stronghold Shield mining, Trophy Pedestal shield removal/progression and five Force Field geometries. [Full reviewed contracts and evidence](benchmarks/external-effects-catalog/twilightforest-structure-gates-review.md).
+
+The hostile gate tests causing Player, Enemy victim, Kobold exclusion and actual loaded protected piece; it cancels native incoming damage without changing source or HP. RightClickBlock cancellation is broader than the break allow-tag. That tag includes a direct optional gravestone mapping. Hint production uses strict1200tick structure-object cooldown and ignores addFreshEntity return. Pedestal shield removal requires eligibility when enforced, while trophy criterion/stat requests can reach ineligible nearby players; the actual advancement still requires its separate Lich criterion. Force Fields use native partial collision and retain stale connection bits on failed updates. No production change.
+
+Twilight remains PARTIAL at253 mechanic drafts/876 paths, all40 custom DamageTypes USED, REVIEW_REQUIRED0, zero promoted. Accepted four mods116/161/217 and every protected subsection remain unchanged; runtime0. Validation saved: exact native/reference evidence, source/caller/order guards, subsection integrity, allfive tooling tests, full catalog validation, preservation and diff checks.
+
+Exact next task: native Vanishing/Reappearing/Locked blocks and Castle Doors; then remaining portal/control blocks, callbacks, nested ASM, source exclusions and compatibility closure. Finish R2f8 and final Twilight dedup/promotion before starting IceAndFire. Continue automatically while actual enforced usage remains healthy.

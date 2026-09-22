@@ -1,6 +1,6 @@
 # Twilight Forest — partial semantic owner table
 
-The installed4.8.3345 review is **PARTIAL** at **R2f8y**: **247 mechanic-package drafts /848 delivery cases**, **40/40 custom DamageType profiles USED**, zero unfinished types, REVIEW_REQUIRED0. Whole-mod structures/events/ASM/source closure remains unfinished. Zero final Twilight records promoted. Protected sections/cloth erratum and accepted four mods116/161/217 preserved; runtime0.
+The installed4.8.3345 review is **PARTIAL** at **R2f8z**: **253 mechanic-package drafts /876 delivery cases**, **40/40 custom DamageType profiles USED**, zero unfinished types, REVIEW_REQUIRED0. Remaining portal/control/events/ASM/source closure unfinished. Zero final Twilight records promoted. Protected sections/cloth erratum and accepted four mods116/161/217 preserved; runtime0.
 
 | Mechanic | Native behavior | Vanilla comparison | Classification / source coverage |
 |---|---|---|---|
@@ -444,3 +444,16 @@ Adds7/32; four custom sources closed. [Contracts and future fixtures](twilightfo
 | Essence crafting | One damaged scepter slot +one essence slot, copied output damage0 | Actual matches/ResultSlot costs; separate from nine-point repair/automatic Renewal |
 
 [All40 custom source profiles](twilightforest-r2f8y-damage-type-closure.json) and [9 packages/33 paths](semantic-sections/twilightforest-ominous-progression.json). Candles and Candelabra lighting do not emit Ominous damage. Protected Frosted biome mechanic reused. Next: structure defenses/hints, portal/control blocks, events/ASM and source/compatibility closure before final Twilight COMPLETE; no IceAndFire yet.
+
+## R2f8z — native structure gates and barriers
+
+| Mechanic | Native contract | Delivery distinction |
+|---|---|---|
+| Protected player actions | Loaded landmark, actual protected containing piece, missing advancement and nonexempt player | Break allow-tag is separate from broad RightClickBlock cancellation; six upper/access pieces unprotected |
+| Hostile damage admission | Enemy, causing Player, not Kobold, area gate | Incoming event canceled; player-owned projectiles qualify; no synthetic HP/source changes |
+| Hint production | Strict1200tick structure-object cooldown, up to20 attempts, obstruction+LOS | Actual configured Kobold/book, no finalize/owner; entity-add veto still consumes cooldown |
+| Stronghold Shield | Matching ray side selects stone dig speed/150; otherwise hardness-1 | Directional native mining and pedestal removal; no relation to Lich HP shields |
+| Trophy Pedestal | Eligible nearby player or gameruleoff activates and removes exact shields in11cube | Criterion/stat reward independent; full advancement also needs separate Lich criterion |
+| Force Fields | Five colors, actual central/arm/corner collision | Same-color links, stale update bits, native saved state/water; no HP damage or reflection |
+
+[Six packages/28 paths](semantic-sections/twilightforest-structure-gates.json) with optional direct gravestone tag attribution and generic native hooks. Next: vanishing/Castle Door state machines, remaining portal/control blocks/events/ASM/source closure and final Twilight promotion. No IceAndFire yet.
