@@ -76,6 +76,29 @@ def validate_remaining():
             assert not any('.setHealth(' in str(x['operand']) for x in death)
             mist=ins(M+'MistWolf','doHurtTarget');assert pos(mist,'HostileWolf.doHurtTarget(')<pos(mist,'.getMaxLocalRawBrightness(')<pos(mist,'.addEffect(')
             assert d['damage_census']['reviewed_profiles_after']==22 and d['damage_census']['remaining_profiles']==18
+        if d['slug']=='mounted-mobs':
+            from collect_twilight_mounted_mobs import scan_callers
+            scan=read_json(OUT/'twilightforest-mounted-mobs-caller-scan.json');assert scan==scan_callers(target)
+            runtime=[x for x in scan['hits'] if '/data/' not in x['entry'] and '/init/' not in x['entry']]
+            assert Counter((x['entry'].split('/')[-1],x['method']) for x in runtime)==Counter({('Yeti.class','hurt'):1,('Yeti.class','readAdditionalSaveData'):1,('PinchBeetle.class','doHurtTarget'):1,('HeavySpearAttackGoal.class','tick'):1})
+            p=s['damage_profiles'][0];assert p['type']=='twilightforest:clamped' and p['status']=='USED'
+            assert set(p['tags'])=={'minecraft:no_knockback','neoforge:is_physical'}
+            M='entity/monster/';G='entity/ai/goal/'
+            upper=ins(M+'UpperGoblinKnight','hurt');assert pos(upper,'.getEntity(')<pos(upper,'.takeHitOnShield(')<pos(upper,'Monster.hurt(')
+            assert not any('.getDirectEntity(' in str(x['operand']) for x in upper)
+            for c in ['UpperGoblinKnight','LowerGoblinKnight']:
+                h=ins(M+c,'hurt');assert pos(h,'.breakArmor(')<pos(h,'Monster.hurt(')
+            shield=ins(M+'UpperGoblinKnight','takeHitOnShield');assert pos(shield,'AxeItem')<pos(shield,'.damageShield(')<pos(shield,'.knockback(')
+            cl=ins(M+'UpperGoblinKnight','<clinit>');assert any('ADD_MULTIPLIED_BASE' in str(x['operand']) for x in cl)
+            assert any(x['operand']==12.0 for x in cl)
+            heavy=ins(G+'HeavySpearAttackGoal','tick');assert any(x['operand']==25 for x in heavy)
+            assert 'requiresUpdateEveryTick' not in {m['name'] for m in methods(G+'HeavySpearAttackGoal')}
+            area=ins(M+'UpperGoblinKnight','landHeavySpearAttack');assert any('Monster.doHurtTarget(' in str(x['operand']) for x in area)
+            pinch=ins(M+'PinchBeetle','doHurtTarget');assert pos(pinch,'.startRiding(')<pos(pinch,'TFDamageTypes.CLAMPED')<pos(pinch,'.properlyApplyCustomDamageSource(')
+            boat=ins(M+'PinchBeetle','startRiding');assert any('Boat.kill(' in str(x['operand']) for x in boat) and not any('.hurt(' in str(x['operand']) for x in boat)
+            yh=ins(M+'Yeti','hurt');assert pos(yh,'.setAngry(')<pos(yh,'Monster.hurt(')
+            assert s['effects'][-1]['reuses_protected_effect_ids']==['twilightforest:alpha_yeti_throw','twilightforest:alpha_yeti_thrown_fall']
+            assert d['damage_census']['reviewed_profiles_after']==23 and d['damage_census']['remaining_profiles']==17
         result=dict(schema='tno.external_effects.remaining_subsection_integrity.v1',status='PASS',checkpoint=d['checkpoint'],decision=d['decision'],starting_sha=d['starting_sha'],counts=s['counts'],protected_prior_files=len(protected),full_declared_class_coverage=len(d['full_classes']),twilight_reviewed_drafts=len(new['effects']),twilight_delivery_drafts=len(new['paths']),damage_profiles_reviewed=d['damage_census']['reviewed_profiles_after'],damage_profiles_remaining=d['damage_census']['remaining_profiles'],accepted_counts_unchanged=previous['accepted_counts_unchanged'],runtime_tests=0,promoted_twilight_records=0,**boundary_flags())
         results.append((d['slug'],result))
     assert results

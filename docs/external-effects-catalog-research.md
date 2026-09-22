@@ -1,6 +1,6 @@
 # External combat effects catalog — separate research track
 
-**Status: PARTIAL overall; R2f8a completes the remaining ranged-mob subsection. Twilight Forest remains PARTIAL at73 package drafts/195 delivery cases; Frosted and all eight named boss subsections remain protected. Remaining melee/control mobs are next. Variants & Ventures, Cult of Azazel, Royal Variations and Friends & Foes remain COMPLETE.** Phase 6 is complete and closed. This track does not reopen, supersede, recalibrate or change Phase 6, its Stage behavior, accepted family integrations, or production combat. Original Phase 7 is not started by this research.
+**Status: PARTIAL overall; R2f8b completes mounted knights and PinchBeetle/Yeti after the ranged mobs. Twilight Forest remains PARTIAL at81 package drafts/215 delivery cases; Frosted and all eight named boss subsections remain protected. BlockChainGoblin/SpikeBlock, giants and remaining melee/control mobs are next. Variants & Ventures, Cult of Azazel, Royal Variations and Friends & Foes remain COMPLETE.** Phase 6 is complete and closed. This track does not reopen, supersede, recalibrate or change Phase 6, its Stage behavior, accepted family integrations, or production combat. Original Phase 7 is not started by this research.
 
 Baseline: `a5e85e610349120e21d62f4a80f1b607e36607fe`. Branch: `external-effects-catalog-research`. Recovery found a clean working tree and the live readiness remote at this baseline; no earlier external-effects track existed. No applicable `AGENTS.md` was found. The dedicated branch was created from the verified baseline without resetting or discarding work.
 
@@ -422,3 +422,11 @@ Continued from pushed/live-verified R2f7 `cb929fb7833eb27ddc3c16126f281cc6224742
 [Integrity](benchmarks/external-effects-catalog/twilightforest-ranged-mobs-integrity.json) and [full validation](benchmarks/external-effects-catalog/r2f8a-ranged-mobs-validation.json) cover all five tooling tests, evidence/reference reproduction, earlier-checkpoint preservation, source/path classification and research-only boundaries. No runtime tests executed.
 
 Next after push/live equality: remaining melee/control mobs/minibosses, then items/armor/charms/scepters/projectiles and hazards/resources, remaining18 source profiles and all mappings/exclusions toward R2f8. Final whole-Twilight promotion follows closure. Continue while current usage healthy. IceAndFireCE remains unstarted; no Stage/production, boss/L2 tests, balancing/fixes, Phase6 reopening or original Phase7.
+
+## R2f8b — Mounted mobs complete
+
+R2f8a was pushed and live-verified at `3b16469cdf2e6b7023ccd8e9da4692a6b683c2ce`. This bounded subsection adds8 reviewed packages /20 cases, bringing Twilight to81/215 drafts and23/40 custom caller profiles. Zero final promotion; REVIEW_REQUIRED0.
+
+[Mounted-mob review](benchmarks/external-effects-catalog/twilightforest-mounted-mobs-review.md) covers goblin pair coupling, shield/armor/HP separation, heavy spear modifier and AI cadence, Pinch Beetle capture versus clamped damage versus boat removal, and ordinary Yeti persistent anger with existing throw/fall reuse. All nine native class surfaces are pinned. [Integrity](benchmarks/external-effects-catalog/twilightforest-mounted-mobs-integrity.json) and [full validation](benchmarks/external-effects-catalog/r2f8b-mounted-mobs-validation.json) preserve prior work and research-only boundaries; five tooling tests required, no runtime tests.
+
+After commit/push/live equality continue BlockChainGoblin/SpikeBlock, GiantMiner/ArmoredGiant and remaining melee content; then items/hazards/resources/remaining17 profiles. Protect each subsection toward R2f8, then final dedup/promotion. Ice and Fire stays blocked until COMPLETE Twilight is protected. Current usage remains healthy; no artificial old five-hour cutoff.

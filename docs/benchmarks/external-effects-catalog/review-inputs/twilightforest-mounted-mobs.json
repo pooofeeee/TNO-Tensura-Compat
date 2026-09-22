@@ -1,0 +1,883 @@
+{
+  "slug": "mounted-mobs",
+  "checkpoint_short": "r2f8b",
+  "checkpoint": "R2f8b-mounted-mobs-complete",
+  "decision": "TWILIGHT_MOUNTED_MOBS_SEMANTIC_REVIEW_COMPLETE",
+  "starting_sha": "3b16469cdf2e6b7023ccd8e9da4692a6b683c2ce",
+  "previous_checkpoint": "R2f8a-ranged-mobs-complete",
+  "previous_draft": "partial-drafts/twilightforest-r2f8a-partial.json",
+  "facts": {
+    "pipeline": "Installed TF4.8.3345/raw Minecraft1.21.1/exact NeoForge21.1.244 authority. Reuse native Living/Player/Mob hurt/attack, events, attribute calculation, mount/save and TF EntityUtil evidence. Hurt true is not measured HP loss; ordinary armor/directional shield/Resistance/protection/absorption/cooldown/events remain unless explicitly preempted below. Ordinary mob_attack and clamped use when_caused_by_living_non_player scaling for Player recipients: Peaceful0/Easy min(a/2+1,a)/Normal a/Hard1.5a. No SHP/L2/Stage/runtime conclusions.",
+    "knight_pair": "Lower HP20/speed.28/attack4, dimensions.7x1.1; Upper HP30/speed.28/attack8,1.1x1.3. Separate HP/armor and ordinary death; no shared HP or resurrection/phase. Constructors give armor to both and shield to Upper. Lower finalizeSpawn calls super, constructs Upper atY+1, native finalizeMobSpawn hook with NATURAL/data then startRiding(lower). No addFreshEntity inside this method: native passenger-tree insertion matters; canceled mount/finalize hooks remain effective. Lower melee delegates to first passenger if Living; otherwise superclass mob_attack4. Upper delegation receives its own source identity and attribute, not Lower4. Upper copies vehicleMob target only when its own targetnull during customServerAiStep. Both retaliation/Player nearest target mustSee=false, ordinary melee/float/stroll/look goals. Lower attachmentheight*.91; positionRider aligns Upper body/head/yaw to Lower yaw. Lower priority0 RiderSpearAttackGoal occupies MOVE/LOOK when firstpassengerUpper timer>0<60 and Lower target living/alive/noncreative/nonspectator; no custom tick or attack, default continuation repeats admission. Anonymous melee canUse gates on active timer, not a separate damage gate.",
+    "knight_shield": "Upper owns hasShield bit and shieldHits initially0. Upper hurt first rejects exact IN_WALL when any vehicle exists. Otherwise source.getEntity (causing entity, NOT direct projectile) determines dx=selfX-causerX,dz=selfZ-causerZ, angle=degrees atan2(dz,dx)-90 and difference=abs((yBodyRot-angle)%360); no shortest-angle normalization. Front means STRICT150<difference<230. Upper front withshield calls takeHitOnShield and returns false before superclass when true. Lower uses its own position/body angle and delegates its front block to firstpassengerUpper withshield, sharing exactly that resource; no Lower shield counter. Ownerless skips this gate. No check of source armor/shield/invulnerability bypass tags in this custom pre-hurt shield gate. takeHitOnShield returnsfalse while disabled (HP may proceed); otherwise causing Living with mainhand AxeItem onserver disables shield and returns true, blocking even that disabling hit, regardless amount or actual melee/projectile source. This axe branch does not increment counter or execute later recoil/retaliation. Other front hits: requestedamount>10 onserver increments shieldHits; <=10 still block without wear. On third wear, shieldflagfalse but current hurt STILL returnsfalse: breaking shield is not HP damage. Nonfront Upper withshield independently randomBoolean damages shield before later HP processing, without amount threshold or disabled check. Lower has no nonfront wear branch. Therefore bypass source/zeroamount/rejectedlater hurt can still cause custom pre-hurt state changes. Below axe branch, native knockback request strength0 on Livingvehicle elseUpper; no invented nonzero shove (exact loader knockback event may modify it). CausingLiving sets Upper lastHurtByMob. Disabled timer postincrements in customServerAiStep and resets at oldvalue>=100, i.e.101 evaluations from0; NoAI may suspend AI evaluation. Alive Upper without any vehicle loses shield in customServerAiStep even if undamaged. Counters/disabling do not heal HP.",
+    "knight_armor": "Armor is independent flag/transient ADD_VALUE modifier: Lower+17, Upper+20. In each hurt, after shield-return opportunity, causingentity rear difference>300 OR<60 breaks that mob armor before superclass hurt. Boundary60/300 doesnotbreak; ownerless doesnotstrip. No amount/success/event approval prerequisite; later immunity/cooldown/cancel can reject HP after stripping. Upper nonfront random shield wear happens before reararmor. Removing flag removes only named modifier; remaining nativearmor/equipment and source bypass behavior remain. NBT saves Lower hasArmor and Upper hasArmor/hasShield and restores corresponding armor modifier; native HP persists. shieldHits, disabledflag/timer and heavySpearTimer are not saved, so remaining shield presence survives but partial wear/disability/timing reset. Bits/ironchest particles are not armor items or dropped/repaired resources.",
+    "knight_spear": "Upper doHurtTarget while timer>0 returnsfalse. Otherwise random nextInt(2)==0 sets60/broadcast4/returnsfalse; other branch swing and ordinary superclass melee. Timer decrements after super.aiStep while (client OR !NoAi) andpositive. HeavySpearAttackGoal MOVE/LOOK admits timer>0<60 with current living/alive/noncreative/nonspectator target; default continuation=canUse and default requiresUpdateEveryTick=false. Sole native strike call is its tick when timer==25. Native Mob serverAiStep ticks all goals on even(tickCount+entityId), otherwise only every-tick goals after tickCount>1; then customServerAiStep; Upper decrements timer after super.aiStep. Consequently a running Heavy goal samples alternating timer values and can miss25 entirely depending phase; target loss/admission can also prevent it. No guarantee of one strike per60timer and no invented retry. Static timing inference only, not runtime frequency. During positive timer customServerAiStep adds spear_attack_boost amount12 ADD_MULTIPLIED_BASE; removes when timer<=0 on a subsequent evaluation. Attribute calculation yields default8+8*12=104, NOT20; effective external attributes/enchantments still apply. Because goals precede modifier maintenance, modifiers can remain until maintenance after timerreaches0; do not replace native sequencing with idealized on/off. Strike center currentlook XZ*1.25, Y=rootBBminY minus.75 ifpassenger; AABB +/-1.5 eachaxis. Query allEntity except self/vehicle, no explicit Living/LOS/team/target filter. Each calls super.doHurtTarget directly (bypassing Upper timer guard), native mob_attack direct=causingUpper using currenteffectiveattribute, ignores bool. Enchantment/knockback callbacks inside superclass still need nativehurttrue. Critical sound iff querynonempty even ifnonehurt; HIT_GROUND not damage. No projectile/customDamageType/new HP subtraction.",
+    "pinch_grab": "PinchBeetle HP40/speed.23/attack4/armor2, arthropod, dimensions1.2x.5; Float0/Charge2(speed1.5,canBreakfalse)/Melee4/stroll/look, retaliation/visiblePlayer. Protected ChargeAttackGoal reused: snapshot approach,windup15+rand30,rangeSq16..64,random1/10,onGround/LOS,one attack attempt includingwindup,marks attempted beforehurt, no terrainbreak here. doHurtTarget first ifno passengers and victimvehicle absent OR not RIDES_OBSTRUCT_SNATCHING: stopRiding then startRiding(beetle,true); capture attempts occur BEFORE damage, no c:bosses/Player-only or hurt-success check. Force still retains native mount event but bypasses ordinary canRide/capacity predicates; stopRiding may be vetoed by hostilemount hook, later native checks remain. Capture failure doesnot skipdamage. Captured passengers use protected HostileMountEvents dismount prevention/interaction; this is not Yeti throw timer. aiStep aftersuper assigns dimensions=getDimensions (no explicit refreshDimensions here), carrieddefault2.2x1.6, otherwise1.2x.5. Firstpassenger mismatch removes it; look100 and Livingpassenger becomes currenttarget. InvulnerablePlayer stopRiding/cleartarget. Attachment(0,eyeHeight,.75), canRiderInteracttrue. knockback override skips super entirely while carrying; not blanket immunity to every velocity API. die asks allpassengers stopRiding before superdie; native hooks/liveness matter. No custom HPgate/regen/throw/proprietary save resource.",
+    "pinch_damage": "PinchBeetle doHurtTarget always returns EntityUtil.properlyApplyCustomDamageSource(attacker=self,target,CLAMPEDsource,null) after possiblegrab. Source direct=causingPinchBeetle, requested effectiveATTACK_DAMAGE default4 plus native enchantment calculation. CLAMPED tagged neoforge:is_physical and minecraft:no_knockback only in scoped mergedsource tags; not armor/shield/Resistance/enchantment/iframe bypass. no_knockback suppresses native hurt recoil, not a categorical prohibition on independent helper knockback/capture. Shared TF helper uses attacker as affectedEntity in modifyDamage, and on success sets lastHurtMob toattacker itself; exact previously reviewed semantics reused, no corrective rewrite. Helper native knockback and postattack callbacks only on hurttrue; capture independent. Source request survives blocked/false capture. Capture may succeed even damagefalse/zeroHP. Newcustomprofile CLAMPED USED, sole runtimeTF fieldcaller PinchBeetle.doHurtTarget.",
+    "pinch_boat": "PinchBeetle startRiding(Boat,force) kills boat BEFORE superclass/mount event or capacity checks, optionally drops3 variantplanks+2sticks under doEntityDrops, playssound,returnsfalse. NonBoat delegatesordinary. Boat.kill inherits Entity.kill: remove(KILLED)+ENTITY_DIE, no DamageSource/hurt/HP request. Legitimate producer is native Boat.tick collision pickup: server, controllingpassenger notPlayer, own passenger count<2, candidate notpassenger, candidate.width<boat.width, Living nonWaterAnimal nonPlayer, notcarryingboat, in inflated(.2,-.01,.2) pushableBy query. Pinch width1.2 fits normalboat1.375 when unladen; carried2.2 fails width. Exact loader method uses hasEnoughSpaceFor with samewidth rule; not arbitrary boat contact or a damage resistance bypass event. Boat ride-obstruction tag for grabbing a boatpassenger is a different predicate, not this producer.",
+    "yeti_anger": "Ordinary Yeti HP20/speed.38/attack0/follow4,1.4x2.4, freezeimmune. Float0/ThrowRider1/strolllook/retaliation/visiblePlayer; no ordinary melee goal separate from shared ThrowRider. hurt beforeSuper: causingentitynonnull and !source.isCreativePlayer =>setAngrytrue, even if laterhurtfalse; exact creativePlayer owner predicate, not just source directentity. Anger flag adds FOLLOW_RANGE +8 ADD_VALUE=>12, no damage/speed/heal buff. NBT Angry restores modifier; installed callercensus only hurt(true) and readAdditionalSaveData(savedvalue), no native timed reset. Ownerless/creative sources do not addanger but do not clear existinganger. Ordinary damage admission remains. Native ThrowRiderGoal, hostilemount hooks, playerlaunch state and later exactFALL->YEETED are already fully reviewed in R2f7; reuse alpha_yeti_throw and alpha_yeti_thrown_fall, no duplicate packages or new DamageTypecount. Yeti anonymous wrapper only adds grab/throw sounds; mountposition(0,height,.4), look100,canRiderInteracttrue. Sharedthrow excludes boss-tagged victims and obstructingrides; no immediateHP atlaunch, unlike Pinchclamp. Yeti has no boss bomb/rampage/projectileimmunity mechanic. Natural spawn:nonPeaceful, SnowyForest bypasses lighttest but requires basecheckMobSpawnRules; otherbiomes custom skylight/random32 and blockbrightness/random8 checks plusbasecheck. No required progression/HPphase."
+  },
+  "packages": [
+    {
+      "id": "twilightforest:goblin_knight_mount",
+      "display_name": "Mounted goblin knight coupling",
+      "owner": "goblin_knight_mount",
+      "primary_classification": "CUSTOM_CONTROL",
+      "facts": [
+        "knight_pair"
+      ],
+      "classes": [
+        "entity/monster/LowerGoblinKnight",
+        "entity/monster/UpperGoblinKnight",
+        "entity/ai/goal/RiderSpearAttackGoal"
+      ],
+      "parameters": {
+        "lower_hp": 20,
+        "upper_hp": 30,
+        "lower_melee": 4,
+        "upper_melee": 8
+      },
+      "gates": [
+        "firstLivingpassengerdelegation",
+        "nativefinalizeandmount",
+        "separateHP"
+      ],
+      "relation": "Native passenger/AI/attribute primitives, custom shared attack delegation.",
+      "primary_test_source": "Natural LowerGoblinKnight spawn with native Upper passenger",
+      "alternate_sources": [
+        "Dismounted/vehicle-dead Upper, surviving Lower native attacks"
+      ]
+    },
+    {
+      "id": "twilightforest:goblin_knight_shield",
+      "display_name": "Goblin knight shared shield resource",
+      "owner": "goblin_knight_shield",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "facts": [
+        "knight_shield",
+        "knight_armor"
+      ],
+      "classes": [
+        "entity/monster/UpperGoblinKnight",
+        "entity/monster/LowerGoblinKnight"
+      ],
+      "parameters": {
+        "wear_break": 3,
+        "amount_exclusive": 10,
+        "front_exclusive": [
+          150,
+          230
+        ],
+        "disable_evaluations": 101
+      },
+      "gates": [
+        "causingentity",
+        "shieldpresent",
+        "notdisabled",
+        "axeownerbranchfirst",
+        "preSuperhurt"
+      ],
+      "relation": "Custom pre-hurt gate/counter distinct from native item blocking and HP.",
+      "primary_test_source": "Native frontal Upper or Lower attacks against mounted pair",
+      "alternate_sources": [
+        "Causing axeholder including ownedprojectile; Upper nonfront random wear; unmountbreak; reload"
+      ]
+    },
+    {
+      "id": "twilightforest:goblin_knight_armor",
+      "display_name": "Directional goblin armor stripping",
+      "owner": "goblin_knight_armor",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "facts": [
+        "knight_armor",
+        "knight_shield"
+      ],
+      "classes": [
+        "entity/monster/UpperGoblinKnight",
+        "entity/monster/LowerGoblinKnight"
+      ],
+      "parameters": {
+        "lower_armor": 17,
+        "upper_armor": 20,
+        "rear_boundaries": [
+          60,
+          300
+        ]
+      },
+      "gates": [
+        "causernonnull",
+        "shieldnotreturned",
+        "rearangle",
+        "stripbeforeordinaryhurt"
+      ],
+      "relation": "Ordinary ARMOR mitigation with custom pre-hurt directional modifier removal.",
+      "primary_test_source": "Native rear strike at each knight",
+      "alternate_sources": [
+        "Ownerless/angleboundary/frontshield negativecontrols; reloadflag"
+      ]
+    },
+    {
+      "id": "twilightforest:goblin_knight_spear",
+      "display_name": "Timed heavy spear area attack",
+      "owner": "goblin_knight_spear",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "facts": [
+        "knight_spear",
+        "pipeline"
+      ],
+      "classes": [
+        "entity/monster/UpperGoblinKnight",
+        "entity/ai/goal/HeavySpearAttackGoal",
+        "entity/ai/goal/RiderSpearAttackGoal"
+      ],
+      "parameters": {
+        "timer_start": 60,
+        "strike_timer": 25,
+        "multiply_base": 12,
+        "default_boosted_attack": 104,
+        "center_forward": 1.25,
+        "half_extent": 1.5
+      },
+      "gates": [
+        "nativegoalrunning",
+        "exact25sample",
+        "currenteffectiveattribute",
+        "excludesvehicle"
+      ],
+      "relation": "Ordinary mob_attack/attribute/enchantment pipeline over custom timed AABB; cadence-sensitive.",
+      "primary_test_source": "Native Upper melee-triggered heavywindup",
+      "alternate_sources": [
+        "Lower delegatedtrigger; both AI parities; targetloss/noAI; ordinary nonwindup attack"
+      ]
+    },
+    {
+      "id": "twilightforest:pinch_beetle_capture",
+      "display_name": "Pinch Beetle capture and carrying",
+      "owner": "pinch_beetle_capture",
+      "primary_classification": "CUSTOM_CONTROL",
+      "facts": [
+        "pinch_grab"
+      ],
+      "classes": [
+        "entity/monster/PinchBeetle",
+        "entity/ai/goal/ChargeAttackGoal",
+        "events/HostileMountEvents"
+      ],
+      "parameters": {
+        "native_hp": 40,
+        "armor": 2,
+        "carried_dimensions": [
+          2.2,
+          1.6
+        ]
+      },
+      "gates": [
+        "nopassengers",
+        "victimride notobstructing",
+        "mountbeforehurt",
+        "nativeevent"
+      ],
+      "relation": "Native forced riding with custom admission/knockback suppression, not status/HP.",
+      "primary_test_source": "Native PinchBeetle charge or melee capture",
+      "alternate_sources": [
+        "Failedhurt/canceledmount/obstructingride; carrying knockback; death release"
+      ]
+    },
+    {
+      "id": "twilightforest:pinch_beetle_clamped",
+      "display_name": "Pinch Beetle clamped damage",
+      "owner": "pinch_beetle_clamped",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "facts": [
+        "pinch_damage",
+        "pipeline"
+      ],
+      "classes": [
+        "entity/monster/PinchBeetle",
+        "util/entities/EntityUtil",
+        "init/TFDamageTypes"
+      ],
+      "parameters": {
+        "default_attack": 4
+      },
+      "gates": [
+        "nativehelper",
+        "effectiveattribute",
+        "hurtdependentpostcallbacks"
+      ],
+      "relation": "Custom physical source with native damage pipeline and no_knockback tag.",
+      "primary_test_source": "Native PinchBeetle successful attack",
+      "alternate_sources": [
+        "Charge vs melee; capturefailed; shield/armor/absorption/cooldown controls"
+      ]
+    },
+    {
+      "id": "twilightforest:pinch_beetle_boat_break",
+      "display_name": "Pinch Beetle boat destruction on pickup",
+      "owner": "pinch_beetle_boat_break",
+      "primary_classification": "BINARY_MECHANIC",
+      "facts": [
+        "pinch_boat"
+      ],
+      "classes": [
+        "entity/monster/PinchBeetle"
+      ],
+      "parameters": {
+        "planks": 3,
+        "sticks": 2,
+        "unladen_width": 1.2,
+        "boat_width": 1.375
+      },
+      "gates": [
+        "nativeboatpickuppredicates",
+        "Boatmounttarget",
+        "beforemountvalidation"
+      ],
+      "relation": "Custom vehicle removal; Entity.kill with no damage source or hurt-return requirement.",
+      "primary_test_source": "Unoccupied native Boat attempts to pick up unladen PinchBeetle",
+      "alternate_sources": [
+        "Player-controlled/full/narrow/loadedbeetle negativecontrols; doEntityDropsfalse"
+      ]
+    },
+    {
+      "id": "twilightforest:ordinary_yeti_anger",
+      "display_name": "Ordinary Yeti hurt-triggered persistent anger",
+      "owner": "ordinary_yeti_anger",
+      "primary_classification": "CUSTOM_CONTROL",
+      "facts": [
+        "yeti_anger"
+      ],
+      "classes": [
+        "entity/monster/Yeti",
+        "entity/monster/Yeti$1",
+        "entity/ai/goal/ThrowRiderGoal",
+        "events/HostileMountEvents"
+      ],
+      "parameters": {
+        "follow_base": 4,
+        "follow_add": 8,
+        "attack_base": 0
+      },
+      "gates": [
+        "causernonnull",
+        "notcreativePlayer",
+        "beforeSuperhurt",
+        "savedAngry"
+      ],
+      "relation": "Native follow-range attribute with custom persistent anger trigger; protected throw reused.",
+      "primary_test_source": "Native noncreative-caused hurt against ordinary Yeti",
+      "alternate_sources": [
+        "Ownerless/creative/falsehurt; reload; native shared throw/fall delivery"
+      ],
+      "reuses_protected_effect_ids": [
+        "twilightforest:alpha_yeti_throw",
+        "twilightforest:alpha_yeti_thrown_fall"
+      ]
+    }
+  ],
+  "paths": [
+    {
+      "id": "twilightforest:mounted_mobs_path:pair_spawn",
+      "source": "Native Lower spawn and Upper passenger",
+      "facts": [
+        "knight_pair"
+      ],
+      "effect_ids": [
+        "twilightforest:goblin_knight_mount",
+        "twilightforest:goblin_knight_shield",
+        "twilightforest:goblin_knight_armor"
+      ],
+      "classes": [
+        "entity/monster/LowerGoblinKnight",
+        "entity/monster/UpperGoblinKnight"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "OTHER"
+      ],
+      "setup": "Native Lower spawn and Upper passenger through native spawn/equipment/AI/callbacks; no fabricated sources, direct HP edits or runtime tests.",
+      "future_controls": [
+        "nativefinalizehook",
+        "passengertree",
+        "separateHP"
+      ]
+    },
+    {
+      "id": "twilightforest:mounted_mobs_path:pair_melee",
+      "source": "Native Lower delegated or solo melee",
+      "facts": [
+        "knight_pair",
+        "knight_spear"
+      ],
+      "effect_ids": [
+        "twilightforest:goblin_knight_mount",
+        "twilightforest:goblin_knight_spear"
+      ],
+      "classes": [
+        "entity/monster/LowerGoblinKnight",
+        "entity/monster/UpperGoblinKnight"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "MELEE"
+      ],
+      "setup": "Native Lower delegated or solo melee through native spawn/equipment/AI/callbacks; no fabricated sources, direct HP edits or runtime tests.",
+      "future_controls": [
+        "ownerUpper vsLower",
+        "effective8vs4",
+        "randomwindup"
+      ]
+    },
+    {
+      "id": "twilightforest:mounted_mobs_path:upper_front",
+      "source": "Native frontal damage to Upper",
+      "facts": [
+        "knight_shield"
+      ],
+      "effect_ids": [
+        "twilightforest:goblin_knight_shield"
+      ],
+      "classes": [
+        "entity/monster/UpperGoblinKnight"
+      ],
+      "labels": [
+        "MELEE",
+        "PROJECTILE",
+        "OTHER"
+      ],
+      "setup": "Native frontal damage to Upper through native spawn/equipment/AI/callbacks; no fabricated sources, direct HP edits or runtime tests.",
+      "future_controls": [
+        "causervsdirect",
+        "strict150/230",
+        ">10",
+        "threewear",
+        "lastbreaknoHP"
+      ]
+    },
+    {
+      "id": "twilightforest:mounted_mobs_path:lower_front",
+      "source": "Native frontal damage to Lower",
+      "facts": [
+        "knight_shield"
+      ],
+      "effect_ids": [
+        "twilightforest:goblin_knight_shield",
+        "twilightforest:goblin_knight_mount"
+      ],
+      "classes": [
+        "entity/monster/LowerGoblinKnight",
+        "entity/monster/UpperGoblinKnight"
+      ],
+      "labels": [
+        "MELEE",
+        "PROJECTILE"
+      ],
+      "setup": "Native frontal damage to Lower through native spawn/equipment/AI/callbacks; no fabricated sources, direct HP edits or runtime tests.",
+      "future_controls": [
+        "sharedshield",
+        "Lowerangle",
+        "noLowernonfrontwear"
+      ]
+    },
+    {
+      "id": "twilightforest:mounted_mobs_path:axe_disable",
+      "source": "Native axeholding causer disables knight shield",
+      "facts": [
+        "knight_shield"
+      ],
+      "effect_ids": [
+        "twilightforest:goblin_knight_shield"
+      ],
+      "classes": [
+        "entity/monster/UpperGoblinKnight"
+      ],
+      "labels": [
+        "MELEE",
+        "PROJECTILE"
+      ],
+      "setup": "Native axeholding causer disables knight shield through native spawn/equipment/AI/callbacks; no fabricated sources, direct HP edits or runtime tests.",
+      "future_controls": [
+        "mainhandAxeItem",
+        "blockingdisablinghit",
+        "101AIevaluations"
+      ]
+    },
+    {
+      "id": "twilightforest:mounted_mobs_path:upper_side",
+      "source": "Native nonfront Upper shield wear",
+      "facts": [
+        "knight_shield",
+        "knight_armor"
+      ],
+      "effect_ids": [
+        "twilightforest:goblin_knight_shield",
+        "twilightforest:goblin_knight_armor"
+      ],
+      "classes": [
+        "entity/monster/UpperGoblinKnight"
+      ],
+      "labels": [
+        "MELEE",
+        "PROJECTILE"
+      ],
+      "setup": "Native nonfront Upper shield wear through native spawn/equipment/AI/callbacks; no fabricated sources, direct HP edits or runtime tests.",
+      "future_controls": [
+        "randomhalf",
+        "preapproval",
+        "zeroamount",
+        "disabledstillwear"
+      ]
+    },
+    {
+      "id": "twilightforest:mounted_mobs_path:reararmor",
+      "source": "Native rear armor stripping on each knight",
+      "facts": [
+        "knight_armor"
+      ],
+      "effect_ids": [
+        "twilightforest:goblin_knight_armor"
+      ],
+      "classes": [
+        "entity/monster/LowerGoblinKnight",
+        "entity/monster/UpperGoblinKnight"
+      ],
+      "labels": [
+        "MELEE",
+        "PROJECTILE"
+      ],
+      "setup": "Native rear armor stripping on each knight through native spawn/equipment/AI/callbacks; no fabricated sources, direct HP edits or runtime tests.",
+      "future_controls": [
+        "strict60/300",
+        "modifier17/20",
+        "latehurtfalse"
+      ]
+    },
+    {
+      "id": "twilightforest:mounted_mobs_path:shield_ownerless",
+      "source": "Native ownerless/bypass-source knight damage",
+      "facts": [
+        "knight_shield",
+        "knight_armor"
+      ],
+      "effect_ids": [
+        "twilightforest:goblin_knight_shield",
+        "twilightforest:goblin_knight_armor"
+      ],
+      "classes": [
+        "entity/monster/LowerGoblinKnight",
+        "entity/monster/UpperGoblinKnight"
+      ],
+      "labels": [
+        "ENVIRONMENT",
+        "OTHER"
+      ],
+      "setup": "Native ownerless/bypass-source knight damage through native spawn/equipment/AI/callbacks; no fabricated sources, direct HP edits or runtime tests.",
+      "future_controls": [
+        "ownerlessskip",
+        "sourcebypasstagnotcustomgate",
+        "UppermountedIN_WALL"
+      ]
+    },
+    {
+      "id": "twilightforest:mounted_mobs_path:spear",
+      "source": "Native Upper heavy spear windup and AABB",
+      "facts": [
+        "knight_spear"
+      ],
+      "effect_ids": [
+        "twilightforest:goblin_knight_spear",
+        "twilightforest:goblin_knight_mount"
+      ],
+      "classes": [
+        "entity/monster/UpperGoblinKnight",
+        "entity/ai/goal/HeavySpearAttackGoal"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "AOE"
+      ],
+      "setup": "Native Upper heavy spear windup and AABB through native spawn/equipment/AI/callbacks; no fabricated sources, direct HP edits or runtime tests.",
+      "future_controls": [
+        "timer25",
+        "goalparity",
+        "104attribute",
+        "noLOS",
+        "vehicleexcluded"
+      ]
+    },
+    {
+      "id": "twilightforest:mounted_mobs_path:spear_cancel",
+      "source": "Native heavy spear targetloss/NoAI timing",
+      "facts": [
+        "knight_spear"
+      ],
+      "effect_ids": [
+        "twilightforest:goblin_knight_spear"
+      ],
+      "classes": [
+        "entity/monster/UpperGoblinKnight",
+        "entity/ai/goal/HeavySpearAttackGoal"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "OTHER"
+      ],
+      "setup": "Native heavy spear targetloss/NoAI timing through native spawn/equipment/AI/callbacks; no fabricated sources, direct HP edits or runtime tests.",
+      "future_controls": [
+        "skip25",
+        "nohitguarantee",
+        "maintenanceaftergoals"
+      ]
+    },
+    {
+      "id": "twilightforest:mounted_mobs_path:knight_unmount",
+      "source": "Native knight vehicle death or dismount",
+      "facts": [
+        "knight_pair",
+        "knight_shield"
+      ],
+      "effect_ids": [
+        "twilightforest:goblin_knight_mount",
+        "twilightforest:goblin_knight_shield"
+      ],
+      "classes": [
+        "entity/monster/UpperGoblinKnight",
+        "entity/monster/LowerGoblinKnight"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "setup": "Native knight vehicle death or dismount through native spawn/equipment/AI/callbacks; no fabricated sources, direct HP edits or runtime tests.",
+      "future_controls": [
+        "unmountedshieldbreak",
+        "independentHP",
+        "survivingmelee"
+      ]
+    },
+    {
+      "id": "twilightforest:mounted_mobs_path:knight_reload",
+      "source": "Native knight save and reload",
+      "facts": [
+        "knight_armor"
+      ],
+      "effect_ids": [
+        "twilightforest:goblin_knight_shield",
+        "twilightforest:goblin_knight_armor",
+        "twilightforest:goblin_knight_spear"
+      ],
+      "classes": [
+        "entity/monster/UpperGoblinKnight",
+        "entity/monster/LowerGoblinKnight"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "setup": "Native knight save and reload through native spawn/equipment/AI/callbacks; no fabricated sources, direct HP edits or runtime tests.",
+      "future_controls": [
+        "armor/shieldflagssaved",
+        "wear/disability/timernotsaved"
+      ]
+    },
+    {
+      "id": "twilightforest:mounted_mobs_path:pinch_charge",
+      "source": "Native PinchBeetle charge capture and damage",
+      "facts": [
+        "pinch_grab",
+        "pinch_damage"
+      ],
+      "effect_ids": [
+        "twilightforest:pinch_beetle_capture",
+        "twilightforest:pinch_beetle_clamped"
+      ],
+      "classes": [
+        "entity/monster/PinchBeetle",
+        "entity/ai/goal/ChargeAttackGoal"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "MELEE"
+      ],
+      "setup": "Native PinchBeetle charge capture and damage through native spawn/equipment/AI/callbacks; no fabricated sources, direct HP edits or runtime tests.",
+      "future_controls": [
+        "chargeattemptonce",
+        "grabfirst",
+        "noHPsuccessrequired"
+      ]
+    },
+    {
+      "id": "twilightforest:mounted_mobs_path:pinch_melee",
+      "source": "Native PinchBeetle ordinary/carrying melee",
+      "facts": [
+        "pinch_grab",
+        "pinch_damage"
+      ],
+      "effect_ids": [
+        "twilightforest:pinch_beetle_capture",
+        "twilightforest:pinch_beetle_clamped"
+      ],
+      "classes": [
+        "entity/monster/PinchBeetle"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "MELEE"
+      ],
+      "setup": "Native PinchBeetle ordinary/carrying melee through native spawn/equipment/AI/callbacks; no fabricated sources, direct HP edits or runtime tests.",
+      "future_controls": [
+        "captureonlyempty",
+        "clamped4",
+        "no_knockback",
+        "helperquirks"
+      ]
+    },
+    {
+      "id": "twilightforest:mounted_mobs_path:pinch_mountnegative",
+      "source": "Native obstructingride/canceledmount Pinch attack",
+      "facts": [
+        "pinch_grab",
+        "pinch_damage"
+      ],
+      "effect_ids": [
+        "twilightforest:pinch_beetle_capture",
+        "twilightforest:pinch_beetle_clamped"
+      ],
+      "classes": [
+        "entity/monster/PinchBeetle",
+        "events/HostileMountEvents"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "OTHER"
+      ],
+      "setup": "Native obstructingride/canceledmount Pinch attack through native spawn/equipment/AI/callbacks; no fabricated sources, direct HP edits or runtime tests.",
+      "future_controls": [
+        "taggate",
+        "forceevent",
+        "stilldamages"
+      ]
+    },
+    {
+      "id": "twilightforest:mounted_mobs_path:pinch_release",
+      "source": "Native carried Pinch controls, death or invulnerablePlayer",
+      "facts": [
+        "pinch_grab"
+      ],
+      "effect_ids": [
+        "twilightforest:pinch_beetle_capture"
+      ],
+      "classes": [
+        "entity/monster/PinchBeetle",
+        "events/HostileMountEvents"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "setup": "Native carried Pinch controls, death or invulnerablePlayer through native spawn/equipment/AI/callbacks; no fabricated sources, direct HP edits or runtime tests.",
+      "future_controls": [
+        "knockbacksuppressed",
+        "nativeevent",
+        "dimensionsassignment"
+      ]
+    },
+    {
+      "id": "twilightforest:mounted_mobs_path:pinch_boat",
+      "source": "Native Boat collision pickup of PinchBeetle",
+      "facts": [
+        "pinch_boat"
+      ],
+      "effect_ids": [
+        "twilightforest:pinch_beetle_boat_break"
+      ],
+      "classes": [
+        "entity/monster/PinchBeetle"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "setup": "Native Boat collision pickup of PinchBeetle through native spawn/equipment/AI/callbacks; no fabricated sources, direct HP edits or runtime tests.",
+      "future_controls": [
+        "width1.2vs1.375",
+        "notPlayercontrolled",
+        "killnotdamage",
+        "dropgamerule"
+      ]
+    },
+    {
+      "id": "twilightforest:mounted_mobs_path:yeti_hurt",
+      "source": "Native ordinary Yeti anger on incoming hurt",
+      "facts": [
+        "yeti_anger"
+      ],
+      "effect_ids": [
+        "twilightforest:ordinary_yeti_anger"
+      ],
+      "classes": [
+        "entity/monster/Yeti"
+      ],
+      "labels": [
+        "MELEE",
+        "PROJECTILE",
+        "ENVIRONMENT"
+      ],
+      "setup": "Native ordinary Yeti anger on incoming hurt through native spawn/equipment/AI/callbacks; no fabricated sources, direct HP edits or runtime tests.",
+      "future_controls": [
+        "ownerless/creative controls",
+        "beforeSuperfalse",
+        "follow12"
+      ]
+    },
+    {
+      "id": "twilightforest:mounted_mobs_path:yeti_reload",
+      "source": "Native angry Yeti save and reload",
+      "facts": [
+        "yeti_anger"
+      ],
+      "effect_ids": [
+        "twilightforest:ordinary_yeti_anger"
+      ],
+      "classes": [
+        "entity/monster/Yeti"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "setup": "Native angry Yeti save and reload through native spawn/equipment/AI/callbacks; no fabricated sources, direct HP edits or runtime tests.",
+      "future_controls": [
+        "Angrysaved",
+        "noresetcaller",
+        "noHPbuff"
+      ]
+    },
+    {
+      "id": "twilightforest:mounted_mobs_path:yeti_throw",
+      "source": "Native ordinary Yeti shared grab/throw/fall",
+      "facts": [
+        "yeti_anger"
+      ],
+      "effect_ids": [
+        "twilightforest:ordinary_yeti_anger"
+      ],
+      "classes": [
+        "entity/monster/Yeti",
+        "entity/monster/Yeti$1",
+        "entity/ai/goal/ThrowRiderGoal",
+        "events/HostileMountEvents"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "OTHER"
+      ],
+      "setup": "Native ordinary Yeti shared grab/throw/fall through native spawn/equipment/AI/callbacks; no fabricated sources, direct HP edits or runtime tests.",
+      "future_controls": [
+        "reuseR2f7throwandYEETED",
+        "boss/rideeligibility",
+        "noinstantdamage"
+      ]
+    }
+  ],
+  "damage_profiles": [
+    {
+      "type": "twilightforest:clamped",
+      "status": "USED",
+      "callers": [
+        {
+          "entry": "twilightforest/entity/monster/PinchBeetle.class",
+          "method": "doHurtTarget"
+        }
+      ],
+      "amount": "Effective attackattribute default4 with shared native enchantment helper.",
+      "direct_and_causing_entities": "direct=causing=PinchBeetle",
+      "mitigation": "Physical/no_knockback; normal armor/shield/Resistance/protection/absorption/cooldown; capture independent.",
+      "difficulty": "Installed TF4.8.3345/raw Minecraft1.21.1/exact NeoForge21.1.244 authority. Reuse native Living/Player/Mob hurt/attack, events, attribute calculation, mount/save and TF EntityUtil evidence. Hurt true is not measured HP loss; ordinary armor/directional shield/Resistance/protection/absorption/cooldown/events remain unless explicitly preempted below. Ordinary mob_attack and clamped use when_caused_by_living_non_player scaling for Player recipients: Peaceful0/Easy min(a/2+1,a)/Normal a/Hard1.5a. No SHP/L2/Stage/runtime conclusions."
+    }
+  ],
+  "new_damage_types": 1,
+  "full_classes": [
+    "entity/monster/UpperGoblinKnight",
+    "entity/monster/UpperGoblinKnight$1",
+    "entity/monster/LowerGoblinKnight",
+    "entity/monster/LowerGoblinKnight$1",
+    "entity/monster/PinchBeetle",
+    "entity/monster/Yeti",
+    "entity/monster/Yeti$1",
+    "entity/ai/goal/HeavySpearAttackGoal",
+    "entity/ai/goal/RiderSpearAttackGoal"
+  ],
+  "limited_classes": {},
+  "registration_classes": [
+    "init/TFEntities",
+    "events/RegistrationEvents"
+  ],
+  "closure_checklist": [
+    "independent_hp",
+    "mounted_spawn_and_melee_delegation",
+    "shield_counter_and_disable",
+    "causing_entity_angles",
+    "shield_break_vs_hp",
+    "reararmor_beforehurt",
+    "timer_goal_cadence",
+    "multiply_base_modifier",
+    "aoe_identity",
+    "mount_before_clamp",
+    "no_knockback_scope",
+    "boat_native_pickup",
+    "yeti_anger_persistence",
+    "protected_throw_reuse",
+    "full_class_coverage",
+    "caller_census",
+    "source_tags",
+    "classification_exclusions"
+  ],
+  "compatibility_scope": "Installed TF4.8.3345/raw Minecraft1.21.1/exact NeoForge21.1.244 authority. Reuse native Living/Player/Mob hurt/attack, events, attribute calculation, mount/save and TF EntityUtil evidence. Hurt true is not measured HP loss; ordinary armor/directional shield/Resistance/protection/absorption/cooldown/events remain unless explicitly preempted below. Ordinary mob_attack and clamped use when_caused_by_living_non_player scaling for Player recipients: Peaceful0/Easy min(a/2+1,a)/Normal a/Hard1.5a. No SHP/L2/Stage/runtime conclusions.",
+  "current_scope": "Frosted, all eight named bosses, ranged mobs, mounted knights and PinchBeetle/Yeti complete; other Twilight content pending, PARTIAL/zero promotion.",
+  "exact_next_task": "Continue Task C with BlockChainGoblin/SpikeBlock, GiantMiner/ArmoredGiant and remaining melee mobs/minibosses; then remaining items/scepters/armor/charms/projectiles/hazards/resources and17 unfinished custom profiles. Reuse protected mounted/ranged/boss/Frosted work. Protect every logical subsection toward R2f8, then final whole-Twilight dedup/promotion. No runtime boss/L2, Stage/production, fixes/balancing, Phase6/7. IceAndFire only after COMPLETE Twilight is pushed.",
+  "damage_census": {
+    "total_custom_declarations": 40,
+    "previous_reviewed_profiles": 22,
+    "new_used_profiles": 1,
+    "reviewed_profiles_after": 23,
+    "remaining_profiles": 17,
+    "remaining_disposition": "Unfinished other actual caller paths, not unused."
+  },
+  "comparison_files": [
+    "vanilla-evidence/twilight-mounted-mobs.json",
+    "reference-evidence/twilight-mounted-mobs-244.json",
+    "reference-routing/twilight-mounted-mobs.json",
+    "twilightforest-mounted-mobs-caller-scan.json",
+    "vanilla-evidence/royalvariations.json",
+    "reference-evidence/royal-loader-244.json",
+    "vanilla-evidence/twilight-minoshroom-knight.json",
+    "reference-evidence/twilight-minoshroom-knight-244.json",
+    "vanilla-evidence/twilight-yeti-queen.json",
+    "reference-evidence/twilight-yeti-queen-244.json",
+    "semantic-sections/twilightforest-yeti-queen.json"
+  ],
+  "exclusions": [
+    "All nine declared class surfaces fully pinned, including three anonymous wrappers; shared charge/throw/mount/helper and registrations reused.",
+    "No duplicated Alpha Yeti launch/fall or shared charge mechanic; ordinary Yeti paths explicitly link protected package identities.",
+    "Goblin heavy attribute104 is source-derived effective default, not observed HP or runtime guarantee. Exact timer/AI cadence limitation is documented without fixing it.",
+    "Boat removal is a native custom entity-control mechanism, not a DamageType or HP attack.",
+    "Particles, sounds, dimensions, ordinary goals/attributes and loot are covered where relevant, not inflated into separate status packages.",
+    "Remaining17 custom caller profiles and other Twilight content unfinished; zero promotion."
+  ],
+  "fixture_groups": [
+    "Both mounted knight HP pools; all angle boundaries/causer positions/axe owner choices/amount thresholds; finalshieldbreak vsHP; armorstrip beforelate rejection.",
+    "Native heavywindup from Upper and delegatedLower; both AIparities/targetloss/NoAI/vehicledeath/effectiveattribute/enchantments/AABB exclusions/reload.",
+    "Native Pinch capture and clamped independently: charge/melee/obstructingride/mountevent/failedhurt, carrierknockback/death/invulnerablePlayer.",
+    "Native Boat pickup positive and negative predicates, boatkill/noDamageSource, dropgamerule.",
+    "Ordinary Yeti anger/save/owner controls and existing sharednative throw/fall controls; no boss mechanic inference."
+  ],
+  "expected_counts": {
+    "mechanic_packages": 8,
+    "delivery_cases": 20,
+    "classification_totals": {
+      "CUSTOM_CONTROL": 3,
+      "CUSTOM_RESOURCE": 1,
+      "VANILLA_LIKE_EXTENDED": 2,
+      "CUSTOM_DAMAGE": 1,
+      "BINARY_MECHANIC": 1
+    },
+    "review_required": 0,
+    "new_custom_types_resolved": 1
+  }
+}
