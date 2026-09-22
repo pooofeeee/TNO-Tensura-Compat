@@ -1,6 +1,6 @@
 # External combat effects catalog — separate research track
 
-**Status: PARTIAL overall; R2f7 completes Alpha Yeti and Snow Queen. Twilight Forest remains PARTIAL at60 package drafts/167 delivery cases; Frosted and all eight named boss subsections are protected. Remaining Twilight combat content is next. Variants & Ventures, Cult of Azazel, Royal Variations and Friends & Foes remain COMPLETE.** Phase 6 is complete and closed. This track does not reopen, supersede, recalibrate or change Phase 6, its Stage behavior, accepted family integrations, or production combat. Original Phase 7 is not started by this research.
+**Status: PARTIAL overall; R2f8a completes the remaining ranged-mob subsection. Twilight Forest remains PARTIAL at73 package drafts/195 delivery cases; Frosted and all eight named boss subsections remain protected. Remaining melee/control mobs are next. Variants & Ventures, Cult of Azazel, Royal Variations and Friends & Foes remain COMPLETE.** Phase 6 is complete and closed. This track does not reopen, supersede, recalibrate or change Phase 6, its Stage behavior, accepted family integrations, or production combat. Original Phase 7 is not started by this research.
 
 Baseline: `a5e85e610349120e21d62f4a80f1b607e36607fe`. Branch: `external-effects-catalog-research`. Recovery found a clean working tree and the live readiness remote at this baseline; no earlier external-effects track existed. No applicable `AGENTS.md` was found. The dedicated branch was created from the verified baseline without resetting or discarding work.
 
@@ -411,3 +411,14 @@ Alpha Yeti projectile admission, rampage/tired resources, native slam, mounted t
 See [complete owner review](benchmarks/external-effects-catalog/twilightforest-yeti-queen-review.md), [semantic evidence](benchmarks/external-effects-catalog/semantic-sections/twilightforest-yeti-queen.json), [integrity](benchmarks/external-effects-catalog/twilightforest-yeti-queen-integrity.json), and [full validation](benchmarks/external-effects-catalog/r2f7-yeti-queen-validation.json). All five tooling tests, installed evidence/reference reproduction, protected-file/catalog/source/delivery checks and research-only boundaries protect this checkpoint.
 
 After commit/push/live equality, continue Task C remaining Twilight combat content while current usage is healthy, protecting logical subsections toward R2f8. Final whole-mod deduplication and catalog promotion come only after semantic closure. IceAndFireCE remains unstarted until full Twilight completion is safely pushed. No runtime boss/L2, Stage/production, balancing/fixes, Phase6 reopening or original Phase7.
+
+
+## R2f8a — Remaining ranged mobs complete
+
+Continued from pushed/live-verified R2f7 `cb929fb7833eb27ddc3c16126f281cc62247421a`.13 packages/28 cases added; Twilight PARTIAL73/195 with zero promotion.22/40 custom source profiles reviewed;18 unfinished. REVIEW_REQUIRED0; accepted global116 mechanics/161 paths/217 components unchanged.
+
+[The ranged-mob review](benchmarks/external-effects-catalog/twilightforest-ranged-mobs-review.md) closes FireBeetle/WinterWolf breath, HostileWolf/MistWolf behavior, SkeletonDruid/NatureBolt, DeathTome/TomeBolt/lectern, SlimeBeetle/SlimeBlob and stable/unstable ice-core behaviors. Installed implementation distinguishes retaliation target from current target, elemental visuals from real source identity, projectile hit return from secondary status, and delayed explosion from independent terrain conversion.18 complete declared classes and the limited native producers are pinned; existing BaseIceMob/Frosted/boss references remain immutable.
+
+[Integrity](benchmarks/external-effects-catalog/twilightforest-ranged-mobs-integrity.json) and [full validation](benchmarks/external-effects-catalog/r2f8a-ranged-mobs-validation.json) cover all five tooling tests, evidence/reference reproduction, earlier-checkpoint preservation, source/path classification and research-only boundaries. No runtime tests executed.
+
+Next after push/live equality: remaining melee/control mobs/minibosses, then items/armor/charms/scepters/projectiles and hazards/resources, remaining18 source profiles and all mappings/exclusions toward R2f8. Final whole-Twilight promotion follows closure. Continue while current usage healthy. IceAndFireCE remains unstarted; no Stage/production, boss/L2 tests, balancing/fixes, Phase6 reopening or original Phase7.

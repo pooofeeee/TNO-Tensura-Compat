@@ -159,6 +159,9 @@ def validate():
         if (OUT/'semantic-sections/twilightforest-yeti-queen.json').exists():
             from validate_twilight_yeti_queen import validate_yeti_queen
             assert validate_yeti_queen()['status']=='PASS'
+        if (OUT/'semantic-sections/twilightforest-ranged-mobs.json').exists():
+            from validate_twilight_remaining import validate_remaining
+            assert all(r['status']=='PASS' for _,r in validate_remaining())
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():
