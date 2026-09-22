@@ -1,6 +1,6 @@
 # Twilight Forest — partial semantic owner table
 
-The installed 4.8.3345 review is **PARTIAL** at **R2f8v**: **223 mechanic-package drafts / 750 delivery cases**, **31/40 custom DamageType profiles**, nine unfinished, REVIEW_REQUIRED 0. Zero final Twilight records promoted. All protected subsections and R2f8t cloth erratum preserved. Four accepted mods remain 116 mechanics / 161 paths / 217 components; runtime tests 0.
+The installed4.8.3345 review is **PARTIAL** at **R2f8w**: **230 mechanic-package drafts / 782 delivery cases**, **35/40 custom DamageType profiles**, five unfinished, REVIEW_REQUIRED0. Zero final Twilight records promoted. All protected subsections and R2f8t cloth erratum preserved. Accepted four mods remain116 mechanics/161 paths/217 components; runtime0.
 
 | Mechanic | Native behavior | Vanilla comparison | Classification / source coverage |
 |---|---|---|---|
@@ -399,3 +399,17 @@ Next: remaining passive entities and nine hazard types (`thorns`, `oreberry`, `k
 Adds 4 packages / 21 paths. Eighteen full classes and selected native producers/callbacks pinned. All nine passive types dispositioned; cosmetic variants and ordinary wildlife do not create duplicate combat packages. See [contracts and fixtures](twilightforest-passive-entities-review.md), [integrity](twilightforest-passive-entities-integrity.json), [full validation](r2f8v-passive-entities-validation.json).
 
 Exact next: hazards/nine custom sources, other structures/events, nested ASM, compatibility and exclusions; final Twilight promotion remains pending.
+
+## R2f8w - contact hazards
+
+| Mechanic | Native result | Classification |
+|---|---|---|
+| Thorns | Ownerless4; item-tag exception; Y step and overlap distinct | CUSTOM_DAMAGE |
+| Oreberry | Ownerless1, all ages/motion; ItemEntities skipped; no vanilla berry slow | CUSTOM_DAMAGE |
+| Knightmetal | Ownerless4; native random-direction knockback; water does not suppress | CUSTOM_DAMAGE |
+| Fiery contact | Ownerless fire1; exact boots/fire immunity checks; no ignition | CUSTOM_DAMAGE |
+| Thorn terrain | Failed survival removal grows0..2 per attempt; Burnt destroys itself harmlessly | CUSTOM_CONTROL |
+| Bush state/resources | Age/light/support, genuine harvest, fruit bonemeal/upward growth and snow geometry | VANILLA_LIKE_EXTENDED |
+| Fiery environment | Native fire support and Strider warmth, independent of HP | VANILLA_COMPOSITE |
+
+Adds7/32; four custom sources closed. [Contracts and future fixtures](twilightforest-contact-hazards-review.md), [integrity](twilightforest-contact-hazards-integrity.json), [full validation](r2f8w-contact-hazards-validation.json). Native mitigation, subtype admission and generic event hooks retained. Exact next: FireJet/Reactor/Slider, OminousFire/AcidRain, then remaining structures/ASM/source closure and final promotion.

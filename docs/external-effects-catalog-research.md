@@ -1,6 +1,6 @@
 # External combat effects catalog — separate research track
 
-**Status: PARTIAL overall; R2f8v completes the Twilight passive-animal review. Twilight Forest remains PARTIAL at 223 mechanic drafts / 750 delivery cases, with 31/40 custom DamageTypes reviewed. Hazards and remaining structures/ASM/source closure are next. Four accepted mod reviews remain COMPLETE.** Phase 6 and production remain closed; original Phase 7 has not started.
+**Status: PARTIAL overall; R2f8w completes four Twilight contact hazards and associated terrain/resource behavior. Twilight remains PARTIAL at 230 mechanic drafts / 782 paths, with 35/40 custom DamageTypes reviewed. Fire Jet, Reactor and Slider are next. Four accepted mod reviews remain COMPLETE.** Phase 6 and production remain closed; original Phase 7 has not started.
 
 Baseline: `a5e85e610349120e21d62f4a80f1b607e36607fe`. Branch: `external-effects-catalog-research`. Recovery found a clean working tree and the live readiness remote at this baseline; no earlier external-effects track existed. No applicable `AGENTS.md` was found. The dedicated branch was created from the verified baseline without resetting or discarding work.
 
@@ -644,3 +644,13 @@ Hand-fed Quest Ram costs one item; its native dropped-item goal discards the ent
 [Reviewed contracts](benchmarks/external-effects-catalog/twilightforest-passive-entities-review.md), [source integrity](benchmarks/external-effects-catalog/twilightforest-passive-entities-integrity.json), [full validation](benchmarks/external-effects-catalog/r2f8v-passive-entities-validation.json). Four accepted mods retain 116 mechanics / 161 paths / 217 components. Twilight PARTIAL, zero promoted, REVIEW_REQUIRED 0, runtime 0.
 
 Exact next task: remaining environmental hazards and all nine unfinished custom DamageTypes, then other combat-significant structures/callbacks, nested ASM, compatibility and source closure; protect R2f8 and final Twilight COMPLETE before IceAndFire.
+
+## R2f8w - TWILIGHT_CONTACT_HAZARDS_SEMANTIC_REVIEW_COMPLETE
+
+Continues protected R2f8v `a4979735e3ac9ca501a8e3f6a4193b3fb6258eb2`, verified local/live. Adds seven packages / 32 delivery cases: four ownerless contact sources, independent thorn regrowth/Burnt removal, bush growth/harvest/snow state and Fiery native environmental utility.
+
+Thorns4, Oreberry1, Knightmetal4 and Fiery1 are requests through native hurt. None bypasses armor, Resistance, protection or cooldown; null source position fails the ordinary directional shield test. Knightmetal lacks NO_KNOCKBACK and can cause native randomized knockback. Fiery checks exact boots/fire immunity, does not ignite, and retains the protected admitted-fire Frosted callback. Burnt Thorns remove themselves without a hurt call; Oreberries do not inherit vanilla sweet-berry slow/motion predicates. Fiery fire support and Strider warmth remain separate from its damage.
+
+[Reviewed contracts](benchmarks/external-effects-catalog/twilightforest-contact-hazards-review.md), [source integrity](benchmarks/external-effects-catalog/twilightforest-contact-hazards-integrity.json), [full validation](benchmarks/external-effects-catalog/r2f8w-contact-hazards-validation.json).35/40 custom types now USED; remaining: fire_jet, reactor, slider, ominous_fire, acid_rain. REVIEW_REQUIRED0, runtime0, Twilight zero promoted; accepted116/161/217 unchanged.
+
+Exact next: FireJet/Reactor/Slider, then Ominous Fire conversion and Acid Rain/progression; other structures/callbacks, nested ASM, compatibility and exclusions before R2f8 and final Twilight COMPLETE. IceAndFire has not started.
