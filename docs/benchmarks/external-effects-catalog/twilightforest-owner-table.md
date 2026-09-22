@@ -1,6 +1,6 @@
-# Twilight Forest — R2f8i partial, summon and scepter resources also reviewed
+# Twilight Forest — partial semantic owner table
 
-The installed4.8.3345 review is **PARTIAL** at **R2f8q**: **190 reviewed mechanic-package drafts / 613 delivery cases**, **30/40 custom DamageType caller profiles** closed and10 unfinished, REVIEW_REQUIRED0. **Zero final Twilight records are promoted.** All protected subsections through all Travellers core/movement/utility contracts remain preserved in the checkpoint sections below. Final whole-mod totals remain unknown. Four accepted reviews remain116 mechanics/161 paths/217 components; runtime tests0.
+The installed4.8.3345 review is **PARTIAL** at **R2f8r**: **202 reviewed mechanic-package drafts / 646 delivery cases**, **31/40 custom DamageType caller profiles** closed and9 unfinished, REVIEW_REQUIRED0. **Zero final Twilight records are promoted.** All protected subsections through Travellers core/movement/utility and food/flask contracts remain preserved in the checkpoint sections below. Final whole-mod totals remain unknown. Four accepted reviews remain116 mechanics/161 paths/217 components; runtime tests0.
 
 | Mechanic | Native behavior | Vanilla comparison | Classification / source coverage |
 |---|---|---|---|
@@ -22,7 +22,7 @@ Frosted's helper rejects freeze-immune entity types, freeze-immune head/chest/le
 
 Ice Bomb's `twilightforest:frozen` is tagged magic and bypasses wolf armor, **not ordinary armor**. It lacks IS_FREEZING, projectile, fire, explosion, normal armor/shield/enchantment/Resistance/iframe bypass and no-knockback tags in the scoped native sources. Its explicit heat-sensitive multiplier occurs once. Normal mitigation applies. Save/load omits parent projectile serialization, losing owner and therefore original-thrower zone exclusion. Requests are not measured HP loss.
 
-One registered custom MobEffect: `twilightforest:frosted`. Forty custom damage declarations are pinned from R2f1; **30 caller profiles reviewed**,10 unfinished. Subsequent closed sources include lifedrain, moonworm and stale_sandwich in addition to the earlier27. Unfinished declarations are not classified as unused. REVIEW_REQUIRED0; unfinished review is not ambiguity. Boss/defense sections and all protected nonboss sections remain closed. Current remaining content starts with other utilities/maps, food/flasks, passive entities, hazards and ASM/source closure.
+One registered custom MobEffect: `twilightforest:frosted`. Forty custom damage declarations are pinned from R2f1; **31 caller profiles reviewed**,9 unfinished. Subsequent closed sources include lifedrain, moonworm, stale_sandwich and failed_challenge in addition to the earlier27. Unfinished declarations are not classified as unused. REVIEW_REQUIRED0; unfinished review is not ambiguity. Boss/defense sections and all protected nonboss sections remain closed. Current remaining content starts with other utilities/maps, passive entities, hazards and ASM/source closure.
 
 Four pinned compatibility candidates have no direct Twilight name hits; generic conditional hooks remain, including Antidote duration reduction and player recipient/owner damage hooks. This is scoped static attribution, not pack-wide compatibility. No production fixes were made.
 
@@ -330,3 +330,17 @@ Cloth changes armor's contribution only inside native Invisibility visibility ca
 [Integrity](twilightforest-travellers-utility-integrity.json) and [full validation](r2f8q-travellers-utility-validation.json) cover source/reference reproduction, full declared class coverage, native anchors, semantic/path checks, five tooling tests, protected checkpoint and accepted116/161/217 preservation. Runtime0; no L2/Stage/production/Phase6/7 changes.
 
 Next: remaining utility/map/food/flask and passive-entity contracts, environmental hazards and all ten unfinished custom DamageTypes, then complete the remaining installed ASM/compatibility/source exclusions. Protect R2f8, deduplicate and promote full Twilight COMPLETE, push/live verify, then begin IceAndFire only while actual usage remains healthy.
+
+## R2f8r — Food, flasks and native consumption payloads
+
+Protected input R2f8q `723f5d70964592ece674c7ab3d93e71e8f3fe69b`, clean and fetched/live-verified. Adds **12 reviewed packages / 33 delivery cases**, reaching **202 mechanic drafts / 646 delivery cases**, PARTIAL, zero promoted, REVIEW_REQUIRED0. **FAILED_CHALLENGE is USED**, bringing custom DamageType coverage to **31/40**, nine unfinished.
+
+[Reviewed contracts](twilightforest-food-flasks-review.md) close native food parameters/effects, custom berry duration extension, Brittle/Greater filling/doses/breakage/persistence, real instant/noninstant potion delivery, Experiment115 portion regeneration and Essence Berry native XP orbs. Fourteen complete declared classes plus actual registration/event/resource and native/NeoForge comparisons are pinned. Food resource, later regeneration, status damage and direct flask requests stay separate.
+
+Strong Harming normally requests ownerless `failed_challenge`12; its exact predicate is `(isHarm != invertedHealAndHarm) && amplifier>0`, before the instantaneous-effect check. Consequently a legitimately inverted Player also diverts amplified non-HARM effects. No such Player eligibility is fabricated. The source has no native tag memberships or source position; ordinary mitigation applies, but native directional shield has no position to block. Hurt success does not control remaining effects or dose costs. Ordinary HarmingI uses native self-attributed indirect magic instead. Genuine component-bearing splash/lingering/tipped-arrow donors are admitted by the real flask handlers.
+
+Berry extension requests existing duration plus ticks at amplifier0 and retains native merge/eligibility. Exact244 Poison uses `neoforge:poison` with vanilla magic fallback. Eating Experiment115's final portion removes even its regenerating block. Essence Berry creates a real6..19 XP orb whose native pickup/repair can belong to another player. These findings are static source contracts, with no runtime tests or fixes.
+
+[Integrity](twilightforest-food-flasks-integrity.json) and [full validation](r2f8r-food-flasks-validation.json) cover evidence/reference reproduction, native predicate/order/return guards, class/source/path checks, five tooling tests and prior-checkpoint/accepted116/161/217 preservation. Runtime0; production/Stage/Phase6/7 untouched.
+
+Next: remaining utility/map items (Pocket Watch, transformation/terrain tools and native map/landmark ASM), then passive entities, hazards and nine unfinished custom DamageTypes. Finish remaining ASM/compatibility/source exclusions, protect R2f8 and promote Twilight COMPLETE before IceAndFire. Continue after push/live equality while actual usage permits.

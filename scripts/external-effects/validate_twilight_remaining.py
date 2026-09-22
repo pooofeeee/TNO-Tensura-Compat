@@ -539,6 +539,37 @@ def validate_remaining():
             reg=read_json(OUT/'reference-evidence/twilight-equipment-asm.json')['witnesses']
             for name in TRANSFORMERS:assert any(name+'.<init>' in str(x['operand']) for w in reg for m in w.get('methods',[]) for x in m['instructions'])
             assert not s['damage_profiles'] and d['damage_census']['reviewed_profiles_after']==30 and d['damage_census']['remaining_profiles']==10
+        if d['slug']=='food-flasks':
+            from collect_twilight_food_flasks import scan_callers
+            scan=read_json(OUT/'twilightforest-food-flasks-caller-scan.json');assert scan==scan_callers(target)
+            callers={(x['entry'],x['method']) for x in scan['hits'] if 'TFDamageTypes.FAILED_CHALLENGE' in str(x['instruction']['operand']) and '/data/' not in x['entry'] and '/init/' not in x['entry']}
+            assert callers=={('twilightforest/item/BrittleFlaskItem.class','finishUsingItem')}
+            F='item/BrittleFlaskItem';C='components/item/PotionFlaskComponent';B='item/StackableEffectItem';E='block/Experiment115Block'
+            drink=ins(F,'finishUsingItem');assert pos(drink,'PotionContents.EMPTY')<pos(drink,'entity/player/Player')<pos(drink,'.isClientSide(')<pos(drink,'.getAllEffects(')<pos(drink,'MobEffects.HARM')<pos(drink,'.isInvertedHealAndHarm(')<pos(drink,'FAILED_CHALLENGE')<pos(drink,'.hurt(')<pos(drink,'.isInstantenous(')<pos(drink,'.applyInstantenousEffect(')<pos(drink,'.addEffect(')<pos(drink,'.awardStat(')<pos(drink,'.changeAndConsumeFlask(')
+            at=next(i for i,x in enumerate(drink) if '.hurt(' in str(x['operand']));assert int(drink[at+1]['opcode'],16)==0x57,'hurt result discarded'
+            assert any('.source(Lnet/minecraft/resources/ResourceKey;)' in str(x['operand']) for x in drink)
+            assert any(int(x['opcode'],16)==0x78 for x in drink) and any(x['operand']==6 for x in drink)
+            assert not any('MobEffects.HEAL' in str(x['operand']) or '.setHealth(' in str(x['operand']) or '.doses(' in str(x['operand']) for x in drink)
+            for name in ['overrideOtherStackedOnMe','overrideStackedOnOther']:
+                fill=ins(F,name);assert pos(fill,'POTION_CONTENTS')<pos(fill,'ClickAction.SECONDARY')<pos(fill,'.equals(')<pos(fill,'.doses(')<pos(fill,'.breakage(')<pos(fill,'.shrink(')<pos(fill,'GLASS_BOTTLE')<pos(fill,'.changeAndConsumeFlask(')
+                assert not any('PotionItem' in str(x['operand']) or '.allowModification(' in str(x['operand']) or '.mayPickup(' in str(x['operand']) for x in fill)
+            use=ins(F,'use');assert pos(use,'PotionContents.EMPTY')<pos(use,'.doses(')<pos(use,'.startUsingInstantly(')
+            remove=ins(C,'removeDose');assert pos(remove,'.doses(')<pos(remove,'PotionContents.EMPTY')<pos(remove,'.breakable(')<pos(remove,'.breakage(')
+            ct=next(m['instructions'] for m in methods(B) if m['name']=='<init>' and m['descriptor']=='()V');assert ct[1]['operand']==0 and int(ct[2]['opcode'],16)==0xbd and '[Ltwilightforest/item/StackableEffectItem$StackableEffectInstance;' in ct[3]['operand']
+            finish=ins(B,'finishUsingItem');assert pos(finish,'.isClientSide(')<pos(finish,'.applyEffects(')<pos(finish,'Item.finishUsingItem(')
+            stack=ins(B,'applyOrStackEffect');assert pos(stack,'.getEffect(')<pos(stack,'.getDuration(')<pos(stack,'.extraDurationTicks(')<pos(stack,'.amplifier(')<pos(stack,'.addEffect(') and any(int(x['opcode'],16)==0x60 for x in stack)
+            assert not any('.hurt(' in str(x['operand']) for m in methods(B) for x in m['instructions'])
+            consume=ins(E,'useWithoutItem');assert pos(consume,'.canEat(')<pos(consume,'.getFoodData(')<pos(consume,'.eat(')<pos(consume,'.removeBlock(') and not any('REGENERATE' in str(x['operand']) for x in consume)
+            random=ins(E,'randomTick');assert pos(random,'REGENERATE')<pos(random,'BITES_TAKEN')<pos(random,'.setBlockAndUpdate(') and not any('.next' in str(x['operand']) for x in random)
+            essence=ins('item/EssenceBerryItem','use');assert pos(essence,'.consume(')<pos(essence,'.isClientSide')<pos(essence,'entity/ExperienceOrb')<pos(essence,'.nextInt(')<pos(essence,'.addFreshEntity(')
+            assert any(x['operand']==14 for x in essence) and any(x['operand']==6 for x in essence) and not any('.giveExperiencePoints(' in str(x['operand']) or '.heal(' in str(x['operand']) for x in essence)
+            refs=[w for p in (OUT/'reference-evidence').glob('*.json') for w in read_json(p).get('witnesses',[]) if w.get('archive_sha256') in ['8e3563a078289f0f07ee6f87f1c8651294387639c8355983ee207cb753f08b7f','d874b2aa4d511919a567ae73f13510e63e16f7318194eb2c03824cd68a59df6f']]
+            def ri(c,fn):return next(m['instructions'] for w in refs if w['entry']==c+'.class' for m in w.get('methods',[]) if m['name']==fn)
+            poison=ri('net/minecraft/world/effect/PoisonMobEffect','applyEffectTick');assert pos(poison,'.getHealth(')<pos(poison,'POISON_DAMAGE')<pos(poison,'DamageTypes.MAGIC')<pos(poison,'.hurt(')
+            menu=ri('net/minecraft/world/inventory/AbstractContainerMenu','tryItemClickBehaviourOverride');assert pos(menu,'.onItemStackedOn(')<pos(menu,'.overrideStackedOnOther(')<pos(menu,'.overrideOtherStackedOnMe(')
+            orb=ri('net/minecraft/world/entity/ExperienceOrb','playerTouch');assert pos(orb,'PickupXp')<pos(orb,'.repairPlayerItems(')<pos(orb,'.giveExperiencePoints(')
+            p=s['damage_profiles'][0];assert p['type']=='twilightforest:failed_challenge' and p['status']=='USED' and p['tags']==[]
+            assert d['damage_census']['reviewed_profiles_after']==31 and d['damage_census']['remaining_profiles']==9
         result=dict(schema='tno.external_effects.remaining_subsection_integrity.v1',status='PASS',checkpoint=d['checkpoint'],decision=d['decision'],starting_sha=d['starting_sha'],counts=s['counts'],protected_prior_files=len(protected),full_declared_class_coverage=len(d['full_classes']),twilight_reviewed_drafts=len(new['effects']),twilight_delivery_drafts=len(new['paths']),damage_profiles_reviewed=d['damage_census']['reviewed_profiles_after'],damage_profiles_remaining=d['damage_census']['remaining_profiles'],accepted_counts_unchanged=previous['accepted_counts_unchanged'],runtime_tests=0,promoted_twilight_records=0,**boundary_flags())
         results.append((d['slug'],result))
     assert results
