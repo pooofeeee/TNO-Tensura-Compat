@@ -42,7 +42,9 @@ def validate_remaining():
             assert p['id']==row['id'] and p['native_delivery']==' '.join(d['facts'][k] for k in row['facts'])
             assert p['setup'] and p['future_controls'] and set(p['labels'])<=set(DELIVERIES)
         old=read_json(OUT/d['previous_draft']);new=read_json(OUT/('partial-drafts/twilightforest-'+d['checkpoint_short']+'-partial.json'))
-        assert new['effects']==old['effects']+s['effects'] and new['paths']==old['paths']+s['paths']
+        from twilight_subsection import corrected_prior
+        corrected=corrected_prior(old,d.get('semantic_corrections',[]))
+        assert new['effects']==corrected['effects']+s['effects'] and new['paths']==corrected['paths']+s['paths']
         assert len({e['id'] for e in new['effects']})==len(new['effects']) and len({p['id'] for p in new['paths']})==len(new['paths'])
         with zipfile.ZipFile(target['path']) as jar:
             for c in d['full_classes']:
@@ -607,6 +609,9 @@ def validate_remaining():
             saving=ri('net/minecraft/world/entity/Mob','addAdditionalSaveData');loading=ri('net/minecraft/world/entity/Mob','readAdditionalSaveData')
             assert any(x['operand']=='ArmorItems' for x in saving) and any(x['operand']=='HandItems' for x in saving) and pos(loading,'ArmorItems')<pos(loading,'ItemStack.parseOptional(')
             assert not s['damage_profiles'] and d['damage_census']['reviewed_profiles_after']==31 and d['damage_census']['remaining_profiles']==9
+        if d['slug']=='maps-information':
+            from validate_twilight_maps_information import validate_maps
+            validate_maps(d,s,old,new,methods,ins,pos,target)
         result=dict(schema='tno.external_effects.remaining_subsection_integrity.v1',status='PASS',checkpoint=d['checkpoint'],decision=d['decision'],starting_sha=d['starting_sha'],counts=s['counts'],protected_prior_files=len(protected),full_declared_class_coverage=len(d['full_classes']),twilight_reviewed_drafts=len(new['effects']),twilight_delivery_drafts=len(new['paths']),damage_profiles_reviewed=d['damage_census']['reviewed_profiles_after'],damage_profiles_remaining=d['damage_census']['remaining_profiles'],accepted_counts_unchanged=previous['accepted_counts_unchanged'],runtime_tests=0,promoted_twilight_records=0,**boundary_flags())
         results.append((d['slug'],result))
     assert results

@@ -1,0 +1,2967 @@
+{
+  "schema": "tno.external_effects.semantic_section.v1",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "twilightforest",
+  "checkpoint": "R2f8t-maps-information-complete",
+  "starting_sha": "e63af59ef4558422a3036d617381645c0e4ff160",
+  "status": "REVIEWED_SUBSET_NOT_MOD_COMPLETE",
+  "subsection_decision": "TWILIGHT_MAPS_INFORMATION_SEMANTIC_REVIEW_COMPLETE",
+  "semantic_coverage_complete": false,
+  "promoted_to_catalog": false,
+  "remaining_content_subsection": true,
+  "effects": [
+    {
+      "id": "twilightforest:magic_map_information",
+      "display_name": "Magic Map native biome and landmark information",
+      "owner": "magic_map_information",
+      "primary_classification": "CUSTOM_CONTROL",
+      "primary_test_source": "Native emptyMagicMap use and held map",
+      "alternate_sources": [
+        "wrongdimension",
+        "fallback",
+        "cache",
+        "conqueredread",
+        "copy",
+        "goggles"
+      ],
+      "reuses_protected_effect_ids": [
+        "twilightforest:travellers_item_display"
+      ],
+      "mod_key": "twilightforest",
+      "inspection_status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "classification_provisional": false,
+      "actual_behavior": [
+        "TFItems registers filled_magic_map as MagicMapItem; filled_maze_map/filled_ore_map as MazeMapItem(false/true), matching empty variants, and ore_meter stack1/uncommon without durability. Native recipes use8 c:paper plus matching focus; magic focus is raven feather+torchberries+glowstone dust; ore_map is EMPTY maze_map plus diamond/gold/iron storage blocks. This does not convert an already filled Maze map or preserve its ID. Actual registered OreMeter is a legitimate future item fixture; no survival crafting recipe is inferred from its name. All matching installed resources pinned.",
+        "EmptyMagicMapItem.use clientPASS; server requires dimension TYPE holder tag twilightforest:allows_magic_map_charting, installed value twilightforest:twilight_forest_type. Rejection displays message/FAIL, no consumption/map. Success consumes1 through native ItemStack.consume (infinite-materials exemption), awards stat/sound, creates filled map at floor playerXZ, scale4/trackingtrue/unlimitedfalse. Replaces exhausted held stack; otherwise inventory add copy then drop if insertion fails. No damage, status or use cooldown.",
+        "MagicMapItem.createMapData allocates native free MapId but stores under magicmap_<id>. Center per axis round((coord-1024)/2048)*2048+1024, independent of supplied scale. getCustomMapData missing-data fallback SERVER ONLY uses shared spawn, scale3/trackingfalse, newID; this fallback does not recheck empty-map dimension-type tag. TFMagicMapData server storage is server.overworld().dataStorage, with dimension saved in each map; client separate static name->map cache. Native colors/banner/frame data retained on save/load; custom showOnItemFrame decorations persisted with IDs/counts, conquered string list persisted. No source attacker/recipient ownership.",
+        "Exact244 MapItem.getSavedData(ItemStack,Level) dispatches virtual getCustomMapData for MapItem subclasses. Native server inventoryTick performs Player.tickCarriedBy, then if unlocked and selected OR actual offhand stack identity, virtual update. Magic update additionally same dimension ResourceKey identity +Player+server. Samples128x128 output, hard-coded16 blocks/pixel and32 pixel radius (512blocks), even fallback scale3; four biome samples per pixel grid,512x512 cached biome samples atY0 spaced4blocks. Floor then Java integer division affects negative viewer offsets. Ring fuzz outside radius30, only radius<32 and odd parity in fuzzy ring. Stream neighbor preference, actual MAGIC_MAP_BIOME_COLOR datamap; absent map uses MAGENTA/brightness1. Native status/damage/attributes unaffected.",
+        "Static MagicMapItem.CACHE uses only ChunkPos(startX,startZ) for complete biome sample array; dimension/world/seed are not part of cache key. Installed TF instruction scan proves only this class accesses this private field and no clear/removal call in its class. Reusing coordinate key can reuse earlier level biome holders during this JVM lifetime. This is a source-level information-cache property, not runtime-tested world contamination or pack-wide reflection exclusion.",
+        "Within charted pixels, only a Legacy landmark center, a structure holder in LANDMARK tag, LandmarkStructure instance and present icon produce TF decoration. Icon rotation180; LandmarkUtil.isConquered reads actual matching TFStructureStart flag, does not mark it conquered. TFMagicMapData.addTFDecoration first native addDecoration, then uses existing decoration byte x/y and asset ID to make conquered marker ID, adds/removes string accordingly. List mutation alone does not call setDirty/setDecorationsDirty; pixel/decor updates use native dirty paths. A map icon is not proof of a live spawned boss, boss death, shield break or protection removal.",
+        "TFMagic/MazeData.getUpdatePacket wraps only a nonnull native ClientboundMapItemDataPacket; otherwise passes native result through. Registered playToClient handlers additionally require clientbound flow. Missing client data is created center0, current client dimension, packet scale/locked; native patch then applied. Magic clears/replaces conquered list, Maze sets ore/yCenter; native MapRenderer.update follows. These packets carry information to clients and do not mutate server boss state. Conquered renderer draws red X for matching map marker and returnsfalse so normal icon can render; Magic Player icon custom4scale returns true. Frame/banner/native rendering remains native, with actual NeoForge virtual map lookup; protected Goggles real inventory callback can deliver update/packet without holding map in hand.",
+        "Native Magic/Maze custom crafting recipes require exactlyone filled matching map slot plus>=1 empty matching map slots and no other nonempty ingredients; canCraftInDimensions requires>=3x3. Output is filled.copy() with count(empty SLOTS+1), so components/mapID preserved and all copies share underlying saved data. Filled Ore and empty Ore are not accepted by MazeMapCloningRecipe. Native recipe consumption remains; no invented copy of Ore map or special quantity-per-stacked-input.",
+        "Exact244 archive has no replacement for native CartographyTableMenu/its five anonymous classes; raw bytecode slot0 mayPlace requires Items.FILLED_MAP, additional slot PAPER/MAP/GLASS_PANE, quickMove sameFILLED_MAP identity. Genuine UI therefore rejects TF filled item identities; no baseline cartography scale/lock/copy route is proven. TF empty onCraftedBy overrides do not override native onCraftedPostProcess (MAP_POST_PROCESSING handles scale/lock). Do not infer disabled scaling from wrong method or force TF stacks through rejected native slots. Other mods changing admission are conditional external behavior."
+      ],
+      "components": [
+        {
+          "primitive": "MAGIC_MAP_INFORMATION",
+          "formula": "TFItems registers filled_magic_map as MagicMapItem; filled_maze_map/filled_ore_map as MazeMapItem(false/true), matching empty variants, and ore_meter stack1/uncommon without durability. Native recipes use8 c:paper plus matching focus; magic focus is raven feather+torchberries+glowstone dust; ore_map is EMPTY maze_map plus diamond/gold/iron storage blocks. This does not convert an already filled Maze map or preserve its ID. Actual registered OreMeter is a legitimate future item fixture; no survival crafting recipe is inferred from its name. All matching installed resources pinned.; EmptyMagicMapItem.use clientPASS; server requires dimension TYPE holder tag twilightforest:allows_magic_map_charting, installed value twilightforest:twilight_forest_type. Rejection displays message/FAIL, no consumption/map. Success consumes1 through native ItemStack.consume (infinite-materials exemption), awards stat/sound, creates filled map at floor playerXZ, scale4/trackingtrue/unlimitedfalse. Replaces exhausted held stack; otherwise inventory add copy then drop if insertion fails. No damage, status or use cooldown.; MagicMapItem.createMapData allocates native free MapId but stores under magicmap_<id>. Center per axis round((coord-1024)/2048)*2048+1024, independent of supplied scale. getCustomMapData missing-data fallback SERVER ONLY uses shared spawn, scale3/trackingfalse, newID; this fallback does not recheck empty-map dimension-type tag. TFMagicMapData server storage is server.overworld().dataStorage, with dimension saved in each map; client separate static name->map cache. Native colors/banner/frame data retained on save/load; custom showOnItemFrame decorations persisted with IDs/counts, conquered string list persisted. No source attacker/recipient ownership.; Exact244 MapItem.getSavedData(ItemStack,Level) dispatches virtual getCustomMapData for MapItem subclasses. Native server inventoryTick performs Player.tickCarriedBy, then if unlocked and selected OR actual offhand stack identity, virtual update. Magic update additionally same dimension ResourceKey identity +Player+server. Samples128x128 output, hard-coded16 blocks/pixel and32 pixel radius (512blocks), even fallback scale3; four biome samples per pixel grid,512x512 cached biome samples atY0 spaced4blocks. Floor then Java integer division affects negative viewer offsets. Ring fuzz outside radius30, only radius<32 and odd parity in fuzzy ring. Stream neighbor preference, actual MAGIC_MAP_BIOME_COLOR datamap; absent map uses MAGENTA/brightness1. Native status/damage/attributes unaffected.; Static MagicMapItem.CACHE uses only ChunkPos(startX,startZ) for complete biome sample array; dimension/world/seed are not part of cache key. Installed TF instruction scan proves only this class accesses this private field and no clear/removal call in its class. Reusing coordinate key can reuse earlier level biome holders during this JVM lifetime. This is a source-level information-cache property, not runtime-tested world contamination or pack-wide reflection exclusion.; Within charted pixels, only a Legacy landmark center, a structure holder in LANDMARK tag, LandmarkStructure instance and present icon produce TF decoration. Icon rotation180; LandmarkUtil.isConquered reads actual matching TFStructureStart flag, does not mark it conquered. TFMagicMapData.addTFDecoration first native addDecoration, then uses existing decoration byte x/y and asset ID to make conquered marker ID, adds/removes string accordingly. List mutation alone does not call setDirty/setDecorationsDirty; pixel/decor updates use native dirty paths. A map icon is not proof of a live spawned boss, boss death, shield break or protection removal.; TFMagic/MazeData.getUpdatePacket wraps only a nonnull native ClientboundMapItemDataPacket; otherwise passes native result through. Registered playToClient handlers additionally require clientbound flow. Missing client data is created center0, current client dimension, packet scale/locked; native patch then applied. Magic clears/replaces conquered list, Maze sets ore/yCenter; native MapRenderer.update follows. These packets carry information to clients and do not mutate server boss state. Conquered renderer draws red X for matching map marker and returnsfalse so normal icon can render; Magic Player icon custom4scale returns true. Frame/banner/native rendering remains native, with actual NeoForge virtual map lookup; protected Goggles real inventory callback can deliver update/packet without holding map in hand.; Native Magic/Maze custom crafting recipes require exactlyone filled matching map slot plus>=1 empty matching map slots and no other nonempty ingredients; canCraftInDimensions requires>=3x3. Output is filled.copy() with count(empty SLOTS+1), so components/mapID preserved and all copies share underlying saved data. Filled Ore and empty Ore are not accepted by MazeMapCloningRecipe. Native recipe consumption remains; no invented copy of Ore map or special quantity-per-stacked-input.; Exact244 archive has no replacement for native CartographyTableMenu/its five anonymous classes; raw bytecode slot0 mayPlace requires Items.FILLED_MAP, additional slot PAPER/MAP/GLASS_PANE, quickMove sameFILLED_MAP identity. Genuine UI therefore rejects TF filled item identities; no baseline cartography scale/lock/copy route is proven. TF empty onCraftedBy overrides do not override native onCraftedPostProcess (MAP_POST_PROCESSING handles scale/lock). Do not infer disabled scaling from wrong method or force TF stacks through rejected native slots. Other mods changing admission are conditional external behavior.",
+          "numerical_parameters": {
+            "empty_scale": 4,
+            "fallback_scale": 3,
+            "blocks_per_pixel": 16,
+            "view_radius_pixels": 32,
+            "center_grid": 2048
+          },
+          "binary_parameters": [
+            "actualnativeuse",
+            "creationdimensionTYPEtag",
+            "samelevelupdate",
+            "Player",
+            "native selected/offhand/goggles",
+            "unlocked"
+          ],
+          "vanilla_relation": "Custom information over native map item/data/packet infrastructure, no damage."
+        }
+      ],
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/EmptyMagicMapItem",
+          "entry": "twilightforest/item/EmptyMagicMapItem.class",
+          "methods": [
+            "<init>",
+            "use"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/MagicMapItem",
+          "entry": "twilightforest/item/MagicMapItem.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "appendHoverText",
+            "createMapData",
+            "getCustomMapData",
+            "getCustomMapData",
+            "getData",
+            "getData",
+            "getMagicMapCenter",
+            "getMapColorPerBiome",
+            "getMapName",
+            "getUpdatePacket",
+            "lambda$update$0",
+            "lambda$update$1",
+            "lambda$update$2",
+            "makeName",
+            "onCraftedBy",
+            "setupNewMap",
+            "update"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/mapdata/TFMagicMapData",
+          "entry": "twilightforest/item/mapdata/TFMagicMapData.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "addTFDecoration",
+            "factory",
+            "getClientMagicMapData",
+            "getMagicMapData",
+            "getUpdatePacket",
+            "lambda$factory$3",
+            "lambda$load$0",
+            "lambda$load$1",
+            "lambda$save$2",
+            "load",
+            "registerMagicMapData",
+            "save"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/recipe/MagicMapCloningRecipe",
+          "entry": "twilightforest/item/recipe/MagicMapCloningRecipe.class",
+          "methods": [
+            "<init>",
+            "assemble",
+            "assemble",
+            "canCraftInDimensions",
+            "getSerializer",
+            "matches",
+            "matches"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:network/MagicMapPacket",
+          "entry": "twilightforest/network/MagicMapPacket.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "conqueredStructures",
+            "equals",
+            "handle",
+            "hashCode",
+            "inner",
+            "toString",
+            "type"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "twilightforest:maps_information_path:magic_create",
+        "twilightforest:maps_information_path:magic_update",
+        "twilightforest:maps_information_path:magic_fallback",
+        "twilightforest:maps_information_path:magic_landmarks",
+        "twilightforest:maps_information_path:magic_store",
+        "twilightforest:maps_information_path:magic_clone",
+        "twilightforest:maps_information_path:map_goggles",
+        "twilightforest:maps_information_path:map_cartography"
+      ],
+      "registry_ids": [],
+      "pending": [
+        "Whole Twilight closure/final promotion only; this bounded subsection is reviewed."
+      ],
+      "unresolved_ambiguities": null
+    },
+    {
+      "id": "twilightforest:maze_ore_map_information",
+      "display_name": "Maze and Ore Map slice information",
+      "owner": "maze_ore_map_information",
+      "primary_classification": "CUSTOM_CONTROL",
+      "primary_test_source": "Native Maze/Ore map use",
+      "alternate_sources": [
+        "actualYslice",
+        "verticalmarker",
+        "ceiling",
+        "nativeclone exclusions",
+        "goggles"
+      ],
+      "reuses_protected_effect_ids": [
+        "twilightforest:travellers_item_display"
+      ],
+      "mod_key": "twilightforest",
+      "inspection_status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "classification_provisional": false,
+      "actual_behavior": [
+        "TFItems registers filled_magic_map as MagicMapItem; filled_maze_map/filled_ore_map as MazeMapItem(false/true), matching empty variants, and ore_meter stack1/uncommon without durability. Native recipes use8 c:paper plus matching focus; magic focus is raven feather+torchberries+glowstone dust; ore_map is EMPTY maze_map plus diamond/gold/iron storage blocks. This does not convert an already filled Maze map or preserve its ID. Actual registered OreMeter is a legitimate future item fixture; no survival crafting recipe is inferred from its name. All matching installed resources pinned.",
+        "EmptyMazeMapItem.use creates scale0/trackingtrue/unlimitedfalse at floor playerXYZ with constructor ore flag BEFORE consuming1; unlike EmptyMagic no explicit side or dimension-charting tag guard. Native use, inventory/drop and consume semantics remain. Maze create allocates new mapID and mazemap_<id>, native128*(1<<scale) center rounding; TFMazeMapData.calculateMapCenter sets yCenter=creationY and, only ServerLevel with Legacy selected LABYRINTH, snapsXZ to nearest legacy center. Otherwise keeps native rounded center. Missing-data server fallback uses sharedspawnXYZ scale0/trackingfalse and item ore flag, no empty-map recreation requirement.",
+        "Maze update requires same dimension ResourceKey and Player; server gate comes from native TF inventoryTick. Pixel size1<<scale, view radius16pixels (8 with ceiling), native HoldingPlayer.step increment, columns step-mod16 or prior-change continuation, radius/parity fuzz. Ceiling uses deterministic pseudorandom DIRT/STONE colors, not underground block contents. Nonceiling reads original state at chunk-localXZ/yCenter and immediately adds its map color. If original is STONE OR air, probesY-3..Y+3 for STONE AND notair, assigns first such state and brightness0below/2above/1same. It does NOT search for the first nonstone; original color multiset is not replaced by searched state. Ore branch uses resulting state, datamap ORE_MAP_ORE_COLOR weight1000 else nonair c:ores PINK weight1000. Actual9 installed color keys cover8 native ore tags plus ancient_debris; dynamically mapped/tagged ores remain conditional.",
+        "TF Maze server inventoryTick calls tickCarriedBy first. floor(playerY-yCenter) outside[-3,3] replaces existing own-name decoration with PLAYER_OFF_MAP retaining coordinates/rotation. This vertical test changes marker only: it does not veto subsequent unlocked selected/offhand pixelupdate. yCenter and ore flag persist with native saved map fields; server storageoverworld/clientstatic cache separate from Magic. Same mapId among copies shares saved data. No target damage, mining, teleport or forced block loading is introduced by this review; real update reads native chunks as coded.",
+        "TFMagic/MazeData.getUpdatePacket wraps only a nonnull native ClientboundMapItemDataPacket; otherwise passes native result through. Registered playToClient handlers additionally require clientbound flow. Missing client data is created center0, current client dimension, packet scale/locked; native patch then applied. Magic clears/replaces conquered list, Maze sets ore/yCenter; native MapRenderer.update follows. These packets carry information to clients and do not mutate server boss state. Conquered renderer draws red X for matching map marker and returnsfalse so normal icon can render; Magic Player icon custom4scale returns true. Frame/banner/native rendering remains native, with actual NeoForge virtual map lookup; protected Goggles real inventory callback can deliver update/packet without holding map in hand.",
+        "Native Magic/Maze custom crafting recipes require exactlyone filled matching map slot plus>=1 empty matching map slots and no other nonempty ingredients; canCraftInDimensions requires>=3x3. Output is filled.copy() with count(empty SLOTS+1), so components/mapID preserved and all copies share underlying saved data. Filled Ore and empty Ore are not accepted by MazeMapCloningRecipe. Native recipe consumption remains; no invented copy of Ore map or special quantity-per-stacked-input.",
+        "Exact244 archive has no replacement for native CartographyTableMenu/its five anonymous classes; raw bytecode slot0 mayPlace requires Items.FILLED_MAP, additional slot PAPER/MAP/GLASS_PANE, quickMove sameFILLED_MAP identity. Genuine UI therefore rejects TF filled item identities; no baseline cartography scale/lock/copy route is proven. TF empty onCraftedBy overrides do not override native onCraftedPostProcess (MAP_POST_PROCESSING handles scale/lock). Do not infer disabled scaling from wrong method or force TF stacks through rejected native slots. Other mods changing admission are conditional external behavior."
+      ],
+      "components": [
+        {
+          "primitive": "MAZE_ORE_MAP_INFORMATION",
+          "formula": "TFItems registers filled_magic_map as MagicMapItem; filled_maze_map/filled_ore_map as MazeMapItem(false/true), matching empty variants, and ore_meter stack1/uncommon without durability. Native recipes use8 c:paper plus matching focus; magic focus is raven feather+torchberries+glowstone dust; ore_map is EMPTY maze_map plus diamond/gold/iron storage blocks. This does not convert an already filled Maze map or preserve its ID. Actual registered OreMeter is a legitimate future item fixture; no survival crafting recipe is inferred from its name. All matching installed resources pinned.; EmptyMazeMapItem.use creates scale0/trackingtrue/unlimitedfalse at floor playerXYZ with constructor ore flag BEFORE consuming1; unlike EmptyMagic no explicit side or dimension-charting tag guard. Native use, inventory/drop and consume semantics remain. Maze create allocates new mapID and mazemap_<id>, native128*(1<<scale) center rounding; TFMazeMapData.calculateMapCenter sets yCenter=creationY and, only ServerLevel with Legacy selected LABYRINTH, snapsXZ to nearest legacy center. Otherwise keeps native rounded center. Missing-data server fallback uses sharedspawnXYZ scale0/trackingfalse and item ore flag, no empty-map recreation requirement.; Maze update requires same dimension ResourceKey and Player; server gate comes from native TF inventoryTick. Pixel size1<<scale, view radius16pixels (8 with ceiling), native HoldingPlayer.step increment, columns step-mod16 or prior-change continuation, radius/parity fuzz. Ceiling uses deterministic pseudorandom DIRT/STONE colors, not underground block contents. Nonceiling reads original state at chunk-localXZ/yCenter and immediately adds its map color. If original is STONE OR air, probesY-3..Y+3 for STONE AND notair, assigns first such state and brightness0below/2above/1same. It does NOT search for the first nonstone; original color multiset is not replaced by searched state. Ore branch uses resulting state, datamap ORE_MAP_ORE_COLOR weight1000 else nonair c:ores PINK weight1000. Actual9 installed color keys cover8 native ore tags plus ancient_debris; dynamically mapped/tagged ores remain conditional.; TF Maze server inventoryTick calls tickCarriedBy first. floor(playerY-yCenter) outside[-3,3] replaces existing own-name decoration with PLAYER_OFF_MAP retaining coordinates/rotation. This vertical test changes marker only: it does not veto subsequent unlocked selected/offhand pixelupdate. yCenter and ore flag persist with native saved map fields; server storageoverworld/clientstatic cache separate from Magic. Same mapId among copies shares saved data. No target damage, mining, teleport or forced block loading is introduced by this review; real update reads native chunks as coded.; TFMagic/MazeData.getUpdatePacket wraps only a nonnull native ClientboundMapItemDataPacket; otherwise passes native result through. Registered playToClient handlers additionally require clientbound flow. Missing client data is created center0, current client dimension, packet scale/locked; native patch then applied. Magic clears/replaces conquered list, Maze sets ore/yCenter; native MapRenderer.update follows. These packets carry information to clients and do not mutate server boss state. Conquered renderer draws red X for matching map marker and returnsfalse so normal icon can render; Magic Player icon custom4scale returns true. Frame/banner/native rendering remains native, with actual NeoForge virtual map lookup; protected Goggles real inventory callback can deliver update/packet without holding map in hand.; Native Magic/Maze custom crafting recipes require exactlyone filled matching map slot plus>=1 empty matching map slots and no other nonempty ingredients; canCraftInDimensions requires>=3x3. Output is filled.copy() with count(empty SLOTS+1), so components/mapID preserved and all copies share underlying saved data. Filled Ore and empty Ore are not accepted by MazeMapCloningRecipe. Native recipe consumption remains; no invented copy of Ore map or special quantity-per-stacked-input.; Exact244 archive has no replacement for native CartographyTableMenu/its five anonymous classes; raw bytecode slot0 mayPlace requires Items.FILLED_MAP, additional slot PAPER/MAP/GLASS_PANE, quickMove sameFILLED_MAP identity. Genuine UI therefore rejects TF filled item identities; no baseline cartography scale/lock/copy route is proven. TF empty onCraftedBy overrides do not override native onCraftedPostProcess (MAP_POST_PROCESSING handles scale/lock). Do not infer disabled scaling from wrong method or force TF stacks through rejected native slots. Other mods changing admission are conditional external behavior.",
+          "numerical_parameters": {
+            "scale": 0,
+            "radius_pixels": 16,
+            "ceiling_radius": 8,
+            "Y_search": 3,
+            "ore_weight": 1000
+          },
+          "binary_parameters": [
+            "nativeemptyvariant",
+            "samedimension",
+            "Player",
+            "unlockedselected/offhand",
+            "ore flag/maps/tags"
+          ],
+          "vanilla_relation": "Custom fixed-Y map pixels and ore colors; no mining or combat mutation."
+        }
+      ],
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/EmptyMazeMapItem",
+          "entry": "twilightforest/item/EmptyMazeMapItem.class",
+          "methods": [
+            "<init>",
+            "use"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/MazeMapItem",
+          "entry": "twilightforest/item/MazeMapItem.class",
+          "methods": [
+            "<init>",
+            "appendHoverText",
+            "createMapData",
+            "getCustomMapData",
+            "getCustomMapData",
+            "getData",
+            "getMapName",
+            "getUpdatePacket",
+            "inventoryTick",
+            "onCraftedBy",
+            "setupNewMap",
+            "update"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/mapdata/TFMazeMapData",
+          "entry": "twilightforest/item/mapdata/TFMazeMapData.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "calculateMapCenter",
+            "factory",
+            "getClientMagicMapData",
+            "getMazeMapData",
+            "getUpdatePacket",
+            "lambda$factory$0",
+            "load",
+            "registerMazeMapData",
+            "save"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/recipe/MazeMapCloningRecipe",
+          "entry": "twilightforest/item/recipe/MazeMapCloningRecipe.class",
+          "methods": [
+            "<init>",
+            "assemble",
+            "assemble",
+            "canCraftInDimensions",
+            "getSerializer",
+            "matches",
+            "matches"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:network/MazeMapPacket",
+          "entry": "twilightforest/network/MazeMapPacket.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "equals",
+            "handle",
+            "hashCode",
+            "inner",
+            "ore",
+            "toString",
+            "type",
+            "yCenter"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "twilightforest:maps_information_path:maze_create",
+        "twilightforest:maps_information_path:ore_create",
+        "twilightforest:maps_information_path:maze_update",
+        "twilightforest:maps_information_path:ore_update",
+        "twilightforest:maps_information_path:maze_ceiling",
+        "twilightforest:maps_information_path:maze_height",
+        "twilightforest:maps_information_path:maze_store",
+        "twilightforest:maps_information_path:maze_fallback",
+        "twilightforest:maps_information_path:maze_clone",
+        "twilightforest:maps_information_path:map_goggles",
+        "twilightforest:maps_information_path:map_cartography"
+      ],
+      "registry_ids": [],
+      "pending": [
+        "Whole Twilight closure/final promotion only; this bounded subsection is reviewed."
+      ],
+      "unresolved_ambiguities": null
+    },
+    {
+      "id": "twilightforest:landmark_map_locator",
+      "display_name": "Native landmark locator integration",
+      "owner": "landmark_map_locator",
+      "primary_classification": "CUSTOM_CONTROL",
+      "primary_test_source": "Native authorized locateStructure for landmark",
+      "alternate_sources": [
+        "nativeexplorationmap",
+        "nativevillagertrade conditionaltarget",
+        "earlierreturn",
+        "no matchingplacement"
+      ],
+      "mod_key": "twilightforest",
+      "inspection_status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "classification_provisional": false,
+      "actual_behavior": [
+        "Registered ResolveNearestNonRandomSpreadMapStructureTransformer targets exact ChunkGenerator.findNearestMapStructure(ServerLevel,HolderSet,BlockPos,int,boolean)Pair. Finds LAST ARETURN and inserts originalPair +locals1,2,3,4,5 into MapHooks.resolveNearestNonRandomSpreadMapStructure. Exact244 target has THREE ARETURN instructions: empty placement map early-null and early random-spread result bypass hook; only final return is intercepted. Hook calls WorldUtil.findNearestMapLandmark(...).orElse(original). A found TF pair replaces original without comparing distances to original vanilla result. No unconditional all-return interception or global nearest guarantee.",
+        "WorldUtil restricts target holder placements to actual LandmarkGridPlacement, otherwise Optional.empty. Scans Legacy landmark centers using focus chunk &-16, spacing16chunks and supplied radius as GRID radius; skipCenterfalse, iterator hasNext dX+1<=radius means radius0 scansnothing. Placement.isStructureChunk remains: native placement/frequency/exclusion checks; TF ctorfreq1/salt0/zerooffset/noexclusion plus actual center and optional resource-key gridlock==pickVarietyLandmark. Target must be in that placement set and structure biome list contain level.getBiome(centerY0). With skipKnown, START_PRESENT breaks inner target loop. It does not load/validate a generated structure start for every accepted candidate. Chooses smallest center.distToLowCornerSqr(queryX,0,queryZ) among TF candidates. Native search reads info, no spawning/HP/shield/progression modification.",
+        "Legacy center coordinates derive region math and deterministic coordinate seed, sign-dependent+8/+9. Biome-specific landmark selection uses rounded16chunk cells sampled atY0; variety uses overworld worldgen seed+chunkX*25117+chunkZ*151121, hill weights6/3/1,hedge2,Naga2,Lich2, with reserved regional Naga/Lich positions. Gridlock uses variety selection; Magic map landmark pick first uses biome mapping. These are distinct code paths. Full native helper/iterator/placement bodies pinned; blockNearLandmarkCenter shifts by(4+x)/(4+z) per Java precedence rather than adding offsets after shift, and is not the map locator call used here. No new boss attack mechanic inferred from structure choice.",
+        "Actual ServerLevel.findNearestMapStructure delegates to generator with requested tag holders. Native ExplorationMapFunction requires actual Items.MAP and nonnull loot ORIGIN, then uses configured destination/radius/skipKnown; found result creates ordinary native map with zoom, tracking/unlimitedtrue, biome preview and target marker. VillagerTrades.TreasureMapForEmeralds requires ServerLevel trader and uses destination tag, radius100, skipKnowntrue; found result creates native scale2 map and ordinary offer with emerald cost plus compass, configured maxUses/xp and .2 priceMultiplier. Missing search result yields unchanged loot stack or null trade. Native LocateCommand calls generator directly for actual requested structure holder(s), requires normal command authority. Their results reach TF hook only through final-return path and actual LandmarkGridPlacement target. No installed TF exploration-map loot resource is assumed; direct native path availability is distinct from a configured TF trade/loot producer."
+      ],
+      "components": [
+        {
+          "primitive": "LANDMARK_MAP_LOCATOR",
+          "formula": "Registered ResolveNearestNonRandomSpreadMapStructureTransformer targets exact ChunkGenerator.findNearestMapStructure(ServerLevel,HolderSet,BlockPos,int,boolean)Pair. Finds LAST ARETURN and inserts originalPair +locals1,2,3,4,5 into MapHooks.resolveNearestNonRandomSpreadMapStructure. Exact244 target has THREE ARETURN instructions: empty placement map early-null and early random-spread result bypass hook; only final return is intercepted. Hook calls WorldUtil.findNearestMapLandmark(...).orElse(original). A found TF pair replaces original without comparing distances to original vanilla result. No unconditional all-return interception or global nearest guarantee.; WorldUtil restricts target holder placements to actual LandmarkGridPlacement, otherwise Optional.empty. Scans Legacy landmark centers using focus chunk &-16, spacing16chunks and supplied radius as GRID radius; skipCenterfalse, iterator hasNext dX+1<=radius means radius0 scansnothing. Placement.isStructureChunk remains: native placement/frequency/exclusion checks; TF ctorfreq1/salt0/zerooffset/noexclusion plus actual center and optional resource-key gridlock==pickVarietyLandmark. Target must be in that placement set and structure biome list contain level.getBiome(centerY0). With skipKnown, START_PRESENT breaks inner target loop. It does not load/validate a generated structure start for every accepted candidate. Chooses smallest center.distToLowCornerSqr(queryX,0,queryZ) among TF candidates. Native search reads info, no spawning/HP/shield/progression modification.; Legacy center coordinates derive region math and deterministic coordinate seed, sign-dependent+8/+9. Biome-specific landmark selection uses rounded16chunk cells sampled atY0; variety uses overworld worldgen seed+chunkX*25117+chunkZ*151121, hill weights6/3/1,hedge2,Naga2,Lich2, with reserved regional Naga/Lich positions. Gridlock uses variety selection; Magic map landmark pick first uses biome mapping. These are distinct code paths. Full native helper/iterator/placement bodies pinned; blockNearLandmarkCenter shifts by(4+x)/(4+z) per Java precedence rather than adding offsets after shift, and is not the map locator call used here. No new boss attack mechanic inferred from structure choice.; Actual ServerLevel.findNearestMapStructure delegates to generator with requested tag holders. Native ExplorationMapFunction requires actual Items.MAP and nonnull loot ORIGIN, then uses configured destination/radius/skipKnown; found result creates ordinary native map with zoom, tracking/unlimitedtrue, biome preview and target marker. VillagerTrades.TreasureMapForEmeralds requires ServerLevel trader and uses destination tag, radius100, skipKnowntrue; found result creates native scale2 map and ordinary offer with emerald cost plus compass, configured maxUses/xp and .2 priceMultiplier. Missing search result yields unchanged loot stack or null trade. Native LocateCommand calls generator directly for actual requested structure holder(s), requires normal command authority. Their results reach TF hook only through final-return path and actual LandmarkGridPlacement target. No installed TF exploration-map loot resource is assumed; direct native path availability is distinct from a configured TF trade/loot producer.",
+          "numerical_parameters": {
+            "spacing_chunks": 16,
+            "hooked_returns": 1,
+            "target_returns": 3
+          },
+          "binary_parameters": [
+            "actualfinalreturn",
+            "LandmarkGridPlacement",
+            "biome/structureselection",
+            "radius",
+            "skipKnown"
+          ],
+          "vanilla_relation": "Extends native structure locator, information only."
+        }
+      ],
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-active-utilities.json",
+          "witness_id": "tf:util/WorldUtil",
+          "entry": "twilightforest/util/WorldUtil.class",
+          "methods": [
+            "randomOffset",
+            "randomOffset"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-hydra-urghast.json",
+          "witness_id": "tf:util/WorldUtil",
+          "entry": "twilightforest/util/WorldUtil.class",
+          "methods": [
+            "getAllInBB"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:asmhooks/MapHooks",
+          "entry": "twilightforest/asmhooks/MapHooks.class",
+          "methods": [
+            "<init>",
+            "resolveNearestNonRandomSpreadMapStructure"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:util/landmarks/LegacyLandmarkPlacements",
+          "entry": "twilightforest/util/landmarks/LegacyLandmarkPlacements.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "blockIsInLandmarkCenter",
+            "blockNearLandmarkCenter",
+            "chunkHasLandmarkCenter",
+            "getNearestCenterXZ",
+            "getNearestCenterXZ",
+            "lambda$static$0",
+            "landmarkCenterScanner",
+            "manhattanDistanceFromLandmarkCenter",
+            "pickLandmarkAtBlock",
+            "pickLandmarkForChunk",
+            "pickVarietyLandmark"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:util/iterators/XZQuadrantIterator",
+          "entry": "twilightforest/util/iterators/XZQuadrantIterator.class",
+          "methods": [
+            "<init>",
+            "generate",
+            "hasNext",
+            "iterator",
+            "next",
+            "tickXZ",
+            "toString"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:world/components/structures/placements/LandmarkGridPlacement",
+          "entry": "twilightforest/world/components/structures/placements/LandmarkGridPlacement.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "forceStructureForCenters",
+            "isPlacementChunk",
+            "lambda$static$0",
+            "lambda$static$1",
+            "type"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:util/WorldUtil",
+          "entry": "twilightforest/util/WorldUtil.class",
+          "methods": [
+            "findNearestMapLandmark",
+            "getOverworldSeed",
+            "lambda$findNearestMapLandmark$0"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-tactical-mobs.json",
+          "witness_id": "tf:util/WorldUtil",
+          "entry": "twilightforest/util/WorldUtil.class",
+          "methods": [
+            "getAllAround"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-travellers-utility.json",
+          "witness_id": "tf:asmhooks/MapHooks",
+          "entry": "twilightforest/asmhooks/MapHooks.class",
+          "methods": [
+            "updateMapsInGoggles"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "twilightforest:maps_information_path:locator_command",
+        "twilightforest:maps_information_path:locator_loot",
+        "twilightforest:maps_information_path:locator_trade",
+        "twilightforest:maps_information_path:locator_gates"
+      ],
+      "registry_ids": [],
+      "pending": [
+        "Whole Twilight closure/final promotion only; this bounded subsection is reviewed."
+      ],
+      "unresolved_ambiguities": null
+    },
+    {
+      "id": "twilightforest:ore_meter_information",
+      "display_name": "Ore Meter native scanned snapshot",
+      "owner": "ore_meter_information",
+      "primary_classification": "CUSTOM_CONTROL",
+      "primary_test_source": "Native registered OreMeter use",
+      "alternate_sources": [
+        "range/filter",
+        "dimensionchange",
+        "save/reload",
+        "ongoingclear",
+        "HUDsnapshot"
+      ],
+      "mod_key": "twilightforest",
+      "inspection_status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "classification_provisional": false,
+      "actual_behavior": [
+        "TFItems registers filled_magic_map as MagicMapItem; filled_maze_map/filled_ore_map as MazeMapItem(false/true), matching empty variants, and ore_meter stack1/uncommon without durability. Native recipes use8 c:paper plus matching focus; magic focus is raven feather+torchberries+glowstone dust; ore_map is EMPTY maze_map plus diamond/gold/iron storage blocks. This does not convert an already filled Maze map or preserve its ID. Actual registered OreMeter is a legitimate future item fixture; no survival crafting recipe is inferred from its name. All matching installed resources pinned.",
+        "OreMeter.use requires player.getClass()==ServerPlayer.class, not instanceof (real subclasses/FakePlayer fail). isLoading means ORE_LOADING component presence; if present PASS. Otherwise nonsecondary begins server scan with range=getOrDefault1, duration50+25range and ORE_SCANNING only. No ORE_LOADING until first tick, so another valid use before tick can restart. No consumption, durability or cooldown. Secondary air-use only cycles range via positiveModulo(range+1,3) when native Fluid.ANY ray MISS; hit returnsPASS. Separate useOn secondary+actual clicked ORE_METER_TARGETABLE tag sets ORE_FILTER, no loading/server check inside method, no nullPlayer guard. Actual interaction eligibility remains.",
+        "OreScannerComponent.scanFromCenter uses chunk=(center>>4), origin((chunk-range)<<4,Y0), span=endcoord(chunk+range,15)-origin WITHOUT+1. Normalranges0/1/2 produce15/47/79 blocks per horizontal axis. tickScan uses CURRENT level minBuildHeight as originY, area=xSpan*zSpan, volume=area*CURRENT getMaxBuildHeight (not max-min). march=ceil(float(volume)/abs(duration)), starts at ticksProgressed*march, scans linearX/Z/Y until volume; copies immutable counter and adds one tick. Standard min=-64,max=320 yieldsY-64..255, excluding256..319. This exact formula is recorded, not repaired or assumed to scan full nominal chunks.",
+        "Server inventoryTick any real ticked slot with ORE_SCANNING: tickScan first; if empty removeSCANNINGonly, else unfinished writesLOADINGprogress+SCANNINGnext; finished writesORE_DATA(getResults(CURRENTfilter),centerChunk,volume,CURRENTrange), removesLOADING/SCANNING. No held requirement or persisted dimension: carrying genuine scanning stack across levels can sample current level at storedXZ and combine counters; no runtime assertion. Existing ORE_DATA remains during new scan but loadingHUD takes precedence. No ore removal, damage source, status or direct resource transfer. Scanning continues only with real inventoryTick caller, not hypothetical every container.",
+        "Counter includes all scanned Block identities. With assigned filter getResults returns exactly its translated-descriptionID and count (even0); without filter includes count>0 and block holder c:ores. Results use immutable map, saved scannedChunk,totalScannedBlocks, universalId=(counts.hashCode XOR chunk.toLong)*(scannedRange XOR total). ORE_SCANNING codec persists origin/spans/duration/counts/progression; default-on-parse-error is empty scanner. TF registration specifies persistent codec with no explicit network codec, but native DataComponentType.Builder.build derives fromCodecWithRegistries, so not server-only/transient. DATA/LOADING/RANGE/FILTER have explicit persistence/network codecs. Native stack/save/load/sync applies; no timer outside callback.",
+        "EntityEvents.LeftClickEmpty listener, if genuine heldmeter hasDATA ORFILTER, sends WipeOreMeterPacket and locally removesDATA/FILTER. Registered playToServer handler uses ctx.player actual hand and exactORE_METER before removing those two only. Does not cancel SCANNING, LOADING or RANGE; ongoing scan may refillDATA. HUD real heldmeter (main preferred), activeclient GUIvisible/no debug/no screen; LOADINGdots elseDATA. Nonzero universalId initializes cached table; id0 skipped unless an entry already exists. Displays snapshot counts/percentages/scannedchunk, not live world query. Cache key omits dimension/independent configuration and can collide; read-only info behavior, not proven pack issue."
+      ],
+      "components": [
+        {
+          "primitive": "ORE_METER_INFORMATION",
+          "formula": "TFItems registers filled_magic_map as MagicMapItem; filled_maze_map/filled_ore_map as MazeMapItem(false/true), matching empty variants, and ore_meter stack1/uncommon without durability. Native recipes use8 c:paper plus matching focus; magic focus is raven feather+torchberries+glowstone dust; ore_map is EMPTY maze_map plus diamond/gold/iron storage blocks. This does not convert an already filled Maze map or preserve its ID. Actual registered OreMeter is a legitimate future item fixture; no survival crafting recipe is inferred from its name. All matching installed resources pinned.; OreMeter.use requires player.getClass()==ServerPlayer.class, not instanceof (real subclasses/FakePlayer fail). isLoading means ORE_LOADING component presence; if present PASS. Otherwise nonsecondary begins server scan with range=getOrDefault1, duration50+25range and ORE_SCANNING only. No ORE_LOADING until first tick, so another valid use before tick can restart. No consumption, durability or cooldown. Secondary air-use only cycles range via positiveModulo(range+1,3) when native Fluid.ANY ray MISS; hit returnsPASS. Separate useOn secondary+actual clicked ORE_METER_TARGETABLE tag sets ORE_FILTER, no loading/server check inside method, no nullPlayer guard. Actual interaction eligibility remains.; OreScannerComponent.scanFromCenter uses chunk=(center>>4), origin((chunk-range)<<4,Y0), span=endcoord(chunk+range,15)-origin WITHOUT+1. Normalranges0/1/2 produce15/47/79 blocks per horizontal axis. tickScan uses CURRENT level minBuildHeight as originY, area=xSpan*zSpan, volume=area*CURRENT getMaxBuildHeight (not max-min). march=ceil(float(volume)/abs(duration)), starts at ticksProgressed*march, scans linearX/Z/Y until volume; copies immutable counter and adds one tick. Standard min=-64,max=320 yieldsY-64..255, excluding256..319. This exact formula is recorded, not repaired or assumed to scan full nominal chunks.; Server inventoryTick any real ticked slot with ORE_SCANNING: tickScan first; if empty removeSCANNINGonly, else unfinished writesLOADINGprogress+SCANNINGnext; finished writesORE_DATA(getResults(CURRENTfilter),centerChunk,volume,CURRENTrange), removesLOADING/SCANNING. No held requirement or persisted dimension: carrying genuine scanning stack across levels can sample current level at storedXZ and combine counters; no runtime assertion. Existing ORE_DATA remains during new scan but loadingHUD takes precedence. No ore removal, damage source, status or direct resource transfer. Scanning continues only with real inventoryTick caller, not hypothetical every container.; Counter includes all scanned Block identities. With assigned filter getResults returns exactly its translated-descriptionID and count (even0); without filter includes count>0 and block holder c:ores. Results use immutable map, saved scannedChunk,totalScannedBlocks, universalId=(counts.hashCode XOR chunk.toLong)*(scannedRange XOR total). ORE_SCANNING codec persists origin/spans/duration/counts/progression; default-on-parse-error is empty scanner. TF registration specifies persistent codec with no explicit network codec, but native DataComponentType.Builder.build derives fromCodecWithRegistries, so not server-only/transient. DATA/LOADING/RANGE/FILTER have explicit persistence/network codecs. Native stack/save/load/sync applies; no timer outside callback.; EntityEvents.LeftClickEmpty listener, if genuine heldmeter hasDATA ORFILTER, sends WipeOreMeterPacket and locally removesDATA/FILTER. Registered playToServer handler uses ctx.player actual hand and exactORE_METER before removing those two only. Does not cancel SCANNING, LOADING or RANGE; ongoing scan may refillDATA. HUD real heldmeter (main preferred), activeclient GUIvisible/no debug/no screen; LOADINGdots elseDATA. Nonzero universalId initializes cached table; id0 skipped unless an entry already exists. Displays snapshot counts/percentages/scannedchunk, not live world query. Cache key omits dimension/independent configuration and can collide; read-only info behavior, not proven pack issue.",
+          "numerical_parameters": {
+            "normal_ranges": [
+              0,
+              1,
+              2
+            ],
+            "default_range": 1,
+            "horizontal_spans": [
+              15,
+              47,
+              79
+            ],
+            "scan_durations": [
+              50,
+              75,
+              100
+            ]
+          },
+          "binary_parameters": [
+            "exactServerPlayeruse",
+            "loadingcomponent",
+            "nativeinventorytick",
+            "actuallevelgeometry",
+            "filtertag",
+            "realheldclear"
+          ],
+          "vanilla_relation": "Custom informational scan and stored snapshot; not resource extraction or damage."
+        }
+      ],
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-frosted.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "<clinit>",
+            "onParryProjectile",
+            "setup"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-lich.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "<init>",
+            "addCloudJumpParticles",
+            "addQualifiedGroupPlayerIfNeeded",
+            "adjustEntityHealthInMultiplayerFights",
+            "alertPlayerCastleIsWIP",
+            "attachLeadToWroughtFence",
+            "createSkullCandle",
+            "gatherPotentialSpawns",
+            "getHealthBasedOnDifficulty",
+            "getSpawnListIndexAt",
+            "grantGroupAdvancementIfNeeded",
+            "handleLeashPathingOverrides",
+            "handleQuestSyncing",
+            "lambda$adjustEntityHealthInMultiplayerFights$4",
+            "lambda$alertPlayerCastleIsWIP$0",
+            "lambda$gatherPotentialSpawns$2",
+            "lambda$handleQuestSyncing$6",
+            "lambda$lichBombsDontBlowUpItems$5",
+            "lambda$removeCastleTextIfAttacked$3",
+            "lambda$stopEndermenFromGrabbingBlocksInTF$7",
+            "lambda$stopEndermenFromGrabbingBlocksInTF$8",
+            "lichBombsDontBlowUpItems",
+            "makeSkullCandle",
+            "ominousFireConversion",
+            "onCasketBreak",
+            "removeCastleTextIfAttacked",
+            "resetFlaskLogic",
+            "stopEndermenFromGrabbingBlocksInTF",
+            "structureSpecialSpawns",
+            "wipeOreMeterOnLeftClick",
+            "zombifiedPlayerAttacks"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/OreMeterItem",
+          "entry": "twilightforest/item/OreMeterItem.class",
+          "methods": [
+            "<init>",
+            "appendHoverText",
+            "beginScanning",
+            "getLoadProgress",
+            "getRange",
+            "inventoryTick",
+            "isLoading",
+            "shouldCauseReequipAnimation",
+            "toggleRange",
+            "use",
+            "useOn"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:network/WipeOreMeterPacket",
+          "entry": "twilightforest/network/WipeOreMeterPacket.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "<init>",
+            "equals",
+            "hand",
+            "handle",
+            "hashCode",
+            "lambda$handle$0",
+            "toString",
+            "type",
+            "write"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:components/item/OreScannerComponent",
+          "entry": "twilightforest/components/item/OreScannerComponent.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "<init>",
+            "centerChunkPos",
+            "equals",
+            "getEmpty",
+            "getResults",
+            "getTickProgress",
+            "getVolume",
+            "hashCode",
+            "isEmpty",
+            "isFinished",
+            "lambda$static$0",
+            "lambda$static$1",
+            "lambda$static$2",
+            "lambda$static$3",
+            "lambda$static$4",
+            "lambda$static$5",
+            "lambda$static$6",
+            "scanFromCenter",
+            "tickScan",
+            "toString"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:components/item/OreScannerData",
+          "entry": "twilightforest/components/item/OreScannerData.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "counts",
+            "create",
+            "equals",
+            "hashCode",
+            "lambda$static$0",
+            "scannedChunk",
+            "toString",
+            "totalScannedBlocks",
+            "universalId"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:client/event/OverlayHandler",
+          "entry": "twilightforest/client/event/OverlayHandler.class",
+          "methods": [
+            "initTooltips",
+            "lambda$initTooltips$6",
+            "lambda$registerOverlays$0",
+            "lambda$registerOverlays$1",
+            "lambda$registerOverlays$2",
+            "lambda$registerOverlays$3",
+            "lambda$registerOverlays$4",
+            "lambda$registerOverlays$5",
+            "registerOverlays",
+            "renderOreMeterStats"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "entityHurts",
+            "getGearCoverage",
+            "reduceFrostedEffectIfOnFire",
+            "lambda$reduceFrostedEffectIfOnFire$1"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "twilightforest:maps_information_path:meter_start",
+        "twilightforest:maps_information_path:meter_range",
+        "twilightforest:maps_information_path:meter_filter",
+        "twilightforest:maps_information_path:meter_tick",
+        "twilightforest:maps_information_path:meter_persistence",
+        "twilightforest:maps_information_path:meter_clear",
+        "twilightforest:maps_information_path:meter_display"
+      ],
+      "registry_ids": [],
+      "pending": [
+        "Whole Twilight closure/final promotion only; this bounded subsection is reviewed."
+      ],
+      "unresolved_ambiguities": null
+    }
+  ],
+  "paths": [
+    {
+      "id": "twilightforest:maps_information_path:magic_create",
+      "source": "Native empty Magic Map admitted/rejected dimension",
+      "effect_ids": [
+        "twilightforest:magic_map_information"
+      ],
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "setup": "Native empty Magic Map admitted/rejected dimension through genuine native item/callback/command; future fixture only, runtime0.",
+      "future_controls": [
+        "dimensionTYPE tag",
+        "creativeconsume",
+        "inventorydrop",
+        "clientPASS"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "TFItems registers filled_magic_map as MagicMapItem; filled_maze_map/filled_ore_map as MazeMapItem(false/true), matching empty variants, and ore_meter stack1/uncommon without durability. Native recipes use8 c:paper plus matching focus; magic focus is raven feather+torchberries+glowstone dust; ore_map is EMPTY maze_map plus diamond/gold/iron storage blocks. This does not convert an already filled Maze map or preserve its ID. Actual registered OreMeter is a legitimate future item fixture; no survival crafting recipe is inferred from its name. All matching installed resources pinned. EmptyMagicMapItem.use clientPASS; server requires dimension TYPE holder tag twilightforest:allows_magic_map_charting, installed value twilightforest:twilight_forest_type. Rejection displays message/FAIL, no consumption/map. Success consumes1 through native ItemStack.consume (infinite-materials exemption), awards stat/sound, creates filled map at floor playerXZ, scale4/trackingtrue/unlimitedfalse. Replaces exhausted held stack; otherwise inventory add copy then drop if insertion fails. No damage, status or use cooldown.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/EmptyMagicMapItem",
+          "entry": "twilightforest/item/EmptyMagicMapItem.class",
+          "methods": [
+            "<init>",
+            "use"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:maps_information_path:magic_update",
+      "source": "Native held Magic Map biome charting",
+      "effect_ids": [
+        "twilightforest:magic_map_information"
+      ],
+      "labels": [
+        "ACTIVE_ITEM",
+        "PASSIVE_ITEM"
+      ],
+      "setup": "Native held Magic Map biome charting through genuine native item/callback/command; future fixture only, runtime0.",
+      "future_controls": [
+        "selected/offhand",
+        "dimension",
+        "locked",
+        "Y0stream preference",
+        "cache coordinates"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Exact244 MapItem.getSavedData(ItemStack,Level) dispatches virtual getCustomMapData for MapItem subclasses. Native server inventoryTick performs Player.tickCarriedBy, then if unlocked and selected OR actual offhand stack identity, virtual update. Magic update additionally same dimension ResourceKey identity +Player+server. Samples128x128 output, hard-coded16 blocks/pixel and32 pixel radius (512blocks), even fallback scale3; four biome samples per pixel grid,512x512 cached biome samples atY0 spaced4blocks. Floor then Java integer division affects negative viewer offsets. Ring fuzz outside radius30, only radius<32 and odd parity in fuzzy ring. Stream neighbor preference, actual MAGIC_MAP_BIOME_COLOR datamap; absent map uses MAGENTA/brightness1. Native status/damage/attributes unaffected. Static MagicMapItem.CACHE uses only ChunkPos(startX,startZ) for complete biome sample array; dimension/world/seed are not part of cache key. Installed TF instruction scan proves only this class accesses this private field and no clear/removal call in its class. Reusing coordinate key can reuse earlier level biome holders during this JVM lifetime. This is a source-level information-cache property, not runtime-tested world contamination or pack-wide reflection exclusion.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/MagicMapItem",
+          "entry": "twilightforest/item/MagicMapItem.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "appendHoverText",
+            "createMapData",
+            "getCustomMapData",
+            "getCustomMapData",
+            "getData",
+            "getData",
+            "getMagicMapCenter",
+            "getMapColorPerBiome",
+            "getMapName",
+            "getUpdatePacket",
+            "lambda$update$0",
+            "lambda$update$1",
+            "lambda$update$2",
+            "makeName",
+            "onCraftedBy",
+            "setupNewMap",
+            "update"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:maps_information_path:magic_fallback",
+      "source": "Native missing Magic Map data recovery",
+      "effect_ids": [
+        "twilightforest:magic_map_information"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "setup": "Native missing Magic Map data recovery through genuine native item/callback/command; future fixture only, runtime0.",
+      "future_controls": [
+        "spawnscale3",
+        "newID",
+        "no creationtag recheck"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "MagicMapItem.createMapData allocates native free MapId but stores under magicmap_<id>. Center per axis round((coord-1024)/2048)*2048+1024, independent of supplied scale. getCustomMapData missing-data fallback SERVER ONLY uses shared spawn, scale3/trackingfalse, newID; this fallback does not recheck empty-map dimension-type tag. TFMagicMapData server storage is server.overworld().dataStorage, with dimension saved in each map; client separate static name->map cache. Native colors/banner/frame data retained on save/load; custom showOnItemFrame decorations persisted with IDs/counts, conquered string list persisted. No source attacker/recipient ownership. Exact244 MapItem.getSavedData(ItemStack,Level) dispatches virtual getCustomMapData for MapItem subclasses. Native server inventoryTick performs Player.tickCarriedBy, then if unlocked and selected OR actual offhand stack identity, virtual update. Magic update additionally same dimension ResourceKey identity +Player+server. Samples128x128 output, hard-coded16 blocks/pixel and32 pixel radius (512blocks), even fallback scale3; four biome samples per pixel grid,512x512 cached biome samples atY0 spaced4blocks. Floor then Java integer division affects negative viewer offsets. Ring fuzz outside radius30, only radius<32 and odd parity in fuzzy ring. Stream neighbor preference, actual MAGIC_MAP_BIOME_COLOR datamap; absent map uses MAGENTA/brightness1. Native status/damage/attributes unaffected.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/MagicMapItem",
+          "entry": "twilightforest/item/MagicMapItem.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "appendHoverText",
+            "createMapData",
+            "getCustomMapData",
+            "getCustomMapData",
+            "getData",
+            "getData",
+            "getMagicMapCenter",
+            "getMapColorPerBiome",
+            "getMapName",
+            "getUpdatePacket",
+            "lambda$update$0",
+            "lambda$update$1",
+            "lambda$update$2",
+            "makeName",
+            "onCraftedBy",
+            "setupNewMap",
+            "update"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/mapdata/TFMagicMapData",
+          "entry": "twilightforest/item/mapdata/TFMagicMapData.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "addTFDecoration",
+            "factory",
+            "getClientMagicMapData",
+            "getMagicMapData",
+            "getUpdatePacket",
+            "lambda$factory$3",
+            "lambda$load$0",
+            "lambda$load$1",
+            "lambda$save$2",
+            "load",
+            "registerMagicMapData",
+            "save"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:maps_information_path:magic_landmarks",
+      "source": "Native Magic Map landmark and conquered decoration",
+      "effect_ids": [
+        "twilightforest:magic_map_information"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "setup": "Native Magic Map landmark and conquered decoration through genuine native item/callback/command; future fixture only, runtime0.",
+      "future_controls": [
+        "actualLANDMARK/icon",
+        "conquered read",
+        "nodeathmutation",
+        "dirty behavior"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Within charted pixels, only a Legacy landmark center, a structure holder in LANDMARK tag, LandmarkStructure instance and present icon produce TF decoration. Icon rotation180; LandmarkUtil.isConquered reads actual matching TFStructureStart flag, does not mark it conquered. TFMagicMapData.addTFDecoration first native addDecoration, then uses existing decoration byte x/y and asset ID to make conquered marker ID, adds/removes string accordingly. List mutation alone does not call setDirty/setDecorationsDirty; pixel/decor updates use native dirty paths. A map icon is not proof of a live spawned boss, boss death, shield break or protection removal.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-frosted.json",
+          "witness_id": "tf:util/landmarks/LandmarkUtil",
+          "entry": "twilightforest/util/landmarks/LandmarkUtil.class",
+          "methods": [
+            "isProgressionEnforced"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/MagicMapItem",
+          "entry": "twilightforest/item/MagicMapItem.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "appendHoverText",
+            "createMapData",
+            "getCustomMapData",
+            "getCustomMapData",
+            "getData",
+            "getData",
+            "getMagicMapCenter",
+            "getMapColorPerBiome",
+            "getMapName",
+            "getUpdatePacket",
+            "lambda$update$0",
+            "lambda$update$1",
+            "lambda$update$2",
+            "makeName",
+            "onCraftedBy",
+            "setupNewMap",
+            "update"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/mapdata/TFMagicMapData",
+          "entry": "twilightforest/item/mapdata/TFMagicMapData.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "addTFDecoration",
+            "factory",
+            "getClientMagicMapData",
+            "getMagicMapData",
+            "getUpdatePacket",
+            "lambda$factory$3",
+            "lambda$load$0",
+            "lambda$load$1",
+            "lambda$save$2",
+            "load",
+            "registerMagicMapData",
+            "save"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:util/landmarks/LandmarkUtil",
+          "entry": "twilightforest/util/landmarks/LandmarkUtil.class",
+          "methods": [
+            "isConquered",
+            "lambda$isConquered$0",
+            "lambda$isConquered$1",
+            "locateNearestMatchingLandmark",
+            "locateNearestMatchingLandmark",
+            "locateNearestMatchingLandmark"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:maps_information_path:magic_store",
+      "source": "Native Magic Map save/load and packet delivery",
+      "effect_ids": [
+        "twilightforest:magic_map_information"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "setup": "Native Magic Map save/load and packet delivery through genuine native item/callback/command; future fixture only, runtime0.",
+      "future_controls": [
+        "overworlddatastorage",
+        "separateclientcache",
+        "nativepacketnonnull",
+        "showOnItemFrame"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "MagicMapItem.createMapData allocates native free MapId but stores under magicmap_<id>. Center per axis round((coord-1024)/2048)*2048+1024, independent of supplied scale. getCustomMapData missing-data fallback SERVER ONLY uses shared spawn, scale3/trackingfalse, newID; this fallback does not recheck empty-map dimension-type tag. TFMagicMapData server storage is server.overworld().dataStorage, with dimension saved in each map; client separate static name->map cache. Native colors/banner/frame data retained on save/load; custom showOnItemFrame decorations persisted with IDs/counts, conquered string list persisted. No source attacker/recipient ownership. TFMagic/MazeData.getUpdatePacket wraps only a nonnull native ClientboundMapItemDataPacket; otherwise passes native result through. Registered playToClient handlers additionally require clientbound flow. Missing client data is created center0, current client dimension, packet scale/locked; native patch then applied. Magic clears/replaces conquered list, Maze sets ore/yCenter; native MapRenderer.update follows. These packets carry information to clients and do not mutate server boss state. Conquered renderer draws red X for matching map marker and returnsfalse so normal icon can render; Magic Player icon custom4scale returns true. Frame/banner/native rendering remains native, with actual NeoForge virtual map lookup; protected Goggles real inventory callback can deliver update/packet without holding map in hand.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/mapdata/TFMagicMapData",
+          "entry": "twilightforest/item/mapdata/TFMagicMapData.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "addTFDecoration",
+            "factory",
+            "getClientMagicMapData",
+            "getMagicMapData",
+            "getUpdatePacket",
+            "lambda$factory$3",
+            "lambda$load$0",
+            "lambda$load$1",
+            "lambda$save$2",
+            "load",
+            "registerMagicMapData",
+            "save"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:network/MagicMapPacket",
+          "entry": "twilightforest/network/MagicMapPacket.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "conqueredStructures",
+            "equals",
+            "handle",
+            "hashCode",
+            "inner",
+            "toString",
+            "type"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:network/MagicMapPacket$1",
+          "entry": "twilightforest/network/MagicMapPacket$1.class",
+          "methods": [
+            "<init>",
+            "run"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:maps_information_path:magic_clone",
+      "source": "Native Magic Map custom crafting copy",
+      "effect_ids": [
+        "twilightforest:magic_map_information"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "setup": "Native Magic Map custom crafting copy through genuine native item/callback/command; future fixture only, runtime0.",
+      "future_controls": [
+        "exactonefilled",
+        "empty slots",
+        "3x3",
+        "sameID"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Native Magic/Maze custom crafting recipes require exactlyone filled matching map slot plus>=1 empty matching map slots and no other nonempty ingredients; canCraftInDimensions requires>=3x3. Output is filled.copy() with count(empty SLOTS+1), so components/mapID preserved and all copies share underlying saved data. Filled Ore and empty Ore are not accepted by MazeMapCloningRecipe. Native recipe consumption remains; no invented copy of Ore map or special quantity-per-stacked-input.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/recipe/MagicMapCloningRecipe",
+          "entry": "twilightforest/item/recipe/MagicMapCloningRecipe.class",
+          "methods": [
+            "<init>",
+            "assemble",
+            "assemble",
+            "canCraftInDimensions",
+            "getSerializer",
+            "matches",
+            "matches"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:maps_information_path:maze_create",
+      "source": "Native empty Maze Map creation",
+      "effect_ids": [
+        "twilightforest:maze_ore_map_information"
+      ],
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "setup": "Native empty Maze Map creation through genuine native item/callback/command; future fixture only, runtime0.",
+      "future_controls": [
+        "Ycenter",
+        "labyrinthsnap",
+        "actualside",
+        "noMagicdimensiongate"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "TFItems registers filled_magic_map as MagicMapItem; filled_maze_map/filled_ore_map as MazeMapItem(false/true), matching empty variants, and ore_meter stack1/uncommon without durability. Native recipes use8 c:paper plus matching focus; magic focus is raven feather+torchberries+glowstone dust; ore_map is EMPTY maze_map plus diamond/gold/iron storage blocks. This does not convert an already filled Maze map or preserve its ID. Actual registered OreMeter is a legitimate future item fixture; no survival crafting recipe is inferred from its name. All matching installed resources pinned. EmptyMazeMapItem.use creates scale0/trackingtrue/unlimitedfalse at floor playerXYZ with constructor ore flag BEFORE consuming1; unlike EmptyMagic no explicit side or dimension-charting tag guard. Native use, inventory/drop and consume semantics remain. Maze create allocates new mapID and mazemap_<id>, native128*(1<<scale) center rounding; TFMazeMapData.calculateMapCenter sets yCenter=creationY and, only ServerLevel with Legacy selected LABYRINTH, snapsXZ to nearest legacy center. Otherwise keeps native rounded center. Missing-data server fallback uses sharedspawnXYZ scale0/trackingfalse and item ore flag, no empty-map recreation requirement.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/EmptyMazeMapItem",
+          "entry": "twilightforest/item/EmptyMazeMapItem.class",
+          "methods": [
+            "<init>",
+            "use"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/MazeMapItem",
+          "entry": "twilightforest/item/MazeMapItem.class",
+          "methods": [
+            "<init>",
+            "appendHoverText",
+            "createMapData",
+            "getCustomMapData",
+            "getCustomMapData",
+            "getData",
+            "getMapName",
+            "getUpdatePacket",
+            "inventoryTick",
+            "onCraftedBy",
+            "setupNewMap",
+            "update"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/mapdata/TFMazeMapData",
+          "entry": "twilightforest/item/mapdata/TFMazeMapData.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "calculateMapCenter",
+            "factory",
+            "getClientMagicMapData",
+            "getMazeMapData",
+            "getUpdatePacket",
+            "lambda$factory$0",
+            "load",
+            "registerMazeMapData",
+            "save"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:maps_information_path:ore_create",
+      "source": "Native empty Ore Map recipe and activation",
+      "effect_ids": [
+        "twilightforest:maze_ore_map_information"
+      ],
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "setup": "Native empty Ore Map recipe and activation through genuine native item/callback/command; future fixture only, runtime0.",
+      "future_controls": [
+        "emptyMaze ingredient",
+        "oretrue",
+        "nofilled upgrade"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "TFItems registers filled_magic_map as MagicMapItem; filled_maze_map/filled_ore_map as MazeMapItem(false/true), matching empty variants, and ore_meter stack1/uncommon without durability. Native recipes use8 c:paper plus matching focus; magic focus is raven feather+torchberries+glowstone dust; ore_map is EMPTY maze_map plus diamond/gold/iron storage blocks. This does not convert an already filled Maze map or preserve its ID. Actual registered OreMeter is a legitimate future item fixture; no survival crafting recipe is inferred from its name. All matching installed resources pinned. EmptyMazeMapItem.use creates scale0/trackingtrue/unlimitedfalse at floor playerXYZ with constructor ore flag BEFORE consuming1; unlike EmptyMagic no explicit side or dimension-charting tag guard. Native use, inventory/drop and consume semantics remain. Maze create allocates new mapID and mazemap_<id>, native128*(1<<scale) center rounding; TFMazeMapData.calculateMapCenter sets yCenter=creationY and, only ServerLevel with Legacy selected LABYRINTH, snapsXZ to nearest legacy center. Otherwise keeps native rounded center. Missing-data server fallback uses sharedspawnXYZ scale0/trackingfalse and item ore flag, no empty-map recreation requirement.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/EmptyMazeMapItem",
+          "entry": "twilightforest/item/EmptyMazeMapItem.class",
+          "methods": [
+            "<init>",
+            "use"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/MazeMapItem",
+          "entry": "twilightforest/item/MazeMapItem.class",
+          "methods": [
+            "<init>",
+            "appendHoverText",
+            "createMapData",
+            "getCustomMapData",
+            "getCustomMapData",
+            "getData",
+            "getMapName",
+            "getUpdatePacket",
+            "inventoryTick",
+            "onCraftedBy",
+            "setupNewMap",
+            "update"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:maps_information_path:maze_update",
+      "source": "Native Maze Map fixed-Y pixels",
+      "effect_ids": [
+        "twilightforest:maze_ore_map_information"
+      ],
+      "labels": [
+        "ACTIVE_ITEM",
+        "PASSIVE_ITEM"
+      ],
+      "setup": "Native Maze Map fixed-Y pixels through genuine native item/callback/command; future fixture only, runtime0.",
+      "future_controls": [
+        "stone search",
+        "originalcolor",
+        "columnstep",
+        "radius16"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Maze update requires same dimension ResourceKey and Player; server gate comes from native TF inventoryTick. Pixel size1<<scale, view radius16pixels (8 with ceiling), native HoldingPlayer.step increment, columns step-mod16 or prior-change continuation, radius/parity fuzz. Ceiling uses deterministic pseudorandom DIRT/STONE colors, not underground block contents. Nonceiling reads original state at chunk-localXZ/yCenter and immediately adds its map color. If original is STONE OR air, probesY-3..Y+3 for STONE AND notair, assigns first such state and brightness0below/2above/1same. It does NOT search for the first nonstone; original color multiset is not replaced by searched state. Ore branch uses resulting state, datamap ORE_MAP_ORE_COLOR weight1000 else nonair c:ores PINK weight1000. Actual9 installed color keys cover8 native ore tags plus ancient_debris; dynamically mapped/tagged ores remain conditional. TF Maze server inventoryTick calls tickCarriedBy first. floor(playerY-yCenter) outside[-3,3] replaces existing own-name decoration with PLAYER_OFF_MAP retaining coordinates/rotation. This vertical test changes marker only: it does not veto subsequent unlocked selected/offhand pixelupdate. yCenter and ore flag persist with native saved map fields; server storageoverworld/clientstatic cache separate from Magic. Same mapId among copies shares saved data. No target damage, mining, teleport or forced block loading is introduced by this review; real update reads native chunks as coded.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/MazeMapItem",
+          "entry": "twilightforest/item/MazeMapItem.class",
+          "methods": [
+            "<init>",
+            "appendHoverText",
+            "createMapData",
+            "getCustomMapData",
+            "getCustomMapData",
+            "getData",
+            "getMapName",
+            "getUpdatePacket",
+            "inventoryTick",
+            "onCraftedBy",
+            "setupNewMap",
+            "update"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:maps_information_path:ore_update",
+      "source": "Native Ore Map data-map/tag colors",
+      "effect_ids": [
+        "twilightforest:maze_ore_map_information"
+      ],
+      "labels": [
+        "ACTIVE_ITEM",
+        "PASSIVE_ITEM"
+      ],
+      "setup": "Native Ore Map data-map/tag colors through genuine native item/callback/command; future fixture only, runtime0.",
+      "future_controls": [
+        "actualoreflag",
+        "9colorkeys",
+        "1000weight",
+        "PINKfallback"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Maze update requires same dimension ResourceKey and Player; server gate comes from native TF inventoryTick. Pixel size1<<scale, view radius16pixels (8 with ceiling), native HoldingPlayer.step increment, columns step-mod16 or prior-change continuation, radius/parity fuzz. Ceiling uses deterministic pseudorandom DIRT/STONE colors, not underground block contents. Nonceiling reads original state at chunk-localXZ/yCenter and immediately adds its map color. If original is STONE OR air, probesY-3..Y+3 for STONE AND notair, assigns first such state and brightness0below/2above/1same. It does NOT search for the first nonstone; original color multiset is not replaced by searched state. Ore branch uses resulting state, datamap ORE_MAP_ORE_COLOR weight1000 else nonair c:ores PINK weight1000. Actual9 installed color keys cover8 native ore tags plus ancient_debris; dynamically mapped/tagged ores remain conditional.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/MazeMapItem",
+          "entry": "twilightforest/item/MazeMapItem.class",
+          "methods": [
+            "<init>",
+            "appendHoverText",
+            "createMapData",
+            "getCustomMapData",
+            "getCustomMapData",
+            "getData",
+            "getMapName",
+            "getUpdatePacket",
+            "inventoryTick",
+            "onCraftedBy",
+            "setupNewMap",
+            "update"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:maps_information_path:maze_ceiling",
+      "source": "Native ceiling Maze/Ore map control",
+      "effect_ids": [
+        "twilightforest:maze_ore_map_information"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "setup": "Native ceiling Maze/Ore map control through genuine native item/callback/command; future fixture only, runtime0.",
+      "future_controls": [
+        "radius8",
+        "pseudorandomcolors",
+        "noorequerybranch"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Maze update requires same dimension ResourceKey and Player; server gate comes from native TF inventoryTick. Pixel size1<<scale, view radius16pixels (8 with ceiling), native HoldingPlayer.step increment, columns step-mod16 or prior-change continuation, radius/parity fuzz. Ceiling uses deterministic pseudorandom DIRT/STONE colors, not underground block contents. Nonceiling reads original state at chunk-localXZ/yCenter and immediately adds its map color. If original is STONE OR air, probesY-3..Y+3 for STONE AND notair, assigns first such state and brightness0below/2above/1same. It does NOT search for the first nonstone; original color multiset is not replaced by searched state. Ore branch uses resulting state, datamap ORE_MAP_ORE_COLOR weight1000 else nonair c:ores PINK weight1000. Actual9 installed color keys cover8 native ore tags plus ancient_debris; dynamically mapped/tagged ores remain conditional.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/MazeMapItem",
+          "entry": "twilightforest/item/MazeMapItem.class",
+          "methods": [
+            "<init>",
+            "appendHoverText",
+            "createMapData",
+            "getCustomMapData",
+            "getCustomMapData",
+            "getData",
+            "getMapName",
+            "getUpdatePacket",
+            "inventoryTick",
+            "onCraftedBy",
+            "setupNewMap",
+            "update"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:maps_information_path:maze_height",
+      "source": "Native Maze Map distant-Y marker",
+      "effect_ids": [
+        "twilightforest:maze_ore_map_information"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "setup": "Native Maze Map distant-Y marker through genuine native item/callback/command; future fixture only, runtime0.",
+      "future_controls": [
+        "floorDeltaoutside3",
+        "markeronly",
+        "stillupdatespixels"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "TF Maze server inventoryTick calls tickCarriedBy first. floor(playerY-yCenter) outside[-3,3] replaces existing own-name decoration with PLAYER_OFF_MAP retaining coordinates/rotation. This vertical test changes marker only: it does not veto subsequent unlocked selected/offhand pixelupdate. yCenter and ore flag persist with native saved map fields; server storageoverworld/clientstatic cache separate from Magic. Same mapId among copies shares saved data. No target damage, mining, teleport or forced block loading is introduced by this review; real update reads native chunks as coded.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/MazeMapItem",
+          "entry": "twilightforest/item/MazeMapItem.class",
+          "methods": [
+            "<init>",
+            "appendHoverText",
+            "createMapData",
+            "getCustomMapData",
+            "getCustomMapData",
+            "getData",
+            "getMapName",
+            "getUpdatePacket",
+            "inventoryTick",
+            "onCraftedBy",
+            "setupNewMap",
+            "update"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:maps_information_path:maze_store",
+      "source": "Native Maze/Ore map persistence and packet",
+      "effect_ids": [
+        "twilightforest:maze_ore_map_information"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "setup": "Native Maze/Ore map persistence and packet through genuine native item/callback/command; future fixture only, runtime0.",
+      "future_controls": [
+        "yCenter/ore",
+        "clientbound",
+        "sharedsaveddata"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "EmptyMazeMapItem.use creates scale0/trackingtrue/unlimitedfalse at floor playerXYZ with constructor ore flag BEFORE consuming1; unlike EmptyMagic no explicit side or dimension-charting tag guard. Native use, inventory/drop and consume semantics remain. Maze create allocates new mapID and mazemap_<id>, native128*(1<<scale) center rounding; TFMazeMapData.calculateMapCenter sets yCenter=creationY and, only ServerLevel with Legacy selected LABYRINTH, snapsXZ to nearest legacy center. Otherwise keeps native rounded center. Missing-data server fallback uses sharedspawnXYZ scale0/trackingfalse and item ore flag, no empty-map recreation requirement. TF Maze server inventoryTick calls tickCarriedBy first. floor(playerY-yCenter) outside[-3,3] replaces existing own-name decoration with PLAYER_OFF_MAP retaining coordinates/rotation. This vertical test changes marker only: it does not veto subsequent unlocked selected/offhand pixelupdate. yCenter and ore flag persist with native saved map fields; server storageoverworld/clientstatic cache separate from Magic. Same mapId among copies shares saved data. No target damage, mining, teleport or forced block loading is introduced by this review; real update reads native chunks as coded. TFMagic/MazeData.getUpdatePacket wraps only a nonnull native ClientboundMapItemDataPacket; otherwise passes native result through. Registered playToClient handlers additionally require clientbound flow. Missing client data is created center0, current client dimension, packet scale/locked; native patch then applied. Magic clears/replaces conquered list, Maze sets ore/yCenter; native MapRenderer.update follows. These packets carry information to clients and do not mutate server boss state. Conquered renderer draws red X for matching map marker and returnsfalse so normal icon can render; Magic Player icon custom4scale returns true. Frame/banner/native rendering remains native, with actual NeoForge virtual map lookup; protected Goggles real inventory callback can deliver update/packet without holding map in hand.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/mapdata/TFMazeMapData",
+          "entry": "twilightforest/item/mapdata/TFMazeMapData.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "calculateMapCenter",
+            "factory",
+            "getClientMagicMapData",
+            "getMazeMapData",
+            "getUpdatePacket",
+            "lambda$factory$0",
+            "load",
+            "registerMazeMapData",
+            "save"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:network/MazeMapPacket",
+          "entry": "twilightforest/network/MazeMapPacket.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "equals",
+            "handle",
+            "hashCode",
+            "inner",
+            "ore",
+            "toString",
+            "type",
+            "yCenter"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:network/MazeMapPacket$1",
+          "entry": "twilightforest/network/MazeMapPacket$1.class",
+          "methods": [
+            "<init>",
+            "run"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:maps_information_path:maze_fallback",
+      "source": "Native missing Maze/Ore data recovery",
+      "effect_ids": [
+        "twilightforest:maze_ore_map_information"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "setup": "Native missing Maze/Ore data recovery through genuine native item/callback/command; future fixture only, runtime0.",
+      "future_controls": [
+        "sharedspawn",
+        "itemoreflag",
+        "newmapID"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "EmptyMazeMapItem.use creates scale0/trackingtrue/unlimitedfalse at floor playerXYZ with constructor ore flag BEFORE consuming1; unlike EmptyMagic no explicit side or dimension-charting tag guard. Native use, inventory/drop and consume semantics remain. Maze create allocates new mapID and mazemap_<id>, native128*(1<<scale) center rounding; TFMazeMapData.calculateMapCenter sets yCenter=creationY and, only ServerLevel with Legacy selected LABYRINTH, snapsXZ to nearest legacy center. Otherwise keeps native rounded center. Missing-data server fallback uses sharedspawnXYZ scale0/trackingfalse and item ore flag, no empty-map recreation requirement.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/MazeMapItem",
+          "entry": "twilightforest/item/MazeMapItem.class",
+          "methods": [
+            "<init>",
+            "appendHoverText",
+            "createMapData",
+            "getCustomMapData",
+            "getCustomMapData",
+            "getData",
+            "getMapName",
+            "getUpdatePacket",
+            "inventoryTick",
+            "onCraftedBy",
+            "setupNewMap",
+            "update"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/mapdata/TFMazeMapData",
+          "entry": "twilightforest/item/mapdata/TFMazeMapData.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "calculateMapCenter",
+            "factory",
+            "getClientMagicMapData",
+            "getMazeMapData",
+            "getUpdatePacket",
+            "lambda$factory$0",
+            "load",
+            "registerMazeMapData",
+            "save"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:maps_information_path:maze_clone",
+      "source": "Native Maze copy and Ore rejection",
+      "effect_ids": [
+        "twilightforest:maze_ore_map_information"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "setup": "Native Maze copy and Ore rejection through genuine native item/callback/command; future fixture only, runtime0.",
+      "future_controls": [
+        "sameID",
+        "orefilled/emptyreject",
+        "3x3"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Native Magic/Maze custom crafting recipes require exactlyone filled matching map slot plus>=1 empty matching map slots and no other nonempty ingredients; canCraftInDimensions requires>=3x3. Output is filled.copy() with count(empty SLOTS+1), so components/mapID preserved and all copies share underlying saved data. Filled Ore and empty Ore are not accepted by MazeMapCloningRecipe. Native recipe consumption remains; no invented copy of Ore map or special quantity-per-stacked-input.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/recipe/MazeMapCloningRecipe",
+          "entry": "twilightforest/item/recipe/MazeMapCloningRecipe.class",
+          "methods": [
+            "<init>",
+            "assemble",
+            "assemble",
+            "canCraftInDimensions",
+            "getSerializer",
+            "matches",
+            "matches"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:maps_information_path:map_goggles",
+      "source": "Protected native Goggles callback to TF custom maps",
+      "effect_ids": [
+        "twilightforest:magic_map_information",
+        "twilightforest:maze_ore_map_information"
+      ],
+      "labels": [
+        "ARMOR_PROC",
+        "OTHER"
+      ],
+      "setup": "Protected native Goggles callback to TF custom maps through genuine native item/callback/command; future fixture only, runtime0.",
+      "future_controls": [
+        "realactivemap",
+        "nativevirtualcallback",
+        "protectedQno redo"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Exact244 MapItem.getSavedData(ItemStack,Level) dispatches virtual getCustomMapData for MapItem subclasses. Native server inventoryTick performs Player.tickCarriedBy, then if unlocked and selected OR actual offhand stack identity, virtual update. Magic update additionally same dimension ResourceKey identity +Player+server. Samples128x128 output, hard-coded16 blocks/pixel and32 pixel radius (512blocks), even fallback scale3; four biome samples per pixel grid,512x512 cached biome samples atY0 spaced4blocks. Floor then Java integer division affects negative viewer offsets. Ring fuzz outside radius30, only radius<32 and odd parity in fuzzy ring. Stream neighbor preference, actual MAGIC_MAP_BIOME_COLOR datamap; absent map uses MAGENTA/brightness1. Native status/damage/attributes unaffected. TFMagic/MazeData.getUpdatePacket wraps only a nonnull native ClientboundMapItemDataPacket; otherwise passes native result through. Registered playToClient handlers additionally require clientbound flow. Missing client data is created center0, current client dimension, packet scale/locked; native patch then applied. Magic clears/replaces conquered list, Maze sets ore/yCenter; native MapRenderer.update follows. These packets carry information to clients and do not mutate server boss state. Conquered renderer draws red X for matching map marker and returnsfalse so normal icon can render; Magic Player icon custom4scale returns true. Frame/banner/native rendering remains native, with actual NeoForge virtual map lookup; protected Goggles real inventory callback can deliver update/packet without holding map in hand.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:asmhooks/MapHooks",
+          "entry": "twilightforest/asmhooks/MapHooks.class",
+          "methods": [
+            "<init>",
+            "resolveNearestNonRandomSpreadMapStructure"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-travellers-utility.json",
+          "witness_id": "tf:asmhooks/MapHooks",
+          "entry": "twilightforest/asmhooks/MapHooks.class",
+          "methods": [
+            "updateMapsInGoggles"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:maps_information_path:map_cartography",
+      "source": "Native cartography UI negative controls",
+      "effect_ids": [
+        "twilightforest:magic_map_information",
+        "twilightforest:maze_ore_map_information"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "setup": "Native cartography UI negative controls through genuine native item/callback/command; future fixture only, runtime0.",
+      "future_controls": [
+        "exactItems.FILLED_MAP",
+        "no forcedslot",
+        "onCraftedBy !=postprocess"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Exact244 archive has no replacement for native CartographyTableMenu/its five anonymous classes; raw bytecode slot0 mayPlace requires Items.FILLED_MAP, additional slot PAPER/MAP/GLASS_PANE, quickMove sameFILLED_MAP identity. Genuine UI therefore rejects TF filled item identities; no baseline cartography scale/lock/copy route is proven. TF empty onCraftedBy overrides do not override native onCraftedPostProcess (MAP_POST_PROCESSING handles scale/lock). Do not infer disabled scaling from wrong method or force TF stacks through rejected native slots. Other mods changing admission are conditional external behavior.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/MagicMapItem",
+          "entry": "twilightforest/item/MagicMapItem.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "appendHoverText",
+            "createMapData",
+            "getCustomMapData",
+            "getCustomMapData",
+            "getData",
+            "getData",
+            "getMagicMapCenter",
+            "getMapColorPerBiome",
+            "getMapName",
+            "getUpdatePacket",
+            "lambda$update$0",
+            "lambda$update$1",
+            "lambda$update$2",
+            "makeName",
+            "onCraftedBy",
+            "setupNewMap",
+            "update"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/MazeMapItem",
+          "entry": "twilightforest/item/MazeMapItem.class",
+          "methods": [
+            "<init>",
+            "appendHoverText",
+            "createMapData",
+            "getCustomMapData",
+            "getCustomMapData",
+            "getData",
+            "getMapName",
+            "getUpdatePacket",
+            "inventoryTick",
+            "onCraftedBy",
+            "setupNewMap",
+            "update"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:maps_information_path:locator_command",
+      "source": "Native authorized structure locate command",
+      "effect_ids": [
+        "twilightforest:landmark_map_locator"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "setup": "Native authorized structure locate command through genuine native item/callback/command; future fixture only, runtime0.",
+      "future_controls": [
+        "nativeauthority",
+        "finalreturn",
+        "actualtargetholder"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Registered ResolveNearestNonRandomSpreadMapStructureTransformer targets exact ChunkGenerator.findNearestMapStructure(ServerLevel,HolderSet,BlockPos,int,boolean)Pair. Finds LAST ARETURN and inserts originalPair +locals1,2,3,4,5 into MapHooks.resolveNearestNonRandomSpreadMapStructure. Exact244 target has THREE ARETURN instructions: empty placement map early-null and early random-spread result bypass hook; only final return is intercepted. Hook calls WorldUtil.findNearestMapLandmark(...).orElse(original). A found TF pair replaces original without comparing distances to original vanilla result. No unconditional all-return interception or global nearest guarantee. WorldUtil restricts target holder placements to actual LandmarkGridPlacement, otherwise Optional.empty. Scans Legacy landmark centers using focus chunk &-16, spacing16chunks and supplied radius as GRID radius; skipCenterfalse, iterator hasNext dX+1<=radius means radius0 scansnothing. Placement.isStructureChunk remains: native placement/frequency/exclusion checks; TF ctorfreq1/salt0/zerooffset/noexclusion plus actual center and optional resource-key gridlock==pickVarietyLandmark. Target must be in that placement set and structure biome list contain level.getBiome(centerY0). With skipKnown, START_PRESENT breaks inner target loop. It does not load/validate a generated structure start for every accepted candidate. Chooses smallest center.distToLowCornerSqr(queryX,0,queryZ) among TF candidates. Native search reads info, no spawning/HP/shield/progression modification. Actual ServerLevel.findNearestMapStructure delegates to generator with requested tag holders. Native ExplorationMapFunction requires actual Items.MAP and nonnull loot ORIGIN, then uses configured destination/radius/skipKnown; found result creates ordinary native map with zoom, tracking/unlimitedtrue, biome preview and target marker. VillagerTrades.TreasureMapForEmeralds requires ServerLevel trader and uses destination tag, radius100, skipKnowntrue; found result creates native scale2 map and ordinary offer with emerald cost plus compass, configured maxUses/xp and .2 priceMultiplier. Missing search result yields unchanged loot stack or null trade. Native LocateCommand calls generator directly for actual requested structure holder(s), requires normal command authority. Their results reach TF hook only through final-return path and actual LandmarkGridPlacement target. No installed TF exploration-map loot resource is assumed; direct native path availability is distinct from a configured TF trade/loot producer.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-active-utilities.json",
+          "witness_id": "tf:util/WorldUtil",
+          "entry": "twilightforest/util/WorldUtil.class",
+          "methods": [
+            "randomOffset",
+            "randomOffset"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-hydra-urghast.json",
+          "witness_id": "tf:util/WorldUtil",
+          "entry": "twilightforest/util/WorldUtil.class",
+          "methods": [
+            "getAllInBB"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:asmhooks/MapHooks",
+          "entry": "twilightforest/asmhooks/MapHooks.class",
+          "methods": [
+            "<init>",
+            "resolveNearestNonRandomSpreadMapStructure"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:util/WorldUtil",
+          "entry": "twilightforest/util/WorldUtil.class",
+          "methods": [
+            "findNearestMapLandmark",
+            "getOverworldSeed",
+            "lambda$findNearestMapLandmark$0"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-tactical-mobs.json",
+          "witness_id": "tf:util/WorldUtil",
+          "entry": "twilightforest/util/WorldUtil.class",
+          "methods": [
+            "getAllAround"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-travellers-utility.json",
+          "witness_id": "tf:asmhooks/MapHooks",
+          "entry": "twilightforest/asmhooks/MapHooks.class",
+          "methods": [
+            "updateMapsInGoggles"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:maps_information_path:locator_loot",
+      "source": "Native configured ExplorationMapFunction lookup",
+      "effect_ids": [
+        "twilightforest:landmark_map_locator"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "setup": "Native configured ExplorationMapFunction lookup through genuine native item/callback/command; future fixture only, runtime0.",
+      "future_controls": [
+        "realconfiguredtag",
+        "notassumedinstalledTFloot",
+        "foundresult"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Actual ServerLevel.findNearestMapStructure delegates to generator with requested tag holders. Native ExplorationMapFunction requires actual Items.MAP and nonnull loot ORIGIN, then uses configured destination/radius/skipKnown; found result creates ordinary native map with zoom, tracking/unlimitedtrue, biome preview and target marker. VillagerTrades.TreasureMapForEmeralds requires ServerLevel trader and uses destination tag, radius100, skipKnowntrue; found result creates native scale2 map and ordinary offer with emerald cost plus compass, configured maxUses/xp and .2 priceMultiplier. Missing search result yields unchanged loot stack or null trade. Native LocateCommand calls generator directly for actual requested structure holder(s), requires normal command authority. Their results reach TF hook only through final-return path and actual LandmarkGridPlacement target. No installed TF exploration-map loot resource is assumed; direct native path availability is distinct from a configured TF trade/loot producer. Registered ResolveNearestNonRandomSpreadMapStructureTransformer targets exact ChunkGenerator.findNearestMapStructure(ServerLevel,HolderSet,BlockPos,int,boolean)Pair. Finds LAST ARETURN and inserts originalPair +locals1,2,3,4,5 into MapHooks.resolveNearestNonRandomSpreadMapStructure. Exact244 target has THREE ARETURN instructions: empty placement map early-null and early random-spread result bypass hook; only final return is intercepted. Hook calls WorldUtil.findNearestMapLandmark(...).orElse(original). A found TF pair replaces original without comparing distances to original vanilla result. No unconditional all-return interception or global nearest guarantee.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-active-utilities.json",
+          "witness_id": "tf:util/WorldUtil",
+          "entry": "twilightforest/util/WorldUtil.class",
+          "methods": [
+            "randomOffset",
+            "randomOffset"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-hydra-urghast.json",
+          "witness_id": "tf:util/WorldUtil",
+          "entry": "twilightforest/util/WorldUtil.class",
+          "methods": [
+            "getAllInBB"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:asmhooks/MapHooks",
+          "entry": "twilightforest/asmhooks/MapHooks.class",
+          "methods": [
+            "<init>",
+            "resolveNearestNonRandomSpreadMapStructure"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:util/WorldUtil",
+          "entry": "twilightforest/util/WorldUtil.class",
+          "methods": [
+            "findNearestMapLandmark",
+            "getOverworldSeed",
+            "lambda$findNearestMapLandmark$0"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-tactical-mobs.json",
+          "witness_id": "tf:util/WorldUtil",
+          "entry": "twilightforest/util/WorldUtil.class",
+          "methods": [
+            "getAllAround"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-travellers-utility.json",
+          "witness_id": "tf:asmhooks/MapHooks",
+          "entry": "twilightforest/asmhooks/MapHooks.class",
+          "methods": [
+            "updateMapsInGoggles"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:maps_information_path:locator_trade",
+      "source": "Native configured TreasureMapForEmeralds lookup",
+      "effect_ids": [
+        "twilightforest:landmark_map_locator"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "setup": "Native configured TreasureMapForEmeralds lookup through genuine native item/callback/command; future fixture only, runtime0.",
+      "future_controls": [
+        "realvillageroffer",
+        "targettag",
+        "no inventedTFtrade"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Actual ServerLevel.findNearestMapStructure delegates to generator with requested tag holders. Native ExplorationMapFunction requires actual Items.MAP and nonnull loot ORIGIN, then uses configured destination/radius/skipKnown; found result creates ordinary native map with zoom, tracking/unlimitedtrue, biome preview and target marker. VillagerTrades.TreasureMapForEmeralds requires ServerLevel trader and uses destination tag, radius100, skipKnowntrue; found result creates native scale2 map and ordinary offer with emerald cost plus compass, configured maxUses/xp and .2 priceMultiplier. Missing search result yields unchanged loot stack or null trade. Native LocateCommand calls generator directly for actual requested structure holder(s), requires normal command authority. Their results reach TF hook only through final-return path and actual LandmarkGridPlacement target. No installed TF exploration-map loot resource is assumed; direct native path availability is distinct from a configured TF trade/loot producer. Registered ResolveNearestNonRandomSpreadMapStructureTransformer targets exact ChunkGenerator.findNearestMapStructure(ServerLevel,HolderSet,BlockPos,int,boolean)Pair. Finds LAST ARETURN and inserts originalPair +locals1,2,3,4,5 into MapHooks.resolveNearestNonRandomSpreadMapStructure. Exact244 target has THREE ARETURN instructions: empty placement map early-null and early random-spread result bypass hook; only final return is intercepted. Hook calls WorldUtil.findNearestMapLandmark(...).orElse(original). A found TF pair replaces original without comparing distances to original vanilla result. No unconditional all-return interception or global nearest guarantee.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-active-utilities.json",
+          "witness_id": "tf:util/WorldUtil",
+          "entry": "twilightforest/util/WorldUtil.class",
+          "methods": [
+            "randomOffset",
+            "randomOffset"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-hydra-urghast.json",
+          "witness_id": "tf:util/WorldUtil",
+          "entry": "twilightforest/util/WorldUtil.class",
+          "methods": [
+            "getAllInBB"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:asmhooks/MapHooks",
+          "entry": "twilightforest/asmhooks/MapHooks.class",
+          "methods": [
+            "<init>",
+            "resolveNearestNonRandomSpreadMapStructure"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:util/WorldUtil",
+          "entry": "twilightforest/util/WorldUtil.class",
+          "methods": [
+            "findNearestMapLandmark",
+            "getOverworldSeed",
+            "lambda$findNearestMapLandmark$0"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-tactical-mobs.json",
+          "witness_id": "tf:util/WorldUtil",
+          "entry": "twilightforest/util/WorldUtil.class",
+          "methods": [
+            "getAllAround"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-travellers-utility.json",
+          "witness_id": "tf:asmhooks/MapHooks",
+          "entry": "twilightforest/asmhooks/MapHooks.class",
+          "methods": [
+            "updateMapsInGoggles"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:maps_information_path:locator_gates",
+      "source": "Native locator placement/biome/presence and fallback",
+      "effect_ids": [
+        "twilightforest:landmark_map_locator"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "setup": "Native locator placement/biome/presence and fallback through genuine native item/callback/command; future fixture only, runtime0.",
+      "future_controls": [
+        "radius0",
+        "skipKnownSTART_PRESENT",
+        "gridlock",
+        "no crossresultdistancecomparison",
+        "earlyreturns"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "WorldUtil restricts target holder placements to actual LandmarkGridPlacement, otherwise Optional.empty. Scans Legacy landmark centers using focus chunk &-16, spacing16chunks and supplied radius as GRID radius; skipCenterfalse, iterator hasNext dX+1<=radius means radius0 scansnothing. Placement.isStructureChunk remains: native placement/frequency/exclusion checks; TF ctorfreq1/salt0/zerooffset/noexclusion plus actual center and optional resource-key gridlock==pickVarietyLandmark. Target must be in that placement set and structure biome list contain level.getBiome(centerY0). With skipKnown, START_PRESENT breaks inner target loop. It does not load/validate a generated structure start for every accepted candidate. Chooses smallest center.distToLowCornerSqr(queryX,0,queryZ) among TF candidates. Native search reads info, no spawning/HP/shield/progression modification. Legacy center coordinates derive region math and deterministic coordinate seed, sign-dependent+8/+9. Biome-specific landmark selection uses rounded16chunk cells sampled atY0; variety uses overworld worldgen seed+chunkX*25117+chunkZ*151121, hill weights6/3/1,hedge2,Naga2,Lich2, with reserved regional Naga/Lich positions. Gridlock uses variety selection; Magic map landmark pick first uses biome mapping. These are distinct code paths. Full native helper/iterator/placement bodies pinned; blockNearLandmarkCenter shifts by(4+x)/(4+z) per Java precedence rather than adding offsets after shift, and is not the map locator call used here. No new boss attack mechanic inferred from structure choice. Registered ResolveNearestNonRandomSpreadMapStructureTransformer targets exact ChunkGenerator.findNearestMapStructure(ServerLevel,HolderSet,BlockPos,int,boolean)Pair. Finds LAST ARETURN and inserts originalPair +locals1,2,3,4,5 into MapHooks.resolveNearestNonRandomSpreadMapStructure. Exact244 target has THREE ARETURN instructions: empty placement map early-null and early random-spread result bypass hook; only final return is intercepted. Hook calls WorldUtil.findNearestMapLandmark(...).orElse(original). A found TF pair replaces original without comparing distances to original vanilla result. No unconditional all-return interception or global nearest guarantee.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-active-utilities.json",
+          "witness_id": "tf:util/WorldUtil",
+          "entry": "twilightforest/util/WorldUtil.class",
+          "methods": [
+            "randomOffset",
+            "randomOffset"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-hydra-urghast.json",
+          "witness_id": "tf:util/WorldUtil",
+          "entry": "twilightforest/util/WorldUtil.class",
+          "methods": [
+            "getAllInBB"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:util/landmarks/LegacyLandmarkPlacements",
+          "entry": "twilightforest/util/landmarks/LegacyLandmarkPlacements.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "blockIsInLandmarkCenter",
+            "blockNearLandmarkCenter",
+            "chunkHasLandmarkCenter",
+            "getNearestCenterXZ",
+            "getNearestCenterXZ",
+            "lambda$static$0",
+            "landmarkCenterScanner",
+            "manhattanDistanceFromLandmarkCenter",
+            "pickLandmarkAtBlock",
+            "pickLandmarkForChunk",
+            "pickVarietyLandmark"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:world/components/structures/placements/LandmarkGridPlacement",
+          "entry": "twilightforest/world/components/structures/placements/LandmarkGridPlacement.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "forceStructureForCenters",
+            "isPlacementChunk",
+            "lambda$static$0",
+            "lambda$static$1",
+            "type"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:util/WorldUtil",
+          "entry": "twilightforest/util/WorldUtil.class",
+          "methods": [
+            "findNearestMapLandmark",
+            "getOverworldSeed",
+            "lambda$findNearestMapLandmark$0"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-tactical-mobs.json",
+          "witness_id": "tf:util/WorldUtil",
+          "entry": "twilightforest/util/WorldUtil.class",
+          "methods": [
+            "getAllAround"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:maps_information_path:meter_start",
+      "source": "Native exact ServerPlayer OreMeter start",
+      "effect_ids": [
+        "twilightforest:ore_meter_information"
+      ],
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "setup": "Native exact ServerPlayer OreMeter start through genuine native item/callback/command; future fixture only, runtime0.",
+      "future_controls": [
+        "subclassrejection",
+        "pre-firsttick restart",
+        "no cost"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "OreMeter.use requires player.getClass()==ServerPlayer.class, not instanceof (real subclasses/FakePlayer fail). isLoading means ORE_LOADING component presence; if present PASS. Otherwise nonsecondary begins server scan with range=getOrDefault1, duration50+25range and ORE_SCANNING only. No ORE_LOADING until first tick, so another valid use before tick can restart. No consumption, durability or cooldown. Secondary air-use only cycles range via positiveModulo(range+1,3) when native Fluid.ANY ray MISS; hit returnsPASS. Separate useOn secondary+actual clicked ORE_METER_TARGETABLE tag sets ORE_FILTER, no loading/server check inside method, no nullPlayer guard. Actual interaction eligibility remains.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/OreMeterItem",
+          "entry": "twilightforest/item/OreMeterItem.class",
+          "methods": [
+            "<init>",
+            "appendHoverText",
+            "beginScanning",
+            "getLoadProgress",
+            "getRange",
+            "inventoryTick",
+            "isLoading",
+            "shouldCauseReequipAnimation",
+            "toggleRange",
+            "use",
+            "useOn"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:maps_information_path:meter_range",
+      "source": "Native OreMeter secondary air range cycle",
+      "effect_ids": [
+        "twilightforest:ore_meter_information"
+      ],
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "setup": "Native OreMeter secondary air range cycle through genuine native item/callback/command; future fixture only, runtime0.",
+      "future_controls": [
+        "FluidANYMISS",
+        "0/1/2",
+        "loading gate"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "OreMeter.use requires player.getClass()==ServerPlayer.class, not instanceof (real subclasses/FakePlayer fail). isLoading means ORE_LOADING component presence; if present PASS. Otherwise nonsecondary begins server scan with range=getOrDefault1, duration50+25range and ORE_SCANNING only. No ORE_LOADING until first tick, so another valid use before tick can restart. No consumption, durability or cooldown. Secondary air-use only cycles range via positiveModulo(range+1,3) when native Fluid.ANY ray MISS; hit returnsPASS. Separate useOn secondary+actual clicked ORE_METER_TARGETABLE tag sets ORE_FILTER, no loading/server check inside method, no nullPlayer guard. Actual interaction eligibility remains.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/OreMeterItem",
+          "entry": "twilightforest/item/OreMeterItem.class",
+          "methods": [
+            "<init>",
+            "appendHoverText",
+            "beginScanning",
+            "getLoadProgress",
+            "getRange",
+            "inventoryTick",
+            "isLoading",
+            "shouldCauseReequipAnimation",
+            "toggleRange",
+            "use",
+            "useOn"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:maps_information_path:meter_filter",
+      "source": "Native OreMeter secondary block filter",
+      "effect_ids": [
+        "twilightforest:ore_meter_information"
+      ],
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "setup": "Native OreMeter secondary block filter through genuine native item/callback/command; future fixture only, runtime0.",
+      "future_controls": [
+        "actualtargetabletag",
+        "useOn distinct",
+        "currentfilteratfinish"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "OreMeter.use requires player.getClass()==ServerPlayer.class, not instanceof (real subclasses/FakePlayer fail). isLoading means ORE_LOADING component presence; if present PASS. Otherwise nonsecondary begins server scan with range=getOrDefault1, duration50+25range and ORE_SCANNING only. No ORE_LOADING until first tick, so another valid use before tick can restart. No consumption, durability or cooldown. Secondary air-use only cycles range via positiveModulo(range+1,3) when native Fluid.ANY ray MISS; hit returnsPASS. Separate useOn secondary+actual clicked ORE_METER_TARGETABLE tag sets ORE_FILTER, no loading/server check inside method, no nullPlayer guard. Actual interaction eligibility remains. Counter includes all scanned Block identities. With assigned filter getResults returns exactly its translated-descriptionID and count (even0); without filter includes count>0 and block holder c:ores. Results use immutable map, saved scannedChunk,totalScannedBlocks, universalId=(counts.hashCode XOR chunk.toLong)*(scannedRange XOR total). ORE_SCANNING codec persists origin/spans/duration/counts/progression; default-on-parse-error is empty scanner. TF registration specifies persistent codec with no explicit network codec, but native DataComponentType.Builder.build derives fromCodecWithRegistries, so not server-only/transient. DATA/LOADING/RANGE/FILTER have explicit persistence/network codecs. Native stack/save/load/sync applies; no timer outside callback.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/OreMeterItem",
+          "entry": "twilightforest/item/OreMeterItem.class",
+          "methods": [
+            "<init>",
+            "appendHoverText",
+            "beginScanning",
+            "getLoadProgress",
+            "getRange",
+            "inventoryTick",
+            "isLoading",
+            "shouldCauseReequipAnimation",
+            "toggleRange",
+            "use",
+            "useOn"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:components/item/OreScannerComponent",
+          "entry": "twilightforest/components/item/OreScannerComponent.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "<init>",
+            "centerChunkPos",
+            "equals",
+            "getEmpty",
+            "getResults",
+            "getTickProgress",
+            "getVolume",
+            "hashCode",
+            "isEmpty",
+            "isFinished",
+            "lambda$static$0",
+            "lambda$static$1",
+            "lambda$static$2",
+            "lambda$static$3",
+            "lambda$static$4",
+            "lambda$static$5",
+            "lambda$static$6",
+            "scanFromCenter",
+            "tickScan",
+            "toString"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:maps_information_path:meter_tick",
+      "source": "Native OreMeter asynchronous inventory scan",
+      "effect_ids": [
+        "twilightforest:ore_meter_information"
+      ],
+      "labels": [
+        "PASSIVE_ITEM"
+      ],
+      "setup": "Native OreMeter asynchronous inventory scan through genuine native item/callback/command; future fixture only, runtime0.",
+      "future_controls": [
+        "15/47/79",
+        "volume=maxheight*area",
+        "realinventorytick",
+        "noheldrequirement"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "OreScannerComponent.scanFromCenter uses chunk=(center>>4), origin((chunk-range)<<4,Y0), span=endcoord(chunk+range,15)-origin WITHOUT+1. Normalranges0/1/2 produce15/47/79 blocks per horizontal axis. tickScan uses CURRENT level minBuildHeight as originY, area=xSpan*zSpan, volume=area*CURRENT getMaxBuildHeight (not max-min). march=ceil(float(volume)/abs(duration)), starts at ticksProgressed*march, scans linearX/Z/Y until volume; copies immutable counter and adds one tick. Standard min=-64,max=320 yieldsY-64..255, excluding256..319. This exact formula is recorded, not repaired or assumed to scan full nominal chunks. Server inventoryTick any real ticked slot with ORE_SCANNING: tickScan first; if empty removeSCANNINGonly, else unfinished writesLOADINGprogress+SCANNINGnext; finished writesORE_DATA(getResults(CURRENTfilter),centerChunk,volume,CURRENTrange), removesLOADING/SCANNING. No held requirement or persisted dimension: carrying genuine scanning stack across levels can sample current level at storedXZ and combine counters; no runtime assertion. Existing ORE_DATA remains during new scan but loadingHUD takes precedence. No ore removal, damage source, status or direct resource transfer. Scanning continues only with real inventoryTick caller, not hypothetical every container.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:item/OreMeterItem",
+          "entry": "twilightforest/item/OreMeterItem.class",
+          "methods": [
+            "<init>",
+            "appendHoverText",
+            "beginScanning",
+            "getLoadProgress",
+            "getRange",
+            "inventoryTick",
+            "isLoading",
+            "shouldCauseReequipAnimation",
+            "toggleRange",
+            "use",
+            "useOn"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:components/item/OreScannerComponent",
+          "entry": "twilightforest/components/item/OreScannerComponent.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "<init>",
+            "centerChunkPos",
+            "equals",
+            "getEmpty",
+            "getResults",
+            "getTickProgress",
+            "getVolume",
+            "hashCode",
+            "isEmpty",
+            "isFinished",
+            "lambda$static$0",
+            "lambda$static$1",
+            "lambda$static$2",
+            "lambda$static$3",
+            "lambda$static$4",
+            "lambda$static$5",
+            "lambda$static$6",
+            "scanFromCenter",
+            "tickScan",
+            "toString"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:maps_information_path:meter_persistence",
+      "source": "Native OreMeter persistence/dimension movement",
+      "effect_ids": [
+        "twilightforest:ore_meter_information"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "setup": "Native OreMeter persistence/dimension movement through genuine native item/callback/command; future fixture only, runtime0.",
+      "future_controls": [
+        "actualsave/load/network",
+        "nodimensionfield",
+        "currlevelY",
+        "snapshotnotlive"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Server inventoryTick any real ticked slot with ORE_SCANNING: tickScan first; if empty removeSCANNINGonly, else unfinished writesLOADINGprogress+SCANNINGnext; finished writesORE_DATA(getResults(CURRENTfilter),centerChunk,volume,CURRENTrange), removesLOADING/SCANNING. No held requirement or persisted dimension: carrying genuine scanning stack across levels can sample current level at storedXZ and combine counters; no runtime assertion. Existing ORE_DATA remains during new scan but loadingHUD takes precedence. No ore removal, damage source, status or direct resource transfer. Scanning continues only with real inventoryTick caller, not hypothetical every container. Counter includes all scanned Block identities. With assigned filter getResults returns exactly its translated-descriptionID and count (even0); without filter includes count>0 and block holder c:ores. Results use immutable map, saved scannedChunk,totalScannedBlocks, universalId=(counts.hashCode XOR chunk.toLong)*(scannedRange XOR total). ORE_SCANNING codec persists origin/spans/duration/counts/progression; default-on-parse-error is empty scanner. TF registration specifies persistent codec with no explicit network codec, but native DataComponentType.Builder.build derives fromCodecWithRegistries, so not server-only/transient. DATA/LOADING/RANGE/FILTER have explicit persistence/network codecs. Native stack/save/load/sync applies; no timer outside callback.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-chain.json",
+          "witness_id": "tf:init/TFDataComponents",
+          "entry": "twilightforest/init/TFDataComponents.class",
+          "methods": [
+            "<clinit>",
+            "lambda$static$3"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:components/item/OreScannerComponent",
+          "entry": "twilightforest/components/item/OreScannerComponent.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "<init>",
+            "centerChunkPos",
+            "equals",
+            "getEmpty",
+            "getResults",
+            "getTickProgress",
+            "getVolume",
+            "hashCode",
+            "isEmpty",
+            "isFinished",
+            "lambda$static$0",
+            "lambda$static$1",
+            "lambda$static$2",
+            "lambda$static$3",
+            "lambda$static$4",
+            "lambda$static$5",
+            "lambda$static$6",
+            "scanFromCenter",
+            "tickScan",
+            "toString"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:components/item/OreScannerData",
+          "entry": "twilightforest/components/item/OreScannerData.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "counts",
+            "create",
+            "equals",
+            "hashCode",
+            "lambda$static$0",
+            "scannedChunk",
+            "toString",
+            "totalScannedBlocks",
+            "universalId"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-travellers-core.json",
+          "witness_id": "tf:init/TFDataComponents",
+          "entry": "twilightforest/init/TFDataComponents.class",
+          "methods": [
+            "<init>",
+            "lambda$register$44",
+            "lambda$register$45",
+            "lambda$static$0",
+            "lambda$static$1",
+            "lambda$static$10",
+            "lambda$static$11",
+            "lambda$static$12",
+            "lambda$static$13",
+            "lambda$static$14",
+            "lambda$static$15",
+            "lambda$static$16",
+            "lambda$static$17",
+            "lambda$static$18",
+            "lambda$static$19",
+            "lambda$static$2",
+            "lambda$static$20",
+            "lambda$static$21",
+            "lambda$static$22",
+            "lambda$static$23",
+            "lambda$static$24",
+            "lambda$static$25",
+            "lambda$static$26",
+            "lambda$static$27",
+            "lambda$static$28",
+            "lambda$static$29",
+            "lambda$static$30",
+            "lambda$static$31",
+            "lambda$static$32",
+            "lambda$static$33",
+            "lambda$static$34",
+            "lambda$static$35",
+            "lambda$static$36",
+            "lambda$static$37",
+            "lambda$static$38",
+            "lambda$static$39",
+            "lambda$static$4",
+            "lambda$static$40",
+            "lambda$static$41",
+            "lambda$static$42",
+            "lambda$static$43",
+            "lambda$static$5",
+            "lambda$static$6",
+            "lambda$static$7",
+            "lambda$static$8",
+            "lambda$static$9",
+            "register",
+            "register"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:maps_information_path:meter_clear",
+      "source": "Native OreMeter left-click clear and validated packet",
+      "effect_ids": [
+        "twilightforest:ore_meter_information"
+      ],
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "setup": "Native OreMeter left-click clear and validated packet through genuine native item/callback/command; future fixture only, runtime0.",
+      "future_controls": [
+        "ctxplayeractualhand",
+        "DATA/FILTERonly",
+        "scancontinues"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "EntityEvents.LeftClickEmpty listener, if genuine heldmeter hasDATA ORFILTER, sends WipeOreMeterPacket and locally removesDATA/FILTER. Registered playToServer handler uses ctx.player actual hand and exactORE_METER before removing those two only. Does not cancel SCANNING, LOADING or RANGE; ongoing scan may refillDATA. HUD real heldmeter (main preferred), activeclient GUIvisible/no debug/no screen; LOADINGdots elseDATA. Nonzero universalId initializes cached table; id0 skipped unless an entry already exists. Displays snapshot counts/percentages/scannedchunk, not live world query. Cache key omits dimension/independent configuration and can collide; read-only info behavior, not proven pack issue.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-frosted.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "<clinit>",
+            "onParryProjectile",
+            "setup"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-lich.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "<init>",
+            "addCloudJumpParticles",
+            "addQualifiedGroupPlayerIfNeeded",
+            "adjustEntityHealthInMultiplayerFights",
+            "alertPlayerCastleIsWIP",
+            "attachLeadToWroughtFence",
+            "createSkullCandle",
+            "gatherPotentialSpawns",
+            "getHealthBasedOnDifficulty",
+            "getSpawnListIndexAt",
+            "grantGroupAdvancementIfNeeded",
+            "handleLeashPathingOverrides",
+            "handleQuestSyncing",
+            "lambda$adjustEntityHealthInMultiplayerFights$4",
+            "lambda$alertPlayerCastleIsWIP$0",
+            "lambda$gatherPotentialSpawns$2",
+            "lambda$handleQuestSyncing$6",
+            "lambda$lichBombsDontBlowUpItems$5",
+            "lambda$removeCastleTextIfAttacked$3",
+            "lambda$stopEndermenFromGrabbingBlocksInTF$7",
+            "lambda$stopEndermenFromGrabbingBlocksInTF$8",
+            "lichBombsDontBlowUpItems",
+            "makeSkullCandle",
+            "ominousFireConversion",
+            "onCasketBreak",
+            "removeCastleTextIfAttacked",
+            "resetFlaskLogic",
+            "stopEndermenFromGrabbingBlocksInTF",
+            "structureSpecialSpawns",
+            "wipeOreMeterOnLeftClick",
+            "zombifiedPlayerAttacks"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:network/WipeOreMeterPacket",
+          "entry": "twilightforest/network/WipeOreMeterPacket.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "<init>",
+            "equals",
+            "hand",
+            "handle",
+            "hashCode",
+            "lambda$handle$0",
+            "toString",
+            "type",
+            "write"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "entityHurts",
+            "getGearCoverage",
+            "reduceFrostedEffectIfOnFire",
+            "lambda$reduceFrostedEffectIfOnFire$1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:maps_information_path:meter_display",
+      "source": "Native held OreMeter snapshot HUD",
+      "effect_ids": [
+        "twilightforest:ore_meter_information"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "setup": "Native held OreMeter snapshot HUD through genuine native item/callback/command; future fixture only, runtime0.",
+      "future_controls": [
+        "mainpreferred",
+        "GUIgates",
+        "id0/cache",
+        "no damage or ore extraction"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "EntityEvents.LeftClickEmpty listener, if genuine heldmeter hasDATA ORFILTER, sends WipeOreMeterPacket and locally removesDATA/FILTER. Registered playToServer handler uses ctx.player actual hand and exactORE_METER before removing those two only. Does not cancel SCANNING, LOADING or RANGE; ongoing scan may refillDATA. HUD real heldmeter (main preferred), activeclient GUIvisible/no debug/no screen; LOADINGdots elseDATA. Nonzero universalId initializes cached table; id0 skipped unless an entry already exists. Displays snapshot counts/percentages/scannedchunk, not live world query. Cache key omits dimension/independent configuration and can collide; read-only info behavior, not proven pack issue. Counter includes all scanned Block identities. With assigned filter getResults returns exactly its translated-descriptionID and count (even0); without filter includes count>0 and block holder c:ores. Results use immutable map, saved scannedChunk,totalScannedBlocks, universalId=(counts.hashCode XOR chunk.toLong)*(scannedRange XOR total). ORE_SCANNING codec persists origin/spans/duration/counts/progression; default-on-parse-error is empty scanner. TF registration specifies persistent codec with no explicit network codec, but native DataComponentType.Builder.build derives fromCodecWithRegistries, so not server-only/transient. DATA/LOADING/RANGE/FILTER have explicit persistence/network codecs. Native stack/save/load/sync applies; no timer outside callback.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:components/item/OreScannerData",
+          "entry": "twilightforest/components/item/OreScannerData.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "counts",
+            "create",
+            "equals",
+            "hashCode",
+            "lambda$static$0",
+            "scannedChunk",
+            "toString",
+            "totalScannedBlocks",
+            "universalId"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-maps-information.json",
+          "witness_id": "tf:client/event/OverlayHandler",
+          "entry": "twilightforest/client/event/OverlayHandler.class",
+          "methods": [
+            "initTooltips",
+            "lambda$initTooltips$6",
+            "lambda$registerOverlays$0",
+            "lambda$registerOverlays$1",
+            "lambda$registerOverlays$2",
+            "lambda$registerOverlays$3",
+            "lambda$registerOverlays$4",
+            "lambda$registerOverlays$5",
+            "registerOverlays",
+            "renderOreMeterStats"
+          ]
+        }
+      ]
+    }
+  ],
+  "damage_profiles": [],
+  "semantic_closure": {
+    "authority": "Installed TF4.8.3345, raw Minecraft1.21.1 and exact NeoForge21.1.244 bytecode. Maps and OreMeter provide information; no HP/status/damage delivery or boss progression mutation. Prior goggles callbacks are reused. Two more registered nested ASM transformers reviewed, including an explicit correction to R2f8q. Static research only, no runtime/L2/Stage/production/Phase6/7 changes. Twilight remains PARTIAL;31/40 custom types reviewed,9 ordinary unfinished types.",
+    "registration": "TFItems registers filled_magic_map as MagicMapItem; filled_maze_map/filled_ore_map as MazeMapItem(false/true), matching empty variants, and ore_meter stack1/uncommon without durability. Native recipes use8 c:paper plus matching focus; magic focus is raven feather+torchberries+glowstone dust; ore_map is EMPTY maze_map plus diamond/gold/iron storage blocks. This does not convert an already filled Maze map or preserve its ID. Actual registered OreMeter is a legitimate future item fixture; no survival crafting recipe is inferred from its name. All matching installed resources pinned.",
+    "empty_magic": "EmptyMagicMapItem.use clientPASS; server requires dimension TYPE holder tag twilightforest:allows_magic_map_charting, installed value twilightforest:twilight_forest_type. Rejection displays message/FAIL, no consumption/map. Success consumes1 through native ItemStack.consume (infinite-materials exemption), awards stat/sound, creates filled map at floor playerXZ, scale4/trackingtrue/unlimitedfalse. Replaces exhausted held stack; otherwise inventory add copy then drop if insertion fails. No damage, status or use cooldown.",
+    "magic_identity": "MagicMapItem.createMapData allocates native free MapId but stores under magicmap_<id>. Center per axis round((coord-1024)/2048)*2048+1024, independent of supplied scale. getCustomMapData missing-data fallback SERVER ONLY uses shared spawn, scale3/trackingfalse, newID; this fallback does not recheck empty-map dimension-type tag. TFMagicMapData server storage is server.overworld().dataStorage, with dimension saved in each map; client separate static name->map cache. Native colors/banner/frame data retained on save/load; custom showOnItemFrame decorations persisted with IDs/counts, conquered string list persisted. No source attacker/recipient ownership.",
+    "magic_update": "Exact244 MapItem.getSavedData(ItemStack,Level) dispatches virtual getCustomMapData for MapItem subclasses. Native server inventoryTick performs Player.tickCarriedBy, then if unlocked and selected OR actual offhand stack identity, virtual update. Magic update additionally same dimension ResourceKey identity +Player+server. Samples128x128 output, hard-coded16 blocks/pixel and32 pixel radius (512blocks), even fallback scale3; four biome samples per pixel grid,512x512 cached biome samples atY0 spaced4blocks. Floor then Java integer division affects negative viewer offsets. Ring fuzz outside radius30, only radius<32 and odd parity in fuzzy ring. Stream neighbor preference, actual MAGIC_MAP_BIOME_COLOR datamap; absent map uses MAGENTA/brightness1. Native status/damage/attributes unaffected.",
+    "magic_cache": "Static MagicMapItem.CACHE uses only ChunkPos(startX,startZ) for complete biome sample array; dimension/world/seed are not part of cache key. Installed TF instruction scan proves only this class accesses this private field and no clear/removal call in its class. Reusing coordinate key can reuse earlier level biome holders during this JVM lifetime. This is a source-level information-cache property, not runtime-tested world contamination or pack-wide reflection exclusion.",
+    "magic_icons": "Within charted pixels, only a Legacy landmark center, a structure holder in LANDMARK tag, LandmarkStructure instance and present icon produce TF decoration. Icon rotation180; LandmarkUtil.isConquered reads actual matching TFStructureStart flag, does not mark it conquered. TFMagicMapData.addTFDecoration first native addDecoration, then uses existing decoration byte x/y and asset ID to make conquered marker ID, adds/removes string accordingly. List mutation alone does not call setDirty/setDecorationsDirty; pixel/decor updates use native dirty paths. A map icon is not proof of a live spawned boss, boss death, shield break or protection removal.",
+    "map_packets": "TFMagic/MazeData.getUpdatePacket wraps only a nonnull native ClientboundMapItemDataPacket; otherwise passes native result through. Registered playToClient handlers additionally require clientbound flow. Missing client data is created center0, current client dimension, packet scale/locked; native patch then applied. Magic clears/replaces conquered list, Maze sets ore/yCenter; native MapRenderer.update follows. These packets carry information to clients and do not mutate server boss state. Conquered renderer draws red X for matching map marker and returnsfalse so normal icon can render; Magic Player icon custom4scale returns true. Frame/banner/native rendering remains native, with actual NeoForge virtual map lookup; protected Goggles real inventory callback can deliver update/packet without holding map in hand.",
+    "empty_maze": "EmptyMazeMapItem.use creates scale0/trackingtrue/unlimitedfalse at floor playerXYZ with constructor ore flag BEFORE consuming1; unlike EmptyMagic no explicit side or dimension-charting tag guard. Native use, inventory/drop and consume semantics remain. Maze create allocates new mapID and mazemap_<id>, native128*(1<<scale) center rounding; TFMazeMapData.calculateMapCenter sets yCenter=creationY and, only ServerLevel with Legacy selected LABYRINTH, snapsXZ to nearest legacy center. Otherwise keeps native rounded center. Missing-data server fallback uses sharedspawnXYZ scale0/trackingfalse and item ore flag, no empty-map recreation requirement.",
+    "maze_pixels": "Maze update requires same dimension ResourceKey and Player; server gate comes from native TF inventoryTick. Pixel size1<<scale, view radius16pixels (8 with ceiling), native HoldingPlayer.step increment, columns step-mod16 or prior-change continuation, radius/parity fuzz. Ceiling uses deterministic pseudorandom DIRT/STONE colors, not underground block contents. Nonceiling reads original state at chunk-localXZ/yCenter and immediately adds its map color. If original is STONE OR air, probesY-3..Y+3 for STONE AND notair, assigns first such state and brightness0below/2above/1same. It does NOT search for the first nonstone; original color multiset is not replaced by searched state. Ore branch uses resulting state, datamap ORE_MAP_ORE_COLOR weight1000 else nonair c:ores PINK weight1000. Actual9 installed color keys cover8 native ore tags plus ancient_debris; dynamically mapped/tagged ores remain conditional.",
+    "maze_y": "TF Maze server inventoryTick calls tickCarriedBy first. floor(playerY-yCenter) outside[-3,3] replaces existing own-name decoration with PLAYER_OFF_MAP retaining coordinates/rotation. This vertical test changes marker only: it does not veto subsequent unlocked selected/offhand pixelupdate. yCenter and ore flag persist with native saved map fields; server storageoverworld/clientstatic cache separate from Magic. Same mapId among copies shares saved data. No target damage, mining, teleport or forced block loading is introduced by this review; real update reads native chunks as coded.",
+    "cloning": "Native Magic/Maze custom crafting recipes require exactlyone filled matching map slot plus>=1 empty matching map slots and no other nonempty ingredients; canCraftInDimensions requires>=3x3. Output is filled.copy() with count(empty SLOTS+1), so components/mapID preserved and all copies share underlying saved data. Filled Ore and empty Ore are not accepted by MazeMapCloningRecipe. Native recipe consumption remains; no invented copy of Ore map or special quantity-per-stacked-input.",
+    "cartography": "Exact244 archive has no replacement for native CartographyTableMenu/its five anonymous classes; raw bytecode slot0 mayPlace requires Items.FILLED_MAP, additional slot PAPER/MAP/GLASS_PANE, quickMove sameFILLED_MAP identity. Genuine UI therefore rejects TF filled item identities; no baseline cartography scale/lock/copy route is proven. TF empty onCraftedBy overrides do not override native onCraftedPostProcess (MAP_POST_PROCESSING handles scale/lock). Do not infer disabled scaling from wrong method or force TF stacks through rejected native slots. Other mods changing admission are conditional external behavior.",
+    "locator_asm": "Registered ResolveNearestNonRandomSpreadMapStructureTransformer targets exact ChunkGenerator.findNearestMapStructure(ServerLevel,HolderSet,BlockPos,int,boolean)Pair. Finds LAST ARETURN and inserts originalPair +locals1,2,3,4,5 into MapHooks.resolveNearestNonRandomSpreadMapStructure. Exact244 target has THREE ARETURN instructions: empty placement map early-null and early random-spread result bypass hook; only final return is intercepted. Hook calls WorldUtil.findNearestMapLandmark(...).orElse(original). A found TF pair replaces original without comparing distances to original vanilla result. No unconditional all-return interception or global nearest guarantee.",
+    "locator_search": "WorldUtil restricts target holder placements to actual LandmarkGridPlacement, otherwise Optional.empty. Scans Legacy landmark centers using focus chunk &-16, spacing16chunks and supplied radius as GRID radius; skipCenterfalse, iterator hasNext dX+1<=radius means radius0 scansnothing. Placement.isStructureChunk remains: native placement/frequency/exclusion checks; TF ctorfreq1/salt0/zerooffset/noexclusion plus actual center and optional resource-key gridlock==pickVarietyLandmark. Target must be in that placement set and structure biome list contain level.getBiome(centerY0). With skipKnown, START_PRESENT breaks inner target loop. It does not load/validate a generated structure start for every accepted candidate. Chooses smallest center.distToLowCornerSqr(queryX,0,queryZ) among TF candidates. Native search reads info, no spawning/HP/shield/progression modification.",
+    "locator_seed": "Legacy center coordinates derive region math and deterministic coordinate seed, sign-dependent+8/+9. Biome-specific landmark selection uses rounded16chunk cells sampled atY0; variety uses overworld worldgen seed+chunkX*25117+chunkZ*151121, hill weights6/3/1,hedge2,Naga2,Lich2, with reserved regional Naga/Lich positions. Gridlock uses variety selection; Magic map landmark pick first uses biome mapping. These are distinct code paths. Full native helper/iterator/placement bodies pinned; blockNearLandmarkCenter shifts by(4+x)/(4+z) per Java precedence rather than adding offsets after shift, and is not the map locator call used here. No new boss attack mechanic inferred from structure choice.",
+    "locator_delivery": "Actual ServerLevel.findNearestMapStructure delegates to generator with requested tag holders. Native ExplorationMapFunction requires actual Items.MAP and nonnull loot ORIGIN, then uses configured destination/radius/skipKnown; found result creates ordinary native map with zoom, tracking/unlimitedtrue, biome preview and target marker. VillagerTrades.TreasureMapForEmeralds requires ServerLevel trader and uses destination tag, radius100, skipKnowntrue; found result creates native scale2 map and ordinary offer with emerald cost plus compass, configured maxUses/xp and .2 priceMultiplier. Missing search result yields unchanged loot stack or null trade. Native LocateCommand calls generator directly for actual requested structure holder(s), requires normal command authority. Their results reach TF hook only through final-return path and actual LandmarkGridPlacement target. No installed TF exploration-map loot resource is assumed; direct native path availability is distinct from a configured TF trade/loot producer.",
+    "meter_start": "OreMeter.use requires player.getClass()==ServerPlayer.class, not instanceof (real subclasses/FakePlayer fail). isLoading means ORE_LOADING component presence; if present PASS. Otherwise nonsecondary begins server scan with range=getOrDefault1, duration50+25range and ORE_SCANNING only. No ORE_LOADING until first tick, so another valid use before tick can restart. No consumption, durability or cooldown. Secondary air-use only cycles range via positiveModulo(range+1,3) when native Fluid.ANY ray MISS; hit returnsPASS. Separate useOn secondary+actual clicked ORE_METER_TARGETABLE tag sets ORE_FILTER, no loading/server check inside method, no nullPlayer guard. Actual interaction eligibility remains.",
+    "meter_geometry": "OreScannerComponent.scanFromCenter uses chunk=(center>>4), origin((chunk-range)<<4,Y0), span=endcoord(chunk+range,15)-origin WITHOUT+1. Normalranges0/1/2 produce15/47/79 blocks per horizontal axis. tickScan uses CURRENT level minBuildHeight as originY, area=xSpan*zSpan, volume=area*CURRENT getMaxBuildHeight (not max-min). march=ceil(float(volume)/abs(duration)), starts at ticksProgressed*march, scans linearX/Z/Y until volume; copies immutable counter and adds one tick. Standard min=-64,max=320 yieldsY-64..255, excluding256..319. This exact formula is recorded, not repaired or assumed to scan full nominal chunks.",
+    "meter_progress": "Server inventoryTick any real ticked slot with ORE_SCANNING: tickScan first; if empty removeSCANNINGonly, else unfinished writesLOADINGprogress+SCANNINGnext; finished writesORE_DATA(getResults(CURRENTfilter),centerChunk,volume,CURRENTrange), removesLOADING/SCANNING. No held requirement or persisted dimension: carrying genuine scanning stack across levels can sample current level at storedXZ and combine counters; no runtime assertion. Existing ORE_DATA remains during new scan but loadingHUD takes precedence. No ore removal, damage source, status or direct resource transfer. Scanning continues only with real inventoryTick caller, not hypothetical every container.",
+    "meter_results": "Counter includes all scanned Block identities. With assigned filter getResults returns exactly its translated-descriptionID and count (even0); without filter includes count>0 and block holder c:ores. Results use immutable map, saved scannedChunk,totalScannedBlocks, universalId=(counts.hashCode XOR chunk.toLong)*(scannedRange XOR total). ORE_SCANNING codec persists origin/spans/duration/counts/progression; default-on-parse-error is empty scanner. TF registration specifies persistent codec with no explicit network codec, but native DataComponentType.Builder.build derives fromCodecWithRegistries, so not server-only/transient. DATA/LOADING/RANGE/FILTER have explicit persistence/network codecs. Native stack/save/load/sync applies; no timer outside callback.",
+    "meter_clear_display": "EntityEvents.LeftClickEmpty listener, if genuine heldmeter hasDATA ORFILTER, sends WipeOreMeterPacket and locally removesDATA/FILTER. Registered playToServer handler uses ctx.player actual hand and exactORE_METER before removing those two only. Does not cancel SCANNING, LOADING or RANGE; ongoing scan may refillDATA. HUD real heldmeter (main preferred), activeclient GUIvisible/no debug/no screen; LOADINGdots elseDATA. Nonzero universalId initializes cached table; id0 skipped unless an entry already exists. Displays snapshot counts/percentages/scannedchunk, not live world query. Cache key omits dimension/independent configuration and can collide; read-only info behavior, not proven pack issue.",
+    "cloth_erratum": "R2f8q incorrectly treated untransformed NeoForge ElytraLayer.shouldRender as final behavior. Installed TFCoreMod registers CancelElytraRenderingTransformer, targets exact shouldRender(ItemStack,LivingEntity)Z, inserts ALOAD1 plus ArmorHooks.cancelArmorRendering(originalBoolean,stack) before EVERY IRETURN (172). Exact244 method has local1ItemStack and native ELYTRA identity predicate. Component present turns true tofalse; false staysfalse. Cloth therefore hides native Elytra wing rendering, separately from humanoid armor hook, while cape may render through protected cape hook. This changes no attributes, protection, durability or native flight. Historical Q files remain immutable; new accumulated draft explicitly corrects one paragraph in four locations and one future-control label, with source references and counted locations.",
+    "compatibility": "NeoForge virtual custom-map lookup is actual loader behavior; two registered TF ASM hooks are native TF source changes (DIRECT_SOURCE_SPECIFIC to exact native targets). Native inventory/crafting/packet/data-component methods plus real dynamic biome/block data maps and c tags are GENERIC_CONDITIONAL_PRESENT. No direct external mod combat override proven in these scoped source bodies (NONE_PROVEN), no Curios-native map inventory callback invented. Unscanned external modifications remain UNKNOWN; no pack-wide certification or runtime success claim. Other ASM/hazards/passives/source exclusions remain ordinary unfinished scope."
+  },
+  "closure_checklist": {
+    "actual_map_registry_and_recipes": true,
+    "native_loader_virtual_lookup": true,
+    "dimension_type_and_fallback_distinction": true,
+    "map_sampling_cache_and_markers": true,
+    "maze_y_marker_not_update_veto": true,
+    "copy_shared_id_ore_exclusion": true,
+    "cartography_real_item_gate": true,
+    "server_storage_and_client_packets": true,
+    "registered_locator_last_return_only": true,
+    "exact_landmark_placement_biome_presence_predicates": true,
+    "legitimate_native_locator_callers": true,
+    "meter_exact_player_loading_and_filter_gates": true,
+    "meter_off_by_one_horizontal_and_vertical_formula": true,
+    "meter_persistence_and_derived_network_codec": true,
+    "meter_clear_does_not_cancel_scan": true,
+    "registered_Elytra_hook_correction_historical_preservation": true
+  },
+  "comparison_evidence": [
+    {
+      "evidence_file": "vanilla-evidence/twilight-maps-information.json",
+      "sha256": "f01bade60d1cb23477f7190a6915d62b285b971abf7c0320a7860f827bef50e1"
+    },
+    {
+      "evidence_file": "reference-evidence/twilight-maps-information-244.json",
+      "sha256": "030ba8d15b91ce29b9aa54f979d14fcfa550b2b197a31a25b89992f330c336cf"
+    },
+    {
+      "evidence_file": "reference-routing/twilight-maps-information.json",
+      "sha256": "f837e73b86f1a9de2c447bac7dd2a31e2cc9122d9cb4e7ae1ce2528cc5aa859b"
+    },
+    {
+      "evidence_file": "reference-evidence/twilight-maps-information-asm.json",
+      "sha256": "b3472bebae01dfaea247bc838d81079dbd4a39268e639822d439665046f89c90"
+    },
+    {
+      "evidence_file": "twilightforest-maps-information-caller-scan.json",
+      "sha256": "1e074de22296f2847ccecc08ac0b6fbf1237802b590d7e07433e592e35be332c"
+    },
+    {
+      "evidence_file": "reference-evidence/twilight-equipment-asm.json",
+      "sha256": "60295fc0a828f69ea19c91437cfe54149ab4b6b8bcc48332be8fb1daece12090"
+    },
+    {
+      "evidence_file": "reference-evidence/twilight-travellers-utility-244.json",
+      "sha256": "6d4bb149a35293d6b3686e986272fc5726b91d4c5c76d489021dea9cfb260d25"
+    }
+  ],
+  "review_input": {
+    "evidence_file": "review-inputs/twilightforest-maps-information.json",
+    "sha256": "157dc47833c848febceee60e4073e3ba95be2614d78e9650c96da4da5f2da600"
+  },
+  "source_registration_evidence": [
+    {
+      "evidence_file": "native-evidence/twilight-active-utilities.json",
+      "witness_id": "tf:events/RegistrationEvents",
+      "entry": "twilightforest/events/RegistrationEvents.class",
+      "methods": [
+        "createDataMaps"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-active-utilities.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$134",
+        "lambda$static$138",
+        "lambda$static$67",
+        "lambda$static$75",
+        "lambda$static$76"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-bows-fan.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$125",
+        "lambda$static$126",
+        "lambda$static$128",
+        "lambda$static$77"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-chain.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$111"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-chain.json",
+      "witness_id": "tf:init/TFDataComponents",
+      "entry": "twilightforest/init/TFDataComponents.class",
+      "methods": [
+        "<clinit>",
+        "lambda$static$3"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-charms.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$144"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-constructs-slimes.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$102",
+        "lambda$static$103",
+        "lambda$static$104",
+        "lambda$static$105",
+        "lambda$static$116",
+        "lambda$static$117",
+        "lambda$static$118",
+        "lambda$static$119",
+        "lambda$static$23",
+        "lambda$static$24",
+        "lambda$static$25",
+        "lambda$static$26",
+        "lambda$static$27",
+        "lambda$static$28",
+        "lambda$static$29",
+        "lambda$static$30",
+        "lambda$static$31",
+        "lambda$static$55",
+        "lambda$static$56",
+        "lambda$static$57",
+        "lambda$static$58",
+        "lambda$static$59",
+        "lambda$static$60",
+        "lambda$static$61",
+        "lambda$static$62",
+        "lambda$static$63"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-equipment.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$1",
+        "lambda$static$130",
+        "lambda$static$142",
+        "lambda$static$143",
+        "lambda$static$2",
+        "lambda$static$42",
+        "lambda$static$43",
+        "lambda$static$44",
+        "lambda$static$45"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-food-flasks.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$231",
+        "lambda$static$232",
+        "lambda$static$233",
+        "lambda$static$234",
+        "lambda$static$235",
+        "lambda$static$236",
+        "lambda$static$237",
+        "lambda$static$238",
+        "lambda$static$239",
+        "lambda$static$240",
+        "lambda$static$241",
+        "lambda$static$242",
+        "lambda$static$243",
+        "lambda$static$244",
+        "lambda$static$245",
+        "lambda$static$246",
+        "lambda$static$247",
+        "lambda$static$248",
+        "lambda$static$249",
+        "lambda$static$250",
+        "lambda$static$251",
+        "lambda$static$252",
+        "lambda$static$253",
+        "lambda$static$255",
+        "lambda$static$257",
+        "lambda$static$33",
+        "lambda$static$34",
+        "lambda$static$35",
+        "lambda$static$37",
+        "lambda$static$68",
+        "lambda$static$69",
+        "lambda$static$72",
+        "lambda$static$73",
+        "lambda$static$79",
+        "lambda$static$80",
+        "lambda$static$89",
+        "lambda$static$94"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-frosted.json",
+      "witness_id": "tf:events/RegistrationEvents",
+      "entry": "twilightforest/events/RegistrationEvents.class",
+      "methods": [
+        "init",
+        "lambda$init$7"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-frosted.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "<clinit>",
+        "lambda$static$114",
+        "lambda$static$121",
+        "lambda$static$122",
+        "lambda$static$123",
+        "lambda$static$124",
+        "lambda$static$127",
+        "lambda$static$129"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-giants-tools.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$132",
+        "lambda$static$133",
+        "lambda$static$66"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-hydra-urghast.json",
+      "witness_id": "tf:events/RegistrationEvents",
+      "entry": "twilightforest/events/RegistrationEvents.class",
+      "methods": [
+        "registerSpawnPlacements"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-maps-information.json",
+      "witness_id": "tf:init/TFMapDecorations",
+      "entry": "twilightforest/init/TFMapDecorations.class",
+      "methods": [
+        "<clinit>",
+        "<init>",
+        "lambda$register$0",
+        "register"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-maps-information.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$10",
+        "lambda$static$11",
+        "lambda$static$12",
+        "lambda$static$13",
+        "lambda$static$17",
+        "lambda$static$18",
+        "lambda$static$19"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-minoshroom-knight.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$106",
+        "lambda$static$107",
+        "lambda$static$108",
+        "lambda$static$110",
+        "lambda$static$112",
+        "lambda$static$113",
+        "lambda$static$64",
+        "lambda$static$65"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-naga.json",
+      "witness_id": "tf:events/RegistrationEvents",
+      "entry": "twilightforest/events/RegistrationEvents.class",
+      "methods": [
+        "addEntityAttributes",
+        "setupPackets"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-summon-resources.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$3",
+        "lambda$static$4",
+        "lambda$static$5",
+        "lambda$static$6"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-travellers-core.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$48",
+        "lambda$static$49",
+        "lambda$static$50",
+        "lambda$static$51",
+        "lambda$static$52",
+        "lambda$static$53"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-travellers-core.json",
+      "witness_id": "tf:init/TFDataComponents",
+      "entry": "twilightforest/init/TFDataComponents.class",
+      "methods": [
+        "<init>",
+        "lambda$register$44",
+        "lambda$register$45",
+        "lambda$static$0",
+        "lambda$static$1",
+        "lambda$static$10",
+        "lambda$static$11",
+        "lambda$static$12",
+        "lambda$static$13",
+        "lambda$static$14",
+        "lambda$static$15",
+        "lambda$static$16",
+        "lambda$static$17",
+        "lambda$static$18",
+        "lambda$static$19",
+        "lambda$static$2",
+        "lambda$static$20",
+        "lambda$static$21",
+        "lambda$static$22",
+        "lambda$static$23",
+        "lambda$static$24",
+        "lambda$static$25",
+        "lambda$static$26",
+        "lambda$static$27",
+        "lambda$static$28",
+        "lambda$static$29",
+        "lambda$static$30",
+        "lambda$static$31",
+        "lambda$static$32",
+        "lambda$static$33",
+        "lambda$static$34",
+        "lambda$static$35",
+        "lambda$static$36",
+        "lambda$static$37",
+        "lambda$static$38",
+        "lambda$static$39",
+        "lambda$static$4",
+        "lambda$static$40",
+        "lambda$static$41",
+        "lambda$static$42",
+        "lambda$static$43",
+        "lambda$static$5",
+        "lambda$static$6",
+        "lambda$static$7",
+        "lambda$static$8",
+        "lambda$static$9",
+        "register",
+        "register"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-travellers-core.json",
+      "witness_id": "tf:events/RegistrationEvents",
+      "entry": "twilightforest/events/RegistrationEvents.class",
+      "methods": [
+        "lambda$setup$1",
+        "setRegistriesForDatapack"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-travellers-utility.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$137"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-travellers-utility.json",
+      "witness_id": "tf:events/RegistrationEvents",
+      "entry": "twilightforest/events/RegistrationEvents.class",
+      "methods": [
+        "createNewRegistries"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-utility-projectiles.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$136",
+        "lambda$static$78"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-utility-projectiles.json",
+      "witness_id": "tf:init/TFRecipes",
+      "entry": "twilightforest/init/TFRecipes.class",
+      "methods": [
+        "<clinit>"
+      ]
+    }
+  ],
+  "full_declared_class_coverage": [
+    "item/EmptyMagicMapItem",
+    "item/EmptyMazeMapItem",
+    "item/MagicMapItem",
+    "item/MazeMapItem",
+    "item/OreMeterItem",
+    "item/mapdata/TFMagicMapData",
+    "item/mapdata/TFMagicMapData$DecorationHolder",
+    "item/mapdata/TFMazeMapData",
+    "item/recipe/MagicMapCloningRecipe",
+    "item/recipe/MazeMapCloningRecipe",
+    "network/MagicMapPacket",
+    "network/MagicMapPacket$1",
+    "network/MazeMapPacket",
+    "network/MazeMapPacket$1",
+    "network/WipeOreMeterPacket",
+    "components/item/OreScannerComponent",
+    "components/item/OreScannerData",
+    "asmhooks/MapHooks",
+    "util/landmarks/LegacyLandmarkPlacements",
+    "util/iterators/XZQuadrantIterator",
+    "world/components/structures/placements/LandmarkGridPlacement",
+    "util/datamaps/MagicMapBiomeColor",
+    "util/datamaps/OreMapOreColor",
+    "client/renderer/map/MagicMapPlayerIconRenderer",
+    "client/renderer/map/ConqueredMapIconRenderer"
+  ],
+  "limited_class_coverage": {
+    "util/WorldUtil": [
+      "findNearestMapLandmark/getOverworldSeed"
+    ],
+    "util/landmarks/LandmarkUtil": [
+      "read conquered and nearest structure lookup"
+    ],
+    "events/EntityEvents": [
+      "setup/wipeOreMeterOnLeftClick"
+    ],
+    "client/event/OverlayHandler": [
+      "registerOverlays/OreMeter snapshot HUD/cache"
+    ],
+    "client/event/ClientRegistrationEvents": [
+      "map renderer registrations and OreMeter model predicates"
+    ]
+  },
+  "exclusions": [
+    "Information mechanics are separated from HP damage, shields, statuses and boss progression; no new DamageType.",
+    "Full25 TF map/scanner/helper classes reviewed; protected Goggles and cloth mechanics reused, only proven Elytra erratum updates accumulated draft. Historical Q evidence unchanged.",
+    "Registered map locator target has three native returns, only final transformed; legitimate configured native loot/trade/command paths are conditional, not fabricated installed TF producers.",
+    "Other structural utilities, passive entities, hazards/nine custom types, ASM/compatibility/source closure remain unfinished. No runtime or production change."
+  ],
+  "fixture_groups": [
+    "Actual emptyMagicdimensiontype gate, Maze/Ore creationY and orevariant; held/offhand/protectedgoggles native callbacks.",
+    "Map cache/dimension, fixedYsearch, highYmarker, ceilingcolors, savedIDcloning and cartography negativecontrols.",
+    "Native landmark configuredquery: exactfinalreturn, biome/grid/presence/radius0, originalfallback versus TFreplacement.",
+    "OreMeter exactplayer/start/loading/filter, geometry/minmaxY, save/dimensionmovement, clear-duringscan, realHUDsnapshot.",
+    "Native Emperor cloth on Elytra: registered shouldRender hook suppression separately from cape/defense/flight; runtime0."
+  ],
+  "compatibility_scope": "Installed TF4.8.3345, raw Minecraft1.21.1 and exact NeoForge21.1.244 bytecode. Maps and OreMeter provide information; no HP/status/damage delivery or boss progression mutation. Prior goggles callbacks are reused. Two more registered nested ASM transformers reviewed, including an explicit correction to R2f8q. Static research only, no runtime/L2/Stage/production/Phase6/7 changes. Twilight remains PARTIAL;31/40 custom types reviewed,9 ordinary unfinished types.",
+  "counts": {
+    "mechanic_packages": 4,
+    "delivery_cases": 28,
+    "classification_totals": {
+      "CUSTOM_CONTROL": 4
+    },
+    "review_required": 0,
+    "new_custom_types_resolved": 0
+  },
+  "damage_census": {
+    "total_custom_declarations": 40,
+    "previous_reviewed_profiles": 31,
+    "new_used_profiles": 0,
+    "reviewed_profiles_after": 31,
+    "remaining_profiles": 9,
+    "remaining_disposition": "Ordinary unfinished hazard callers; not unused or REVIEW_REQUIRED."
+  },
+  "exact_next_task": "Review structural utility items/blocks (Rope, Magic Beans, remaining magic cores and associated callbacks), passive entities, environmental hazards and nine remaining custom DamageTypes; close remaining nested ASM, compatibility and source exclusions. Then R2f8 and final Twilight COMPLETE promotion; only afterward IceAndFire. Static only; no runtime/L2/Stage/production/Phase6/7.",
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false
+}

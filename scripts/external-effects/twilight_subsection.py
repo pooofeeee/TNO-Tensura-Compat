@@ -5,6 +5,25 @@ from twilight_evidence import *
 from assemble_batch import refresh
 
 
+def corrected_prior(prior, corrections):
+    """Apply explicit, counted errata to a new draft; historical evidence stays immutable."""
+    draft=deepcopy(prior)
+    for correction in corrections:
+        old=correction['old_text'];new=correction['new_text'];hits=[]
+        assert old and old!=new and correction['reason'] and correction['evidence_files']
+        def replace(value, path):
+            if isinstance(value,str):
+                count=value.count(old)
+                if count:hits.extend([path]*count)
+                return value.replace(old,new)
+            if isinstance(value,list):return [replace(v,path+'/'+str(i)) for i,v in enumerate(value)]
+            if isinstance(value,dict):return {k:replace(v,path+'/'+k) for k,v in value.items()}
+            return value
+        for key in ['effects','paths']:draft[key]=replace(draft[key],key)
+        assert hits==correction['expected_locations'],(correction['id'],hits)
+    return draft
+
+
 def damage_tags():
     tags={}
     for r in read_json(OUT/'vanilla-evidence/royalvariations.json')['resources']:
@@ -43,7 +62,9 @@ def assemble(input_name):
     refs=[dict(evidence_file=p,sha256=sha256(OUT/p)) for p in data['comparison_files']]
     section=dict(schema='tno.external_effects.semantic_section.v1',baseline=BASELINE,mod_key='twilightforest',checkpoint=cp,starting_sha=data['starting_sha'],status='REVIEWED_SUBSET_NOT_MOD_COMPLETE',subsection_decision=data['decision'],semantic_coverage_complete=False,promoted_to_catalog=False,remaining_content_subsection=True,effects=effects,paths=paths,damage_profiles=profiles,semantic_closure=facts,closure_checklist={k:True for k in data['closure_checklist']},comparison_evidence=refs,review_input=dict(evidence_file=input_path.relative_to(OUT).as_posix(),sha256=sha256(input_path)),source_registration_evidence=native_refs(*data['registration_classes']),full_declared_class_coverage=data['full_classes'],limited_class_coverage=data['limited_classes'],exclusions=data['exclusions'],fixture_groups=data['fixture_groups'],compatibility_scope=data['compatibility_scope'],counts=counts,damage_census=data['damage_census'],exact_next_task=nxt,**boundary_flags())
     write_json(OUT/'semantic-sections'/('twilightforest-'+slug+'.json'),section)
-    prior=read_json(OUT/data['previous_draft']);draft=deepcopy(prior);draft.update(checkpoint=cp,starting_sha=data['starting_sha'],effects=prior['effects']+effects,paths=prior['paths']+paths)
+    prior=corrected_prior(read_json(OUT/data['previous_draft']),data.get('semantic_corrections',[]));draft=deepcopy(prior);draft.update(checkpoint=cp,starting_sha=data['starting_sha'],effects=prior['effects']+effects,paths=prior['paths']+paths)
+    if data.get('semantic_corrections'):
+        draft.setdefault('semantic_corrections',[]).extend(data['semantic_corrections'])
     assert len({e['id'] for e in draft['effects']})==len(draft['effects'])
     assert len({p['id'] for p in draft['paths']})==len(draft['paths'])
     draftfile='partial-drafts/twilightforest-'+data['checkpoint_short']+'-partial.json';write_json(OUT/draftfile,draft)
