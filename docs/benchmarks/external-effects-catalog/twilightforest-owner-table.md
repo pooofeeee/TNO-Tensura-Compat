@@ -1,6 +1,6 @@
 # Twilight Forest — partial semantic owner table
 
-The installed4.8.3345 review is **PARTIAL** at **R2f8aa**: **257 mechanic-package drafts /900 delivery cases**, **40/40 custom DamageType profiles USED**, zero unfinished types, REVIEW_REQUIRED0. Remaining portal/control/events/ASM/source closure unfinished. Zero final Twilight records promoted. Protected sections/cloth erratum and accepted four mods116/161/217 preserved; runtime0.
+The installed4.8.3345 review is **PARTIAL** at **R2f8ab**: **262 mechanic-package drafts /936 delivery cases**, **40/40 custom DamageType profiles USED**, zero unfinished types, REVIEW_REQUIRED0. Remaining control/events/ASM/source closure unfinished. Zero final Twilight records promoted. Protected sections/cloth erratum and accepted four mods116/161/217 preserved; runtime0.
 
 | Mechanic | Native behavior | Vanilla comparison | Classification / source coverage |
 |---|---|---|---|
@@ -468,3 +468,15 @@ Adds7/32; four custom sources closed. [Contracts and future fixtures](twilightfo
 | Castle Door | Lock helperfalse; any-color propagation;80then2..6ticks vanished | Distinct class/state/timing; native collision and saved scheduled ticks |
 
 [Four packages/24 paths](semantic-sections/twilightforest-vanishing-doors.json). Terrain changes are separate from HP damage. Existing key retention and structure gate reused. Next: native portals/lightning/transport and remaining controls/events/ASM/source closure; no IceAndFire yet.
+
+## R2f8ab — native portals and real lightning
+
+| Mechanic | Native contract | Delivery distinction |
+|---|---|---|
+| Portal creation | Actual dropped catalyst thrower, configured cadence/permission/dimension, exact-state pool4..max64 | Cost1 then lightning then pool writes; tag/advancement/support/deco controls |
+| Portal lightning | True=configured visual-only bolt plus manual thunderHit; false=ordinary native bolt | Real lightning_bolt5default, ownerless environmental, native armor/Resistance/cooldown and independent fire timer |
+| Portal transport | Default state only; native alive/rider/sleep/advancement/processor/cooldown/travel gates | Default61 qualifying process calls, creative-default2, nonplayer1; overlay is separate |
+| Destination | Actual cache/search/safety/collision/terrain helpers with native save data | Recorded search limitations and terrain-before-travel-veto; no guaranteed safe exit inferred |
+| Configured initial/respawn | Genuine registered events; portal or NoReturn path, ignored travel return before respawn/BANISHED writes | Disabled in snapshot; real conditional path and native saved/copyOnDeath state reviewed |
+
+[Five packages/36 paths](semantic-sections/twilightforest-portals.json). No runtime fixture or production changes. Next: remaining Builder/Antibuilder/cloud/control, callbacks/ASM/compatibility/source closure and final Twilight promotion; no IceAndFire yet.
