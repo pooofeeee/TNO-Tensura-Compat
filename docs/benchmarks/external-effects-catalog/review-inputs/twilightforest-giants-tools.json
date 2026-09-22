@@ -1,0 +1,717 @@
+{
+  "slug": "giants-tools",
+  "checkpoint_short": "r2f8d",
+  "checkpoint": "R2f8d-giants-tools-complete",
+  "decision": "TWILIGHT_GIANTS_TOOLS_SEMANTIC_REVIEW_COMPLETE",
+  "starting_sha": "a50efa4b761a3506e248c85165328f140e2259b5",
+  "previous_checkpoint": "R2f8c-chain-complete",
+  "previous_draft": "partial-drafts/twilightforest-r2f8c-partial.json",
+  "facts": {
+    "pipeline": "Installed TF4.8.3345/raw Minecraft1.21.1/exact NeoForge21.1.244. ANT customsource is neoforge:is_physical only in scoped native mergedtags; no armor/shield/Resistance/enchantment/cooldown bypass, projectile/fire/explosion/no_knockback tags. Native armor, directional shield, Resistance/generalprotection, absorption, events/cooldown remain; hurttrue is not measuredHP. CausingLivingnonPlayer for ANT enables Playerdifficulty Peaceful0/Easymin(a/2+1,a)/Normal a/Hard1.5a. Native Player weapon attacks use minecraft:player_attack, not ANT. No runtime/L2/SHP/Stage/production claim.",
+    "giant_body": "GiantMiner and ArmoredGiant bothHP80/speed.23/baseattack2/follow40/stepheight1.2, registered2.4x7.2, nofireproof. Monster ordinary Float1/Melee4/strolllook, retaliation/visiblePlayer; no customhurt, regen, HPthreshold, ranged, defensephase, undeadbehavior, minionmaster or deathoverride. No incoming tags granting giant-specific fall/freeze/knockback/boss immunity in scoped TFcontributions. canRidefalse (ordinaryforced/event mechanics stillnative). Constructor allslotdropchance0; native equipment/HPsave/load retained, no customsavedresource. Equipment onceassigned appliesnativeattributes; no damage formula derived solely from visualsize. Vanilla Mob melee checks native attackAABB intersects victimhitbox, rootBB inflated sqrt(2.04F)-.6 inXZ, noYinflation, withvehicleXZunion ifpresent. This differs from Player interactionrange attributes; defaultMeleeGoal interval20 independent of weapons ATTACK_SPEED.",
+    "giant_equipment": "finalizeSpawn super thenpopulateDefaultEquipmentSlots andpopulateDefaultEquipmentEnchantments; Giant overrides enchantSpawnedWeapon/Armor with emptybodies, so no defaultspawn enchantedgear. Miner getsGIANT_PICKAXE mainhand; Armored callsMiner equipmentthenreplaceswithGIANT_SWORD and fullvanillaironhelmet/chest/legs/boots. Giant tier SimpleTier uses1024/speed4/attackbonus1/enchantvalue5/incorrect=#incorrect_for_stone_tool, repairsGiantCobblestone; GiantSword additionally acceptsIronwoodIngot. RegisteredPick damageargument8=>MAINHAND additive9; Sword argument10=>additive11, speedmodifier-3.5 both. Thus default equipped Mob effectiveattack2+9=11 miner and2+11=13 armored, NOT base2 or Player10/12. Armored fulliron defense2+6+5+2=15, toughness0/knockbackresistance0, ordinarydamagepipeline; Minerordinarybasearmor0. Equippedattrs/nativeenchantments/mutations canchangevalues, no hardcodedHP damage. Helper itself doesnot invoke Player itempostHurtEnemy durability; native mob hit with theseweapons is not a Player held-itemattack. Weaponrepair/acquisition/loot are not damagebonuses.",
+    "giant_attack": "Both classes use inheritedGiantMiner.doHurtTarget ->EntityUtil.properlyApplyCustomDamageSource(self,victim,ANT(self),null). Direct=causingactualGiantMiner ORArmoredGiant; actualtypeprofileonlyoneclassfieldcaller inheritedbysecond. Requesteffectiveattack11/13 afterordinaryequipmentstate, thennativeenchantmenthelper with affectedentity=ATTACKER (protectedTFhelperquirk), nativevictim.hurt. Onlytrue executes helperknockback/postattackenchants, setsLastHurtMob toattacker itself; preserveidentities/quirks. No additional stomp/crushing/terrain destruction on giantmob melee. Lack ofsuccessfulhurt suppressespostcallbacks, not ordinaryAIattemptcooldown. Native mob-dealt Playerdifficulty scaling applies onsource; no customseverance/resource damage.",
+    "giant_producers": "Native registrations havebothspawneggs and GiantMiner.canSpawn requires belowblockGIANTS_SPAWNABLE_ON (#TFclouds); instancecheckSpawnRules only counts GiantMiner andsubclasses in ownBBinflate100,10,100 andrequires<5, doesnotcallsuper; clustermax1. Spawnengine/placement/finalize/events/Peaceful despawn remain. CloudCastleComponent.postProcess explicitly calls placeGiantMiner andplaceWarrior atlocal14,4,14 and17,4,17 wheninsidecurrentchunkbound; create/setposition/setPersistenceRequired/nativefinalizeMobSpawn STRUCTURE/addFreshEntity. GiantHouse andTrollCave native controlledspawnconfigs includebothweight10/group1; these are producerdefinitions, not claim naturalspawn ignores frameworkrules. Both finalizedpaths populateactualweapons/armor; a manufacturedunfinalizedentity hasbaseattack2, not a representativepositivecontrol. No nativeweaponthrow or Playeritem behavior invoked by theseproducers.",
+    "giant_player_tools": "Player standardbaseattack1 +GiantPick9=10 ORGiantSword11=12; standardattackspeed4-3.5=.5, 40tick fullrecharge withnormalnativecooldown/critical/sweep/enchantment predicates. Sword has nativeSWORD_SWEEP ability and ordinarysuccessfulprimary itemdurability1; Pick nativeDigger successfulprimarydurability2. No Giant overrideofhurtEnemy/postHurtEnemy orcustomDamageSource; normalnative Player hooks retained. MAINHAND damage/speed, but BOTH tools addBLOCK_INTERACTION_RANGE +2.5 idtwilightforest:reach_modifier andENTITY_INTERACTION_RANGE +2.5 idrange_modifier inEquipmentSlotGroup.HAND, sooffhandcanextendordinaryothermainhandattack/interaction. Default survivalPlayerblockrange4.5=>7,entityrange3=>5.5; no genericMobAIreachincrease, because Mob nativeattributes lacktheseinteractioninstances andequipmentonlymodifiesexistinginstances. Two gianttools shareexactIDs: normalnativeequipmentupdate removesbyID thenaddsmodifier forchangedslots, so no+5 stacking. Removing/changingone whileotherunchanged canremove sharedmodifier untilremainingitem receivesanothernativeequipmentupdate; fixturemustobserveactualattribute/state, not assumeonebonusperhand. Slot/order effects are staticcodeconsequence, not runtimeobservation. No fixed blockbreaking radius forentityattacks andnoautoAoE fromgiantscale.",
+    "giant_mining_speed": "GiantPick inheritsnative TOOL rules forpickaxetag withGIANTtierstone-equivalentincorrecttag,speed4/default1/damagePerBlock1; nominaldurability1024. getDestroySpeed multipliesparentresult64 ifexactGIANT_OBSIDIAN, thenanother64 ifblock instanceofGiantBlock. Allfourregisteredgiantblocktypes aremineable/pickaxe inTFcontribution; GiantObsidian is aGiantBlock, so normaleligiblebase4=>16384 speed (=4*4096), otherGiantBlock=>256; these are toolspeed values, NOT instantbreak/HPdamage. Nativehardness/divisors/toolcorrectness/effects stillapply. GiantObsidian hardness204800 andresistance8192000; no inferred sameasnormalobsidian ordiamond requirement justfromname. NativeTFgiantincorrectextendsstoneincorrect but giantobsidian isnotnativevanillaneedsdiamond justbecausebasepropertiescopied. Exactalltagcontents available inprotectedchainclosure. Noeffectonmobdamageamount.",
+    "giant_volume_break": "GiantPick.canAttackBlock whenmainhandmatchesitem resets attachmentonly ifminingtime!=levelgameTime: miningtime=currenttick,breakingfalse,conversion0, thensuper. ExactNeoForge CommonHooks.fireBlockBreak calls item.canAttackBlock beforeBreakEvent, including recursivegameMode.destroyBlock; keepssame-tickrecursionguard intact. ToolEvents registeredBreakEvent handler needsServerPlayer/mainhandGiantPick/native doPlayerHarvestCheck true; requiresminingtime==currenttick&&!breaking. Setbreakingtrue; calculateoriginstatedrops withorigin/state/Player/toolcontext; optionallysetconversion64onlywhenfirstdropBlockItem hasconversionmapping ANDall64positions currentlysameBlockidentity (propertiesnotchecked), otherwise0 whenbranchruns. Cancelouterevent,emit2001, callPlayer.gameMode.destroyBlock(original), theneachotherposition withsameBlockidentity callnativegameMode.destroyBlock. Volume gridaligned 4x4x4 inclusive: mincoords=coord&-4,max=coord|3, includingnegativecoords. Not centeredradius4 andnotanyblockinvolume. No sneak/extrareach/LOS guard inhandler. Recursivenative destroy usesordinarygamemode/adventure/harvest/blockevents/toolbreak/drop rules andguardpreventsanotherareaexpansion; eachreturnignored. Partialdenial/failure doesnotabortothercandidates; evenoriginalfailure canleaveothermatchesattempted. Ifitembreaks midloop, remainingcalls stilloccur withcurrentequipment/nativeadmission. Resetbreakingfalseafterloop, no try/finally. Attachment is builder-only (no serialize/sync/copy): transientminingtime/breaking/conversion, no persistent HP/resource. Mobgiants never invoke this Player-only terrainhandler.",
+    "giant_volume_loot": "Loot grouping is sideeffect/exclusion fromcombatpackages, but exactbudgettraced. Registrationmap: droppedCOBBLESTONE->giantcobblestone,OAK_LOG->giantlog,OAK_LEAVES->giantleaves,OBSIDIAN->giantobsidian. Globalmodifier installed viaNeoForgeglobal list/TFgiant_pick_grouping; condition THIS_ENTITY Player,currentgameTime==attachmentmining,conversion>0. doApply requiresfirstgeneratedlootBlockItem withmapping, decrementsconversion by1; ifold==64 returnsonegiantitem replacingentirelist, otherwiseemptylist. Doesnot itself rechecktool/breaking/all64success; normalconditionguardsbudget. Firstmatchingdrop emitsgiant eveniflaterbreaksdenied; successfulnativeblockcallbacks determinewhichdropcalculationsoccur. Counter initializedfromoriginfirstdrop/allstates, no rollback/all-or-nothing claim. GiantBlock placement fillsaligned64volume serverside onlywhenallpositionsreplaceable; ifvolumeincomplete onRemove, guardedrecursive destruction ofothermatchinggiantblocks destroyBlock(false), no Playerhurt/customsource andnoitemarea-eventrequirement. Not separate boss/HP/status mechanic.",
+    "maze_tools": "MAZEBREAKER_ACCELERATED tag actualidmazebreaker_accelerated_mining expandsmazestone+castleblocks. MazebreakerPick extendsPickaxe withDiamondtier, mainhanddamageadd1+tier3=4 (Playerdefault5),speed-2.8 (Player1.2),durability1561/nativepickaxeTool, getDestroySpeed=parent*16 onlytaggedblocks (nominal8*16=128 wherepickaxeefficient), nativehardness/mitigationnotbypassed. isValidRepairItemfalse plussetNoRepair; no specialentityhit/source/armorpenetration. Independent ToolEvents.damageNonMazebreakerToolsMore BreakEvent: taggedstate &&heldmainhanddamageable &&!(item instanceofMazebreakerPickItem) =>nativehurtAndBreak16, beforefinalbreakresult withnoownserver/creative/harvest/successcheck; nativeItemStack durabilityhooks/creative/Unbreaking apply. Handler registeredbeforegiantmining atsameordinarypriority; giantouterevent canrequest16 andrecursivenativeevents requestagain, not oneflat16 per64blockgesture. NativeTooldurabilitywhenactualmining isadditional. Canceledbeforethislistener normallyskip viaeventbus; latercancellation doesnotrefundearlierdurability. No arbitraryextraHPdamage toPlayer. GiantPick isnotMazebreaker andthereforeeligible. Common block/taglookup pinned; this closesgenericextra16 rule foranydamageableheldtool, not justgiants."
+  },
+  "packages": [
+    {
+      "id": "twilightforest:giants_ant_melee",
+      "display_name": "Giant and Armored Giant native ant melee",
+      "owner": "giants_ant_melee",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "facts": [
+        "giant_body",
+        "giant_equipment",
+        "giant_attack",
+        "giant_producers",
+        "pipeline"
+      ],
+      "classes": [
+        "entity/monster/GiantMiner",
+        "entity/monster/ArmoredGiant",
+        "util/entities/EntityUtil",
+        "util/TFToolMaterials"
+      ],
+      "parameters": {
+        "hp": 80,
+        "base_attack": 2,
+        "miner_equipped": 11,
+        "armored_equipped": 13,
+        "armored_defense": 15,
+        "step": 1.2
+      },
+      "gates": [
+        "nativefinalizedequipment",
+        "effectiveattribute",
+        "helperhurt",
+        "actualcausinggiant"
+      ],
+      "relation": "Custom physicalsource withnativeequipment/ordinaryMonsterpipeline; no separate stomp/defensephase.",
+      "primary_test_source": "Native finalized GiantMiner orArmoredGiant melee",
+      "alternate_sources": [
+        "Structurepersistentpair, naturalcontrolledspawn orspawnegg, equipmentloss/armor/failedhurt controls"
+      ]
+    },
+    {
+      "id": "twilightforest:giant_weapon_attributes",
+      "display_name": "Giant weapon attack and interaction attributes",
+      "owner": "giant_weapon_attributes",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "facts": [
+        "giant_player_tools",
+        "giant_equipment"
+      ],
+      "classes": [
+        "item/GiantPickItem",
+        "item/GiantSwordItem",
+        "util/TFToolMaterials"
+      ],
+      "parameters": {
+        "pick_add": 9,
+        "sword_add": 11,
+        "speed_add": -3.5,
+        "block_range_add": 2.5,
+        "entity_range_add": 2.5,
+        "durability": 1024
+      },
+      "gates": [
+        "damageMAINHAND",
+        "rangeHAND",
+        "sharedmodifierIDs",
+        "nativePlayerattacks"
+      ],
+      "relation": "Native weapon/attribute primitives with larger values and customoffhandinteraction-range placement.",
+      "primary_test_source": "Player native GiantPick/GiantSword mainhandattack",
+      "alternate_sources": [
+        "Eitheritemoffhand withordinarymainweapon; dual/sharedID remove/swap; nativecrit/sweep/cooldown"
+      ]
+    },
+    {
+      "id": "twilightforest:giant_pick_volume",
+      "display_name": "Giant Pick speed and recursive volume mining",
+      "owner": "giant_pick_volume",
+      "primary_classification": "CUSTOM_CONTROL",
+      "facts": [
+        "giant_mining_speed",
+        "giant_volume_break",
+        "giant_volume_loot"
+      ],
+      "classes": [
+        "item/GiantPickItem",
+        "events/ToolEvents",
+        "components/entity/GiantPickaxeMiningAttachment",
+        "block/GiantBlock",
+        "loot/modifiers/GiantToolGroupingModifier",
+        "loot/conditions/GiantPickUsedCondition"
+      ],
+      "parameters": {
+        "grid_side": 4,
+        "candidates": 64,
+        "giant_speed_multiplier": 64,
+        "giant_obsidian_extra": 64
+      },
+      "gates": [
+        "ServerPlayermainGiantPick",
+        "harvestcheck",
+        "sameticknotbreaking",
+        "sameBlockidentity",
+        "nativebreakperposition"
+      ],
+      "relation": "Custom Player terrain control built onnative blockbreak/events/tool/drop pipeline; noentitydamage.",
+      "primary_test_source": "Native GiantPick harvest ofsame-blockalignedvolume",
+      "alternate_sources": [
+        "Mixed/properties/boundary/negativecoords; giantblocks/obsidian; eventdenial/toolbreak; reload/transientstate"
+      ]
+    },
+    {
+      "id": "twilightforest:maze_tool_durability",
+      "display_name": "Maze-block tool speed and extra durability",
+      "owner": "maze_tool_durability",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "facts": [
+        "maze_tools"
+      ],
+      "classes": [
+        "item/MazebreakerPickItem",
+        "events/ToolEvents"
+      ],
+      "parameters": {
+        "mazebreaker_speed_multiplier": 16,
+        "other_tool_durability_request": 16,
+        "mazebreaker_durability": 1561,
+        "player_base_attack_with_pick": 5
+      },
+      "gates": [
+        "actualmazebreakeracceleratedtag",
+        "nonMazebreakerdamageableitem",
+        "BreakEventcallback",
+        "native durability processing"
+      ],
+      "relation": "Custom durability penalty and tool-specific speed usingnative toolresources/events, notHP damage.",
+      "primary_test_source": "Native maze/castleblock break withordinarytool orGiantPick",
+      "alternate_sources": [
+        "NativeMazebreaker exemption/speed, creative/Unbreaking/latecancel, recursiveGiantPick attempts"
+      ]
+    }
+  ],
+  "paths": [
+    {
+      "id": "twilightforest:giants_tools_path:miner",
+      "source": "Native GiantMiner equipped melee",
+      "facts": [
+        "giant_attack",
+        "giant_equipment",
+        "pipeline"
+      ],
+      "effect_ids": [
+        "twilightforest:giants_ant_melee"
+      ],
+      "classes": [
+        "entity/monster/GiantMiner",
+        "item/GiantPickItem"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "MELEE"
+      ],
+      "setup": "Native GiantMiner equipped melee through native finalized entities/items and ordinary callbacks; static evidence only, no fabricatedsource ordirectHP writes.",
+      "future_controls": [
+        "ANT11",
+        "direct=causinggiant",
+        "nativePlayerdifficulty",
+        "helperquirks"
+      ]
+    },
+    {
+      "id": "twilightforest:giants_tools_path:armored",
+      "source": "Native ArmoredGiant equipped melee/defense",
+      "facts": [
+        "giant_attack",
+        "giant_equipment",
+        "pipeline"
+      ],
+      "effect_ids": [
+        "twilightforest:giants_ant_melee"
+      ],
+      "classes": [
+        "entity/monster/ArmoredGiant",
+        "entity/monster/GiantMiner",
+        "item/GiantSwordItem"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "MELEE"
+      ],
+      "setup": "Native ArmoredGiant equipped melee/defense through native finalized entities/items and ordinary callbacks; static evidence only, no fabricatedsource ordirectHP writes.",
+      "future_controls": [
+        "ANT13",
+        "ironarmor15",
+        "no innatephase"
+      ]
+    },
+    {
+      "id": "twilightforest:giants_tools_path:giant_structure",
+      "source": "Native CloudCastle persistent giants",
+      "facts": [
+        "giant_producers"
+      ],
+      "effect_ids": [
+        "twilightforest:giants_ant_melee"
+      ],
+      "classes": [
+        "world/components/structures/trollcave/CloudCastleComponent",
+        "entity/monster/GiantMiner",
+        "entity/monster/ArmoredGiant"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "OTHER"
+      ],
+      "setup": "Native CloudCastle persistent giants through native finalized entities/items and ordinary callbacks; static evidence only, no fabricatedsource ordirectHP writes.",
+      "future_controls": [
+        "STRUCTUREfinalize",
+        "persistence",
+        "actualequipment"
+      ]
+    },
+    {
+      "id": "twilightforest:giants_tools_path:giant_spawn",
+      "source": "Native controlled giant spawn orspawnegg",
+      "facts": [
+        "giant_producers",
+        "giant_body"
+      ],
+      "effect_ids": [
+        "twilightforest:giants_ant_melee"
+      ],
+      "classes": [
+        "entity/monster/GiantMiner",
+        "world/components/structures/type/GiantHouseStructure",
+        "world/components/structures/type/TrollCaveStructure"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "OTHER"
+      ],
+      "setup": "Native controlled giant spawn orspawnegg through native finalized entities/items and ordinary callbacks; static evidence only, no fabricatedsource ordirectHP writes.",
+      "future_controls": [
+        "cloudtag",
+        "nearby<5",
+        "group1",
+        "nativeengine"
+      ]
+    },
+    {
+      "id": "twilightforest:giants_tools_path:giant_state",
+      "source": "Native giant equipment loss/save/failedhurt",
+      "facts": [
+        "giant_body",
+        "giant_equipment",
+        "giant_attack"
+      ],
+      "effect_ids": [
+        "twilightforest:giants_ant_melee"
+      ],
+      "classes": [
+        "entity/monster/GiantMiner",
+        "entity/monster/ArmoredGiant"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "OTHER"
+      ],
+      "setup": "Native giant equipment loss/save/failedhurt through native finalized entities/items and ordinary callbacks; static evidence only, no fabricatedsource ordirectHP writes.",
+      "future_controls": [
+        "base2vs11/13",
+        "nativegearHPsaved",
+        "no postonfalse"
+      ]
+    },
+    {
+      "id": "twilightforest:giants_tools_path:pick_player",
+      "source": "Native Player GiantPick melee",
+      "facts": [
+        "giant_player_tools"
+      ],
+      "effect_ids": [
+        "twilightforest:giant_weapon_attributes"
+      ],
+      "classes": [
+        "item/GiantPickItem"
+      ],
+      "labels": [
+        "MELEE",
+        "ACTIVE_ITEM"
+      ],
+      "setup": "Native Player GiantPick melee through native finalized entities/items and ordinary callbacks; static evidence only, no fabricatedsource ordirectHP writes.",
+      "future_controls": [
+        "player_attack10",
+        ".5attackspeed",
+        "nativecritical",
+        "durability2"
+      ]
+    },
+    {
+      "id": "twilightforest:giants_tools_path:sword_player",
+      "source": "Native Player GiantSword primary/sweep",
+      "facts": [
+        "giant_player_tools"
+      ],
+      "effect_ids": [
+        "twilightforest:giant_weapon_attributes"
+      ],
+      "classes": [
+        "item/GiantSwordItem"
+      ],
+      "labels": [
+        "MELEE",
+        "AOE"
+      ],
+      "setup": "Native Player GiantSword primary/sweep through native finalized entities/items and ordinary callbacks; static evidence only, no fabricatedsource ordirectHP writes.",
+      "future_controls": [
+        "player_attack12",
+        "nativesweepconditions",
+        "durability1"
+      ]
+    },
+    {
+      "id": "twilightforest:giants_tools_path:tools_offhand",
+      "source": "Native gianttool offhand range",
+      "facts": [
+        "giant_player_tools"
+      ],
+      "effect_ids": [
+        "twilightforest:giant_weapon_attributes"
+      ],
+      "classes": [
+        "item/GiantPickItem",
+        "item/GiantSwordItem"
+      ],
+      "labels": [
+        "PASSIVE_ITEM",
+        "MELEE"
+      ],
+      "setup": "Native gianttool offhand range through native finalized entities/items and ordinary callbacks; static evidence only, no fabricatedsource ordirectHP writes.",
+      "future_controls": [
+        "rangeHAND",
+        "damageMAINHAND",
+        "normalbase7/5.5",
+        "noMobAIincrease"
+      ]
+    },
+    {
+      "id": "twilightforest:giants_tools_path:tools_dual",
+      "source": "Native dualgianttool changes",
+      "facts": [
+        "giant_player_tools"
+      ],
+      "effect_ids": [
+        "twilightforest:giant_weapon_attributes"
+      ],
+      "classes": [
+        "item/GiantPickItem",
+        "item/GiantSwordItem"
+      ],
+      "labels": [
+        "PASSIVE_ITEM",
+        "OTHER"
+      ],
+      "setup": "Native dualgianttool changes through native finalized entities/items and ordinary callbacks; static evidence only, no fabricatedsource ordirectHP writes.",
+      "future_controls": [
+        "sharedIDsnot+5",
+        "remove/swap state",
+        "ordinaryequipmentupdate"
+      ]
+    },
+    {
+      "id": "twilightforest:giants_tools_path:giant_mining",
+      "source": "Native GiantPick aligned terrain harvest",
+      "facts": [
+        "giant_volume_break"
+      ],
+      "effect_ids": [
+        "twilightforest:giant_pick_volume"
+      ],
+      "classes": [
+        "item/GiantPickItem",
+        "events/ToolEvents",
+        "components/entity/GiantPickaxeMiningAttachment",
+        "block/GiantBlock"
+      ],
+      "labels": [
+        "ACTIVE_ITEM",
+        "ENVIRONMENT"
+      ],
+      "setup": "Native GiantPick aligned terrain harvest through native finalized entities/items and ordinary callbacks; static evidence only, no fabricatedsource ordirectHP writes.",
+      "future_controls": [
+        "64grid",
+        "sameBlocknotproperties",
+        "nativeeachbreak",
+        "guard/cancel"
+      ]
+    },
+    {
+      "id": "twilightforest:giants_tools_path:giant_negative",
+      "source": "Native GiantPick mixed/denied/interrupted volume",
+      "facts": [
+        "giant_volume_break"
+      ],
+      "effect_ids": [
+        "twilightforest:giant_pick_volume"
+      ],
+      "classes": [
+        "item/GiantPickItem",
+        "events/ToolEvents",
+        "components/entity/GiantPickaxeMiningAttachment",
+        "block/GiantBlock"
+      ],
+      "labels": [
+        "ACTIVE_ITEM",
+        "ENVIRONMENT"
+      ],
+      "setup": "Native GiantPick mixed/denied/interrupted volume through native finalized entities/items and ordinary callbacks; static evidence only, no fabricatedsource ordirectHP writes.",
+      "future_controls": [
+        "partialsuccess",
+        "originfailedotherattempts",
+        "toolbreakmidloop",
+        "transientreload"
+      ]
+    },
+    {
+      "id": "twilightforest:giants_tools_path:giant_speed",
+      "source": "Native GiantPick giantblock/obsidian speed",
+      "facts": [
+        "giant_mining_speed",
+        "giant_volume_loot"
+      ],
+      "effect_ids": [
+        "twilightforest:giant_pick_volume"
+      ],
+      "classes": [
+        "item/GiantPickItem",
+        "block/GiantBlock"
+      ],
+      "labels": [
+        "ACTIVE_ITEM",
+        "ENVIRONMENT"
+      ],
+      "setup": "Native GiantPick giantblock/obsidian speed through native finalized entities/items and ordinary callbacks; static evidence only, no fabricatedsource ordirectHP writes.",
+      "future_controls": [
+        "x64/x4096",
+        "hardness204800",
+        "noHPattack",
+        "cascade"
+      ]
+    },
+    {
+      "id": "twilightforest:giants_tools_path:giant_drops",
+      "source": "Native giant volume grouping sideeffects",
+      "facts": [
+        "giant_volume_loot"
+      ],
+      "effect_ids": [
+        "twilightforest:giant_pick_volume"
+      ],
+      "classes": [
+        "events/ToolEvents",
+        "loot/modifiers/GiantToolGroupingModifier",
+        "loot/conditions/GiantPickUsedCondition",
+        "components/entity/GiantPickaxeMiningAttachment"
+      ],
+      "labels": [
+        "ENVIRONMENT",
+        "OTHER"
+      ],
+      "setup": "Native giant volume grouping sideeffects through native finalized entities/items and ordinary callbacks; static evidence only, no fabricatedsource ordirectHP writes.",
+      "future_controls": [
+        "firstdropmapping",
+        "budget64",
+        "noatomicbreakguarantee"
+      ]
+    },
+    {
+      "id": "twilightforest:giants_tools_path:maze_pick",
+      "source": "Native Mazebreaker tagged/ordinary mining andmelee",
+      "facts": [
+        "maze_tools"
+      ],
+      "effect_ids": [
+        "twilightforest:maze_tool_durability"
+      ],
+      "classes": [
+        "item/MazebreakerPickItem",
+        "events/ToolEvents"
+      ],
+      "labels": [
+        "MELEE",
+        "ACTIVE_ITEM",
+        "ENVIRONMENT"
+      ],
+      "setup": "Native Mazebreaker tagged/ordinary mining andmelee through native finalized entities/items and ordinary callbacks; static evidence only, no fabricatedsource ordirectHP writes.",
+      "future_controls": [
+        "Diamondnativeattack5",
+        "taggedx16",
+        "durabilityexemption",
+        "norepair"
+      ]
+    },
+    {
+      "id": "twilightforest:giants_tools_path:maze_ordinary",
+      "source": "Native otherdamageabletool maze/castlebreak",
+      "facts": [
+        "maze_tools"
+      ],
+      "effect_ids": [
+        "twilightforest:maze_tool_durability"
+      ],
+      "classes": [
+        "events/ToolEvents"
+      ],
+      "labels": [
+        "ACTIVE_ITEM",
+        "ENVIRONMENT"
+      ],
+      "setup": "Native otherdamageabletool maze/castlebreak through native finalized entities/items and ordinary callbacks; static evidence only, no fabricatedsource ordirectHP writes.",
+      "future_controls": [
+        "16requestbeforefinalbreak",
+        "creative/Unbreaking",
+        "latecancel"
+      ]
+    },
+    {
+      "id": "twilightforest:giants_tools_path:maze_giant",
+      "source": "Native GiantPick recursive maze/castlebreaking",
+      "facts": [
+        "maze_tools",
+        "giant_volume_break"
+      ],
+      "effect_ids": [
+        "twilightforest:maze_tool_durability",
+        "twilightforest:giant_pick_volume"
+      ],
+      "classes": [
+        "events/ToolEvents",
+        "item/GiantPickItem",
+        "components/entity/GiantPickaxeMiningAttachment"
+      ],
+      "labels": [
+        "ACTIVE_ITEM",
+        "ENVIRONMENT"
+      ],
+      "setup": "Native GiantPick recursive maze/castlebreaking through native finalized entities/items and ordinary callbacks; static evidence only, no fabricatedsource ordirectHP writes.",
+      "future_controls": [
+        "outerandrecursivedurabilityevents",
+        "nativeperblockcost",
+        "toolbreak"
+      ]
+    }
+  ],
+  "damage_profiles": [
+    {
+      "type": "twilightforest:ant",
+      "status": "USED",
+      "callers": [
+        {
+          "entry": "twilightforest/entity/monster/GiantMiner.class",
+          "method": "doHurtTarget",
+          "inherited_by": "twilightforest/entity/monster/ArmoredGiant.class"
+        }
+      ],
+      "amount": "Effectiveattack default11 GiantMiner/13 ArmoredGiant afternativeequipment; base2 ifunequipped, nativeenchantments apply.",
+      "direct_and_causing_entities": "direct=causing actual GiantMiner orArmoredGiant",
+      "mitigation": "Installed TF4.8.3345/raw Minecraft1.21.1/exact NeoForge21.1.244. ANT customsource is neoforge:is_physical only in scoped native mergedtags; no armor/shield/Resistance/enchantment/cooldown bypass, projectile/fire/explosion/no_knockback tags. Native armor, directional shield, Resistance/generalprotection, absorption, events/cooldown remain; hurttrue is not measuredHP. CausingLivingnonPlayer for ANT enables Playerdifficulty Peaceful0/Easymin(a/2+1,a)/Normal a/Hard1.5a. Native Player weapon attacks use minecraft:player_attack, not ANT. No runtime/L2/SHP/Stage/production claim.",
+      "difficulty": "when_caused_by_living_non_player applies onPlayerrecipient; native formula retained."
+    }
+  ],
+  "new_damage_types": 1,
+  "full_classes": [
+    "entity/monster/GiantMiner",
+    "entity/monster/ArmoredGiant",
+    "item/GiantPickItem",
+    "item/GiantSwordItem",
+    "item/MazebreakerPickItem",
+    "util/TFToolMaterials",
+    "block/GiantBlock",
+    "components/entity/GiantPickaxeMiningAttachment",
+    "loot/modifiers/GiantToolGroupingModifier",
+    "loot/conditions/GiantPickUsedCondition"
+  ],
+  "limited_classes": {
+    "events/ToolEvents": [
+      "setup",
+      "handleGiantPickaxeMining",
+      "canHarvestWithGiantPick",
+      "shouldBreakGiantBlock",
+      "damageNonMazebreakerToolsMore"
+    ],
+    "world/components/structures/trollcave/CloudCastleComponent": [
+      "postProcess",
+      "placeGiantMiner",
+      "placeWarrior"
+    ],
+    "world/components/structures/type/GiantHouseStructure": [
+      "buildGiantHouseConfig"
+    ],
+    "world/components/structures/type/TrollCaveStructure": [
+      "buildTrollCaveConfig"
+    ],
+    "init/TFItems": [
+      "selected giant/Mazebreaker registrations"
+    ],
+    "init/TFBlocks": [
+      "giant obsidian registration"
+    ],
+    "events/RegistrationEvents": [
+      "giant conversions registration"
+    ],
+    "init/TFDataAttachments": [
+      "giant attachment registration"
+    ],
+    "init/TFLoot": [
+      "GiantPickUsedCondition registration"
+    ]
+  },
+  "registration_classes": [
+    "init/TFEntities",
+    "events/RegistrationEvents",
+    "init/TFItems",
+    "init/TFDataAttachments",
+    "init/TFBlocks",
+    "init/TFLoot"
+  ],
+  "closure_checklist": [
+    "giant_native_producers",
+    "equipped_vs_base_damage",
+    "ant_source_and_helper",
+    "ordinary_iron_defense",
+    "noextra_boss_mechanics",
+    "player_vs_mob_reach",
+    "twohand_modifier_identity",
+    "native_player_attack_pipeline",
+    "giant_toolspeed",
+    "grid_volume_and_recursion",
+    "partial_break_admission",
+    "loot_budget_exclusion",
+    "giantblock_cascade",
+    "transient_state",
+    "maze_speed_and_extra_durability",
+    "actual_caller_census"
+  ],
+  "compatibility_scope": "Installed TF4.8.3345/raw Minecraft1.21.1/exact NeoForge21.1.244. ANT customsource is neoforge:is_physical only in scoped native mergedtags; no armor/shield/Resistance/enchantment/cooldown bypass, projectile/fire/explosion/no_knockback tags. Native armor, directional shield, Resistance/generalprotection, absorption, events/cooldown remain; hurttrue is not measuredHP. CausingLivingnonPlayer for ANT enables Playerdifficulty Peaceful0/Easymin(a/2+1,a)/Normal a/Hard1.5a. Native Player weapon attacks use minecraft:player_attack, not ANT. No runtime/L2/SHP/Stage/production claim.",
+  "current_scope": "Protected bosses/Frosted/ranged/mounted/chain plus giant mobs/tools and maze durability rules complete; remaining Twilight content PARTIAL/zero promoted.",
+  "exact_next_task": "Continue Task C with remaining melee/control mobs and minibosses (spiders/swarm, MosquitoSwarm, Boggard/HelmetCrab, Redcap/Sapper, Kobold/Troll, golems/borers, Wraith and unfinished undead/summon paths), then remaining items/scepters/armor/charms/projectiles/hazards/resources and15 remaining custom caller profiles. Reuse protected giants/tools/chain/mounted/ranged/boss/Frosted work. Protect each subsection toward R2f8 and finalwholeTwilight promotion. IceAndFire onlyafterCOMPLETE Twilightpushed; no runtimeboss/L2/Stage/production/fixes/balancing/Phase6/7.",
+  "damage_census": {
+    "total_custom_declarations": 40,
+    "previous_reviewed_profiles": 24,
+    "new_used_profiles": 1,
+    "reviewed_profiles_after": 25,
+    "remaining_profiles": 15,
+    "remaining_disposition": "Other native caller profiles unfinished, notunused."
+  },
+  "comparison_files": [
+    "vanilla-evidence/twilight-giants-tools.json",
+    "reference-evidence/twilight-giants-tools-244.json",
+    "reference-routing/twilight-giants-tools.json",
+    "twilightforest-giants-tools-caller-scan.json",
+    "vanilla-evidence/royalvariations.json",
+    "reference-evidence/royal-loader-244.json",
+    "vanilla-evidence/twilight-minoshroom-knight.json",
+    "reference-evidence/twilight-minoshroom-knight-244.json",
+    "vanilla-evidence/twilight-chain.json",
+    "reference-evidence/twilight-chain-244.json",
+    "vanilla-evidence/twilight-chain-tools.json",
+    "reference-evidence/twilight-yeti-queen-244.json"
+  ],
+  "exclusions": [
+    "Ten fullnativeclasssurfaces; limitedevent/registry/structureproducers explicitlylisted. FullToolEvents includesothermechanics stillpending; reviewedmethods areexactlyscoped.",
+    "Ordinary ironarmor, passivegiantsize/AI, repairingredients and equipmentdrops are nativeparameters/exclusions, notcustomdefense/statuspackages.",
+    "Giantblockplacement/cascade andlootgrouping fullytraced toexplainterrainresourceeffects, notpromotedasseparatecombat/HPmechanics.",
+    "GiantPick terrain isPlayer-only; no invented giantmobAoE/stomp/miningattack. ANTclosedthroughactualinheritedcallers.",
+    "Mazeextra16 andMazebreakerspeed/exemption closedhere forreuse; no duplicatelatertoolpackage.",
+    "FifteenothercustomDamageTypeprofiles andremainingTwilightcontentunfinished; zero promotion, noIceAndFireyet."
+  ],
+  "fixture_groups": [
+    "Native finalized/equipped miners/armoredgiants, exactsource and11/13 request/15armor; failedhurt/nativeHP/equipmentpersist.",
+    "Playergiantweapons main/offhand/dualattributeIDs, ordinaryprimary/sweep/critical/cooldown and nativeitemsuccessdurability.",
+    "GiantPick gridalignedsameblockvolume, negativecoords/mixedstates/events/partialbreak/toolbreak/lootbudget/transientstate.",
+    "Giantobsidian toolspeedversushardness andgiantblockcascade; no entityHP consequence.",
+    "Mazebreaker vsotherdamageabletool onactualtag, native16durabilitywithcancel/creative/Unbreaking andrecursiveGiantPick controls."
+  ],
+  "expected_counts": {
+    "mechanic_packages": 4,
+    "delivery_cases": 16,
+    "classification_totals": {
+      "CUSTOM_DAMAGE": 1,
+      "VANILLA_LIKE_EXTENDED": 1,
+      "CUSTOM_CONTROL": 1,
+      "CUSTOM_RESOURCE": 1
+    },
+    "review_required": 0,
+    "new_custom_types_resolved": 1
+  }
+}

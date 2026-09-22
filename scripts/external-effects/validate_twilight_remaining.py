@@ -129,6 +129,25 @@ def validate_remaining():
             for name in ['readAdditionalSaveData','addAdditionalSaveData']:
                 assert not any('.HAND' in str(x['operand']) or '.getHand(' in str(x['operand']) or '.setHand(' in str(x['operand']) for x in ins(P,name))
             assert d['damage_census']['reviewed_profiles_after']==24 and d['damage_census']['remaining_profiles']==16
+        if d['slug']=='giants-tools':
+            from collect_twilight_giants_tools import scan_callers
+            scan=read_json(OUT/'twilightforest-giants-tools-caller-scan.json');assert scan==scan_callers(target)
+            runtime=[x for x in scan['hits'] if 'TFDamageTypes.ANTL' in str(x['instruction']['operand']) and '/data/' not in x['entry'] and '/init/' not in x['entry']]
+            assert len(runtime)==1 and runtime[0]['entry']=='twilightforest/entity/monster/GiantMiner.class' and runtime[0]['method']=='doHurtTarget'
+            p=s['damage_profiles'][0];assert p['type']=='twilightforest:ant' and p['status']=='USED' and p['tags']==['neoforge:is_physical']
+            M='entity/monster/';I='item/';EV='events/ToolEvents'
+            assert 'doHurtTarget' not in {m['name'] for m in methods(M+'ArmoredGiant')}
+            assert not {'hurt','tickDeath','customServerAiStep'} & {m['name'] for m in methods(M+'GiantMiner')}
+            for method in ['enchantSpawnedWeapon','enchantSpawnedArmor']:assert len(ins(M+'GiantMiner',method))==1
+            for c in ['GiantPickItem','GiantSwordItem']:
+                attrs=ins(I+c,'createGiantAttributes');assert any(x['operand']==2.5 for x in attrs) and any('EquipmentSlotGroup.HAND' in str(x['operand']) for x in attrs)
+            speed=ins(I+'GiantPickItem','getDestroySpeed');assert sum(x['operand']==64.0 for x in speed)==2
+            area=ins(EV,'handleGiantPickaxeMining');assert pos(area,'.setCanceled(')<pos(area,'ServerPlayerGameMode.destroyBlock(')
+            assert sum('ServerPlayerGameMode.destroyBlock(' in str(x['operand']) for x in area)==2
+            assert not any('.hurt(' in str(x['operand']) for x in area)
+            extra=ins(EV,'damageNonMazebreakerToolsMore');assert any(x['operand']==16 for x in extra) and any('MazebreakerPickItem' in str(x['operand']) for x in extra)
+            maze=ins(I+'MazebreakerPickItem','getDestroySpeed');assert any(x['operand']==16.0 for x in maze)
+            assert d['damage_census']['reviewed_profiles_after']==25 and d['damage_census']['remaining_profiles']==15
         result=dict(schema='tno.external_effects.remaining_subsection_integrity.v1',status='PASS',checkpoint=d['checkpoint'],decision=d['decision'],starting_sha=d['starting_sha'],counts=s['counts'],protected_prior_files=len(protected),full_declared_class_coverage=len(d['full_classes']),twilight_reviewed_drafts=len(new['effects']),twilight_delivery_drafts=len(new['paths']),damage_profiles_reviewed=d['damage_census']['reviewed_profiles_after'],damage_profiles_remaining=d['damage_census']['remaining_profiles'],accepted_counts_unchanged=previous['accepted_counts_unchanged'],runtime_tests=0,promoted_twilight_records=0,**boundary_flags())
         results.append((d['slug'],result))
     assert results
