@@ -462,3 +462,13 @@ R2f8e was committed/pushed/live verified at `ce8cafbf6c2fb8108f8db7cba46eb4a3cc9
 [Reviewed contracts](benchmarks/external-effects-catalog/twilightforest-tactical-mobs-review.md) distinguish Redcap TNT planning from ordinary native blast/ownership, Kobold bread targeting from retaliation and panic/flock control, and Troll carried/thrown projectiles from their ownerless damage source. Boggard has no registered native producer and contributes no legitimate delivery. Native reload quirks and ignored hurt returns are preserved, not repaired.
 
 Evidence/reference reproduction, all19 class surfaces, semantic/caller guards, five tooling tests, prior-checkpoint/four accepted-mod preservation and research-only scope checks protect this checkpoint. Continue remaining mobs and producer status, then unfinished items/scepters/armor/charms/hazards/resources/custom callers before final Twilight promotion. IceAndFire only after Twilight COMPLETE is safely pushed; no runtime boss/L2/Stage/production/Phase6/7 work.
+
+## R2f8g — constructs, slime inheritance and guardian equipment
+
+R2f8f was committed/pushed/live verified at `ac50a160beb2abdf1524aa1ebee824a46a354891`. This subsection adds5 packages/21 cases, taking Twilight to112 package drafts/326 delivery cases. Custom census remains26/40,14 unfinished, REVIEW_REQUIRED0; zero Twilight promotions and unchanged four accepted mods.
+
+[Reviewed contracts](benchmarks/external-effects-catalog/twilightforest-constructs-slimes-review.md) close CarminiteGolem successful-hit launch, native MazeSlime size/contact/split/load ordering, SnowGuardian's actual three-slot loadouts and inherited behavior, and registered Adherent delivery. HarbingerCube has no native attack goal/callback and is excluded rather than assigned a fabricated attack. All6 class surfaces, actual producer/equipment references and native raw/exact-loader inheritance are pinned.
+
+[Integrity](benchmarks/external-effects-catalog/twilightforest-constructs-slimes-integrity.json) and [full validation](benchmarks/external-effects-catalog/r2f8g-constructs-slimes-validation.json) cover evidence/reference reproduction, semantic/source/path checks, all five tooling tests, accepted-mod/prior-checkpoint preservation and research-only boundaries. No runtime tests.
+
+Continue Wraith/Minotaur remaining bodies and RisingZombie/LoyalZombie/ZombieWand producers/resources, then remaining utility/entities/items/hazards/callers toward R2f8 and final Twilight promotion. Current usage remains healthy; IceAndFire only after protected whole-Twilight completion. No L2/Stage/production/Phase6/7 work.

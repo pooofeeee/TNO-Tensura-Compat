@@ -198,6 +198,27 @@ def validate_remaining():
             read=ins(M+'Troll','readAdditionalSaveData');assert pos(read,'.setHasRock(')<pos(read,'NbtUtils.readBlockState(')
             assert not any('.contains(' in str(x['operand']) for x in read)
             assert d['damage_census']['reviewed_profiles_after']==26 and d['damage_census']['remaining_profiles']==14
+        if d['slug']=='constructs-slimes':
+            from collect_twilight_constructs_slimes import scan_callers
+            scan=read_json(OUT/'twilightforest-constructs-slimes-caller-scan.json');assert scan==scan_callers(target)
+            world={(h['entry'].split('/')[-1],h['method']) for h in scan['hits'] if '/world/' in h['entry']}
+            assert world=={('DarkTowerStructure.class','buildDarkTowerConfig'),('LabyrinthStructure.class','buildLabyrinthConfig'),('AuroraPalaceStructure.class','buildAuroraPalaceConfig'),('DarkTowerWingComponent.class','decorateSpawner')}
+            assert not any(any(f in str(h['instruction']['operand']) for f in ['TFEntities.ADHERENT','TFEntities.HARBINGER_CUBE']) for h in scan['hits'] if '/world/' in h['entry'])
+            M='entity/monster/'
+            golem=ins(M+'CarminiteGolem','doHurtTarget');assert pos(golem,'Monster.doHurtTarget(')<pos(golem,'.push(')
+            size=ins(M+'MazeSlime','setSize');assert pos(size,'Slime.setSize(')<pos(size,'.addOrReplacePermanentModifier(')<pos(size,'.setHealth(')
+            cl=ins(M+'MazeSlime','<clinit>');assert any('ADD_MULTIPLIED_BASE' in str(x['operand']) for x in cl)
+            contact=ins(M+'MazeSlime','isDealsDamage');assert [int(x['opcode'],16) for x in contact]==[0x04,0xac]
+            equip=ins(M+'SnowGuardian','populateDefaultEquipmentSlots');assert sum('.setItemSlot(' in str(x['operand']) for x in equip)==3
+            assert not any('EquipmentSlot.'+slot in str(x['operand']) for slot in ['FEET','LEGS'] for x in equip)
+            refs=read_json(OUT/'reference-evidence/twilight-constructs-slimes-244.json')['witnesses']
+            slime=next(w for w in refs if w['entry']=='net/minecraft/world/entity/monster/Slime.class')
+            read=next(m['instructions'] for m in slime['methods'] if m['name']=='readAdditionalSaveData');assert pos(read,'.setSize(')<pos(read,'.readAdditionalSaveData(')
+            remove=next(m['instructions'] for m in slime['methods'] if m['name']=='remove');assert pos(remove,'.onMobSplit(')<pos(remove,'.forEach(')<pos(remove,'.remove(')
+            bolt=ins(M+'Adherent','performRangedAttack');assert any('NatureBolt.<init>' in str(x['operand']) for x in bolt)
+            goals=ins(M+'HarbingerCube','registerGoals');assert not any(any(g in str(x['operand']) for g in ['MeleeAttackGoal','RangedAttackGoal']) for x in goals)
+            assert 'doHurtTarget' not in {m['name'] for m in methods(M+'HarbingerCube')}
+            assert not s['damage_profiles'] and d['damage_census']['reviewed_profiles_after']==26 and d['damage_census']['remaining_profiles']==14
         result=dict(schema='tno.external_effects.remaining_subsection_integrity.v1',status='PASS',checkpoint=d['checkpoint'],decision=d['decision'],starting_sha=d['starting_sha'],counts=s['counts'],protected_prior_files=len(protected),full_declared_class_coverage=len(d['full_classes']),twilight_reviewed_drafts=len(new['effects']),twilight_delivery_drafts=len(new['paths']),damage_profiles_reviewed=d['damage_census']['reviewed_profiles_after'],damage_profiles_remaining=d['damage_census']['remaining_profiles'],accepted_counts_unchanged=previous['accepted_counts_unchanged'],runtime_tests=0,promoted_twilight_records=0,**boundary_flags())
         results.append((d['slug'],result))
     assert results

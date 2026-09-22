@@ -1,0 +1,849 @@
+{
+  "slug": "constructs-slimes",
+  "checkpoint_short": "r2f8g",
+  "checkpoint": "R2f8g-constructs-slimes-complete",
+  "decision": "TWILIGHT_CONSTRUCTS_SLIMES_SEMANTIC_REVIEW_COMPLETE",
+  "starting_sha": "ac50a160beb2abdf1524aa1ebee824a46a354891",
+  "previous_checkpoint": "R2f8f-tactical-mobs-complete",
+  "previous_draft": "partial-drafts/twilightforest-r2f8f-partial.json",
+  "facts": {
+    "authority": "Installed TF4.8.3345, raw Minecraft1.21.1 and exact NeoForge21.1.244. Native mob_attack direct=causing actual mob for ordinary Golem/Guardian/Slime hits, with ordinary armor, directional shield, Resistance/protection/absorption/cooldown/events and Player difficulty scaling. Slime contact has its own native caller, not ordinary Mob.doHurtTarget. Adherent uses the protected NatureBolt source contract. Native hurt true is admission, not measured HP loss. No new custom DamageType, runtime HP/SHP/L2/Stage or production claim.",
+    "golem": "CarminiteGolem extends Monster, not IronGolem: actual registered HP40/speed.25/attack9/armor2, dimensions1.4x2.9, not fireproof. TF fall_damage_immune tag prevents native fall damage; no Poison immunity/regen/repair behavior or iron-ingot interaction inferred from name. Water path malus-1, melee1, water-avoiding stroll2 with probability0, look3, retaliation and visible Player targets; no Float goal. doHurtTarget calls super ordinary native melee, only on true sets attackTimer10, broadcasts4, and victim.push(0,.4,0). The extra vertical push is unconditional within that success branch, not scaled by victim knockback resistance and not a new damage source. Ordinary superclass knockback/enchantments remain. No push on false; later fall damage, if any, stays ordinary recipient fall mechanics, without TF throw/YEETED marking. Attack timer decrements in aiStep and is client animation state, not the native20-tick melee cooldown; it is not saved. Clustermax2, sprint particles/ambient red dust cosmetic. No custom incoming hurt/death/boss phase.",
+    "maze_size": "MazeSlime extends native Slime and is registered with Monster.createMonsterAttributes, dimensions.52x.52/eye.325 before size scaling. Native Slime.setSize clamps n to1..127, sets size/dimensions, base MAX_HEALTH=n*n, speed=.2+.1*n, attack=n; ordinary max-health attribute caps at1024. TF override then addOrReplacePermanentModifier id twilightforest:double_health, amount2, ADD_MULTIPLIED_BASE, and ALWAYS setHealth(getMaxHealth()), even resetHealth=false; xpReward uses requested size+3. With ordinary unmodified attributes, effective maximum is min(3*n*n,1024), NOT2*n*n. Natural finalized sizes1/2/4 therefore HP3/12/48, attack1/2/4 and speed.3/.4/.6. This is native HP assignment at size change, not regeneration or a separate DamageSource. Same modifier ID replaces rather than stacking on repeated setSize. External attributes/effects can change final values; no balancing change introduced.",
+    "maze_spawn_save": "Registered Maze placement is nonPeaceful && checkMobSpawnRules && Monster.isDarkEnoughToSpawn, not vanilla slime-chunk/moon/Y spawning. Inherited finalize chooses i=nextInt3; if i<2 and randomFloat<.5*specialDifficultyMultiplier increment; setSize(1<<i,true) then super finalization. Actual initialized size/HP must be observed, not constructor defaults or an unfinalized test entity. Native NBT stores Size=n-1 and wasOnGround plus normal Living health/attributes. Exact244 Slime.readAdditionalSaveData calls virtual setSize(storedSize+1,false) BEFORE superclass loading; TF temporarily fills health there, then native Living load restores saved Health and attributes. Thus this override alone does NOT prove free healing on ordinary reload. Persistent modifier ID survives native attribute serialization without intentional stacking. Native command with explicit NBT can skip randomization, while ordinary command without NBT finalizes; those are different initial states, not production fixes.",
+    "maze_contact": "MazeSlime.isDealsDamage returns true unconditionally, removing BOTH vanilla !isTiny and isEffectiveAi predicates. Native playerTouch and push(IronGolem) call Slime.dealDamage; ordinary Entity push occurs before the IronGolem damage branch. Recipient need not be current target. dealDamage requires slime alive, native melee AABB range and LOS, requests mob_attack effective ATTACK_DAMAGE (normally size n), then only true plays hit sound and native server post-attack enchantments. It does not call EnchantmentHelper.modifyDamage or ordinary Mob melee helper, add a bespoke cooldown, extra vertical launch, poison or armor penetration. Repeated contact is limited by native collision dispatch and recipient damage cooldown. Size1 is therefore dangerous; NoAI alone does not restore the removed contact gate, though all remaining native hurt/LOS/range checks remain. No guarantee of a hit every tick or actual HP loss.",
+    "maze_ai": "Inherited native slime AI: Player target requires |targetY-slimeY|<=4 and ordinary visible targeting, plus IronGolem target. SlimeAttackGoal LOOK requires attackable current target and SlimeMoveControl; every-tick goal looks and supplies isDealsDamage as aggressive flag. Its own tired counter uses reducedTickDelay300 and continuation decrements; it does not itself damage. MoveControl turns up to90 degrees, consumes MOVE_TO, uses speedModifier*movement attribute. On ground jumpDelay postdecrements; reset random10..29 divided by3 while aggressive (integer3..9), so the postdecrement cadence is distinct from that stored number; waiting sets forward/side/speed0. Float goal in water/lava requests speed1.2 and80% jump; keep-jumping requires notPassenger, speed1. Random direction LOOK applies without target while grounded/in water/lava/Levitation. Native jump hook retained. TF landing particles and sounds are cosmetic, not splash damage.",
+    "maze_split": "Native Slime.remove: server && size>1 && isDeadOrDying -> choose2+nextInt3 children, size integer parent/2, create via actual entity type (MazeSlime). Copies name, NoAI, invulnerable and persistence-required flag, calls child.setSize(j,true), positions offsets from parent dimensions; no inherited low HP, owner or shared health pool. TF override yields fresh child HP3*j*j (native max clamp applies). Exact244 posts MobSplitEvent after preparing children; only notCanceled adds them, then parent removal proceeds regardless. No split for size1, living unload/removal, client side or missing child creation; no native finalizeSpawn call for children and no independent TF summon code. Removal reason alone is not the test: dead/dying state matters. Size4 native child sizes2 then1 can still deal contact damage. This inherited split is a delivery of the size/contact packages, not a newly invented custom summon type.",
+    "maze_tags": "TF adds MazeSlime to immune_to_oozing and frog_food. Native Living effect eligibility rejects Oozing for the former; no blanket all-effect or Poison immunity. Frog.canEat rejects any Slime whose size!=1, then checks frog_food, so only tiny MazeSlime is eligible in this path. Native ShootTongue additionally requires attack-target memory, no panic, path distance<1.75 and not croaking; on close approach it pulls the target toward Frog with velocity magnitude.75 and after catch animation calls Frog.doHurtTarget (ordinary native attack attribute10 before modifications), removes entity only if it is then dead. Not an unconditional instant kill, and no Maze child split at size1. This is a proven native consumer of the tag, documented for incoming-source coverage rather than a TF-specific outgoing attack.",
+    "guardian_equipment": "SnowGuardian extends protected BaseIceMob; actual registered HP10/speed.23/base attack3, dimensions.6x1.8, cluster2. Native finalize calls super then one random type nextInt4 and equips ONLY MAINHAND, CHEST, HEAD, then ordinary spawn enchantments. makeItemForSlot has FEET/LEGS branches but this producer never calls them; do not claim a full set. Type0 Ironwood sword+head/chest: mainhand+5 -> mob attack8, armor2+7=9/toughness0. Type1 Steeleaf sword+6 -> attack9, armor3+8=11/toughness0. Type2 Knightmetal sword+6 -> attack9, armor11/toughness1+1=2. Type3 Arctic head/chest but KNIGHTMETAL sword -> attack9, armor2+7=9/toughness2+2=4. Values are unenchanted settled native equipment defaults, not fixed final HP damage. No Fiery/Ice sword or automatic Frosted attack. Parent Mob.doHurtTarget uses ordinary source/enchantments; it does not become a Player item hurtEnemy callback merely because a sword is equipped.",
+    "guardian_knight": "Native Knightmetal sword incoming-event contract is reused from R2f5: server target, direct Living attacker with nonempty mainhand KnightmetalSwordItem, target armorValue>0. If armor cover>0 adds int(2*cover), else+2 for armor attribute without worn pieces; quarter cover adds0, half1, full2. Applies to actual SnowGuardian types2/3 with ordinary mob_attack, after Player difficulty scaling and before mitigation; does not turn it into HAUNT, bypass armor or guarantee hurt success. Types0/1 fail that weapon predicate. Native spawn enchantments/attribute updates and current equipment can alter results; no duplicate Knightmetal bonus implementation or production change.",
+    "guardian_body": "SnowGuardian normal Float/Melee/stroll/look, retaliation/visible Player targeting. Reuses BaseIceMob downward airborne velocity*.6 before super.aiStep, no flying navigation or perpetual hovering. In actual SNOW_GOLEM_MELTS biome every tickCount%20==0 parent requests ownerless minecraft:on_fire1; no own success dependency or bespoke server guard, normal fire resistance/immunity/event pipeline applies. TF tags grant fall damage immunity, freezing immunity and powder-snow walking, not fire immunity. No ordinary attack applies Frosted, no IceCrystal summon lifetime timer, no projectile, HP phase or death burst. Extra client snow particles are cosmetic. Normal HP/equipment save/load and armor processing remain; protected BaseIce behavior is linked rather than re-researched as a new effect.",
+    "adherent": "Adherent IS registered (unlike excluded Boggard), HP20/speed.25/base attack2, dimensions.8x2.2, not fireproof, no egg colors and no world-generation producer reference found by scoped TF field-caller census. Registered spawn placement uses Monster.checkMonsterSpawnRules; placement eligibility does not prove ambient biome spawning. A native registered-entity command is an administrative delivery path, explicitly not a survival acquisition claim. Goals Float1, RestrictSun2, FleeSun3, RangedAttackGoal4(speed1,interval60,range10), stroll/look, retaliation/visible Player. Native ranged goal requires every-tick updates and its ordinary target/range/LOS/navigation/cooldown rules. performRangedAttack creates protected NatureBolt owned by Adherent, aims targetY+eyeHeight-1.1, horizontal aim elevation+.2*distance, speed.6, inaccuracy10-4*difficultyId (Peaceful10/Easy6/Normal2/Hard-2; no TF clamp). extraDamage argument ignored. Native shooting math uses the signed value; no fabricated Hard accuracy clamp. Protected leaf_brain2, poison-on-success, terrain/parry/source-ownership semantics all remain. Synced CHARGE_FLAG starts false; setter/getter exist but no charging goal or bespoke charge attack is registered; no reason to invent charge damage or a timed phase. No mount, new hurt/death override or native equipment attack.",
+    "harbinger_exclusion": "HarbingerCube IS registered with HP40/speed.23/base attack2, dimensions1.9x2.4 and fireproof=true; ordinary Monster placement, no spawn egg colors and no world producer reference in scoped TF field-caller scan. Its declared goals are Float/stroll/look and retaliation/visible Player target selection only: no melee/ranged/charge/attack callback, collision payload, resource, boss phase or death override. Having an attack attribute/target does not prove active damage delivery. A native registered summon can exhibit its ordinary passive navigation/target/fireproof state, but no custom combat mechanic or invented ominous/annihilation ability is cataloged. Other mods dynamically adding behavior are outside this native proof.",
+    "producers": "CarminiteGolem, MazeSlime and SnowGuardian have native spawn eggs and registered attributes/placement. DarkTower controlled spawn config: Golem weight10/group1..2; DarkTowerWing.decorateSpawner size>9 randomly selects Golem or Broodling, smaller wings select Broodling only, then native rotated spawner placement. Labyrinth controlled config: MazeSlime weight10/group2..4; actual engine cap/placement/finalization still apply. AuroraPalace controlled config: Guardian weight10/group1..2. Adherent/Harbinger registrations have no egg and no proved world producer; ordinary registered SummonCommand.createEntity loads registered entity NBT, checks world bounds/UUID and adds native passenger tree, optionally native COMMAND finalizes when randomizeProperties true. Native summon is a future administrative positive control, not a code-injected entity or fabricated damage source. No runtime commands were executed."
+  },
+  "packages": [
+    {
+      "id": "twilightforest:carminite_golem_launch",
+      "display_name": "Carminite Golem admitted melee and vertical push",
+      "owner": "carminite_golem_launch",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "facts": [
+        "golem",
+        "authority",
+        "producers"
+      ],
+      "classes": [
+        "entity/monster/CarminiteGolem"
+      ],
+      "parameters": {
+        "hp": 40,
+        "attack": 9,
+        "armor": 2,
+        "extra_y": 0.4,
+        "animation_ticks": 10
+      },
+      "gates": [
+        "super hurt true",
+        "native melee eligibility",
+        "ordinary fall mechanics"
+      ],
+      "relation": "Native mob melee plus direct vertical motion primitive; no custom source or throw marker.",
+      "primary_test_source": "Native finalized CarminiteGolem melee",
+      "alternate_sources": [
+        "Native controlled spawn/spawner/egg; false hurt, knockback resistance and fall-immunity controls"
+      ]
+    },
+    {
+      "id": "twilightforest:maze_slime_size_health",
+      "display_name": "Maze Slime size and threefold native health",
+      "owner": "maze_slime_size_health",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "facts": [
+        "maze_size",
+        "maze_spawn_save",
+        "maze_split"
+      ],
+      "classes": [
+        "entity/monster/MazeSlime"
+      ],
+      "parameters": {
+        "health_base_multiplier": 3,
+        "modifier_add_multiplied_base": 2,
+        "native_size_min": 1,
+        "native_size_max": 127,
+        "native_health_cap": 1024,
+        "children_min": 2,
+        "children_max": 4
+      },
+      "gates": [
+        "native size/finalize",
+        "same modifier ID",
+        "unconditional size-callback health set",
+        "saved health loaded afterward",
+        "native split event"
+      ],
+      "relation": "Native Slime size/attribute/split primitives with TF permanent health multiplier and size-callback refill.",
+      "primary_test_source": "Native naturally finalized MazeSlime or native split child",
+      "alternate_sources": [
+        "Native egg/admin command initialization; ordinary reload preserving damaged health; split cancellation"
+      ]
+    },
+    {
+      "id": "twilightforest:maze_slime_contact",
+      "display_name": "Maze Slime tiny and NoAI contact admission",
+      "owner": "maze_slime_contact",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "facts": [
+        "maze_contact",
+        "maze_ai",
+        "maze_tags",
+        "authority"
+      ],
+      "classes": [
+        "entity/monster/MazeSlime"
+      ],
+      "parameters": {
+        "natural_contact_attack": [
+          1,
+          2,
+          4
+        ],
+        "frog_size": 1,
+        "frog_base_attack": 10
+      },
+      "gates": [
+        "always isDealsDamage",
+        "alive/range/LOS",
+        "native collision callback",
+        "hurt success for post-enchantments"
+      ],
+      "relation": "Native slime contact with removed tiny/effective-AI gates; no independent status payload.",
+      "primary_test_source": "Native MazeSlime Player or IronGolem contact",
+      "alternate_sources": [
+        "Size1/NoAI, cooldown/LOS/range, Oozing immunity and native tiny-Frog predation"
+      ]
+    },
+    {
+      "id": "twilightforest:snow_guardian_equipment",
+      "display_name": "Snow Guardian actual equipment and inherited ice behavior",
+      "owner": "snow_guardian_equipment",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "facts": [
+        "guardian_equipment",
+        "guardian_knight",
+        "guardian_body",
+        "authority"
+      ],
+      "classes": [
+        "entity/monster/SnowGuardian",
+        "entity/monster/SnowGuardian$1",
+        "entity/monster/BaseIceMob",
+        "init/TFItems",
+        "init/TFArmorMaterials",
+        "util/TFToolMaterials",
+        "events/ToolEvents"
+      ],
+      "parameters": {
+        "hp": 10,
+        "base_attack": 3,
+        "equipped_attacks": [
+          8,
+          9,
+          9,
+          9
+        ],
+        "armor": [
+          9,
+          11,
+          11,
+          9
+        ],
+        "toughness": [
+          0,
+          0,
+          2,
+          4
+        ],
+        "equipped_slots": [
+          "MAINHAND",
+          "CHEST",
+          "HEAD"
+        ]
+      },
+      "gates": [
+        "one native equipment roll",
+        "native enchantments",
+        "current Knightmetal sword predicate",
+        "protected BaseIce admission"
+      ],
+      "relation": "Native equipment and protected Knightmetal/BaseIce primitives in a distinct actual producer; no new Frosted or full-set claim.",
+      "primary_test_source": "Native finalized SnowGuardian, all four equipment rolls",
+      "alternate_sources": [
+        "Actual armor coverage/weapon changes, warm-biome on_fire, fall/freeze resistance and save/load"
+      ],
+      "reuses_protected_effect_ids": [
+        "twilightforest:knight_phantom_haunt",
+        "twilightforest:snow_queen_ice_crystal"
+      ]
+    },
+    {
+      "id": "twilightforest:adherent_nature_delivery",
+      "display_name": "Registered Adherent native NatureBolt producer",
+      "owner": "adherent_nature_delivery",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "facts": [
+        "adherent",
+        "producers",
+        "authority"
+      ],
+      "classes": [
+        "entity/monster/Adherent",
+        "entity/projectile/NatureBolt"
+      ],
+      "parameters": {
+        "hp": 20,
+        "goal_interval": 60,
+        "goal_range": 10,
+        "projectile_speed": 0.6,
+        "inaccuracy_by_difficulty": [
+          10,
+          6,
+          2,
+          -2
+        ]
+      },
+      "gates": [
+        "registered native entity",
+        "ordinary ranged goal",
+        "actual owner",
+        "protected NatureBolt eligibility"
+      ],
+      "relation": "Additional registered native delivery of protected NatureBolt, not a new damage/effect implementation.",
+      "primary_test_source": "Native registered Adherent via administrative summon without custom NBT",
+      "alternate_sources": [
+        "Native ranged LOS/difficulty; inherited projectile parry/owner changes; no invented survival spawn or charge phase"
+      ],
+      "reuses_protected_effect_ids": [
+        "twilightforest:nature_bolt_package"
+      ]
+    }
+  ],
+  "paths": [
+    {
+      "id": "twilightforest:constructs_slimes_path:golem_hit",
+      "source": "Native Carminite Golem successful melee",
+      "facts": [
+        "golem",
+        "authority"
+      ],
+      "effect_ids": [
+        "twilightforest:carminite_golem_launch"
+      ],
+      "classes": [
+        "entity/monster/CarminiteGolem"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "MELEE"
+      ],
+      "setup": "Native Carminite Golem successful melee through the ordinary native engine; future static fixture only, no runtime test or fabricated source.",
+      "future_controls": [
+        "attack9",
+        "armor2",
+        "true then pushY.4",
+        "no throw marker"
+      ]
+    },
+    {
+      "id": "twilightforest:constructs_slimes_path:golem_negative",
+      "source": "Native Golem failed hurt and recipient controls",
+      "facts": [
+        "golem"
+      ],
+      "effect_ids": [
+        "twilightforest:carminite_golem_launch"
+      ],
+      "classes": [
+        "entity/monster/CarminiteGolem"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "OTHER"
+      ],
+      "setup": "Native Golem failed hurt and recipient controls through the ordinary native engine; future static fixture only, no runtime test or fabricated source.",
+      "future_controls": [
+        "no false-hurt launch",
+        "KR vs raw push",
+        "fall immune recipient",
+        "animation not cooldown"
+      ]
+    },
+    {
+      "id": "twilightforest:constructs_slimes_path:golem_spawn",
+      "source": "Native DarkTower Golem config/spawner/egg",
+      "facts": [
+        "producers"
+      ],
+      "effect_ids": [
+        "twilightforest:carminite_golem_launch"
+      ],
+      "classes": [
+        "world/components/structures/type/DarkTowerStructure",
+        "world/components/structures/darktower/DarkTowerWingComponent",
+        "entity/monster/CarminiteGolem"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "OTHER"
+      ],
+      "setup": "Native DarkTower Golem config/spawner/egg through the ordinary native engine; future static fixture only, no runtime test or fabricated source.",
+      "future_controls": [
+        "weight10/group1..2",
+        "large-wing random spawner",
+        "native eligibility"
+      ]
+    },
+    {
+      "id": "twilightforest:constructs_slimes_path:maze_finalize",
+      "source": "Native MazeSlime randomized finalization",
+      "facts": [
+        "maze_size",
+        "maze_spawn_save"
+      ],
+      "effect_ids": [
+        "twilightforest:maze_slime_size_health"
+      ],
+      "classes": [
+        "entity/monster/MazeSlime"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "OTHER"
+      ],
+      "setup": "Native MazeSlime randomized finalization through the ordinary native engine; future static fixture only, no runtime test or fabricated source.",
+      "future_controls": [
+        "size1/2/4",
+        "HP3/12/48",
+        "native local difficulty"
+      ]
+    },
+    {
+      "id": "twilightforest:constructs_slimes_path:maze_size",
+      "source": "Native MazeSlime size changes and modifier identity",
+      "facts": [
+        "maze_size"
+      ],
+      "effect_ids": [
+        "twilightforest:maze_slime_size_health"
+      ],
+      "classes": [
+        "entity/monster/MazeSlime"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "OTHER"
+      ],
+      "setup": "Native MazeSlime size changes and modifier identity through the ordinary native engine; future static fixture only, no runtime test or fabricated source.",
+      "future_controls": [
+        "ADD_MULTIPLIED_BASE2",
+        "same ID replaces",
+        "HP set even false",
+        "clamps"
+      ]
+    },
+    {
+      "id": "twilightforest:constructs_slimes_path:maze_load",
+      "source": "Native damaged MazeSlime save/load",
+      "facts": [
+        "maze_spawn_save"
+      ],
+      "effect_ids": [
+        "twilightforest:maze_slime_size_health"
+      ],
+      "classes": [
+        "entity/monster/MazeSlime"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "OTHER"
+      ],
+      "setup": "Native damaged MazeSlime save/load through the ordinary native engine; future static fixture only, no runtime test or fabricated source.",
+      "future_controls": [
+        "setSize before super read",
+        "saved HP restored",
+        "no claimed free heal"
+      ]
+    },
+    {
+      "id": "twilightforest:constructs_slimes_path:maze_player",
+      "source": "Native MazeSlime Player contact",
+      "facts": [
+        "maze_contact",
+        "authority"
+      ],
+      "effect_ids": [
+        "twilightforest:maze_slime_contact"
+      ],
+      "classes": [
+        "entity/monster/MazeSlime"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "MELEE"
+      ],
+      "setup": "Native MazeSlime Player contact through the ordinary native engine; future static fixture only, no runtime test or fabricated source.",
+      "future_controls": [
+        "native range/LOS",
+        "size attack",
+        "hurt true post-enchantments"
+      ]
+    },
+    {
+      "id": "twilightforest:constructs_slimes_path:maze_iron",
+      "source": "Native MazeSlime IronGolem collision",
+      "facts": [
+        "maze_contact"
+      ],
+      "effect_ids": [
+        "twilightforest:maze_slime_contact"
+      ],
+      "classes": [
+        "entity/monster/MazeSlime"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "MELEE"
+      ],
+      "setup": "Native MazeSlime IronGolem collision through the ordinary native engine; future static fixture only, no runtime test or fabricated source.",
+      "future_controls": [
+        "ordinary push first",
+        "not current-target requirement",
+        "native cooldown"
+      ]
+    },
+    {
+      "id": "twilightforest:constructs_slimes_path:maze_tiny_noai",
+      "source": "Native tiny/NoAI MazeSlime contact",
+      "facts": [
+        "maze_contact",
+        "maze_ai"
+      ],
+      "effect_ids": [
+        "twilightforest:maze_slime_contact"
+      ],
+      "classes": [
+        "entity/monster/MazeSlime"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "MELEE"
+      ],
+      "setup": "Native tiny/NoAI MazeSlime contact through the ordinary native engine; future static fixture only, no runtime test or fabricated source.",
+      "future_controls": [
+        "removed tiny and effective-AI gates",
+        "alive/LOS/range remain"
+      ]
+    },
+    {
+      "id": "twilightforest:constructs_slimes_path:maze_split",
+      "source": "Native dead MazeSlime splitting",
+      "facts": [
+        "maze_split",
+        "maze_size"
+      ],
+      "effect_ids": [
+        "twilightforest:maze_slime_size_health",
+        "twilightforest:maze_slime_contact"
+      ],
+      "classes": [
+        "entity/monster/MazeSlime"
+      ],
+      "labels": [
+        "SUMMONED_ATTACK",
+        "MOB_ATTACK"
+      ],
+      "setup": "Native dead MazeSlime splitting through the ordinary native engine; future static fixture only, no runtime test or fabricated source.",
+      "future_controls": [
+        "2..4 same-type children",
+        "half size",
+        "fresh triple-base HP",
+        "copied name/NoAI/invulnerability"
+      ]
+    },
+    {
+      "id": "twilightforest:constructs_slimes_path:maze_split_negative",
+      "source": "Native split cancellation and nondeath removal",
+      "facts": [
+        "maze_split"
+      ],
+      "effect_ids": [
+        "twilightforest:maze_slime_size_health"
+      ],
+      "classes": [
+        "entity/monster/MazeSlime"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "OTHER"
+      ],
+      "setup": "Native split cancellation and nondeath removal through the ordinary native engine; future static fixture only, no runtime test or fabricated source.",
+      "future_controls": [
+        "244 MobSplitEvent",
+        "size1/no death/client negative",
+        "parent removal still proceeds"
+      ]
+    },
+    {
+      "id": "twilightforest:constructs_slimes_path:maze_tags",
+      "source": "Native Oozing immunity and tiny Frog predation",
+      "facts": [
+        "maze_tags"
+      ],
+      "effect_ids": [
+        "twilightforest:maze_slime_contact"
+      ],
+      "classes": [
+        "entity/monster/MazeSlime"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "OTHER"
+      ],
+      "setup": "Native Oozing immunity and tiny Frog predation through the ordinary native engine; future static fixture only, no runtime test or fabricated source.",
+      "future_controls": [
+        "size1 frog_food",
+        "native tongue/path/panic gates",
+        "ordinary hurt before conditional removal"
+      ]
+    },
+    {
+      "id": "twilightforest:constructs_slimes_path:maze_world",
+      "source": "Native Labyrinth MazeSlime config/egg",
+      "facts": [
+        "maze_spawn_save",
+        "producers"
+      ],
+      "effect_ids": [
+        "twilightforest:maze_slime_size_health",
+        "twilightforest:maze_slime_contact"
+      ],
+      "classes": [
+        "entity/monster/MazeSlime",
+        "world/components/structures/type/LabyrinthStructure"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "OTHER"
+      ],
+      "setup": "Native Labyrinth MazeSlime config/egg through the ordinary native engine; future static fixture only, no runtime test or fabricated source.",
+      "future_controls": [
+        "weight10/group2..4",
+        "nonPeaceful/base/dark",
+        "not slime-chunk/moon rules"
+      ]
+    },
+    {
+      "id": "twilightforest:constructs_slimes_path:guardian_variants",
+      "source": "Native SnowGuardian four equipment variants",
+      "facts": [
+        "guardian_equipment"
+      ],
+      "effect_ids": [
+        "twilightforest:snow_guardian_equipment"
+      ],
+      "classes": [
+        "entity/monster/SnowGuardian",
+        "entity/monster/SnowGuardian$1",
+        "init/TFItems"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "MELEE"
+      ],
+      "setup": "Native SnowGuardian four equipment variants through the ordinary native engine; future static fixture only, no runtime test or fabricated source.",
+      "future_controls": [
+        "only three slots",
+        "8/9 attacks",
+        "9/11/11/9 armor",
+        "0/0/2/4 toughness"
+      ]
+    },
+    {
+      "id": "twilightforest:constructs_slimes_path:guardian_knight",
+      "source": "Native Knightmetal Guardian sword hit",
+      "facts": [
+        "guardian_knight",
+        "authority"
+      ],
+      "effect_ids": [
+        "twilightforest:snow_guardian_equipment"
+      ],
+      "classes": [
+        "entity/monster/SnowGuardian",
+        "events/ToolEvents"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "MELEE"
+      ],
+      "setup": "Native Knightmetal Guardian sword hit through the ordinary native engine; future static fixture only, no runtime test or fabricated source.",
+      "future_controls": [
+        "type2/3",
+        "target armor coverage",
+        "protected bonus",
+        "ordinary mob_attack not HAUNT"
+      ]
+    },
+    {
+      "id": "twilightforest:constructs_slimes_path:guardian_ice",
+      "source": "Native inherited Guardian ice body and melting",
+      "facts": [
+        "guardian_body"
+      ],
+      "effect_ids": [
+        "twilightforest:snow_guardian_equipment"
+      ],
+      "classes": [
+        "entity/monster/SnowGuardian",
+        "entity/monster/BaseIceMob"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "ENVIRONMENT"
+      ],
+      "setup": "Native inherited Guardian ice body and melting through the ordinary native engine; future static fixture only, no runtime test or fabricated source.",
+      "future_controls": [
+        "descent*.6",
+        "warm-biome on_fire1/20",
+        "fall/freeze tags",
+        "no outgoing Frosted"
+      ]
+    },
+    {
+      "id": "twilightforest:constructs_slimes_path:guardian_reload",
+      "source": "Native Guardian saved equipment and changed weapon",
+      "facts": [
+        "guardian_equipment",
+        "guardian_knight",
+        "guardian_body"
+      ],
+      "effect_ids": [
+        "twilightforest:snow_guardian_equipment"
+      ],
+      "classes": [
+        "entity/monster/SnowGuardian"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "OTHER"
+      ],
+      "setup": "Native Guardian saved equipment and changed weapon through the ordinary native engine; future static fixture only, no runtime test or fabricated source.",
+      "future_controls": [
+        "native health/equipment",
+        "current tool predicate",
+        "no duplicated whole set"
+      ]
+    },
+    {
+      "id": "twilightforest:constructs_slimes_path:guardian_world",
+      "source": "Native AuroraPalace Guardian config/egg",
+      "facts": [
+        "producers"
+      ],
+      "effect_ids": [
+        "twilightforest:snow_guardian_equipment"
+      ],
+      "classes": [
+        "entity/monster/SnowGuardian",
+        "world/components/structures/type/AuroraPalaceStructure"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "OTHER"
+      ],
+      "setup": "Native AuroraPalace Guardian config/egg through the ordinary native engine; future static fixture only, no runtime test or fabricated source.",
+      "future_controls": [
+        "weight10/group1..2",
+        "native finalize and random equipment"
+      ]
+    },
+    {
+      "id": "twilightforest:constructs_slimes_path:adherent_bolt",
+      "source": "Native registered Adherent ranged delivery",
+      "facts": [
+        "adherent",
+        "authority"
+      ],
+      "effect_ids": [
+        "twilightforest:adherent_nature_delivery"
+      ],
+      "classes": [
+        "entity/monster/Adherent",
+        "entity/projectile/NatureBolt"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "PROJECTILE"
+      ],
+      "setup": "Native registered Adherent ranged delivery through the ordinary native engine; future static fixture only, no runtime test or fabricated source.",
+      "future_controls": [
+        "60 interval/range10",
+        "speed.6",
+        "signed Hard inaccuracy-2",
+        "protected damage/poison/terrain"
+      ]
+    },
+    {
+      "id": "twilightforest:constructs_slimes_path:adherent_parry",
+      "source": "Native Adherent bolt reflection and impact controls",
+      "facts": [
+        "adherent"
+      ],
+      "effect_ids": [
+        "twilightforest:adherent_nature_delivery"
+      ],
+      "classes": [
+        "entity/monster/Adherent",
+        "entity/projectile/NatureBolt"
+      ],
+      "labels": [
+        "PROJECTILE",
+        "OTHER"
+      ],
+      "setup": "Native Adherent bolt reflection and impact controls through the ordinary native engine; future static fixture only, no runtime test or fabricated source.",
+      "future_controls": [
+        "reuse protected native parry",
+        "current projectile owner",
+        "native false-hurt poison gate"
+      ]
+    },
+    {
+      "id": "twilightforest:constructs_slimes_path:adherent_registered",
+      "source": "Native administrative registered Adherent producer",
+      "facts": [
+        "adherent",
+        "producers"
+      ],
+      "effect_ids": [
+        "twilightforest:adherent_nature_delivery"
+      ],
+      "classes": [
+        "entity/monster/Adherent",
+        "init/TFEntities"
+      ],
+      "labels": [
+        "MOB_ATTACK",
+        "OTHER"
+      ],
+      "setup": "Native administrative registered Adherent producer through the ordinary native engine; future static fixture only, no runtime test or fabricated source.",
+      "future_controls": [
+        "ordinary summon without NBT",
+        "no survival producer claim",
+        "no egg/no charging phase"
+      ]
+    }
+  ],
+  "damage_profiles": [],
+  "new_damage_types": 0,
+  "full_classes": [
+    "entity/monster/CarminiteGolem",
+    "entity/monster/MazeSlime",
+    "entity/monster/SnowGuardian",
+    "entity/monster/SnowGuardian$1",
+    "entity/monster/Adherent",
+    "entity/monster/HarbingerCube"
+  ],
+  "limited_classes": {
+    "init/TFItems": [
+      "actual Guardian sword/armor registration lambdas"
+    ],
+    "world/components/structures/type/DarkTowerStructure": [
+      "buildDarkTowerConfig"
+    ],
+    "world/components/structures/type/LabyrinthStructure": [
+      "buildLabyrinthConfig"
+    ],
+    "world/components/structures/type/AuroraPalaceStructure": [
+      "buildAuroraPalaceConfig"
+    ],
+    "world/components/structures/darktower/DarkTowerWingComponent": [
+      "decorateSpawner"
+    ]
+  },
+  "registration_classes": [
+    "init/TFEntities",
+    "events/RegistrationEvents",
+    "init/TFItems",
+    "init/TFArmorMaterials"
+  ],
+  "closure_checklist": [
+    "golem_success_dependent_launch",
+    "actual_native_source_pipeline",
+    "maze_threefold_health",
+    "size_and_max_attribute_clamps",
+    "load_order_saved_health",
+    "contact_tiny_and_noai",
+    "native_slime_ai",
+    "split_event_and_children",
+    "oozing_frog_consumers",
+    "guardian_actual_slots_and_materials",
+    "protected_knightmetal_hook",
+    "base_ice_reuse",
+    "adherent_registered_delivery",
+    "harbinger_no_attack_exclusion",
+    "world_and_administrative_producers"
+  ],
+  "compatibility_scope": "Installed TF4.8.3345, raw Minecraft1.21.1 and exact NeoForge21.1.244. Native mob_attack direct=causing actual mob for ordinary Golem/Guardian/Slime hits, with ordinary armor, directional shield, Resistance/protection/absorption/cooldown/events and Player difficulty scaling. Slime contact has its own native caller, not ordinary Mob.doHurtTarget. Adherent uses the protected NatureBolt source contract. Native hurt true is admission, not measured HP loss. No new custom DamageType, runtime HP/SHP/L2/Stage or production claim.",
+  "current_scope": "Prior protected Twilight plus CarminiteGolem, MazeSlime, SnowGuardian and registered Adherent delivery; Harbinger body exclusion reviewed. Whole Twilight PARTIAL/zero promoted.",
+  "exact_next_task": "Continue Task C with Wraith and Minotaur remaining body coverage, RisingZombie and its graveyard producers, LoyalZombie/ZombieWand and native recharge/feed/expiry; then remaining utility/passive entity exclusions, items/scepters/armor/charms/projectiles/hazards/resources and14 custom caller profiles. Reuse all protected boss/Frosted/ranged/mounted/chain/giant/arthropod/tactical/construct-slime work. Protect each subsection toward R2f8 and final Twilight promotion. IceAndFire only after Twilight COMPLETE is pushed; no runtime boss/L2/Stage/production/fixes/Phase6/7.",
+  "damage_census": {
+    "total_custom_declarations": 40,
+    "previous_reviewed_profiles": 26,
+    "new_used_profiles": 0,
+    "reviewed_profiles_after": 26,
+    "remaining_profiles": 14,
+    "remaining_disposition": "Other native caller profiles unfinished, not unused."
+  },
+  "comparison_files": [
+    "vanilla-evidence/twilight-constructs-slimes.json",
+    "reference-evidence/twilight-constructs-slimes-244.json",
+    "reference-routing/twilight-constructs-slimes.json",
+    "twilightforest-constructs-slimes-caller-scan.json",
+    "vanilla-evidence/royalvariations.json",
+    "reference-evidence/royal-loader-244.json",
+    "vanilla-evidence/twilight-yeti-queen.json",
+    "reference-evidence/twilight-yeti-queen-244.json",
+    "vanilla-evidence/twilight-minoshroom-knight.json",
+    "reference-evidence/twilight-minoshroom-knight-244.json",
+    "vanilla-evidence/twilight-ranged-mobs.json",
+    "reference-evidence/twilight-ranged-mobs-244.json",
+    "vanilla-evidence/twilight-giants-tools.json",
+    "reference-evidence/twilight-giants-tools-244.json"
+  ],
+  "exclusions": [
+    "Six full native class surfaces plus actual world producers and equipment registrations. Raw/exact244 native Slime and relevant inherited AI, split and load ordering pinned.",
+    "Harbinger is registered but has no attack goal/callback; ordinary navigation/target/fireproof behavior is an assessed exclusion, not invented damage. Unlike Boggard, it has a legitimate administrative summon path, but no unique effect package.",
+    "Adherent has registered native ranged behavior, no proved survival world producer or egg. Command source explicitly labeled administrative; no runtime commands run.",
+    "Protected BaseIce, NatureBolt and Knightmetal packages are reused. Final deduplication must preserve their distinct Guardian/Adherent source parameters without duplicating the shared effect.",
+    "Particles/sounds and ordinary equipment drop/repair are not new damage/status packages. Maze split inherits native control and feeds existing size/contact packages.",
+    "No new custom declaration resolved:26/40 reviewed,14 unfinished. Twilight PARTIAL, zero promoted, no IceAndFire yet."
+  ],
+  "fixture_groups": [
+    "Golem native melee9 and successful-only vertical push; ordinary armor2/fall immunity and false-hurt controls.",
+    "Maze native size1/2/4 health3/12/48, attribute identity/clamps, damage persistence across ordinary reload and native split event/child state.",
+    "Maze Player/IronGolem contact, size1/NoAI behavior, LOS/range/cooldown, Oozing immunity and genuine native Frog consumer.",
+    "Guardian all four actual three-slot loadouts, native enchantments/armor and protected Knightmetal/BaseIce behavior.",
+    "Registered Adherent native command producer and NatureBolt parameters, parry/ownership/poison controls; registered Harbinger no-attack exclusion."
+  ],
+  "expected_counts": {
+    "mechanic_packages": 5,
+    "delivery_cases": 21,
+    "classification_totals": {
+      "VANILLA_COMPOSITE": 3,
+      "VANILLA_LIKE_EXTENDED": 2
+    },
+    "review_required": 0,
+    "new_custom_types_resolved": 0
+  }
+}
