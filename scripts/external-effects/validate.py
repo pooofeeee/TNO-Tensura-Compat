@@ -156,6 +156,9 @@ def validate():
         if (OUT/'semantic-sections/twilightforest-hydra-urghast.json').exists():
             from validate_twilight_hydra_urghast import validate_hydra_urghast
             assert validate_hydra_urghast()['status']=='PASS'
+        if (OUT/'semantic-sections/twilightforest-yeti-queen.json').exists():
+            from validate_twilight_yeti_queen import validate_yeti_queen
+            assert validate_yeti_queen()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():
