@@ -570,6 +570,43 @@ def validate_remaining():
             orb=ri('net/minecraft/world/entity/ExperienceOrb','playerTouch');assert pos(orb,'PickupXp')<pos(orb,'.repairPlayerItems(')<pos(orb,'.giveExperiencePoints(')
             p=s['damage_profiles'][0];assert p['type']=='twilightforest:failed_challenge' and p['status']=='USED' and p['tags']==[]
             assert d['damage_census']['reviewed_profiles_after']==31 and d['damage_census']['remaining_profiles']==9
+        if d['slug']=='active-utilities':
+            from collect_twilight_active_utilities import scan_callers
+            scan=read_json(OUT/'twilightforest-active-utilities-caller-scan.json');assert scan==scan_callers(target)
+            W='item/PocketWatchItem';P='item/TransformPowderItem';U='util/entities/EntityUtil';H='item/CrumbleHornItem';M='item/OreMagnetItem';L='item/LampOfCindersItem';E='events/ToolEvents'
+            watch=ins(W,'inventoryTick');assert pos(watch,'.isClientSide')<pos(watch,'MOVEMENT_SPEED')<pos(watch,'MobEffects.JUMP')<pos(watch,'.isHolding(')<pos(watch,'DIG_SPEED')
+            assert any(x['operand']==40 for x in watch) and not any('.hurt(' in str(x['operand']) or '.setHealth(' in str(x['operand']) for x in watch)
+            veto=ins(E,'preventFatigueWithPocketWatch');assert pos(veto,'.getApplicationResult(')<pos(veto,'DIG_SLOWDOWN')<pos(veto,'POCKET_WATCH')<pos(veto,'.isHolding(')<pos(veto,'DO_NOT_APPLY')
+            assert not any('.removeEffect(' in str(x['operand']) for x in veto)
+            interact=ins(P,'interactLivingEntity');assert pos(interact,'.isAlive(')<pos(interact,'.isCreative(')<pos(interact,'.transformEntityIfPossible(')
+            powder=ins(P,'transformEntityIfPossible');assert pos(powder,'OwnableEntity')<pos(powder,'.getOwner(')<pos(powder,'TRANSFORMATION_POWDER')<pos(powder,'.convertEntity(')<pos(powder,'.shrink(')
+            assert not any('.isTame(' in str(x['operand']) or '.getHealth(' in str(x['operand']) for x in powder)
+            convert=ins(U,'convertEntity');assert pos(convert,'ServerLevel')<pos(convert,'.create(')<pos(convert,'.canLivingConvert(')<pos(convert,'.getPassengers(')<pos(convert,'.convertTo(')<pos(convert,'.load(')<pos(convert,'.setUUID(')<pos(convert,'.getMaxHealth(')<pos(convert,'.setHealth(')<pos(convert,'.startRiding(')<pos(convert,'.onLivingConvert(')
+            assert not any('.hurt(' in str(x['operand']) or '.heal(' in str(x['operand']) for x in convert)
+            disp=ins('dispenser/TransformationDispenseBehavior','execute');assert pos(disp,'NO_SPECTATORS')<pos(disp,'.getEntitiesOfClass(')<pos(disp,'.transformEntityIfPossible(')
+            assert not any('.isEmpty(' in str(x['operand']) or '.getCount(' in str(x['operand']) or '.isAlive(' in str(x['operand']) for x in disp)
+            assert not any(int(x['opcode'],16)==0xb5 for x in ins('dispenser/TransformationDispenseBehavior','playSound'))
+            horn=ins(H,'onUseTick');assert any(x['operand']==10 for x in horn) and any(int(x['opcode'],16)==0x70 for x in horn) and pos(horn,'ServerLevel')<pos(horn,'.doCrumble(')
+            crumble=ins(H,'crumbleBlock');assert pos(crumble,'CRUMBLE_HORN')<pos(crumble,'BreakEvent')<pos(crumble,'.isCanceled(')<pos(crumble,'Blocks.AIR')<pos(crumble,'.nextFloat(')<pos(crumble,'.canHarvestBlock(')<pos(crumble,'.removeBlock(')<pos(crumble,'.getBlockEntity(')<pos(crumble,'.playerDestroy(')<pos(crumble,'.canEntityGrief(')
+            hc=ins('dispenser/CrumbleDispenseBehavior','execute');assert pos(hc,'.getMaxDamage(')<pos(hc,'CRUMBLE_HORN')<pos(hc,'.destroyBlock(')<pos(hc,'.hurtAndBreak(')
+            assert not any('.nextFloat(' in str(x['operand']) or 'BreakEvent' in str(x['operand']) or '.chanceToCrumble(' in str(x['operand']) for x in hc)
+            release=ins(M,'releaseUsing');assert len([x for x in release if '.doMagnet(' in str(x['operand'])])==9 and pos(release,'.isClientSide(')<pos(release,'.doMagnet(')<pos(release,'.hurtAndBreak(')
+            vein=ins(M,'findVein');assert any(x['operand']==24 for x in vein) and any(int(x['opcode'],16)==0xa6 for x in vein),'BlockState identity inequality rejection'
+            move=next(m['instructions'] for m in methods(M) if m['name']=='doMagnet' and 'BlockPos' in m['descriptor']);assert pos(move,'.isReplaceable(')<pos(move,'.isOre(')<pos(move,'.getBlockEntity(')<pos(move,'.findVein(')<pos(move,'.setBlock(')
+            assert not any('BreakEvent' in str(x['operand']) or '.canEntityGrief(' in str(x['operand']) for x in move)
+            book=[x for m in methods(M) if m['name'].startswith('lambda$isBookEnchantable') for x in m['instructions']];assert pos(book,'Enchantments.UNBREAKING')<pos(book,'Objects.equals(') and not any('.getKey(' in str(x['operand']) for x in book)
+            lamp=ins(L,'releaseUsing');assert any(x['operand']==12 for x in lamp) and pos(lamp,'.getDamageValue(')<pos(lamp,'.getMaxDamage(')<pos(lamp,'.doBurnEffect(')
+            burn=ins(L,'doBurnEffect');player_branch=next(x['offset'] for x in burn if int(x['opcode'],16)==0xc1 and x['operand']=='net/minecraft/world/entity/player/Player')
+            assert pos(burn,'.isClientSide(')<pos(burn,'.burnBlock(')<player_branch<pos(burn,'.getEntitiesOfClass(')<pos(burn,'.igniteForSeconds(')
+            assert any(x['operand']==5.0 for x in burn) and not any('.hurtAndBreak(' in str(x['operand']) or '.shrink(' in str(x['operand']) or '.hurt(' in str(x['operand']) for m in methods(L) for x in m['instructions'])
+            maps=read_json(WORK/'twilightforest/resources.json');assert len(maps['data/twilightforest/data_maps/entity_type/transformation_powder.json']['data']['values'])==32 and len(maps['data/twilightforest/data_maps/block/crumble_horn.json']['data']['values'])==63
+            cfg=read_json(OUT/'config-evidence/twilightforest-common.json');assert sha256(cfg['path'])==cfg['sha256'] and cfg['values']['Magic Trees']['miningCoreRange']==16
+            refs=[w for p in (OUT/'reference-evidence').glob('*.json') for w in read_json(p).get('witnesses',[]) if w.get('archive_sha256') in ['8e3563a078289f0f07ee6f87f1c8651294387639c8355983ee207cb753f08b7f','d874b2aa4d511919a567ae73f13510e63e16f7318194eb2c03824cd68a59df6f']]
+            def ri(c,fn):return next(m['instructions'] for w in refs if w['entry']==c+'.class' for m in w.get('methods',[]) if m['name']==fn)
+            mob=ri('net/minecraft/world/entity/Mob','convertTo');assert pos(mob,'.copyAndClear(')<pos(mob,'.addFreshEntity(')<pos(mob,'.discard(')
+            saving=ri('net/minecraft/world/entity/Mob','addAdditionalSaveData');loading=ri('net/minecraft/world/entity/Mob','readAdditionalSaveData')
+            assert any(x['operand']=='ArmorItems' for x in saving) and any(x['operand']=='HandItems' for x in saving) and pos(loading,'ArmorItems')<pos(loading,'ItemStack.parseOptional(')
+            assert not s['damage_profiles'] and d['damage_census']['reviewed_profiles_after']==31 and d['damage_census']['remaining_profiles']==9
         result=dict(schema='tno.external_effects.remaining_subsection_integrity.v1',status='PASS',checkpoint=d['checkpoint'],decision=d['decision'],starting_sha=d['starting_sha'],counts=s['counts'],protected_prior_files=len(protected),full_declared_class_coverage=len(d['full_classes']),twilight_reviewed_drafts=len(new['effects']),twilight_delivery_drafts=len(new['paths']),damage_profiles_reviewed=d['damage_census']['reviewed_profiles_after'],damage_profiles_remaining=d['damage_census']['remaining_profiles'],accepted_counts_unchanged=previous['accepted_counts_unchanged'],runtime_tests=0,promoted_twilight_records=0,**boundary_flags())
         results.append((d['slug'],result))
     assert results

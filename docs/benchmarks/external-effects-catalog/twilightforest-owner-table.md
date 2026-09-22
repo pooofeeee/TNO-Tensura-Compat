@@ -1,6 +1,6 @@
 # Twilight Forest — partial semantic owner table
 
-The installed4.8.3345 review is **PARTIAL** at **R2f8r**: **202 reviewed mechanic-package drafts / 646 delivery cases**, **31/40 custom DamageType caller profiles** closed and9 unfinished, REVIEW_REQUIRED0. **Zero final Twilight records are promoted.** All protected subsections through Travellers core/movement/utility and food/flask contracts remain preserved in the checkpoint sections below. Final whole-mod totals remain unknown. Four accepted reviews remain116 mechanics/161 paths/217 components; runtime tests0.
+The installed4.8.3345 review is **PARTIAL** at **R2f8s**: **209 reviewed mechanic-package drafts / 673 delivery cases**, **31/40 custom DamageType caller profiles** closed and9 unfinished, REVIEW_REQUIRED0. **Zero final Twilight records are promoted.** All protected subsections through Travellers, food/flasks and active utility contracts remain preserved in the checkpoint sections below. Final whole-mod totals remain unknown. Four accepted reviews remain116 mechanics/161 paths/217 components; runtime tests0.
 
 | Mechanic | Native behavior | Vanilla comparison | Classification / source coverage |
 |---|---|---|---|
@@ -344,3 +344,17 @@ Berry extension requests existing duration plus ticks at amplifier0 and retains 
 [Integrity](twilightforest-food-flasks-integrity.json) and [full validation](r2f8r-food-flasks-validation.json) cover evidence/reference reproduction, native predicate/order/return guards, class/source/path checks, five tooling tests and prior-checkpoint/accepted116/161/217 preservation. Runtime0; production/Stage/Phase6/7 untouched.
 
 Next: remaining utility/map items (Pocket Watch, transformation/terrain tools and native map/landmark ASM), then passive entities, hazards and nine unfinished custom DamageTypes. Finish remaining ASM/compatibility/source exclusions, protect R2f8 and promote Twilight COMPLETE before IceAndFire. Continue after push/live equality while actual usage permits.
+
+## R2f8s — Active utilities and legitimate native alternatives
+
+Protected input R2f8r `a5aed2439d588673357293c434d83570377bf21f`. Adds **7 reviewed packages / 27 delivery cases**, reaching **209 mechanic drafts / 673 delivery cases**, PARTIAL, zero promoted, REVIEW_REQUIRED0. DamageTypes remain **31/40**, nine unfinished.
+
+[Reviewed contracts](twilightforest-active-utilities-review.md) close Pocket Watch effects/application veto, Transformation Powder replacement, Crumble Horn terrain alteration, Ore Magnet/Mining Core relocation and Lamp of Cinders terrain/ignition. Fourteen complete declared classes plus exact native/NeoForge comparisons are pinned. All32 transformation mappings and63 crumble entries retain their actual source data. Existing ToolEvents contracts are reused and the remaining declared methods now closed.
+
+Pocket Watch prevents new eligible Mining Fatigue applications while held; it does not cleanse an existing effect. Powder conversion reloads saved state and directly resets destination HP to the resulting maximum, retaining native conversion events and a new UUID. Ordinary Mob hand/armor stacks can be emptied by native transfer before old-state serialization overwrites destination equipment; surviving BODY/subtype entries remain conditional. The dispenser iterates all eligible front-box entities without a remaining-stack recheck. No conversion or HP operations were executed by this research.
+
+Handheld Horn uses remaining-time modulo and an inclusive125-position box with probability/Player BreakEvent/harvest rules. Its dispenser has distinct deterministic admission. The posted BreakEvent can also invoke the already-protected mainhand maze-tool wear rule before a Horn roll. Ore Magnet and Mining Core share actual dynamic tag caches and24-block exact-state vein traversal. Lamp uses a release durability reserve without spending durability, and its separate Player-only activation ignites nearby nonplayers through native fire ticks; thorn conversion and HP damage are not conflated.
+
+[Integrity](twilightforest-active-utilities-integrity.json) and [full validation](r2f8s-active-utilities-validation.json) cover source/reference reproduction, native predicates/order/return checks, full declared coverage, all five tooling tests, prior-checkpoint preservation and unchanged accepted116/161/217 catalog bodies. Runtime0; no L2/Stage/production/Phase6/7 changes.
+
+Next: Magic/Maze maps, Ore Meter and landmark ASM; remaining structural utilities (Rope, Magic Beans and other magic cores), passive entities, hazards and nine custom DamageTypes. Finish all remaining ASM/compatibility/source exclusions, protect R2f8 and promote full Twilight COMPLETE before IceAndFire. Continue after push/live equality while actual usage is healthy.
