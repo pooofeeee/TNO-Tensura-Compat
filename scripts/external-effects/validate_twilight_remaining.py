@@ -99,6 +99,36 @@ def validate_remaining():
             yh=ins(M+'Yeti','hurt');assert pos(yh,'.setAngry(')<pos(yh,'Monster.hurt(')
             assert s['effects'][-1]['reuses_protected_effect_ids']==['twilightforest:alpha_yeti_throw','twilightforest:alpha_yeti_thrown_fall']
             assert d['damage_census']['reviewed_profiles_after']==23 and d['damage_census']['remaining_profiles']==17
+        if d['slug']=='chain':
+            from collect_twilight_chain import scan_callers,scan_vanilla_callers
+            scan=read_json(OUT/'twilightforest-chain-caller-scan.json');assert scan==scan_callers(target)
+            vanilla=read_json(OUT/'twilightforest-chain-vanilla-caller-scan.json');assert vanilla==scan_vanilla_callers()
+            assert {(x['class_name'],x['method']) for x in vanilla['hits']}=={('net/minecraft/server/level/ServerPlayerGameMode','handleBlockBreakAction'),('net/minecraft/world/entity/projectile/AbstractArrow','hitBlockEnchantmentEffects'),('net/minecraft/world/entity/projectile/ThrownTrident','hitBlockEnchantmentEffects')}
+            refs=read_json(OUT/'reference-evidence/twilight-chain-244.json')['witnesses']
+            mode=next(w for w in refs if w['entry'].endswith('/ServerPlayerGameMode.class'))
+            mining=next(m['instructions'] for m in mode['methods'] if m['name']=='handleBlockBreakAction')
+            assert pos(mining,'onLeftClickBlock(')<pos(mining,'.isCreative(')<pos(mining,'EnchantmentHelper.onHitBlock(')<pos(mining,'.getUseBlock(')
+            assert pos(mining,'.getMainHandItem(')<pos(mining,'EnchantmentHelper.onHitBlock(')
+            runtime=[x for x in scan['hits'] if 'TFDamageTypes.SPIKED' in str(x['instruction']['operand']) and '/data/' not in x['entry'] and '/init/' not in x['entry']]
+            assert {(x['entry'],x['method']) for x in runtime}=={('twilightforest/entity/monster/BlockChainGoblin.class','doHurtTarget'),('twilightforest/entity/projectile/ChainBlock.class','onHitEntity')}
+            p=s['damage_profiles'][0];assert p['type']=='twilightforest:spiked' and p['status']=='USED' and p['tags']==['neoforge:is_physical']
+            M='entity/monster/BlockChainGoblin';P='entity/projectile/ChainBlock';I='item/ChainBlockItem';E='enchantment/SmashBlocksEffect'
+            melee=ins(M,'doHurtTarget');assert pos(melee,'TFDamageTypes.SPIKED')<pos(melee,'.blockL')<pos(melee,'.getIndirectEntityDamageSource(')
+            collision=ins(M,'applyBlockCollision');assert pos(collision,'.push(L')<pos(collision,'Monster.doHurtTarget(')<pos(collision,'.push(DDD)')
+            assert not any('TFDamageTypes' in str(x['operand']) for x in collision)
+            hit=ins(P,'onHitEntity');assert pos(hit,'.hurtAndBreak(')<pos(hit,'.disableShield(')<pos(hit,'.hurt(')<pos(hit,'.setIsReturning(')
+            assert not any('.doPostAttackEffects(' in str(x['operand']) for x in hit)
+            assert not any(int(x['opcode'],16)==0xb4 and '.hitEntity' in str(x['operand']) for x in hit)
+            block=ins(P,'onHitBlock');assert pos(block,'.bounce(')<pos(block,'EnchantmentHelper.onHitBlock(')
+            smash=ins(E,'apply');assert pos(smash,'BreakEvent')<pos(smash,'.destroyBlock(')<pos(smash,'.getBlockEntity(')<pos(smash,'.playerDestroy(')<pos(smash,'.setBlocksSmashed(')
+            assert not any('.vulnerableBlocks(' in str(x['operand']) for x in smash)
+            setters=[x for x in scan['hits'] if '.setBlocksSmashed' in str(x['instruction']['operand'])]
+            assert len(setters)==1 and setters[0]['entry']=='twilightforest/enchantment/SmashBlocksEffect.class'
+            assert 'canPerformAction' not in {m['name'] for m in methods(I)}
+            assert any('ItemStack.parseOptional(' in str(x['operand']) for x in ins(P,'readAdditionalSaveData'))
+            for name in ['readAdditionalSaveData','addAdditionalSaveData']:
+                assert not any('.HAND' in str(x['operand']) or '.getHand(' in str(x['operand']) or '.setHand(' in str(x['operand']) for x in ins(P,name))
+            assert d['damage_census']['reviewed_profiles_after']==24 and d['damage_census']['remaining_profiles']==16
         result=dict(schema='tno.external_effects.remaining_subsection_integrity.v1',status='PASS',checkpoint=d['checkpoint'],decision=d['decision'],starting_sha=d['starting_sha'],counts=s['counts'],protected_prior_files=len(protected),full_declared_class_coverage=len(d['full_classes']),twilight_reviewed_drafts=len(new['effects']),twilight_delivery_drafts=len(new['paths']),damage_profiles_reviewed=d['damage_census']['reviewed_profiles_after'],damage_profiles_remaining=d['damage_census']['remaining_profiles'],accepted_counts_unchanged=previous['accepted_counts_unchanged'],runtime_tests=0,promoted_twilight_records=0,**boundary_flags())
         results.append((d['slug'],result))
     assert results
