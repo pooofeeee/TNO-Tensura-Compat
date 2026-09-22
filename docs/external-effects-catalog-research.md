@@ -520,3 +520,13 @@ Ender swap occurs in the native impact event before HP damage. Seeker uses prior
 [Contracts](benchmarks/external-effects-catalog/twilightforest-bows-fan-review.md), [packages and paths](benchmarks/external-effects-catalog/semantic-sections/twilightforest-bows-fan.json), [integrity](benchmarks/external-effects-catalog/twilightforest-bows-fan-integrity.json), [validation](benchmarks/external-effects-catalog/r2f8l-bows-fan-validation.json). Eight full native class surfaces, actual caller census, raw/exact244 inheritance, semantic/source/path/preservation checks and all five tooling tests protect this subsection. No runtime tests.
 
 Next: remaining armor/charms/food and utility resources, utility/passive entities, hazards/11 unfinished types and nested ASM/mixin/event/compatibility closure before final Twilight promotion. IceAndFire only after COMPLETE Twilight pushed/live verified; no boss/L2/Stage/production/Phase6/7 work.
+
+## R2f8m — Conventional equipment, Fiery/Glass and Stale source routing
+
+Protected input R2f8l `9588519010ff6b717f8921e8d447f3342dc34aa4`. Adds **8 reviewed mechanic packages / 24 delivery cases**, bringing Twilight to **155 package drafts / 476 delivery cases**, still PARTIAL with zero promotions and REVIEW_REQUIRED0. **30/40 custom DamageTypes** now have reviewed actual callers; `stale_sandwich` is newly USED, ten remain unfinished.
+
+Fiery Incoming ignition, successful Player melee ignition and armor Post retaliation are separate native paths. Glass custom shatter and inherited wear are independent, while the actual infinite lore variant carries both required protection components. The installed nested ASM service/transformer proves Stale Bread replaces real mobAttack/playerAttack factory results and also applies to the existing Cube owner factory path. It does not change attack amounts or target eligibility. Knightmetal Shield retains native shield/parry contracts; conventional attributes, recipe enchantments, Arctic snow/freeze and crown HEAD armor are saved with native references.
+
+See the equipment semantic section, caller scan, nested archive/service witnesses, integrity and full-validation report. Previous accepted116/161/217 catalog bodies are unchanged. No runtime boss/L2/Stage/production/fixes/Phase6/7 work.
+
+Next: Charms of Life/Keeping, Phantom retention and Keepsake Casket death/respawn paths; then Travellers modifiers, remaining utilities/food/passive entities/hazards, ten custom DamageTypes and full nested ASM/compatibility closure. IceAndFire only after complete Twilight is pushed and live verified.

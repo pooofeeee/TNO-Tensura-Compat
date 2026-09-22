@@ -342,6 +342,33 @@ def validate_remaining():
             ranged=next(m['instructions'] for m in sk['methods'] if m['name']=='performRangedAttack');assert pos(ranged,'.getArrow(')<pos(ranged,'.customArrow(')<pos(ranged,'.shoot(')<pos(ranged,'.addFreshEntity(')
             assert not any('.releaseUsing(' in str(x['operand']) for x in ranged)
             assert not s['damage_profiles'] and d['damage_census']['reviewed_profiles_after']==29 and d['damage_census']['remaining_profiles']==11
+        if d['slug']=='equipment':
+            from collect_twilight_equipment import scan_callers
+            scan=read_json(OUT/'twilightforest-equipment-caller-scan.json');assert scan==scan_callers(target)
+            assert scan['custom_damage_provider_implementers']==['twilightforest/item/CustomDamageSwordItem.class']
+            assert scan['nested']['service']=='twilightforest.asm.TFCoreMod' and scan['nested']['sha256']=='1324a81e5cf085d62385f85e4b06e6217bf977977f92c58034af315c5d975690'
+            use=ins('events/ToolEvents','fieryToolSetFire');assert pos(use,'.getEntity(')<pos(use,'.getMainHandItem(')<pos(use,'.fireImmune(')<pos(use,'.igniteForSeconds(')
+            assert not any('.getDirectEntity(' in str(x['operand']) or '.getAmount(' in str(x['operand']) for x in use)
+            for c,parent in [('item/FierySwordItem','SwordItem'),('item/FieryPickItem','PickaxeItem')]:
+                hit=ins(c,'hurtEnemy');assert pos(hit,parent+'.hurtEnemy(')<pos(hit,'.igniteForSeconds(') and any(x['operand']==15.0 for x in hit)
+                assert not any('.hurt(' in str(x['operand']) for x in hit)
+            post=ins('events/EntityEvents','entityHurts');assert pos(post,'.getOriginalDamage(')<pos(post,'.nextInt(')<pos(post,'.fireImmune(')<pos(post,'.igniteForSeconds(')
+            assert any(int(x['opcode'],16)==0x6c for x in post),'Fiery duration uses integer division'
+            glass=ins('item/GlassSwordItem','hurt');assert pos(glass,'INFINITE_GLASS_SWORD')<pos(glass,'.processDurabilityChange(')<pos(glass,'ITEM_DURABILITY_CHANGED')
+            assert not any('UNBREAKABLE' in str(x['operand']) or '.isDamageableItem(' in str(x['operand']) for x in glass)
+            shatter=ins('item/GlassSwordItem','hurtAndBreak');assert pos(shatter,'instabuild')<pos(shatter,'.hurt(')<pos(shatter,'.shrink(')
+            lore=ins('init/TFCreativeTabs','createGlassSwordAndLoreVer');assert pos(lore,'UNBREAKABLE')<pos(lore,'INFINITE_GLASS_SWORD')
+            provider=ins('item/CustomDamageSwordItem','getDamageSource');assert any('.source(' in str(x['operand']) for x in provider) and not any('.hurt(' in str(x['operand']) for x in provider)
+            hook=ins('asmhooks/DamageSourceHooks','getCustomDamageSource');assert pos(hook,'.getWeaponItem(')<pos(hook,'CustomDamageProvider')<pos(hook,'.getDamageSource(')
+            asm=read_json(OUT/'reference-evidence/twilight-equipment-asm.json')['witnesses'];tr=next(w for w in asm if w.get('class_name','').endswith('/DamageSourcesTransformer'))
+            assert tr['archive_sha256']==scan['nested']['sha256']
+            targets=next(m['instructions'] for m in tr['methods'] if m['name']=='targets');assert {x['operand'] for x in targets if x['operand'] in ['mobAttack','playerAttack','mobAttackNoAggro']}=={'mobAttack','playerAttack'}
+            body=[x for m in tr['methods'] for x in m['instructions']];assert any(x['operand']==176 for x in body) and any(x['operand']=='getCustomDamageSource' for x in body)
+            reg=next(w for w in asm if w.get('class_name','').endswith('/TFCoreMod'));assert any('DamageSourcesTransformer.<init>' in str(x['operand']) for m in reg['methods'] for x in m['instructions'])
+            shield=methods('item/KnightmetalShieldItem');assert not any('.hurt(' in str(x['operand']) for m in shield for x in m['instructions'])
+            assert any('ARCTIC_BOOTS' in str(x['operand']) for x in ins('item/ArcticArmorItem','canWalkOnPowderedSnow'))
+            assert set(s['damage_profiles'][0]['tags'])==set() and s['damage_profiles'][0]['type']=='twilightforest:stale_sandwich'
+            assert d['damage_census']['reviewed_profiles_after']==30 and d['damage_census']['remaining_profiles']==10
         result=dict(schema='tno.external_effects.remaining_subsection_integrity.v1',status='PASS',checkpoint=d['checkpoint'],decision=d['decision'],starting_sha=d['starting_sha'],counts=s['counts'],protected_prior_files=len(protected),full_declared_class_coverage=len(d['full_classes']),twilight_reviewed_drafts=len(new['effects']),twilight_delivery_drafts=len(new['paths']),damage_profiles_reviewed=d['damage_census']['reviewed_profiles_after'],damage_profiles_remaining=d['damage_census']['remaining_profiles'],accepted_counts_unchanged=previous['accepted_counts_unchanged'],runtime_tests=0,promoted_twilight_records=0,**boundary_flags())
         results.append((d['slug'],result))
     assert results
