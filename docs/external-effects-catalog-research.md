@@ -490,3 +490,13 @@ R2f8h was pushed/live verified at `696eb25903f23324bbedb90116fd7a41a395dd20`. Ni
 [Integrity](benchmarks/external-effects-catalog/twilightforest-summon-resources-integrity.json) and [full validation](benchmarks/external-effects-catalog/r2f8i-summon-resources-validation.json) protect all five tooling tests, native/raw/exact-loader evidence, caller/tag/recipe/source/path checks and prior accepted work/research-only boundaries. No runtime work.
 
 Continue Fortification/Lifedrain unique payloads, then remaining Twilight entities/items/hazards/custom sources toward R2f8 and final promotion. IceAndFire only after COMPLETE Twilight is pushed/verified; no L2/Stage/production/Phase6/7 work.
+
+## R2f8j — Fortification and Lifedrain native payloads
+
+R2f8i was pushed/live verified at `5f56f39696e7c17c4eccd8314f3953ef14578aeb`. Seven reviewed packages/26 delivery cases bring Twilight to **132 package drafts/400 cases**. LIFEDRAIN is USED through its real caller: **28/40** custom profiles reviewed,12 unfinished. REVIEW_REQUIRED0; zero Twilight promotions and unchanged four accepted mods.
+
+The review separates Fortification count/timer/persistence from its binary incoming-event cancellation, and Lifedrain selection/source damage from low-health execution, admitted restoration, independent motion and Crown charge saving. The nonPlayer native die/discard branch is documented separately from the Player second hurt request; no compatibility implementation or balancing change is made. Protected Lich shields, Twilight bolt and shared scepter resources remain unchanged.
+
+[Contracts](benchmarks/external-effects-catalog/twilightforest-scepter-payloads-review.md), [packages and paths](benchmarks/external-effects-catalog/semantic-sections/twilightforest-scepter-payloads.json), [integrity](benchmarks/external-effects-catalog/twilightforest-scepter-payloads-integrity.json), [validation](benchmarks/external-effects-catalog/r2f8j-scepter-payloads-validation.json). Five full native class surfaces, all-TF actual caller scan, raw Minecraft/exact244 comparison and semantic/source/path/prior-checkpoint checks protect this subsection with all five tooling tests.
+
+Next: remaining player projectile/utility weapons (Moonworm Queen, Cube of Annihilation, Ender/Seeker/Triple bows, Peacock Fan), then armor/charms/food, utility/passive entities, hazards/custom sources and exact nested ASM/compatibility closure before final Twilight promotion. No runtime boss/L2/Stage/production/Phase6/7; IceAndFire only after Twilight COMPLETE is pushed and verified.

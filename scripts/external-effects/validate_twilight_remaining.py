@@ -267,6 +267,29 @@ def validate_remaining():
             profile=s['damage_profiles'][0];assert profile['type']=='twilightforest:expired' and set(profile['tags'])=={'minecraft:always_most_significant_fall','minecraft:bypasses_armor','minecraft:bypasses_invulnerability','minecraft:bypasses_resistance','minecraft:bypasses_shield','minecraft:bypasses_wolf_armor','neoforge:is_technical'}
             protection=read_json(OUT/'vanilla-evidence/twilight-summon-protection.json')['resources'][0]['data'];assert protection['effects']['minecraft:damage_protection'][0]['requirements']['predicate']['tags']==[{'expected':False,'id':'minecraft:bypasses_invulnerability'}]
             assert d['damage_census']['reviewed_profiles_after']==27 and d['damage_census']['remaining_profiles']==13
+        if d['slug']=='scepter-payloads':
+            from collect_twilight_scepter_payloads import scan_callers
+            scan=read_json(OUT/'twilightforest-scepter-payloads-caller-scan.json');assert scan==scan_callers(target)
+            runtime={(h['entry'],h['method']) for h in scan['hits'] if 'TFDamageTypes.LIFEDRAIN' in str(h['instruction']['operand']) and '/data/' not in h['entry'] and '/init/' not in h['entry']}
+            assert runtime=={('twilightforest/item/LifedrainScepterItem.class','onUseTick')}
+            producers={(h['entry'],h['method']) for h in scan['hits'] if any(x in str(h['instruction']['operand']) for x in ['FortificationShieldAttachment.setShields','FortificationShieldAttachment.addShields'])}
+            assert producers=={('twilightforest/item/FortificationWandItem.class','use'),('twilightforest/command/ShieldCommand.class','add'),('twilightforest/command/ShieldCommand.class','set')}
+            A='components/entity/FortificationShieldAttachment';D='item/LifedrainScepterItem';E='events/CapabilityEvents'
+            use=ins('item/FortificationWandItem','use');assert pos(use,'.setShields(')<pos(use,'hurtButDontBreak(')<pos(use,'.addCooldown(')
+            incoming=ins(E,'absorbShieldHits');assert pos(incoming,'BYPASSES_ARMOR')<pos(incoming,'.shieldsLeft(')<pos(incoming,'.breakShield(')<pos(incoming,'.setCanceled(')
+            assert not any('BYPASSES_SHIELD' in str(x['operand']) or '.getAmount(' in str(x['operand']) for x in incoming)
+            tick=ins(A,'tick');assert pos(tick,'.temporaryShieldsLeft(')<pos(tick,'.breakShield(')<pos(tick,'.checkLichCrownBonus(')
+            ray=ins(D,'getPlayerLookTarget');assert pos(ray,'.getEntities(')<pos(ray,'.isPickable(')<pos(ray,'.clip(')
+            assert not any('ClipContext' in str(x['operand']) or '.hasLineOfSight(' in str(x['operand']) for x in ray)
+            drain=ins(D,'onUseTick');assert pos(drain,'.hurt(')<pos(drain,'EntityTypes.BOSSES')<pos(drain,'.die(')<pos(drain,'.discard(')<pos(drain,'.addEffect(')<pos(drain,'.heal(')<pos(drain,'hurtButDontBreak(')<pos(drain,'.setDeltaMovement(')
+            assert not any('.setHealth(' in str(x['operand']) for x in drain)
+            discard=next(n for n,x in enumerate(drain) if '.die(' in str(x['operand']));assert '.discard(' in str(drain[discard+2]['operand'])
+            assert sum('.hurt(' in str(x['operand']) for x in drain)==2
+            profile=s['damage_profiles'][0];assert profile['type']=='twilightforest:lifedrain' and set(profile['tags'])=={'minecraft:bypasses_armor','minecraft:bypasses_shield','minecraft:bypasses_wolf_armor','minecraft:is_projectile','neoforge:is_magic'}
+            ids={e['id'] for e in new['effects']};assert all(i in ids for e in s['effects'] for i in e.get('reuses_protected_effect_ids',[]))
+            refs=read_json(OUT/'reference-evidence/twilight-scepter-payloads-244.json')['witnesses'];living=next(w for w in refs if w['entry']=='net/minecraft/world/entity/LivingEntity.class')
+            update=next(m['instructions'] for m in living['methods'] if m['name']=='updateUsingItem');assert pos(update,'.onItemUseTick(')<pos(update,'.onUseTick(')
+            assert d['damage_census']['reviewed_profiles_after']==28 and d['damage_census']['remaining_profiles']==12
         result=dict(schema='tno.external_effects.remaining_subsection_integrity.v1',status='PASS',checkpoint=d['checkpoint'],decision=d['decision'],starting_sha=d['starting_sha'],counts=s['counts'],protected_prior_files=len(protected),full_declared_class_coverage=len(d['full_classes']),twilight_reviewed_drafts=len(new['effects']),twilight_delivery_drafts=len(new['paths']),damage_profiles_reviewed=d['damage_census']['reviewed_profiles_after'],damage_profiles_remaining=d['damage_census']['remaining_profiles'],accepted_counts_unchanged=previous['accepted_counts_unchanged'],runtime_tests=0,promoted_twilight_records=0,**boundary_flags())
         results.append((d['slug'],result))
     assert results
