@@ -53,6 +53,9 @@ def validate_remaining():
         if d['slug']=='structure-gates':
             from validate_twilight_structure_gates import validate_structure_gates
             validate_structure_gates(d,s,old,new,methods,ins,pos,target)
+        if d['slug']=='vanishing-doors':
+            from validate_twilight_vanishing_doors import validate_vanishing_doors
+            validate_vanishing_doors(d,s,old,new,methods,ins,pos,target)
         if d['slug']=='ranged-mobs':
             from collect_twilight_ranged_mobs import scan_callers,FIELDS
             scan=read_json(OUT/'twilightforest-ranged-mobs-caller-scan.json');assert scan==scan_callers(target)

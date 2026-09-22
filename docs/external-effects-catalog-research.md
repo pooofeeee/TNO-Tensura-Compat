@@ -686,3 +686,13 @@ The hostile gate tests causing Player, Enemy victim, Kobold exclusion and actual
 Twilight remains PARTIAL at253 mechanic drafts/876 paths, all40 custom DamageTypes USED, REVIEW_REQUIRED0, zero promoted. Accepted four mods116/161/217 and every protected subsection remain unchanged; runtime0. Validation saved: exact native/reference evidence, source/caller/order guards, subsection integrity, allfive tooling tests, full catalog validation, preservation and diff checks.
 
 Exact next task: native Vanishing/Reappearing/Locked blocks and Castle Doors; then remaining portal/control blocks, callbacks, nested ASM, source exclusions and compatibility closure. Finish R2f8 and final Twilight dedup/promotion before starting IceAndFire. Continue automatically while actual enforced usage remains healthy.
+
+## R2f8aa — native vanishing barriers and Castle Doors
+
+Continues live-verified `641e33dfb66bed3830cad0eed0d9c7542d7d08d7`. Adds four packages/24 paths covering Vanishing removal, Reappearing collision cycles, native Tower Key unlocking/loot and Castle Door cycles. [Complete contracts and source evidence](benchmarks/external-effects-catalog/twilightforest-vanishing-doors-review.md).
+
+The initial Vanishing lock search is bounded by512 queue pops, including duplicate/boundary entries. Scheduled propagation does not recheck locks. Reappearing collision is absent for nominal95ticks; CastleDoor has a separate82..86tick cycle and a literalfalse lock helper. Native creative players still consume a key because successful block interaction returns before the later ItemStack creative refund branch. Inactive Unbreakable Vanishing reports6000 explosion resistance through its inherited override despite its6000000 base property. These are recorded native semantics; no implementation changes.
+
+Twilight remains PARTIAL at257 mechanic drafts/900 paths,40/40 USED custom types, REVIEW_REQUIRED0, zero promoted. All previous drafts/errata and four accepted mods116/161/217 preserved; runtime0. Validation includes exact source/reference/caller integrity, state/cost/order guards, five tooling tests, subsection and full catalog checks, preservation and diff checks.
+
+Exact next task: native portal creation/lightning/transport and configured first-spawn path, then remaining Builder/Antibuilder/cloud/control blocks, events/nested ASM, compatibility and source exclusions. Finish R2f8 and final Twilight dedup/promotion before IceAndFire. Continue automatically while actual enforced usage remains healthy.

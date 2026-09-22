@@ -1,6 +1,6 @@
 # Twilight Forest — partial semantic owner table
 
-The installed4.8.3345 review is **PARTIAL** at **R2f8z**: **253 mechanic-package drafts /876 delivery cases**, **40/40 custom DamageType profiles USED**, zero unfinished types, REVIEW_REQUIRED0. Remaining portal/control/events/ASM/source closure unfinished. Zero final Twilight records promoted. Protected sections/cloth erratum and accepted four mods116/161/217 preserved; runtime0.
+The installed4.8.3345 review is **PARTIAL** at **R2f8aa**: **257 mechanic-package drafts /900 delivery cases**, **40/40 custom DamageType profiles USED**, zero unfinished types, REVIEW_REQUIRED0. Remaining portal/control/events/ASM/source closure unfinished. Zero final Twilight records promoted. Protected sections/cloth erratum and accepted four mods116/161/217 preserved; runtime0.
 
 | Mechanic | Native behavior | Vanilla comparison | Classification / source coverage |
 |---|---|---|---|
@@ -457,3 +457,14 @@ Adds7/32; four custom sources closed. [Contracts and future fixtures](twilightfo
 | Force Fields | Five colors, actual central/arm/corner collision | Same-color links, stale update bits, native saved state/water; no HP damage or reflection |
 
 [Six packages/28 paths](semantic-sections/twilightforest-structure-gates.json) with optional direct gravestone tag attribution and generic native hooks. Next: vanishing/Castle Door state machines, remaining portal/control blocks/events/ASM/source closure and final Twilight promotion. No IceAndFire yet.
+
+## R2f8aa — native vanishing/door state machines
+
+| Mechanic | Native contract | Delivery distinction |
+|---|---|---|
+| Vanishing | Bounded512 queue-pop initial lock search;2..6tick activation, permanent removal then six-neighbor propagation | Actual manual/redstone entry versus propagation without lock recheck; ordinary/unbreakable variants |
+| Reappearing |80then15ticks vanished, empty collision and central outline | Native scheduled-state persistence; no direct HP or displacement callback |
+| Tower Key | Exact key+LOCKEDtrue; server cost1 before state write; creative also consumes | Genuine key-wing chest loot, native interaction veto and saved LOCKED/keyTower; placedKeys guard transient |
+| Castle Door | Lock helperfalse; any-color propagation;80then2..6ticks vanished | Distinct class/state/timing; native collision and saved scheduled ticks |
+
+[Four packages/24 paths](semantic-sections/twilightforest-vanishing-doors.json). Terrain changes are separate from HP damage. Existing key retention and structure gate reused. Next: native portals/lightning/transport and remaining controls/events/ASM/source closure; no IceAndFire yet.
