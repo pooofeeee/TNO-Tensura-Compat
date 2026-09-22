@@ -315,6 +315,33 @@ def validate_remaining():
             assert set(s['damage_profiles'][0]['tags'])=={'minecraft:no_knockback','neoforge:is_physical'}
             ids={e['id'] for e in new['effects']};assert all(i in ids for e in s['effects'] for i in e.get('reuses_protected_effect_ids',[]))
             assert d['damage_census']['reviewed_profiles_after']==29 and d['damage_census']['remaining_profiles']==11
+        if d['slug']=='bows-fan':
+            from collect_twilight_bows_fan import scan_callers
+            scan=read_json(OUT/'twilightforest-bows-fan-caller-scan.json');assert scan==scan_callers(target)
+            E='item/EnderBowItem';S='item/SeekerBowItem';A='entity/projectile/SeekerArrow';P='entity/projectile/TFArrow';T='item/TripleBowItem';F='item/PeacockFanItem';D='dispenser/FeatherFanDispenseBehavior'
+            marker=ins(E,'customArrow');assert pos(marker,'.getPersistentData(')<pos(marker,'.putBoolean(')
+            swap=ins('events/ToolEvents','onEnderBowHit');assert pos(swap,'EntityTypes.BOSSES')<pos(swap,'.contains(')<pos(swap,'.teleportTo(')<pos(swap,'.invulnerableTimeI')
+            assert not any('.hurt(' in str(x['operand']) or '.setCanceled(' in str(x['operand']) or '.getBoolean(' in str(x['operand']) for x in swap)
+            wrapper=ins(S,'customArrow');assert pos(wrapper,'.copyWithCount(')<pos(wrapper,'SeekerArrow.<init>')
+            hit=ins(A,'onHitEntity');assert pos(hit,'.setCritArrow(')<pos(hit,'TFArrow.onHitEntity(')
+            assert not {'addAdditionalSaveData','readAdditionalSaveData'} & {m['name'] for m in methods(A)+methods(P)}
+            delegate=ins(P,'doPostHurtEffects');assert pos(delegate,'parentArrow')<pos(delegate,'AbstractArrow.doPostHurtEffects(')
+            volley=ins(T,'shoot');assert pos(volley,'.hurtAndBreak(')<pos(volley,'.copy(')<pos(volley,'INTANGIBLE_PROJECTILE')<pos(volley,'.createProjectile(')<pos(volley,'.setDeltaMovement(')<pos(volley,'.addFreshEntity(')
+            assert not any('processProjectileSpread' in str(x['operand']) for x in volley)
+            post=ins('events/EntityEvents','entityHurts');assert pos(post,'.getMsgId(')<pos(post,'.getUsedItemHand(')<pos(post,'TFItems.TRIPLE_BOW')<pos(post,'.invulnerableTimeI')
+            refs=read_json(OUT/'reference-evidence/vv-loader-244.json')['witnesses'];living=next(w for w in refs if w['entry']=='net/minecraft/world/entity/LivingEntity.class')
+            act=next(m['instructions'] for m in living['methods'] if m['name']=='actuallyHurt');assert pos(act,'.setHealth(')<pos(act,'.onLivingDamagePost(')
+            use=ins(F,'use');assert pos(use,'.doFan(')<pos(use,'.hurtAndBreak(')<pos(use,'.startUsingItem(')
+            push=ins(F,'fanEntitiesInAABB');assert pos(push,'.getUseItem(')<pos(push,'.setDeltaMovement(')<pos(push,'.isShiftKeyDown(')<pos(push,'.addCooldown(')
+            assert not any('.hurt(' in str(x['operand']) or '.deflect(' in str(x['operand']) for x in push)
+            assert not any('SHIELD_BLOCK' in str(x['operand']) for m in methods(F) for x in m['instructions'])
+            fall=ins('events/CapabilityEvents','updatePlayerCaps');assert pos(fall,'.setIgnoreFallDamageFromCurrentImpulse(')<pos(fall,'.currentImpulseImpactPosL')<pos(fall,'.onGround(')<pos(fall,'.setData(')
+            disp=ins(D,'execute');assert pos(disp,'.getEntitiesOfClass(')<pos(disp,'.size(')<pos(disp,'.setDeltaMovement(')<pos(disp,'.hurtAndBreak(')
+            assert not any('MovePlayerPacket' in str(x['operand']) or 'fanBlocksInAABB' in str(x['operand']) for x in disp)
+            refs=read_json(OUT/'reference-evidence/twilight-ranged-mobs-244.json')['witnesses'];sk=next(w for w in refs if w['entry']=='net/minecraft/world/entity/monster/AbstractSkeleton.class')
+            ranged=next(m['instructions'] for m in sk['methods'] if m['name']=='performRangedAttack');assert pos(ranged,'.getArrow(')<pos(ranged,'.customArrow(')<pos(ranged,'.shoot(')<pos(ranged,'.addFreshEntity(')
+            assert not any('.releaseUsing(' in str(x['operand']) for x in ranged)
+            assert not s['damage_profiles'] and d['damage_census']['reviewed_profiles_after']==29 and d['damage_census']['remaining_profiles']==11
         result=dict(schema='tno.external_effects.remaining_subsection_integrity.v1',status='PASS',checkpoint=d['checkpoint'],decision=d['decision'],starting_sha=d['starting_sha'],counts=s['counts'],protected_prior_files=len(protected),full_declared_class_coverage=len(d['full_classes']),twilight_reviewed_drafts=len(new['effects']),twilight_delivery_drafts=len(new['paths']),damage_profiles_reviewed=d['damage_census']['reviewed_profiles_after'],damage_profiles_remaining=d['damage_census']['remaining_profiles'],accepted_counts_unchanged=previous['accepted_counts_unchanged'],runtime_tests=0,promoted_twilight_records=0,**boundary_flags())
         results.append((d['slug'],result))
     assert results
