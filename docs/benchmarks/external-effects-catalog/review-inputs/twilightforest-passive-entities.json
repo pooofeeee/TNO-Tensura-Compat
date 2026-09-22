@@ -1,0 +1,832 @@
+{
+  "slug": "passive-entities",
+  "checkpoint_short": "r2f8v",
+  "checkpoint": "R2f8v-passive-entities-complete",
+  "decision": "TWILIGHT_PASSIVE_ENTITIES_SEMANTIC_REVIEW_COMPLETE",
+  "starting_sha": "33c70323b3cd409c57873d78822011cab91c046d",
+  "previous_checkpoint": "R2f8u-structural-utilities-complete",
+  "previous_draft": "partial-drafts/twilightforest-r2f8u-partial.json",
+  "facts": {
+    "authority": "Installed Twilight Forest 4.8.3345, raw Minecraft 1.21.1 and exact NeoForge 21.1.244. Eighteen full passive/quest classes and selected genuine producers/callers reviewed. No custom DamageType added:31/40 reviewed,9 unfinished. Static research only; no runtime/L2/Stage/production/Phase6/7.",
+    "quest_config": "Component QuestingRamCurrentContext starts with FALLBACK: all16 exact vanilla wool colors and entities/questing_ram_rewards. Installed twilight/quests/questing_ram.json agrees. Codec requires all16 DyeColor bits and nonempty Ingredients. Reload listener matches path questing_ram regardless namespace, applies each matching entry in map iteration order (last wins); absent file resets fallback, parse error throws. No fixed namespace priority or merged quest assumed. Context is shared/current rather than saved per ram. OnDatapackSync sends current context to one joining player or all; registered playToClient packet only updates client context, not server color flags.",
+    "quest_accept": "Quest Ram has synced integer ColorFlags initially0 and Rewarded false. tryAccept iterates current Ingredients; first matching nonnull not-yet-present color sets bit1<<color.id, emits50 particles/ambient and returns true. It does not consume itself or heal. isItemTempting returns immediately for first matching Ingredient, even if already collected; overlapping configured Ingredients can therefore differ from tryAccept. Genuine defaults have no overlap. countColorsSet counts all32 integer bits but legitimate16-color feeding only sets16; no injected flags used as a fixture.",
+    "quest_hand": "Native interactAt on server invokes tryAccept then ItemStack.consume(1,player), returning SUCCESS. Native consume preserves infinite-material players. Client or failure delegates Animal/Entity interactAt; no custom mobInteract bypass. Real server interaction retains packet range/world-border/feature admission, CommonHooks.onInteractEntityAt cancellation and native advancement/swing. No normal feeding/breeding: isFood false, offspring null.",
+    "quest_dropped": "QuestRamEatWoolGoal MOVE/LOOK priority2 selects nearest ItemEntity in ram AABB inflated16: onGround OR inWater, alive, nonempty, line of sight and isItemTempting. Continuation requires ram alive, navigation not stuck/not done, live target and still tempting. Start stops old path, looks at target and requests navigation speed1. Server tick checks target/nonempty eligibility through isItemTempting; distance squared<6.25 and successful tryAccept ->DISCARD ENTIRE ItemEntity then EAT game event. It does not shrink1, honor item thrower/pickup delay, or call mobGriefing in these bodies. Start predicates and native AI scheduling remain; no claim an arbitrary helper call is legitimate feeding.",
+    "quest_reward": "customServerAiStep pre-decrements divider initially0, resets70+randomInt50 on expiry; if bitCount>15 and !Rewarded, rewardQuest then sets Rewarded true. Complete but waiting emits5 particles/ambient per AI step. Reward uses current context table and real LootParams with THIS_ENTITY, PIGLIN_BARTER param set; getRandomItems then spawnAtLocation(stack,1). Bundled default gives one Crumble Horn and one Bundle. Bundle set_contents requests Quest Ram Trophy plus one each Coal/Iron/Copper/Lapis/Gold/Diamond/Emerald block. Native bundle manipulator clears prior contents and uses actual tryInsert capacity/item rules; unmodified 64-stack defaults fit all8. No reward HP/status. Loot hooks/loaded tables may change output; no synthetic inventory grant.",
+    "quest_progress": "After loot, every ServerPlayer in ram AABB inflated16 gets QUEST_RAM_COMPLETED trigger; no contributor/line-of-sight filter here, normal criterion player predicates still apply. LandmarkUtil marks QUEST_GROVE only for nonnull home in current dimension, nearest matching TFStructureStart; it also triggers STRUCTURE_CLEARED around home AABB inflated32. No home does not prevent loot/reward flag, but cannot mark a grove. Native death loot quest_ram has no pools, so killing is not an alternative quest reward.",
+    "quest_spawn_save": "QuestGrove quest_ram marker within chunk bounds calls FeaturePlacers.placeEntity: create, persistenceRequired, moveTo, actual finalizeMobSpawn STRUCTURE event, set home GlobalPos, add entity/passengers, clear marker to AIR. Native spawn eggs are alternate producer without this home assignment. Saved ColorFlags, Rewarded and HomePos (legacy Home migration); divider is transient, resets after load. Home radius13, native AttemptToGoHomeGoal speed1.25 seeks random point toward home if outside valid-dimension radius; no teleport or hard barrier. Quest Ram70HP/.23 speed, PanicGoal1.38, cannot ride; no custom hurt immunity, regeneration, attacks or armor from wool. Culling AABB inflate3 is render-only.",
+    "deer_heal": "Deer mobInteract first calls Animal.mobInteract. Actual DEER_TEMPT_ITEMS includes wheat tag, apple and Shika Senbei. Adult age0 and canFallInLove or baby feeding calls virtual Deer.usePlayerItem: if exact Shika Senbei, server native heal(4), sound, then superclass consume1. Thus accepted breeding/growth can heal too. If superclass result exactly PASS, held Senbei and HP<max, fallback usePlayerItem heals/consumes even when breeding unavailable. No full-health-only fallback, but eligible breeding still consumes/heals at full health. Native heal first posts LivingHealEvent, rejects nonpositive result or HP<=0, then clamps new HP to max. Consumption does not depend on healing success; infinite materials retained. Player nutrition of same food is already R2f8r and is not duplicated.",
+    "bird_descent": "Bird.aiStep after Animal calls scales vertical velocity by.6 only when not onGround and Y<0; Penguin, Raven and TinyBird inherit. Flap fields/sounds are cosmetic. FlyingBird.tick after super multiplies Y by.6 whenever not landed, including upward motion; descending flying birds can encounter both factors in native tick sequence. No effect instance or direct HP write. Flight flags initially landed, age0, isBaby false; no custom save of landed/target/flight timer, so these reset on load. Variants separately persist.",
+    "bird_flight": "FlyingBird server AI: landed resets flightTime0. Takeoff on isSpooked OR inWater OR fluid below OR (randomInt200==0 AND below not landable). Raven spooked iff lastHurtByMob nonnull. TinyBird also spooked by nearest noncreative/nonspectator native query player within4 HOLDING tempt item (positive predicate, not negated); normal seeds tag. Flight increments timer; invalid nonair/minHeight target clears. Water/fluid below resets timer and Y=.1f. Retarget when null/random1in30/within2: X/Z current+randInt7-randInt7; Y+randInt6-(flightTime<100?2:4). Steering adds (signum(delta)*(.5,.7,.5)-velocity)*.1f with center offsets(.5,.1,.5); yaw follows motion, zza=.5. Random1in10 + landable below sets landed and Y0. Landable means nonair and leaves OR sturdy UP. No attack/teleport/owner control.",
+    "bird_contacts": "FlyingBird isPushable false, doPush and pushEntities empty, canRide false, isIgnoringBlockTriggers true. These govern its native push/riding and pressure/tripwire trigger predicates, not all hazards. Exact Entity.checkInsideBlocks still visits intersected live-entity blocks and invokes entityInside without this flag. Native BasePressurePlateBlock filters spectators and ignoring-trigger entities; TripWire checks flag. Incoming damage/projectiles and unrelated force movement retain native admission; no general invulnerability claimed.",
+    "passive_immunity": "Bundled minecraft:fall_damage_immune explicitly contains Squirrel, Penguin, Raven and TinyBird. Native LivingEntity.calculateFallDamage returns0 for this tag (after native causeFallDamage LivingFall hook); not universal source immunity. Penguin also in minecraft:freeze_immune_entity_types: Entity.canFreeze false, with LivingEntity wearable/spectator gates. This blocks native freezing eligibility, not all custom ice/cold hits or Frosted movement. No passive custom hurt override or new DamageType. Other passive types here are not added to either of these TF contributions; dynamic external tags remain conditional.",
+    "ordinary_wildlife": "All nine concrete passive classes dispositioned. Boar extends Animal, not Pig:10HP/.25 speed, standard breeding/tempt/panic, no inherited pig saddle/lightning conversion implied. Deer10/.2 and Senbei heal above. DwarfRabbit extends Animal, not Rabbit:3/.3/step1, ordinary breeding/avoidance, variant texture+biomes only, no killer-bunny behavior;95% parent variant when valid dwarf mate, otherwise random common. Squirrel6/.3/step1, tempt/avoid/panic but isFood false/offspring null. Penguin10/.2, native breeding plus Bird descent/immunities. Raven10/.2/step1 and TinyBird4/.2/step1 use flight above, no breeding. Bighorn extends Sheep and uses native Sheep8HP/.23 attributes, shear/eat/regrow/breed; TF overrides color/loot/sound/path preference, not a ram attack. Initial color brown with1/2 else uniform16; same-class breeding and native offspring color. Quest Ram separate above. None registers a melee/ranged attack goal in these bodies.",
+    "cosmetic_exclusions": "TinyBird/DwarfRabbit variant codecs carry texture and optional biome set; selection and NBT/sync do not grant status/attributes. Ordinary wildlife sounds, look/wander/tempt/avoid goals, leash offsets, color loot and texture renderers are source dispositions, not additional combat packages. Death loot is resource mapping; transformation pairs already protected R2f8s and are reused. Creature attributes are documented prerequisites, not nine duplicate attacks.",
+    "compatibility": "GENERIC_CONDITIONAL_PRESENT: actual NeoForge interact-at, heal, fall, spawn, loot and resource-reload paths, with their native cancellations/modifications retained. No scoped direct external source-specific override proven (NONE_PROVEN); arbitrary external consumers/datapack changes UNKNOWN, not pack certification. Existing TF transformation and traveller hooks preserved. Remaining hazards/nine types, other structures/callbacks, nested ASM and global source/compatibility closure remain unfinished."
+  },
+  "packages": [
+    {
+      "id": "twilightforest:quest_ram_native_resource",
+      "display_name": "Quest Ram native quest resource and reward",
+      "owner": "quest_ram_native_resource",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "facts": [
+        "quest_config",
+        "quest_accept",
+        "quest_hand",
+        "quest_dropped",
+        "quest_reward",
+        "quest_progress",
+        "quest_spawn_save"
+      ],
+      "classes": [
+        "entity/passive/QuestRam",
+        "entity/ai/goal/QuestRamEatWoolGoal",
+        "entity/passive/quest/ram/QuestingRamContext",
+        "entity/passive/quest/QuestReloadListener",
+        "entity/passive/quest/ram/QuestingRamCurrentContext",
+        "network/SyncQuestsPacket",
+        "world/components/structures/QuestGrove",
+        "util/features/FeaturePlacers",
+        "util/landmarks/LandmarkUtil"
+      ],
+      "parameters": {
+        "colors": 16,
+        "hand_cost": 1,
+        "dropped_cost": "entire accepted ItemEntity",
+        "pickup_distance_squared": 6.25,
+        "search_radius": 16,
+        "reward_interval": [
+          70,
+          119
+        ],
+        "home_radius": 13
+      },
+      "gates": [
+        "currentIngredient",
+        "notCollected",
+        "server",
+        "nativeinteraction/goal",
+        "complete&&!rewarded",
+        "homeforgroveonly"
+      ],
+      "relation": "Custom saved collection state over native interaction, loot and advancement.",
+      "primary_test_source": "Genuine Quest Grove ram and16 distinct native wool colors",
+      "alternate_sources": [
+        "hand/drop",
+        "creative",
+        "duplicates",
+        "home absent",
+        "reload",
+        "reward flag"
+      ]
+    },
+    {
+      "id": "twilightforest:deer_senbei_native_healing",
+      "display_name": "Deer feeding native healing",
+      "owner": "deer_senbei_native_healing",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "facts": [
+        "deer_heal"
+      ],
+      "classes": [
+        "entity/passive/Deer"
+      ],
+      "parameters": {
+        "heal_request": 4,
+        "consume": 1,
+        "max_health": 10
+      },
+      "gates": [
+        "exactSenbei",
+        "serverheal",
+        "nativeparentorPASSandwounded",
+        "healhook"
+      ],
+      "relation": "Custom food callback delegates native heal and native item consumption.",
+      "primary_test_source": "Real Deer interaction with Shika Senbei",
+      "alternate_sources": [
+        "adult breeding",
+        "baby growth",
+        "cooldown",
+        "fullHP",
+        "heal canceled",
+        "creative"
+      ]
+    },
+    {
+      "id": "twilightforest:passive_bird_native_control",
+      "display_name": "Passive bird descent, flight and contact control",
+      "owner": "passive_bird_native_control",
+      "primary_classification": "CUSTOM_CONTROL",
+      "facts": [
+        "bird_descent",
+        "bird_flight",
+        "bird_contacts"
+      ],
+      "classes": [
+        "entity/passive/Bird",
+        "entity/passive/FlyingBird",
+        "entity/passive/TinyBird",
+        "entity/passive/Raven",
+        "entity/passive/Penguin"
+      ],
+      "parameters": {
+        "descent_factor": 0.6,
+        "flight_factor": 0.6,
+        "player_spook_radius": 4,
+        "retarget_chance": 30,
+        "landing_chance": 10,
+        "initial_target_time": 100
+      },
+      "gates": [
+        "ground/landed",
+        "lastHurtByMob",
+        "positiveTemptHeld",
+        "fluid",
+        "target/landable",
+        "nativeblocktrigger"
+      ],
+      "relation": "Custom autonomous movement/trigger predicates, no status or HP source.",
+      "primary_test_source": "Naturally spawned Raven/TinyBird/Penguin",
+      "alternate_sources": [
+        "hurt memory",
+        "seed-holder",
+        "water",
+        "landed",
+        "pressureplate",
+        "actualhazard",
+        "save/load"
+      ]
+    },
+    {
+      "id": "twilightforest:passive_native_tag_immunities",
+      "display_name": "Passive native fall and freezing eligibility",
+      "owner": "passive_native_tag_immunities",
+      "primary_classification": "VANILLA_DIRECT",
+      "facts": [
+        "passive_immunity"
+      ],
+      "classes": [
+        "entity/passive/Squirrel",
+        "entity/passive/Penguin",
+        "entity/passive/Raven",
+        "entity/passive/TinyBird"
+      ],
+      "parameters": {
+        "native_fall_calculation": 0
+      },
+      "gates": [
+        "actualentitytag",
+        "LivingFallhook",
+        "canFreeze"
+      ],
+      "relation": "Direct use of native entity tags; not blanket cold/damage immunity.",
+      "primary_test_source": "Actual fall/powder-snow exposure of tagged passive",
+      "alternate_sources": [
+        "untaggedDeer",
+        "customicehit",
+        "Frosted",
+        "externalhook"
+      ]
+    }
+  ],
+  "paths": [
+    {
+      "id": "twilightforest:passive_entities_path:quest_grove",
+      "source": "Natural Quest Grove ram",
+      "facts": [
+        "quest_spawn_save"
+      ],
+      "effect_ids": [
+        "twilightforest:quest_ram_native_resource"
+      ],
+      "classes": [
+        "world/components/structures/QuestGrove",
+        "util/features/FeaturePlacers",
+        "entity/passive/QuestRam"
+      ],
+      "labels": [
+        "OTHER",
+        "ENVIRONMENT"
+      ],
+      "setup": "Natural Quest Grove ram through actual native producer/callback; future fixture only, runtime0.",
+      "future_controls": [
+        "markerbounds",
+        "finalizespawn",
+        "home",
+        "persistent"
+      ]
+    },
+    {
+      "id": "twilightforest:passive_entities_path:quest_egg",
+      "source": "Native registered Quest Ram spawn egg",
+      "facts": [
+        "quest_spawn_save",
+        "quest_progress"
+      ],
+      "effect_ids": [
+        "twilightforest:quest_ram_native_resource"
+      ],
+      "classes": [
+        "entity/passive/QuestRam",
+        "init/TFEntities"
+      ],
+      "labels": [
+        "OTHER",
+        "ACTIVE_ITEM"
+      ],
+      "setup": "Native registered Quest Ram spawn egg through actual native producer/callback; future fixture only, runtime0.",
+      "future_controls": [
+        "home absent",
+        "lootstillallowed",
+        "noforcedgrove"
+      ]
+    },
+    {
+      "id": "twilightforest:passive_entities_path:quest_hand",
+      "source": "Native Quest Ram hand interaction",
+      "facts": [
+        "quest_hand",
+        "quest_accept"
+      ],
+      "effect_ids": [
+        "twilightforest:quest_ram_native_resource"
+      ],
+      "classes": [
+        "entity/passive/QuestRam"
+      ],
+      "labels": [
+        "OTHER",
+        "ACTIVE_ITEM"
+      ],
+      "setup": "Native Quest Ram hand interaction through actual native producer/callback; future fixture only, runtime0.",
+      "future_controls": [
+        "server",
+        "cancel",
+        "consume1",
+        "creative"
+      ]
+    },
+    {
+      "id": "twilightforest:passive_entities_path:quest_drop_select",
+      "source": "Native ram dropped-item selection",
+      "facts": [
+        "quest_dropped"
+      ],
+      "effect_ids": [
+        "twilightforest:quest_ram_native_resource"
+      ],
+      "classes": [
+        "entity/ai/goal/QuestRamEatWoolGoal"
+      ],
+      "labels": [
+        "OTHER",
+        "ENVIRONMENT"
+      ],
+      "setup": "Native ram dropped-item selection through actual native producer/callback; future fixture only, runtime0.",
+      "future_controls": [
+        "LOS",
+        "ground/water",
+        "nearest",
+        "navigation"
+      ]
+    },
+    {
+      "id": "twilightforest:passive_entities_path:quest_drop_accept",
+      "source": "Native ram dropped-stack consumption",
+      "facts": [
+        "quest_dropped",
+        "quest_accept"
+      ],
+      "effect_ids": [
+        "twilightforest:quest_ram_native_resource"
+      ],
+      "classes": [
+        "entity/ai/goal/QuestRamEatWoolGoal",
+        "entity/passive/QuestRam"
+      ],
+      "labels": [
+        "OTHER",
+        "ENVIRONMENT"
+      ],
+      "setup": "Native ram dropped-stack consumption through actual native producer/callback; future fixture only, runtime0.",
+      "future_controls": [
+        "distance6.25",
+        "wholeentity",
+        "alreadycollected",
+        "noownerfilter"
+      ]
+    },
+    {
+      "id": "twilightforest:passive_entities_path:quest_overlap",
+      "source": "Native current ingredient/duplicate controls",
+      "facts": [
+        "quest_config",
+        "quest_accept"
+      ],
+      "effect_ids": [
+        "twilightforest:quest_ram_native_resource"
+      ],
+      "classes": [
+        "entity/passive/QuestRam",
+        "entity/passive/quest/ram/QuestingRamContext",
+        "entity/passive/quest/QuestReloadListener"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "setup": "Native current ingredient/duplicate controls through actual native producer/callback; future fixture only, runtime0.",
+      "future_controls": [
+        "default16",
+        "overlapfirstmatch",
+        "reload",
+        "missingfallback"
+      ]
+    },
+    {
+      "id": "twilightforest:passive_entities_path:quest_reward",
+      "source": "Native completed ram reward",
+      "facts": [
+        "quest_reward"
+      ],
+      "effect_ids": [
+        "twilightforest:quest_ram_native_resource"
+      ],
+      "classes": [
+        "entity/passive/QuestRam",
+        "entity/passive/quest/ram/QuestingRamContext"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "setup": "Native completed ram reward through actual native producer/callback; future fixture only, runtime0.",
+      "future_controls": [
+        "70..119",
+        "once",
+        "currenttable",
+        "bundlecapacity",
+        "realLootHooks"
+      ]
+    },
+    {
+      "id": "twilightforest:passive_entities_path:quest_advancement",
+      "source": "Native quest advancement/structure progress",
+      "facts": [
+        "quest_progress"
+      ],
+      "effect_ids": [
+        "twilightforest:quest_ram_native_resource"
+      ],
+      "classes": [
+        "entity/passive/QuestRam",
+        "util/landmarks/LandmarkUtil",
+        "advancements/SimpleAdvancementTrigger"
+      ],
+      "labels": [
+        "OTHER",
+        "ENVIRONMENT"
+      ],
+      "setup": "Native quest advancement/structure progress through actual native producer/callback; future fixture only, runtime0.",
+      "future_controls": [
+        "16box",
+        "home32",
+        "dimension",
+        "TFstart",
+        "criterion"
+      ]
+    },
+    {
+      "id": "twilightforest:passive_entities_path:quest_persistence",
+      "source": "Native ram state and home navigation",
+      "facts": [
+        "quest_spawn_save",
+        "quest_reward"
+      ],
+      "effect_ids": [
+        "twilightforest:quest_ram_native_resource"
+      ],
+      "classes": [
+        "entity/passive/QuestRam",
+        "entity/EnforcedHomePoint",
+        "entity/ai/goal/AttemptToGoHomeGoal"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "setup": "Native ram state and home navigation through actual native producer/callback; future fixture only, runtime0.",
+      "future_controls": [
+        "ColorFlags/Rewarded",
+        "dividerreset",
+        "radius13",
+        "noheal"
+      ]
+    },
+    {
+      "id": "twilightforest:passive_entities_path:quest_sync",
+      "source": "Native quest reload/client synchronization",
+      "facts": [
+        "quest_config"
+      ],
+      "effect_ids": [
+        "twilightforest:quest_ram_native_resource"
+      ],
+      "classes": [
+        "entity/passive/quest/QuestReloadListener",
+        "network/SyncQuestsPacket",
+        "events/EntityEvents"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "setup": "Native quest reload/client synchronization through actual native producer/callback; future fixture only, runtime0.",
+      "future_controls": [
+        "lastmatchingpath",
+        "codec16",
+        "clientonly",
+        "noclientflagwrite"
+      ]
+    },
+    {
+      "id": "twilightforest:passive_entities_path:deer_adult",
+      "source": "Native adult Deer breeding feed",
+      "facts": [
+        "deer_heal"
+      ],
+      "effect_ids": [
+        "twilightforest:deer_senbei_native_healing"
+      ],
+      "classes": [
+        "entity/passive/Deer"
+      ],
+      "labels": [
+        "OTHER",
+        "ACTIVE_ITEM"
+      ],
+      "setup": "Native adult Deer breeding feed through actual native producer/callback; future fixture only, runtime0.",
+      "future_controls": [
+        "age0",
+        "canFallInLove",
+        "exactfood",
+        "heal4"
+      ]
+    },
+    {
+      "id": "twilightforest:passive_entities_path:deer_baby",
+      "source": "Native baby Deer growth feed",
+      "facts": [
+        "deer_heal"
+      ],
+      "effect_ids": [
+        "twilightforest:deer_senbei_native_healing"
+      ],
+      "classes": [
+        "entity/passive/Deer"
+      ],
+      "labels": [
+        "OTHER",
+        "ACTIVE_ITEM"
+      ],
+      "setup": "Native baby Deer growth feed through actual native producer/callback; future fixture only, runtime0.",
+      "future_controls": [
+        "virtualcallback",
+        "growth",
+        "healhook"
+      ]
+    },
+    {
+      "id": "twilightforest:passive_entities_path:deer_fallback",
+      "source": "Native wounded Deer PASS fallback",
+      "facts": [
+        "deer_heal"
+      ],
+      "effect_ids": [
+        "twilightforest:deer_senbei_native_healing"
+      ],
+      "classes": [
+        "entity/passive/Deer"
+      ],
+      "labels": [
+        "OTHER",
+        "ACTIVE_ITEM"
+      ],
+      "setup": "Native wounded Deer PASS fallback through actual native producer/callback; future fixture only, runtime0.",
+      "future_controls": [
+        "PASSonly",
+        "HP<max",
+        "cooldown",
+        "consumptionindependent"
+      ]
+    },
+    {
+      "id": "twilightforest:passive_entities_path:deer_controls",
+      "source": "Native Deer heal/cost controls",
+      "facts": [
+        "deer_heal"
+      ],
+      "effect_ids": [
+        "twilightforest:deer_senbei_native_healing"
+      ],
+      "classes": [
+        "entity/passive/Deer"
+      ],
+      "labels": [
+        "OTHER",
+        "ACTIVE_ITEM"
+      ],
+      "setup": "Native Deer heal/cost controls through actual native producer/callback; future fixture only, runtime0.",
+      "future_controls": [
+        "wheat/apple",
+        "cancelheal",
+        "creative",
+        "fullHPbreed"
+      ]
+    },
+    {
+      "id": "twilightforest:passive_entities_path:bird_descent",
+      "source": "Native Bird descent including Penguin",
+      "facts": [
+        "bird_descent"
+      ],
+      "effect_ids": [
+        "twilightforest:passive_bird_native_control"
+      ],
+      "classes": [
+        "entity/passive/Bird",
+        "entity/passive/Penguin"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "setup": "Native Bird descent including Penguin through actual native producer/callback; future fixture only, runtime0.",
+      "future_controls": [
+        "ground",
+        "Ynegative",
+        ".6",
+        "noflightpenguin"
+      ]
+    },
+    {
+      "id": "twilightforest:passive_entities_path:bird_raven",
+      "source": "Native Raven escape and flight",
+      "facts": [
+        "bird_flight",
+        "bird_descent"
+      ],
+      "effect_ids": [
+        "twilightforest:passive_bird_native_control"
+      ],
+      "classes": [
+        "entity/passive/FlyingBird",
+        "entity/passive/Raven"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "setup": "Native Raven escape and flight through actual native producer/callback; future fixture only, runtime0.",
+      "future_controls": [
+        "hurtmemory",
+        "fluid",
+        "target",
+        "land"
+      ]
+    },
+    {
+      "id": "twilightforest:passive_entities_path:bird_tiny",
+      "source": "Native TinyBird positive held-seed takeoff",
+      "facts": [
+        "bird_flight"
+      ],
+      "effect_ids": [
+        "twilightforest:passive_bird_native_control"
+      ],
+      "classes": [
+        "entity/passive/FlyingBird",
+        "entity/passive/TinyBird"
+      ],
+      "labels": [
+        "OTHER",
+        "ACTIVE_ITEM"
+      ],
+      "setup": "Native TinyBird positive held-seed takeoff through actual native producer/callback; future fixture only, runtime0.",
+      "future_controls": [
+        "nearestplayer4",
+        "holdingpositive",
+        "creativefilter",
+        "catavoid"
+      ]
+    },
+    {
+      "id": "twilightforest:passive_entities_path:bird_contact",
+      "source": "Native bird push and block-trigger controls",
+      "facts": [
+        "bird_contacts"
+      ],
+      "effect_ids": [
+        "twilightforest:passive_bird_native_control"
+      ],
+      "classes": [
+        "entity/passive/FlyingBird"
+      ],
+      "labels": [
+        "OTHER",
+        "ENVIRONMENT"
+      ],
+      "setup": "Native bird push and block-trigger controls through actual native producer/callback; future fixture only, runtime0.",
+      "future_controls": [
+        "pressureplates",
+        "tripwire",
+        "entityInsidehazard",
+        "notinvulnerable"
+      ]
+    },
+    {
+      "id": "twilightforest:passive_entities_path:bird_reload",
+      "source": "Native flight-state reload",
+      "facts": [
+        "bird_descent",
+        "bird_flight"
+      ],
+      "effect_ids": [
+        "twilightforest:passive_bird_native_control"
+      ],
+      "classes": [
+        "entity/passive/FlyingBird",
+        "entity/passive/TinyBird"
+      ],
+      "labels": [
+        "OTHER"
+      ],
+      "setup": "Native flight-state reload through actual native producer/callback; future fixture only, runtime0.",
+      "future_controls": [
+        "landedreset",
+        "targetreset",
+        "variantsaved"
+      ]
+    },
+    {
+      "id": "twilightforest:passive_entities_path:fall_tag",
+      "source": "Native passive fall immunity",
+      "facts": [
+        "passive_immunity"
+      ],
+      "effect_ids": [
+        "twilightforest:passive_native_tag_immunities"
+      ],
+      "classes": [
+        "entity/passive/Squirrel",
+        "entity/passive/Penguin",
+        "entity/passive/Raven",
+        "entity/passive/TinyBird"
+      ],
+      "labels": [
+        "OTHER",
+        "ENVIRONMENT"
+      ],
+      "setup": "Native passive fall immunity through actual native producer/callback; future fixture only, runtime0.",
+      "future_controls": [
+        "fourtypes",
+        "LivingFall",
+        "calculate0",
+        "otherdamage"
+      ]
+    },
+    {
+      "id": "twilightforest:passive_entities_path:freeze_tag",
+      "source": "Native Penguin freezing eligibility",
+      "facts": [
+        "passive_immunity"
+      ],
+      "effect_ids": [
+        "twilightforest:passive_native_tag_immunities"
+      ],
+      "classes": [
+        "entity/passive/Penguin"
+      ],
+      "labels": [
+        "OTHER",
+        "ENVIRONMENT"
+      ],
+      "setup": "Native Penguin freezing eligibility through actual native producer/callback; future fixture only, runtime0.",
+      "future_controls": [
+        "powdersnow",
+        "nativecanFreeze",
+        "customice",
+        "Frostedmovement"
+      ]
+    }
+  ],
+  "damage_profiles": [],
+  "new_damage_types": 0,
+  "full_classes": [
+    "entity/passive/Bird",
+    "entity/passive/FlyingBird",
+    "entity/passive/TinyBird",
+    "entity/passive/TinyBirdVariant",
+    "entity/passive/Raven",
+    "entity/passive/Penguin",
+    "entity/passive/Squirrel",
+    "entity/passive/Boar",
+    "entity/passive/Deer",
+    "entity/passive/Bighorn",
+    "entity/passive/DwarfRabbit",
+    "entity/passive/DwarfRabbitVariant",
+    "entity/passive/QuestRam",
+    "entity/passive/quest/QuestReloadListener",
+    "entity/passive/quest/ram/QuestingRamContext",
+    "entity/passive/quest/ram/QuestingRamCurrentContext",
+    "entity/ai/goal/QuestRamEatWoolGoal",
+    "network/SyncQuestsPacket"
+  ],
+  "limited_classes": {
+    "world/components/structures/QuestGrove": [
+      "quest_ram marker"
+    ],
+    "util/features/FeaturePlacers": [
+      "placeEntity"
+    ],
+    "entity/EnforcedHomePoint": [
+      "home movement/save reuse"
+    ],
+    "entity/ai/goal/AttemptToGoHomeGoal": [
+      "native home navigation"
+    ],
+    "util/landmarks/LandmarkUtil": [
+      "markStructureConquered/locate"
+    ],
+    "events/EntityEvents": [
+      "quest sync and listener registration"
+    ],
+    "advancements/SimpleAdvancementTrigger": [
+      "trigger"
+    ],
+    "advancements/SimpleAdvancementTrigger$TriggerInstance": [
+      "quest criterion"
+    ]
+  },
+  "registration_classes": [
+    "init/TFEntities",
+    "init/TFItems",
+    "events/RegistrationEvents",
+    "init/TFAdvancements",
+    "loot/TFLootTables"
+  ],
+  "closure_checklist": [
+    "quest_current_context_and_reload",
+    "actual16color_acceptance",
+    "hand_vs_whole_dropped_stack_cost",
+    "native_goal_admission",
+    "one_time_reward_loot_bundle_capacity",
+    "home_and_advancement_predicates",
+    "save_and_native_producers",
+    "deer_parent_callback_and_heal_hook",
+    "flight_positive_seed_predicate",
+    "movement_vs_trigger_vs_hazard_separation",
+    "tag_immunities_native_consumers",
+    "all9passives_dispositioned",
+    "scoped_compatibility"
+  ],
+  "compatibility_scope": "Installed Twilight Forest 4.8.3345, raw Minecraft 1.21.1 and exact NeoForge 21.1.244. Eighteen full passive/quest classes and selected genuine producers/callers reviewed. No custom DamageType added:31/40 reviewed,9 unfinished. Static research only; no runtime/L2/Stage/production/Phase6/7.",
+  "current_scope": "Prior Twilight plus Quest Ram resource/reward paths, Deer healing, passive bird control and native passive immunities; all9 passive classes dispositioned. Twilight PARTIAL, zero promoted.",
+  "exact_next_task": "Review remaining environmental hazards and nine custom DamageTypes (thorns, oreberry, knightmetal, fiery, fire_jet, reactor, slider, ominous_fire, acid_rain), their actual callers and other combat-significant structures/callbacks; finish nested ASM, compatibility and source exclusions. Protect R2f8, then final Twilight COMPLETE promotion, then IceAndFire. Static only.",
+  "damage_census": {
+    "total_custom_declarations": 40,
+    "previous_reviewed_profiles": 31,
+    "new_used_profiles": 0,
+    "reviewed_profiles_after": 31,
+    "remaining_profiles": 9,
+    "remaining_disposition": "Actual nine hazard callers located; semantic closure next, not unused."
+  },
+  "comparison_files": [
+    "vanilla-evidence/twilight-passive-entities.json",
+    "reference-evidence/twilight-passive-entities-244.json",
+    "reference-routing/twilight-passive-entities.json",
+    "twilightforest-passive-entities-caller-scan.json",
+    "semantic-sections/twilightforest-food-flasks.json",
+    "semantic-sections/twilightforest-active-utilities.json"
+  ],
+  "exclusions": [
+    "All nine concrete passive classes dispositioned. Boar extends Animal, not Pig:10HP/.25 speed, standard breeding/tempt/panic, no inherited pig saddle/lightning conversion implied. Deer10/.2 and Senbei heal above. DwarfRabbit extends Animal, not Rabbit:3/.3/step1, ordinary breeding/avoidance, variant texture+biomes only, no killer-bunny behavior;95% parent variant when valid dwarf mate, otherwise random common. Squirrel6/.3/step1, tempt/avoid/panic but isFood false/offspring null. Penguin10/.2, native breeding plus Bird descent/immunities. Raven10/.2/step1 and TinyBird4/.2/step1 use flight above, no breeding. Bighorn extends Sheep and uses native Sheep8HP/.23 attributes, shear/eat/regrow/breed; TF overrides color/loot/sound/path preference, not a ram attack. Initial color brown with1/2 else uniform16; same-class breeding and native offspring color. Quest Ram separate above. None registers a melee/ranged attack goal in these bodies.",
+    "TinyBird/DwarfRabbit variant codecs carry texture and optional biome set; selection and NBT/sync do not grant status/attributes. Ordinary wildlife sounds, look/wander/tempt/avoid goals, leash offsets, color loot and texture renderers are source dispositions, not additional combat packages. Death loot is resource mapping; transformation pairs already protected R2f8s and are reused. Creature attributes are documented prerequisites, not nine duplicate attacks.",
+    "No duplicate nutrition package, transformation package, home-navigation boss mechanic or ordinary physical attack. Passive type tags are actual defenses, not all-source immunity.",
+    "Hazards/nine custom types, other structures/events, nested ASM and global compatibility/source coverage unfinished."
+  ],
+  "fixture_groups": [
+    "Quest native grove/egg,16 colors, hand/drop whole-stack differences, duplicate/config/reload and genuine loot/advancement/home.",
+    "Deer adult/baby/PASS feeding with native heal and consumption hooks.",
+    "Raven/TinyBird/Penguin descent/flight/trigger/hazard contrasts and persisted variants.",
+    "Native fall and powder-snow tag controls versus custom damage/effects; ordinary wildlife exclusions."
+  ],
+  "expected_counts": {
+    "mechanic_packages": 4,
+    "delivery_cases": 21,
+    "classification_totals": {
+      "CUSTOM_RESOURCE": 1,
+      "VANILLA_LIKE_EXTENDED": 1,
+      "CUSTOM_CONTROL": 1,
+      "VANILLA_DIRECT": 1
+    },
+    "review_required": 0,
+    "new_custom_types_resolved": 0
+  }
+}

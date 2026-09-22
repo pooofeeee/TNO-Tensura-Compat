@@ -1,6 +1,6 @@
 # Twilight Forest — partial semantic owner table
 
-The installed4.8.3345 review is **PARTIAL** at **R2f8u**: **219 reviewed mechanic-package drafts / 729 delivery cases**, **31/40 custom DamageType caller profiles** closed and9 unfinished, REVIEW_REQUIRED0. **Zero final Twilight records are promoted.** All protected subsections through Travellers, food/flasks, active/structural utilities and map/information contracts (with explicit R2f8t cloth erratum) remain preserved in the checkpoint sections below. Final whole-mod totals remain unknown. Four accepted reviews remain116 mechanics/161 paths/217 components; runtime tests0.
+The installed 4.8.3345 review is **PARTIAL** at **R2f8v**: **223 mechanic-package drafts / 750 delivery cases**, **31/40 custom DamageType profiles**, nine unfinished, REVIEW_REQUIRED 0. Zero final Twilight records promoted. All protected subsections and R2f8t cloth erratum preserved. Four accepted mods remain 116 mechanics / 161 paths / 217 components; runtime tests 0.
 
 | Mechanic | Native behavior | Vanilla comparison | Classification / source coverage |
 |---|---|---|---|
@@ -386,3 +386,16 @@ Timewood samples480 positions per20-tick core callback and invokes actual random
 [Integrity](twilightforest-structural-utilities-integrity.json) and [full validation](r2f8u-structural-utilities-validation.json) cover evidence reproduction, native predicate/order/return checks, full declared coverage, all five tooling tests, protected-file and accepted116/161/217 preservation, and research-only boundaries. R2f8t's explicit cloth erratum remains carried forward.
 
 Next: remaining passive entities and nine hazard types (`thorns`, `oreberry`, `knightmetal`, `fiery`, `fire_jet`, `reactor`, `slider`, `ominous_fire`, `acid_rain`), all legitimate callers and other combat-significant structures/callbacks. Complete remaining ASM/compatibility/source exclusions, protect R2f8, promote Twilight COMPLETE, push/live verify, then IceAndFire. Continue while actual usage allows. No runtime/L2/Stage/production/Phase6/7.
+
+## R2f8v — passive entities
+
+| Package | Proven native contract | Classification |
+|---|---|---|
+| Quest Ram | 16 color resource, hand consume1 versus discarded dropped stack, one-time native loot, home-dependent grove progress, save/reload | CUSTOM_RESOURCE |
+| Deer feeding | Parent breeding/growth or wounded PASS fallback invokes server heal4 and normal consume1; heal failure does not refund | VANILLA_LIKE_EXTENDED |
+| Passive birds | .6 descent/flight factors, native autonomous targeting, positive held-seed spook, push/trigger predicates; hazards still admitted normally | CUSTOM_CONTROL |
+| Passive immunities | Four explicit fall-immune types; Penguin native freeze eligibility; no blanket ice-source immunity | VANILLA_DIRECT |
+
+Adds 4 packages / 21 paths. Eighteen full classes and selected native producers/callbacks pinned. All nine passive types dispositioned; cosmetic variants and ordinary wildlife do not create duplicate combat packages. See [contracts and fixtures](twilightforest-passive-entities-review.md), [integrity](twilightforest-passive-entities-integrity.json), [full validation](r2f8v-passive-entities-validation.json).
+
+Exact next: hazards/nine custom sources, other structures/events, nested ASM, compatibility and exclusions; final Twilight promotion remains pending.

@@ -1,6 +1,6 @@
 # External combat effects catalog — separate research track
 
-**Status: PARTIAL overall; R2f8u completes Twilight structural utilities and remaining magic cores. Twilight Forest remains PARTIAL at219 mechanic drafts/729 delivery cases,31/40 custom DamageTypes reviewed. Passive entities, hazards and other structures/ASM/source closure are next. Variants & Ventures, Cult of Azazel, Royal Variations and Friends & Foes remain COMPLETE.** Phase 6 is complete and closed. This track does not reopen, supersede, recalibrate or change Phase 6, its Stage behavior, accepted family integrations, or production combat. Original Phase 7 is not started by this research.
+**Status: PARTIAL overall; R2f8v completes the Twilight passive-animal review. Twilight Forest remains PARTIAL at 223 mechanic drafts / 750 delivery cases, with 31/40 custom DamageTypes reviewed. Hazards and remaining structures/ASM/source closure are next. Four accepted mod reviews remain COMPLETE.** Phase 6 and production remain closed; original Phase 7 has not started.
 
 Baseline: `a5e85e610349120e21d62f4a80f1b607e36607fe`. Branch: `external-effects-catalog-research`. Recovery found a clean working tree and the live readiness remote at this baseline; no earlier external-effects track existed. No applicable `AGENTS.md` was found. The dedicated branch was created from the verified baseline without resetting or discarding work.
 
@@ -634,3 +634,13 @@ Timewood samples480 positions per20-tick core callback and invokes actual random
 [Integrity](benchmarks/external-effects-catalog/twilightforest-structural-utilities-integrity.json) and [full validation](benchmarks/external-effects-catalog/r2f8u-structural-utilities-validation.json) cover evidence reproduction, native predicate/order/return checks, full declared coverage, all five tooling tests, protected-file and accepted116/161/217 preservation, and research-only boundaries. R2f8t's explicit cloth erratum remains carried forward.
 
 Next: remaining passive entities and nine hazard types (`thorns`, `oreberry`, `knightmetal`, `fiery`, `fire_jet`, `reactor`, `slider`, `ominous_fire`, `acid_rain`), all legitimate callers and other combat-significant structures/callbacks. Complete remaining ASM/compatibility/source exclusions, protect R2f8, promote Twilight COMPLETE, push/live verify, then IceAndFire. Continue while actual usage allows. No runtime/L2/Stage/production/Phase6/7.
+
+## R2f8v — TWILIGHT_PASSIVE_ENTITIES_SEMANTIC_REVIEW_COMPLETE
+
+Continues protected R2f8u `33c70323b3cd409c57873d78822011cab91c046d`; local/live equality verified before proceeding. Adds four packages and 21 native delivery paths: Quest Ram collection/reward, Deer Senbei healing, bird movement/contact control and native passive immunities. All nine concrete passive classes have a disposition; ordinary wildlife/variant details are explicit exclusions.
+
+Hand-fed Quest Ram costs one item; its native dropped-item goal discards the entire accepted item entity. Reward/home/progress predicates, current quest reload and saved color/reward state are separate. Deer healing uses native heal(4), including parent feeding callbacks; the protected player-food nutrition package is unchanged. TinyBird held-seed spooking is a positive predicate. Trigger suppression does not skip generic entityInside hazards.
+
+[Reviewed contracts](benchmarks/external-effects-catalog/twilightforest-passive-entities-review.md), [source integrity](benchmarks/external-effects-catalog/twilightforest-passive-entities-integrity.json), [full validation](benchmarks/external-effects-catalog/r2f8v-passive-entities-validation.json). Four accepted mods retain 116 mechanics / 161 paths / 217 components. Twilight PARTIAL, zero promoted, REVIEW_REQUIRED 0, runtime 0.
+
+Exact next task: remaining environmental hazards and all nine unfinished custom DamageTypes, then other combat-significant structures/callbacks, nested ASM, compatibility and source closure; protect R2f8 and final Twilight COMPLETE before IceAndFire.
