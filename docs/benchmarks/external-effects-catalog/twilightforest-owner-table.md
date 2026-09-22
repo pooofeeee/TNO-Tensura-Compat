@@ -1,6 +1,6 @@
 # Twilight Forest — partial semantic owner table
 
-The installed4.8.3345 review is **PARTIAL** at **R2f8w**: **230 mechanic-package drafts / 782 delivery cases**, **35/40 custom DamageType profiles**, five unfinished, REVIEW_REQUIRED0. Zero final Twilight records promoted. All protected subsections and R2f8t cloth erratum preserved. Accepted four mods remain116 mechanics/161 paths/217 components; runtime0.
+The installed4.8.3345 review is **PARTIAL** at **R2f8x**: **238 mechanic-package drafts / 815 delivery cases**, **38/40 custom DamageType profiles**, two unfinished, REVIEW_REQUIRED0. Zero final Twilight records promoted. All protected subsections and R2f8t cloth erratum preserved. Accepted four mods remain116 mechanics/161 paths/217 components; runtime0.
 
 | Mechanic | Native behavior | Vanilla comparison | Classification / source coverage |
 |---|---|---|---|
@@ -413,3 +413,18 @@ Exact next: hazards/nine custom sources, other structures/events, nested ASM, co
 | Fiery environment | Native fire support and Strider warmth, independent of HP | VANILLA_COMPOSITE |
 
 Adds7/32; four custom sources closed. [Contracts and future fixtures](twilightforest-contact-hazards-review.md), [integrity](twilightforest-contact-hazards-integrity.json), [full validation](r2f8w-contact-hazards-validation.json). Native mitigation, subtype admission and generic event hooks retained. Exact next: FireJet/Reactor/Slider, OminousFire/AcidRain, then remaining structures/ASM/source closure and final promotion.
+
+## R2f8x — Fire Jet / Reactor / Slider
+
+| Mechanic | Native contract | Source/fixture distinction |
+|---|---|---|
+| Fire Jet damage | Ownerless fire_jet2; real typed FLAME ticker,13 pulses including reset callback | Natural tagged fuel versus encased redstone; subtype/fire-immunity/mitigation controls |
+| Fire Jet ignition | Exact300 native fire ticks independently of hurt return | Fire Resistance/longer prior timer/ArmorStand/native later on_fire |
+| Reactor terrain | Six-redstone latch, fake blocks and staggered tagged/hardness-gated shells | Native DarkTower apparatus or placed reactor; reload restarts sequence |
+| Reactor explosion | radius4, float exposure formula up to57; source NOT IS_EXPLOSION | Armor/general Protection versus explosion-tag-only defenses; hurt-independent vector/fire |
+| Reactor producer | Six default Ghastling creation attempts after explosion call | Start cancellation does not gate producer; no makeBossMinion, default10HP |
+| Reactor Debris | Random outline, always full collision; default60callback expiry | Saved willDisappear/rerolls/time; outline holes do not permit passage |
+| Slider hurt/control | Both stationary and moving source owner/direct null,5damage and independent knockback2 | Stationary any Entity versus moving Living; native event/resistance/cooldown |
+| Slider motion | Same full-state connection,20warmup,.04acceleration,reverse60,restore/item fallback | Discarded.98multiply result; collision check is entity obstruction; saved state/time/direction |
+
+[Reviewed packages, all33 source paths and fixtures](semantic-sections/twilightforest-mechanical-hazards.json). Adds8 packages;238/815 total. Smoker particles excluded after class review. Remaining Ominous Fire/Acid Rain and global structures/events/ASM/source closure are unfinished ordinary work, not REVIEW_REQUIRED. Next: close those two types, then complete R2f8 and final Twilight promotion; IceAndFire waits for live-verified Twilight COMPLETE.

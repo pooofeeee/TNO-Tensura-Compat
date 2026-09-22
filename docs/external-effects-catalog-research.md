@@ -1,6 +1,6 @@
 # External combat effects catalog — separate research track
 
-**Status: PARTIAL overall; R2f8w completes four Twilight contact hazards and associated terrain/resource behavior. Twilight remains PARTIAL at 230 mechanic drafts / 782 paths, with 35/40 custom DamageTypes reviewed. Fire Jet, Reactor and Slider are next. Four accepted mod reviews remain COMPLETE.** Phase 6 and production remain closed; original Phase 7 has not started.
+**Status: PARTIAL overall; R2f8x completes Fire Jet, Reactor and Slider mechanical hazards. Twilight remains PARTIAL at 238 mechanic drafts / 815 paths, with 38/40 custom DamageTypes reviewed. Ominous Fire and Acid Rain are next. Four accepted mod reviews remain COMPLETE.** Phase 6 and production remain closed; original Phase 7 has not started.
 
 Baseline: `a5e85e610349120e21d62f4a80f1b607e36607fe`. Branch: `external-effects-catalog-research`. Recovery found a clean working tree and the live readiness remote at this baseline; no earlier external-effects track existed. No applicable `AGENTS.md` was found. The dedicated branch was created from the verified baseline without resetting or discarding work.
 
@@ -654,3 +654,13 @@ Thorns4, Oreberry1, Knightmetal4 and Fiery1 are requests through native hurt. No
 [Reviewed contracts](benchmarks/external-effects-catalog/twilightforest-contact-hazards-review.md), [source integrity](benchmarks/external-effects-catalog/twilightforest-contact-hazards-integrity.json), [full validation](benchmarks/external-effects-catalog/r2f8w-contact-hazards-validation.json).35/40 custom types now USED; remaining: fire_jet, reactor, slider, ominous_fire, acid_rain. REVIEW_REQUIRED0, runtime0, Twilight zero promoted; accepted116/161/217 unchanged.
 
 Exact next: FireJet/Reactor/Slider, then Ominous Fire conversion and Acid Rain/progression; other structures/callbacks, nested ASM, compatibility and exclusions before R2f8 and final Twilight COMPLETE. IceAndFire has not started.
+
+## R2f8x — mechanical hazards protected subsection
+
+Continues the verified R2f8w contact checkpoint `724e0e768885a4603477b96832271326d6712ffc`. Adds eight packages and 33 legitimate delivery cases: Fire Jet pulses and independent fire timer, Reactor terrain sequence/native explosion/default Ghastling production, transient Debris collision, and stationary/moving Slider damage/control/restoration. [Full contracts and source evidence](benchmarks/external-effects-catalog/twilightforest-mechanical-hazards-review.md).
+
+Fire Jet has13 pulse opportunities across61 flame callbacks, including counter reset0; hurt rejection does not gate the300 fire-tick assignment. Reactor keeps its custom ownerless magic/environment source even inside the engine explosion, whose movement and later six Ghastling attempts do not depend on HP damage. Slider uses ownerless5 damage then independent native knockback2; the apparent.98 Vec3 damping result is discarded. No behavior is changed.
+
+Validation for this checkpoint: exact installed evidence/reference integrity, mechanical source/ordering guards, all five tooling tests, previous accepted records and protected draft preservation, duplicate/source/delivery/classification/registry checks, research-only scope and staged diff check. Static runtime tests remain0. Twilight238/815 drafts,38/40 types, REVIEW_REQUIRED0, zero promoted; accepted four mods116/161/217 unchanged.
+
+Exact next task: Ominous Fire damage/conversion and Acid Rain/progression to close the last two types; then remaining structures/events/nested ASM/compatibility/source exclusions, R2f8 closure and final Twilight COMPLETE promotion. Only after pushed/live-verified COMPLETE may IceAndFire start. Continue automatically while actual current usage remains healthy.

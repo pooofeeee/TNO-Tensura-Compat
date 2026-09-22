@@ -621,6 +621,9 @@ def validate_remaining():
         if d['slug']=='contact-hazards':
             from validate_twilight_contact_hazards import validate_contacts
             validate_contacts(d,s,old,new,methods,ins,pos,target)
+        if d['slug']=='mechanical-hazards':
+            from validate_twilight_mechanical_hazards import validate_mechanical
+            validate_mechanical(d,s,old,new,methods,ins,pos,target)
         result=dict(schema='tno.external_effects.remaining_subsection_integrity.v1',status='PASS',checkpoint=d['checkpoint'],decision=d['decision'],starting_sha=d['starting_sha'],counts=s['counts'],protected_prior_files=len(protected),full_declared_class_coverage=len(d['full_classes']),twilight_reviewed_drafts=len(new['effects']),twilight_delivery_drafts=len(new['paths']),damage_profiles_reviewed=d['damage_census']['reviewed_profiles_after'],damage_profiles_remaining=d['damage_census']['remaining_profiles'],accepted_counts_unchanged=previous['accepted_counts_unchanged'],runtime_tests=0,promoted_twilight_records=0,**boundary_flags())
         results.append((d['slug'],result))
     assert results
