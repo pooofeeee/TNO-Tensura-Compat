@@ -369,6 +369,32 @@ def validate_remaining():
             assert any('ARCTIC_BOOTS' in str(x['operand']) for x in ins('item/ArcticArmorItem','canWalkOnPowderedSnow'))
             assert set(s['damage_profiles'][0]['tags'])==set() and s['damage_profiles'][0]['type']=='twilightforest:stale_sandwich'
             assert d['damage_census']['reviewed_profiles_after']==30 and d['damage_census']['remaining_profiles']==10
+        if d['slug']=='charms':
+            from collect_twilight_charms import scan_callers
+            scan=read_json(OUT/'twilightforest-charms-caller-scan.json');assert scan==scan_callers(target)
+            E='events/CharmEvents';U='util/TFItemStackUtils';C='compat/curios/CuriosCompat'
+            setup=ins(E,'setup');assert pos(setup,'HIGHEST')<pos(setup,'.HIGHL')
+            life=ins(E,'handleCharmOfLife');assert pos(life,'CHARM_OF_LIFE_2')<pos(life,'CHARM_OF_LIFE_1')<pos(life,'.setHealth(')<pos(life,'.addEffect(')
+            assert not any('.heal(' in str(x['operand']) or '.hurt(' in str(x['operand']) or '.invulnerableTime' in str(x['operand']) for x in life)
+            keep=ins(E,'handleCharmOfKeeping');i=next(n for n,x in enumerate(keep) if 'NonNullList.of(' in str(x['operand']))
+            assert int(keep[i-1]['opcode'],16)==0xbd and int(keep[i-2]['opcode'],16)==0x03,'TierI actual empty varargs array'
+            assert pos(keep,'CHARM_OF_KEEPING_3')<pos(keep,'CHARM_OF_KEEPING_2')<pos(keep,'CHARM_OF_KEEPING_1')<pos(keep,'KEPT_ON_DEATH')
+            raw=read_json(OUT/'vanilla-evidence/twilight-charms.json')['classes'];lst=next(w for w in raw if w['class_name']=='net/minecraft/core/NonNullList')
+            of=next(m['instructions'] for m in lst['methods'] if m['name']=='of');assert pos(of,'Arrays.asList(')<pos(of,'NonNullList.<init>(')
+            stock=ins(E,'stockKeepsakeCasket');assert pos(stock,'.hasAnyMatching(')<pos(stock,'.consumeInventoryItem(')<pos(stock,'.canBeReplaced(')<pos(stock,'.setBlockAndUpdate(')<pos(stock,'.setItems(')
+            assert not any('BreakEvent' in str(x['operand']) or '.mayUseItemAt(' in str(x['operand']) for x in stock)
+            restore=ins(U,'loadNoClear');assert any('.add(' in str(x['operand']) for x in restore) and any(int(x['opcode'],16)==0xba for x in restore)
+            assert not any('.drop(' in str(x['operand']) for x in restore)
+            ret=ins(E,'returnStoredItems');assert pos(ret,'.loadNoClear(')<pos(ret,'.clear(')<pos(ret,'.remove(')
+            curio=ins(C,'findAndConsumeCurio');assert pos(curio,'.getCuriosInventory(')<pos(curio,'.isPresent(')<pos(curio,'.save(')<pos(curio,'.shrink(')
+            assert not any('.isEmpty(' in str(x['operand']) for x in curio)
+            drop=ins(C,'keepCurios');assert pos(drop,'CharmStack')<pos(drop,'TFCharmInventory')<pos(drop,'.isEmpty(')<pos(drop,'.getCuriosInventory(')
+            repair=ins('block/KeepsakeCasketBlock','useItemOn');assert pos(repair,'CHARM_OF_KEEPING_3')<pos(repair,'.consume(')<pos(repair,'.setBlockAndUpdate(')
+            assert not any('.hurt(' in str(x['operand']) or '.setHealth(' in str(x['operand']) for m in methods('entity/CharmEffect') for x in m['instructions'])
+            refs=read_json(OUT/'reference-evidence/twilight-charms-curios.json')['witnesses'];cap=next(w for w in refs if w.get('class_name','').endswith('/CurioInventoryCapability'))
+            search=[x for m in cap['methods'] if m['name']=='findFirstCurio' for x in m['instructions']];assert any('Cache.getIfPresent(' in str(x['operand']) for x in search) and any('.getActiveStates(' in str(x['operand']) for x in search)
+            assert cap['archive_sha256']==scan['dependency']['sha256']
+            assert not s['damage_profiles'] and d['damage_census']['reviewed_profiles_after']==30 and d['damage_census']['remaining_profiles']==10
         result=dict(schema='tno.external_effects.remaining_subsection_integrity.v1',status='PASS',checkpoint=d['checkpoint'],decision=d['decision'],starting_sha=d['starting_sha'],counts=s['counts'],protected_prior_files=len(protected),full_declared_class_coverage=len(d['full_classes']),twilight_reviewed_drafts=len(new['effects']),twilight_delivery_drafts=len(new['paths']),damage_profiles_reviewed=d['damage_census']['reviewed_profiles_after'],damage_profiles_remaining=d['damage_census']['remaining_profiles'],accepted_counts_unchanged=previous['accepted_counts_unchanged'],runtime_tests=0,promoted_twilight_records=0,**boundary_flags())
         results.append((d['slug'],result))
     assert results

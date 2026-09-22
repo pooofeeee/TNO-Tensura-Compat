@@ -282,3 +282,15 @@ Fiery Incoming ignition, successful Player melee ignition and armor Post retalia
 See the equipment semantic section, caller scan, nested archive/service witnesses, integrity and full-validation report. Previous accepted116/161/217 catalog bodies are unchanged. No runtime boss/L2/Stage/production/fixes/Phase6/7 work.
 
 Next: Charms of Life/Keeping, Phantom retention and Keepsake Casket death/respawn paths; then Travellers modifiers, remaining utilities/food/passive entities/hazards, ten custom DamageTypes and full nested ASM/compatibility closure. IceAndFire only after complete Twilight is pushed and live verified.
+
+## R2f8n — Charms, Phantom retention and Keepsake Caskets
+
+Protected input R2f8m `7449fff57d659e0bfd004e6fd5c9f4b1c78a5eaf`. Adds **8 reviewed packages / 30 delivery cases**, bringing Twilight to **163 package drafts / 506 delivery cases**, still PARTIAL with zero promotions and REVIEW_REQUIRED0. DamageType coverage remains **30/40**, ten unfinished.
+
+Life charms act at the native death event, with exact health writes and effect payloads distinct from the earlier Totem path. Keeping tiers, independent Phantom/TowerKey retention, persisted respawn slots, casket reservation/placement/storage and repair/access rules are recorded. The real KeepingI varargs call creates an empty list, so it does not retain the selected main slot. Native casket opening uses owner-or-operator, while breaking a nonempty owned casket requires owner-and-operator. Full-inventory return loss and pre-placement consumption remain unchanged source-proven behavior.
+
+Selected installed Curios9.5.1 methods close Twilight's real accessory consumption/drop/clone dependency, including active versus cosmetic slots, identity overrides, persisted token behavior and same-tick cached-reference boundaries. This is not a new family review or a runtime compatibility test. CharmEffect and animation packets are visual exclusions.
+
+See the charms semantic section, caller scan, native and selected dependency witnesses, integrity and full-validation report. Accepted116/161/217 catalog bodies remain unchanged; runtime boss/L2/Stage/production/fixes/Phase6/7 remain untouched.
+
+Next: Travellers gear/modifiers and their actual ASM/event control paths; then remaining utility/food/passive entities/hazards, ten custom DamageTypes and whole-mod ASM/compatibility/source closure before final Twilight promotion. IceAndFire only after complete Twilight is pushed and live verified.
