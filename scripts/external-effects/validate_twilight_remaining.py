@@ -219,6 +219,29 @@ def validate_remaining():
             goals=ins(M+'HarbingerCube','registerGoals');assert not any(any(g in str(x['operand']) for g in ['MeleeAttackGoal','RangedAttackGoal']) for x in goals)
             assert 'doHurtTarget' not in {m['name'] for m in methods(M+'HarbingerCube')}
             assert not s['damage_profiles'] and d['damage_census']['reviewed_profiles_after']==26 and d['damage_census']['remaining_profiles']==14
+        if d['slug']=='restless-mobs':
+            from collect_twilight_restless_mobs import scan_callers
+            scan=read_json(OUT/'twilightforest-restless-mobs-caller-scan.json');assert scan==scan_callers(target)
+            world={h['entry'].split('/')[-1] for h in scan['hits'] if '/world/' in h['entry']}
+            assert world=={'GraveyardFeature.class','HollowHillComponent.class','HollowHillStructure.class','LabyrinthStructure.class','LichTowerStructure.class','MazeRoomSpawnerChestsComponent.class'}
+            M='entity/monster/';G='entity/ai/goal/'
+            hit=ins(M+'Wraith','doHurtTarget');assert pos(hit,'TFDamageTypes.HAUNT')<pos(hit,'.hurt(')<pos(hit,'FlyingMob.doHurtTarget(')
+            i=next(n for n,x in enumerate(hit) if '.hurt(' in str(x['operand']));assert int(hit[i+1]['opcode'],16)==0x57
+            h=ins(M+'Wraith','hurt');assert pos(h,'FlyingMob.hurt(')<pos(h,'.getEntity(')<pos(h,'.setTarget(')
+            attack=ins(G+'SimplifiedAttackGoal','checkAndPerformAttack');assert pos(attack,'.hasLineOfSight(')<pos(attack,'.adjustedTickDelay(')<pos(attack,'.doHurtTarget(')
+            assert not any('.setFlags(' in str(x['operand']) for x in ins(G+'SimplifiedAttackGoal','<init>'))
+            assert 'canContinueToUse' not in {m['name'] for m in methods(G+'SimplifiedAttackGoal')}
+            assert not {'addAdditionalSaveData','readAdditionalSaveData'} & {m['name'] for m in methods(M+'Minotaur')}
+            assert sum('.setItemSlot(' in str(x['operand']) for x in ins(M+'Minotaur','populateDefaultEquipmentSlots'))==2
+            rise=ins(M+'RisingZombie','aiStep');assert pos(rise,'Monster.aiStep(')<pos(rise,'.getNearestPlayer(')<pos(rise,'.convertTo(')<pos(rise,'.setHealth(')
+            veto=ins(M+'RisingZombie','isInvulnerableTo');assert any('DamageTypes.IN_WALL' in str(x['operand']) for x in veto) and not any('.isInvulnerableTo(' in str(x['operand']) for x in veto)
+            assert not {'addAdditionalSaveData','readAdditionalSaveData','doHurtTarget','registerGoals'} & {m['name'] for m in methods(M+'RisingZombie')}
+            refs=read_json(OUT/'reference-evidence/vv-loader-244.json')['witnesses'];mob=next(w for w in refs if w['entry']=='net/minecraft/world/entity/Mob.class')
+            conv=next(m['instructions'] for m in mob['methods'] if m['name']=='convertTo');assert pos(conv,'.create(')<pos(conv,'.copyAndClear(')<pos(conv,'.addFreshEntity(')<pos(conv,'.discard(')
+            assert not any('.finalizeSpawn(' in str(x['operand']) or '.addEffect(' in str(x['operand']) for x in conv)
+            ids={e['id'] for e in new['effects']}
+            assert all(i in ids for e in s['effects'] for i in e.get('reuses_protected_effect_ids',[]))
+            assert not s['damage_profiles'] and d['damage_census']['reviewed_profiles_after']==26 and d['damage_census']['remaining_profiles']==14
         result=dict(schema='tno.external_effects.remaining_subsection_integrity.v1',status='PASS',checkpoint=d['checkpoint'],decision=d['decision'],starting_sha=d['starting_sha'],counts=s['counts'],protected_prior_files=len(protected),full_declared_class_coverage=len(d['full_classes']),twilight_reviewed_drafts=len(new['effects']),twilight_delivery_drafts=len(new['paths']),damage_profiles_reviewed=d['damage_census']['reviewed_profiles_after'],damage_profiles_remaining=d['damage_census']['remaining_profiles'],accepted_counts_unchanged=previous['accepted_counts_unchanged'],runtime_tests=0,promoted_twilight_records=0,**boundary_flags())
         results.append((d['slug'],result))
     assert results

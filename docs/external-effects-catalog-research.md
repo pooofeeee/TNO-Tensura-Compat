@@ -472,3 +472,11 @@ R2f8f was committed/pushed/live verified at `ac50a160beb2abdf1524aa1ebee824a46a3
 [Integrity](benchmarks/external-effects-catalog/twilightforest-constructs-slimes-integrity.json) and [full validation](benchmarks/external-effects-catalog/r2f8g-constructs-slimes-validation.json) cover evidence/reference reproduction, semantic/source/path checks, all five tooling tests, accepted-mod/prior-checkpoint preservation and research-only boundaries. No runtime tests.
 
 Continue Wraith/Minotaur remaining bodies and RisingZombie/LoyalZombie/ZombieWand producers/resources, then remaining utility/entities/items/hazards/callers toward R2f8 and final Twilight promotion. Current usage remains healthy; IceAndFire only after protected whole-Twilight completion. No L2/Stage/production/Phase6/7 work.
+
+## R2f8h — remaining Wraith/Minotaur bodies and Rising Zombie
+
+R2f8g was committed/pushed/live verified at `8795e3ad0def055395914c77ab7da9ae4d95060a`. Four additional packages/twenty delivery cases bring Twilight to116 reviewed package drafts/346 cases. Custom caller census26/40,14 unfinished, REVIEW_REQUIRED0, zero promotion; the four accepted mod totals remain unchanged.
+
+[Reviewed contracts](benchmarks/external-effects-catalog/twilightforest-restless-mobs-review.md) close Wraith flight/home/cadence and native retaliation, Minotaur actual equipment/charge differences, and RisingZombie gaze/conversion/admission. Existing HAUNT/AXING/helper/sprint/charge semantics are linked, not duplicated. Nine native class bodies and actual world producers are pinned. [Integrity](benchmarks/external-effects-catalog/twilightforest-restless-mobs-integrity.json) and [full validation](benchmarks/external-effects-catalog/r2f8h-restless-mobs-validation.json) cover all five tooling tests, evidence/reference reproduction, protected source/path links and prior-checkpoint/scope preservation.
+
+Continue LoyalZombie/ZombieWand ownership, targeting, feed/Strength/expiry and shared recharge resources; then remaining utility/entities/items/hazards/custom sources before final Twilight promotion. No runtime boss/L2/Stage/production/Phase6/7 work. IceAndFire stays unstarted until COMPLETE Twilight is pushed and verified.
