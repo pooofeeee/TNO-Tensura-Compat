@@ -148,6 +148,30 @@ def validate_remaining():
             extra=ins(EV,'damageNonMazebreakerToolsMore');assert any(x['operand']==16 for x in extra) and any('MazebreakerPickItem' in str(x['operand']) for x in extra)
             maze=ins(I+'MazebreakerPickItem','getDestroySpeed');assert any(x['operand']==16.0 for x in maze)
             assert d['damage_census']['reviewed_profiles_after']==25 and d['damage_census']['remaining_profiles']==15
+        if d['slug']=='arthropods':
+            from collect_twilight_arthropods import scan_callers
+            scan=read_json(OUT/'twilightforest-arthropods-caller-scan.json');assert scan==scan_callers(target) and scan['hits']==[]
+            M='entity/monster/';B='block/InfestedTowerwoodBlock'
+            assert not s['damage_profiles'] and s['counts']['new_custom_types_resolved']==0
+            king=ins(M+'KingSpider','finalizeSpawn');assert pos(king,'Spider.finalizeSpawn(')<pos(king,'SkeletonDruid.finalizeSpawn(')<pos(king,'.getPassengers(')<pos(king,'.startRiding(')
+            assert not any('.ejectPassengers(' in str(x['operand']) for x in king)
+            assert 'registerGoals' not in {m['name'] for m in methods(M+'KingSpider')}
+            assert len(ins(M+'TowerBroodling','summonJockey'))==1
+            swarm=ins(M+'SwarmSpider','doHurtTarget');assert pos(swarm,'.nextInt(')<pos(swarm,'Spider.doHurtTarget(')
+            mosquito=ins(M+'MosquitoSwarm','doHurtTarget');assert pos(mosquito,'Monster.doHurtTarget(')<pos(mosquito,'.addEffect(')
+            borer=ins(M+'TowerwoodBorer','hurt');assert pos(borer,'.isInvulnerableTo(')<pos(borer,'.getEntity(')<pos(borer,'.notifyHurt(')<pos(borer,'Monster.hurt(')
+            assert not any('.getDirectEntity(' in str(x['operand']) for x in borer)
+            goal=M+'TowerwoodBorer$SummonBorersGoal';assert 'requiresUpdateEveryTick' not in {m['name'] for m in methods(goal)}
+            release=ins(goal,'tick');assert pos(release,'.destroyBlock(')<pos(release,'.setBlock(')<pos(release,'.nextBoolean(')
+            assert not any('.addFreshEntity(' in str(x['operand']) for x in release)
+            hide=ins(M+'TowerwoodBorer$HideInTowerwoodGoal','start');assert pos(hide,'.setBlock(')<pos(hide,'.discard(')
+            block=ins(B,'spawnAfterBreak');assert pos(block,'RULE_DOBLOCKDROPS')<pos(block,'EnchantmentHelper.hasTag(')<pos(block,'.create(')<pos(block,'.addFreshEntity(')
+            assert not any('.finalize' in str(x['operand']) for x in block)
+            assert {m['name'] for m in methods(B)}=={'<init>','spawnAfterBreak'}
+            tags={w['entry']:w['data'] for w in read_json(OUT/'reference-evidence/twilight-arthropod-tags-244.json')['witnesses']}
+            assert '#neoforge:is_poison' in tags['data/minecraft/tags/damage_type/always_triggers_silverfish.json']['values']
+            assert 'neoforge:poison' in tags['data/neoforge/tags/damage_type/is_poison.json']['values']
+            assert d['damage_census']['reviewed_profiles_after']==25 and d['damage_census']['remaining_profiles']==15
         result=dict(schema='tno.external_effects.remaining_subsection_integrity.v1',status='PASS',checkpoint=d['checkpoint'],decision=d['decision'],starting_sha=d['starting_sha'],counts=s['counts'],protected_prior_files=len(protected),full_declared_class_coverage=len(d['full_classes']),twilight_reviewed_drafts=len(new['effects']),twilight_delivery_drafts=len(new['paths']),damage_profiles_reviewed=d['damage_census']['reviewed_profiles_after'],damage_profiles_remaining=d['damage_census']['remaining_profiles'],accepted_counts_unchanged=previous['accepted_counts_unchanged'],runtime_tests=0,promoted_twilight_records=0,**boundary_flags())
         results.append((d['slug'],result))
     assert results
