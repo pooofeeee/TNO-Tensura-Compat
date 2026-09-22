@@ -294,3 +294,15 @@ Selected installed Curios9.5.1 methods close Twilight's real accessory consumpti
 See the charms semantic section, caller scan, native and selected dependency witnesses, integrity and full-validation report. Accepted116/161/217 catalog bodies remain unchanged; runtime boss/L2/Stage/production/fixes/Phase6/7 remain untouched.
 
 Next: Travellers gear/modifiers and their actual ASM/event control paths; then remaining utility/food/passive entities/hazards, ten custom DamageTypes and whole-mod ASM/compatibility/source closure before final Twilight promotion. IceAndFire only after complete Twilight is pushed and live verified.
+
+## R2f8o — Travellers core modifiers and equipment state
+
+Protected input R2f8n `bf7b2fc69d8adab76096b99f49850a3d52206861`, rechecked by fetch/live equality after the latest continuation request. Adds **11 reviewed packages / 38 delivery cases**, bringing Twilight to **174 mechanic drafts / 544 delivery cases**, still PARTIAL, zero promoted, REVIEW_REQUIRED0. DamageTypes remain **30/40**, ten unfinished.
+
+[Reviewed contracts](twilightforest-travellers-core-review.md) close registry/components and activation, genuine modifier recipes/transfer/removal, base equipment attributes, last-durability wear and stored attributes, Auto-Repair, Perfect Dodge, Arrow Magnetism, All-Night, Stealth, Haste, Aquatic Agility and Efficient Eater. Nineteen declared class bodies and selected event/loader/native dependencies are pinned. The actual nested ASM transformer restricts Efficient Eater to movement statistics and jumping.
+
+Native common components and constructor ordering prove Gloves/Belt have empty armor attributes despite their material values. Broken gear can retain removed Aquatic attributes in its separate saved component; native grindstone removal followed by material repair restores those entries without the modifier marker. Both are recorded source behavior without production changes. Arrow recovery discards without canceling its block-impact event; Perfect Dodge instead vetoes the native impact before damage. Piglin/snow item predicates are independent of the broken-modifier gate.
+
+[Integrity](twilightforest-travellers-core-integrity.json) and [full validation](r2f8o-travellers-core-validation.json) cover native/reference reproduction, semantic guards, source/path links, all five tooling tests, previous-checkpoint/accepted-mod preservation and research-only boundaries. Runtime0; Stage/production/Phase6/7 untouched.
+
+Next: Travellers movement/control and exact installed ASM/packets, then belt/display/zoom and Emperor cloth. Continue remaining utility/food/passive entities/hazards, ten custom DamageTypes and complete ASM/compatibility/source exclusions before R2f8 and final Twilight promotion. Protect each complete subsection and continue while actual usage permits. IceAndFire only after Twilight COMPLETE is pushed and live-verified.

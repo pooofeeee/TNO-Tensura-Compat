@@ -395,6 +395,62 @@ def validate_remaining():
             search=[x for m in cap['methods'] if m['name']=='findFirstCurio' for x in m['instructions']];assert any('Cache.getIfPresent(' in str(x['operand']) for x in search) and any('.getActiveStates(' in str(x['operand']) for x in search)
             assert cap['archive_sha256']==scan['dependency']['sha256']
             assert not s['damage_profiles'] and d['damage_census']['reviewed_profiles_after']==30 and d['damage_census']['remaining_profiles']==10
+        if d['slug']=='travellers-core':
+            from collect_twilight_travellers_core import scan_callers,T,M,R
+            scan=read_json(OUT/'twilightforest-travellers-core-caller-scan.json');assert scan==scan_callers(target)
+            E='events/TravellersGearEvents';L=T+'TravellersGearLogic';D='init/custom/TravellersModifiersManager';A=T+'TravellersArmorItem'
+            active=ins(M+'TravellersModifier','isActive');assert pos(active,'.hasModifier(')<pos(active,'.isTravellersArmorAndBroken(')<pos(active,'.ALWAYS_ACTIVE')
+            assert not any('IS_TRAVELLERS_GEAR' in str(x['operand']) for x in active)
+            init=next(m['instructions'] for m in methods(A) if m['name']=='<init>' and m['descriptor'].endswith(';I)V'))
+            firstassign=next(x['offset'] for x in init if int(x['opcode'],16)==0xb5 and '.attributeModifiers' in str(x['operand']))
+            assert firstassign<pos(init,'.getDefaultAttributeModifiers('),'nonnull component assigned before virtual default lookup'
+            for fn in ['glovesProperties']:
+                assert not any('.attributes(' in str(x['operand']) or '.durability(' in str(x['operand']) for x in ins(A,fn))
+            for fn in ['makesPiglinsNeutral','canWalkOnPowderedSnow']:
+                assert not any('isModifierActive' in str(x['operand']) or 'isTravellersArmorAndBroken' in str(x['operand']) for x in ins(A,fn))
+            assert [int(x['opcode'],16) for x in ins(A,'supportsEnchantment')]==[0x03,0xac]
+            match=ins(R+'TravellersGearModifierRecipe','matches');assert pos(match,'.getModifiableArmor(')<pos(match,'.countInsertableModifiers(')<pos(match,'.hasTravellersModifier(')<pos(match,'.getModifierDataComponentProviders(')
+            apply=ins(R+'TravellersGearModifierRecipe','applyModifier');assert pos(apply,'.transferModifier(')<pos(apply,'.addModifier(')
+            attrs=ins(E,'activateAndDeactivateTravellersModifiers');assert pos(attrs,'.getCurrentServer(')<pos(attrs,'STORED_BROKEN_ATTRIBUTES')<pos(attrs,'.clearModifiers(')<pos(attrs,'.remove(')<pos(attrs,'.build(')
+            remove=ins(M+'TravellersEntryModifier','removeModifier');assert pos(remove,'.getAttributeModifiers(')<pos(remove,'.set(')<pos(remove,'.remove(')
+            assert not any('STORED_BROKEN_ATTRIBUTES' in str(x['operand']) for x in remove),'removal leaves separate saved attributes'
+            track=ins(E,'setLastDamageArmorTime');assert any('LAST_DAMAGE_ARMOR_TIME' in str(x['operand']) for x in track)
+            assert not any('getNewDamage' in str(x['operand']) for x in ins(E,'performPerfectDodge'))
+            repair=ins(L,'travellersGearAutoRepair');assert pos(repair,'LAST_DAMAGE_ARMOR_TIME')<pos(repair,'.getGameTime(')<pos(repair,'.getArmorSlots(')
+            assert any(x['operand']==200 for x in repair)
+            rbody=[x for m in methods(L) if m['name'].startswith('lambda$travellersGearAutoRepair') for x in m['instructions']]
+            assert pos(rbody,'AUTO_REPAIR_PROBABILITY')<pos(rbody,'.isModifierActive(')<pos(rbody,'.getAutoRepairChance(')<pos(rbody,'.nextFloat(')<pos(rbody,'.setDamageValue(')
+            assert not any('.heal(' in str(x['operand']) or '.hurt(' in str(x['operand']) for x in repair+rbody)
+            dodge=ins(E,'performPerfectDodge');assert pos(dodge,'EntityHitResult')<pos(dodge,'LivingEntity')<pos(dodge,'PERFECT_DODGE_PROBABILITY')<pos(dodge,'.isClientSide(')<pos(dodge,'.setCanceled(')<pos(dodge,'.nextFloat(')
+            assert len([x for x in dodge if '.setCanceled(' in str(x['operand'])])==2
+            assert not any('.getOwner(' in str(x['operand']) or 'DamageTypes' in str(x['operand']) or '.hurt(' in str(x['operand']) or '.discard(' in str(x['operand']) for x in dodge)
+            magnet=ins(E,'magnetizeArrows');assert pos(magnet,'.getOwner(')<pos(magnet,'.tickCountI')<pos(magnet,'ARROW_MAGNETISM')<pos(magnet,'.discard(')<pos(magnet,'.getPickupItemStackOrigin(')
+            assert pos(magnet,'.getPickupItemStackOrigin(')<max(x['offset'] for x in magnet if '.discard(' in str(x['operand'])),'separate nonplayer early discard and player post-recovery discard'
+            assert any(x['operand']==200 for x in magnet) and not any('.setCanceled(' in str(x['operand']) for x in magnet)
+            assert any('.DENYL' in str(x['operand']) for x in ins(E,'cancelPhantomSpawns'))
+            stealth=ins(L,'travellersStealth');assert pos(stealth,'.isModifierActive(')<pos(stealth,'.isCrouching(')<pos(stealth,'INVISIBILITY')<pos(stealth,'.setInvisible(')
+            assert not any('.removeEffect(' in str(x['operand']) for x in stealth)
+            haste=ins(L,'travellersVestHaste');assert pos(haste,'HASTE_AMPLIFIER')<pos(haste,'.isModifierActive(')<pos(haste,'DIG_SPEED')<pos(haste,'.addEffect(')
+            eater=ins('asmhooks/PlayerHooks','getFoodExhaustion');assert pos(eater,'EquipmentSlot.CHEST')<pos(eater,'EFFICIENT_EATER')<pos(eater,'.isModifierActive(')
+            assert any(int(x['opcode'],16)==0x6e for x in eater),'native float division, not food addition'
+            raw=[c for p in (OUT/'vanilla-evidence').glob('*.json') for c in read_json(p).get('classes',[])]
+            common=next(m['instructions'] for c in raw if c['class_name']=='net/minecraft/core/component/DataComponents' for m in c['methods'] if m['name']=='<clinit>')
+            end=next(i for i,x in enumerate(common) if 'COMMON_ITEM_COMPONENTS' in str(x['operand']));tail=common[end-24:end+1]
+            assert pos(tail,'.ATTRIBUTE_MODIFIERS')<pos(tail,'ItemAttributeModifiers.EMPTY')<pos(tail,'.COMMON_ITEM_COMPONENTS')
+            refs=[w for p in (OUT/'reference-evidence').glob('*.json') for w in read_json(p).get('witnesses',[]) if w.get('archive_sha256') in ['8e3563a078289f0f07ee6f87f1c8651294387639c8355983ee207cb753f08b7f','d874b2aa4d511919a567ae73f13510e63e16f7318194eb2c03824cd68a59df6f']]
+            def ri(c,fn):return next(m['instructions'] for w in refs if w['entry']==c+'.class' for m in w.get('methods',[]) if m['name']==fn)
+            grind=ri('net/minecraft/world/inventory/GrindstoneMenu','createResult');assert pos(grind,'.onGrindstoneChange(')<pos(grind,'.computeResult(')
+            anvil=ri('net/minecraft/world/inventory/AnvilMenu','createResult');assert any('.isValidRepairItem(' in str(x['operand']) for x in anvil) and not any('.isRepairable(' in str(x['operand']) for x in anvil)
+            arrow=ri('net/minecraft/world/entity/projectile/AbstractArrow','tick');assert pos(arrow,'.onProjectileImpact(')<pos(arrow,'.hitTargetOrDeflectSelf(')
+            between=[x for x in arrow if pos(arrow,'.onProjectileImpact(')<x['offset']<pos(arrow,'.hitTargetOrDeflectSelf(')]
+            assert not any('.isRemoved(' in str(x['operand']) for x in between)
+            phantom=ri('net/minecraft/world/level/levelgen/PhantomSpawner','tick');assert pos(phantom,'.firePlayerSpawnPhantoms(')<pos(phantom,'.shouldSpawnPhantoms(')<pos(phantom,'TIME_SINCE_REST')
+            asm=read_json(OUT/'reference-evidence/twilight-travellers-core-asm.json')['witnesses'];tr=next(w for w in asm if w.get('class_name','').endswith('ReduceMovementFoodExhaustionTransformer'))
+            tg=next(m['instructions'] for m in tr['methods'] if m['name']=='targets')
+            assert {x['operand'] for x in tg if x['operand'] in ['checkMovementStatistics','jumpFromGround','causeFoodExhaustion','attack']}=={'checkMovementStatistics','jumpFromGround'}
+            assert any(x['operand']=='getFoodExhaustion' for m in tr['methods'] for x in m['instructions'])
+            reg=read_json(OUT/'reference-evidence/twilight-equipment-asm.json')['witnesses'];assert any('ReduceMovementFoodExhaustionTransformer.<init>' in str(x['operand']) for w in reg for m in w.get('methods',[]) for x in m['instructions'])
+            assert not s['damage_profiles'] and d['damage_census']['reviewed_profiles_after']==30 and d['damage_census']['remaining_profiles']==10
         result=dict(schema='tno.external_effects.remaining_subsection_integrity.v1',status='PASS',checkpoint=d['checkpoint'],decision=d['decision'],starting_sha=d['starting_sha'],counts=s['counts'],protected_prior_files=len(protected),full_declared_class_coverage=len(d['full_classes']),twilight_reviewed_drafts=len(new['effects']),twilight_delivery_drafts=len(new['paths']),damage_profiles_reviewed=d['damage_census']['reviewed_profiles_after'],damage_profiles_remaining=d['damage_census']['remaining_profiles'],accepted_counts_unchanged=previous['accepted_counts_unchanged'],runtime_tests=0,promoted_twilight_records=0,**boundary_flags())
         results.append((d['slug'],result))
     assert results
