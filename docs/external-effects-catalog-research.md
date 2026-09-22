@@ -480,3 +480,13 @@ R2f8g was committed/pushed/live verified at `8795e3ad0def055395914c77ab7da9ae4d9
 [Reviewed contracts](benchmarks/external-effects-catalog/twilightforest-restless-mobs-review.md) close Wraith flight/home/cadence and native retaliation, Minotaur actual equipment/charge differences, and RisingZombie gaze/conversion/admission. Existing HAUNT/AXING/helper/sprint/charge semantics are linked, not duplicated. Nine native class bodies and actual world producers are pinned. [Integrity](benchmarks/external-effects-catalog/twilightforest-restless-mobs-integrity.json) and [full validation](benchmarks/external-effects-catalog/r2f8h-restless-mobs-validation.json) cover all five tooling tests, evidence/reference reproduction, protected source/path links and prior-checkpoint/scope preservation.
 
 Continue LoyalZombie/ZombieWand ownership, targeting, feed/Strength/expiry and shared recharge resources; then remaining utility/entities/items/hazards/custom sources before final Twilight promotion. No runtime boss/L2/Stage/production/Phase6/7 work. IceAndFire stays unstarted until COMPLETE Twilight is pushed and verified.
+
+## R2f8i — Loyal Zombie and native scepter resources
+
+R2f8h was pushed/live verified at `696eb25903f23324bbedb90116fd7a41a395dd20`. Nine packages/28 cases add up to125 Twilight draft packages/374 cases. EXPIRED is USED through its actual LoyalZombie caller:27/40 custom types reviewed,13 unfinished. REVIEW_REQUIRED0; zero promotions and unchanged four accepted mods.
+
+[Reviewed contracts](benchmarks/external-effects-catalog/twilightforest-summon-resources-review.md) cover real summon ownership, fixed melee, Strength expiry/feed, targeting/follow, Crown baby state, nonbreaking durability, Renewal and manual repair. Manual potion item-ID matching differs from Renewal component testing; the native behavior is documented without fixes. Other scepter unique effects remain explicitly pending.
+
+[Integrity](benchmarks/external-effects-catalog/twilightforest-summon-resources-integrity.json) and [full validation](benchmarks/external-effects-catalog/r2f8i-summon-resources-validation.json) protect all five tooling tests, native/raw/exact-loader evidence, caller/tag/recipe/source/path checks and prior accepted work/research-only boundaries. No runtime work.
+
+Continue Fortification/Lifedrain unique payloads, then remaining Twilight entities/items/hazards/custom sources toward R2f8 and final promotion. IceAndFire only after COMPLETE Twilight is pushed/verified; no L2/Stage/production/Phase6/7 work.

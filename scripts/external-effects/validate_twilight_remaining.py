@@ -242,6 +242,31 @@ def validate_remaining():
             ids={e['id'] for e in new['effects']}
             assert all(i in ids for e in s['effects'] for i in e.get('reuses_protected_effect_ids',[]))
             assert not s['damage_profiles'] and d['damage_census']['reviewed_profiles_after']==26 and d['damage_census']['remaining_profiles']==14
+        if d['slug']=='summon-resources':
+            from collect_twilight_summon_resources import scan_callers
+            scan=read_json(OUT/'twilightforest-summon-resources-caller-scan.json');assert scan==scan_callers(target)
+            runtime=[h for h in scan['hits'] if 'TFDamageTypes.EXPIRED' in str(h['instruction']['operand']) and '/data/' not in h['entry'] and '/init/' not in h['entry']]
+            assert len(runtime)==1 and runtime[0]['entry']=='twilightforest/entity/monster/LoyalZombie.class' and runtime[0]['method']=='aiStep'
+            assert not any('/world/' in h['entry'] and 'TFEntities.LOYAL_ZOMBIE' in str(h['instruction']['operand']) for h in scan['hits'])
+            M='entity/monster/LoyalZombie';W='item/ZombieWandItem';R='enchantment/RechargeScepterEffect';C='item/recipe/ScepterRepairRecipe'
+            hit=ins(M,'doHurtTarget');assert pos(hit,'.mobAttack(')<pos(hit,'.hurt(')<pos(hit,'.push(')
+            assert not any('getAttribute' in str(x['operand']) or 'EnchantmentHelper' in str(x['operand']) for x in hit)
+            expire=ins(M,'aiStep');assert pos(expire,'.getEffect(')<pos(expire,'TFDamageTypes.EXPIRED')<pos(expire,'.hurt(')<pos(expire,'TamableAnimal.aiStep(')
+            i=next(n for n,x in enumerate(expire) if '.hurt(' in str(x['operand']));assert int(expire[i+1]['opcode'],16)==0x57
+            feed=ins(M,'interactAt');assert pos(feed,'.removeEffect(')<pos(feed,'.addEffect(')<pos(feed,'.heal(')<pos(feed,'.consume(')
+            assert not any('.setAge(' in str(x['operand']) for x in ins(M,'setBaby'))
+            use=ins(W,'use');assert pos(use,'.noCollision(')<pos(use,'.setOwnerUUID(')<pos(use,'.setBaby(')<pos(use,'.addFreshEntity(')<pos(use,'hurtButDontBreak(')
+            assert not any('finalizeSpawn' in str(x['operand']) for x in use)
+            charge=ins('util/TFItemStackUtils','hurtButDontBreak');assert pos(charge,'.damageItem(')<pos(charge,'.processDurabilityChange(')<pos(charge,'.setDamageValue(')
+            assert not any('.shrink(' in str(x['operand']) for x in charge)
+            recharge=ins(R,'applyRecharge');assert pos(recharge,'.getAllRecipesFor(')<pos(recharge,'TFItems.EXANIMATE_ESSENCE')<pos(recharge,'Ingredient.test(')
+            match=ins(C,'matches');assert any('.stackedContents(' in str(x['operand']) for x in match) and any('StackedContents.canCraft(' in str(x['operand']) for x in match)
+            refs=read_json(OUT/'reference-evidence/twilight-summon-resources-244.json')['witnesses']
+            ingredient=next(w for w in refs if w['entry']=='net/minecraft/world/item/crafting/Ingredient.class');stackids=next(m['instructions'] for m in ingredient['methods'] if m['name']=='getStackingIds');assert any('StackedContents.getStackingIndex(' in str(x['operand']) for x in stackids) and not any('.test(' in str(x['operand']) for x in stackids)
+            raw=read_json(OUT/'vanilla-evidence/twilight-summon-resources.json')['classes'];stacked=next(w for w in raw if w['class_name']=='net/minecraft/world/entity/player/StackedContents');idx=next(m['instructions'] for m in stacked['methods'] if m['name']=='getStackingIndex');assert any('.getItem(' in str(x['operand']) for x in idx) and not any('component' in str(x['operand']).lower() for x in idx)
+            profile=s['damage_profiles'][0];assert profile['type']=='twilightforest:expired' and set(profile['tags'])=={'minecraft:always_most_significant_fall','minecraft:bypasses_armor','minecraft:bypasses_invulnerability','minecraft:bypasses_resistance','minecraft:bypasses_shield','minecraft:bypasses_wolf_armor','neoforge:is_technical'}
+            protection=read_json(OUT/'vanilla-evidence/twilight-summon-protection.json')['resources'][0]['data'];assert protection['effects']['minecraft:damage_protection'][0]['requirements']['predicate']['tags']==[{'expected':False,'id':'minecraft:bypasses_invulnerability'}]
+            assert d['damage_census']['reviewed_profiles_after']==27 and d['damage_census']['remaining_profiles']==13
         result=dict(schema='tno.external_effects.remaining_subsection_integrity.v1',status='PASS',checkpoint=d['checkpoint'],decision=d['decision'],starting_sha=d['starting_sha'],counts=s['counts'],protected_prior_files=len(protected),full_declared_class_coverage=len(d['full_classes']),twilight_reviewed_drafts=len(new['effects']),twilight_delivery_drafts=len(new['paths']),damage_profiles_reviewed=d['damage_census']['reviewed_profiles_after'],damage_profiles_remaining=d['damage_census']['remaining_profiles'],accepted_counts_unchanged=previous['accepted_counts_unchanged'],runtime_tests=0,promoted_twilight_records=0,**boundary_flags())
         results.append((d['slug'],result))
     assert results
