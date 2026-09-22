@@ -451,6 +451,53 @@ def validate_remaining():
             assert any(x['operand']=='getFoodExhaustion' for m in tr['methods'] for x in m['instructions'])
             reg=read_json(OUT/'reference-evidence/twilight-equipment-asm.json')['witnesses'];assert any('ReduceMovementFoodExhaustionTransformer.<init>' in str(x['operand']) for w in reg for m in w.get('methods',[]) for x in m['instructions'])
             assert not s['damage_profiles'] and d['damage_census']['reviewed_profiles_after']==30 and d['damage_census']['remaining_profiles']==10
+        if d['slug']=='travellers-movement':
+            from collect_twilight_travellers_movement import scan_callers,T,TRANSFORMERS
+            scan=read_json(OUT/'twilightforest-travellers-movement-caller-scan.json');assert scan==scan_callers(target)
+            E='events/TravellersGearEvents';L=T+'TravellersGearLogic';C='client/event/TravellersClientEvents';H='asmhooks/EntityHooks';B='asmhooks/BlockHooks';P='asmhooks/PlayerHooks';S='components/entity/SlimySolesAttachment'
+            water=ins(H,'processWaterWalking');assert pos(water,'FluidTags.WATER')<pos(water,'.isModifierActive(')<pos(water,'.isBelowMaxWaterWalkingSubmergedHeight(')<pos(water,'.isShiftKeyDown(')
+            assert any(x['operand']==.4 for x in ins(L,'isBelowMaxWaterWalkingSubmergedHeight'))
+            stuck=ins(H,'resetStuckUnrestrained');assert pos(stuck,'LivingEntity')<pos(stuck,'.lengthSqr(')<pos(stuck,'.isModifierActive(')<pos(stuck,'Vec3.ZERO')
+            assert any(x['operand']==-.08 for x in ins(B,'stopBouncing'))
+            fall=ins(E,'reduceSlimySolesFallDamage');assert pos(fall,'.isShiftKeyDown(')<pos(fall,'.isModifierActive(')<pos(fall,'.calculateFallDamage(')<pos(fall,'.setCanceled(')<pos(fall,'.sqrt(')
+            assert not any('FALL_DAMAGE_IMMUNE' in str(x['operand']) or '.hurt(' in str(x['operand']) for x in ins(E,'calculateFallDamage')+fall)
+            cancel=ins(E,'cancelSlimySolesJump');assert any('.bounceVelocityD' in str(x['operand']) for x in cancel) and not any('.doubleJumpBoostVelocityD' in str(x['operand']) for x in cancel)
+            bounce=ins(L,'travellersBootsSlimySolesBounce');assert not any('.isModifierActive(' in str(x['operand']) for x in bounce)
+            ctor=next(m['instructions'] for m in methods(S) if m['name']=='<init>' and m['descriptor']=='(DDZZ)V')
+            fields=[x['operand'] for x in ctor if int(x['opcode'],16)==0xb5]
+            assert len(fields)==3 and not any('doubleJumpBoostVelocity' in str(x) for x in fields),'native decode constructor drops encoded boost'
+            assert any('double_jump_boost_velocity' in str(x['operand']) for m in methods(S) for x in m['instructions'])
+            double=ins(L,'performDoubleJump');assert pos(double,'HAS_DOUBLE_JUMP')<pos(double,'.jumpFromGround(')<pos(double,'.doubleJumpBoostVelocityD')<pos(double,'.resetFallDistance(')<pos(double,'TRAVELLERS_DOUBLE_JUMP_SAFE_FALL_DISTANCE')
+            assert not any('.isModifierActive(' in str(x['operand']) for x in double)
+            pre=ins(E,'tickMovementModifiers');assert pos(pre,'.isModifierActive(')<pos(pre,'.onGround(')<pos(pre,'HAS_DOUBLE_JUMP')<pos(pre,'.removeModifier(')
+            glide=ins(L,'travellersWingsGradualGlide');assert pos(glide,'.isModifierActive(')<pos(glide,'.isFallFlying(')<pos(glide,'IS_GRADUALLY_GLIDING')<pos(glide,'.setDeltaMovement(')<pos(glide,'.getGravity(')
+            assert not any('.onGround(' in str(x['operand']) or '.isPassenger(' in str(x['operand']) for x in glide)
+            gp=[x for m in methods('network/GradualGlidePacket') if m['name'].startswith('lambda$handle') for x in m['instructions']]
+            assert pos(gp,'.getPlayerByUUID(')<pos(gp,'.setData(')<pos(gp,'.sendToPlayersTrackingEntity(')
+            assert not any('.equals(' in str(x['operand']) or '.isModifierActive(' in str(x['operand']) for x in gp)
+            side=ins(L,'tryPerformSidestep');assert pos(side,'SIDESTEP_COOLDOWN')<pos(side,'.isModifierActive(')<pos(side,'.onGround(')<pos(side,'.isCrouching(')<pos(side,'.performSidestep(')
+            assert not any('.isPassenger(' in str(x['operand']) for x in side)
+            dash=ins(L,'performSidestep');assert any(x['operand']==1.6 for x in dash) and any('.push(' in str(x['operand']) for x in dash) and not any('.setDeltaMovement(' in str(x['operand']) for x in dash)
+            validate=ins(L,'validateMovement');assert pos(validate,'.isDedicatedServer(')<pos(validate,'.tickCountI')<pos(validate,'.disconnect(')
+            assert any(x['operand']==45 for x in validate)
+            server=ins(L,'travellersBootsStraightAhead');assert pos(server,'.isModifierActive(')<pos(server,'.hasModifier(')<pos(server,'.addOrUpdateTransientModifier(')
+            assert not any('forwardImpulse' in str(x['operand']) for x in server)
+            client=ins(C,'handleStraightAhead');assert pos(client,'.forwardImpulseF')<pos(client,'.addOrUpdateTransientModifier(')<pos(client,'.leftImpulseF')
+            agile=ins(C,'handleAgileRanger');assert pos(agile,'ProjectileWeaponItem')<pos(agile,'TRAVELLERS_AGILE_RANGER_BLACKLISTED')<pos(agile,'.isUsingItem(')<pos(agile,'.isPassenger(')<pos(agile,'.leftImpulseF')
+            assert not any('.hurt(' in str(x['operand']) or '.setHealth(' in str(x['operand']) for c in [L,H,B,P,C] for m in methods(c) for x in m['instructions'])
+            refs=[w for p in (OUT/'reference-evidence').glob('*.json') for w in read_json(p).get('witnesses',[]) if w.get('archive_sha256') in ['8e3563a078289f0f07ee6f87f1c8651294387639c8355983ee207cb753f08b7f','d874b2aa4d511919a567ae73f13510e63e16f7318194eb2c03824cd68a59df6f']]
+            def ri(c,fn):return next(m['instructions'] for w in refs if w['entry']==c+'.class' for m in w.get('methods',[]) if m['name']==fn)
+            ai=ri('net/minecraft/client/player/LocalPlayer','aiStep');event=pos(ai,'.onMovementInputUpdate(')
+            slowed=[x for x in ai if x['offset']>event and 'leftImpulse' in str(x['operand'])];assert slowed
+            assert any('LocalPlayer.isInFluidType(Ljava/util/function/BiPredicate;)' in str(x['operand']) for x in ai)
+            fluid=ri('net/minecraft/world/level/block/LiquidBlock','getCollisionShape');assert pos(fluid,'.isAbove(')<pos(fluid,'.LEVEL')<pos(fluid,'.canStandOnFluid(')
+            actualfall=ri('net/minecraft/world/entity/LivingEntity','causeFallDamage');assert pos(actualfall,'.onLivingFall(')<pos(actualfall,'.calculateFallDamage(')<pos(actualfall,'.hurt(')
+            fov=ri('net/minecraft/client/player/AbstractClientPlayer','getFieldOfViewModifier');assert any(int(x['opcode'],16)==0x0c for x in fov) and any(int(x['opcode'],16)==0xae for x in fov)
+            asm=read_json(OUT/'reference-evidence/twilight-travellers-movement-asm.json')['witnesses'];assert {w['entry'].rsplit('/',1)[-1][:-6] for w in asm}==set(TRANSFORMERS)
+            reg=read_json(OUT/'reference-evidence/twilight-equipment-asm.json')['witnesses']
+            for name in TRANSFORMERS:assert any(name+'.<init>' in str(x['operand']) for w in reg for m in w.get('methods',[]) for x in m['instructions'])
+            cfg=read_json(OUT/'config-evidence/twilightforest-client.json');assert sha256(cfg['path'])==cfg['sha256'] and cfg['values']['travellersWingsGradualGlide'] is True
+            assert not s['damage_profiles'] and d['damage_census']['reviewed_profiles_after']==30 and d['damage_census']['remaining_profiles']==10
         result=dict(schema='tno.external_effects.remaining_subsection_integrity.v1',status='PASS',checkpoint=d['checkpoint'],decision=d['decision'],starting_sha=d['starting_sha'],counts=s['counts'],protected_prior_files=len(protected),full_declared_class_coverage=len(d['full_classes']),twilight_reviewed_drafts=len(new['effects']),twilight_delivery_drafts=len(new['paths']),damage_profiles_reviewed=d['damage_census']['reviewed_profiles_after'],damage_profiles_remaining=d['damage_census']['remaining_profiles'],accepted_counts_unchanged=previous['accepted_counts_unchanged'],runtime_tests=0,promoted_twilight_records=0,**boundary_flags())
         results.append((d['slug'],result))
     assert results
