@@ -786,3 +786,7 @@ Frozen native source mapping is complete: six ordinary weapon paths plus seven d
 ## R2g3a — Siren song
 
 Native song control is a Siren-owned target map, independent of its30tick HARMFUL status marker. Effect rejection/cure need not stop control. Two purported Player guards actually inspect the map; native rotation therefore also applies to Player victims. Existing SpiritualAttackNullification compatibility acts as earplugs at periodic target acquisition. [Evidence and exact resume](benchmarks/external-effects-catalog/iceandfire-r2g3a-review.md). No fixes or runtime tests; Flute and bite/pull are next.
+
+## R2g3b — Siren Flute and attacks
+
+Flute uses a serialized loveTicks attachment driven by native EntityTickEvent.Post. It clears Mob target/navigation after normal entity tick; it is not a MobEffect or universal damage veto. Siren bite/pull damage uses native mob_attack; pull motion does not depend on hurt succeeding and its X term uses old Z velocity. [Evidence and exact next task](benchmarks/external-effects-catalog/iceandfire-r2g3b-review.md). Gorgon is next; Ice & Fire remains PARTIAL.
