@@ -774,3 +774,7 @@ After commit/push/live equality, begin narrow installed IceAndFireCE beta15 comb
 Twilight COMPLETE protected at `86b6e670819be918b2df9ddcd73bf81b729282fc`. IceAndFireCE beta15 static combat review is now PARTIAL. Two custom statuses, five custom damage declarations, seven factory caller methods and six status-reference methods are pinned. The indirect lightning factory actually selects the ICE holder; direct lightning charge hits and manager area damage use different source routes. Existing Tensura-Iaf compatibility directly classifies those actual holders. Full family eligibility/effects remain unfinished; zero Ice & Fire records promoted.
 
 [Foundation and exact next task](benchmarks/external-effects-catalog/iceandfire-r2g1-review.md). No runtime boss/L2/Stage/production/Phase 6/7 changes.
+
+## R2g2a — Frozen core and weapons
+
+Ice & Fire remains PARTIAL. Frozen core/lifecycle, six ordinary weapon paths and the existing ColdNullification dispatcher are reviewed. Frozen is velocity control; weapon Slowness/MiningFatigue are independent, and fire-removal is vetoable. Ice blood bonus is a distinct native secondary hurt attempt. Dragon manager payload evidence is saved; actual dragon delivery roots remain next. [Findings and exact resume](benchmarks/external-effects-catalog/iceandfire-r2g2a-review.md). All accepted Twilight records remain unchanged.

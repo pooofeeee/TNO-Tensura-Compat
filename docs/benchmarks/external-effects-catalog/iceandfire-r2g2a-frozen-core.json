@@ -1,0 +1,274 @@
+{
+  "schema": "tno.external_effects.iaf_frozen_core.v1",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "checkpoint": "R2g2a-frozen-core-weapons-complete",
+  "starting_sha": "2031703aa37d2ceb6b82ef1083f9772b8dc4a1df",
+  "status": "CORE_WEAPONS_COMPLETE_DRAGON_DELIVERY_PENDING",
+  "facts": {
+    "authority": "Installed IceAndFireCE2.0-beta.15, exact NeoForge21.1.244, installed Tensura2.0.1.1 and tensura_iaf2.0.0.1 plus the parent-hash-bound nested ManasCore skill4.0.0.2 archive. Method bytes control findings; source aids locate branches. R2g1 sources/tags are reused. No runtime or mixin-application certification.",
+    "core": "iceandfire:frozen is NEUTRAL, not HARMFUL, and requests applyEffectTick every eligible remaining-duration tick. Amplifier is unused. Ordered core: IceDragonEntity or dead/dying returns false; otherwise on fire clears fire then returns false; otherwise creative Player returns true without motion; otherwise multiplies current delta x/z by0.25 preserving y; then non-EnderDragon airborne recipients add y=-0.2; returns true. IceDragon/dead admission occurs before extinguishing. EnderDragon only escapes the extra downward term, not horizontal damping.",
+    "not_damage": "The entire Frozen class has no hurt, HP subtraction, freezing-gauge write, attribute modifier registration, setNoAi, movement lock or custom DamageSource. This is repeated velocity modification. Ordinary entity travel/input/gravity later in the tick can change motion again; it does not prove a fixed final speed. Existing Slowness/MiningFatigue in weapon delivery are separate vanilla effects, not effects of Frozen itself.",
+    "tick_order": "LivingEntity.baseTick calls tickEffects; LivingEntity.tick calls its Entity superclass tick/baseTick route before aiStep and travel. The callback modifies the velocity present at that point. A Frozen instance can exist on an IceDragon/creative recipient until native processing; the tick branch is not a custom addEffect admission veto.",
+    "native_admission": "Frozen producers use ordinary addEffect(instance) which delegates addEffect(instance,null). Native NeoForge Applicable/canBeAffected and installed Manas HEAD interception remain in force. Each boolean is ignored by the producer. An admitted request may merge/update an existing instance or return false on no effective update. Same-amp longer duration refreshes; weaker/higher effects follow native hidden-effect update rules. onEffectStarted is called for admitted add requests even when update returns false; glass placement sound is not proof of a new stored status.",
+    "native_removal": "Exact installed MobEffectInstance.tick on applyEffectTick=false calls entity.removeEffect(holder), ignores its boolean, then ticks duration and hidden state; it does not zero the duration. removeEffect uses cancelable NeoForge removal admission. If fire-removal is vetoed, fire was still cleared and subsequent ticks can damp motion. Ordinary duration expiration is a separate server-side Expired event path, also cancelable. Frozen onRemoved is glass particles/sound only; the Iaf mixin invokes it at LivingEntity.onEffectRemoved refreshDirtyAttributes, within the native server branch.",
+    "cures": "Frozen inherits the loader default effect cures; no Frozen-specific cure override exists. removeEffectsCuredBy is server-only, checks the instance cure set and removal event, and removes through ordinary callbacks. Native cure/expiration hooks are preserved; no guaranteed unconditional cleanse is asserted.",
+    "weapon_registry": "Exactly six Iaf item suppliers read the two Frozen weapon ability fields: dragonbone_sword_ice uses ICE_DRAGON_BLOOD_TOOL; dragonsteel_ice_sword/pickaxe/axe/shovel/hoe use DRAGONSTEEL_ICE_TOOL. The full installed class census records their actual supplier lambda methods. Registry IDs and actual wrapper constructors are pinned, not inferred from names.",
+    "weapon_callback": "Each of five ActivePostHit wrapper classes checks ability.isEnable, invokes ability.active, then calls and returns the parent hurtEnemy. Parent return is not a prerequisite once the callback has started. The legitimate ordinary server Player.attack path requires target attack admission and primary hurt=true before ItemStack.hurtEnemy on the living target/PartEntity parent. Sweeping secondary targets receive hurt/enchantment processing but no per-secondary item hurtEnemy. Ordinary Mob.doHurtTarget has no item hurtEnemy call, so merely equipping a mob is not a proven Frozen weapon delivery.",
+    "weapon_payload": "FrozenTargetAbility.active independently calls Slowness(duration,amp2), MiningFatigue(duration,amp2), then Frozen(duration,amp0), in that order; all three addEffect results are ignored and all source arguments are null through the single-argument overload. A failed earlier status does not stop later ones; Frozen rejection/removal does not undo the two vanilla statuses.",
+    "config": "Both abilities read live tools.dragonIceAbility for enable admission, including the wrapper check. FrozenTargetAbility duration is captured in the ability constructor: default and installed JSON snapshot100 ticks for IceDragonBlood,300 for DragonsteelIce. A later duration config change is not necessarily reflected in an existing ability object. Snapshot is file evidence, not proof of runtime load timing. Outer disabled wrapper suppresses the entire blood callback, including its bonus.",
+    "blood_bonus": "The blood ability calls DamageBonusAbility(8,FIRE_DRAGON,null) before its inner enable check/Frozen application. For a Player attacker it requires getAttackStrengthScale(0)==1 exactly, then the recipient type tag. The native tag contains iceandfire:fire_dragon. Primary Player.attack checks strength at0.5 for normal attack scaling but calls weapon effects before resetAttackStrengthTicker, so the separate exact1 gate at0 is reachable. Low charge can suppress only this bonus while the admitted weapon statuses still run. The bonus source is iceandfire:bonus with direct=causing=attacker and scoped bypasses_cooldown membership; native hurt return is ignored and does not gate statuses. Eight is requested damage, not guaranteed HP loss. Parent weapon durability/postHurt processing remains native.",
+    "compat_dispatch": "ManasCore nested skill MixinLivingEntity declares cancellable HEAD injection into two-argument addEffect. It passes a Changeable instance and source into LIVING_EFFECT_ADDED; false cancels with return false, otherwise replaces the local argument. SkillRegistry.init registers the callback looping learned skill instances, invoking only those passing canInteractSkill; any false onEffectAdded returns interruptFalse. The pinned instance method dispatches virtually to the actual skill. The ColdNullification list extension is the protected tensura_iaf RETURN mixin, adding the Iaf Frozen holder to native Chill/Frost.",
+    "compat_eligibility": "ColdNullification inherits ResistSkill.canInteractSkill, overriding the generic TensuraSkill gate: ExistenceStorage sleep mode (positive harvestGiftTick OR harvestTick OR sleepModeTime) rejects; Rest or InfiniteImprisonment rejects; canActivateInArea(instance,entity,-1,false,false) then applies. That call skips worldRestriction checks but can reject a server Player joined to a boss fight banning this ability and toggle it off through restrictUsage. Do not substitute the generic spectator/mastery predicate: the ResistSkill override does not call it. ResistSkill.onEffectAdded admits when not toggled or DISABLE_NULLIFICATION=true; otherwise rejects matching holder in nonempty immune list. The separate canBeToggled method requires mastery>=0 and nullification enabled. Source identity is passed through the callback but unused by this list comparison.",
+    "compat_existing": "onToggleOn obtains the same immune list and calls TensuraMobEffect.removePredicateEffect. It copies current active effects, matches holders, then ordinary removeEffect; default AP/MP costs are0 and EnergyHelper short-circuits as not out of energy. Removal can be vetoed. The ColdNullification bridge does not add Slowness or MiningFatigue to its list and does not roll them back. Other native skills/hooks can still affect them. Existing statue-recipient veto remains the R2g1 IafHandler declaration, not an implementation change.",
+    "dragon_read_ahead": "Saved manager branch proof, NOT completed launch/collision delivery: ICE applyDragonEffect adds only Frozen, no Slowness/MiningFatigue. Breath requests50*stage duration and stage*attackDamageIce damage; charge area requests400 duration and max(1,stage-1)*2 damage. Both target lambdas call hurt then applyDragonEffect regardless of hurt boolean, with source identity from R2g1. Breath uses !DragonUtils.onSameTeam, !self and LOS; charge uses !dragon.isAlliedTo,!self and LOS. Event/grief/radius and actual entry routes remain the exact next subsection. A hit-only charge source must not be called a direct Frozen producer.",
+    "scope": "Core status, ordinary six-weapon producer semantics and the declared ColdNullification dispatcher are closed here. Multipart redirection, full dragon launch/area/grief paths and other mob families are not silently certified. Iaf remains PARTIAL, zero promoted records and zero fully reviewed custom DamageType profiles. R2g1/accepted Twilight and earlier completed mods are unchanged. No HP/SHP/runtime measurements or L2/Stage claims."
+  },
+  "reviewed_mechanic_drafts": [
+    {
+      "id": "iaf:frozen",
+      "classification": "CUSTOM_STATUS",
+      "components": [
+        "velocity_damping",
+        "airborne_downward_impulse",
+        "native_effect_lifecycle"
+      ],
+      "core_complete": true,
+      "all_delivery_paths_complete": false
+    },
+    {
+      "id": "iaf:ice_blood_bonus",
+      "classification": "CUSTOM_DAMAGE",
+      "components": [
+        "conditional_secondary_native_hurt"
+      ],
+      "native_amount": 8,
+      "all_bonus_ability_deliveries_complete": false
+    }
+  ],
+  "reviewed_weapon_paths": [
+    {
+      "id": "iaf:frozen-weapon:dragonbone_sword_ice",
+      "item_id": "iceandfire:dragonbone_sword_ice",
+      "ability": "ICE_DRAGON_BLOOD_TOOL",
+      "duration_snapshot": 100,
+      "labels": [
+        "MELEE"
+      ],
+      "admission": "ordinary server Player.attack primary hurt accepted; active wrapper enable true; independent native addEffect eligibility",
+      "payload": "Slowness III -> MiningFatigue III -> Frozen I",
+      "bonus": "8 requested BONUS on fully charged Player + FIRE_DRAGON tag; ignored hurt result"
+    },
+    {
+      "id": "iaf:frozen-weapon:dragonsteel_ice_sword",
+      "item_id": "iceandfire:dragonsteel_ice_sword",
+      "ability": "DRAGONSTEEL_ICE_TOOL",
+      "duration_snapshot": 300,
+      "labels": [
+        "MELEE"
+      ],
+      "admission": "ordinary server Player.attack primary hurt accepted; active wrapper enable true; independent native addEffect eligibility",
+      "payload": "Slowness III -> MiningFatigue III -> Frozen I",
+      "bonus": null
+    },
+    {
+      "id": "iaf:frozen-weapon:dragonsteel_ice_pickaxe",
+      "item_id": "iceandfire:dragonsteel_ice_pickaxe",
+      "ability": "DRAGONSTEEL_ICE_TOOL",
+      "duration_snapshot": 300,
+      "labels": [
+        "MELEE"
+      ],
+      "admission": "ordinary server Player.attack primary hurt accepted; active wrapper enable true; independent native addEffect eligibility",
+      "payload": "Slowness III -> MiningFatigue III -> Frozen I",
+      "bonus": null
+    },
+    {
+      "id": "iaf:frozen-weapon:dragonsteel_ice_axe",
+      "item_id": "iceandfire:dragonsteel_ice_axe",
+      "ability": "DRAGONSTEEL_ICE_TOOL",
+      "duration_snapshot": 300,
+      "labels": [
+        "MELEE"
+      ],
+      "admission": "ordinary server Player.attack primary hurt accepted; active wrapper enable true; independent native addEffect eligibility",
+      "payload": "Slowness III -> MiningFatigue III -> Frozen I",
+      "bonus": null
+    },
+    {
+      "id": "iaf:frozen-weapon:dragonsteel_ice_shovel",
+      "item_id": "iceandfire:dragonsteel_ice_shovel",
+      "ability": "DRAGONSTEEL_ICE_TOOL",
+      "duration_snapshot": 300,
+      "labels": [
+        "MELEE"
+      ],
+      "admission": "ordinary server Player.attack primary hurt accepted; active wrapper enable true; independent native addEffect eligibility",
+      "payload": "Slowness III -> MiningFatigue III -> Frozen I",
+      "bonus": null
+    },
+    {
+      "id": "iaf:frozen-weapon:dragonsteel_ice_hoe",
+      "item_id": "iceandfire:dragonsteel_ice_hoe",
+      "ability": "DRAGONSTEEL_ICE_TOOL",
+      "duration_snapshot": 300,
+      "labels": [
+        "MELEE"
+      ],
+      "admission": "ordinary server Player.attack primary hurt accepted; active wrapper enable true; independent native addEffect eligibility",
+      "payload": "Slowness III -> MiningFatigue III -> Frozen I",
+      "bonus": null
+    }
+  ],
+  "future_runtime_fixtures": [
+    {
+      "id": "grounded",
+      "expected_static_contract": "x/z damped0.25; no added y",
+      "executed": false
+    },
+    {
+      "id": "airborne",
+      "expected_static_contract": "damped x/z then y-0.2",
+      "executed": false
+    },
+    {
+      "id": "ender_dragon",
+      "expected_static_contract": "horizontal damped; no extra downward term",
+      "executed": false
+    },
+    {
+      "id": "ice_dragon",
+      "expected_static_contract": "false -> ordinary removal request; no damping",
+      "executed": false
+    },
+    {
+      "id": "dead_dying",
+      "expected_static_contract": "false before fire branch",
+      "executed": false
+    },
+    {
+      "id": "burning",
+      "expected_static_contract": "clear fire then ordinary removal request; veto can retain Frozen",
+      "executed": false
+    },
+    {
+      "id": "creative_player",
+      "expected_static_contract": "true without damping unless earlier fire branch",
+      "executed": false
+    },
+    {
+      "id": "amplifier",
+      "expected_static_contract": "no amplification of core velocity formula",
+      "executed": false
+    },
+    {
+      "id": "hurt_false_weapon",
+      "expected_static_contract": "no ordinary primary item callback",
+      "executed": false
+    },
+    {
+      "id": "sweep_secondary",
+      "expected_static_contract": "no ordinary per-secondary Frozen item callback",
+      "executed": false
+    },
+    {
+      "id": "low_charge_blood",
+      "expected_static_contract": "bonus absent; statuses still attempted after admitted primary hit",
+      "executed": false
+    },
+    {
+      "id": "cold_null_active",
+      "expected_static_contract": "Frozen rejected if dispatch/list gates pass; vanilla companion effects independent",
+      "executed": false
+    },
+    {
+      "id": "cold_null_disabled_rule",
+      "expected_static_contract": "Resist onEffectAdded passes",
+      "executed": false
+    },
+    {
+      "id": "cold_null_sleep_rest_imprisonment_boss_ban",
+      "expected_static_contract": "outer dispatch can skip ColdNullification",
+      "executed": false
+    },
+    {
+      "id": "toggle_on_cleanse",
+      "expected_static_contract": "ordinary removal of matching holders, vetoable, zero AP/MP cost",
+      "executed": false
+    },
+    {
+      "id": "merge_expire_cure",
+      "expected_static_contract": "native merge/hidden-duration/removal events preserved",
+      "executed": false
+    },
+    {
+      "id": "disabled_weapon_ability",
+      "expected_static_contract": "outer wrapper suppresses both bonus and all status attempts",
+      "executed": false
+    },
+    {
+      "id": "damage_denied_dragon_area",
+      "expected_static_contract": "saved manager still attempts Frozen; full launch/collision route pending",
+      "executed": false
+    }
+  ],
+  "reference_files": [
+    {
+      "file": "native-evidence/iceandfire-frozen.json",
+      "sha256": "13b678ee1e094fd5e9876dbe383b276e1e03e08972d9ebd5dc12cdae283d5e60"
+    },
+    {
+      "file": "iceandfire-frozen-callers.json",
+      "sha256": "2ee7eb4d5d5f92c4db6915726caa65cfce06b27ec11ce444741c3db72eb21933"
+    },
+    {
+      "file": "iceandfire-frozen-config-snapshot.json",
+      "sha256": "046dffed6e3ec3b3e01e4cd0be4042ac3f1de30302ba7a4facc72e4cd6c4d808"
+    },
+    {
+      "file": "reference-evidence/iceandfire-frozen-tensura.json",
+      "sha256": "745cdd3c0250bb5223288b676d28f2e5f085f3208151a40bdb3b4ff6f3d0c516"
+    },
+    {
+      "file": "reference-evidence/iceandfire-frozen-244.json",
+      "sha256": "5bb066cfbb9e91cf269747964f707a84170fb681fbe7014b4d87c2faad3033b0"
+    },
+    {
+      "file": "annotation-evidence/iceandfire-frozen-javap.json",
+      "sha256": "50f9bfec233a65c7b1ca941db81e83b10822537563888deaee8539407b1f4027"
+    },
+    {
+      "file": "native-evidence/iceandfire-foundation.json",
+      "sha256": "7ec82347885b0666ebbfa8ea8650acd392efd90019a99aacf7e19a21d63f0fdc"
+    },
+    {
+      "file": "reference-evidence/vv-loader-244.json",
+      "sha256": "dfe810015f36cdea97cb304342459b0d95d0d4179a32bc2a64e01c0349934f48"
+    },
+    {
+      "file": "reference-evidence/twilight-equipment-244.json",
+      "sha256": "1ca1c0bacd1285636a145cb02e89adfea938b1c1226ed022464fb4e8543bff4d"
+    },
+    {
+      "file": "reference-evidence/twilight-frosted-244.json",
+      "sha256": "f8ea775daf3592c157707199bea3ade0b43cdc2e4f817644d863a4fab82bd909"
+    },
+    {
+      "file": "reference-evidence/twilight-food-flasks-244.json",
+      "sha256": "7d1356be19f944fa0e6a02e99171720df818df816fddff5e369d71c800a35289"
+    }
+  ],
+  "promoted_mechanics": 0,
+  "promoted_paths": 0,
+  "fully_reviewed_custom_damage_profiles": 0,
+  "review_required": [],
+  "remaining_native_ambiguities": null,
+  "exact_next_task": "R2g2b: finish Frozen dragon delivery roots from DragonBaseEntity.performNormalBreathAttack/breathAttack/performChargeAttack, IceDragonEntity.aiStep/shootIceAtMob/createCharge, flight-manager scorch/hover and rider paths, DragonChargeEntity.tick/onHit/canHitMob, IceDragonChargeEntity.destroyArea and DragonUtils team/grief predicates. Reuse the saved manager status/damage witnesses. Then close Frozen family, proceed Siren charm/Gorgon and other combat families. No runtime/L2/Stage/production work.",
+  "runtime_tests": 0,
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false
+}
