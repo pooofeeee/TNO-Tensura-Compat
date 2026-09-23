@@ -826,3 +826,7 @@ Avian volleys and source gates, real gust actor/target, rider damage/defenses, n
 ## R2g8d — Dread combat and summons
 
 Dread melee, summons, skull sources and defenses reviewed. Native Lich skull origin, unresolved Beast/Scuttler commanders, unreachable legacy necromancy and unregistered Queen are retained as availability limits. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/iceandfire-r2g8d-dread-review.md).
+
+## R2g9a — Remaining special weapons
+
+Post-hit bonus, fire and lightning paths, Dragonsteel chain, gauntlet/sweep, Dragonbone delivery and Tide Trident reviewed with single Stage points and distinct admission fixtures. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/iceandfire-r2g9a-weapons-review.md).
