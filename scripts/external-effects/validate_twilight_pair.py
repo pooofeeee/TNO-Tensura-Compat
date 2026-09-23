@@ -84,7 +84,11 @@ def validate_pair():
     enchant = next(n for n,i in enumerate(helper) if '.modifyDamage(' in str(i['operand']))
     assert helper[enchant-3]['opcode'] == '0x2a'
     ledger = read_json(OUT/'mod-reviews/twilightforest.json')
-    assert ledger['status']=='PARTIAL' and not ledger['effects'] and not ledger['paths']
+    assert ledger['status'] in {'PARTIAL','COMPLETE'}
+    if ledger['status']=='PARTIAL':
+        assert not ledger['effects'] and not ledger['paths']
+    else:
+        assert ledger['decision']=='TWILIGHT_FOREST_SEMANTIC_REVIEW_COMPLETE' and ledger['effects'] and ledger['paths']
     assert ledger['draft_mechanic_count']>=29 and ledger['draft_path_count']>=83
     return dict(schema='tno.external_effects.minoshroom_knight_integrity.v1',status='PASS',starting_sha=START,
                 decision=DECISION,boss_states=section['boss_states'],counts=section['counts'],

@@ -1,546 +1,225 @@
-# Twilight Forest — partial semantic owner table
-
-The installed4.8.3345 review is **PARTIAL** at **R2f8 remaining-content complete**: **277 mechanic-package drafts /1014 delivery cases**, **40/40 custom DamageType profiles USED**, zero unfinished types, REVIEW_REQUIRED0. Whole combat-significant semantic/source/exclusion/compatibility closure and all31 registered transformers reviewed; final distinct-record deduplication and promotion pending. Zero final Twilight records promoted. Protected sections/cloth erratum and accepted four mods116/161/217 preserved; runtime0.
-
-| Mechanic | Native behavior | Vanilla comparison | Classification / source coverage |
-|---|---|---|---|
-| Frosted | Stable eligible server tick adds amp+1 to frozen gauge, capped140. Movement modifier -0.15*(amp+1) total multiplier, plus native ground frost penalty. Native freeze request every40ticks when fully frozen; exact-freeze incoming bonus floor(amp/2). Admitted incoming fire down-ranks amplifier. | Shares Slowness coefficient and native freeze processing; additional state and incoming hooks make the complete status custom. Native add/merge/expire/cures remain. | CUSTOM_STATUS; Ice Sword, three Ice Bow ammo cases, armor, Chill Aura, two biome settings, all six bomb source/mode cases |
-| Ice Bomb package | Contact request2 or10; zone request1 or5, using custom frozen type. Frosted follows independently of hurt return. Landed zone runs six20tick callbacks in inflated AABB3/2/3. Yeti zone branch becomes ice blocks and is discarded. | Custom request/zone/control package through native damage and effect processing. Not vanilla freeze damage or direct HP subtraction. | CUSTOM_DAMAGE; player/dispenser/Alpha Yeti, each contact and zone |
-
-| Source | Exact important distinction | Future fixture |
-|---|---|---|
-| Ice Sword | Player primary hurt must succeed before item callback200/2. Sweep secondary victims do not get the item callback. | Primary success/failure and secondary sweep controls |
-| Ice Bow, ordinary/tipped/spectral | Once onHitEntity is entered, Frosted200/2 is independent of hurt result. Impact cancellation/deflection can prevent entry. Parent potion/glowing callback needs successful inherited hurt. Parent critical flag is not copied. Parent callback is lost after reload. | Three ammo paths; failed hurt; parry/deflection; full draw; save/load |
-| Yeti armor | LivingDamageEvent.Post, originalDamage>0, n pieces: causing Living attacker receives5n+5ticks/amp n. Post can exist with zero final HP damage. | Piece counts, absorption, early cancellation, projectile owner versus ownerless |
-| Chill Aura | Actual installed enchantment: per matching item chance0.15*level,200ticks/amp(level-1), then item durability request2 even if Frosted helper rejects. Targets causing attacker. | Native melee/arrow post-attack and secondary sweep controls, levels1–3 |
-| Biome enforcement | Every60ticks: Snowy Forest100/0 without progress_lich, Glacier100/1 without progress_yeti; progression gamerule required, noncreative/nonspectator. Does not use helper equipment filter. | Both biomes, advancement/gamerule and freeze-immune gear controls |
-| Player Ice Bomb | Owner=Player; speed1.25/inaccuracy1/pitch-5. Contact and zone differ. | Owned contact + zone, owner exclusion |
-| Dispenser Ice Bomb | Proven native registration; ownerless, speed1.1/inaccuracy6. | Ownerless contact + zone |
-| Alpha Yeti Ice Bomb | Native ranged goal, !canRampage; speed1.6, inaccuracy14-4*difficultyId. Living boss owner enables native difficulty scaling for Player victims. | Boss-owned contact + zone; only future testing |
-
-Frosted's helper rejects freeze-immune entity types, freeze-immune head/chest/legs/feet wearables and creative Players. Native canFreeze also checks spectator and BODY armor, so some recipients can receive movement slowdown without building freeze. Fresh Frosted uses default milk/totem cures; honey does not cure it. Fire Resistance and other pre-incoming immunity gates prevent the fire down-rank callback. Later shield/cooldown rejection does not necessarily prevent it.
-
-Ice Bomb's `twilightforest:frozen` is tagged magic and bypasses wolf armor, **not ordinary armor**. It lacks IS_FREEZING, projectile, fire, explosion, normal armor/shield/enchantment/Resistance/iframe bypass and no-knockback tags in the scoped native sources. Its explicit heat-sensitive multiplier occurs once. Normal mitigation applies. Save/load omits parent projectile serialization, losing owner and therefore original-thrower zone exclusion. Requests are not measured HP loss.
-
-One registered custom MobEffect: `twilightforest:frosted`. Forty custom damage declarations are pinned from R2f1; **31 caller profiles reviewed**,9 unfinished. Subsequent closed sources include lifedrain, moonworm, stale_sandwich and failed_challenge in addition to the earlier27. Unfinished declarations are not classified as unused. REVIEW_REQUIRED0; unfinished review is not ambiguity. Boss/defense sections and all protected nonboss sections remain closed. Current remaining content starts with passive entities, hazards, other structures/callbacks and ASM/source closure.
-
-Four pinned compatibility candidates have no direct Twilight name hits; generic conditional hooks remain, including Antidote duration reduction and player recipient/owner damage hooks. This is scoped static attribution, not pack-wide compatibility. No production fixes were made.
-
-Particles, sounds, color/icon, repair/acquisition and registration infrastructure are excluded as separate combat mechanics. Other mod areas remain unreviewed. Subset fixtures are preserved; global minimum runtime runs remain R3.
-
-Details: [reviewed section](semantic-sections/twilightforest-frosted.json), [current drafts](partial-drafts/twilightforest-r2f2-partial.json), [compat mapping](compat-findings/twilightforest-frosted.json), [progress validation](twilightforest-progress-integrity.json), [full validation](r2f2-partial-validation.json).
-
-## R2f3 — LICH_SEMANTIC_REVIEW_COMPLETE
-
-| Reviewed package | Native result | Classification |
-|---|---|---|
-| Shield resource | Default6, subtract1 only for admitted tagged request strictly>2; false return, no HP damage from the request | CUSTOM_RESOURCE |
-| HP admission / projectile defense | Cloak, clone and causing-Lich gates precede shield and native HP processing; phase2 already admits HP damage | BINARY_MECHANIC |
-| Lich Bolt | Custom6; phase1 Lich collision requires Player owner; native attack/projectile/parry reflection paths transfer ownership | CUSTOM_DAMAGE |
-| Lich Bomb | Custom radius2 entity explosion, no block destruction/fire; not shield-breaking; direct strikes detonate | CUSTOM_DAMAGE |
-| Phase summons | Real clone cap2, minion reserve9/active cap3; failed spawn attempt still spends reserve | CUSTOM_RESOURCE |
-| Mob absorption | Native discard then heal2 or owned-minion current HP; no damage source | CUSTOM_RESOURCE |
-| Teleport | Candidate/home search, cloak20, extinguish, combat goal/admission effects | CUSTOM_CONTROL |
-| Minion enrage | Successful inherited hurt from any causing Lich grants native Speed200/2 and Strength200/1 | VANILLA_LIKE_EXTENDED |
-| Twilight Scepter bolt | Native item launch; custom6 with ordinary armor processing, unlike Lich Bolt | CUSTOM_DAMAGE |
-
-**Shield break and HP damage remain separate.** `breaks_lich_shields` has five values; the tag alone is insufficient. Cloak/clone/causing-Lich rejection, raw amount>2, shield state and source delivery predicates still apply. Final shield break returns false; a separate later request from a compound attack can hit exposed HP. Phase2 does not require all minions dead to admit HP damage.
-
-Native reflection distinguishes direction from ownership. Player attack uses redirectable-projectile AIM before Bolt.hurt. Later-phase Lich deflection restores a prior nonnull owner; an initially ownerless projectile instead keeps the callback's new Lich owner because setOwner(null) is a no-op. Bombs never directly collide with Lich and do not carry the shield-breaking tag; a player-parried bomb can only attempt exposed HP damage through its later explosion.
-
-All21 requested semantic conclusions, 14 shield-source cases, rejected controls, custom/vanilla source tags and hurt-return dependencies are saved in the [Lich owner review](twilightforest-lich-review.md) and [machine-readable section](semantic-sections/twilightforest-lich.json). Source coverage includes all native tag identities and Minecraft factory caller dispositions, plus exact reuse of accepted Cult, Royal and Friends producers. This is static native-source coverage, not an assertion about all unreviewed modpack/datapack producers or runtime results.
-
-The [combined draft](partial-drafts/twilightforest-r2f3-partial.json) retains Frosted unchanged. [Lich integrity](twilightforest-lich-integrity.json), [shared progress integrity](twilightforest-progress-integrity.json), five tooling tests and [full validation](r2f3-lich-validation.json) protect this bounded checkpoint. Accepted global116 mechanics /161 paths /217 components remain unchanged; Twilight final totals and R3/R4 remain unfinished.
-
-Historical R2f3 next task (now completed): **Naga**, then Minoshroom / Knight Phantom, Hydra / Ur-Ghast, Alpha Yeti / Snow Queen. Do not repeat Lich or Frosted. Ice and Fire remains UNSTARTED. No runtime boss/L2 tests, production, Stage, Phase6 reopening, balancing or original Phase7 work.
-
-Historical R2f3 save boundary: usage reached75% during Lich finalization. Stop new research and protect R2f3 by validated commit/push/live-SHA equality. Naga has not started; it is the exact resume point.
-
-## R2f4 — NAGA_SEMANTIC_REVIEW_COMPLETE
-
-Recovered clean branch at local/fetched/live `d9dffb33a867aae9152a2ed3bc68f50b0b02f59d`; divergence0/0, no newer or conflicting work. Reused installed4.8.3345 source aids; no accepted subsection repeated.
-
-| Reviewed package | Native result | Classification |
-|---|---|---|
-| Head contact | Ordinary effective attack5 melee; successful inherited hurt adds explicit push | VANILLA_LIKE_EXTENDED |
-| Charge block | Native blocking during CHARGE produces mutual push, generic2 self recoil and daze; false return without victim melee | CUSTOM_CONTROL |
-| Stunless block | Player durability10/cooldown200/stop-use precede fixed mob_attack4; circle/false independent of hurt success | VANILLA_LIKE_EXTENDED |
-| Multipart body | Twelve linked Entity parts, no independent HP; same-source two-thirds forwarding and contact2/Animal6 | VANILLA_LIKE_EXTENDED |
-| Damage admission | Causing/direct home gates and explosion rejection before native fire/fall immunity and mitigation | BINARY_MECHANIC |
-| HP/body resource | HP controls segment count and additive speed; delayed regeneration and cumulative daze-damage counter | CUSTOM_RESOURCE |
-| Combat movement | Navigation-dependent circle/intimidate/crumble/charge/daze states, real movement inputs and HP-dependent selection | CUSTOM_CONTROL |
-| Terrain pressure | Predicate-limited obstacle/support destruction and home recovery affect combat delivery | CUSTOM_CONTROL |
-
-Eight packages /18 delivery cases. Classification totals: VANILLA_LIKE_EXTENDED3, CUSTOM_CONTROL3, CUSTOM_RESOURCE1, BINARY_MECHANIC1; all other classes0, REVIEW_REQUIRED0. Only native `minecraft:mob_attack` and ownerless `minecraft:generic` are used; no custom Naga DamageType. Four Twilight custom type profiles remain reviewed,36 remain unfinished. Naga closes no additional custom declaration.
-
-The head retains the native damage pipeline and shared hurt cooldown. Part forwarding preserves source identity and applies two-thirds before mitigation. Overlapping parts can produce multiple attempts, not thirteen independent full HP hits. Inactive parts shrink to zero size but the inherited visibility getter reads the parent, so local deactivation is not an absolute forwarding/targetability prohibition. This installed-code discrepancy is documented without a fix.
-
-Constructor health-per-segment remains12 before difficulty HP finalization (Easy120/Normal200/Hard250 with pinned multiplayer bonus modeNONE). Segment count stays12 until HP falls below120; living speed bonus increases from0.02 to0.12 as count falls to2. First undamaged regeneration is server-AI counter620, then every20; true hurt resets the timer. Daze interruption accumulates truncated admitted request amounts, not actual HP loss. Death has staged part cleanup, not extra part HP.
-
-[Complete review](twilightforest-naga-review.md), [semantic section and future controls](semantic-sections/twilightforest-naga.json), [combined draft](partial-drafts/twilightforest-r2f4-partial.json), [Naga integrity](twilightforest-naga-integrity.json), [full validation](r2f4-naga-validation.json). Future native fixtures distinguish home-bound spawner encounters from unrestricted spawn eggs, head/part/overlap hits, genuine Player blocking and charge state, mitigation/return versus HP, HP thresholds/regeneration, and terrain grief/helper predicates. No runtime fixtures executed.
-
-Save mode began at70% usage to reserve protection capacity. Minoshroom and Knight Phantom were not started. Exact next task: their semantic review using existing installed source aids, followed by Hydra / Ur-Ghast and Alpha Yeti / Snow Queen. Twilight remains PARTIAL with19/55 reviewed drafts and zero promoted records. Accepted116/161/217 totals are unchanged. No Ice and Fire, runtime boss/L2, Stage, production, fixes, balancing, Phase6 reopening or Phase7 work.
-
-
-## R2f5 — MINOSHROOM_KNIGHT_PHANTOM_SEMANTIC_REVIEW_COMPLETE
-
-Recovered clean local/fetched/live branch at `c30b8c98fbbd8aefad86088cd027d4156b22924f`, divergence0/0. No newer or conflicting work. Existing source aids and protected comparisons were reused; none of Frosted/Lich/Naga was reopened.
-
-| Boss | Reviewed packages | Delivery cases | Classification totals |
-|---|---:|---:|---|
-| Minoshroom | 4 | 11 | VANILLA_LIKE_EXTENDED1, CUSTOM_DAMAGE1, CUSTOM_CONTROL2 |
-| Knight Phantom | 6 | 17 | VANILLA_LIKE_EXTENDED2, CUSTOM_DAMAGE1, CUSTOM_CONTROL2, BINARY_MECHANIC1 |
-| New total | 10 | 28 | VANILLA_LIKE_EXTENDED3, CUSTOM_DAMAGE2, CUSTOM_CONTROL4, BINARY_MECHANIC1 |
-
-REVIEW_REQUIRED0. Current Twilight drafts29/83; zero promotions. Accepted global116 mechanics/161 paths/217 components remain unchanged.
-
-Minoshroom uses `axing` through its custom melee helper, with settled unenchanted attack11 and a sprinting Minotaur-axe incoming bonus7. Native Player difficulty scaling precedes that bonus. Charge is a snapshot navigation/one-attempt path; ground slam is a separate Player-only grounded AABB request at half effective attack, bypassing armor and transitively shields, with upward push before hurt. Ordinary axe shield disabling is native behavior. No special home damage gate, HP phase or regeneration is present. Charge terrain clearing and inherited accepted-lava cleanup have different predicates.
-
-Knight Phantom has independent HP and local nearby-Knight coordination, not a shared health/resource pool. Charging changes attack+7, armor multiplier and dimensions; inactive armor normally clamps30 versus charged11 with supplied equipment. Early guard false skips the normal shield damage/events pipeline. Actual block traversal does not imply damage immunity. Final-survivor random weapon selection is overwritten by setNumber(0), producing sword. Formation/progress persistence does not immediately restore charging flags or transient armor/attack modifiers.
-
-Native thrown axe6/pick3 retain a projectile owner but create DamageSources with direct=null and causing=null. Consequently native entity-owner difficulty scaling and directional source-position shield blocking do not apply. Native timed parry remains possible, but no reflected throw damages any Knight. Any accepted impact discards the projectile regardless of hurt result; payload is unsaved, so reloaded pick becomes default axe6/gravity.001 with owner retained. No pickup/ammunition resource or thrown-block attack is invented.
-
-The shared melee helper also passes the attacker, rather than victim, into EnchantmentHelper.modifyDamage and records lastHurtMob=self; exact bytecode comparisons preserve these differences. No fixes were made.
-
-Five custom profiles newly USED: **axing, slam, haunt, thrown_axe, thrown_pickaxe**. Nine of40 profiles are now reviewed;31 remain unfinished, not unused. Alternate Minotaur/Player tool paths and limited Wraith HAUNT caller evidence are explicit; full Wraith and unrelated knightmetal-block/thrown-block reviews are pending. No other family was begun.
-
-[Complete owner review](twilightforest-minoshroom-knight-review.md), [machine-readable packages and paths](semantic-sections/twilightforest-minoshroom-knight.json), [current combined draft](partial-drafts/twilightforest-r2f5-partial.json), [integrity](twilightforest-minoshroom-knight-integrity.json), [full validation](r2f5-minoshroom-knight-validation.json). Five future fixture groups cover native boss spawns, equipment/Player alternatives, native projectile/parry/load behavior, state/home/defense and group death controls. No runtime fixtures executed.
-
-Research stopped at68% usage to reserve protection capacity. Hydra and Ur-Ghast have NOT STARTED. They are the exact next task after review, followed by Alpha Yeti / Snow Queen. Twilight remains PARTIAL. No Ice and Fire, runtime boss/L2 tests, Stage/production, compatibility fixes, balancing, Phase6 reopening or Phase7 work. Validate, commit, push, verify live equality and STOP.
-
-
-## R2f6 — HYDRA_UR_GHAST_SEMANTIC_REVIEW_COMPLETE
-
-Recovered clean local/fetched/live `79b3284081ee71a1a5c5ec0b18af02595535e379`, divergence0/0. No newer or conflicting work. Earlier five subsections and all accepted catalog entries remain protected.
-
-| Boss | Packages | Delivery cases | Classification totals |
-|---|---:|---:|---|
-| Hydra | 8 | 22 | BINARY_MECHANIC1, CUSTOM_RESOURCE2, CUSTOM_CONTROL2, CUSTOM_DAMAGE3 |
-| Ur-Ghast | 8 | 21 | CUSTOM_RESOURCE1, CUSTOM_CONTROL3, CUSTOM_DAMAGE1, VANILLA_LIKE_EXTENDED2, VANILLA_DIRECT1 |
-| Added | 16 | 43 | REVIEW_REQUIRED0 |
-
-Twilight combined **45 package drafts /126 delivery cases**, PARTIAL, zero promoted records. Accepted116 mechanics/161 paths/217 components remain unchanged. Four new USED custom profiles: **hydra_bite, hydra_fire, hydra_mortar, ghast_tear**. Census13/40 reviewed,27 unfinished, not unused.
-
-Hydra has one360-HP pool,46 Entity parts and seven head counters (three initially active). Open-head requests forward unchanged; other parts/closed heads round(amount/8). Head counters add truncated requests even if HP damage is rejected. Strict counter>120 triggers head death/regrowth, separately from HP. Self/own-part/owner-distance/dead-head admission precedes native mitigation and shared cooldown. Regrowth and reloading have different semantics; no cauterization rule exists. Bite48 has independent blocking disruption/control; flame19 uses the actual moved-box/ray query and ignites only on true hurt. Mortar performs a native explosion then a distinct nearby18 fire request; normal Player reflection bypasses its separate hurt-reflection fuse/ground callback. Terrain/contact, inactivity heal, counters, state schedule, persistence and death are closed without fixes.
-
-Ur-Ghast's tantrum threshold is18 actual counted HP loss, with hurtTime/alive/trap predicates; no fixed duration. Tantrum divides incoming amount by10 and periodically checks Players below for sky-visible ghast_tear3, plus independent ghastling lift. Tear damage bypasses armor/shield but retains helmet reduction, Resistance/protection/absorption/cooldown. Live custom volley fires three16-impact projectiles with a separate ownerless explosion; reflected identity is native and no boss1000-hit rule exists. Saved minecraft:fireball type recreates vanilla6/MOB-explosion behavior. Minions have no master/target inheritance; six spawn attempts per selected trap, own targeting and native fireballs, and minion load restores6HP. Nearby ghastling consumption discards then heal(2), with normal heal event/clamp. Trap charge requires three unique dying ghastlings and a redstone neighbor event; active120 ticks force normal phase/velocity and random generic7 boss or10 other Ghast requests. Control does not depend on hurt success. Rain is client-only; visualOnly lightning suppresses damage/fire but preserves native rod/copper/game-event callbacks, explicitly classified VANILLA_DIRECT.
-
-[Complete owner review](twilightforest-hydra-urghast-review.md), [machine-readable mechanics and paths](semantic-sections/twilightforest-hydra-urghast.json), [combined draft](partial-drafts/twilightforest-r2f6-partial.json), [caller census](twilightforest-hydra-urghast-caller-scan.json), [integrity](twilightforest-hydra-urghast-integrity.json), [full validation](r2f6-hydra-urghast-validation.json). Installed JAR/method/resource witnesses, raw1.21.1 and exact NeoForge21.1.244 references are reproducible. Five tooling tests, prior-file preservation, source/delivery/classification checks and research-only boundary validation protect this checkpoint. No runtime boss/L2 tests performed.
-
-Exact next task: **Alpha Yeti + Snow Queen semantic review**, reusing existing source aids and protected Ice Bomb evidence. Do not repeat accepted sections. No Stage/production, balancing, compatibility fixes, Phase6 reopening or Phase7. Updated user authorization on2026-09-22 replaces the earlier percentage stop rule: commit/push/live-verify R2f6, then continue while current usage is healthy. Ice and Fire stays blocked until full Twilight completion and promotion are protected.
-
-
-## R2f7 — ALPHA_YETI_SNOW_QUEEN_SEMANTIC_REVIEW_COMPLETE
-
-R2f6 was committed, pushed and live-verified at `99c3e9e55663347f9ea23042f041d9ad512da7ec` before this subsection began. Existing Frosted, Lich, Naga, Minoshroom, Knight Phantom, Hydra and Ur-Ghast evidence remains protected. No research was restarted.
-
-| Owner | Packages | Delivery cases | Classification totals |
-|---|---:|---:|---|
-| Alpha Yeti | 7 | 22 | BINARY_MECHANIC1, CUSTOM_RESOURCE1, CUSTOM_CONTROL2, CUSTOM_DAMAGE2, VANILLA_LIKE_EXTENDED1 |
-| Snow Queen | 8 | 19 | BINARY_MECHANIC1, CUSTOM_RESOURCE1, CUSTOM_CONTROL3, CUSTOM_DAMAGE2, VANILLA_LIKE_EXTENDED1 |
-| Added | 15 | 41 | REVIEW_REQUIRED0 |
-
-Twilight combined **60 package drafts /167 delivery cases**, PARTIAL, zero promoted records. Accepted116 mechanics/161 paths/217 components are unchanged. Four new USED custom types: **falling_ice, yeeted, squish, chilling_breath**. Census17/40 reviewed;23 unfinished, not unused.
-
-Alpha Yeti initially rejects projectile-tagged sources before native damage processing until a true accepted hit unlocks rampage or while tired. Rampage/tired counters measure goal calls/evaluations, not guaranteed game ticks or HP thresholds. Its fall callback requests ordinary mob_attack5 in an area before native self-fall processing; successful hurt alone adds upward motion. Ceiling conversion creates ownerless falling ice; target-ceiling and random-ceiling grief predicates differ. Falling damage is min(floor(ceil(distance-5)*difficulty coefficient),100), excludes all Alpha Yetis, bypasses enchantments but retains armor/Resistance/absorption/cooldown. Placement and hurt returns are separate.
-
-Native grabs/releases have no immediate damage. Player throws attach transient state and send impulses; a later admitted exact fall callback cancels that source and re-enters native hurt with yeeted using the captured incoming amount and thrower attribution. Native difficulty, fall protections and other hooks remain. NonPlayer throws do not receive that attachment. Hostile mount/dismount/teleport-event/suffocation controls and reload/landing/water ordering are explicit. Ordinary and rampage IceBomb producers link the two protected Frosted packages without duplicating their semantics.
-
-Snow Queen has one ordinary200-HP body in every phase and seven geometric shield parts without HP. Parts do not forward damage or break; piercing AbstractArrow returns true only for native projectile bookkeeping. Collision push precedes hurt; accepted hits add Y+.4. DROP contact and melee use squish with effective attack7; other phases use mob_attack. Beam phase counts integer original requests only on true body hurt, independently of actual HP loss;25 resets to SUMMON. Drop-count completion does not require a hit. The chilling_breath4 ray has no block clip and can attack multiple progressively-nearer candidates in query order; it is neither a projectile nor Frosted. Summoned IceCrystals have no master and all nearby crystals count; failed teleports still spend a summon, saved/reloaded summoned crystals lose their600-tick expiry. Native melee, biome melting, terrain clearing, phase persistence and death callbacks are resolved.
-
-[Owner review](twilightforest-yeti-queen-review.md), [mechanics and paths](semantic-sections/twilightforest-yeti-queen.json), [combined draft](partial-drafts/twilightforest-r2f7-partial.json), [caller scan](twilightforest-yeti-queen-caller-scan.json), [integrity](twilightforest-yeti-queen-integrity.json), [full validation](r2f7-yeti-queen-validation.json). Installed native methods/resources and raw1.21.1/exact NeoForge21.1.244 comparisons are reproducible;21 complete declared native classes plus producer/event/registration witnesses. Two protected Frosted packages are linked, zero duplicated.
-
-Exact next task: **Task C remaining Twilight combat content**, using existing source aids. Close the remaining23 custom type callers, mobs/minibosses, weapons/scepters/staves, armor/charms, projectiles/hazards/resources/control, source/delivery/compatibility attribution and exclusions. Protect each complete subsection toward R2f8, then perform final deduplication/promotion only after all semantics close. Current usage healthy; continue after push/live verification. No runtime boss/L2, Stage/production, balancing/fixes, Phase6 reopening or Phase7. Ice and Fire remains blocked until full Twilight completion is protected.
-
-
-## R2f8a — TWILIGHT_RANGED_MOBS_SEMANTIC_REVIEW_COMPLETE
-
-R2f7 was pushed and live-verified at `cb929fb7833eb27ddc3c16126f281cc62247421a`; clean tree before continuation. This bounded Task C subsection adds **13 reviewed mechanic packages /28 delivery cases**: CUSTOM_CONTROL4, CUSTOM_DAMAGE4, VANILLA_LIKE_EXTENDED5. Combined Twilight **73/195 drafts**, PARTIAL, zero promotions. REVIEW_REQUIRED0. Accepted global116/161/217 counts remain unchanged.
-
-Fire Beetle and Winter Wolf share a retaliation-only breath goal using lastHurtByMob, current range/LOS and saved aim position; one selected Living winner comes from a moved local box and30-block ray. Fire Beetle requests scorched2 and ignites10 seconds only on true breath hurt. Winter Wolf requests ordinary mob_attack2, without Frosted or freezing. Mist Wolf adds native Blindness only after successful melee with raw brightness0 at the wolf and a nonsolid current block; Easy omits it, Normal140/Hard300 ticks.
-
-NatureBolt2 and TomeBolt3 custom types bypass armor/shield and apply native Poison or Slowness only after true hurt. Native installed Poison uses ownerless neoforge:poison1 (raw Minecraft uses magic), independently of the bolt source. Druid Hoe/Stick/Bow goal admission and permanent baby state are documented, including native SwarmSpider jockey production. Death Tome lectern gaze/retaliation/hurt release, immediate shot, saved lectern state and fire-input multiplier2 are closed. SlimeBlob is ordinary thrown4 without slow; Stable Ice Core snowball uses custom magic/projectile2 while retaining armor and applying no Frosted. All four projectiles inherit ITFProjectile and native timed parry/owner serialization.
-
-Unstable Ice Core uses ordinary melee and delayed death60 native radius1 explosion. Its separate grief-gated block transmutation can still run after the explosion itself is canceled; shape/material/resistance/color rules are explicit. Neither ice-core subtype's appearance implies freezing attacks. Protected BaseIceMob/Frosted/boss evidence is reused.
-
-New USED profiles: **scorched, leaf_brain, lost_words, schooled, snowball_fight**. Census22/40 reviewed;18 unfinished, not unused.18 complete declared native classes plus limited registration/producer/color witnesses are pinned. Full SwarmSpider, SnowGuardian equipment and remaining mobs/items/hazards stay pending, not falsely marked complete.
-
-[Detailed review](twilightforest-ranged-mobs-review.md), [semantic packages and sources](semantic-sections/twilightforest-ranged-mobs.json), [explicit review inputs](review-inputs/twilightforest-ranged-mobs.json), [caller audit](twilightforest-ranged-mobs-caller-scan.json), [integrity](twilightforest-ranged-mobs-integrity.json), [full validation](r2f8a-ranged-mobs-validation.json).
-
-Exact next task: **remaining melee/control mobs and minibosses**, followed by items/armor/charms/scepters/projectiles and hazards/resources. Close remaining18 custom types and source/delivery/compatibility/exclusion coverage toward R2f8, then deduplicate/promote Twilight only after all content closes. No runtime boss/L2, Stage/production, fixes/balancing, Phase6 or Phase7. Ice and Fire remains blocked until final Twilight protection. Current usage healthy; continue after commit/push/live equality.
-
-## R2f8b — Mounted mobs complete
-
-[Detailed review](twilightforest-mounted-mobs-review.md) and [machine-readable packages/paths](semantic-sections/twilightforest-mounted-mobs.json) close both goblin knights, their mounted attack delegation, shared directional shield, independent armor stripping and timer-sensitive heavy spear; Pinch Beetle capture/clamped/boat destruction; and ordinary Yeti anger with protected throw/fall reuse. Nine native class surfaces are fully pinned, with raw Minecraft and exact NeoForge references.
-
-Shield wear/axe disabling/final shield break precede ordinary hurt; the breaking hit does not damage HP. The heavy modifier is +12 ADD_MULTIPLIED_BASE (default104 attack), and the goal can miss timer25 because it does not request every-tick updates. Pinch capture precedes damage; clamped is physical/no_knockback, while boat pickup destroys the boat through kill without DamageSource. Yeti anger changes follow range4 to12 before hurt approval and persists. These are static conclusions, not runtime observations.
-
-Current totals81 package drafts /215 delivery cases;23/40 custom caller profiles,17 unfinished; REVIEW_REQUIRED0, zero promoted. [Integrity](twilightforest-mounted-mobs-integrity.json) / [full validation](r2f8b-mounted-mobs-validation.json). Next: BlockChainGoblin/SpikeBlock, giants and remaining melee mobs, followed by remaining items/hazards/resources toward R2f8 and final whole-Twilight promotion.
-
-## R2f8c — Chain and spike paths complete
-
-[Detailed chain review](twilightforest-chain-review.md) / [semantic records](semantic-sections/twilightforest-chain.json) close all native SPIKED callers: Goblin melee uses directGoblin/causingSpikeBlock, while player-thrown ChainBlock uses directprojectile/causingowner. Goblin part collision instead uses ordinary mob_attack. SPIKED is physical but not projectile-tagged.
-
-The item has separate launch/UUID/return, damage, pre-hurt shield disruption and Destruction terrain/budget semantics. Destruction decreases entity damage by1.5 perlevel; shield disruption precedes damage approval. Projectile smash count and owner return-cost count differ, with no native transfer. A separate legitimate mining-start callback on the Player can populate the owner budget while the mainhand chain remains in flight; it persists across throws and can repeatedly charge return durability. Save/load reconstructs a separate projectile item stack and omits hand/return velocity state. Eleven native class surfaces plus registration and recursive tool-tag evidence are pinned. No changes or runtime tests.
-
-Totals88 drafts /237 cases;24/40 custom profiles,16 unfinished; REVIEW_REQUIRED0, zero promoted. [Integrity](twilightforest-chain-integrity.json) / [full validation](r2f8c-chain-validation.json). Exact next: giants and remaining melee content, then the other unreviewed item/hazard/resource paths toward R2f8 and final Twilight promotion.
-
-## R2f8d — Giants and maze tools complete
-
-[Detailed review](twilightforest-giants-tools-review.md) / [semantic records](semantic-sections/twilightforest-giants-tools.json) close GiantMiner and ArmoredGiant ANT melee with native equipped requests11/13 and ordinary ironarmor15. Player-held weapons use player_attack with default10/12 and shared +2.5 interaction-range modifiers; those modifiers do not increase native mob melee geometry. GiantPick terrain uses an aligned64-position same-block volume with native per-block admission, transient recursion state, and separately traced loot grouping. Mazebreaker tagged speed×16 and the generic extra16 durability rule are closed for reuse. No runtime tests or changes.
-
-Four new packages /16 paths; current92/253 drafts,25/40 custom profiles,15 unfinished, REVIEW_REQUIRED0, zero promoted. [Integrity](twilightforest-giants-tools-integrity.json) / [full validation](r2f8d-giants-tools-validation.json). Next: remaining melee/control mobs, starting spiders/swarm and MosquitoSwarm, then other unfinished mobs/items/hazards/resources toward R2f8 and final promotion.
-
-## R2f8e — arthropods and infested towerwood
-
-Protected predecessor: `f87c0a08b85f49b88c4262d4852066bea8199fe9` (R2f8d, live verified). This subsection adds **7 reviewed packages /24 delivery cases**, bringing Twilight to **99/277 drafts**, zero promoted. Custom DamageType census remains **25/40**,15 unfinished; REVIEW_REQUIRED0.
-
-Full declared bodies for HedgeSpider, KingSpider, SwarmSpider, TowerBroodling, MosquitoSwarm, HelmetCrab, TowerwoodBorer and its goals, AlwaysWatchTargetGoal and InfestedTowerwoodBlock are pinned. Native Spider inheritance proves the King vehicle-start veto and distinct rider compositions. Mosquito Hunger is native food exhaustion; later starvation retains a separate ownerless source. Borer reinforcement is scheduled before final incoming hurt admission and requires a legitimate infested-block callback to release a fresh mob. Grief-denied replacement releases none. Crab native armor/melee/leap and blue rendering are exclusions.
-
-See [semantic review](twilightforest-arthropods-review.md), [machine-readable section](semantic-sections/twilightforest-arthropods.json) and [validation](r2f8e-arthropods-validation.json). Exact244 loader hooks/tags, full raw Spider/Hunger authority, zero native getReinforcementType callers and earlier protected evidence support the conclusions. No runtime or production changes.
-
-Next: remaining melee/control mobs and unfinished undead/summon bodies, then remaining items/hazards/custom callers and whole-Twilight promotion. IceAndFire remains unstarted until Twilight COMPLETE is pushed.
-
-## R2f8f — Redcap/Sapper, Kobold and Troll
-
-Protected predecessor: `ce8cafbf6c2fb8108f8db7cba46eb4a3cc9a12ff` (R2f8e, live verified). Adds **8 reviewed packages /28 delivery cases**, bringing Twilight to **107/305 drafts**, zero promoted. `thrown_block` is USED through its actual caller: custom census **26/40**,14 unfinished; REVIEW_REQUIRED0.
-
-Redcap and Sapper have native equipped melee5, ordinary armor2/4, shyness/TNT avoidance, TNT lighting and Sapper-only three-charge planting. Their blast uses ordinary native TNT; actual igniter, chain and reload state control source ownership. Kobold bread pickup/consumption, acquisition versus retaliation, panic and flock navigation are separate contracts. Troll uses a real carried projectile and a new thrown projectile, follow-range/task state and a saved-state Air fallback. Its projectile requests6 with **no direct entity, causing entity or source position**, retaining helmet processing and native mitigation; timed parry changes projectile ownership but does not repair that source identity.
-
-Boggard is an assessed exclusion: full registration and all-class reference evidence find no registered entity/native producer, so no mechanic or delivery is promoted from its unused class. Troll death ripening and Kobold munch visuals are also documented exclusions.
-
-[Semantic review](twilightforest-tactical-mobs-review.md), [packages and paths](semantic-sections/twilightforest-tactical-mobs.json), [integrity](twilightforest-tactical-mobs-integrity.json), [validation](r2f8f-tactical-mobs-validation.json). Full19 class surfaces, exact244/raw references, actual caller census, five tooling tests and preservation checks protect this subsection.
-
-Next: CarminiteGolem, Adherent/HarbingerCube registration/body status, MazeSlime, SnowGuardian, RisingZombie/LoyalZombie and remaining Wraith/Minotaur bodies; then items/hazards/callers and final Twilight promotion. No runtime, L2, Stage, production, Phase6/7 work. IceAndFire remains unstarted.
-
-## R2f8g — constructs, Maze Slime and Snow Guardian
-
-Protected predecessor: `ac50a160beb2abdf1524aa1ebee824a46a354891` (R2f8f, live verified). Adds **5 reviewed packages /21 delivery cases**, bringing Twilight to **112/326 drafts**, zero promoted. Custom census stays **26/40**,14 unfinished; REVIEW_REQUIRED0.
-
-CarminiteGolem ordinary melee9 only adds its vertical push on successful hurt. MazeSlime uses native size/contact/splitting with triple base health, harmful tiny/NoAI contact and exact244 cancellable splitting; saved health loads after the temporary size refill, so ordinary reload healing is not claimed. SnowGuardian spawns only three equipment slots with four loadouts, ordinary melee and protected Knightmetal/BaseIce reuse. Adherent has registered native ranged behavior and a legitimate administrative summon path, but no proved survival producer; HarbingerCube is registered without an attack goal/callback and is an assessed exclusion.
-
-[Semantic review](twilightforest-constructs-slimes-review.md), [packages and paths](semantic-sections/twilightforest-constructs-slimes.json), [integrity](twilightforest-constructs-slimes-integrity.json), [validation](r2f8g-constructs-slimes-validation.json). Six full native bodies, actual world/equipment callers, raw/exact244 Slime inheritance, source/path checks, five tooling tests and prior-checkpoint preservation protect this subsection.
-
-Next: Wraith/Minotaur remaining bodies, RisingZombie graveyard conversion, LoyalZombie/ZombieWand resource/feed/expiry and native producers; then utility/passive exclusions and remaining items/hazards/custom callers. No runtime or production changes. IceAndFire remains unstarted until Twilight COMPLETE is protected.
-
-## R2f8h — Wraith, Minotaur and Rising Zombie
-
-Protected predecessor: `8795e3ad0def055395914c77ab7da9ae4d95060a` (R2f8g, live verified). Adds **4 reviewed packages /20 delivery cases**, bringing Twilight to **116/346 drafts**, zero promoted. Custom census stays **26/40**,14 unfinished; REVIEW_REQUIRED0.
-
-Wraith's obstacle-free flight/home and every-tick melee scheduler are closed; its protected HAUNT request precedes a separate ordinary melee request and does not imply10 HP damage. Minotaur's native gold-axe roll, charge geometry and terrain veto reuse the protected AXING/sprint package. RisingZombie has a nearest-player gaze trigger, unsaved rising counter, native conversion preserving current health, and an exact in_wall immunity override that skips superclass immunity checks; movement and HP admission are separate.
-
-[Semantic review](twilightforest-restless-mobs-review.md), [packages and paths](semantic-sections/twilightforest-restless-mobs.json), [integrity](twilightforest-restless-mobs-integrity.json), [validation](r2f8h-restless-mobs-validation.json). Nine full native class bodies, producer census, raw/exact244 inheritance and all five tooling tests are validated with previous-checkpoint/accepted-mod preservation.
-
-Next: LoyalZombie/ZombieWand ownership, targeting, feeding, Strength lifetime/expiry and shared scepter durability/recharge, then remaining utility/passive mobs, items/hazards/resources and14 unfinished source profiles. Twilight remains PARTIAL. No runtime/production changes; IceAndFire only after protected final Twilight completion.
-
-## R2f8i — Loyal Zombie and shared scepter resources
-
-Protected predecessor: `696eb25903f23324bbedb90116fd7a41a395dd20` (R2f8h, live verified). Adds **9 reviewed packages /28 delivery cases**, bringing Twilight to **125/374 drafts**, zero promoted. Actual `expired` caller makes the custom census **27/40**,13 unfinished; REVIEW_REQUIRED0.
-
-Native Zombie Scepter summon/ownership, fixed7 attack, true-only push, Strength-gated expiry, independent owner feed operations, scoped target vetoes, native follow teleport and persistent Crown baby are closed. Shared persistent durability charges and Renewal hand/inventory callbacks remain separate from manual crafting. Actual manual Zombie repair matches potion item IDs while Renewal checks Strength potion components; the installed difference is preserved. EXPIRED bypasses ordinary armor/Resistance and standard Protection/totem predicates but still uses native hurt/event processing.
-
-[Semantic review](twilightforest-summon-resources-review.md), [packages and paths](semantic-sections/twilightforest-summon-resources.json), [integrity](twilightforest-summon-resources-integrity.json), [validation](r2f8i-summon-resources-validation.json). Five full native class surfaces, actual source/resource caller census, recipe/tag data and exact native comparison chains are pinned. Five tooling tests and evidence/source/path/prior-checkpoint/accepted-mod/scope validation protect this subsection.
-
-Next: Fortification shield attachment/event/timer/producers and Lifedrain target/damage/control/execute/heal/food, reusing these resources; then remaining utility entities/items/hazards and13 unfinished types before final Twilight promotion. No runtime/production changes; IceAndFire remains unstarted.
-
-## R2f8j — Fortification and Lifedrain native payloads
-
-R2f8i was pushed/live verified at `5f56f39696e7c17c4eccd8314f3953ef14578aeb`. Seven reviewed packages/26 delivery cases bring Twilight to **132 package drafts/400 cases**. LIFEDRAIN is USED through its real caller: **28/40** custom profiles reviewed,12 unfinished. REVIEW_REQUIRED0; zero Twilight promotions and unchanged four accepted mods.
-
-The review separates Fortification count/timer/persistence from its binary incoming-event cancellation, and Lifedrain selection/source damage from low-health execution, admitted restoration, independent motion and Crown charge saving. The nonPlayer native die/discard branch is documented separately from the Player second hurt request; no compatibility implementation or balancing change is made. Protected Lich shields, Twilight bolt and shared scepter resources remain unchanged.
-
-[Contracts](twilightforest-scepter-payloads-review.md), [packages and paths](semantic-sections/twilightforest-scepter-payloads.json), [integrity](twilightforest-scepter-payloads-integrity.json), [validation](r2f8j-scepter-payloads-validation.json). Five full native class surfaces, all-TF actual caller scan, raw Minecraft/exact244 comparison and semantic/source/path/prior-checkpoint checks protect this subsection with all five tooling tests.
-
-Next: remaining player projectile/utility weapons (Moonworm Queen, Cube of Annihilation, Ender/Seeker/Triple bows, Peacock Fan), then armor/charms/food, utility/passive entities, hazards/custom sources and exact nested ASM/compatibility closure before final Twilight promotion. No runtime boss/L2/Stage/production/Phase6/7; IceAndFire only after Twilight COMPLETE is pushed and verified.
-
-## R2f8k — Moonworm Queen and Cube of Annihilation
-
-R2f8j was pushed/live verified at `e5c8d8929aca86db5c3d0f9a7925cd662714fab1`. Seven packages/26 delivery cases bring Twilight to **139 package drafts/426 cases**. The actual MOONWORM caller advances the custom census to **29/40**,11 unfinished. REVIEW_REQUIRED0, zero Twilight promotion; four accepted mods unchanged.
-
-Native Queen release/dispenser/direct placement have different success and durability gates. Moonworm bare-head equipment is separate from random zero/one damage and independent failure loot. Cube uses owner melee sources for fixed10, has native shield-disable delivery but no shield-block ability, and removes terrain only after event/tag/resistance/adventure admission. Its per-stack UUID, steering, return, save and null-stack boundaries are preserved. Cube has a registered native item path; no survival recipe/loot acquisition is inferred from its WIP name.
-
-[Contracts](twilightforest-utility-projectiles-review.md), [packages and paths](semantic-sections/twilightforest-utility-projectiles.json), [integrity](twilightforest-utility-projectiles-integrity.json), [validation](r2f8k-utility-projectiles-validation.json). Ten full native class surfaces, actual instruction/data census, raw/exact244 reference chains, semantic/source/path/preservation checks and all five tooling tests protect this subsection. No runtime work or fixes.
-
-Next: Ender/Seeker/Triple bows and Peacock Fan, then armor/charms/food, utility/passive entities, hazards/11 unfinished types and nested ASM/compatibility closure before whole-Twilight promotion. IceAndFire only after COMPLETE Twilight pushed/live verified. No boss/L2/Stage/production/Phase6/7 work.
-
-## R2f8l — Ender/Seeker/Triple bows and Peacock Fan
-
-R2f8k was pushed/live verified at `3cc6c3220519ccea8ae88db90a90fa0ae20633b6`. Eight packages/26 delivery cases bring Twilight to **147 package drafts/452 cases**. Custom census remains **29/40**,11 unfinished; REVIEW_REQUIRED0, zero promotion, unchanged four accepted mods.
-
-Ender swap occurs in the native impact event before HP damage. Seeker uses priority-based steering and a real unsaved parent-arrow effect delegate; reflected HP and delegated-effect ownership can differ. Triple Bow emits three native arrows per Player draw entry and conditionally clears target cooldown in LivingDamageEvent.Post when its Player cause currently holds Triple in the remembered used hand. Early rejected hits cannot reach that reset; admitted zero-HP Post can. Triple wears before construction; an actual final-durability break reaches the native empty-weapon rejection. Native skeletons use customArrow instead of Triple's volley method. Peacock Fan separates client boost, server velocity replacement, client Player push, fall-context marker, terrain and Living-only dispenser behavior; its conditional cooldown reads the previous use item. These installed contracts are preserved without fixes.
-
-[Contracts](twilightforest-bows-fan-review.md), [packages and paths](semantic-sections/twilightforest-bows-fan.json), [integrity](twilightforest-bows-fan-integrity.json), [validation](r2f8l-bows-fan-validation.json). Eight full native class surfaces, actual caller census, raw/exact244 inheritance, semantic/source/path/preservation checks and all five tooling tests protect this subsection. No runtime tests.
-
-Next: remaining armor/charms/food and utility resources, utility/passive entities, hazards/11 unfinished types and nested ASM/mixin/event/compatibility closure before final Twilight promotion. IceAndFire only after COMPLETE Twilight pushed/live verified; no boss/L2/Stage/production/Phase6/7 work.
-
-## R2f8m — Conventional equipment, Fiery/Glass and Stale source routing
-
-Protected input R2f8l `9588519010ff6b717f8921e8d447f3342dc34aa4`. Adds **8 reviewed mechanic packages / 24 delivery cases**, bringing Twilight to **155 package drafts / 476 delivery cases**, still PARTIAL with zero promotions and REVIEW_REQUIRED0. **30/40 custom DamageTypes** now have reviewed actual callers; `stale_sandwich` is newly USED, ten remain unfinished.
-
-Fiery Incoming ignition, successful Player melee ignition and armor Post retaliation are separate native paths. Glass custom shatter and inherited wear are independent, while the actual infinite lore variant carries both required protection components. The installed nested ASM service/transformer proves Stale Bread replaces real mobAttack/playerAttack factory results and also applies to the existing Cube owner factory path. It does not change attack amounts or target eligibility. Knightmetal Shield retains native shield/parry contracts; conventional attributes, recipe enchantments, Arctic snow/freeze and crown HEAD armor are saved with native references.
-
-See the equipment semantic section, caller scan, nested archive/service witnesses, integrity and full-validation report. Previous accepted116/161/217 catalog bodies are unchanged. No runtime boss/L2/Stage/production/fixes/Phase6/7 work.
-
-Next: Charms of Life/Keeping, Phantom retention and Keepsake Casket death/respawn paths; then Travellers modifiers, remaining utilities/food/passive entities/hazards, ten custom DamageTypes and full nested ASM/compatibility closure. IceAndFire only after complete Twilight is pushed and live verified.
-
-## R2f8n — Charms, Phantom retention and Keepsake Caskets
-
-Protected input R2f8m `7449fff57d659e0bfd004e6fd5c9f4b1c78a5eaf`. Adds **8 reviewed packages / 30 delivery cases**, bringing Twilight to **163 package drafts / 506 delivery cases**, still PARTIAL with zero promotions and REVIEW_REQUIRED0. DamageType coverage remains **30/40**, ten unfinished.
-
-Life charms act at the native death event, with exact health writes and effect payloads distinct from the earlier Totem path. Keeping tiers, independent Phantom/TowerKey retention, persisted respawn slots, casket reservation/placement/storage and repair/access rules are recorded. The real KeepingI varargs call creates an empty list, so it does not retain the selected main slot. Native casket opening uses owner-or-operator, while breaking a nonempty owned casket requires owner-and-operator. Full-inventory return loss and pre-placement consumption remain unchanged source-proven behavior.
-
-Selected installed Curios9.5.1 methods close Twilight's real accessory consumption/drop/clone dependency, including active versus cosmetic slots, identity overrides, persisted token behavior and same-tick cached-reference boundaries. This is not a new family review or a runtime compatibility test. CharmEffect and animation packets are visual exclusions.
-
-See the charms semantic section, caller scan, native and selected dependency witnesses, integrity and full-validation report. Accepted116/161/217 catalog bodies remain unchanged; runtime boss/L2/Stage/production/fixes/Phase6/7 remain untouched.
-
-Next: Travellers gear/modifiers and their actual ASM/event control paths; then remaining utility/food/passive entities/hazards, ten custom DamageTypes and whole-mod ASM/compatibility/source closure before final Twilight promotion. IceAndFire only after complete Twilight is pushed and live verified.
-
-## R2f8o — Travellers core modifiers and equipment state
-
-Protected input R2f8n `bf7b2fc69d8adab76096b99f49850a3d52206861`, rechecked by fetch/live equality after the latest continuation request. Adds **11 reviewed packages / 38 delivery cases**, bringing Twilight to **174 mechanic drafts / 544 delivery cases**, still PARTIAL, zero promoted, REVIEW_REQUIRED0. DamageTypes remain **30/40**, ten unfinished.
-
-[Reviewed contracts](twilightforest-travellers-core-review.md) close registry/components and activation, genuine modifier recipes/transfer/removal, base equipment attributes, last-durability wear and stored attributes, Auto-Repair, Perfect Dodge, Arrow Magnetism, All-Night, Stealth, Haste, Aquatic Agility and Efficient Eater. Nineteen declared class bodies and selected event/loader/native dependencies are pinned. The actual nested ASM transformer restricts Efficient Eater to movement statistics and jumping.
-
-Native common components and constructor ordering prove Gloves/Belt have empty armor attributes despite their material values. Broken gear can retain removed Aquatic attributes in its separate saved component; native grindstone removal followed by material repair restores those entries without the modifier marker. Both are recorded source behavior without production changes. Arrow recovery discards without canceling its block-impact event; Perfect Dodge instead vetoes the native impact before damage. Piglin/snow item predicates are independent of the broken-modifier gate.
-
-[Integrity](twilightforest-travellers-core-integrity.json) and [full validation](r2f8o-travellers-core-validation.json) cover native/reference reproduction, semantic guards, source/path links, all five tooling tests, previous-checkpoint/accepted-mod preservation and research-only boundaries. Runtime0; Stage/production/Phase6/7 untouched.
-
-Next: Travellers movement/control and exact installed ASM/packets, then belt/display/zoom and Emperor cloth. Continue remaining utility/food/passive entities/hazards, ten custom DamageTypes and complete ASM/compatibility/source exclusions before R2f8 and final Twilight promotion. Protect each complete subsection and continue while actual usage permits. IceAndFire only after Twilight COMPLETE is pushed and live-verified.
-
-## R2f8p — Travellers movement, native physics and packet state
-
-Protected input R2f8o `3462e60868bb8877855ae2a441379c61a322a90c`, fetched and live-verified with a clean working tree. Adds **11 reviewed packages / 40 delivery cases**: Twilight now has **185 mechanic drafts / 584 delivery cases**, still PARTIAL, zero promoted, REVIEW_REQUIRED0. DamageTypes remain **30/40**, ten unfinished.
-
-[Reviewed contracts](twilightforest-travellers-movement-review.md) close Water Walk, Unrestrained, Swift Swim, High Step, High Jump, Slimy Soles, Gradual Glide, Double Jump, Sidestep, Straight Ahead and Agile Ranger. Nine complete declared logic/state/packet classes and eight installed movement transformers are pinned against raw Minecraft and exact NeoForge21.1.244 references. Genuine surface collision, fall cancellation, attribute/effect inputs, motion changes, input ordering and packet/resource state stay separate.
-
-Water Walk still requires native exposed source-fluid collision admission. Slimy Soles cancels an eligible fall event, then consumes stored bounce without a fresh gear check; its decode constructor omits the encoded double-jump boost field. Double Jump consumes stored availability, calls native jump and adds its separate safe-fall modifier; the helper does not recheck current gear or require a successful vertical impulse. Sidestep uses a strict >40-tick cooldown and adds motion. Straight Ahead has different client direction and server presence gates. Glide physics retains current gear eligibility even though the state packet does not check sender/target UUID equality. These are static native findings; no fixes or runtime tests were made.
-
-[Integrity](twilightforest-travellers-movement-integrity.json) and [full validation](r2f8p-travellers-movement-validation.json) cover evidence reproduction, semantic/source/path checks, five tooling tests and previous-checkpoint preservation. Accepted116/161/217 catalog bodies remain unchanged. Runtime0; Stage/production/Phase6/7 untouched.
-
-Next: Travellers belt/hotbar/item-display/zoom/red-thread and Emperor cloth/render hooks, then remaining utilities/food/passive entities/hazards, ten custom DamageTypes, all remaining ASM/compatibility/source exclusions, R2f8 and final Twilight promotion. Leash pathfinder ASM is a separate unfinished structure mechanic. Continue automatically while current usage allows; IceAndFire only after Twilight COMPLETE is pushed and live-verified.
-
-## R2f8q — Travellers storage/view and Emperor cloth
-
-Protected input R2f8p `0ed32df8aa5e3dad148f742d25492f90fab4323a`. Adds **5 reviewed packages / 29 delivery cases**, reaching **190 mechanic drafts / 613 delivery cases**, PARTIAL, zero promoted, REVIEW_REQUIRED0. Custom DamageTypes remain **30/40**, ten unfinished. Travellers core, movement and remaining storage/view contracts are now reviewed together; other Twilight content remains unfinished.
-
-[Reviewed contracts](twilightforest-travellers-utility-review.md) close Belt/Wings hotbar storage, Item Display and genuine map callbacks, Goggles zoom/mouse state, Red Thread visibility and Emperor cloth. Four exact installed nested armor/map transformers are pinned with native/NeoForge references. Inactive belt gear can retrieve into empty hotbar slots. Map tracking's two injected inventory checks both use the original method Player argument. Zoom FOV requires active gear, while the mouse-sensitivity handler only checks the component/key and retains its native zero-sensitivity nonfinite boundary.
-
-Cloth changes armor's contribution only inside native Invisibility visibility calculation, preserves armor/enchantment/flight behavior, and retains ordinary targeting limits. Exact humanoid/cape render targets were verified here. The original separate-Elytra conclusion is superseded by the explicit R2f8t erratum below: an additional registered transformer suppresses clothed Elytra wing rendering. Storage, view, rendering and native detection remain distinct. Item Display codec/cycle behavior, genuine insertion/removal/overflow, red-thread local toggle/death-copy limits and administrative modifier source differences are saved without executing commands or making fixes.
-
-[Integrity](twilightforest-travellers-utility-integrity.json) and [full validation](r2f8q-travellers-utility-validation.json) cover source/reference reproduction, full declared class coverage, native anchors, semantic/path checks, five tooling tests, protected checkpoint and accepted116/161/217 preservation. Runtime0; no L2/Stage/production/Phase6/7 changes.
-
-Next: remaining utility/map/food/flask and passive-entity contracts, environmental hazards and all ten unfinished custom DamageTypes, then complete the remaining installed ASM/compatibility/source exclusions. Protect R2f8, deduplicate and promote full Twilight COMPLETE, push/live verify, then begin IceAndFire only while actual usage remains healthy.
-
-## R2f8r — Food, flasks and native consumption payloads
-
-Protected input R2f8q `723f5d70964592ece674c7ab3d93e71e8f3fe69b`, clean and fetched/live-verified. Adds **12 reviewed packages / 33 delivery cases**, reaching **202 mechanic drafts / 646 delivery cases**, PARTIAL, zero promoted, REVIEW_REQUIRED0. **FAILED_CHALLENGE is USED**, bringing custom DamageType coverage to **31/40**, nine unfinished.
-
-[Reviewed contracts](twilightforest-food-flasks-review.md) close native food parameters/effects, custom berry duration extension, Brittle/Greater filling/doses/breakage/persistence, real instant/noninstant potion delivery, Experiment115 portion regeneration and Essence Berry native XP orbs. Fourteen complete declared classes plus actual registration/event/resource and native/NeoForge comparisons are pinned. Food resource, later regeneration, status damage and direct flask requests stay separate.
-
-Strong Harming normally requests ownerless `failed_challenge`12; its exact predicate is `(isHarm != invertedHealAndHarm) && amplifier>0`, before the instantaneous-effect check. Consequently a legitimately inverted Player also diverts amplified non-HARM effects. No such Player eligibility is fabricated. The source has no native tag memberships or source position; ordinary mitigation applies, but native directional shield has no position to block. Hurt success does not control remaining effects or dose costs. Ordinary HarmingI uses native self-attributed indirect magic instead. Genuine component-bearing splash/lingering/tipped-arrow donors are admitted by the real flask handlers.
-
-Berry extension requests existing duration plus ticks at amplifier0 and retains native merge/eligibility. Exact244 Poison uses `neoforge:poison` with vanilla magic fallback. Eating Experiment115's final portion removes even its regenerating block. Essence Berry creates a real6..19 XP orb whose native pickup/repair can belong to another player. These findings are static source contracts, with no runtime tests or fixes.
-
-[Integrity](twilightforest-food-flasks-integrity.json) and [full validation](r2f8r-food-flasks-validation.json) cover evidence/reference reproduction, native predicate/order/return guards, class/source/path checks, five tooling tests and prior-checkpoint/accepted116/161/217 preservation. Runtime0; production/Stage/Phase6/7 untouched.
-
-Next: remaining utility/map items (Pocket Watch, transformation/terrain tools and native map/landmark ASM), then passive entities, hazards and nine unfinished custom DamageTypes. Finish remaining ASM/compatibility/source exclusions, protect R2f8 and promote Twilight COMPLETE before IceAndFire. Continue after push/live equality while actual usage permits.
-
-## R2f8s — Active utilities and legitimate native alternatives
-
-Protected input R2f8r `a5aed2439d588673357293c434d83570377bf21f`. Adds **7 reviewed packages / 27 delivery cases**, reaching **209 mechanic drafts / 673 delivery cases**, PARTIAL, zero promoted, REVIEW_REQUIRED0. DamageTypes remain **31/40**, nine unfinished.
-
-[Reviewed contracts](twilightforest-active-utilities-review.md) close Pocket Watch effects/application veto, Transformation Powder replacement, Crumble Horn terrain alteration, Ore Magnet/Mining Core relocation and Lamp of Cinders terrain/ignition. Fourteen complete declared classes plus exact native/NeoForge comparisons are pinned. All32 transformation mappings and63 crumble entries retain their actual source data. Existing ToolEvents contracts are reused and the remaining declared methods now closed.
-
-Pocket Watch prevents new eligible Mining Fatigue applications while held; it does not cleanse an existing effect. Powder conversion reloads saved state and directly resets destination HP to the resulting maximum, retaining native conversion events and a new UUID. Ordinary Mob hand/armor stacks can be emptied by native transfer before old-state serialization overwrites destination equipment; surviving BODY/subtype entries remain conditional. The dispenser iterates all eligible front-box entities without a remaining-stack recheck. No conversion or HP operations were executed by this research.
-
-Handheld Horn uses remaining-time modulo and an inclusive125-position box with probability/Player BreakEvent/harvest rules. Its dispenser has distinct deterministic admission. The posted BreakEvent can also invoke the already-protected mainhand maze-tool wear rule before a Horn roll. Ore Magnet and Mining Core share actual dynamic tag caches and24-block exact-state vein traversal. Lamp uses a release durability reserve without spending durability, and its separate Player-only activation ignites nearby nonplayers through native fire ticks; thorn conversion and HP damage are not conflated.
-
-[Integrity](twilightforest-active-utilities-integrity.json) and [full validation](r2f8s-active-utilities-validation.json) cover source/reference reproduction, native predicates/order/return checks, full declared coverage, all five tooling tests, prior-checkpoint preservation and unchanged accepted116/161/217 catalog bodies. Runtime0; no L2/Stage/production/Phase6/7 changes.
-
-Next: Magic/Maze maps, Ore Meter and landmark ASM; remaining structural utilities (Rope, Magic Beans and other magic cores), passive entities, hazards and nine custom DamageTypes. Finish all remaining ASM/compatibility/source exclusions, protect R2f8 and promote full Twilight COMPLETE before IceAndFire. Continue after push/live equality while actual usage is healthy.
-
-## R2f8t — Maps, Ore Meter and installed map/render ASM
-
-Protected input R2f8s `e63af59ef4558422a3036d617381645c0e4ff160`, pushed/live-verified with a clean tree. Adds **4 reviewed packages / 28 delivery cases**, reaching **213 mechanic drafts / 701 delivery cases**, PARTIAL, zero promoted, REVIEW_REQUIRED0. DamageTypes remain **31/40**, nine unfinished.
-
-[Reviewed contracts](twilightforest-maps-information-review.md) close Magic/Maze/Ore map creation, lookup, fixed sampling, storage, packets, copying and genuine inventory/Goggles delivery; Ore Meter activation, scan geometry, persistence, filtering and clearing; and native landmark locator integration. Twenty-five complete declared TF classes plus relevant native/NeoForge comparison and two registered transformers are pinned. These information mechanics do not damage targets or change boss progression.
-
-The landmark transformer intercepts only the last of three native returns. Its TF result replaces the original without comparing their distances; earlier returns bypass the hook. Native command, configured exploration-map loot and configured treasure-map trade paths retain their own admission. Maze map vertical distance changes the player marker without vetoing map updates. Native cartography slots reject TF map item identities, while custom copying shares the original saved map ID. OreMeter normal horizontal spans are15/47/79; its volume uses maximum build height rather than total height. Clearing results/filter does not cancel an ongoing scan.
-
-**R2f8q correction:** the separate registered `CancelElytraRenderingTransformer` targets exact NeoForge `ElytraLayer.shouldRender` and inserts the cloth hook before every boolean return. Cloth does suppress native Elytra wing rendering. The prior conclusion used only the untransformed method and was incomplete. Historical Q files/evidence remain unchanged; the new accumulated draft applies a counted, source-linked erratum to the existing cloth package and two paths. Armor, enchantments, durability, cape eligibility and native flight conclusions remain unchanged.
-
-[Integrity](twilightforest-maps-information-integrity.json) and [full validation](r2f8t-maps-information-validation.json) cover exact source/reference reproduction, predicate/return guards, explicit erratum locations, five tooling tests, protected-file preservation and unchanged accepted116/161/217 catalog bodies. Runtime0; no L2/Stage/production/Phase6/7 changes.
-
-Next: structural utilities (Rope, Magic Beans and remaining magic cores/callbacks), passive entities, hazards and nine custom DamageTypes; complete remaining ASM/compatibility/source exclusions, protect R2f8 and promote Twilight COMPLETE. Begin IceAndFire only after that promotion is pushed/live-verified. Continue automatically while current enforced usage allows.
-
-## R2f8u — Structural utilities and remaining magic cores
-
-Protected input R2f8t `45e1866125b36a5a4bfa1d0b26190043abd3da66`, pushed/live-verified clean. Adds **6 reviewed packages / 28 delivery cases**, reaching **219 mechanic drafts / 729 delivery cases**, PARTIAL, zero promoted, REVIEW_REQUIRED0. DamageTypes remain **31/40**, nine unfinished; all nine actual caller locations are identified for the hazard review.
-
-[Reviewed contracts](twilightforest-structural-utilities-review.md) close Rope placement/support/native climb and platform behavior, Magic Beans/grower terrain, Uberous Soil growth/displacement, and Time/Transformation/Sorting cores. Sixteen full declared TF classes, actual producers, configuration/resources and raw/native NeoForge references are pinned. Protected MiningCore is reused. No production behavior changed.
-
-Genuine item delivery retains native placement events and creative count restoration. Beans starts terrain growth at callback102, advances on even callbacks and stops a layer after15 counted obstructions. Its manual advancement guard is ineffective for an ordinary present holder, but native item-use criteria still run. Soil queues15 genuine FakePlayer bone meal calls; its separate Mushgloom route invokes native growth with BlockGrowFeature and feature admission intact. Rope uses the native climbable/scaffolding path, with distinct horizontal platform collision and scheduled axis-support removal.
-
-Timewood samples480 positions per20-tick core callback and invokes actual random/typed block-entity callbacks; it is not a universal24x multiplier. Transformation retains the fixed distance256 gate and exact quart-height expression. Sorting uses real sided block/entity capabilities, extracts before simulating destination insertion, and ignores the final insertion remainder. Its position/side cache does not include a dimension, while the underlying loader cache retains the initial level. These source contracts are saved with future controls; no loss, world change or combat test was executed.
-
-[Integrity](twilightforest-structural-utilities-integrity.json) and [full validation](r2f8u-structural-utilities-validation.json) cover evidence reproduction, native predicate/order/return checks, full declared coverage, all five tooling tests, protected-file and accepted116/161/217 preservation, and research-only boundaries. R2f8t's explicit cloth erratum remains carried forward.
-
-Next: remaining passive entities and nine hazard types (`thorns`, `oreberry`, `knightmetal`, `fiery`, `fire_jet`, `reactor`, `slider`, `ominous_fire`, `acid_rain`), all legitimate callers and other combat-significant structures/callbacks. Complete remaining ASM/compatibility/source exclusions, protect R2f8, promote Twilight COMPLETE, push/live verify, then IceAndFire. Continue while actual usage allows. No runtime/L2/Stage/production/Phase6/7.
-
-## R2f8v — passive entities
-
-| Package | Proven native contract | Classification |
-|---|---|---|
-| Quest Ram | 16 color resource, hand consume1 versus discarded dropped stack, one-time native loot, home-dependent grove progress, save/reload | CUSTOM_RESOURCE |
-| Deer feeding | Parent breeding/growth or wounded PASS fallback invokes server heal4 and normal consume1; heal failure does not refund | VANILLA_LIKE_EXTENDED |
-| Passive birds | .6 descent/flight factors, native autonomous targeting, positive held-seed spook, push/trigger predicates; hazards still admitted normally | CUSTOM_CONTROL |
-| Passive immunities | Four explicit fall-immune types; Penguin native freeze eligibility; no blanket ice-source immunity | VANILLA_DIRECT |
-
-Adds 4 packages / 21 paths. Eighteen full classes and selected native producers/callbacks pinned. All nine passive types dispositioned; cosmetic variants and ordinary wildlife do not create duplicate combat packages. See [contracts and fixtures](twilightforest-passive-entities-review.md), [integrity](twilightforest-passive-entities-integrity.json), [full validation](r2f8v-passive-entities-validation.json).
-
-Exact next: hazards/nine custom sources, other structures/events, nested ASM, compatibility and exclusions; final Twilight promotion remains pending.
-
-## R2f8w - contact hazards
-
-| Mechanic | Native result | Classification |
-|---|---|---|
-| Thorns | Ownerless4; item-tag exception; Y step and overlap distinct | CUSTOM_DAMAGE |
-| Oreberry | Ownerless1, all ages/motion; ItemEntities skipped; no vanilla berry slow | CUSTOM_DAMAGE |
-| Knightmetal | Ownerless4; native random-direction knockback; water does not suppress | CUSTOM_DAMAGE |
-| Fiery contact | Ownerless fire1; exact boots/fire immunity checks; no ignition | CUSTOM_DAMAGE |
-| Thorn terrain | Failed survival removal grows0..2 per attempt; Burnt destroys itself harmlessly | CUSTOM_CONTROL |
-| Bush state/resources | Age/light/support, genuine harvest, fruit bonemeal/upward growth and snow geometry | VANILLA_LIKE_EXTENDED |
-| Fiery environment | Native fire support and Strider warmth, independent of HP | VANILLA_COMPOSITE |
-
-Adds7/32; four custom sources closed. [Contracts and future fixtures](twilightforest-contact-hazards-review.md), [integrity](twilightforest-contact-hazards-integrity.json), [full validation](r2f8w-contact-hazards-validation.json). Native mitigation, subtype admission and generic event hooks retained. Exact next: FireJet/Reactor/Slider, OminousFire/AcidRain, then remaining structures/ASM/source closure and final promotion.
-
-## R2f8x — Fire Jet / Reactor / Slider
-
-| Mechanic | Native contract | Source/fixture distinction |
-|---|---|---|
-| Fire Jet damage | Ownerless fire_jet2; real typed FLAME ticker,13 pulses including reset callback | Natural tagged fuel versus encased redstone; subtype/fire-immunity/mitigation controls |
-| Fire Jet ignition | Exact300 native fire ticks independently of hurt return | Fire Resistance/longer prior timer/ArmorStand/native later on_fire |
-| Reactor terrain | Six-redstone latch, fake blocks and staggered tagged/hardness-gated shells | Native DarkTower apparatus or placed reactor; reload restarts sequence |
-| Reactor explosion | radius4, float exposure formula up to57; source NOT IS_EXPLOSION | Armor/general Protection versus explosion-tag-only defenses; hurt-independent vector/fire |
-| Reactor producer | Six default Ghastling creation attempts after explosion call | Start cancellation does not gate producer; no makeBossMinion, default10HP |
-| Reactor Debris | Random outline, always full collision; default60callback expiry | Saved willDisappear/rerolls/time; outline holes do not permit passage |
-| Slider hurt/control | Both stationary and moving source owner/direct null,5damage and independent knockback2 | Stationary any Entity versus moving Living; native event/resistance/cooldown |
-| Slider motion | Same full-state connection,20warmup,.04acceleration,reverse60,restore/item fallback | Discarded.98multiply result; collision check is entity obstruction; saved state/time/direction |
-
-[Reviewed packages, all33 source paths and fixtures](semantic-sections/twilightforest-mechanical-hazards.json). Adds8 packages;238/815 total. Smoker particles excluded after class review. Remaining Ominous Fire/Acid Rain and global structures/events/ASM/source closure are unfinished ordinary work, not REVIEW_REQUIRED. Next: close those two types, then complete R2f8 and final Twilight promotion; IceAndFire waits for live-verified Twilight COMPLETE.
-
-## R2f8y — last two types and native Ominous/progression paths
-
-| Mechanic | Native contract | Source/fixture distinction |
-|---|---|---|
-| Ominous contact | ominous_fire1, non-undead types only; no fire/ignite payload | Essence creates actual block; native armor/shield bypass, Resistance/protection/cooldown remain |
-| Mapped death replacement | Exact-type uncanceled death; Horse/Piglin/Villager map | Native conversion veto, old removal before death loot, full-health new entity and equipment behavior reused |
-| Player-death Zombie | Actual profile/name/position producer, normal player death continues | Finalization can alter baby/loot/equipment; profile saved, no owner or inventory copy |
-| Zombie source re-entry | Cancel original, nested hurt with same type; wrapper guard | Genuine melee both entity fields equal; outerfalse, repeated Player scaling, skipped attacker success callbacks |
-| Acid Rain | .5/1/1.5 per Highlands/Thornlands/FinalPlateau request |20tick outer producer, gamerule/advancement gates; no rain/shelter predicate; hurttrue sound |
-| Darkness | Vanilla200ticks amp0 every60ticks | Two Dark Forest restrictions, native merge/removal/visual blend |
-| Hunger | Vanilla100ticks, current amplifier+1 every60ticks | Native exhaustion .005*(amp+1), cure/expiry/exit controls |
-| Fire Swamp ignition | Native8second request every60ticks | BURNING_TIME duration, monotonic timer, actual later on_fire; not Acid/Ominous source |
-| Essence crafting | One damaged scepter slot +one essence slot, copied output damage0 | Actual matches/ResultSlot costs; separate from nine-point repair/automatic Renewal |
-
-[All40 custom source profiles](twilightforest-r2f8y-damage-type-closure.json) and [9 packages/33 paths](semantic-sections/twilightforest-ominous-progression.json). Candles and Candelabra lighting do not emit Ominous damage. Protected Frosted biome mechanic reused. Next: structure defenses/hints, portal/control blocks, events/ASM and source/compatibility closure before final Twilight COMPLETE; no IceAndFire yet.
-
-## R2f8z — native structure gates and barriers
-
-| Mechanic | Native contract | Delivery distinction |
-|---|---|---|
-| Protected player actions | Loaded landmark, actual protected containing piece, missing advancement and nonexempt player | Break allow-tag is separate from broad RightClickBlock cancellation; six upper/access pieces unprotected |
-| Hostile damage admission | Enemy, causing Player, not Kobold, area gate | Incoming event canceled; player-owned projectiles qualify; no synthetic HP/source changes |
-| Hint production | Strict1200tick structure-object cooldown, up to20 attempts, obstruction+LOS | Actual configured Kobold/book, no finalize/owner; entity-add veto still consumes cooldown |
-| Stronghold Shield | Matching ray side selects stone dig speed/150; otherwise hardness-1 | Directional native mining and pedestal removal; no relation to Lich HP shields |
-| Trophy Pedestal | Eligible nearby player or gameruleoff activates and removes exact shields in11cube | Criterion/stat reward independent; full advancement also needs separate Lich criterion |
-| Force Fields | Five colors, actual central/arm/corner collision | Same-color links, stale update bits, native saved state/water; no HP damage or reflection |
-
-[Six packages/28 paths](semantic-sections/twilightforest-structure-gates.json) with optional direct gravestone tag attribution and generic native hooks. Next: vanishing/Castle Door state machines, remaining portal/control blocks/events/ASM/source closure and final Twilight promotion. No IceAndFire yet.
-
-## R2f8aa — native vanishing/door state machines
-
-| Mechanic | Native contract | Delivery distinction |
-|---|---|---|
-| Vanishing | Bounded512 queue-pop initial lock search;2..6tick activation, permanent removal then six-neighbor propagation | Actual manual/redstone entry versus propagation without lock recheck; ordinary/unbreakable variants |
-| Reappearing |80then15ticks vanished, empty collision and central outline | Native scheduled-state persistence; no direct HP or displacement callback |
-| Tower Key | Exact key+LOCKEDtrue; server cost1 before state write; creative also consumes | Genuine key-wing chest loot, native interaction veto and saved LOCKED/keyTower; placedKeys guard transient |
-| Castle Door | Lock helperfalse; any-color propagation;80then2..6ticks vanished | Distinct class/state/timing; native collision and saved scheduled ticks |
-
-[Four packages/24 paths](semantic-sections/twilightforest-vanishing-doors.json). Terrain changes are separate from HP damage. Existing key retention and structure gate reused. Next: native portals/lightning/transport and remaining controls/events/ASM/source closure; no IceAndFire yet.
-
-## R2f8ab — native portals and real lightning
-
-| Mechanic | Native contract | Delivery distinction |
-|---|---|---|
-| Portal creation | Actual dropped catalyst thrower, configured cadence/permission/dimension, exact-state pool4..max64 | Cost1 then lightning then pool writes; tag/advancement/support/deco controls |
-| Portal lightning | True=configured visual-only bolt plus manual thunderHit; false=ordinary native bolt | Real lightning_bolt5default, ownerless environmental, native armor/Resistance/cooldown and independent fire timer |
-| Portal transport | Default state only; native alive/rider/sleep/advancement/processor/cooldown/travel gates | Default61 qualifying process calls, creative-default2, nonplayer1; overlay is separate |
-| Destination | Actual cache/search/safety/collision/terrain helpers with native save data | Recorded search limitations and terrain-before-travel-veto; no guaranteed safe exit inferred |
-| Configured initial/respawn | Genuine registered events; portal or NoReturn path, ignored travel return before respawn/BANISHED writes | Disabled in snapshot; real conditional path and native saved/copyOnDeath state reviewed |
-
-[Five packages/36 paths](semantic-sections/twilightforest-portals.json). No runtime fixture or production changes. Next: remaining Builder/Antibuilder/cloud/control, callbacks/ASM/compatibility/source closure and final Twilight promotion; no IceAndFire yet.
-
-## R2f8ac - Builder, Antibuilder and cloud controls
-
-Continues live-verified `8a780600bbf3b6eea309c6f65e26c6f3c3700e26`. Adds five packages/36 delivery paths; complete contracts and references are in [control-block review](twilightforest-control-blocks-review.md). Whole Twilight remains PARTIAL; 40/40 custom types USED, zero REVIEW_REQUIRED and zero promoted.
-
-| Mechanic | Native distinction | Classification |
-|---|---|---|
-| Carminite Builder | Neighbor signal schedules construction; powered onPlace does not. Native player tracking permits 17 placement branches, with transient counters and later removal chains. | CUSTOM_CONTROL |
-| Antibuilder | Compares block types in 729 transient cells; substitutes Antibuilt Blocks, not original inventory/materials. AIR replacement permits native drops. Installed tags do not ignore the substitute. | CUSTOM_CONTROL |
-| Cloud fall | All four use native fall with .1 input multiplier before rounding; hooks, attributes, passengers and hurt admission remain. | VANILLA_LIKE_EXTENDED |
-| Cloud precipitation | Local snow and native block precipitation callbacks, including real cauldron filling; no Frosted or global weather change. | CUSTOM_CONTROL |
-| Cloud rain query | Exact all-return ASM extends local rain eligibility; sensitive damage, hydration, extinguishing, Riptide and Conduit retain native predicates and source identity. | VANILLA_LIKE_EXTENDED |
-
-SnowyDirt appearance, portal-adjacent mushroom support, client cloud presentation and other noncombat consumers are explicitly dispositioned. Accepted four mods 116/161/217 and all previous protected drafts/errata remain unchanged. Runtime tests 0. Validation: exact source/reference/config/caller guards, five tooling tests, subsection/full catalog integrity, preservation and diff checks.
-
-Exact next task: Wrought Iron Fence/native leash/pathfinding control, remaining event callbacks/nested ASM, compatibility and global source exclusions, then R2f8 remaining-content closure and final Twilight dedup/promotion. IceAndFire only after Twilight COMPLETE is pushed and live-verified.
-
-## R2f8ad - Wrought Iron Fence and native leash controls
-
-Continues live-verified `ca0ba916a2f81c2a3f29e4ed11e399780215e97c`. Adds three packages/24 delivery paths; [full native contracts](twilightforest-fence-leash-review.md) and [decoded native templates](twilightforest-fence-leash-structure-templates.json) preserve actual source and lifecycle evidence.
-
-| Mechanic | Native distinction | Classification |
-|---|---|---|
-| Wrought Iron Fence | Native collision, connection/column state, literal placement offset, water and cap controls; failed cap write can still return SUCCESS. | CUSTOM_CONTROL |
-| Native lead/knot support | Genuine player-held leads transfer through native binding; exact TF post extends knot survival. Eligibility, costs, lifetime and elastic/break rules remain native. | VANILLA_LIKE_EXTENDED |
-| Bound-zombie follow override | Two actual Lich Tower producers set serialized Unit attachment. Only base Pathfinder close-follow is suppressed; native restriction, elastic pulling, break and hostile AI remain. | CUSTOM_CONTROL |
-
-Whole installed-class census proves the two writers. Eight native NBT templates prove real room-marker and eligible perimeter-post paths. During normal ProtoChunk generation, the zombie saves its temporary knot position; native loading later creates the real knot. Missing direct temporary-knot addition is therefore not a proven production defect. Explicit AlexsCaves ferromagnetic tags are recorded without claiming the external consumer was validated.
-
-Twilight remains PARTIAL at270/996,40/40 custom types USED, REVIEW_REQUIRED0, zero promoted. Accepted four mods116/161/217 and all protected drafts/errata preserved. Runtime0. Validation: native ordering/producer/persistence guards, exact reference/template integrity, five ClassFile tests plus four NBT-reader tests, subsection/full checks and preservation/diff checks.
-
-Exact next task: remaining EntityEvents callbacks, including multiplayer health adjustment; remaining Lich worldgen trap/spawner paths and nested ASM; global compatibility/source exclusions. Complete R2f8 and final Twilight promotion before IceAndFire. Continue while actual enforced usage remains healthy.
-
-## R2f8ae - multiplayer partial evidence saved at usage boundary
-
-Continues live-verified `9784db969a2ca2dd2e9eced38a763fc60d9ff2eb`. R2f8ad remains the latest completed semantic subsection. The actual enforced weekly allowance reached80% used/20% remaining, so new research stopped and valid multiplayer read-ahead was preserved. No reset credit redeemed.
-
-[Exact resume notes](partial-notes/twilightforest-r2f8ae-multiplayer.md) and [pinned partial evidence](partial-evidence/twilightforest-multiplayer/manifest.json) save installed TF/raw Minecraft/exact NeoForge witnesses and a whole outer-JAR source/resource census. This bundle is PARTIAL, adds no reviewed mechanics/paths and no REVIEW_REQUIRED entry. It must not be treated as semantic closure.
-
-Twilight remains PARTIAL at270 reviewed mechanic drafts/996 paths,40/40 custom DamageTypes USED, no unfinished types, REVIEW_REQUIRED0, zero promoted. Four accepted mods116/161/217 preserved. IceAndFire unstarted; runtime0, no L2/Stage/production/Phase6/7 changes. Full R2f8ad validation, five tooling tests plus four NBT-reader tests, partial witness regeneration/integrity, preservation and diff checks protect the save.
-
-Exact next task: finish multiplayer maximum-health versus current-HP behavior, native spawn/event/participant admission, permanent modifier and transient participant persistence, native reward consumers and source guards from the saved bundle. Then remaining EntityEvents, Lich worldgen trap/spawner paths, nested ASM, compatibility/global exclusions; R2f8 completion and final Twilight promotion before IceAndFire. Stop after push/live equality because of the actual usage save boundary.
-
-## R2f8ae complete - multiplayer native semantics
-
-Resumes live-verified `b00c1f7fc41c0feb28e1c9d8f9023c8eb46bc2c3`. [Completed contracts](twilightforest-multiplayer-review.md) close spawn/HP ordering, modifier admission/duplicate/persistence, participant Post/death admission, actual tagged bosses, loot providers and advancement consumers.
-
-One VANILLA_LIKE_EXTENDED combat package and three native spawn paths added. The modifier raises maximum health without healing; Naga's later native non-Easy finalizer can fill it. Duplicate modifier IDs throw instead of stacking. Damage Post can qualify a causing ServerPlayer with zero HP loss; participant list is transient while the health modifier persists. Native loot/advancement consumers are acquisition/progression dispositions, not extra combat packages under the owner's corrected scope.
-
-Twilight PARTIAL271/999;40/40 custom types USED, REVIEW_REQUIRED0, zero promoted. Five tooling tests, source guards, exact reference/resource integrity, subsection/full checks, preservation and diff checks protect this subsection. Runtime0; accepted production and four accepted mod catalogs preserved.
-
-Owner instruction supersedes the80% stop rule: continue while execution and enough quota to protect work remain. Next: only true remaining combat-significant EntityEvents/worldgen/ASM/compatibility/source gaps, concise noncombat exclusions, R2f8 whole closure and final dedup/promotion before IceAndFire.
-
-## R2f8af — remaining combat callbacks complete
-
-[Native contracts and source paths](twilightforest-combat-closure-review.md) add6 packages/15 paths. Hedge requests ownerless cactus3 through distinct contact, initial attack, scheduled ray and destruction admissions. Arctic Fur shares Cloud native .1 fall calculation; Maze Slime retains native fall/motion with protected traveller hooks. Final promotion must merge equivalent primitives and retain these sources.
-
-Sinister grounded buffer spawning and ordinary Lich room spawners retain different native position/finalization rules. Hostile bookshelf tick/fire/egg paths are proven: successful spawn does **not** consume its book, because native setItem(EMPTY) dispatches to TF removeItem, which rejects active-SPAWNER removal. Fire bypasses only the native specified light/cap checks, preserves collision/Peaceful/insertion and destroys the shelf. No fix was made.
-
-Controlled structure spawn null results leave the incoming list unchanged; empty results replace it. All31 nested transformers are covered, including actual client multipart size/state synchronization. Utility/presentation/progression callbacks, native prey goals and placeholder entities have explicit short dispositions. Protected sections remain immutable. Final global source/exclusion and compatibility census is next, then R2f8 and dedup/promotion; IceAndFire remains unstarted.
-
-## R2f8 — whole remaining-content closure
-
-[Whole closure](twilightforest-r2f8-complete-review.md) freezes38 reviewed semantic sections,40/40 custom types,1 custom status and the whole1,943-class supplemental279-method caller census. The19 new witness hits are item/decorative/passive/debug/admin exclusions. All31 nested transformers are dispositioned. Scoped forward/reverse compatibility scans reproduce no direct name hits; native optional and generic event hooks remain attributed. Zero remaining native ambiguities/REVIEW_REQUIRED. Twilight is PARTIAL only pending final deduplication/promotion;277/1014 are drafts, not final distinct counts. Exact next task is final promotion, then IceAndFire after pushed/live-verified COMPLETE.
+# Twilight Forest — final semantic owner table
+
+**COMPLETE: 219 distinct combat mechanics / 640 native delivery paths; 40/40 custom DamageTypes USED; 0 REVIEW_REQUIRED; 0 native ambiguities.** Static only. [Final review](twilightforest-final-review.md), [complete source/path/provenance](mod-reviews/twilightforest.json), [future fixtures](twilightforest-future-runtime-fixtures.json). Historical research sections and original draft counts are preserved in their checkpoint artifacts; this table is the current deduplicated combat scope.
+
+| Mechanic | Classification | Native paths | Primary source |
+|---|---|---:|---|
+| Frosted status package | CUSTOM_STATUS | 15 | twilightforest:ice_sword used by Player |
+| Ice Bomb attack and lingering freeze zone | CUSTOM_DAMAGE | 8 | twilightforest:ice_bomb used by Player |
+| Lich shield resource | CUSTOM_RESOURCE | 14 | Player.attack native Bolt redirect |
+| Lich HP admission and projectile defense | BINARY_MECHANIC | 18 | Player.attack native Bolt redirect |
+| Lich Bolt and reflection | CUSTOM_DAMAGE | 4 | Player.attack native Bolt redirect |
+| Lich Bomb explosion | CUSTOM_DAMAGE | 3 | Main Lich and clone Bomb goals |
+| Lich phase resources and summons | CUSTOM_RESOURCE | 4 | Main Lich and clone Bolt goals |
+| Lich mob consumption and healing | CUSTOM_RESOURCE | 2 | Damaged Lich and visible poppable Mob |
+| Lich combat teleport | CUSTOM_CONTROL | 1 | Native Lich combat/home teleport triggers |
+| Lich Minion retaliation buffs | VANILLA_LIKE_EXTENDED | 2 | Phase2 native minion summon and Zombie melee |
+| Twilight Scepter bolt | CUSTOM_DAMAGE | 1 | Player Twilight Scepter |
+| Naga ordinary melee with added push | VANILLA_LIKE_EXTENDED | 1 | Ordinary head melee |
+| Naga charge block recoil/daze | CUSTOM_CONTROL | 2 | Native Player block during CHARGE |
+| Naga stunless charge shield disruption | VANILLA_LIKE_EXTENDED | 2 | Native Player block during STUNLESS_CHARGE |
+| Naga linked body routing/contact | VANILLA_LIKE_EXTENDED | 6 | Native segment contact with non-Animal Living |
+| Naga source/home damage admission | BINARY_MECHANIC | 4 | Native incoming hit to head |
+| Naga HP/body/speed and regeneration | CUSTOM_RESOURCE | 4 | Native incoming hit to head |
+| Naga combat movement state machine | CUSTOM_CONTROL | 7 | Ordinary head melee |
+| Naga combat terrain destruction/recovery | CUSTOM_CONTROL | 4 | Head adjacent terrain clearing |
+| Axing melee and Minotaur axe sprint modifier | VANILLA_LIKE_EXTENDED | 11 | Native equipped Minoshroom ordinary melee |
+| Ground slam damage and launch | CUSTOM_DAMAGE | 2 | Native GroundAttackGoal against grounded Players |
+| Charge delivery and sprint state | CUSTOM_CONTROL | 8 | Native charge including a windup hit |
+| Charge obstacle destruction | CUSTOM_CONTROL | 2 | Minoshroom native lava contact and accepted cleanup |
+| Haunt melee and Knightmetal weapon predicates | VANILLA_LIKE_EXTENDED | 4 | Native numbered sword Knight melee |
+| Thrown axe and pick lifecycle | CUSTOM_DAMAGE | 5 | Native axe Knight attack formation |
+| Local formation and attack coordination | CUSTOM_CONTROL | 7 | Native axe Knight attack formation |
+| Charging attack/armor/size tradeoff | VANILLA_LIKE_EXTENDED | 8 | Native numbered sword Knight melee |
+| Timed guard and damage admission | BINARY_MECHANIC | 5 | Native thrown weapon hits Knight/owner/other entity or block |
+| Formation flight and knockback | CUSTOM_CONTROL | 3 | Knight native lava contact and accepted cleanup |
+| Multipart damage admission | BINARY_MECHANIC | 8 | Native hit on living open head |
+| Head counters and regrowth | CUSTOM_RESOURCE | 6 | Native hit on living open head |
+| Head attack scheduling | CUSTOM_CONTROL | 3 | Native head counter crossing and regrowth |
+| Bite damage and blocking control | CUSTOM_DAMAGE | 2 | Native bite with blocking/nonblocking Player |
+| Flame ray and ignition | CUSTOM_DAMAGE | 1 | Native flame ray and successful ignition |
+| Mortar explosion and fire splash | CUSTOM_DAMAGE | 7 | Native nearby/distant owners and returned mortar |
+| Body pressure and terrain clearing | CUSTOM_CONTROL | 1 | Native body/tail overlap and terrain pressure |
+| Delayed HP recovery | CUSTOM_RESOURCE | 3 | Native root environmental and bypass damage |
+| Three-fireball volley and lifecycle | VANILLA_LIKE_EXTENDED | 5 | Native three-shot Ur-Ghast volley |
+| Damage-driven tantrum and admission | CUSTOM_RESOURCE | 6 | Native Player or timed shield reflection |
+| Tantrum tear damage and minion lift | CUSTOM_DAMAGE | 2 | Native sky-exposed Player under tantrum box |
+| Native minion summoning and targeting | CUSTOM_CONTROL | 7 | Native tantrum trap minion spawn |
+| Nearby ghastling consumption and healing | VANILLA_LIKE_EXTENDED | 1 | Native minion/nonminion enters boss consumption box |
+| Ghast trap charge and control | CUSTOM_CONTROL | 4 | Native ghastling deaths and redstone neighbor event |
+| Trap-linked flight and target suppression | CUSTOM_CONTROL | 3 | Native flight path wrap replenishment |
+| Projectile admission and native defenses | BINARY_MECHANIC | 5 | Native projectile-tagged hit before unlocking |
+| Rampage, tired resource and native bomb scheduling | CUSTOM_RESOURCE | 6 | Native melee or environmental accepted unlock |
+| Hostile grab, dismount and launch control | CUSTOM_CONTROL | 6 | Native Alpha Yeti grab attempt |
+| Thrown-player native fall replacement | CUSTOM_DAMAGE | 5 | Native ordinary Yeti shared grab/throw/fall |
+| Rampage landing slam | VANILLA_LIKE_EXTENDED | 2 | Native rampage fall area request |
+| Falling ice damage and block lifecycle | CUSTOM_DAMAGE | 5 | Native random ceiling ice release |
+| Rampage terrain and ceiling conversion | CUSTOM_CONTROL | 4 | Native full or interrupted rampage |
+| Summon/drop/beam phase counters and admission | CUSTOM_RESOURCE | 6 | Native exposed Snow Queen body hit |
+| Multipart ice-shield interception | BINARY_MECHANIC | 4 | Native normal attack on ice-shield part |
+| Shield collision and phase-dependent melee | CUSTOM_DAMAGE | 3 | Native rotating shield contact in SUMMON/BEAM |
+| Hover and counted drop control | CUSTOM_CONTROL | 3 | Native summon hover with clear/obstructed candidates |
+| Order-dependent chilling-breath ray | CUSTOM_DAMAGE | 1 | Native chilling breath in BEAM hover |
+| Independent Ice Crystal summon producer | CUSTOM_CONTROL | 5 | Native summon hover with clear/obstructed candidates |
+| Ice Crystal melee, descent, melt and expiry | VANILLA_LIKE_EXTENDED | 4 | Native phase and minion save/load |
+| Drop-phase terrain ice removal | CUSTOM_CONTROL | 1 | Native DROP ICE terrain destruction |
+| Retaliation breath targeting and timing | CUSTOM_CONTROL | 3 | Native FireBeetle retaliation breath |
+| Fire Beetle scorching and ignition | CUSTOM_DAMAGE | 3 | Native FireBeetle retaliation breath |
+| Winter Wolf physical breath | VANILLA_LIKE_EXTENDED | 3 | Native WinterWolf retaliation breath |
+| Nature Bolt damage, poison and terrain | CUSTOM_DAMAGE | 7 | Native Druid hoe bolt on Living victim |
+| Druid equipment goals and permanent baby state | CUSTOM_CONTROL | 4 | Native Druid hoe bolt on Living victim |
+| Tome Bolt alternating source and Slowness | CUSTOM_DAMAGE | 4 | Native off-lectern TomeBolt attack |
+| Lectern ambush and release control | CUSTOM_CONTROL | 4 | Native generated lectern mimic gaze activation |
+| Death Tome fire vulnerability | VANILLA_LIKE_EXTENDED | 2 | Native lectern removal or accepted hurt release |
+| Slime Beetle throwable damage and disposal | VANILLA_LIKE_EXTENDED | 2 | Native SlimeBeetle shot and Living impact |
+| Stable Ice Core snowball package | CUSTOM_DAMAGE | 3 | Native StableIceCore snowball impact |
+| Unstable Ice Core delayed explosion | VANILLA_LIKE_EXTENDED | 2 | Native stable/unstable core descent, melting and melee |
+| Unstable Ice Core terrain transmutation | CUSTOM_CONTROL | 2 | Native delayed UnstableIceCore explosion |
+| Mist Wolf darkness-gated Blindness | VANILLA_LIKE_EXTENDED | 1 | Native MistWolf melee in darkness |
+| Mounted goblin knight coupling | CUSTOM_CONTROL | 5 | Native Lower spawn and Upper passenger |
+| Goblin knight shared shield resource | CUSTOM_RESOURCE | 8 | Native Lower spawn and Upper passenger |
+| Directional goblin armor stripping | VANILLA_LIKE_EXTENDED | 5 | Native Lower spawn and Upper passenger |
+| Timed heavy spear area attack | VANILLA_LIKE_EXTENDED | 3 | Native Lower delegated or solo melee |
+| Pinch Beetle capture and carrying | CUSTOM_CONTROL | 3 | Native PinchBeetle charge capture and damage |
+| Pinch Beetle clamped damage | CUSTOM_DAMAGE | 2 | Native PinchBeetle charge capture and damage |
+| Pinch Beetle boat destruction on pickup | BINARY_MECHANIC | 1 | Native Boat collision pickup of PinchBeetle |
+| Ordinary Yeti hurt-triggered persistent anger | CUSTOM_CONTROL | 3 | Native ordinary Yeti shared grab/throw/fall |
+| Goblin melee with spike-part attribution | CUSTOM_DAMAGE | 1 | Native goblin ordinary melee |
+| Goblin orbit/throw collision and control | VANILLA_LIKE_EXTENDED | 4 | Native goblin orbit contact |
+| Goblin spike part damage rejection | BINARY_MECHANIC | 2 | Native spike part and root damage distinction |
+| Chain Block launch, return and stack resource | CUSTOM_RESOURCE | 9 | Native mainhand BlockAndChain launch |
+| Thrown Chain Block spiked damage | CUSTOM_DAMAGE | 6 | Native ChainBlock outbound/returning entity impact |
+| Chain Block pre-hurt shield disruption | VANILLA_LIKE_EXTENDED | 2 | Native ChainBlock used-shield disruption |
+| Destruction terrain smash and per-entity budgets | CUSTOM_RESOURCE | 3 | Native unenchanted/unbreakable block collision |
+| Giant and Armored Giant native ant melee | CUSTOM_DAMAGE | 4 | Native GiantMiner equipped melee |
+| Giant weapon attack and interaction attributes | VANILLA_LIKE_EXTENDED | 3 | Native Player GiantPick melee |
+| Hedge and swarm spider native AI/defense inheritance | VANILLA_LIKE_EXTENDED | 4 | Native HedgeSpider melee/acquisition |
+| King Spider rider composition and melee start gate | CUSTOM_CONTROL | 3 | Native King adult Druid producer |
+| Swarm and Tower Broodling probabilistic melee admission | VANILLA_LIKE_EXTENDED | 5 | Native SwarmSpider probabilistic melee |
+| Mosquito melee and native Hunger resource effect | VANILLA_COMPOSITE | 4 | Native Mosquito admitted hit and Hunger |
+| Borer pre-admission reinforcement timer and block scan | CUSTOM_CONTROL | 4 | Native Borer causing-entity hurt schedules release |
+| Borer conditional towerwood infestation and discard | CUSTOM_CONTROL | 2 | Native idle Borer towerwood merge |
+| Infested towerwood native drop and explosion release | CUSTOM_CONTROL | 4 | Native Borer grief-admitted block scan |
+| Redcap shyness and TNT avoidance | CUSTOM_CONTROL | 3 | Native finalized Redcap/Sapper melee and equipment |
+| Redcap TNT ignition and Sapper finite planting | CUSTOM_CONTROL | 3 | Native Sapper finite TNT placement |
+| Redcap and Sapper native TNT blast delivery | VANILLA_COMPOSITE | 6 | Native Redcap or Sapper existing TNT ignition |
+| Kobold dropped-bread pickup and temporary pacification | CUSTOM_CONTROL | 5 | Native dropped bread search and pickup |
+| Kobold local death-triggered panic | CUSTOM_CONTROL | 1 | Native same-class nearby death panic |
+| Kobold small-flock center navigation | CUSTOM_CONTROL | 1 | Native small-group center navigation |
+| Troll rock acquisition, combat task and saved state | CUSTOM_RESOURCE | 6 | Native Troll no-rock melee and sun avoidance |
+| Troll block projectile ownerless damage | CUSTOM_DAMAGE | 5 | Native Troll ranged-goal new projectile |
+| Carminite Golem admitted melee and vertical push | VANILLA_COMPOSITE | 2 | Native Carminite Golem successful melee |
+| Maze Slime size and threefold native health | VANILLA_LIKE_EXTENDED | 5 | Native MazeSlime randomized finalization |
+| Maze Slime tiny and NoAI contact admission | VANILLA_LIKE_EXTENDED | 6 | Native MazeSlime Player contact |
+| Snow Guardian actual equipment and inherited ice behavior | VANILLA_COMPOSITE | 5 | Native SnowGuardian four equipment variants |
+| Wraith native flight, home and attack scheduling | CUSTOM_CONTROL | 6 | Native Wraith two sequential melee requests |
+| Rising Zombie gaze and native conversion | CUSTOM_CONTROL | 7 | Native RisingZombie nearest-player gaze trigger |
+| Rising Zombie exact source immunity gate | BINARY_MECHANIC | 3 | Native RisingZombie in-wall source rejection |
+| Zombie Scepter native owned summon | CUSTOM_CONTROL | 2 | Native Zombie Scepter owned summon |
+| Loyal Zombie fixed attack and successful push | VANILLA_COMPOSITE | 1 | Native LoyalZombie melee |
+| Loyal Zombie absent-Strength expiration | CUSTOM_DAMAGE | 3 | Native missing-Strength expiration |
+| Owner flesh feed and effect/heal refresh | VANILLA_COMPOSITE | 1 | Native owner flesh interaction |
+| Loyal Zombie owner response and follow | VANILLA_COMPOSITE | 3 | Native owner hurt/attack responses |
+| Crown-produced persistent Loyal baby | VANILLA_LIKE_EXTENDED | 2 | Native Crown baby summon |
+| Persistent scepter durability charges | CUSTOM_RESOURCE | 4 | Native Zombie Scepter owned summon |
+| Renewal hand/inventory reagent recharge | CUSTOM_RESOURCE | 6 | Native Renewal hand ticks |
+| Temporary and permanent Fortification shields | CUSTOM_RESOURCE | 8 | Native Fortification Scepter use |
+| Fortification incoming damage cancellation | BINARY_MECHANIC | 2 | Native Fortification incoming hit |
+| Lifedrain native selection and custom damage | CUSTOM_DAMAGE | 6 | Native Fortification incoming hit |
+| Lifedrain low-health execution and bonus loot | BINARY_MECHANIC | 3 | Native nonboss low-HP nonPlayer execution |
+| Lifedrain admitted slow and caster restoration | VANILLA_COMPOSITE | 3 | Native Lifedrain custom request |
+| Lifedrain independent vertical motion replacement | CUSTOM_CONTROL | 1 | Native health-gated Lifedrain motion |
+| Crown scepter charge-saving branch | CUSTOM_RESOURCE | 3 | Native Lifedrain durability and Crown |
+| Moonworm zero-or-one native impact | CUSTOM_DAMAGE | 5 | Native Queen charged release |
+| Moonworm bare-head forced equipment | BINARY_MECHANIC | 2 | Native bare-head impact |
+| Moonworm charge and Torchberry repair | CUSTOM_RESOURCE | 3 | Native Queen charged release |
+| Cube tracking, steering and return | CUSTOM_CONTROL | 6 | Native registered Cube item use |
+| Cube fixed native melee-source hit and shield disable | VANILLA_LIKE_EXTENDED | 5 | Native Cube Living impact |
+| Cube admitted terrain removal | BINARY_MECHANIC | 3 | Native Cube block removal |
+| Ender impact position and vehicle swap | CUSTOM_CONTROL | 4 | Native Ender Player arrow impact |
+| Seeker selection and velocity steering | CUSTOM_CONTROL | 5 | Native Seeker priority acquisition |
+| Seeker native arrow damage and parent effects | VANILLA_LIKE_EXTENDED | 6 | Native Seeker plain arrow impact |
+| Triple Bow native arrow fan and pre-spawn wear | VANILLA_LIKE_EXTENDED | 3 | Native Triple Player volley |
+| Peacock Fan native entity and Player packet motion | CUSTOM_CONTROL | 3 | Native Fan entity motion |
+| Peacock Fan aerial impulse and fall context | CUSTOM_CONTROL | 3 | Native airborne Fan boost |
+| Dispenser Fan Living motion and wear gate | CUSTOM_CONTROL | 1 | Native dispenser Fan push |
+| Native ignition with source-specific combat admission | VANILLA_LIKE_EXTENDED | 10 | Native Player Fiery Sword/Pick primary hit |
+| Glass Sword native attack and two break paths | CUSTOM_RESOURCE | 3 | Native ordinary Glass Sword primary attack |
+| Stale Bread native factory source replacement | CUSTOM_DAMAGE | 3 | Native Stale Bread Player melee/sweep |
+| Knightmetal native shield and repair | VANILLA_DIRECT | 2 | Native Knightmetal Player shield block |
+| Conventional Twilight tool and armor attributes | VANILLA_DIRECT | 3 | Native crafted conventional tools and armor |
+| Arctic snow collision and Fiery/Arctic freeze eligibility | VANILLA_DIRECT | 2 | Native Arctic Boots snow surface collision |
+| Charms of Life native death veto and restoration | BINARY_MECHANIC | 3 | Native LifeI inventory lethal hit |
+| Travellers modifier registry, crafting and removal | CUSTOM_RESOURCE | 2 | Native registry/component save and reload |
+| Travellers native loadout and equipment predicates | VANILLA_COMPOSITE | 4 | Native four main pieces equipped |
+| Travellers last-durability and stored-attribute state | CUSTOM_RESOURCE | 6 | Native armor-wear threshold hit |
+| Travellers native Auto-Repair probability | CUSTOM_RESOURCE | 4 | Native armor-hit delay tracking |
+| Travellers Perfect Dodge impact veto | BINARY_MECHANIC | 2 | Native arrow impacts eligible vest wearer |
+| Travellers missed-arrow native recovery | CUSTOM_RESOURCE | 2 | Native survival allowed-arrow block hit |
+| Travellers All-Night native admission | BINARY_MECHANIC | 3 | Native per-player phantom spawn admission |
+| Travellers crouch invisibility | VANILLA_LIKE_EXTENDED | 2 | Native crouching Stealth Player tick |
+| Travellers passive native Haste | VANILLA_LIKE_EXTENDED | 1 | Native living wearer Haste tick |
+| Travellers oxygen and submerged mining attributes | VANILLA_COMPOSITE | 2 | Native Aquatic goggles underwater air |
+| Travellers movement and jump exhaustion reduction | CUSTOM_RESOURCE | 2 | Native transformed ServerPlayer movement |
+| Travellers native water-surface collision | CUSTOM_CONTROL | 3 | Native source-water surface collision |
+| Travellers terrain movement overrides | CUSTOM_CONTROL | 5 | Native block speed and jump factor overrides |
+| Travellers native swim-efficiency attribute | VANILLA_DIRECT | 1 | Native Vest water travel |
+| Travellers crouch-controlled step attribute | VANILLA_LIKE_EXTENDED | 1 | Native boots obstacle stepping |
+| Travellers renewed native Jump Boost | VANILLA_LIKE_EXTENDED | 2 | Native Wings Jump Boost renewal |
+| Travellers fall veto and stored bounce | CUSTOM_CONTROL | 5 | Native eligible fall event cancellation |
+| Travellers descent and fall-distance control | CUSTOM_CONTROL | 4 | Native descending Player glide |
+| Travellers stored second-jump availability | CUSTOM_CONTROL | 6 | Native JumpEvent and saved bounce boost |
+| Travellers native sidestep impulse and cooldown | CUSTOM_CONTROL | 3 | Native on-ground left/right double tap |
+| Travellers directional speed and FOV compensation | CUSTOM_CONTROL | 2 | Native server speed presence lifecycle |
+| Travellers eligible item-use input recovery | CUSTOM_CONTROL | 2 | Native ProjectileWeapon item-use movement |
+| Twilight native food nutrition and saturation | VANILLA_DIRECT | 14 | Native plain foods and jerky nutrition |
+| Torchberry native Glowing | VANILLA_DIRECT | 1 | Native Torchberries consumption |
+| Hydra Chop native Regeneration | VANILLA_DIRECT | 1 | Native Hydra Chop consumption |
+| Meef Stroganoff native Fire Resistance and Strength | VANILLA_COMPOSITE | 1 | Native Meef Stroganoff consumption |
+| Gelatinous Slime Drop native Speed | VANILLA_DIRECT | 1 | Native Slime Drop food effect |
+| Gelatinous Maze Slime Drop native Resistance | VANILLA_DIRECT | 1 | Native Maze Slime Drop food effect |
+| Twilight probabilistic berry duration extension | VANILLA_LIKE_EXTENDED | 5 | Native Blightberry independent regeneration/poison/wither |
+| Brittle/Greater flask dose and breakage resource | CUSTOM_RESOURCE | 10 | Native flask in slot filled from cursor |
+| Flask native potion effect delivery | VANILLA_COMPOSITE | 5 | Native Brittle flask use/breakage |
+| Flask failed-challenge ownerless damage | CUSTOM_DAMAGE | 2 | Native Strong Harming FAILED_CHALLENGE |
+| Experiment115 portion storage and regeneration | CUSTOM_RESOURCE | 5 | Native Experiment115 handheld food |
+| Pocket Watch native inventory effects | VANILLA_COMPOSITE | 4 | Native Pocket Watch in hotbar |
+| Pocket Watch Mining Fatigue application veto | BINARY_MECHANIC | 1 | Native held-watch Mining Fatigue application |
+| Transformation Powder native entity replacement | CUSTOM_CONTROL | 5 | Native Player mapped-entity Powder interaction |
+| Thorns regrowth and Burnt removal | CUSTOM_CONTROL | 7 | Native Lamp immediate clicked-thorn conversion |
+| Timewood core native callback acceleration | CUSTOM_CONTROL | 4 | Native grower save/extra ticker |
+| Deer feeding native healing | VANILLA_LIKE_EXTENDED | 3 | Native adult Deer breeding feed |
+| Passive bird descent, flight and contact control | CUSTOM_CONTROL | 5 | Native Bird descent including Penguin |
+| Passive native fall and freezing eligibility | VANILLA_DIRECT | 2 | Native passive fall immunity |
+| Thorns ownerless contact damage | CUSTOM_DAMAGE | 3 | Native Brown/Green thorn overlap |
+| Oreberry ownerless contact damage | CUSTOM_DAMAGE | 1 | Native Oreberry overlap all ages |
+| Knightmetal ownerless contact damage | CUSTOM_DAMAGE | 2 | Native Knightmetal contact |
+| Fiery Block native contact damage | CUSTOM_DAMAGE | 1 | Native Fiery step contact |
+| Fiery Block native fire support and Strider warmth | VANILLA_COMPOSITE | 2 | Native fire supported by Fiery |
+| Fire Jet native pulsed damage | CUSTOM_DAMAGE | 7 | Natural fuel-fed Fire Jet |
+| Fire Jet independent native fire-timer assignment | VANILLA_LIKE_EXTENDED | 7 | Natural fuel-fed Fire Jet |
+| Carminite Reactor latched terrain sequence | CUSTOM_CONTROL | 6 | Native six-redstone Reactor latch |
+| Reactor ownerless native explosion and movement | CUSTOM_DAMAGE | 5 | Native six-redstone Reactor latch |
+| Reactor native default Ghastling production | CUSTOM_RESOURCE | 4 | Native six-redstone Reactor latch |
+| Reactor Debris temporary full collision | CUSTOM_CONTROL | 3 | Reactor native primary shell sequence |
+| Slider native contact damage and independent knockback | CUSTOM_DAMAGE | 5 | Native stationary Slider contact |
+| Slider native block-to-entity motion and restoration | CUSTOM_CONTROL | 7 | Native Slider scheduled connected-state admission |
+| Ominous Fire native non-fire contact damage | CUSTOM_DAMAGE | 7 | Native Essence-created Ominous Fire |
+| Ominous death native mapped entity replacement | CUSTOM_CONTROL | 3 | Native lethal Ominous Horse conversion |
+| Ominous player death profile-bearing Zombie | CUSTOM_RESOURCE | 4 | Native lethal Ominous Horse conversion |
+| Zombified-player incoming source wrapper and native re-entry | CUSTOM_DAMAGE | 2 | Native Zombie profile persistence and later melee |
+| Acid Rain native biome damage | CUSTOM_DAMAGE | 3 | Native Highlands Acid Rain |
+| Locked Dark Forest native Darkness | VANILLA_DIRECT | 3 | Native Highlands Acid Rain |
+| Locked Swamp native Hunger stacking | VANILLA_LIKE_EXTENDED | 3 | Native Highlands Acid Rain |
+| Progression structure hostile damage gate | BINARY_MECHANIC | 5 | Native unprotected Stronghold access and upper pieces |
+| Progression native hint Kobold production | CUSTOM_RESOURCE | 4 | Native hint attempt from denied action/attack |
+| Portal native lightning delivery modes | VANILLA_LIKE_EXTENDED | 7 | Native catalyst cost and write ordering |
+| Cloud and Arctic Fur native fall multiplier | VANILLA_LIKE_EXTENDED | 1 | Native cloud fall callback |
+| Cloud local rain eligibility and native consumers | VANILLA_LIKE_EXTENDED | 11 | Native installed local-rain ASM path |
+| Native bound-zombie close-follow override | CUSTOM_CONTROL | 11 | Native leash close/elastic/break intervals |
+| Multiplayer native spawn maximum-health adjustment | VANILLA_LIKE_EXTENDED | 3 | Native tagged boss base-spawner finalize |
+| Hedge native cactus retaliation/contact | VANILLA_LIKE_EXTENDED | 4 | Hedge entityInside/stepOn |
+| Maze slime inherited fall and motion | VANILLA_DIRECT | 3 | Maze slime landing fall request |
+| Configured native encounter spawning | VANILLA_LIKE_EXTENDED | 2 | Lich room Sinister grounded native spawner |
+| Hostile bookshelf native spawn and fire release | CUSTOM_CONTROL | 3 | Lich hostile bookshelf normal native tick |
+| Controlled structure ambient encounter selection | CUSTOM_CONTROL | 2 | Native monster PotentialSpawns structure selection |

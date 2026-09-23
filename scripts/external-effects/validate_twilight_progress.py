@@ -12,8 +12,9 @@ def validate_progress():
     counts={}
     for name,key in [('effect-catalog.json','effects'),('effect-sources.json','sources'),('delivery-path-matrix.json','paths'),('vanilla-comparison.json','comparisons'),('behavior-primitives.json','primitives')]:
         p='docs/benchmarks/external-effects-catalog/'+name;d=read_json(ROOT/p)
-        assert d[key]==old(p)[key],name
-        counts[key]=len(d[key])
+        accepted=[r for r in d[key] if r.get('mod_key') in protected]
+        assert accepted==old(p)[key],name
+        counts[key]=len(accepted)
     sections=[]
     for p in sorted((OUT/'semantic-sections').glob('twilightforest-*.json')):
         s=read_json(p);assert s['baseline']==BASELINE and not s['semantic_coverage_complete'] and not s['promoted_to_catalog']
@@ -46,7 +47,11 @@ def validate_progress():
             w=next(w for w in read_json(OUT/ref['evidence_file'])['witnesses'] if w['id']==ref['witness_id'])
             assert ref['entry']==w['entry'] and set(ref['methods'])<={m['name'] for m in w['methods']}
     ledger={r['mod_key']:r for r in read_json(OUT/'mod-completion-ledger.json')['targets']}
-    assert ledger['twilightforest']['state']=='PARTIAL' and ledger['iceandfire']['state']=='UNSTARTED'
+    assert ledger['twilightforest']['state'] in {'PARTIAL','COMPLETE'}
+    if ledger['twilightforest']['state']=='PARTIAL':
+        assert ledger['iceandfire']['state']=='UNSTARTED'
+    else:
+        assert read_json(OUT/'mod-reviews/twilightforest.json')['decision']=='TWILIGHT_FOREST_SEMANTIC_REVIEW_COMPLETE'
     assert all(ledger[k]['state']=='COMPLETE' for k in protected+['tensura'])
     return dict(schema='tno.external_effects.twilight_progress_integrity.v1',status='PASS',immutable_start=START,
                 sections=sections,accepted_counts_unchanged=counts,promoted_twilight_records=0,iceandfire_started=False,**boundary_flags())

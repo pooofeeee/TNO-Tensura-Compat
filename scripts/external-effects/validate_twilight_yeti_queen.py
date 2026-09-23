@@ -1,6 +1,7 @@
 """R2f7 integrity, preservation and installed-bytecode semantic guardrails."""
 from collections import Counter
 from catalog_common import *
+from twilight_promotion_migration import assert_historical_file
 from classfile import ClassFile
 from assemble_twilight_yeti_queen import START,DECISION,BATCH
 from collect_twilight_yeti_queen import FULL,FIELDS,scan_callers
@@ -16,10 +17,10 @@ def validate_yeti_queen():
     protected=[p for p in git('ls-tree','-r','--name-only',START,'--',prefix,'scripts/external-effects/').splitlines() if p not in mutable]
     for p in protected:
         old=subprocess.check_output(['git','show',START+':'+p],cwd=ROOT)
-        assert (ROOT/p).read_bytes().replace(b'\r\n',b'\n')==old.replace(b'\r\n',b'\n'),p
+        assert_historical_file(p,old)
     old_validator=subprocess.check_output(['git','show',START+':scripts/external-effects/validate_twilight_hydra_urghast.py'],cwd=ROOT).decode().replace('\r\n','\n')
     allowed_validator=old_validator.replace("ledger['draft_mechanic_count']==45 and ledger['draft_path_count']==126","ledger['draft_mechanic_count']>=45 and ledger['draft_path_count']>=126")
-    assert (ROOT/'scripts/external-effects/validate_twilight_hydra_urghast.py').read_text()==allowed_validator
+    assert_historical_file('scripts/external-effects/validate_twilight_hydra_urghast.py',allowed_validator)
     s=read_json(OUT/'semantic-sections/twilightforest-yeti-queen.json')
     assert s['subsection_decision']==DECISION and set(s['boss_states'].values())=={'SEMANTIC_REVIEW_COMPLETE'}
     assert len(s['closure_checklist'])==18 and all(s['closure_checklist'].values())
@@ -87,7 +88,11 @@ def validate_yeti_queen():
     for c in [A,Q,I,Y]:assert not {'addAdditionalSaveData','readAdditionalSaveData','serializeNBT','deserializeNBT'} & {m['name'] for m in methods(c)}
     save=ins(F,'addAdditionalSaveData');assert not any('hangTime' in str(x['operand']) for x in save)
     ledger=read_json(OUT/'mod-reviews/twilightforest.json')
-    assert ledger['status']=='PARTIAL' and not ledger['effects'] and not ledger['paths']
+    assert ledger['status'] in {'PARTIAL','COMPLETE'}
+    if ledger['status']=='PARTIAL':
+        assert not ledger['effects'] and not ledger['paths']
+    else:
+        assert ledger['decision']=='TWILIGHT_FOREST_SEMANTIC_REVIEW_COMPLETE' and ledger['effects'] and ledger['paths']
     assert ledger['draft_mechanic_count']>=60 and ledger['draft_path_count']>=167
     return dict(schema='tno.external_effects.yeti_queen_integrity.v1',status='PASS',starting_sha=START,decision=DECISION,boss_states=s['boss_states'],counts=s['counts'],protected_prior_files=len(protected),full_declared_class_coverage=len(FULL),caller_scan_exact_reproduction=True,protected_frosted_packages_reused=len(reused),twilight_reviewed_drafts=60,twilight_delivery_drafts=167,accepted_counts_unchanged=previous['accepted_counts_unchanged'],damage_profiles_reviewed=17,damage_profiles_remaining=23,runtime_tests=0,promoted_twilight_records=0,**boundary_flags())
 

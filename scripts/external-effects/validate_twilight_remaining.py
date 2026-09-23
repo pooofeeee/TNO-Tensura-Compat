@@ -1,6 +1,7 @@
 """Later Twilight subset integrity; preserves R2f7 and every published subset input."""
 from collections import Counter
 from catalog_common import *
+from twilight_promotion_migration import assert_historical_file
 from classfile import ClassFile
 from validate_twilight_yeti_queen import validate_yeti_queen
 
@@ -14,7 +15,7 @@ def validate_remaining():
     protected=[p for p in git('ls-tree','-r','--name-only',START,'--',prefix,'scripts/external-effects/').splitlines() if p not in mutable]
     for p in protected:
         old=subprocess.check_output(['git','show',START+':'+p],cwd=ROOT)
-        assert (ROOT/p).read_bytes().replace(b'\r\n',b'\n')==old.replace(b'\r\n',b'\n'),p
+        assert_historical_file(p,old)
     witnesses={}
     for p in (OUT/'native-evidence').glob('*.json'):
         for w in read_json(p).get('witnesses',[]):

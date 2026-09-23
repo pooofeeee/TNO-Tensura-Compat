@@ -1,6 +1,7 @@
 """R2f6 integrity, prior-checkpoint preservation and installed semantic guardrails."""
 from collections import Counter
 from catalog_common import *
+from twilight_promotion_migration import assert_historical_file
 from classfile import ClassFile
 from assemble_twilight_hydra_urghast import START, DECISION, BATCH
 from collect_twilight_hydra_urghast import FULL
@@ -17,7 +18,7 @@ def validate_hydra_urghast():
                if p not in mutable and p!='scripts/external-effects/validate.py']
     for p in protected:
         old=subprocess.check_output(['git','show',START+':'+p],cwd=ROOT)
-        assert (ROOT/p).read_bytes().replace(b'\r\n',b'\n')==old.replace(b'\r\n',b'\n'),p
+        assert_historical_file(p,old)
     s=read_json(OUT/'semantic-sections/twilightforest-hydra-urghast.json')
     assert s['subsection_decision']==DECISION and set(s['boss_states'].values())=={'SEMANTIC_REVIEW_COMPLETE'}
     assert len(s['closure_checklist'])==15 and all(s['closure_checklist'].values())
@@ -94,7 +95,11 @@ def validate_hydra_urghast():
     assert not {'saveAdditional','loadAdditional','addAdditionalSaveData','readAdditionalSaveData'} & {m['name'] for m in methods(T)}
     assert 'CUSTOM_RESOURCE'==next(e for e in s['effects'] if e['id']=='twilightforest:hydra_head_resource')['primary_classification']
     ledger=read_json(OUT/'mod-reviews/twilightforest.json')
-    assert ledger['status']=='PARTIAL' and not ledger['effects'] and not ledger['paths']
+    assert ledger['status'] in {'PARTIAL','COMPLETE'}
+    if ledger['status']=='PARTIAL':
+        assert not ledger['effects'] and not ledger['paths']
+    else:
+        assert ledger['decision']=='TWILIGHT_FOREST_SEMANTIC_REVIEW_COMPLETE' and ledger['effects'] and ledger['paths']
     assert ledger['draft_mechanic_count']>=45 and ledger['draft_path_count']>=126
     return dict(schema='tno.external_effects.hydra_urghast_integrity.v1',status='PASS',starting_sha=START,decision=DECISION,boss_states=s['boss_states'],counts=s['counts'],protected_prior_files=len(protected),full_declared_class_coverage=len(FULL),caller_scan_exact_reproduction=True,combat_producers=4,defensive_type_tests=1,twilight_reviewed_drafts=45,twilight_delivery_drafts=126,accepted_counts_unchanged=previous['accepted_counts_unchanged'],damage_profiles_reviewed=13,damage_profiles_remaining=27,runtime_tests=0,promoted_twilight_records=0,alpha_yeti_snow_queen_started=False,**boundary_flags())
 

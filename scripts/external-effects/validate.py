@@ -165,6 +165,9 @@ def validate():
         if (OUT/'twilightforest-global-source-closure.json').exists():
             from validate_twilight_global_closure import validate_global_closure
             assert validate_global_closure()['status']=='PASS'
+        if (OUT/'twilightforest-final-promotion-map.json').exists():
+            from validate_twilight_final import validate_final
+            assert validate_final()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():
