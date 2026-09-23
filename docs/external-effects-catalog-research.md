@@ -870,3 +870,7 @@ Lunar admission/stun, distinct POISON damage/status routes, independent Wand dep
 ## R2h3d — Eternal Starlight soul and hunger resources
 
 Soul drain/heal basis and native collision, exact no-pull tag, old-state dagger penalty and owner-dependent Voracious rewards reviewed. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/eternalstarlight-r2h3d-soul-hunger-review.md).
+
+## R2h3e — Eternal Starlight Gatekeeper and Solar Creeper
+
+Ordered Gatekeeper damage admission, pre-hurt healing interruption, native melee/arrow/fireball+explosion routes, sparring resets and teleport fallbacks reviewed; Solar Creeper has no native attack caller proven. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/eternalstarlight-r2h3e-gatekeeper-review.md).

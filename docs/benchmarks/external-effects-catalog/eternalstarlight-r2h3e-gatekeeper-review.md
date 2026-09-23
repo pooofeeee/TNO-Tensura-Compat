@@ -1,0 +1,57 @@
+# R2h3e — Eternal Starlight Gatekeeper and Solar Creeper
+
+Gatekeeper native combat/admission/sparring and Solar Creeper actual defense/absence of attack caller; static only.
+
+Static subsection complete. Runtime fixtures remain unexecuted; no Stage or production implementation.
+
+## Admission
+
+TheGatekeeper.hurt first rejects self-causing sources unless BYPASSES_INVULNERABILITY. It then admits bypass OR (canAlwaysHurtWhenFighting && activated) OR (nonnull causing entity && nonnull current target && behaviorState!=0). The last alternative has no separate activated predicate and does not require causer==target. Thus ordinary ownerless damage fails the default gate even during attack phases; bypass or config+activated can admit it. Once admitted, behavior13 plus nonnull causer sets healInterrupted=true and healInterruptedIndirect=!source.isDirect BEFORE super.hurt, even if downstream cooldown/shield/Resistance/event admission rejects. Native isDirect is identity direct==causing, not a damage tag. Rejected active-idle hits can animate blocking; amount>=7 only emits parry effects, no retaliatory damage. Keep this outer gate ahead of ordinary ESBoss/LivingEntity processing; never add a synthetic source to satisfy it.
+
+## Sparring lifecycle
+
+standardFight defaults true. Native dialog challenge sets standardFight=true, fight target name, target and activated. Standard target goal resolves that player and uses combat targeting ignoring LOS/invisibility; nonstandard target goals require activated and use retaliation/nearest Player. canAttack additionally requires activated. Active standard fight with dead/null target accumulates noTargetTime and aborts when named player unavailable or counter>200; nonstandard aiStep activates automatically. Standard non-bypass lethal Gatekeeper damage invokes reward bookkeeping then abortFight instead of ordinary die; bypass or nonstandard invokes super.die. abortFight directly sets HP=max, clears target/activation/participants/heal counters, restores sword and attempts return teleport. ES living-death event independently intercepts Player victim with causing Gatekeeper in standardFight: abort boss, set Player HP=max(current,.1*maxHP), invulnerableTime=200, cancel death. No activation, source-tag or direct-entity test is added there. These are native sparring state resets, NO_STAGE_VALUE; preserve death event and source attribution rather than replacing with healing or SHP subtraction.
+
+## Melee
+
+All actual Gatekeeper melee uses shared BehaviorPhase -> Mob.doHurtTarget -> native mob_attack, direct=causing=Gatekeeper, current ATTACK_DAMAGE including equipped modifiers -> native enchantment modification -> hurt. Success gates enchantment post effects and phase-specific knockback. No override adds item.getAttackDamageBonus, Player crit/smash or HammerItem.performCriticalAttack here. getGatekeeperHammer returns ordinary Glistering Hammer unless target is permitted ServerPlayer with challengeCount>0; then vanilla Mace with Hammer ATTRIBUTE_MODIFIERS copied. This changes HammerItem type tests, not into Player.attack. Shared melee considers nearby Living AABB(range): current target OR another Targeting entity targeting boss and facing within angle; no additional shouldHarm call. Range eligibility helpers add both half-widths; melee AoE itself is AABB selection. Greatsword phase5 hits ticks15/33 range3 angle120, combo8 ticks22/41/62/81; Hammer6 tick18 range2 angle90. Dash7 ticks16..35 range1.5, tracks only successful victims (rejected victims can retry); jump end4 tick2 range3 if HammerItem, otherwise2, angle360. Jump Hammer debris uses ESFallingBlock damage=false, unlike Golem damaging debris. Stepback/jump/explicit manager transitions retain native cooldown/range rules; navigation MeleeAttackGoal has empty checkAndPerformAttack, so it is not another damage path.
+
+## Outgoing modifier
+
+ES Incoming modifier matches causing entity exact registered Gatekeeper and victim permitted ServerPlayer; amount *= 1+.05*clamp(challengeCount,0,40), max3x. It therefore applies to attributed arrows, fireball and its owned explosion as well as melee. Keep native difficulty, armor/shield/Resistance/protection and events; no custom ES damage type here. Future Stage once at each final damage request, retaining this native downstream modifier; never scale attack attribute plus request plus challenge factor. Default config attackDamage1 differs from saved instance file5; HP175/armor15 and canAlwaysHurtWhenFighting=false match. Snapshot is not proof of loaded runtime values.
+
+## Arrows
+
+Bow9 eligibility cooldown and target outside6/within25, shoots tick26 speed1.8 inaccuracy.5; combo10 outside18/within35 ticks20/38/55 speed2 inaccuracy.1. Both use Monster.getProjectile (native projectile hook, held supported ammo else Arrow) -> ProjectileUtil.getMobArrow(charge1,weapon), native setBaseDamageFromMob = 2+random.triangle(difficultyId*.11,.57425), then ES adds.75. Owner Gatekeeper, direct arrow; native speed/base/crit/enchant/collision/hurt-return path remains. This bypasses BowItem.createProjectile, so GlisteringBowItem player-use bonus.3 is NOT additionally applied. Native player Glistering Bow remains a distinct delivery path with +.3 and ordinary bow mechanics. Scale final native arrow hurt once, not base bonus and final hit.
+
+## Fireball
+
+Cast phase11 outside20/within100 plus cooldown, tick12 spawns six Gatekeeper-owned GatekeeperFireballs with current target. tick super executes collision before orbit/launch update; spawnedTicks<60 and owner exists orbits owner; exactly60 with target sets velocity toward target*.4, not continuous target homing. Entity impact first calls base onHitEntity then requests damageSources.fireball(this,owner), amount8, ignores hurt result. Native owned type minecraft:fireball direct projectile/causer owner; absent owner native unattributed_fireball direct=causing projectile. onHit calls inherited dispatch FIRST, then regardless direct-hit success Level.explode(this,radius2,fire=false,ExplosionInteraction.NONE), then discard. NONE prevents block destruction, not native explosion HP: direct=fireball, causing=Living owner or null; owned factory selects player_explosion even for non-Player owner. Native blast formula floor(((q*q+q)/2)*7*(2*radius)+1), q=(1-distance/(2*radius))*exposure, normal explosion admission and knockback; direct hit and blast share ordinary target cooldowns. No explicit ignite call in this subclass. fireball IS_FIRE admits native fire immunity/Flammable/fire resistance; explosion has its separate tags/defenses. Nonpickable blocks ordinary targeting for melee reflection; do not claim universal immunity to all external deflection. Native AbstractHurtingProjectile tick retains NeoForge impact/deflection routing. Scale each final direct or explosion hurt request once, not radius/count, and verify possible second-hit rejection.
+
+## Healing
+
+Eat13 eligibility cooldown, target present, outside10 reach, HP<.4max, healCount<8 and healInterruptedCount<4. Start equips carrot, clears both interruption flags, increments healCount. Continues while not interrupted; on stop uninterrupted heals maxHP/10, direct interruption heals maxHP/20, indirect interruption heals nothing and enters EatFail14. Fail start increments interrupted count; item throw is no extra attack. Directness is identity, so e.g. a caused effect can differ from an indirect projectile independently of type tags. Subsequent admitted hit may overwrite indirect flag before phase stop. Future Stage only once on actual heal request; leave thresholds/counts/ratio and sparring resets native. Existing HEAL_MULTIPLIER and native healing event remain.
+
+## Teleport
+
+Combat phase12 eligible cooldown and target present plus stuck or outside40 reach. At tick17 it calls native randomTeleport(target coords,false); if blockPosition unchanged, unconditionally setPos(target.position). Thus native failed landing or same-block result can be followed by direct fallback with no new collision/event test. Stuck means32 retained ten-tick block samples all within5 of their average. Abort return only same initial dimension and distance>15: unobstructed initial block bottom -> direct setPos with no teleport event; otherwise up to64 candidate searches within15 and ES postTeleportEvent before setPos. That platform bridge respects cancellation but discards edited coordinates. These control paths have no Stage value; preserve actual existing behavior and test veto/fallback separately.
+
+## Solar and exclusions
+
+SolarCreeper extends ESBoss, not vanilla Creeper. Installed whole-class/goal/reference census finds only120-tick intro phase, MoveToTargetGoal navigation and look/target goals: no attack goal, doHurtTarget call, projectile or explode callback in this native route. ATTACK_DAMAGE12 declaration alone proves no attack delivery. Its causeFallDamage returns false and checkFallDamage is empty; intro toggles noGravity and ESBoss movement gate until completed, persisted in NBT. Ordinary damage uses inherited ESBoss admission; intro does not add HP immunity. Record fall/intro defense and no native attack caller proven for this build, not an invented solar blast. Models/animation, trades, loot/acquisition and advancement narrative are excluded except challenge permission/count predicates that alter combat.
+
+## TNO integration decisions
+
+- **Gatekeeper active-phase and source admission**: COMPOSITE, ADMISSION_GATED, NO_STAGE_VALUE. Stage: no additional multiplier; Native state, source identity and binary admission remain unchanged.
+- **Gatekeeper sparring defeat/rescue/reset**: COMPOSITE, ADMISSION_GATED, NO_STAGE_VALUE. Stage: no additional multiplier; Native state, source identity and binary admission remain unchanged.
+- **Gatekeeper native phase melee**: COMPOSITE, ADMISSION_GATED, NUMERIC_SCALABLE. Stage: Once at native Mob.doHurtTarget final hurt after attributes/enchantments; preserve challenge modifier downstream.
+- **Gatekeeper and Glistering Bow arrows**: COMPOSITE, ADMISSION_GATED, NUMERIC_SCALABLE. Stage: Once at native AbstractArrow final hurt; retain distinct native mob/player base additions.
+- **Gatekeeper direct fireball hit**: COMPOSITE, ADMISSION_GATED, NUMERIC_SCALABLE. Stage: Once at final native fireball8 hurt.
+- **Gatekeeper fireball native explosion**: COMPOSITE, ADMISSION_GATED, NUMERIC_SCALABLE. Stage: Once at per-victim native explosion final hurt, not radius or direct fireball amount.
+- **Gatekeeper interruptible healing**: COMPOSITE, ADMISSION_GATED, NUMERIC_SCALABLE. Stage: Once at actual Eat stop heal request; no Stage on sparring setHealth.
+- **Gatekeeper combat and reset teleport**: COMPOSITE, ADMISSION_GATED, NO_STAGE_VALUE. Stage: no additional multiplier; Native state, source identity and binary admission remain unchanged.
+- **Solar Creeper fall immunity and intro control**: COMPOSITE, ADMISSION_GATED, NO_STAGE_VALUE. Stage: no additional multiplier; Native state, source identity and binary admission remain unchanged.
+
+[Machine-readable packages, delivery paths and future fixtures](eternalstarlight-r2h3e-gatekeeper.json). Exact archive/method witnesses and targeted semantic assertions are reproducible. No whole-mod completion claim.
+
+Exact next task: R2h4: remaining ES custom damage callers (sonar, meteor, seeds, ether, shattered_blade, wilt), equipment/spells/resources and whole-mod closure; then Bosses Rise while quota remains healthy. Do not repeat completed ES families or run runtime/production work.
