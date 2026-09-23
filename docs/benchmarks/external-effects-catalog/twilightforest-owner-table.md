@@ -1,6 +1,6 @@
 # Twilight Forest — partial semantic owner table
 
-The installed4.8.3345 review is **PARTIAL** at **R2f8af**: **277 mechanic-package drafts /1014 delivery cases**, **40/40 custom DamageType profiles USED**, zero unfinished types, REVIEW_REQUIRED0. Remaining combat callbacks and all31 registered transformers reviewed; final global source/exclusion census and promotion pending. Zero final Twilight records promoted. Protected sections/cloth erratum and accepted four mods116/161/217 preserved; runtime0.
+The installed4.8.3345 review is **PARTIAL** at **R2f8 remaining-content complete**: **277 mechanic-package drafts /1014 delivery cases**, **40/40 custom DamageType profiles USED**, zero unfinished types, REVIEW_REQUIRED0. Whole combat-significant semantic/source/exclusion/compatibility closure and all31 registered transformers reviewed; final distinct-record deduplication and promotion pending. Zero final Twilight records promoted. Protected sections/cloth erratum and accepted four mods116/161/217 preserved; runtime0.
 
 | Mechanic | Native behavior | Vanilla comparison | Classification / source coverage |
 |---|---|---|---|
@@ -540,3 +540,7 @@ Owner instruction supersedes the80% stop rule: continue while execution and enou
 Sinister grounded buffer spawning and ordinary Lich room spawners retain different native position/finalization rules. Hostile bookshelf tick/fire/egg paths are proven: successful spawn does **not** consume its book, because native setItem(EMPTY) dispatches to TF removeItem, which rejects active-SPAWNER removal. Fire bypasses only the native specified light/cap checks, preserves collision/Peaceful/insertion and destroys the shelf. No fix was made.
 
 Controlled structure spawn null results leave the incoming list unchanged; empty results replace it. All31 nested transformers are covered, including actual client multipart size/state synchronization. Utility/presentation/progression callbacks, native prey goals and placeholder entities have explicit short dispositions. Protected sections remain immutable. Final global source/exclusion and compatibility census is next, then R2f8 and dedup/promotion; IceAndFire remains unstarted.
+
+## R2f8 — whole remaining-content closure
+
+[Whole closure](twilightforest-r2f8-complete-review.md) freezes38 reviewed semantic sections,40/40 custom types,1 custom status and the whole1,943-class supplemental279-method caller census. The19 new witness hits are item/decorative/passive/debug/admin exclusions. All31 nested transformers are dispositioned. Scoped forward/reverse compatibility scans reproduce no direct name hits; native optional and generic event hooks remain attributed. Zero remaining native ambiguities/REVIEW_REQUIRED. Twilight is PARTIAL only pending final deduplication/promotion;277/1014 are drafts, not final distinct counts. Exact next task is final promotion, then IceAndFire after pushed/live-verified COMPLETE.
