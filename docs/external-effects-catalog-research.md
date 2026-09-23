@@ -954,3 +954,7 @@ Sandworm segment resource measures real HP loss; direct-source equality can reta
 ## R2i7a — Bosses Rise Kraken defense and phase resources
 
 Kraken hidden state sets real invulnerability; cannon5 takes priority over projectile.25. Knockdown tracks actual HP loss, and tentacle removal callbacks are not limited to death. [Evidence and resume point](benchmarks/external-effects-catalog/bossesrise-r2i7a-kraken-defense-review.md).
+
+## R2i7b — Bosses Rise Kraken attacks, cannon and pirates
+
+Native Living-owned cannon/crate explosions are player_explosion; only cannon custom impact receives the usual Kraken5 weakness. Tentacle goals use adjusted goal ticks, and pirate AI melee hits are disabled in favor of timed callbacks. [Evidence and resume point](benchmarks/external-effects-catalog/bossesrise-r2i7b-kraken-offense-review.md).
