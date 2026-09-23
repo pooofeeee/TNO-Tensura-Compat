@@ -1,0 +1,175 @@
+{
+  "schema": "tno.external_effects.iaf_siren_song.v1",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "checkpoint": "R2g3a-siren-song-complete",
+  "starting_sha": "fb6a249c3b77b051d3a0ce2b42343b05e4a016ee",
+  "status": "SIREN_SONG_SEMANTIC_REVIEW_COMPLETE",
+  "facts": {
+    "authority": "Installed Iaf beta15 SirenEntity complete class bytes plus SirenCharmStatusEffect, native prey tag, config and cosmetic shader consumer; exact protected loader effect lifecycle and tensura_iaf bridge are reused. Actual callback is SirenEntity.aiStep; lambda$tickMovement$8 is only the compiler helper name, not an absent or separate tickMovement override. All726 native classes contain no SirenData class. The actual state is SirenEntity.charmingEntities.",
+    "mechanic": "The constructor allocates a private final Object2IntOpenHashMap<LivingEntity> charmingEntities. Song control is that map and tickCharm, while iceandfire:siren_charm is a HARMFUL heart-particle MobEffect with only a constructor, no movement/damage/removal override. The status is an independent marker and shader input; its native lifecycle/Resistance admission does not own the map. Whole package classification is CUSTOM_CONTROL with a custom status marker component. No new DamageType, hurt, HP subtraction or SHP call is used by tickCharm.",
+    "singing": "aiStep first calls superclass. Positive singCooldown decrements and calls setSinging(false). Server no-target/not-aggressive state requests setSinging(true), but setter clamps false while cooldown>0. wantsToSing=isSinging&&inWater&&!aggressive; isActuallySinging=isSinging&&!wantsToSing. The animation-pose local additionally requires !aggressive,!inWater,onGround, but those pose guards are NOT all acquisition guards. Server acquisition/tickCharm checks !GorgonEntity.isStoneMob(this) and isActuallySinging; isStoneMob is instanceof StoneStatueEntity, not a generalized petrification flag. Normally Siren and StoneStatue are different entity classes.",
+    "acquisition": "Every tickCount%20==0 during that server singing block: get LivingEntity in own box inflated(50,12,50), using explicit SIREN_PREY predicate; filter !isWearingEarplugs and distance>=5. SIREN_PREY is (Player&&!creative&&!spectator) OR entityType tag SIREN_CHARMABLE; native tag has villager and wandering_trader only. The OR allows tagged entities independently of the Player clause; do not invent an unconditional creative/spectator exclusion for arbitrary future tag additions. No LOS/wall check, damage result, holder application, or owner/team check gates this query.",
+    "map_before_effect": "Refresh removes map keys absent from current target list directly (no stopCharm/cooldown), adds missing keys with time0, then attempts addEffect(SIREN_CHARM,30ticks,amp0,source=this Siren) for every retained key; returned boolean discarded. Existing time counters are preserved by computeIfAbsent. Then setSinging(true) and tickCharm run even if effect addition was vetoed. Native finite duration/merge/cures remain, but clearing/rejecting this marker cannot remove map entries through this class. Shader enabled by marker is cosmetic and not proof of control admission.",
+    "timer_and_distance": "tickCharm iterates current map. First time>maxSingTime (default/snapshot12000) calls stopCharm; equality still permits a control tick. Next checks Siren isAlive and target distance<=64; failure stops that target and sets Siren aggressive=false. There is no corresponding target alive check in this method. The box query can include diagonals beyond64, so acquisition/marker attempt can be followed by immediate stop and global cooldown. Outside the server singing block the map/timers are not ticked or cleared by this class; they can remain dormant.",
+    "map_player_bug": "Exact bytecode tickCharm loads charmingEntities atoffset93 into a local before instanceof Player at100; another field load353 precedes instanceof Player356. Both test the MAP, not charmingEntity. The actual constructor allocates Object2IntOpenHashMap, so the intended creative/spectator escape in this tick body never applies and the rotation body also runs for Players. Ordinary initial Player eligibility still comes from SIREN_PREY; a mid-charm creative/spectator change is only removed by the next target refresh (unless tagged), not this mistaken tick guard. Preserve the native bug; no repair is authorized.",
+    "approach": "Distance<5 on a tickCharm iteration sets cooldown=timeBetweenSongs (default/snapshot2000), requests singing=false, sets target to that victim, sets aggressive=true, triggers nearby Sirens, then stopCharm. Refresh excludes <5 targets before tickCharm, so a target already inside5 on a refresh tick can be removed without this aggression handoff. At distance>=5: counter increments, horizontalCollision sets jumping=true; each velocity component moves10% toward +/-0.5 based on sign of Siren-target delta (Y sign uses SirenY-targetY+1). Writes delta, sets hurtMarked=true, stops riding if passenger, rotates pitch/yaw toward Siren-minus-target-minus(0,1,0) with each wrapped change clamped+-30 degrees. No damage result is tested.",
+    "removal_shared_state": "stopCharm only removes map entry and sets global Siren singCooldown; it does not remove the MobEffect, setSinging, clear motion, stop jumping, or clear target. Next aiStep consumes cooldown and clamps singing. Direct refresh removals do not call it. Losing singing suspends map processing; last marker can expire independently. Multiple Sirens own separate maps and can write one recipient velocity; multiple victims share a Siren cooldown/target/aggression state. No stable cross-map/target priority or single-controller arbitration is implemented here.",
+    "aggro_boundary": "triggerOtherSirens scans own AABB inflated12 and for other Siren entities sets target/aggressive and singing=false. Siren.hurt calls it when source.getEntity is living BEFORE super.hurt, so propagation is not gated by accepted damage. Arrival handoff itself does no HP damage. Bite/pull animation damage in the earlier aiStep body remains a separate next subsection; ordinary later aggression is not damage caused by the SIREN_CHARM MobEffect.",
+    "persistence": "Siren save writes each map target UUID and CharmTime under CharmingEntities. Read clears the map and restores only UUIDs resolving to a currently loaded LivingEntity in the ServerLevel; it does not store unresolved UUIDs for later. Singing/aggression and other entity fields restore separately. singCooldown is not saved in these methods. CHARMED/Passive is a distinct saved synced boolean and is not the target map or SIREN_CHARM membership.",
+    "native_immunity": "Native isWearingEarplugs checks nonempty HEAD stack exactly IafItems.EARPLUGS. tensura_iaf RETURN injection preserves an already true result; otherwise makes it true for SkillUtils.isSkillToggled(entity,SPIRITUAL_ATTACK_NULLIFICATION). Protected exact SkillUtils resolves an instance and requires isToggled&&mastery>=0. This bridge uses neither ResistSkill.canInteractSkill nor the ColdNullification holder-list dispatcher: it has no nullification-gamerule/sleep/Rest/area predicate of its own. Other native systems can change toggle state, but do not silently import those predicates into this helper. Earplug/toggle changes affect next20tick acquisition refresh; tickCharm has no per-tick earplug recheck.",
+    "status_independence": "Because marker addEffect result is ignored, generic effect immunity/cure alone need not prevent song movement. Conversely earplugs can prevent map acquisition even if a previously applied marker remains for its native duration. Existing native status admission, source=this, expiration/removal events and external hooks remain untouched. No status fallback, synthetic source, direct HP/SHP change, runtime L2 result or production fix is proposed.",
+    "exclusions_and_next": "SirenShaderRenderHelper is cosmetic and excluded as a separate mechanic. Hair/pose/sounds/rendering/spawn appearance are short exclusions. Source read-ahead shows SirenFlute writes MiscData.loveTicks200 rather than SIREN_CHARM; it requires its own component dispatch/persistence review next. Siren bite/pull likewise remain separate. Ice & Fire remains PARTIAL, no promoted records; Frozen complete checkpoints preserved."
+  },
+  "mechanic_draft": {
+    "id": "iaf:siren_song",
+    "classification": "CUSTOM_CONTROL",
+    "components": [
+      "native_target_map",
+      "velocity_attraction",
+      "dismount",
+      "rotation",
+      "independent_harmful_status_marker",
+      "aggression_handoff"
+    ]
+  },
+  "delivery_paths": [
+    {
+      "id": "iaf:siren_song:player",
+      "labels": [
+        "PASSIVE_AURA",
+        "MOB_ATTACK"
+      ],
+      "source": "native singing Siren",
+      "eligibility": "noncreative/nonspectator Player OR native tag; earplug/distance/query/state predicates",
+      "effect_source": "Siren entity",
+      "status_success_required": false
+    },
+    {
+      "id": "iaf:siren_song:tagged",
+      "labels": [
+        "PASSIVE_AURA",
+        "MOB_ATTACK"
+      ],
+      "source": "native singing Siren",
+      "eligibility": "SIREN_CHARMABLE native villagers/traders plus unchanged generic song guards",
+      "effect_source": "Siren entity",
+      "status_success_required": false
+    }
+  ],
+  "future_fixtures": [
+    {
+      "id": "ordinary_player",
+      "expected_native_contract": "native singing server query, no earplugs,5..64 distance, actual map and marker observed",
+      "executed": false
+    },
+    {
+      "id": "native_tagged_villager",
+      "expected_native_contract": "villager/wandering_trader target predicate, no Player-only assumption",
+      "executed": false
+    },
+    {
+      "id": "status_rejection",
+      "expected_native_contract": "map control independent of addEffect=false",
+      "executed": false
+    },
+    {
+      "id": "marker_cure",
+      "expected_native_contract": "cure does not mutate map",
+      "executed": false
+    },
+    {
+      "id": "earplug_toggle",
+      "expected_native_contract": "next refresh removes/prevents key; marker may remain",
+      "executed": false
+    },
+    {
+      "id": "spiritual_nullification",
+      "expected_native_contract": "native exact helper bool/mastery admission, not ColdNullification pipeline",
+      "executed": false
+    },
+    {
+      "id": "mid_charm_creative",
+      "expected_native_contract": "wrong map instanceof guard, next refresh behavior",
+      "executed": false
+    },
+    {
+      "id": "distance_under5",
+      "expected_native_contract": "non-refresh approach handoff vs refresh removal",
+      "executed": false
+    },
+    {
+      "id": "distance_over64",
+      "expected_native_contract": "query diagonal can add then stop/global cooldown",
+      "executed": false
+    },
+    {
+      "id": "timer_boundary",
+      "expected_native_contract": "time==max still controls; >max stops",
+      "executed": false
+    },
+    {
+      "id": "reload",
+      "expected_native_contract": "loaded UUID restore, unresolved UUID skipped, cooldown unsaved",
+      "executed": false
+    },
+    {
+      "id": "multiple_sirens",
+      "expected_native_contract": "independent maps; native update-order interactions",
+      "executed": false
+    },
+    {
+      "id": "player_rotation",
+      "expected_native_contract": "map instanceof bug permits pitch/yaw writes to Player",
+      "executed": false
+    }
+  ],
+  "reference_files": [
+    {
+      "file": "native-evidence/iceandfire-siren.json",
+      "sha256": "f0b0663fbf25acdf0d3416e44cb0c30bae9ec6c2b2da8ddf13ac59f5016cd3a0"
+    },
+    {
+      "file": "iceandfire-siren-callers.json",
+      "sha256": "0dd0fe2717d019d75d542b3809087c070e8e8eebce2377ddc1b985e8b5df42da"
+    },
+    {
+      "file": "native-evidence/iceandfire-foundation.json",
+      "sha256": "7ec82347885b0666ebbfa8ea8650acd392efd90019a99aacf7e19a21d63f0fdc"
+    },
+    {
+      "file": "reference-evidence/iceandfire-frozen-tensura.json",
+      "sha256": "745cdd3c0250bb5223288b676d28f2e5f085f3208151a40bdb3b4ff6f3d0c516"
+    },
+    {
+      "file": "reference-evidence/vv-loader-244.json",
+      "sha256": "dfe810015f36cdea97cb304342459b0d95d0d4179a32bc2a64e01c0349934f48"
+    },
+    {
+      "file": "reference-evidence/twilight-frosted-244.json",
+      "sha256": "f8ea775daf3592c157707199bea3ade0b43cdc2e4f817644d863a4fab82bd909"
+    },
+    {
+      "file": "iceandfire-frozen-config-snapshot.json",
+      "sha256": "046dffed6e3ec3b3e01e4cd0be4042ac3f1de30302ba7a4facc72e4cd6c4d808"
+    },
+    {
+      "file": "annotation-evidence/iceandfire-compat-javap.json",
+      "sha256": "d070028b1b517cfebbb890482a9ebfe572410c9b2faad2921a7f6e2dcbd7f058"
+    }
+  ],
+  "song_native_ambiguities": [],
+  "review_required": [],
+  "whole_siren_family_complete": false,
+  "whole_iceandfire_complete": false,
+  "promoted_mechanics": 0,
+  "promoted_paths": 0,
+  "exact_next_task": "R2g3b: finish distinct Siren Flute loveTicks control (SirenFluteItem.use -> MiscData.setLoveTicks/tick -> ComponentManager/native attachment and tick registration; actual consumers/removal/persistence) and Siren bite/pull attack admission/amount/hurt-return dependency. Do not conflate either with song/SIREN_CHARM. Reuse completed R2g3a song and R2g2 Frozen. Then Gorgon and remaining Ice & Fire combat families; no runtime/L2/Stage/production work.",
+  "runtime_tests": 0,
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false
+}

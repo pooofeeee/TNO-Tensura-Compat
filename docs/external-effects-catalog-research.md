@@ -782,3 +782,7 @@ Ice & Fire remains PARTIAL. Frozen core/lifecycle, six ordinary weapon paths and
 ## R2g2b — Frozen native delivery complete
 
 Frozen native source mapping is complete: six ordinary weapon paths plus seven dragon entry routes, three area contracts. Damage, Frozen, terrain grief and companion statuses remain separate. Native charge entity collision rejects TamableAnimal through a self-owner comparison; charge area requires canGrief while breath living payload does not. No behavior was changed. [Review and next task](benchmarks/external-effects-catalog/iceandfire-r2g2b-review.md). Ice & Fire remains PARTIAL; Siren charm is next.
+
+## R2g3a — Siren song
+
+Native song control is a Siren-owned target map, independent of its30tick HARMFUL status marker. Effect rejection/cure need not stop control. Two purported Player guards actually inspect the map; native rotation therefore also applies to Player victims. Existing SpiritualAttackNullification compatibility acts as earplugs at periodic target acquisition. [Evidence and exact resume](benchmarks/external-effects-catalog/iceandfire-r2g3a-review.md). No fixes or runtime tests; Flute and bite/pull are next.
