@@ -1,0 +1,51 @@
+# R2i7a — Bosses Rise Kraken defense and phase resources
+
+Kraken body/tentacle incoming damage, native phases, knockdown, death and spawn resources; outgoing attack goals and cannon next.
+
+Static review only. Future runtime fixtures remain unexecuted; whole Bosses’ Rise review is PARTIAL.
+
+## Incoming order
+
+Kraken.hurt first tests CannonballEntity.hasCausedDamage: exact custom CANNONBALL_HIT OR exact vanilla EXPLOSION with directEntity instanceof CannonballEntity. Matches multiply incoming amount5; only ELSE does IS_PROJECTILE multiply.25. Thus native custom cannon impact receives5, not1.25; recognized cannon explosion also receives5. Arbitrary player_explosion or projectile owner match does not satisfy the exact second predicate. Original source is forwarded to inherited hurt unchanged. Tentacle parent ordinary hurt rejects client and routes to part8; part overload applies cannon5, with NO generic projectile.25 reduction, then inherited hurt on this tentacle. Parts do not forward HP to the Kraken boss. Native defense multipliers are not Stage scaling points.
+
+## Hidden admission
+
+Kraken DATA_IS_HIDDEN update writes blocksBuilding=!hidden, calls setInvulnerable(hidden), and refreshes dimensions; hidden dimensions0x0. This sets Entity backing invulnerable state, unlike a virtual getter-only override. Native Entity.isInvulnerableTo consequently rejects ordinary hidden damage subject to BYPASSES_INVULNERABILITY, creative-source exception and Neo invulnerability hook. Kraken.hurt has no additional phase/hidden early rejection; the source pipeline matters. No evidence supports treating hidden as an unconditional bypass-proof shield. Kraken is unpushable, no movement writes via setDeltaMovement, no entity pushing, piston IGNORE, isInWall false. Tentacles similarly suppress these movements and have no special invulnerability override in this class. Native incoming armor/Resistance/enchantment/event rules still apply.
+
+## Knockdown
+
+After super.hurt true, and only when !isKnockedDown (KNOCKDOWN active OR either dying animation counts as knocked down), accumulates max(previousHP-currentHP,0). At100 AND !phase3 resets resource0 and pushes KNOCKDOWN. Resource is actual net HP loss, not requested amount; no timeout/reset except threshold. While knocked down it neither accumulates nor triggers. KNOCKDOWN lasts through timer304, stuns loaded tentacles onStart, and moves body using clamped interpolation: offset0->1 over0..76, stays until228, returns by304. It does not itself change incoming HP multiplier or armor. Position/exposed body is a distinct future fixture. Resource and state stack/timer persist.
+
+## Phase initialization
+
+Base and config default Kraken HP500/armor20/attack10. finalizeSpawn applies config and fills HP. Native ship spawner directly creates the Kraken, sets ship transform and phase-1, adds it without calling finalizeMobSpawn; therefore do not assume custom configuration was applied on this producer solely because finalizeSpawn exists. Default shared phase0 initializes tentacles directly; ship route has intro. Boss phase setter clears initialized flag; server tick initializes once per phase. Phase0 hides body, shows bar, clears respawn queue, spawns8 tentacles (6 melee,2 cannon candidates). Progress bar sums loaded tentacle HP fractions/8, not boss HP. After respawn handling, loaded list empty AND all sampled arena chunks loaded transitions to phase1; lingering UUID list only logs, does not block. Phase2 shows/moves body, clears queue and spawns10 tentacles (6 melee,2 cannon candidates,2 crate); progress uses boss HP. Phase1/intro run cinematic entities, not HP percentage transitions. No phase HP refill exists.
+
+## Cinematic control
+
+Intro and phase-transition cinematic entities have server game-time durations490/290. Native parent state starts hidden/bar hidden and waits until entity absent or animationFinished; while waiting, nearby Players in shared full-side64 AABB receive native Resistance100ticks amplifier255 every state tick. Native Applicable and Roll can veto even this beneficial protection. State end chooses phase0/2. Cinematic surrogate hurt alwaysfalse, empty travel/push/knockback/checkFallDamage/customServerAiStep and no outgoing combat callback; do not confuse surrogate immunity with body immunity. Surrogate saves deadline/owner but marks reloaded and discards next tick. Parent saves live surrogate UUID and later resolves it; genuine reload/missing surrogate needs runtime fixture, not invented replacement source. Weather is forced rain/thunder for60ticks every gameTime%40 while boss alive and cleared for24000 on native die; preserve as environmental context for later lightning/fire/equipment fixtures, with no direct Stage payload.
+
+## Tentacle resources
+
+Defined tentacles spawn server entities with owner UUID, ID/type/rotation, HP=max Kraken BASE maxHealth/12, armor/attack copied from base attributes, full tentacle HP. They are separate Monsters with parts. Cannon candidate creates a tentacle, chooses nearest Cannon within its BB.inflate32 that has no tentacle first passenger, and must successfully ride it; failure discards it and falls back to melee. Successful spawned UUIDs are tracked. Tentacle removal unconditionally calls owner.onTentacleDestroyed after resolving owner, with no RemovalReason or death-source filter. That callback removes UUID, increments deadTentacles server-side, summons pirates at cumulative count4 or6 OR removed type CANNON, and queues respawn for a matching current-phase definition. Thus discard/unload paths must be tested separately from HP defeat; never simplify callback to on-kill only. Phase0 delays by definition4800/6000/7200/8400; phase2 melee2400, cannon/crate2000. Queue sorted comparator uses respawnAtGameTime ONLY: equal timestamps compare equal even for different IDs. Per-ID duplicate check precedes add, but same-time distinct-ID add can still collapse. Retry spawn at/after deadline; remove timer if no current definition or spawn succeeds.
+
+## Tentacle lifetime
+
+Tentacle native owner lookup refreshes server-side in baseTick and remove; Owner NBT capitalization matches on write/read. Type, ID and rotation persist; player targets/goals are not promoted from arbitrary NBT. On die, inherited die runs first; if dead, plays native type-specific death and leaves vehicle. tickDeath removes at>=115 server ticks, so phase resource/removal callbacks occur after the corpse delay. killQuietly is a native scripted direct setHealth0 then die(genericKill) when not dead; it does not route through hurt/IncomingDamage and has no Stage value. Parent death sequence uses it; no compat code is authorized to emulate it. Kraken removal only discards owned loaded tentacles for DISCARDED/KILLED, while tentacle removal itself is unfiltered. Loaded resolution and owner absence materially change resource outcomes.
+
+## Death sequence
+
+Shared AbstractStateBoss actual-damage hook may restore lethal HP to.1 after downstream Post unless source bypasses invulnerability. First shouldCancelDeath setsphase3/true. Later returns isInDyingState, which is false during KNOCKDOWN before a dying animation; another native lethal request during that gap may take ordinary death. Server phase3 waits if KNOCKDOWN outside76<=timer<228, switches immediately to dying_from_knockdown inside that range, or selects dying_from_idle when not in dying state and still alive. Either dying state lasts through180; native callback kills all loaded tentacles at80, or a random alive tentacle with probability1/6 on other ticks. State removal happens before onEnd, so final shared simulatePlayerKill sees no dying state and can finish via native PLAYER_ATTACK999. Result is ignored and normal mitigation/admission still matters. No new damage source or direct HP action is proposed; native scripted lifecycle is not scalable.
+
+## Spawn and scope
+
+Ship spawner first summons fixed pirate points near an alive player, tracks UUIDs, then creates Kraken after its tracked list empties. Pirate death hook removes matching UUID near the spawner; full pirate combat stays R2i7b. Parent also emits runaway tentacles for eligible water-bound players near ship with per-player200tick cooldown; exact grab/throw/control remains R2i7b, so not claimed complete here. Saved parent records include ship transform, owned UUIDs, dead counter, respawn timers, initialized flag, hidden state, knockdown resource and cinematic UUID plus shared HP/state. No cosmetics/loot/ship-construction archaeology. This checkpoint closes incoming defense, phase and resource semantics only; whole Kraken and Bosses Rise remain PARTIAL.
+
+- **Kraken body and tentacle native admission**: COMPOSITE, ADMISSION_GATED, NO_STAGE_VALUE. Stage: Native incoming modifier, resource/phase/admission, beneficial control or scripted cleanup; no separately scalable outgoing HP payload.
+- **Kraken actual HP knockdown resource**: COMPOSITE, ADMISSION_GATED, NO_STAGE_VALUE. Stage: Native incoming modifier, resource/phase/admission, beneficial control or scripted cleanup; no separately scalable outgoing HP payload.
+- **Kraken native tentacle phases and cinematic protection**: COMPOSITE, ADMISSION_GATED, NO_STAGE_VALUE. Stage: Native incoming modifier, resource/phase/admission, beneficial control or scripted cleanup; no separately scalable outgoing HP payload.
+- **Kraken tentacle ownership, removal and respawn**: COMPOSITE, ADMISSION_GATED, NO_STAGE_VALUE. Stage: Native incoming modifier, resource/phase/admission, beneficial control or scripted cleanup; no separately scalable outgoing HP payload.
+- **Kraken native death and scripted cleanup**: COMPOSITE, ADMISSION_GATED, NO_STAGE_VALUE. Stage: Native incoming modifier, resource/phase/admission, beneficial control or scripted cleanup; no separately scalable outgoing HP payload.
+
+[Machine evidence, packages and native paths](bossesrise-r2i7a-kraken-defense.json).
+
+Exact next task: R2i7b: Kraken tentacle attack/crate/runaway goals, native smash geometry and custom source, cannon interaction/aim/fire and projectile impact/explosion, pirate summons. Parent/tentacle defense and phase resources are protected in R2i7a. Then equipment and whole-mod closure; no runtime work.

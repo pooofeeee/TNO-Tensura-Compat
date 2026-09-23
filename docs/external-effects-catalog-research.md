@@ -950,3 +950,7 @@ Yeti native melee/ice HP separated from iframe/freeze/control; swept magic versu
 ## R2i6 — Bosses Rise Sandworm combat semantics
 
 Sandworm segment resource measures real HP loss; direct-source equality can retaliate without an attacker. Body controls and poison hazards are independent of hurt success, while columns push allies before rejecting HP damage. [Evidence and resume point](benchmarks/external-effects-catalog/bossesrise-r2i6-sandworm-review.md).
+
+## R2i7a — Bosses Rise Kraken defense and phase resources
+
+Kraken hidden state sets real invulnerability; cannon5 takes priority over projectile.25. Knockdown tracks actual HP loss, and tentacle removal callbacks are not limited to death. [Evidence and resume point](benchmarks/external-effects-catalog/bossesrise-r2i7a-kraken-defense-review.md).
