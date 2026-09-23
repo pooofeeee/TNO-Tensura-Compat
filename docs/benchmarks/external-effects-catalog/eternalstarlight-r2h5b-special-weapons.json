@@ -1,0 +1,466 @@
+{
+  "schema": "tno.external_effects.es_special_weapons.v1",
+  "checkpoint": "R2h5b-special-weapons-complete",
+  "previous_checkpoint": "R2h5a-native-ammo-complete",
+  "starting_sha": "87cb8e2103fe8c0f0ada8aff4631f4a2c280caee",
+  "status": "SPECIAL_WEAPONS_COMBAT_SEMANTICS_COMPLETE",
+  "scope": "Remaining special melee, two projectile weapon modifiers, native shields and concentration/motion modifiers. Armor remains separate.",
+  "summary": "Native spin/critical/sweep ordering, concentration identity, shield reflection ownership and real additional thorn/whip paths reviewed.",
+  "facts": {
+    "crescent_delivery": "Crescent Spear use -> Player release at>=10 ticks and downward5-block COLLIDER/Fluid.ANY clip non-MISS, or creative. Push look vector by trident-spin-enchantment strength+1.75, server durability1, dash markertrue, startAutoSpinAttack20 with ATTACK_DAMAGE*1.5 (attribute missing fallback8), cooldown20; onGround additionally move up1.2. No projectile is created. Native Player.attack reads spin amount and stored spin weapon while spin flagtrue, then ordinary strength/enchantment/item/critical/sweep processing; native source player_attack direct=causing=Player. Scale final per-victim native hurt once, not the stored spin amount or ordinary attack attribute as an additional multiplier.",
+    "crescent_order": "Exact loader LivingEntity.checkAutoSpinAttack first calls Player.doAutoAttackOnTouch -> attack on the first Living in swept box, sets spin ticks0, then reverses velocity. ES AFTER-setDeltaMovement injection performs AABB3 nearby-Living attacks with TargetingConditions.DEFAULT and shouldHarm, resetting attackStrengthTicker to ceil(delay) before EACH attack. The spin flag/amount/item are only cleared at native method end, so these extra attacks still use stored spin amount. ES separately calls the same helper at HEAD when horizontalCollision; despite method name checkAutoSpinAttackTail this is a HEAD injection. Helper checks stored item exact Crescent Spear, not the dash marker. Both hooks can run in one invocation, repeated attempts including original victim can meet ordinary iframe rejection; no forced victim iframe reset. Helper ends with owner invulnerableTime=max(existing,10) and markerfalse, not an atomic one-shot damage guard. Native primary and helper admission differ: helper has shouldHarm, native touch does not gain that extra predicate. These are source-proven attempts, not a claim all cause HP loss.",
+    "hammer": "#HAMMERS adds1 to native LivingEntity.getKnockback return. PlayerMixin forces the first boolean local (enough attack strength f2>.9) true before sprint check, AFTER strength already scaled damage; it does not set actual f2 or force every critical. Other critical predicates/events still apply. Neo CriticalHitEvent handler requires event currently critical, #HAMMERS, HammerItem instance and actual getAttackStrengthScale(.5)>.9, then performs splash BEFORE primary target.hurt. Splash nearby Living in target block AABB.inflate2 with TargetingConditions.DEFAULT requests native player_attack .75*current ATTACK_DAMAGE. No explicit shouldHarm or primary-target exclusion; native targeting and hurt admission remain. Only hurttrue adds vertical .4*max(0,1-KB resistance). Parent rejection does not retroactively prevent splash; splash may change primary iframe outcome. Single Stage point per independent final splash hurt, plus ordinary primary path, with no additional scale on .75 or knockback.",
+    "scythe": "#SCYTHES mixin temporarily forces the same enough-strength local true at Player.walkDist read for sweep eligibility; restores saved value at getItemInHand inside eligible sweep branch (if branch is not entered that restore does not execute). It does not replace actual attack strength f2, critical-blocks-sweep, sprint knockback, onGround/movement or item ability. NeoScytheItem and NeoPetalScytheItem expose DEFAULT_SWORD_ACTIONS. Exact loader fires SweepAttackEvent then primary hurt; only successful primary enters native sweep loop. Sweep excludes player, original victim, allies and marker armor stands, uses reach limit, and requests native player_attack enchanted(1+SWEEPING_DAMAGE_RATIO*f)*f2. Thus low charge can admit a weaker sweep, not automatic full-strength AoE. Scale each final native damage once; preserve reach, events and admission.",
+    "greatsword_block": "Greatsword use fails when damage>=max-1, otherwise begins BLOCK use. LivingMixin forces isBlocking true immediately when using #GREATSWORDS, bypassing ordinary minimum-use delay only. Native isDamageSourceBlocked still rejects BYPASSES_SHIELD, piercing AbstractArrow and missing/behind source position; loader shield event may modify final blocking. On positive shield durability callback PlayerMixin wears max(int(amount/5),1), stops using and applies cooldown100 before native shield body. Native body then sees stopped use; this is not a second custom HP event. disableShield HEAD is canceled only while current use stack is tagged greatsword. Keep binary admission, durability and cooldown native; no Stage value.",
+    "flowglaze_concentration": "Incoming handler requires source.directEntity Living, current weapon #FLOWGLAZE_WEAPONS, victim object identity==stored target, weapon ItemStack object identity==stored weapon and level>=4 to multiply by1.25. Player success branch calls handleFlowglazeWeaponAttack just before ItemStack.hurtEnemy; native part-parent mapping is not substituted for the mixin original argument, so original non-Living part cannot accrue here. Non-Player direct-Living path updates in Post handler. Same target+stack increments level capped4 and timestamp; changed target/stack stores new identities with level0. In plain sequential successful Player hits first sets0, fifth reaches4, earliest sixth Incoming gets bonus. Tick clears only when level>0 and elapsed>100 or weapon identity changed; level0 is not cleared by that branch. No requirement that each arbitrary direct-Living source be a melee DamageType, and no new effect/source. Preserve 1.25 and apply future Stage once at parent final HP request.",
+    "warhammer_pendant": "Incoming handler source.directEntity Living and getAccessories(current weapon) containing Warhammer Pendant multiplies amount by min(1+MOVEMENT.length*1.5,2); it is not based on causing entity alone or final HP loss. EntityMixin.move captures second local movement vector at second setPos invocation, replaces stored movement on a different tick and accumulates same-tick callbacks. Whole-JAR state census shows the only MOVEMENT/LAST_MOVEMENT_UPDATE writes in that mixin; no automatic reset for a later tick without that callback. A stale stored vector can therefore remain available. Native source and multiplicative modifier stay intact; parent final HP Stage only, no independent pendant multiplier.",
+    "bows": "FlowglazeBow native Bow factory marks created projectile. Server entity tick applies only airborne AbstractArrow: while saved extra float<3, baseDamage+=.1 and extra+=.1f each tick. Preserve float comparison rather than asserting an exact3 clamp; embedded ticks pause accrual. Damage still uses native final arrow speed/base/crit/enchantment and admission. UnrealiumCrossbow native factory on AbstractArrow adds .6+oldPierce*.1 to base then sets pierce127; shoot callback multiplies all projectile velocity by1.5. Server arrow tick with exact Unrealium weapon enforces pierce127 including inGround. Firework route receives velocity only, no arrow base/pierce. Scale final native arrow/firework per-victim hurt once, not base, velocity or pierce separately. BloodBow release delegates super with no native lifesteal/self-damage callback; ordinary bow route only.",
+    "flowglaze_shield": "Entity.deflection RETURN override: Living blocking exact Flowglaze Shield, horizontal normalized projectile-to-defender vector dot yaw-only defender view<0 -> AIM_DEFLECT. This precedes ordinary projectile onHit only for projectile classes that call native hitTargetOrDeflectSelf. That native method calls deflect(mode,defender,existingOwner,false); server deflect changes trajectory and calls setOwner(existingOwner), so collision reflection RETAINS original owner, unlike player-attack redirect. It records lastDeflectedBy to avoid repeated same-defender deflect; non-NONE still bypasses onHit. Preserve custom projectile deflect overrides/return and classes that bypass this helper as runtime distinctions. No separate damage or reflection Stage value; later legitimate projectile hurt is scaled once with its actual source.",
+    "glacite_shield": "Neo LivingShieldBlockEvent handler checks getOriginalBlock(), not final getBlocked()/blocked damage; then exact active Glacite Shield, source.directEntity Living and canFreeze -> frozen ticks+100 capped300. Loader event runs after earlier hurt admission when requested amount>0 and computes original block from normal source direction/bypass/pierce rules. Another listener can alter final blocking; the ES callback itself does not require final HP success or positive final blocked amount. Source-causing Living with non-Living direct projectile does not qualify. Native freeze control has no independent Stage quantity; retain frozen eligibility and later native freeze damage processing.",
+    "additional_deliveries": "MoonringGreatsword native successful postHurtEnemy server and per-owner special cooldown absent: four rings centered on victim, increment=min(width*.75,3), each radius=(i+1)*increment/count=max(round7radius,5), createThorn height40/delayi*7, cooldown125. This is another actual producer of reviewed mode0 LunarThorn POISON4; reuse es:lunar_thorns, no duplicate damage package. TentacleSpikeItem supplies TentacleSpike to existing Whip flow; lifespan10, range=interactionRange+7, no new hit override; reuse es:whip_damage with existing native ray, charge, source and hurt-return gates. These additional paths are explicitly linked for final dedup/promotion.",
+    "scope": "Fixed native crit/sweep/attack/armor modifiers, movement, control, pierce, cadence and item resources are not separately Stage-scaled. Ordinary melee/ammunition final HP requests retain native immunity, Resistance/enchantment/armor, loader events, source identity and future L2 processing. Rendering, crafting/repair, tool mining/tilling and particles are short exclusions. This section makes no runtime or integration-implementation claim; armor/material procs remain next."
+  },
+  "mechanic_packages": [
+    {
+      "id": "es:ordinary_special_weapon_hp",
+      "name": "Ordinary greatsword/hammer/scythe and BloodBow HP",
+      "primary_classification": "VANILLA_DIRECT",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at native final melee or ammo hurt; no new BloodBow drain.",
+      "stage_reason": "Retain native modifier/control; existing parent damage path receives at most one Stage multiplier.",
+      "delivery_paths": [
+        "es:weapons:primary"
+      ]
+    },
+    {
+      "id": "es:crescent_spin",
+      "name": "Crescent Spear native spin touch and collision AoE",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at each Player.attack final hurt, after spin/charge/enchantment; do not scale stored spin again.",
+      "stage_reason": "Retain native modifier/control; existing parent damage path receives at most one Stage multiplier.",
+      "delivery_paths": [
+        "es:weapons:spin_touch",
+        "es:weapons:spin_entity",
+        "es:weapons:spin_wall"
+      ]
+    },
+    {
+      "id": "es:hammer_splash",
+      "name": "Hammer critical-event splash",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once per independent .75*ATTACK_DAMAGE native player_attack hurt.",
+      "stage_reason": "Retain native modifier/control; existing parent damage path receives at most one Stage multiplier.",
+      "delivery_paths": [
+        "es:weapons:hammer"
+      ]
+    },
+    {
+      "id": "es:scythe_sweep",
+      "name": "Scythe native sweep admission and HP",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once per final native sweep hurt; native charge/ratio unchanged.",
+      "stage_reason": "Retain native modifier/control; existing parent damage path receives at most one Stage multiplier.",
+      "delivery_paths": [
+        "es:weapons:scythe"
+      ]
+    },
+    {
+      "id": "es:greatsword_block",
+      "name": "Greatsword immediate blocking and recovery",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Retain native modifier/control; existing parent damage path receives at most one Stage multiplier.",
+      "delivery_paths": [
+        "es:weapons:greatsword"
+      ]
+    },
+    {
+      "id": "es:flowglaze_concentration",
+      "name": "Flowglaze concentration modifier",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Retain native modifier/control; existing parent damage path receives at most one Stage multiplier.",
+      "delivery_paths": [
+        "es:weapons:flow_player",
+        "es:weapons:flow_nonplayer"
+      ]
+    },
+    {
+      "id": "es:warhammer_pendant",
+      "name": "Warhammer motion damage modifier",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Retain native modifier/control; existing parent damage path receives at most one Stage multiplier.",
+      "delivery_paths": [
+        "es:weapons:pendant"
+      ]
+    },
+    {
+      "id": "es:flowglaze_arrow",
+      "name": "Flowglaze airborne arrow base accrual",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at native final arrow hurt after velocity/base/critical calculation.",
+      "stage_reason": "Retain native modifier/control; existing parent damage path receives at most one Stage multiplier.",
+      "delivery_paths": [
+        "es:weapons:flow_arrow"
+      ]
+    },
+    {
+      "id": "es:unrealium_crossbow",
+      "name": "Unrealium projectile speed and arrow piercing",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at native final arrow/firework hurt; no additional base/speed multiplier.",
+      "stage_reason": "Retain native modifier/control; existing parent damage path receives at most one Stage multiplier.",
+      "delivery_paths": [
+        "es:weapons:unreal_arrow",
+        "es:weapons:unreal_firework"
+      ]
+    },
+    {
+      "id": "es:flowglaze_reflection",
+      "name": "Flowglaze Shield collision reflection",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Retain native modifier/control; existing parent damage path receives at most one Stage multiplier.",
+      "delivery_paths": [
+        "es:weapons:reflect"
+      ]
+    },
+    {
+      "id": "es:glacite_shield_freeze",
+      "name": "Glacite Shield original-block freezing",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Retain native modifier/control; existing parent damage path receives at most one Stage multiplier.",
+      "delivery_paths": [
+        "es:weapons:shield_freeze"
+      ]
+    }
+  ],
+  "delivery_paths": [
+    {
+      "id": "es:weapons:primary",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "native Player/Mob attacks with greatsword/hammer/scythe and ordinary BloodBow projectile",
+      "runtime_variants": [
+        "actual native source/direct/owner identity",
+        "admission and parent/secondary hurt-return ordering"
+      ]
+    },
+    {
+      "id": "es:weapons:spin_touch",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "Crescent charged release -> native auto-spin touch -> Player.attack",
+      "runtime_variants": [
+        "actual native source/direct/owner identity",
+        "admission and parent/secondary hurt-return ordering"
+      ]
+    },
+    {
+      "id": "es:weapons:spin_entity",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "auto-spin entity collision AFTER velocity reversal -> ES nearby attacks",
+      "runtime_variants": [
+        "actual native source/direct/owner identity",
+        "admission and parent/secondary hurt-return ordering"
+      ]
+    },
+    {
+      "id": "es:weapons:spin_wall",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "auto-spin horizontalCollision HEAD -> ES nearby attacks",
+      "runtime_variants": [
+        "actual native source/direct/owner identity",
+        "admission and parent/secondary hurt-return ordering"
+      ]
+    },
+    {
+      "id": "es:weapons:hammer",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "Neo CriticalHitEvent -> actual strength-gated Hammer splash before primary hurt",
+      "runtime_variants": [
+        "actual native source/direct/owner identity",
+        "admission and parent/secondary hurt-return ordering"
+      ]
+    },
+    {
+      "id": "es:weapons:scythe",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "Scythe local sweep eligibility -> native successful-primary sweep",
+      "runtime_variants": [
+        "actual native source/direct/owner identity",
+        "admission and parent/secondary hurt-return ordering"
+      ]
+    },
+    {
+      "id": "es:weapons:greatsword",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "using tagged greatsword -> immediate native blocking",
+      "runtime_variants": [
+        "actual native source/direct/owner identity",
+        "admission and parent/secondary hurt-return ordering"
+      ]
+    },
+    {
+      "id": "es:weapons:flow_player",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "Player successful native attack -> concentration update",
+      "runtime_variants": [
+        "actual native source/direct/owner identity",
+        "admission and parent/secondary hurt-return ordering"
+      ]
+    },
+    {
+      "id": "es:weapons:flow_nonplayer",
+      "labels": [
+        "MOB_ATTACK"
+      ],
+      "native_path": "non-Player direct-Living Post -> concentration update",
+      "runtime_variants": [
+        "actual native source/direct/owner identity",
+        "admission and parent/secondary hurt-return ordering"
+      ]
+    },
+    {
+      "id": "es:weapons:pendant",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "direct-Living damage with Warhammer weapon accessory -> Incoming multiplier",
+      "runtime_variants": [
+        "actual native source/direct/owner identity",
+        "admission and parent/secondary hurt-return ordering"
+      ]
+    },
+    {
+      "id": "es:weapons:flow_arrow",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "Flowglaze Bow native ammo -> airborne marked AbstractArrow",
+      "runtime_variants": [
+        "actual native source/direct/owner identity",
+        "admission and parent/secondary hurt-return ordering"
+      ]
+    },
+    {
+      "id": "es:weapons:unreal_arrow",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "Unrealium Crossbow -> native AbstractArrow",
+      "runtime_variants": [
+        "actual native source/direct/owner identity",
+        "admission and parent/secondary hurt-return ordering"
+      ]
+    },
+    {
+      "id": "es:weapons:unreal_firework",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "Unrealium Crossbow -> native Firework",
+      "runtime_variants": [
+        "actual native source/direct/owner identity",
+        "admission and parent/secondary hurt-return ordering"
+      ]
+    },
+    {
+      "id": "es:weapons:reflect",
+      "labels": [
+        "PASSIVE_EQUIPMENT"
+      ],
+      "native_path": "blocking Flowglaze Shield -> native projectile collision deflection",
+      "runtime_variants": [
+        "actual native source/direct/owner identity",
+        "admission and parent/secondary hurt-return ordering"
+      ]
+    },
+    {
+      "id": "es:weapons:shield_freeze",
+      "labels": [
+        "PASSIVE_EQUIPMENT"
+      ],
+      "native_path": "original block with Glacite Shield -> direct Living freeze",
+      "runtime_variants": [
+        "actual native source/direct/owner identity",
+        "admission and parent/secondary hurt-return ordering"
+      ]
+    },
+    {
+      "id": "es:weapons:moon_sword",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "Moonring Greatsword successful post -> mode0 LunarThorn",
+      "runtime_variants": [
+        "actual native source/direct/owner identity",
+        "admission and parent/secondary hurt-return ordering"
+      ]
+    },
+    {
+      "id": "es:weapons:tentacle",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "Tentacle Spike use -> shared Whip delivery",
+      "runtime_variants": [
+        "actual native source/direct/owner identity",
+        "admission and parent/secondary hurt-return ordering"
+      ]
+    }
+  ],
+  "existing_package_deliveries": [
+    {
+      "package_id": "es:lunar_thorns",
+      "section": "eternalstarlight-r2h3c-lunar.json",
+      "delivery_paths": [
+        "es:weapons:moon_sword"
+      ]
+    },
+    {
+      "package_id": "es:whip_damage",
+      "section": "eternalstarlight-r2h2b-status-control.json",
+      "delivery_paths": [
+        "es:weapons:tentacle"
+      ]
+    }
+  ],
+  "damage_types_newly_reviewed": [],
+  "unexecuted_future_fixtures": [
+    "Crescent_entity_wall_both_hooks_spin_state_primary_vs_repeat_iframes",
+    "Crescent_primary_native_admission_vs_helper_shouldHarm",
+    "Hammer_actual_charge_event_override_parent_reject_splash_first_same_victim",
+    "Scythe_low_charge_sweep_event_crit_blocks_sprint_and_reach",
+    "Greatsword_immediate_block_direction_pierce_bypass_cooldown_wear",
+    "Flowglaze_sixth_plain_hit_stack_identity_part_vs_directLiving_Post",
+    "Warhammer_same_tick_accumulation_stationary_stale_vector_indirect_excluded",
+    "Flowglaze_arrow_flight_embed_resume_float_threshold",
+    "Unrealium_arrow_firework_velocity_pierce_source_identity",
+    "Flowglaze_Shield_owner_retained_vs_player_redirect_custom_projectile_bypass",
+    "Glacite_Shield_original_vs_overridden_block_directLiving_canFreeze",
+    "Moonring_Greatsword_native_thorn_cd125_and_Tentacle_sharedWhip"
+  ],
+  "review_required": [],
+  "remaining_subsection_native_ambiguities": [],
+  "exact_next_task": "R2h5c: remaining armor, material Post procs, accessories/attributes and resource modifiers; then spells/crests and remaining non-boss creatures/hazards, whole ES caller closure/promotion/full validation, then Bosses Rise automatically. Do not repeat completed sections.",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "runtime_tests": 0,
+  "whole_eternalstarlight_complete": false,
+  "promoted_mechanics": 0,
+  "promoted_paths": 0,
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false,
+  "reference_files": [
+    {
+      "file": "native-evidence/eternalstarlight-special-weapons.json",
+      "sha256": "6bdd4808282e353b1d917c2218b188f04d0c3835a6bbe74d6be7ee78a7b8edfa"
+    },
+    {
+      "file": "eternalstarlight-special-weapons-census.json",
+      "sha256": "2a323b42773991ec3999165b497b7d46f79ad23e69276742ace9ac3a89c9d47a"
+    },
+    {
+      "file": "reference-evidence/eternalstarlight-special-weapons-244.json",
+      "sha256": "2b57bffe9a0f03b6a301484567387a6427abcd9287b2677d9bfe4d4f084be564"
+    },
+    {
+      "file": "native-evidence/eternalstarlight-status-control.json",
+      "sha256": "3d6fde83de2e737384d51bc7b98b2d38cd2a4ebbd2e5f2d8e27c2426f963d15e"
+    },
+    {
+      "file": "native-evidence/eternalstarlight-lunar.json",
+      "sha256": "3a707344830e8d9ee70567837e9133419e91e6b99c7383add1ce55d1bb623ede"
+    },
+    {
+      "file": "reference-evidence/eternalstarlight-crystal-numbness-244.json",
+      "sha256": "fdc6b79fcd920bfdd9746e117f2bdcd2cfd926c186d85ef822115379e2c6df86"
+    }
+  ]
+}

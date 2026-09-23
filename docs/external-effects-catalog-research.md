@@ -886,3 +886,7 @@ Ether contact vs corrosion vs shard separation, Shattered Blade owner-attribute 
 ## R2h5a — Eternal Starlight native ammunition
 
 Native ammo distinction and conditional effects, real Frozen Bomb explosion vs Aethersent cosmetic blast, water trajectory and ordered spear damage reviewed. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/eternalstarlight-r2h5a-native-ammo-review.md).
+
+## R2h5b — Eternal Starlight special weapons and shields
+
+Native spin/critical/sweep ordering, concentration identity, shield reflection ownership and real additional thorn/whip paths reviewed. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/eternalstarlight-r2h5b-special-weapons-review.md).

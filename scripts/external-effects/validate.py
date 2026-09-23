@@ -255,6 +255,9 @@ def validate():
         if (OUT/'eternalstarlight-r2h5a-native-ammo.json').exists():
             from validate_eternalstarlight_native_ammo import validate_native_ammo
             assert validate_native_ammo()['status']=='PASS'
+        if (OUT/'eternalstarlight-r2h5b-special-weapons.json').exists():
+            from validate_eternalstarlight_special_weapons import validate_special_weapons
+            assert validate_special_weapons()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():
