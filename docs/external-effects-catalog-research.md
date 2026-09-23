@@ -834,3 +834,7 @@ Post-hit bonus, fire and lightning paths, Dragonsteel chain, gauntlet/sweep, Dra
 ## R2g9b — Control, Pixie and combat support
 
 Chain and Tensura attachment admission, flute ownership, Pixie source/status/resource effects, combat foods and real lightning armor veto reviewed. Remaining work is whole-JAR closure and promotion. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/iceandfire-r2g9b-control-review.md).
+
+## R2g10a — Ice & Fire combat closure
+
+All726 installed classes cross-checked:188 watched methods,130 targeted callers,5 custom DamageTypes and7 factory callers have native witnesses and reviewed family/exclusion coverage. Promotion remains next. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/iceandfire-r2g10a-closure-review.md).
