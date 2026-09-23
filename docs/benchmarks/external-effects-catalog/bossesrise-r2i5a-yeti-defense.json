@@ -1,0 +1,304 @@
+{
+  "schema": "tno.external_effects.bossesrise_yeti_defense.v1",
+  "checkpoint": "R2i5a-bossesrise-yeti-defense-complete",
+  "previous_checkpoint": "R2i4-bossesrise-infernal-dragon-complete",
+  "starting_sha": "706f949388888932bb77624ba801de23607a8b30",
+  "status": "YETI_DEFENSE_PHASE_DEATH_SEMANTICS_COMPLETE",
+  "scope": "Yeti native admission, raw predicted HP gates and frozen corpse lifecycle; outgoing payloads next.",
+  "summary": "Yeti raw lethal branch bypasses inherited hurt, trident reductions stack, and phase/counter writes precede damage results; legacy selfhurt counter is dormant in normal native lifecycle.",
+  "facts": {
+    "admission_order": "YetiEntity.hurt first reads enrageFlag. If6 AND server level: discard and returntrue without HP damage, source/amount/type predicate or inherited hurt. Otherwise flags0 and1 each reject unless BYPASSES_INVULNERABILITY. Next, unconditionally for every source including bypass: flags3/4 reject; exact FALL,DROWN,FALLING_ANVIL,WITHER,WITHER_SKULL reject; DATA_SPAWN_ANIMTIME must<=0; DATA_HIT_ANIMTIME must<=13; DATA_GROUNDSMASH_ANIMTIME must<=0 or>=119. Thus bypass tag bypasses ONLY first iced/emerging tests, not all Yeti defenses. Only then modify amount and evaluate raw HP transitions. Do not confuse hurttrue statue removal or scripted lethal state with a native HP damage event.",
+    "projectile_reduction": "After admission, direct entity instanceof AbstractArrow multiplies amount by.15, then source exact TRIDENT multiplies by.3. These are sequential independent tests. Installed vanilla ThrownTrident constructors invoke AbstractArrow, so a native thrown trident meets both ->.045 of incoming amount, not merely .3. This is different from Dragon causing-entity check. Non-AbstractArrow projectile sources receive no .15 modifier solely because of is_projectile tag. Preserve original source; modifiers are native defense and NOT a second Stage point.",
+    "hit_lockout": "When admitted hit finds hit counter==0 on server, Yeti sets27 and DATA_HIT_TICK=gameTime BEFORE any inherited hurt. Server tick decrements positive counter and clears marker to-1 at0; values27..14 reject incoming even if original hit later failed normal damage admission. Values13..1 allow calls without restarting counter. Counter marker read by renderer is cosmetic, not separate admission rule. No hitboolean gate protects these writes. Legacy spawn counter default0 guarded separately; do not synthesize a positive counter as ordinary delivery.",
+    "raw_lethal_branch": "After native projectile reductions, getHealth()-amount<=0 selects native DEATH handling before armor, Resistance, Neo IncomingDamage/hurt or actual HP subtraction. If not already DEATH, selects death112, resolves kill-score Living first from direct, then causing, then causing OwnableEntity owner; native server death-loot/advancement callback runs once. Then setHealth(.1) and returntrue, no super.hurt. Native death state therefore can trigger despite a downstream mitigation/cancel rule that would have rejected ordinary HP damage. This is installed behavior to preserve and runtime-test, not permission to fix it. setState refuses all changes after DEATH; server tick at timer112 setsflag6, noAI, hides bar; subsequent native server hurt removes frozen corpse. It does not need another HP threshold. Native shouldCancelDeath=false, so shared legacy lethal restoration is NOT Yeti normal death mechanism. If inherited downstream amount becomes lethal despite smaller precheck, normal downstream death remains possible; fixture later, no invented event.",
+    "enrage_and_ultimate": "For nonlethal predicted damage in flag2 with proposed HP ratio<=.5, applies native Slowness200 and Resistance200 for200ticks to all Living in BB.inflate32 excluding self; no LOS/team/Player restriction; then flag3 before super.hurt. Native addEffect/Applicable and Roll veto remain. On current state timer done, baseTick flag3->ENRAGED state200/flag4; tick increments groundsmash counter whiletimer<=200 and flag5 at>=180; baseTick alternative ifflag4 andstatechanged also sets5. During groundsmash1..118 local hurt rejects independently; ending tick outside ENRAGED clearscounter0. No HP restoration/clamp to50%. Else-if current ratio>.2 and proposed ratio<=.2 and usedUltimate==0 selects ICE_BARRAGE and sets1 before super.hurt. The50% branch takes priority, so one large nonlethal crossing both thresholds does not also select ultimate. Later pattern can select barrage if used>0; outgoing repeat lifecycle deferred R2i5b. All these transitions can occur even inherited hurt returnsfalse. Incoming thresholds, timers, effect amplifiers and resource flags need no Stage scaling.",
+    "initialization": "Default flag0 iced, usedUltimate0, hit counter inherited0, hit marker-1. finalizeSpawn applies config HP250,armor5,attack18 defaults (base attributes250/2/18) and fills HP; non-STRUCTURE spawn setsflag2 and barvisible. STRUCTURE keeps frozen/default initialization unless native saved state differs. YetiEvents @EventBusSubscriber onBreakBlock for server player breaking exact Blocks.ICE finds first Yeti flag0 within blockAABB.inflate10, selects INTRO193/flag1, cancels break and replaces that ice withair. Intro removes surrounding native ice/barriers at scheduled frames and setsflag2 at frame190 (frame=timer-2, hence timer192); combat acquisition details omitted. Event registration annotation is static evidence, not runtime certification. No mutation of player world or boss run here.",
+    "traits_persistence": "checkFallDamage is empty; getDeltaMovement returnsZERO whileflag0. Native canCollideWith ignores its own owner-matched IceSpikeEntity only. Yeti clears positive ticksFrozen both baseTick and server tick; it does not override canFreeze/fireImmune and its entity registration is not fireImmune. This is repeated freeze-counter clearing, not proof that every FREEZE source is rejected. Native Living freeze eligibility still applies; no new immunity invented. Knockback resistance1. Saves usedUltimate,is_enraged,GroundsmashAnimtime plus inherited state/timer/HP; read of extra fields guarded by BossPhase. Hit timestamp not saved and only render-relevant. Genuine saved/native spawn cases are future fixtures; do not fabricate tags to activate legacy routes.",
+    "dormant_death_counter": "baseTick contains separate positive DATA_DIE_ANIMTIME decrement, clears attack/hit/groundsmash and requests self PLAYER_ATTACK999 atcount1. However default is0; only native positive writer BossCancelDieProcedure is reached via shared onDamageTaken only when shouldCancelDeath, which Yeti returnsfalse. Native Yeti DEATH state uses its own112timer and does not set legacy counter. Therefore this legacy999 route is not promoted as normal delivered Yeti defeat; retain as conditional saved-counter code only, no synthetic test setup. Scope-specific census pins actual writers/callers, not a guessed behavior from method names.",
+    "state_dispatch": "Tick state switch runs only when not intercepted by navigation.getPath nonnull AND !path.canReach AND current target nonnull AND state!=LEAP_SMASH. That branch requests LEAP_SMASH and stops navigation instead. Therefore exact intro/enrage/death tick callbacks also require switch entry; a retained unreachable path can skip a scheduled frame. DEATH setState rejects replacement but does not remove this outer dispatch predicate. Preserve this as a native future navigation/transition fixture; do not assume timer alone guarantees corpse transition.",
+    "scope": "This section closes only defense, native phase/death and combat initialization. Outgoing melee/barrage/ice callbacks are present in the tick witness but remain R2i5b semantic work. Rendering, sounds, loot contents, advancements and detailed ice-shell coordinates are excluded after identifying combat callbacks. No runtime/L2/Stage/production changes; whole Bosses Rise remains PARTIAL."
+  },
+  "mechanic_packages": [
+    {
+      "id": "br:yeti_admission",
+      "name": "Yeti native admission and projectile reductions",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Incoming native modifiers, admission/state/resources or scripted HP reset; no independent outgoing HP payload.",
+      "delivery_paths": [
+        "br:yeti_defense:admission",
+        "br:yeti_defense:arrow",
+        "br:yeti_defense:trident",
+        "br:yeti_defense:lockout"
+      ]
+    },
+    {
+      "id": "br:yeti_death",
+      "name": "Yeti raw lethal death/corpse lifecycle",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Incoming native modifiers, admission/state/resources or scripted HP reset; no independent outgoing HP payload.",
+      "delivery_paths": [
+        "br:yeti_defense:lethal",
+        "br:yeti_defense:corpse"
+      ]
+    },
+    {
+      "id": "br:yeti_enrage",
+      "name": "Yeti predicted HP enrage and ultimate resources",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Incoming native modifiers, admission/state/resources or scripted HP reset; no independent outgoing HP payload.",
+      "delivery_paths": [
+        "br:yeti_defense:enrage",
+        "br:yeti_defense:ultimate"
+      ]
+    },
+    {
+      "id": "br:yeti_traits",
+      "name": "Yeti combat initialization, traits and persistence",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Incoming native modifiers, admission/state/resources or scripted HP reset; no independent outgoing HP payload.",
+      "delivery_paths": [
+        "br:yeti_defense:ice_intro",
+        "br:yeti_defense:spawn",
+        "br:yeti_defense:traits",
+        "br:yeti_defense:reload"
+      ]
+    }
+  ],
+  "delivery_paths": [
+    {
+      "id": "br:yeti_defense:admission",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native iced/emerging/ready/enraged-window/source/counter gates",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source and state admission before HP pipeline",
+        "hurtfalse versus state/counter changes; no fabricated route"
+      ]
+    },
+    {
+      "id": "br:yeti_defense:arrow",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "Native AbstractArrow direct source amount*.15",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source and state admission before HP pipeline",
+        "hurtfalse versus state/counter changes; no fabricated route"
+      ]
+    },
+    {
+      "id": "br:yeti_defense:trident",
+      "labels": [
+        "THROWN_PROJECTILE"
+      ],
+      "native_path": "Native thrown trident sequential .15*.3=.045",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source and state admission before HP pipeline",
+        "hurtfalse versus state/counter changes; no fabricated route"
+      ]
+    },
+    {
+      "id": "br:yeti_defense:lockout",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Admitted attempt sets27 before inherited hurt result",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source and state admission before HP pipeline",
+        "hurtfalse versus state/counter changes; no fabricated route"
+      ]
+    },
+    {
+      "id": "br:yeti_defense:lethal",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Reduced raw lethal amount ->DEATH/.1/true without normal hurt",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source and state admission before HP pipeline",
+        "hurtfalse versus state/counter changes; no fabricated route"
+      ]
+    },
+    {
+      "id": "br:yeti_defense:corpse",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native DEATH112 ->flag6 then next native server hurt discard",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source and state admission before HP pipeline",
+        "hurtfalse versus state/counter changes; no fabricated route"
+      ]
+    },
+    {
+      "id": "br:yeti_defense:enrage",
+      "labels": [
+        "AOE"
+      ],
+      "native_path": "Predicted <=50% applies Living Slowness/Resistance and entersflags3/4/5",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source and state admission before HP pipeline",
+        "hurtfalse versus state/counter changes; no fabricated route"
+      ]
+    },
+    {
+      "id": "br:yeti_defense:ultimate",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Else-if native20% crossing selects barrage/resource1",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source and state admission before HP pipeline",
+        "hurtfalse versus state/counter changes; no fabricated route"
+      ]
+    },
+    {
+      "id": "br:yeti_defense:ice_intro",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native server ICE break near iced Yeti ->INTRO/flag1->2",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source and state admission before HP pipeline",
+        "hurtfalse versus state/counter changes; no fabricated route"
+      ]
+    },
+    {
+      "id": "br:yeti_defense:spawn",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native nonstructure finalize versus structure/saved state",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source and state admission before HP pipeline",
+        "hurtfalse versus state/counter changes; no fabricated route"
+      ]
+    },
+    {
+      "id": "br:yeti_defense:traits",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Freeze-counter clearing/fall/ownspike collision/native KB defenses",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source and state admission before HP pipeline",
+        "hurtfalse versus state/counter changes; no fabricated route"
+      ]
+    },
+    {
+      "id": "br:yeti_defense:reload",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Genuine state/phase/resource/HP persistence",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source and state admission before HP pipeline",
+        "hurtfalse versus state/counter changes; no fabricated route"
+      ]
+    }
+  ],
+  "unexecuted_future_fixtures": [
+    "native_ice_break_structure_vs_nonstructure_init",
+    "bypass_tag_only_skips0_1_not3_4_exactsource_counters",
+    "native_arrow_trident_nonarrow_source_identity_reductions",
+    "hitcounter27_14_13_0_even_inherited_rejection",
+    "rawlethal_armor_Resistance_IncomingDamage_cancel_order",
+    "rawnonlethal_downstream_lethal_normaldeath_contrast",
+    "death112_corpse_next_native_hurt_no_HPevent",
+    "raw50_vs20_crossing_priority_falsehurt_stateeffects",
+    "enrage_effects_allLiving_nativeApplicable_Roll_veto",
+    "freeze_counter_clear_vs_direct_FREEZE_source",
+    "native_save_load_phase_ultimate_counter_state"
+  ],
+  "review_required": [],
+  "remaining_subsection_native_ambiguities": [],
+  "exact_next_task": "R2i5b: Yeti native outgoing melee/barrage, Ice Spike/cluster/projectile, Glacial Shove and Frozen Skeleton combat payloads. Defense/phase ordering is complete; reuse R2i5a, roll and shared evidence. Then Sandworm, Kraken/cannon, equipment and whole-mod closure.",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "block_factorys_bosses",
+  "runtime_tests": 0,
+  "whole_mod_complete": false,
+  "promoted_mechanics": 0,
+  "promoted_paths": 0,
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false,
+  "reference_files": [
+    {
+      "file": "native-evidence/bossesrise-yeti-defense.json",
+      "sha256": "282143df681fbe92c043b83d95b6a7c54405dc6af531d57920792f8bbc379ba6"
+    },
+    {
+      "file": "bossesrise-yeti-defense-census.json",
+      "sha256": "8f85d6ad5d4b806fc45392f390cd264302490386c8f2264975af39e86045d764"
+    },
+    {
+      "file": "reference-evidence/bossesrise-yeti-defense-244.json",
+      "sha256": "9f1b736996c898277b560b004a5226d23050294062bc4c66c671123be36f31de"
+    },
+    {
+      "file": "vanilla-evidence/bossesrise-yeti-defense.json",
+      "sha256": "35976a4d95e47d251a8baca1cacaddef48ea6dae9db2d77c6f98571ed4e03109"
+    },
+    {
+      "file": "reference-routing/bossesrise-yeti-defense.json",
+      "sha256": "e7eee037d84d5780d70ec3730a687d4b8f02e7b4e2bc4620eebeed0d96738f86"
+    },
+    {
+      "file": "native-evidence/bossesrise-dragon.json",
+      "sha256": "1a6965bef27b510b20228f7aea67fa98709b8539e0b7270d28a77cdf7ae4e073"
+    },
+    {
+      "file": "native-evidence/bossesrise-shared.json",
+      "sha256": "a316243721401336a70804d553eb7c6af80eadb6db0af60cf0c9caddeb97a081"
+    },
+    {
+      "file": "bossesrise-r2i2a-roll-admission.json",
+      "sha256": "3d2d456de7c7db5e4a2426b30a4359be6ca9ef6584a645d0ad10a12fba725991"
+    }
+  ]
+}

@@ -294,6 +294,9 @@ def validate():
         if (OUT/'bossesrise-r2i4-infernal-dragon.json').exists():
             from validate_bossesrise_dragon import validate_dragon
             assert validate_dragon()['status']=='PASS'
+        if (OUT/'bossesrise-r2i5a-yeti-defense.json').exists():
+            from validate_bossesrise_yeti_defense import validate_yeti_defense
+            assert validate_yeti_defense()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():

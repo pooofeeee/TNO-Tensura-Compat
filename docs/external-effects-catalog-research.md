@@ -938,3 +938,7 @@ Actual source/return differences across melee/ring/wave/arrow+area/Rift and inde
 ## R2i4 — Bosses Rise Infernal Dragon and guardians
 
 Dragon phase and causing-entity admission, native arrow/fire/explosion/breath paths and independent guardian control resolved; HP and ignition/phase/control remain separate. [Evidence and resume point](benchmarks/external-effects-catalog/bossesrise-r2i4-infernal-dragon-review.md).
+
+## R2i5a — Bosses Rise Yeti defense and phase ordering
+
+Yeti raw lethal branch bypasses inherited hurt, trident reductions stack, and phase/counter writes precede damage results; legacy selfhurt counter is dormant in normal native lifecycle. [Evidence and resume point](benchmarks/external-effects-catalog/bossesrise-r2i5a-yeti-defense-review.md).
