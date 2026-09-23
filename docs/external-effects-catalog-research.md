@@ -850,3 +850,7 @@ Installed 0.8.1 source foundation: 18 custom DamageTypes, 9 MobEffects, 29 facto
 ## R2h2a — Crystal Infection, Numbness and shared admission
 
 Crystal delivery and hurt-return distinctions, finite/infinite tick behavior, armor penalty, native Numbness debt/payout and Crescent/Unrealium admission reviewed; derived damage requires one Stage application on the parent. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/eternalstarlight-r2h2a-crystal-numbness-review.md).
+
+## R2h2b — Remaining Eternal Starlight status and control
+
+Remaining seven statuses, derived Starfire, persistent Teary budget/immunity divergence, selective Oblivion collision, Whip and Permafrost paths, and native Tear Bomb clouds reviewed. No repeated Stage on derived hits. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/eternalstarlight-r2h2b-status-control-review.md).

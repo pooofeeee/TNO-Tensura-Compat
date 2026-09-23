@@ -1,0 +1,95 @@
+# R2h2b — Remaining Eternal Starlight status and control
+
+R2h2a/b jointly close nine ES statuses and their native control/admission/delivery; other combat families remain pending.
+
+Static subsection complete. Runtime fixtures remain unexecuted; no Stage or production implementation.
+
+## Starfire trigger
+
+StarfireEffect itself changes particles only; combat is ESCommonHandler.onPostLivingHurt. If victim currently has Starfire and source type is NOT exact eternal_starlight:starfire, visit Living recipients in victim AABB inflated3 and require shouldHarm(original causing entity,recipient). Request custom STARFIRE damage=LivingDamageEvent.Post.getNewDamage()/3, preserving original direct AND causing entities. Post amount is after native reductions and absorption, not measured HP delta (overkill/totem can differ); even zero Post amount is not explicitly filtered. No LOS, no explicit original-victim exclusion, no ignition and no hurt-result dependent followup in this branch. Exact STARFIRE source prevents recursive spread, but other Post callbacks can still run, including direct-Living weapon procs. shouldHarm with null attacker returns true, otherwise rejects self, either-direction allies, disallowed Player PvP, then requires victim.isAttackable. Tags do not make this source fire, projectile or freezing: armor/shield/enchantment/Resistance and ordinary native admission remain in play.
+
+## Starfire deliveries
+
+Native Starfire item use throws at speed1.5 (consumes1 unless infinite materials); registered dispenser path creates ownerless ThrownStarfire. On non-MISS hit, server recipients in projectile AABB inflated3 passing shouldHarm(owner,target) receive Starfire200 with ignored addEffect result, no HP prerequisite. Sand conversion and particles do not add damage. StarfireCrossbow.createProjectile marks ARROW_TYPE=eternal_starlight:starfire for arrows AND fireworks, plus.25 AbstractArrow baseDamage. Native impact event branch applies the same200 AOE status; block hit clears marker but completes this invocation, entity hit retains it. This is before normal projectile hurt; lifetime-only firework explosion does not itself deliver this impact callback. Ordinary crossbow HP is a separate native amount.
+
+## Starfire weapon and death
+
+On Post damage, a direct Living attacker currently holding #eternal_starlight:starfire_weapons applies Starfire60 before the same helper checks for Starfire spread: an admitted new effect can trigger spread from this very hit. Installed tag lists sword/pickaxe/axe/hoe/shovel/scythe/hammer, not Starfire Crossbow. Death helper spreads status (not HP) to Living in victim AABB inflated3 excluding victim and passing shouldHarm(causer,target): duration=max(oldDuration/2,20), amplifier0. Infinite duration -1 consequently gives20. R2h1 bridge calls death helper only when the death event remains uncanceled at its check; later listener cancellation does not roll back earlier applications.
+
+## Starfire campfire and boss
+
+Lit Torreya Campfire server ticker visits block unit cube inflated10 every tick: non-Enemy without Regeneration gets Regeneration100; with STARFIRE state, Enemy without Starfire gets Starfire100. No LOS, hurt, ally or distance-sphere check. Using Starfire item on a lit non-Starfire campfire sets that state; this override has no stack shrink. Extinguishing clears it. LunarMonstrosity.hurt caps admitted requested amount to min(3,amount) unless BYPASSES_INVULNERABILITY, boss on fire, boss has Starfire, or behavior=-1. Starfire status releases this cap; merely using a STARFIRE DamageType does not. The outer behavior6/8 and causing-ally veto still applies unless bypass_invulnerability. This is a boss defense interaction; remaining boss phase transitions/attacks are R2h3, not claimed complete here.
+
+## Flammable brittle
+
+Plain MobEffects have no periodic payload. Incoming helper multiplies IS_FIRE damage by amplifier+2 while Flammable, then by 1-ES FIRE_RESISTANCE attribute (default0 range0..1). IS_FREEZING damage is multiplied by amplifier+2 while Brittle. Final BYPASSES_INVULNERABILITY returns max(original,modified), so ordinary reductions cannot reduce those sources below original. Neither modifier sets an elemental tag or fabricates an event. Installed custom FREEZE and STARFIRE DamageTypes lack IS_FREEZING/IS_FIRE and therefore do not trigger these corresponding status multipliers by name. Vanilla fire/freeze native immunity remains authoritative, including Fire Resistance effect and canFreeze gates; generic Tensura/L2 composition untested.
+
+## Flammable delivery
+
+AmaramberArrow.doPostHurtEffects calls super, then adds Flammable duration field default400 amplifier0, with getEffectSource as effect cause. This is AbstractArrow successful Living impact after the Enderman early return; failed hurt does not apply it. Duration persists to NBT. Arrow item createArrow provides shooter-owned bow/crossbow delivery and registered dispenser asProjectile provides ownerless delivery. Candlash.doPostHurtEffects rolls <.75: Living gets Flammable200 amp0, and any passed entity is ignited3 seconds, independently of status acceptance. Native Whip successful hurt gates this callback; ignition then uses ordinary fire-tick damage, not a custom ES DamageType.
+
+## Whip native delivery
+
+Right-click mainhand and native swing_attack packet can spawn a Whip only when player WHIP attachment does not resolve to an existing Whip. It uses charge factor .2+.8*attackStrength(.5)^2, damages item1 and resets charge. Installed client MinecraftMixin wraps startAttack getType, sends the packet and returns MISS for #whips, so normal tagged-whip left-click uses this spawned path rather than ordinary Player.attack. Server resolves Player owner and held same-item/components weapon; invalid state discards but has no immediate return. At incremented spawnedTicks=lifespan/2 (5 of10), rayclip COLLIDER/Fluid.NONE truncates reach (Candlash interactionRange+7, Coldsnap+2.5). Candidate entity/part-parent Living must pass shouldHarm, isPickable and inflated target AABB ray intersection/contains-eye. Native player_attack source direct=Player/causing=Player requests attackDamage*charge factor, then native enchantment damage adjustment. Only hurt true triggers weapon callback, item-source enchantment Post and knockback. Multiple candidates/parts are not deduplicated here. WhipItem.postHurtEnemy is also a conditional native callback if ordinary Player.attack reaches it, but that is not the default tagged-whip client route; no fabricated attack is proposed.
+
+## Brittle delivery
+
+Coldsnap successful-hit callback: if Living and canFreeze, add40 frozenTicks capped300 independently of status admission. Existing Brittle amp<2 upgrades to amp+1 duration200 with probability.5; absent effect gets amp0 duration200 with probability.75. Existing amp2 does not refresh via that branch. Only spawned Coldsnap, not null-whip ordinary callback, may spawn one PermafrostCloud per Whip when owner Living and item cooldown clear, then set cloudSpawned and cooldown160; this spawn does not depend on canFreeze/Brittle acceptance. PermafrostSneezePhase at behavior tick75 with target spawns owned PermafrostSpit. Spit Living owner + shouldHarm -> native FREEZE hurt with amount1.25*(owner ATTACK_SPEED if present else12), explicitly ATTACK_SPEED not attack damage. Ignore hurt return; Living target canFreeze -> Brittle200amp0. Thus Spit status can occur despite HP rejection. Non-MISS impact spawns cloud, copies owner when Living, and large spit with Living owner launches5 small children; small children do not re-split. Cloud creation does not depend on Spit hurt success.
+
+## Permafrost cloud
+
+Owned PermafrostCloud server attack visits Living in its own AABB, shouldHarm required, no LOS. Saves each target invulnerableTime, temporarily writes0, requests custom FREEZE4 direct=cloud/causing=owner, restores old value; this iframe modification is NATIVE evidence, not a proposed compat bypass. Any hurt true sets shared attackCooldown10; if all reject, retries next tick. Independently, canFreeze recipients get+8 frozenTicks capped300. It has no Brittle application. No owner means no attack; saved UUID resolves once and clears if unresolved. Discard at tickCount>200 has no early return, so final tick may still attack. Small state halves XZ dimensions. Entity hurt only binary discard on BYPASSES_INVULNERABILITY. Native FREEZE lacks armor/shield/enchantment/Resistance bypass and elemental/freezing/projectile tags in R2h1 closure; source-based Incoming config multipliers still depend on actual causing entity type. Spit and cloud damage scale at their independent final hurt requests; native frozenTicks/radii/cooldowns/iframe handling do not scale.
+
+## Teary control
+
+Teary target-change helper: if nonnull new target, Teary active and serialized TEARY_TICKS<=mobMaxTearyTicks, replace target with null. It does NOT test TEARY_IMMUNE. Separate server EntityTick.Post branch tests !entityType.is(TEARY_IMMUNE), active effect and same <=threshold; only if Mob has nonnull current target does it clear target, ATTACK_TARGET brain memory, navigation and lastHurtByMob. It then increments counter even without a Mob/current target. Native default/config-file snapshot threshold200 gives counters0..200 inclusive, then201 stops ticking; no ES reset on expiry or reapplication is present in full field-use census. Counter Codec.INT persists, no sync/copyOnDeath requested. Installed immune tag delegates #c:bosses: it stops this tick branch but does not stop the target-change veto, which can remain eligible with counter0. Stranghoul separately rejects Teary in canBeAffected (and Hunger). No universal no-AI, stun, attack veto or player-input lock is proven; generic runtime hooks may alter admission.
+
+## Teary tearing
+
+Installed tearing enchantment JSON adds POST_ATTACK on enchanted ATTACKER, affected VICTIM, requiring DIRECT_ATTACKER exact eternal_starlight:pungency_fruit_spear entity. Native ThrownSpear.onHitEntity requests minecraft:thrown direct=spear, causing=owner or spear if ownernull; on successful hurt and non-Enderman target invokes item-source enchantment Post. EnchantmentHelper runs attacker item effects only with nonnull weapon and causing Living. Therefore thrown Living-owned enchanted Pungency Fruit Spear can apply Teary; ownerless dispenser spear does not satisfy that attacker chain, and ordinary melee fails the direct entity type. ApplyMobEffect chooses amp0 and rounded duration20*uniform(2.5,2.5+.5*(level-1)); level1 is50 ticks, level3 max70. It calls ordinary addEffect without effect cause. Spear intrinsic Poison80amp1/Nausea120 is a separate successful-hit callback and is not itself Teary.
+
+## Tear bomb delivery
+
+TntBlockMixin at native explode(Level,BlockPos,Living) HEAD recognizes exact TEAR_BOMB block, cancels vanilla spawn and server-spawns TearBomb with igniter; inherited TntBlock ignition paths reach it. TearBomb constructor fuse60; explosion chain uses TearBombBlock.wasExploded with indirect owner and random shorter fuse. Native PrimedTnt tick invokes virtual explode. TearBomb creates native TNT explosion radius3, direct=bomb/causing=igniter, then ownerless AreaEffectCloud regardless of whether individual explosion hurts succeed. TearBombMinecart comes from item-on-rails or dispenser-on-rails; inherited activator/fuse/collision/fall/flaming-arrow paths invoke its explode(DamageSource,movement). Radius=3+random*1.5*min(sqrt(movement),5); cloud initial radius=5+independent random*1.5*same speed. Null source uses native explosion source; flaming-arrow trigger supplies explosion direct=cart/causing=arrow source cause BEFORE inherited cart hurt result. Keep these legitimate triggers separate from damage admission; no custom ES damage type.
+
+## Tear bomb cloud
+
+Both bomb clouds add CUSTOM effects Poison120amp0, Nausea120amp0, Teary120amp0; set radius5 for stationary bomb, radiusOnUse=-.5, wait10, radiusPerTick=-initialRadius/defaultDuration600. They do not set cloud owner. Raw1.21.1 AreaEffectCloud (absent patched class) checks targets every5 ticks after wait, reapplicationDelay20, AABB/XZ-radius, isAffectedByPotions and at least one canBeAffected effect; each effect still uses ordinary addEffect(instance,cloud). Custom effects retain120 ticks (only base potion effects would be quartered). No owner/alliance/LOS filter. Reapplication tracking/radius shrink do not require each addEffect to succeed; shrinking below.5 removes cloud. Explosion/Poison HP and control admission are separate; preserve native poison nonlethal floor, Resistance and effect rules. Scale native explosion per-target hurt and poison tick once, not explosion power/radius or cloud duration/count.
+
+## Dream catcher
+
+Blossom of Stars food applies Dream Catcher2400amp0 with probability1 through native food addEffect. Effect adds armor +5*(amp+1), ADD_VALUE with stable modifier ID; ordinary merge/remove/attribute clamping remain native. Client floating dream text is rendering only, not a sleep, hallucination damage or attack event; excluded. Keep native armor, no added Stage factor.
+
+## Sticky
+
+Bouldershroom Stew requests Sticky2400amp0 with probability.8. Effect speed modifier -.06*(amp+1) ADD_MULTIPLIED_TOTAL; LivingEntityMixin.onClimbable RETURN scans recipient box expanded XZ.001 and shaved Y1e-7 for a full collision-shape block, then sets lastClimbablePos and returns true. EntityMixin.isStateClimbable RETURN also returns true for Living with Sticky. Neither branch fabricates ladder blocks, deals HP or forces original true to false when absent. Preserve native climb/travel/speed rules; no Stage multiplier.
+
+## Oblivion
+
+Roasted Forgotten Nocturnal Millet requests Oblivion300amp0 probability1. Effect applies +.2*(amp+1) speed and -.2*(amp+1) gravity, ADD_MULTIPLIED_TOTAL, plus -.2*(amp+1) ADD_VALUE to ENEMY_FOLLOW_RANGE_MULTIPLIER (base1 range0..1024). LivingVisibilityEvent.modifyVisibility multiplies the existing visibility modifier by this attribute; it does not overwrite a Mob follow-range attribute. BlockStateBaseMixin calls original shape first: retain it for UNAFFECTED_BY_OBLIVION tag (installed bedrock/barrier), non-EntityCollisionContext, non-Living, or absent effect. Otherwise keep support when context.isAbove(original,pos,true) && !isDescending; else Shapes.empty. EntityMixin.isInWall HEAD returns false for Players with effect only, not all Living. Server Player Post tick samples8 near-eye points; visible-render, view-blocking state requests Blindness200 independent of tag/collision override, with ignored effect return. This is selective passage/support and suffocation predicate, not global invulnerability or noClip. Status eligibility and client/server mixin application require future fixtures; render overlay suppression excluded.
+
+## Stage and scope
+
+Starfire spread derives an already-processed parent hit: retain divisor3 and apply Stage only to the parent eligible damage request, never again to secondary STARFIRE. Numbness can then defer either hit; the same inherited-damage boundary must persist. Flammable/Brittle multipliers also belong to the original native damage calculation, not separate Stage scalars. Independently generated Whip, Spit, Cloud, explosion, fire/freeze/poison DOT and ordinary projectile HP each get one final native hurt amount boundary. Status duration/amplifier/chance, armor/speed modifiers, target budget and all admission/ownership predicates stay native. Nine ES effects are now statically reviewed across R2h2a/b. Generic runtime Tensura/L2 composition, boss behavior state machines and the other source callers remain pending; no runtime test, Stage implementation or production mutation.
+
+## TNO integration decisions
+
+- **Starfire status and spread admission**: COMPOSITE, CUSTOM_ROUTED, ADMISSION_GATED, NO_STAGE_VALUE. Stage: no additional multiplier; Derived Post amount inherits parent Stage; no second multiplier. Native status and source identity stay intact.
+- **Starfire Crossbow native primary HP**: NUMERIC_SCALABLE, VANILLA_ROUTED, ADMISSION_GATED. Stage: Once at final native arrow/firework hurt after weapon calculations.
+- **Flammable vulnerability**: COMPOSITE, ADMISSION_GATED, NO_STAGE_VALUE. Stage: no additional multiplier; Amplifier+2 stays a native original-hit modifier; no extra Stage at status multiplier.
+- **Brittle vulnerability and frozen state**: COMPOSITE, ADMISSION_GATED, NO_STAGE_VALUE. Stage: no additional multiplier; Native chance/amplifier/frozenTicks; downstream damage has its own single request boundary.
+- **Candlash/Coldsnap native Whip HP**: NUMERIC_SCALABLE, VANILLA_ROUTED, ADMISSION_GATED. Stage: Once at Whip.tick final player_attack hurt, after native charge/enchantments; conditional ordinary melee reuses native Player hurt boundary.
+- **Amaramber native arrow HP**: NUMERIC_SCALABLE, VANILLA_ROUTED, ADMISSION_GATED. Stage: Once at AbstractArrow.onHitEntity final native hurt.
+- **Permafrost Spit and Cloud HP**: NUMERIC_SCALABLE, CUSTOM_ROUTED, ADMISSION_GATED. Stage: Once per independent native FREEZE hurt: Spit1.25*ATTACK_SPEED or fallback15, Cloud4.
+- **Candlash/Coldsnap native fire/freeze DOT**: NUMERIC_SCALABLE, VANILLA_ROUTED, ADMISSION_GATED. Stage: Once at final native on_fire/freeze hurt request.
+- **Teary persistent target-control budget**: COMPOSITE, CUSTOM_ROUTED, ADMISSION_GATED, NO_STAGE_VALUE. Stage: no additional multiplier; Preserve serialized counter and distinct immunity predicates.
+- **Tear Bomb and cart native explosion HP**: NUMERIC_SCALABLE, VANILLA_ROUTED, ADMISSION_GATED. Stage: Once at native Explosion per-target hurt amount.
+- **Tear Bomb cloud Poison/Nausea/Teary**: COMPOSITE, VANILLA_ROUTED, ADMISSION_GATED. Stage: Once at native poison periodic hurt; other cloud/control parameters remain unscaled.
+- **Dream Catcher native armor**: COMPOSITE, VANILLA_ROUTED, ADMISSION_GATED, NO_STAGE_VALUE. Stage: no additional multiplier; Retain native armor modifier and effect rules.
+- **Sticky climb and speed**: COMPOSITE, CUSTOM_ROUTED, ADMISSION_GATED, NO_STAGE_VALUE. Stage: no additional multiplier; Movement/collision eligibility, no independent HP.
+- **Oblivion passage/visibility/gravity/Blindness**: COMPOSITE, CUSTOM_ROUTED, ADMISSION_GATED, NO_STAGE_VALUE. Stage: no additional multiplier; Selective collision and native attributes; no scalar HP.
+- **Torreya native regeneration aura**: NUMERIC_SCALABLE, VANILLA_ROUTED, ADMISSION_GATED. Stage: Once at native Regeneration heal request.
+
+[Machine-readable packages, delivery paths and future fixtures](eternalstarlight-r2h2b-status-control.json). Exact archive/method witnesses and targeted semantic assertions are reproducible. No whole-mod completion claim.
+
+Exact next task: R2h3: remaining Eternal Starlight source callers, attacks/projectiles/beams/AOE/hazards and boss admission, then combat resources/equipment and whole-mod closure. Reuse all nine reviewed statuses and R2h2a/b delivery/scaling boundaries; finish all18 DamageType dispositions before promotion.
