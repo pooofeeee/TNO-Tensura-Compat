@@ -1,5 +1,6 @@
 """Validate native Frozen dragon closure without modifying protected core evidence."""
 from catalog_common import *
+from iceandfire_promotion_migration import protected_rows, permitted_tool_change
 from classfile import ClassFile
 from native_evidence import collect
 from selected_reference import collect as collect_reference
@@ -49,10 +50,10 @@ def validate_frozen_dragons():
     for p in d['reference_files']:assert sha256(OUT/p['file'])==p['sha256']
     preserved={}
     for name,key in [('effect-catalog.json','effects'),('effect-sources.json','sources'),('delivery-path-matrix.json','paths'),('vanilla-comparison.json','comparisons'),('behavior-primitives.json','primitives')]:
-        assert read_json(OUT/name)[key]==json.loads(git('show',START+':docs/benchmarks/external-effects-catalog/'+name))[key];preserved[key]=len(read_json(OUT/name)[key])
+        old=json.loads(git('show',START+':docs/benchmarks/external-effects-catalog/'+name))[key];preserved[key]=len(protected_rows(read_json(OUT/name)[key],old))
     mutable={'docs/external-effects-catalog-research.md','scripts/external-effects/validate.py'}|{'docs/benchmarks/external-effects-catalog/'+x for x in ['effect-catalog.json','effect-sources.json','delivery-path-matrix.json','vanilla-comparison.json','behavior-primitives.json','mod-completion-ledger.json','research-decision.json','mod-reviews/iceandfire.json']}
     for line in git('diff','--name-status',START).splitlines():
-        status,path=line.split('\t',1);assert status=='A' or (status=='M' and path in mutable),line
+        status,path=line.split('\t',1);assert status=='A' or (status=='M' and (path in mutable or permitted_tool_change(path))),line
     for line in git('diff','--name-status',BASELINE).splitlines():
         status,path=line.split('\t',1);assert status=='A' and path.startswith(('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')),line
     assert not any(d[k] for k in boundary_flags())

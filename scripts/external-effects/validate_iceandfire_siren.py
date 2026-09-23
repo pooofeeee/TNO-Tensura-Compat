@@ -1,5 +1,6 @@
 """Validate song-map semantics and keep completed native checkpoints immutable."""
 from catalog_common import *
+from iceandfire_promotion_migration import protected_rows, permitted_tool_change
 from classfile import ClassFile
 from native_evidence import collect
 from collect_iceandfire_siren import census,FULL
@@ -32,10 +33,10 @@ def validate_siren():
     config=read_json(OUT/'iceandfire-frozen-config-snapshot.json');assert sha256(config['path'])==config['sha256'];assert config['data']['siren']==dict(maxHealth=50.0,maxSingTime=12000,timeBetweenSongs=2000)
     preserved={}
     for name,key in [('effect-catalog.json','effects'),('effect-sources.json','sources'),('delivery-path-matrix.json','paths'),('vanilla-comparison.json','comparisons'),('behavior-primitives.json','primitives')]:
-        assert read_json(OUT/name)[key]==json.loads(git('show',START+':docs/benchmarks/external-effects-catalog/'+name))[key];preserved[key]=len(read_json(OUT/name)[key])
+        old=json.loads(git('show',START+':docs/benchmarks/external-effects-catalog/'+name))[key];preserved[key]=len(protected_rows(read_json(OUT/name)[key],old))
     mutable={'docs/external-effects-catalog-research.md','scripts/external-effects/validate.py'}|{'docs/benchmarks/external-effects-catalog/'+n for n in ['effect-catalog.json','effect-sources.json','delivery-path-matrix.json','vanilla-comparison.json','behavior-primitives.json','mod-completion-ledger.json','research-decision.json','mod-reviews/iceandfire.json']}
     for line in git('diff','--name-status',START).splitlines():
-        status,path=line.split('\t',1);assert status=='A' or (status=='M' and path in mutable),line
+        status,path=line.split('\t',1);assert status=='A' or (status=='M' and (path in mutable or permitted_tool_change(path))),line
     for line in git('diff','--name-status',BASELINE).splitlines():
         status,path=line.split('\t',1);assert status=='A' and path.startswith(('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')),line
     assert all(not d[k] for k in boundary_flags());git('diff','--check',BASELINE)

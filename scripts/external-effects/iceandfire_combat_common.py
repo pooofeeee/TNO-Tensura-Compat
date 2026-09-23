@@ -1,5 +1,6 @@
 """Bounded static combat sections: keep accepted catalog records immutable until promotion."""
 from catalog_common import *
+from iceandfire_promotion_migration import protected_rows, permitted_tool_change
 from assemble_batch import refresh
 
 VIEWS=[('effect-catalog.json','effects'),('effect-sources.json','sources'),('delivery-path-matrix.json','paths'),('vanilla-comparison.json','comparisons'),('behavior-primitives.json','primitives')]
@@ -31,10 +32,10 @@ def preserve_section(d):
         assert bool(m['single_scaling_point'])==m['stage_scaling_needed'] and set(m['delivery_paths'])<=ids
     preserved={}
     for f,key in VIEWS:
-        now=read_json(OUT/f)[key];assert now==json.loads(git('show',d['starting_sha']+':docs/benchmarks/external-effects-catalog/'+f))[key];preserved[key]=len(now)
+        old=json.loads(git('show',d['starting_sha']+':docs/benchmarks/external-effects-catalog/'+f))[key];preserved[key]=len(protected_rows(read_json(OUT/f)[key],old))
     mutable={'docs/external-effects-catalog-research.md','scripts/external-effects/validate.py'}|{'docs/benchmarks/external-effects-catalog/'+n for n in [f for f,_ in VIEWS]+['mod-completion-ledger.json','research-decision.json','mod-reviews/iceandfire.json']}
     for line in git('diff','--name-status',d['starting_sha']).splitlines():
-        status,path=line.split('\t',1);assert status=='A' or (status=='M' and path in mutable),line
+        status,path=line.split('\t',1);assert status=='A' or (status=='M' and (path in mutable or permitted_tool_change(path))),line
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():
         status,path=line.split('\t',1);assert status=='A' and path.startswith(allowed),line

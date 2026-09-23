@@ -219,6 +219,9 @@ def validate():
         if (OUT/'iceandfire-r2g10a-closure.json').exists():
             from validate_iceandfire_closure import validate_closure
             assert validate_closure()['status']=='PASS'
+        if (OUT/'iceandfire-final-promotion-map.json').exists():
+            from validate_iceandfire_final import validate_final as validate_iceandfire_final
+            assert validate_iceandfire_final()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():

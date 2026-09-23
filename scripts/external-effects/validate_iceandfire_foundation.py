@@ -1,5 +1,6 @@
 """Validate R2g1 source facts and preserve the completed five-mod catalog."""
 from catalog_common import *
+from iceandfire_promotion_migration import protected_rows, permitted_tool_change
 from native_evidence import collect
 from classfile import ClassFile
 from collect_iceandfire_foundation import START,CP,IAF,COMPAT,FULL,LIMITED,targets,caller_census,tag_census
@@ -63,20 +64,23 @@ def validate_foundation():
     preserved={}
     for name,key in [('effect-catalog.json','effects'),('effect-sources.json','sources'),('delivery-path-matrix.json','paths'),('vanilla-comparison.json','comparisons'),('behavior-primitives.json','primitives')]:
         old=json.loads(git('show',START+':docs/benchmarks/external-effects-catalog/'+name))[key]
-        assert read_json(OUT/name)[key]==old,name
+        assert protected_rows(read_json(OUT/name)[key],old)==old,name
         preserved[key]=len(old)
     assert preserved==dict(effects=335,sources=801,paths=801,comparisons=335,primitives=465)
     for mod in ['twilightforest','variantsandventures','cultofazazel','royalvariations','friendsandfoes']:
         path='docs/benchmarks/external-effects-catalog/mod-reviews/'+mod+'.json'
         assert read_json(ROOT/path)==json.loads(git('show',START+':'+path)),mod
-    r=read_json(OUT/'mod-reviews/iceandfire.json');assert r['status']=='PARTIAL' and not r['effects'] and not r['paths']
-    assert not r['semantic_discovery_complete'] and not r['special_damage_discovery_complete']
+    r=read_json(OUT/'mod-reviews/iceandfire.json');assert r['status'] in {'PARTIAL','COMPLETE'}
+    if r['status']=='PARTIAL':
+        assert not r['effects'] and not r['paths'] and not r['semantic_discovery_complete'] and not r['special_damage_discovery_complete']
+    else:
+        assert r['decision']=='ICE_AND_FIRE_COMBAT_SEMANTIC_REVIEW_COMPLETE' and r['effects'] and r['paths'] and r['semantic_discovery_complete'] and r['special_damage_discovery_complete']
     ledger={x['mod_key']:x for x in read_json(OUT/'mod-completion-ledger.json')['targets']}
-    assert ledger['twilightforest']['state']=='COMPLETE' and ledger['iceandfire']['state']=='PARTIAL'
+    assert ledger['twilightforest']['state']=='COMPLETE' and ledger['iceandfire']['state']==r['status']
     allowed={'docs/external-effects-catalog-research.md','scripts/external-effects/validate.py'}|{'docs/benchmarks/external-effects-catalog/'+n for n in ['effect-catalog.json','effect-sources.json','delivery-path-matrix.json','vanilla-comparison.json','behavior-primitives.json','research-decision.json','mod-completion-ledger.json']}
     for line in git('diff','--name-status',START).splitlines():
         status,path=line.split('\t',1)
-        assert status=='A' or (status=='M' and path in allowed),line
+        assert status=='A' or (status=='M' and (path in allowed or permitted_tool_change(path))),line
     for line in git('diff','--name-status',BASELINE).splitlines():
         status,path=line.split('\t',1)
         assert status=='A' and path.startswith(('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')),line

@@ -838,3 +838,7 @@ Chain and Tensura attachment admission, flute ownership, Pixie source/status/res
 ## R2g10a — Ice & Fire combat closure
 
 All726 installed classes cross-checked:188 watched methods,130 targeted callers,5 custom DamageTypes and7 factory callers have native witnesses and reviewed family/exclusion coverage. Promotion remains next. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/iceandfire-r2g10a-closure-review.md).
+
+## R2g10b — Ice & Fire combat catalog COMPLETE
+
+81 reviewed combat packages and 228 native source/control/defense contracts promoted after explicit deduplication; no runtime compatibility certification. [Owner table, Stage points and next task](benchmarks/external-effects-catalog/iceandfire-final-owner-table.md).

@@ -1,5 +1,6 @@
 """Reproduce bounded Frozen evidence and protect all prior accepted records."""
 from catalog_common import *
+from iceandfire_promotion_migration import protected_rows, permitted_tool_change
 from classfile import ClassFile
 from native_evidence import collect
 from selected_reference import collect as collect_reference
@@ -69,10 +70,10 @@ def validate_frozen_core():
     preserved={}
     for name,key in [('effect-catalog.json','effects'),('effect-sources.json','sources'),('delivery-path-matrix.json','paths'),('vanilla-comparison.json','comparisons'),('behavior-primitives.json','primitives')]:
         old=json.loads(git('show',START+':docs/benchmarks/external-effects-catalog/'+name))[key]
-        assert read_json(OUT/name)[key]==old;preserved[key]=len(old)
+        assert protected_rows(read_json(OUT/name)[key],old)==old;preserved[key]=len(old)
     mutable={'docs/external-effects-catalog-research.md','scripts/external-effects/validate.py'}|{'docs/benchmarks/external-effects-catalog/'+n for n in ['effect-catalog.json','effect-sources.json','delivery-path-matrix.json','vanilla-comparison.json','behavior-primitives.json','mod-completion-ledger.json','research-decision.json','mod-reviews/iceandfire.json']}
     for line in git('diff','--name-status',START).splitlines():
-        status,path=line.split('\t',1);assert status=='A' or (status=='M' and path in mutable),line
+        status,path=line.split('\t',1);assert status=='A' or (status=='M' and (path in mutable or permitted_tool_change(path))),line
     for line in git('diff','--name-status',BASELINE).splitlines():
         status,path=line.split('\t',1);assert status=='A' and path.startswith(('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')),line
     assert all(not d[k] for k in boundary_flags()) and not d['runtime_tests']
