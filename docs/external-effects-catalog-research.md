@@ -814,3 +814,7 @@ Native body attacks, Worm repeated TNT explosions/source changes, Cyclops eye bl
 ## R2g8a — Ghost, Troll and Myrmex disposition
 
 Ghost phasing/body and magic sword routes, Troll control/regeneration/sun conversion, installed armor absorption hook mismatch and Myrmex absence reviewed. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/iceandfire-r2g8a-ghost-troll-review.md).
+
+## R2g8b — Hydra and Sea Serpent combat
+
+Head severing separated from admitted HP, fire-state survival/regrowth, native Poison/regen, stalled live-owner Serpent bubbles and weapon-versus-dispenser ammo reviewed. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/iceandfire-r2g8b-hydra-serpent-review.md).

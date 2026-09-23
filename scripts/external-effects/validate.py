@@ -201,6 +201,9 @@ def validate():
         if (OUT/'iceandfire-r2g8a-ghost-troll.json').exists():
             from validate_iceandfire_ghost_troll import validate_ghost_troll
             assert validate_ghost_troll()['status']=='PASS'
+        if (OUT/'iceandfire-r2g8b-hydra-serpent.json').exists():
+            from validate_iceandfire_hydra_serpent import validate_hydra_serpent
+            assert validate_hydra_serpent()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():
