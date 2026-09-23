@@ -1,0 +1,3338 @@
+{
+  "schema": "tno.external_effects.semantic_section.v1",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "twilightforest",
+  "checkpoint": "R2f8ad-fence-leash-complete",
+  "starting_sha": "ca0ba916a2f81c2a3f29e4ed11e399780215e97c",
+  "status": "REVIEWED_SUBSET_NOT_MOD_COMPLETE",
+  "subsection_decision": "TWILIGHT_FENCE_LEASH_SEMANTIC_REVIEW_COMPLETE",
+  "semantic_coverage_complete": false,
+  "promoted_to_catalog": false,
+  "remaining_content_subsection": true,
+  "effects": [
+    {
+      "id": "twilightforest:wrought_fence_terrain_control",
+      "display_name": "Wrought Iron Fence geometry and cap control",
+      "owner": "wrought_fence_terrain_control",
+      "primary_classification": "CUSTOM_CONTROL",
+      "primary_test_source": "Actual native fence block item",
+      "alternate_sources": [
+        "straight/corner/isolated",
+        "empty shape fallback",
+        "capped",
+        "blocked above",
+        "placement offset",
+        "waterlogged"
+      ],
+      "mod_key": "twilightforest",
+      "inspection_status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "classification_provisional": false,
+      "actual_behavior": [
+        "Registered wrought_iron_fence uses WroughtIronFenceBlock and WroughtIronFenceItem; hardness8/resistance20, requires correct tool, noOcclusion. Native recipe uses six #c:ingots/wrought_iron for3; ordinary block loot returns itself subject to survives_explosion. TF explicitly adds it to minecraft:walls. In pinned raw-Minecraft plus TF block tags it is not in minecraft:fences or wooden_fences; other pack data changes remain unknown. Actual worldgen producers below and ordinary placed block items supply legitimate sources.",
+        "POST!=NONE adds central x/z7..9/16 post of height1. CAPPED also adds neck y16..17/16 and head y17..20/16 (maximum1.25). Each non-NONE directional side adds its fixed width2/16 height1 arm; MIDDLE/BOTTOM/TOP/FULL share that collision shape. With no post and no arms, empty union falls back to a full cube. Inherited BlockBehaviour collision uses getShape when hasCollision; noOcclusion does not disable collision. isPathfindable returns false for all computation types. There is no hurt/HP/status operation in the fence.",
+        "Connects to WALLS, or non-exception solid face, or IronBarsBlock. makeFenceState checks same-fence block above/below and that layer adjacent self/connectable state: both =>MIDDLE, below only=>TOP, above only=>BOTTOM, neither=>FULL. makePost preserves existing cap only with allowCap and replaceable above, otherwise vertical-column post requirement then own connection requirement. Own post is required for isolation, asymmetric opposite connections, or north/east presence (including cross/corner); a straight opposite pair may have NONE. Upward column search accepts qualifying connections or CAPPED; downward search accepts qualifying connections, without a separate CAPPED test. Rotation/mirror remap direction properties normally.",
+        "Literal getStateForPlacement reads connections at clicked position but passes pos.above() to fenceShape; subsequent neighbor updates pass actual position. This offset is recorded without repair. WATERLOGGED is true only for actual WATER fluid on placement; returns native source water and schedules water tick on shape updates. Skylight propagates only when not waterlogged. These are terrain/fluid controls, not a new damage source.",
+        "WroughtIronFenceItem secondary-use branch requires clicked exact item block and block above not that same fence. If capped OR above replaceable, write POST = makePost(...,allowCap=false) for capped, otherwise CAPPED. Write result ignored. Sound and SUCCESS occur even when a nonreplaceable above-block prevented the write. This branch has no stack decrement, durability cost or internal server-only guard. Other cases delegate BlockItem.useOn; native outer interaction/permission hooks remain. Cap can change collision and native knot support, not HP."
+      ],
+      "components": [
+        {
+          "primitive": "WROUGHT_FENCE_TERRAIN_CONTROL",
+          "formula": "Registered wrought_iron_fence uses WroughtIronFenceBlock and WroughtIronFenceItem; hardness8/resistance20, requires correct tool, noOcclusion. Native recipe uses six #c:ingots/wrought_iron for3; ordinary block loot returns itself subject to survives_explosion. TF explicitly adds it to minecraft:walls. In pinned raw-Minecraft plus TF block tags it is not in minecraft:fences or wooden_fences; other pack data changes remain unknown. Actual worldgen producers below and ordinary placed block items supply legitimate sources.; POST!=NONE adds central x/z7..9/16 post of height1. CAPPED also adds neck y16..17/16 and head y17..20/16 (maximum1.25). Each non-NONE directional side adds its fixed width2/16 height1 arm; MIDDLE/BOTTOM/TOP/FULL share that collision shape. With no post and no arms, empty union falls back to a full cube. Inherited BlockBehaviour collision uses getShape when hasCollision; noOcclusion does not disable collision. isPathfindable returns false for all computation types. There is no hurt/HP/status operation in the fence.; Connects to WALLS, or non-exception solid face, or IronBarsBlock. makeFenceState checks same-fence block above/below and that layer adjacent self/connectable state: both =>MIDDLE, below only=>TOP, above only=>BOTTOM, neither=>FULL. makePost preserves existing cap only with allowCap and replaceable above, otherwise vertical-column post requirement then own connection requirement. Own post is required for isolation, asymmetric opposite connections, or north/east presence (including cross/corner); a straight opposite pair may have NONE. Upward column search accepts qualifying connections or CAPPED; downward search accepts qualifying connections, without a separate CAPPED test. Rotation/mirror remap direction properties normally.; Literal getStateForPlacement reads connections at clicked position but passes pos.above() to fenceShape; subsequent neighbor updates pass actual position. This offset is recorded without repair. WATERLOGGED is true only for actual WATER fluid on placement; returns native source water and schedules water tick on shape updates. Skylight propagates only when not waterlogged. These are terrain/fluid controls, not a new damage source.; WroughtIronFenceItem secondary-use branch requires clicked exact item block and block above not that same fence. If capped OR above replaceable, write POST = makePost(...,allowCap=false) for capped, otherwise CAPPED. Write result ignored. Sound and SUCCESS occur even when a nonreplaceable above-block prevented the write. This branch has no stack decrement, durability cost or internal server-only guard. Other cases delegate BlockItem.useOn; native outer interaction/permission hooks remain. Cap can change collision and native knot support, not HP.",
+          "numerical_parameters": {
+            "hardness": 8,
+            "resistance": 20,
+            "height": 1,
+            "capped_height": 1.25
+          },
+          "binary_parameters": [
+            "actual fence state",
+            "connections",
+            "vertical column",
+            "secondary use",
+            "above state"
+          ],
+          "vanilla_relation": "Custom block geometry and state control through native collision/placement."
+        }
+      ],
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:block/WroughtIronFenceBlock",
+          "entry": "twilightforest/block/WroughtIronFenceBlock.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "appendHoverText",
+            "connectsTo",
+            "createBlockStateDefinition",
+            "fenceShape",
+            "getFluidState",
+            "getShape",
+            "getStateForPlacement",
+            "isConnected",
+            "isPathfindable",
+            "makeFenceState",
+            "makePost",
+            "mirror",
+            "propagatesSkylightDown",
+            "rotate",
+            "shouldAnyBePost",
+            "shouldBePost",
+            "updateShape",
+            "updateSide",
+            "updateSides",
+            "updateTop"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:item/WroughtIronFenceItem",
+          "entry": "twilightforest/item/WroughtIronFenceItem.class",
+          "methods": [
+            "<init>",
+            "useOn"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "twilightforest:path:fence_leash_item",
+        "twilightforest:path:fence_leash_geometry",
+        "twilightforest:path:fence_leash_columns",
+        "twilightforest:path:fence_leash_cap",
+        "twilightforest:path:fence_leash_water",
+        "twilightforest:path:fence_leash_room_trap",
+        "twilightforest:path:fence_leash_compat_tags"
+      ],
+      "registry_ids": [],
+      "pending": [
+        "Whole Twilight closure/final promotion only; this bounded subsection is reviewed."
+      ],
+      "unresolved_ambiguities": null
+    },
+    {
+      "id": "twilightforest:wrought_fence_native_leash",
+      "display_name": "Wrought Iron Fence native lead and knot support",
+      "owner": "wrought_fence_native_leash",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "primary_test_source": "Actual player-held native lead bound to TF fence",
+      "alternate_sources": [
+        "empty query",
+        "Enemy eligibility",
+        "creative costs",
+        "knot support loss",
+        "distance limits",
+        "save/reload"
+      ],
+      "mod_key": "twilightforest",
+      "inspection_status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "classification_provisional": false,
+      "actual_behavior": [
+        "Actual registered EntityEvents RightClickBlock callback requires held exact Items.LEAD, actual TF fence, POST!=NONE and server. It calls LeadItem.bindPlayerMobs, then cancels event and sets SUCCESS regardless of helper PASS/SUCCESS. It has no additional item cost. Thus empty nearby lead list still produces this event result. Earlier native interaction cancellation/permission remains possible; this callback does not fabricate a new leash or override target eligibility.",
+        "Native Entity.interact first requires alive and Leashable. Already held by this player => server dropLeash(true,!hasInfiniteMaterials), game event and sided success. Otherwise held LEAD and canHaveALeashAttachedToIt (canBeLeashed AND !isLeashed) => server setLeashedTo(player,true), then shrink1 on both sides. Exact Player.interactOn rejects spectators and honors CommonHooks.onInteractEntity; consuming result refunds creative instabuild count only when same held stack and count decreased. Mob.canBeLeashed excludes Enemy, so ordinary player-new-lead interaction does not admit zombies. Genuine worldgen setLeashedTo below is a separate native producer. Native setLeashedTo also stops riding if passenger; it does not tame or transfer attack ownership.",
+        "LeadItem.leashableInArea uses AABB from pos-7 to pos+7, not a radial sphere or +1 block box. bindPlayerMobs selects any Leashable whose current holder is this player. First match creates/reuses a knot in a +/-1 search box with exact stored BlockPos; new addFreshEntity return ignored. Plays knot placement sound, then setLeashedTo(knot,true) for each. Nonempty list emits BLOCK_ATTACH and SUCCESS; empty list PASS. No second canBeLeashed test and no extra lead consumption; it transfers already legitimate player-held leads.",
+        "Exact registered LeashFenceKnotSurvivesTransformer targets FIRST IRETURN of native survives (raw method has one return). Hook preserves original true, otherwise accepts actual TF fence with POST!=NONE. Original native test is BlockTags.FENCES. Native BlockAttachedEntity server tick checks checkInterval++==100, hence101 calls between checks; if not removed and !survives, discard and dropItem (knot sound). A supported knot becomes invalid after post disappears, subject to this periodic check. This is not immediate universal wall support.",
+        "Native knot interact is client SUCCESS; server queries nearby leads held by player OR this knot, transferring player-held ones first. If none transferred, discard knot; creative explicitly dropLeash(true,false) for attached leads. Noncreative relies on subsequent native leash tick seeing dead holder and dropping lead item. Returns CONSUME. BlockAttached hurt rejects isInvulnerableTo, otherwise server !removed kills/marks hurt/drops and returns true independently of amount. Player skipAttackInteraction checks level.mayInteract then hurt(playerAttack,0). Nonzero move/push similarly kills. thunderHit is empty. Knot is nonliving, so these are removal/hurt-return rules, not HP damage.",
+        "Entity.baseTick on server invokes Leashable.tickLeash. Restore delayed leash first; dead leasheed entity or holder drops leash(true,true). Same-level holder invokes handleLeashAtDistance: Pathfinder restrictTo(holder block,5), true. Distance>10 => drop leash and Mob disables MOVE; >6 => elastic additive velocity per axis copySign((delta/distance)^2*.4,delta/distance), then checkSlowFallDistance; <=6 => closeRange. Pathfinder closeRange follows only if shouldStayCloseToLeashHolder AND !isPanicking, enabling MOVE and navigating at speed1 toward holder with2-unit stop distance. Ordinary autonomous goals and combat remain; no full immobilization.",
+        "Native LEASH_KNOT EntityType is noSave, .375x.5, tracking10/updateInterval INT_MAX. Relationship persists on leasheed mob, not standalone knot save. Saved BlockPos restore creates/reuses real knot (add return ignored); unresolved UUID restore waits and at tickCount>100 drops a lead and clears data. LeashData.setLeashHolder clears delayed UUID/position/id. EntityJoin may retain pending saved leash by mayBeLeashed. Runtime save/reload, canceled spawn and failed-add outcomes remain fixture controls, not observed results."
+      ],
+      "components": [
+        {
+          "primitive": "WROUGHT_FENCE_NATIVE_LEASH",
+          "formula": "Actual registered EntityEvents RightClickBlock callback requires held exact Items.LEAD, actual TF fence, POST!=NONE and server. It calls LeadItem.bindPlayerMobs, then cancels event and sets SUCCESS regardless of helper PASS/SUCCESS. It has no additional item cost. Thus empty nearby lead list still produces this event result. Earlier native interaction cancellation/permission remains possible; this callback does not fabricate a new leash or override target eligibility.; Native Entity.interact first requires alive and Leashable. Already held by this player => server dropLeash(true,!hasInfiniteMaterials), game event and sided success. Otherwise held LEAD and canHaveALeashAttachedToIt (canBeLeashed AND !isLeashed) => server setLeashedTo(player,true), then shrink1 on both sides. Exact Player.interactOn rejects spectators and honors CommonHooks.onInteractEntity; consuming result refunds creative instabuild count only when same held stack and count decreased. Mob.canBeLeashed excludes Enemy, so ordinary player-new-lead interaction does not admit zombies. Genuine worldgen setLeashedTo below is a separate native producer. Native setLeashedTo also stops riding if passenger; it does not tame or transfer attack ownership.; LeadItem.leashableInArea uses AABB from pos-7 to pos+7, not a radial sphere or +1 block box. bindPlayerMobs selects any Leashable whose current holder is this player. First match creates/reuses a knot in a +/-1 search box with exact stored BlockPos; new addFreshEntity return ignored. Plays knot placement sound, then setLeashedTo(knot,true) for each. Nonempty list emits BLOCK_ATTACH and SUCCESS; empty list PASS. No second canBeLeashed test and no extra lead consumption; it transfers already legitimate player-held leads.; Exact registered LeashFenceKnotSurvivesTransformer targets FIRST IRETURN of native survives (raw method has one return). Hook preserves original true, otherwise accepts actual TF fence with POST!=NONE. Original native test is BlockTags.FENCES. Native BlockAttachedEntity server tick checks checkInterval++==100, hence101 calls between checks; if not removed and !survives, discard and dropItem (knot sound). A supported knot becomes invalid after post disappears, subject to this periodic check. This is not immediate universal wall support.; Native knot interact is client SUCCESS; server queries nearby leads held by player OR this knot, transferring player-held ones first. If none transferred, discard knot; creative explicitly dropLeash(true,false) for attached leads. Noncreative relies on subsequent native leash tick seeing dead holder and dropping lead item. Returns CONSUME. BlockAttached hurt rejects isInvulnerableTo, otherwise server !removed kills/marks hurt/drops and returns true independently of amount. Player skipAttackInteraction checks level.mayInteract then hurt(playerAttack,0). Nonzero move/push similarly kills. thunderHit is empty. Knot is nonliving, so these are removal/hurt-return rules, not HP damage.; Entity.baseTick on server invokes Leashable.tickLeash. Restore delayed leash first; dead leasheed entity or holder drops leash(true,true). Same-level holder invokes handleLeashAtDistance: Pathfinder restrictTo(holder block,5), true. Distance>10 => drop leash and Mob disables MOVE; >6 => elastic additive velocity per axis copySign((delta/distance)^2*.4,delta/distance), then checkSlowFallDistance; <=6 => closeRange. Pathfinder closeRange follows only if shouldStayCloseToLeashHolder AND !isPanicking, enabling MOVE and navigating at speed1 toward holder with2-unit stop distance. Ordinary autonomous goals and combat remain; no full immobilization.; Native LEASH_KNOT EntityType is noSave, .375x.5, tracking10/updateInterval INT_MAX. Relationship persists on leasheed mob, not standalone knot save. Saved BlockPos restore creates/reuses real knot (add return ignored); unresolved UUID restore waits and at tickCount>100 drops a lead and clears data. LeashData.setLeashHolder clears delayed UUID/position/id. EntityJoin may retain pending saved leash by mayBeLeashed. Runtime save/reload, canceled spawn and failed-add outcomes remain fixture controls, not observed results.",
+          "numerical_parameters": {
+            "lead_query_axis_extent": 7,
+            "knot_check_calls": 101,
+            "elastic_after": 6,
+            "break_after": 10
+          },
+          "binary_parameters": [
+            "actual LEAD",
+            "native legitimate player-held leashees",
+            "post present",
+            "server",
+            "native knot/leash admission"
+          ],
+          "vanilla_relation": "Extends native fence knot support and binding target; native entity eligibility and leash rules retained."
+        }
+      ],
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-control-blocks.json",
+          "witness_id": "tf:asmhooks/BlockHooks",
+          "entry": "twilightforest/asmhooks/BlockHooks.class",
+          "methods": [
+            "isRainingAt",
+            "keepSnowyStateForSnowloggableBlocks",
+            "modifySoilDecisionForMushroomBlockSurvivability"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:block/WroughtIronFenceBlock",
+          "entry": "twilightforest/block/WroughtIronFenceBlock.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "appendHoverText",
+            "connectsTo",
+            "createBlockStateDefinition",
+            "fenceShape",
+            "getFluidState",
+            "getShape",
+            "getStateForPlacement",
+            "isConnected",
+            "isPathfindable",
+            "makeFenceState",
+            "makePost",
+            "mirror",
+            "propagatesSkylightDown",
+            "rotate",
+            "shouldAnyBePost",
+            "shouldBePost",
+            "updateShape",
+            "updateSide",
+            "updateSides",
+            "updateTop"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:asmhooks/BlockHooks",
+          "entry": "twilightforest/asmhooks/BlockHooks.class",
+          "methods": [
+            "leashFenceKnotSurvives"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-frosted.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "<clinit>",
+            "onParryProjectile",
+            "setup"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-lich.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "<init>",
+            "addCloudJumpParticles",
+            "addQualifiedGroupPlayerIfNeeded",
+            "adjustEntityHealthInMultiplayerFights",
+            "alertPlayerCastleIsWIP",
+            "attachLeadToWroughtFence",
+            "createSkullCandle",
+            "gatherPotentialSpawns",
+            "getHealthBasedOnDifficulty",
+            "getSpawnListIndexAt",
+            "grantGroupAdvancementIfNeeded",
+            "handleLeashPathingOverrides",
+            "handleQuestSyncing",
+            "lambda$adjustEntityHealthInMultiplayerFights$4",
+            "lambda$alertPlayerCastleIsWIP$0",
+            "lambda$gatherPotentialSpawns$2",
+            "lambda$handleQuestSyncing$6",
+            "lambda$lichBombsDontBlowUpItems$5",
+            "lambda$removeCastleTextIfAttacked$3",
+            "lambda$stopEndermenFromGrabbingBlocksInTF$7",
+            "lambda$stopEndermenFromGrabbingBlocksInTF$8",
+            "lichBombsDontBlowUpItems",
+            "makeSkullCandle",
+            "ominousFireConversion",
+            "onCasketBreak",
+            "removeCastleTextIfAttacked",
+            "resetFlaskLogic",
+            "stopEndermenFromGrabbingBlocksInTF",
+            "structureSpecialSpawns",
+            "wipeOreMeterOnLeftClick",
+            "zombifiedPlayerAttacks"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-travellers-movement.json",
+          "witness_id": "tf:asmhooks/BlockHooks",
+          "entry": "twilightforest/asmhooks/BlockHooks.class",
+          "methods": [
+            "resetBlockFrictionWithUnrestrained",
+            "resetSlimeMomentumWithUnrestrained",
+            "stopBouncing"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "entityHurts",
+            "getGearCoverage",
+            "reduceFrostedEffectIfOnFire",
+            "lambda$reduceFrostedEffectIfOnFire$1"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "twilightforest:path:fence_leash_cap",
+        "twilightforest:path:fence_leash_new_lead",
+        "twilightforest:path:fence_leash_bind",
+        "twilightforest:path:fence_leash_empty_bind",
+        "twilightforest:path:fence_leash_knot_create",
+        "twilightforest:path:fence_leash_knot_support",
+        "twilightforest:path:fence_leash_knot_unbind",
+        "twilightforest:path:fence_leash_knot_remove",
+        "twilightforest:path:fence_leash_native_motion",
+        "twilightforest:path:fence_leash_gen_load",
+        "twilightforest:path:fence_leash_holder_loss"
+      ],
+      "registry_ids": [],
+      "pending": [
+        "Whole Twilight closure/final promotion only; this bounded subsection is reviewed."
+      ],
+      "unresolved_ambiguities": null
+    },
+    {
+      "id": "twilightforest:bound_zombie_leash_follow_override",
+      "display_name": "Native bound-zombie close-follow override",
+      "owner": "bound_zombie_leash_follow_override",
+      "primary_classification": "CUSTOM_CONTROL",
+      "primary_test_source": "Actual generated native Lich Tower bound zombie",
+      "alternate_sources": [
+        "three marker rooms",
+        "outer fence5/7",
+        "none/capped candidates",
+        "failed create/add",
+        "ProtoChunk save/load",
+        "no leash on join",
+        "distance6/10"
+      ],
+      "mod_key": "twilightforest",
+      "inspection_status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "classification_provisional": false,
+      "actual_behavior": [
+        "Entity.baseTick on server invokes Leashable.tickLeash. Restore delayed leash first; dead leasheed entity or holder drops leash(true,true). Same-level holder invokes handleLeashAtDistance: Pathfinder restrictTo(holder block,5), true. Distance>10 => drop leash and Mob disables MOVE; >6 => elastic additive velocity per axis copySign((delta/distance)^2*.4,delta/distance), then checkSlowFallDistance; <=6 => closeRange. Pathfinder closeRange follows only if shouldStayCloseToLeashHolder AND !isPanicking, enabling MOVE and navigating at speed1 toward holder with2-unit stop distance. Ordinary autonomous goals and combat remain; no full immobilization.",
+        "Exact registered PathFinderUnrestrainedByLeashTransformer targets EVERY IRETURN of BASE PathfinderMob.shouldStayCloseToLeashHolder; hook returns prior && !hasData(LEASH_PATHFINDER_OVERRIDE). Only close-range follow decision changes. Elastic pull, leash break, holder-range restriction, damage immunity and hostile goals are not changed. This is not blanket instrumentation of subclass overrides. Actual Unit attachment leashed_pathfinder_override is serialized, without sync/copyOnDeath declared. Registered EntityJoinLevel handler removes it from Pathfinder only if !mayBeLeashed, which means getLeashData()==null, NOT canBeLeashed or !Enemy. Saved unresolved leash data can retain it. No tick-time cleanup; breaking a leash can leave attachment until later join.",
+        "Registered LichTowerStructure starts LichTowerFoyer/jigsaws. Native WingBridge tryRoomAndBridge/tryGenerateRoom/tryPlaceRoom route through LichTowerUtil.rollRandomRoom: size1 ->5x5 pool, size3 ->9x9. StructureTemplateDefinitions reload/apply and weighted random choose genuine installed templates. Five-by-five zombie_trap has one DATA marker zombie_trap; nine-by-nine holding and lockup each have four DATA zombie_trap|wrought_iron_post markers, each1/2 random choice at processing. Each corresponding installed pool entry has weight100. Selection still requires native jigsaw, terrain and collision admission; no guaranteed generation frequency inferred.",
+        "TwilightTemplateStructurePiece customPostProcess sets chunk bounding box and requires template.placeInWorld true before filtering STRUCTURE_BLOCK DATA markers. Native StructureTemplate.filterBlocks transforms/offsets positions, respects bounding box, rotates state and preserves NBT. Wing handleDataMarker processes optional > prefix / @ orientation / random | alternatives / : parameters, removes marker without drops and dispatches handleDataParams zombie_trap. putZombieTrap writes TF fence flag2 POST=CAPPED if above AIR, otherwise POST, marks postprocessing; failed write is not success-gated. Shuffles horizontal directions excluding outward chunk edges at x/z0 or15, chooses one or UP sentinel; only non-Y direction creates entities.",
+        "Both real producers call EntityUtil.createEntityIgnoreException(world,type), which uses type.create(world.getLevel()) and catches Exception to null. Only if knot AND Zombie nonnull: move knot to anchor x+.5,y,z+.5; zombie.setPersistenceRequired; zombie.setLeashedTo(knot,false); move zombie to adjacent x+.5,y-1,z+.5; set Unit override; world.addFreshEntity(zombie), ignoring return. They do not add the temporary knot, call finalizeSpawn, tame, disable AI, heal or damage. Zombie attacks retain their native source/eligibility; leash holder is not attack owner. Native setPos stores containing BlockPos, knot recalculation centers x/z+.5,y+.375.",
+        "LichTowerStructure.generateFromStartingPiece invokes LichYardBox.beginYard and native perimeter generation (outer_fence3..7). Perimeter constructor randomFloat>0.25 leaves no anchor; otherwise filter actual fence states and remove POST!=POST (CAPPED and NONE excluded), shuffle candidates and save first selected leash_pos. Actual outer_fence3/4/6 templates contain only NONE, whereas5/7 include eligible POST plus excluded CAPPED. postProcess invokes generateBoundZombie after parent; both stored anchor and adjacent zombie position must lie in current chunkBounds, direction is sourceJigsaw.orientation.top. It uses the same creation sequence. leash_pos is serialized; no generated-once flag is written or cleared in this method, so arbitrary rerun idempotence is not asserted.",
+        "Exact NeoForge244 WorldGenRegion.addFreshEntity rejects spawn-canceled Mob, otherwise delegates current chunk.addEntity and returns true. ProtoChunk.addEntity on nonpassenger saves Entity to a new compound then stores it, ignoring save boolean. Native Mob save writes leash data: Knot holder becomes native leash BlockPos int array; other holder becomes UUID compound. Entity save persists serialized attachment. Load restores delayed LeashData and attachment. Subsequent server leash restore for saved position calls getOrCreateKnot in actual ServerLevel and setLeashedTo(...,true). Thus normal ProtoChunk serialization legitimately creates the real knot later; missing direct TF temporary-knot add is NOT a proven defect. No claim all alternative immediate-add WorldGenLevel implementations behave identically.",
+        "Native LEASH_KNOT EntityType is noSave, .375x.5, tracking10/updateInterval INT_MAX. Relationship persists on leasheed mob, not standalone knot save. Saved BlockPos restore creates/reuses real knot (add return ignored); unresolved UUID restore waits and at tickCount>100 drops a lead and clears data. LeashData.setLeashHolder clears delayed UUID/position/id. EntityJoin may retain pending saved leash by mayBeLeashed. Runtime save/reload, canceled spawn and failed-add outcomes remain fixture controls, not observed results."
+      ],
+      "components": [
+        {
+          "primitive": "BOUND_ZOMBIE_LEASH_FOLLOW_OVERRIDE",
+          "formula": "Entity.baseTick on server invokes Leashable.tickLeash. Restore delayed leash first; dead leasheed entity or holder drops leash(true,true). Same-level holder invokes handleLeashAtDistance: Pathfinder restrictTo(holder block,5), true. Distance>10 => drop leash and Mob disables MOVE; >6 => elastic additive velocity per axis copySign((delta/distance)^2*.4,delta/distance), then checkSlowFallDistance; <=6 => closeRange. Pathfinder closeRange follows only if shouldStayCloseToLeashHolder AND !isPanicking, enabling MOVE and navigating at speed1 toward holder with2-unit stop distance. Ordinary autonomous goals and combat remain; no full immobilization.; Exact registered PathFinderUnrestrainedByLeashTransformer targets EVERY IRETURN of BASE PathfinderMob.shouldStayCloseToLeashHolder; hook returns prior && !hasData(LEASH_PATHFINDER_OVERRIDE). Only close-range follow decision changes. Elastic pull, leash break, holder-range restriction, damage immunity and hostile goals are not changed. This is not blanket instrumentation of subclass overrides. Actual Unit attachment leashed_pathfinder_override is serialized, without sync/copyOnDeath declared. Registered EntityJoinLevel handler removes it from Pathfinder only if !mayBeLeashed, which means getLeashData()==null, NOT canBeLeashed or !Enemy. Saved unresolved leash data can retain it. No tick-time cleanup; breaking a leash can leave attachment until later join.; Registered LichTowerStructure starts LichTowerFoyer/jigsaws. Native WingBridge tryRoomAndBridge/tryGenerateRoom/tryPlaceRoom route through LichTowerUtil.rollRandomRoom: size1 ->5x5 pool, size3 ->9x9. StructureTemplateDefinitions reload/apply and weighted random choose genuine installed templates. Five-by-five zombie_trap has one DATA marker zombie_trap; nine-by-nine holding and lockup each have four DATA zombie_trap|wrought_iron_post markers, each1/2 random choice at processing. Each corresponding installed pool entry has weight100. Selection still requires native jigsaw, terrain and collision admission; no guaranteed generation frequency inferred.; TwilightTemplateStructurePiece customPostProcess sets chunk bounding box and requires template.placeInWorld true before filtering STRUCTURE_BLOCK DATA markers. Native StructureTemplate.filterBlocks transforms/offsets positions, respects bounding box, rotates state and preserves NBT. Wing handleDataMarker processes optional > prefix / @ orientation / random | alternatives / : parameters, removes marker without drops and dispatches handleDataParams zombie_trap. putZombieTrap writes TF fence flag2 POST=CAPPED if above AIR, otherwise POST, marks postprocessing; failed write is not success-gated. Shuffles horizontal directions excluding outward chunk edges at x/z0 or15, chooses one or UP sentinel; only non-Y direction creates entities.; Both real producers call EntityUtil.createEntityIgnoreException(world,type), which uses type.create(world.getLevel()) and catches Exception to null. Only if knot AND Zombie nonnull: move knot to anchor x+.5,y,z+.5; zombie.setPersistenceRequired; zombie.setLeashedTo(knot,false); move zombie to adjacent x+.5,y-1,z+.5; set Unit override; world.addFreshEntity(zombie), ignoring return. They do not add the temporary knot, call finalizeSpawn, tame, disable AI, heal or damage. Zombie attacks retain their native source/eligibility; leash holder is not attack owner. Native setPos stores containing BlockPos, knot recalculation centers x/z+.5,y+.375.; LichTowerStructure.generateFromStartingPiece invokes LichYardBox.beginYard and native perimeter generation (outer_fence3..7). Perimeter constructor randomFloat>0.25 leaves no anchor; otherwise filter actual fence states and remove POST!=POST (CAPPED and NONE excluded), shuffle candidates and save first selected leash_pos. Actual outer_fence3/4/6 templates contain only NONE, whereas5/7 include eligible POST plus excluded CAPPED. postProcess invokes generateBoundZombie after parent; both stored anchor and adjacent zombie position must lie in current chunkBounds, direction is sourceJigsaw.orientation.top. It uses the same creation sequence. leash_pos is serialized; no generated-once flag is written or cleared in this method, so arbitrary rerun idempotence is not asserted.; Exact NeoForge244 WorldGenRegion.addFreshEntity rejects spawn-canceled Mob, otherwise delegates current chunk.addEntity and returns true. ProtoChunk.addEntity on nonpassenger saves Entity to a new compound then stores it, ignoring save boolean. Native Mob save writes leash data: Knot holder becomes native leash BlockPos int array; other holder becomes UUID compound. Entity save persists serialized attachment. Load restores delayed LeashData and attachment. Subsequent server leash restore for saved position calls getOrCreateKnot in actual ServerLevel and setLeashedTo(...,true). Thus normal ProtoChunk serialization legitimately creates the real knot later; missing direct TF temporary-knot add is NOT a proven defect. No claim all alternative immediate-add WorldGenLevel implementations behave identically.; Native LEASH_KNOT EntityType is noSave, .375x.5, tracking10/updateInterval INT_MAX. Relationship persists on leasheed mob, not standalone knot save. Saved BlockPos restore creates/reuses real knot (add return ignored); unresolved UUID restore waits and at tickCount>100 drops a lead and clears data. LeashData.setLeashHolder clears delayed UUID/position/id. EntityJoin may retain pending saved leash by mayBeLeashed. Runtime save/reload, canceled spawn and failed-add outcomes remain fixture controls, not observed results.",
+          "numerical_parameters": {
+            "restriction_radius": 5,
+            "close_range": 6,
+            "elastic_coefficient": 0.4,
+            "break_after": 10,
+            "follow_speed": 1,
+            "stop_distance": 2,
+            "perimeter_random_gate": 0.25
+          },
+          "binary_parameters": [
+            "native registered structure/template marker",
+            "both creations succeed",
+            "chunk bounds",
+            "saved real leash",
+            "attachment presence",
+            "exact base-method ASM"
+          ],
+          "vanilla_relation": "Custom close-follow suppression with native hostile AI, elastic pull/break and persistent leash position."
+        }
+      ],
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-active-utilities.json",
+          "witness_id": "tf:util/entities/EntityUtil",
+          "entry": "twilightforest/util/entities/EntityUtil.class",
+          "methods": [
+            "convertEntity",
+            "lambda$convertEntity$2"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-bows-fan.json",
+          "witness_id": "tf:init/TFDataAttachments",
+          "entry": "twilightforest/init/TFDataAttachments.class",
+          "methods": [
+            "lambda$static$1",
+            "lambda$static$19",
+            "lambda$static$47"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-chain.json",
+          "witness_id": "tf:init/TFDataAttachments",
+          "entry": "twilightforest/init/TFDataAttachments.class",
+          "methods": [
+            "lambda$static$8",
+            "lambda$static$9"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:asmhooks/EntityHooks",
+          "entry": "twilightforest/asmhooks/EntityHooks.class",
+          "methods": [
+            "overrideStayCloseToHolder"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:world/components/structures/lichtowerrevamp/LichTowerWingRoom",
+          "entry": "twilightforest/world/components/structures/lichtowerrevamp/LichTowerWingRoom.class",
+          "methods": [
+            "<init>",
+            "<init>",
+            "getRandomDirectionInsideChunk",
+            "handleDataMarker",
+            "handleDataParams",
+            "postProcess",
+            "putZombieTrap"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:world/components/structures/lichtowerrevamp/LichPerimeterFence",
+          "entry": "twilightforest/world/components/structures/lichtowerrevamp/LichPerimeterFence.class",
+          "methods": [
+            "<init>",
+            "<init>",
+            "addAdditionalSaveData",
+            "generateBoundZombie",
+            "generateFence",
+            "generatePerimeter",
+            "generateSidedPerimeter",
+            "generateUntilNearDest",
+            "lambda$generateFence$3",
+            "nextFence",
+            "postProcess",
+            "startPerimeterFence"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:world/components/structures/TwilightTemplateStructurePiece",
+          "entry": "twilightforest/world/components/structures/TwilightTemplateStructurePiece.class",
+          "methods": [
+            "customPostProcess",
+            "postProcess"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:util/entities/EntityUtil",
+          "entry": "twilightforest/util/entities/EntityUtil.class",
+          "methods": [
+            "createEntityIgnoreException",
+            "createEntityIgnoreException"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-frosted.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "<clinit>",
+            "onParryProjectile",
+            "setup"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-lich.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "<init>",
+            "addCloudJumpParticles",
+            "addQualifiedGroupPlayerIfNeeded",
+            "adjustEntityHealthInMultiplayerFights",
+            "alertPlayerCastleIsWIP",
+            "attachLeadToWroughtFence",
+            "createSkullCandle",
+            "gatherPotentialSpawns",
+            "getHealthBasedOnDifficulty",
+            "getSpawnListIndexAt",
+            "grantGroupAdvancementIfNeeded",
+            "handleLeashPathingOverrides",
+            "handleQuestSyncing",
+            "lambda$adjustEntityHealthInMultiplayerFights$4",
+            "lambda$alertPlayerCastleIsWIP$0",
+            "lambda$gatherPotentialSpawns$2",
+            "lambda$handleQuestSyncing$6",
+            "lambda$lichBombsDontBlowUpItems$5",
+            "lambda$removeCastleTextIfAttacked$3",
+            "lambda$stopEndermenFromGrabbingBlocksInTF$7",
+            "lambda$stopEndermenFromGrabbingBlocksInTF$8",
+            "lichBombsDontBlowUpItems",
+            "makeSkullCandle",
+            "ominousFireConversion",
+            "onCasketBreak",
+            "removeCastleTextIfAttacked",
+            "resetFlaskLogic",
+            "stopEndermenFromGrabbingBlocksInTF",
+            "structureSpecialSpawns",
+            "wipeOreMeterOnLeftClick",
+            "zombifiedPlayerAttacks"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-minoshroom-knight.json",
+          "witness_id": "tf:util/entities/EntityUtil",
+          "entry": "twilightforest/util/entities/EntityUtil.class",
+          "methods": [
+            "getKnockback",
+            "killLavaAround",
+            "properlyApplyCustomDamageSource"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-naga.json",
+          "witness_id": "tf:util/entities/EntityUtil",
+          "entry": "twilightforest/util/entities/EntityUtil.class",
+          "methods": [
+            "canDestroyBlock",
+            "canDestroyBlock"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-ranged-mobs.json",
+          "witness_id": "tf:world/components/structures/lichtowerrevamp/LichTowerWingRoom",
+          "entry": "twilightforest/world/components/structures/lichtowerrevamp/LichTowerWingRoom.class",
+          "methods": [
+            "putTrappableLectern"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-scepter-payloads.json",
+          "witness_id": "tf:util/entities/EntityUtil",
+          "entry": "twilightforest/util/entities/EntityUtil.class",
+          "methods": [
+            "getDeathSound"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-scepter-payloads.json",
+          "witness_id": "tf:init/TFDataAttachments",
+          "entry": "twilightforest/init/TFDataAttachments.class",
+          "methods": [
+            "lambda$static$3"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-structure-gates.json",
+          "witness_id": "tf:util/entities/EntityUtil",
+          "entry": "twilightforest/util/entities/EntityUtil.class",
+          "methods": [
+            "rayTrace",
+            "rayTrace",
+            "rayTrace"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-travellers-core.json",
+          "witness_id": "tf:init/TFDataAttachments",
+          "entry": "twilightforest/init/TFDataAttachments.class",
+          "methods": [
+            "<init>",
+            "directCopy",
+            "lambda$static$0",
+            "lambda$static$10",
+            "lambda$static$11",
+            "lambda$static$12",
+            "lambda$static$13",
+            "lambda$static$14",
+            "lambda$static$15",
+            "lambda$static$16",
+            "lambda$static$17",
+            "lambda$static$18",
+            "lambda$static$2",
+            "lambda$static$20",
+            "lambda$static$21",
+            "lambda$static$22",
+            "lambda$static$23",
+            "lambda$static$24",
+            "lambda$static$25",
+            "lambda$static$26",
+            "lambda$static$27",
+            "lambda$static$28",
+            "lambda$static$29",
+            "lambda$static$30",
+            "lambda$static$31",
+            "lambda$static$32",
+            "lambda$static$33",
+            "lambda$static$34",
+            "lambda$static$35",
+            "lambda$static$36",
+            "lambda$static$37",
+            "lambda$static$38",
+            "lambda$static$39",
+            "lambda$static$4",
+            "lambda$static$40",
+            "lambda$static$41",
+            "lambda$static$42",
+            "lambda$static$43",
+            "lambda$static$44",
+            "lambda$static$45",
+            "lambda$static$46",
+            "lambda$static$48",
+            "lambda$static$5",
+            "lambda$static$6",
+            "lambda$static$7"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-travellers-movement.json",
+          "witness_id": "tf:asmhooks/EntityHooks",
+          "entry": "twilightforest/asmhooks/EntityHooks.class",
+          "methods": [
+            "lambda$unrestrainedSwimPredicate$0",
+            "processWaterWalking",
+            "resetFactorWithUnrestrained",
+            "resetStuckUnrestrained",
+            "unrestrainedSprintingInWater",
+            "unrestrainedSwimPredicate"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-yeti-queen.json",
+          "witness_id": "tf:init/TFDataAttachments",
+          "entry": "twilightforest/init/TFDataAttachments.class",
+          "methods": [
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "entityHurts",
+            "getGearCoverage",
+            "reduceFrostedEffectIfOnFire",
+            "lambda$reduceFrostedEffectIfOnFire$1"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "twilightforest:path:fence_leash_native_motion",
+        "twilightforest:path:fence_leash_override",
+        "twilightforest:path:fence_leash_room_pool",
+        "twilightforest:path:fence_leash_room_marker",
+        "twilightforest:path:fence_leash_room_trap",
+        "twilightforest:path:fence_leash_perimeter_choose",
+        "twilightforest:path:fence_leash_perimeter_spawn",
+        "twilightforest:path:fence_leash_gen_save",
+        "twilightforest:path:fence_leash_gen_load",
+        "twilightforest:path:fence_leash_join_cleanup",
+        "twilightforest:path:fence_leash_holder_loss"
+      ],
+      "registry_ids": [],
+      "pending": [
+        "Whole Twilight closure/final promotion only; this bounded subsection is reviewed."
+      ],
+      "unresolved_ambiguities": null
+    }
+  ],
+  "paths": [
+    {
+      "id": "twilightforest:path:fence_leash_item",
+      "source": "Native fence craft/place source",
+      "effect_ids": [
+        "twilightforest:wrought_fence_terrain_control"
+      ],
+      "labels": [
+        "ACTIVE_ITEM",
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native fence craft/place source. Use actual native blocks, entities, structure templates and ordinary admission; no synthetic attachment/source or direct HP operation.",
+      "future_controls": [
+        "recipe6to3",
+        "native placement permission",
+        "water source"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Registered wrought_iron_fence uses WroughtIronFenceBlock and WroughtIronFenceItem; hardness8/resistance20, requires correct tool, noOcclusion. Native recipe uses six #c:ingots/wrought_iron for3; ordinary block loot returns itself subject to survives_explosion. TF explicitly adds it to minecraft:walls. In pinned raw-Minecraft plus TF block tags it is not in minecraft:fences or wooden_fences; other pack data changes remain unknown. Actual worldgen producers below and ordinary placed block items supply legitimate sources. Literal getStateForPlacement reads connections at clicked position but passes pos.above() to fenceShape; subsequent neighbor updates pass actual position. This offset is recorded without repair. WATERLOGGED is true only for actual WATER fluid on placement; returns native source water and schedules water tick on shape updates. Skylight propagates only when not waterlogged. These are terrain/fluid controls, not a new damage source.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:block/WroughtIronFenceBlock",
+          "entry": "twilightforest/block/WroughtIronFenceBlock.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "appendHoverText",
+            "connectsTo",
+            "createBlockStateDefinition",
+            "fenceShape",
+            "getFluidState",
+            "getShape",
+            "getStateForPlacement",
+            "isConnected",
+            "isPathfindable",
+            "makeFenceState",
+            "makePost",
+            "mirror",
+            "propagatesSkylightDown",
+            "rotate",
+            "shouldAnyBePost",
+            "shouldBePost",
+            "updateShape",
+            "updateSide",
+            "updateSides",
+            "updateTop"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:item/WroughtIronFenceItem",
+          "entry": "twilightforest/item/WroughtIronFenceItem.class",
+          "methods": [
+            "<init>",
+            "useOn"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:path:fence_leash_geometry",
+      "source": "Native fence post/arm collision",
+      "effect_ids": [
+        "twilightforest:wrought_fence_terrain_control"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native fence post/arm collision. Use actual native blocks, entities, structure templates and ordinary admission; no synthetic attachment/source or direct HP operation.",
+      "future_controls": [
+        "POST/NONE/CAPPED",
+        "all side variants",
+        "full cube fallback"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "POST!=NONE adds central x/z7..9/16 post of height1. CAPPED also adds neck y16..17/16 and head y17..20/16 (maximum1.25). Each non-NONE directional side adds its fixed width2/16 height1 arm; MIDDLE/BOTTOM/TOP/FULL share that collision shape. With no post and no arms, empty union falls back to a full cube. Inherited BlockBehaviour collision uses getShape when hasCollision; noOcclusion does not disable collision. isPathfindable returns false for all computation types. There is no hurt/HP/status operation in the fence. Connects to WALLS, or non-exception solid face, or IronBarsBlock. makeFenceState checks same-fence block above/below and that layer adjacent self/connectable state: both =>MIDDLE, below only=>TOP, above only=>BOTTOM, neither=>FULL. makePost preserves existing cap only with allowCap and replaceable above, otherwise vertical-column post requirement then own connection requirement. Own post is required for isolation, asymmetric opposite connections, or north/east presence (including cross/corner); a straight opposite pair may have NONE. Upward column search accepts qualifying connections or CAPPED; downward search accepts qualifying connections, without a separate CAPPED test. Rotation/mirror remap direction properties normally.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:block/WroughtIronFenceBlock",
+          "entry": "twilightforest/block/WroughtIronFenceBlock.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "appendHoverText",
+            "connectsTo",
+            "createBlockStateDefinition",
+            "fenceShape",
+            "getFluidState",
+            "getShape",
+            "getStateForPlacement",
+            "isConnected",
+            "isPathfindable",
+            "makeFenceState",
+            "makePost",
+            "mirror",
+            "propagatesSkylightDown",
+            "rotate",
+            "shouldAnyBePost",
+            "shouldBePost",
+            "updateShape",
+            "updateSide",
+            "updateSides",
+            "updateTop"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:path:fence_leash_columns",
+      "source": "Native fence column connection state",
+      "effect_ids": [
+        "twilightforest:wrought_fence_terrain_control"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native fence column connection state. Use actual native blocks, entities, structure templates and ordinary admission; no synthetic attachment/source or direct HP operation.",
+      "future_controls": [
+        "above/below",
+        "straight/corner",
+        "up-cap vs down-cap",
+        "literal placement offset"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Connects to WALLS, or non-exception solid face, or IronBarsBlock. makeFenceState checks same-fence block above/below and that layer adjacent self/connectable state: both =>MIDDLE, below only=>TOP, above only=>BOTTOM, neither=>FULL. makePost preserves existing cap only with allowCap and replaceable above, otherwise vertical-column post requirement then own connection requirement. Own post is required for isolation, asymmetric opposite connections, or north/east presence (including cross/corner); a straight opposite pair may have NONE. Upward column search accepts qualifying connections or CAPPED; downward search accepts qualifying connections, without a separate CAPPED test. Rotation/mirror remap direction properties normally. Literal getStateForPlacement reads connections at clicked position but passes pos.above() to fenceShape; subsequent neighbor updates pass actual position. This offset is recorded without repair. WATERLOGGED is true only for actual WATER fluid on placement; returns native source water and schedules water tick on shape updates. Skylight propagates only when not waterlogged. These are terrain/fluid controls, not a new damage source.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:block/WroughtIronFenceBlock",
+          "entry": "twilightforest/block/WroughtIronFenceBlock.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "appendHoverText",
+            "connectsTo",
+            "createBlockStateDefinition",
+            "fenceShape",
+            "getFluidState",
+            "getShape",
+            "getStateForPlacement",
+            "isConnected",
+            "isPathfindable",
+            "makeFenceState",
+            "makePost",
+            "mirror",
+            "propagatesSkylightDown",
+            "rotate",
+            "shouldAnyBePost",
+            "shouldBePost",
+            "updateShape",
+            "updateSide",
+            "updateSides",
+            "updateTop"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:path:fence_leash_cap",
+      "source": "Native secondary-use cap control",
+      "effect_ids": [
+        "twilightforest:wrought_fence_terrain_control",
+        "twilightforest:wrought_fence_native_leash"
+      ],
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "setup": "Future native fixture only: Native secondary-use cap control. Use actual native blocks, entities, structure templates and ordinary admission; no synthetic attachment/source or direct HP operation.",
+      "future_controls": [
+        "capped removal",
+        "replaceable above",
+        "blocked write stillSUCCESS",
+        "no cost"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "WroughtIronFenceItem secondary-use branch requires clicked exact item block and block above not that same fence. If capped OR above replaceable, write POST = makePost(...,allowCap=false) for capped, otherwise CAPPED. Write result ignored. Sound and SUCCESS occur even when a nonreplaceable above-block prevented the write. This branch has no stack decrement, durability cost or internal server-only guard. Other cases delegate BlockItem.useOn; native outer interaction/permission hooks remain. Cap can change collision and native knot support, not HP.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:block/WroughtIronFenceBlock",
+          "entry": "twilightforest/block/WroughtIronFenceBlock.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "appendHoverText",
+            "connectsTo",
+            "createBlockStateDefinition",
+            "fenceShape",
+            "getFluidState",
+            "getShape",
+            "getStateForPlacement",
+            "isConnected",
+            "isPathfindable",
+            "makeFenceState",
+            "makePost",
+            "mirror",
+            "propagatesSkylightDown",
+            "rotate",
+            "shouldAnyBePost",
+            "shouldBePost",
+            "updateShape",
+            "updateSide",
+            "updateSides",
+            "updateTop"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:item/WroughtIronFenceItem",
+          "entry": "twilightforest/item/WroughtIronFenceItem.class",
+          "methods": [
+            "<init>",
+            "useOn"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:path:fence_leash_water",
+      "source": "Native waterlogged fence update",
+      "effect_ids": [
+        "twilightforest:wrought_fence_terrain_control"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native waterlogged fence update. Use actual native blocks, entities, structure templates and ordinary admission; no synthetic attachment/source or direct HP operation.",
+      "future_controls": [
+        "actual WATER",
+        "scheduled fluid tick",
+        "skylight"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Literal getStateForPlacement reads connections at clicked position but passes pos.above() to fenceShape; subsequent neighbor updates pass actual position. This offset is recorded without repair. WATERLOGGED is true only for actual WATER fluid on placement; returns native source water and schedules water tick on shape updates. Skylight propagates only when not waterlogged. These are terrain/fluid controls, not a new damage source.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:block/WroughtIronFenceBlock",
+          "entry": "twilightforest/block/WroughtIronFenceBlock.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "appendHoverText",
+            "connectsTo",
+            "createBlockStateDefinition",
+            "fenceShape",
+            "getFluidState",
+            "getShape",
+            "getStateForPlacement",
+            "isConnected",
+            "isPathfindable",
+            "makeFenceState",
+            "makePost",
+            "mirror",
+            "propagatesSkylightDown",
+            "rotate",
+            "shouldAnyBePost",
+            "shouldBePost",
+            "updateShape",
+            "updateSide",
+            "updateSides",
+            "updateTop"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:path:fence_leash_new_lead",
+      "source": "Native eligible entity lead interaction",
+      "effect_ids": [
+        "twilightforest:wrought_fence_native_leash"
+      ],
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "setup": "Future native fixture only: Native eligible entity lead interaction. Use actual native blocks, entities, structure templates and ordinary admission; no synthetic attachment/source or direct HP operation.",
+      "future_controls": [
+        "alive",
+        "not Enemy",
+        "not already leashed",
+        "spectator/veto",
+        "survival/creative"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Native Entity.interact first requires alive and Leashable. Already held by this player => server dropLeash(true,!hasInfiniteMaterials), game event and sided success. Otherwise held LEAD and canHaveALeashAttachedToIt (canBeLeashed AND !isLeashed) => server setLeashedTo(player,true), then shrink1 on both sides. Exact Player.interactOn rejects spectators and honors CommonHooks.onInteractEntity; consuming result refunds creative instabuild count only when same held stack and count decreased. Mob.canBeLeashed excludes Enemy, so ordinary player-new-lead interaction does not admit zombies. Genuine worldgen setLeashedTo below is a separate native producer. Native setLeashedTo also stops riding if passenger; it does not tame or transfer attack ownership.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-frosted.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "<clinit>",
+            "onParryProjectile",
+            "setup"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-lich.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "<init>",
+            "addCloudJumpParticles",
+            "addQualifiedGroupPlayerIfNeeded",
+            "adjustEntityHealthInMultiplayerFights",
+            "alertPlayerCastleIsWIP",
+            "attachLeadToWroughtFence",
+            "createSkullCandle",
+            "gatherPotentialSpawns",
+            "getHealthBasedOnDifficulty",
+            "getSpawnListIndexAt",
+            "grantGroupAdvancementIfNeeded",
+            "handleLeashPathingOverrides",
+            "handleQuestSyncing",
+            "lambda$adjustEntityHealthInMultiplayerFights$4",
+            "lambda$alertPlayerCastleIsWIP$0",
+            "lambda$gatherPotentialSpawns$2",
+            "lambda$handleQuestSyncing$6",
+            "lambda$lichBombsDontBlowUpItems$5",
+            "lambda$removeCastleTextIfAttacked$3",
+            "lambda$stopEndermenFromGrabbingBlocksInTF$7",
+            "lambda$stopEndermenFromGrabbingBlocksInTF$8",
+            "lichBombsDontBlowUpItems",
+            "makeSkullCandle",
+            "ominousFireConversion",
+            "onCasketBreak",
+            "removeCastleTextIfAttacked",
+            "resetFlaskLogic",
+            "stopEndermenFromGrabbingBlocksInTF",
+            "structureSpecialSpawns",
+            "wipeOreMeterOnLeftClick",
+            "zombifiedPlayerAttacks"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "entityHurts",
+            "getGearCoverage",
+            "reduceFrostedEffectIfOnFire",
+            "lambda$reduceFrostedEffectIfOnFire$1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:path:fence_leash_bind",
+      "source": "Native RightClickBlock lead transfer",
+      "effect_ids": [
+        "twilightforest:wrought_fence_native_leash"
+      ],
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "setup": "Future native fixture only: Native RightClickBlock lead transfer. Use actual native blocks, entities, structure templates and ordinary admission; no synthetic attachment/source or direct HP operation.",
+      "future_controls": [
+        "actual LEAD",
+        "POST vsNONE",
+        "server",
+        "already held byplayer",
+        "AABB7"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Actual registered EntityEvents RightClickBlock callback requires held exact Items.LEAD, actual TF fence, POST!=NONE and server. It calls LeadItem.bindPlayerMobs, then cancels event and sets SUCCESS regardless of helper PASS/SUCCESS. It has no additional item cost. Thus empty nearby lead list still produces this event result. Earlier native interaction cancellation/permission remains possible; this callback does not fabricate a new leash or override target eligibility. LeadItem.leashableInArea uses AABB from pos-7 to pos+7, not a radial sphere or +1 block box. bindPlayerMobs selects any Leashable whose current holder is this player. First match creates/reuses a knot in a +/-1 search box with exact stored BlockPos; new addFreshEntity return ignored. Plays knot placement sound, then setLeashedTo(knot,true) for each. Nonempty list emits BLOCK_ATTACH and SUCCESS; empty list PASS. No second canBeLeashed test and no extra lead consumption; it transfers already legitimate player-held leads.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:block/WroughtIronFenceBlock",
+          "entry": "twilightforest/block/WroughtIronFenceBlock.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "appendHoverText",
+            "connectsTo",
+            "createBlockStateDefinition",
+            "fenceShape",
+            "getFluidState",
+            "getShape",
+            "getStateForPlacement",
+            "isConnected",
+            "isPathfindable",
+            "makeFenceState",
+            "makePost",
+            "mirror",
+            "propagatesSkylightDown",
+            "rotate",
+            "shouldAnyBePost",
+            "shouldBePost",
+            "updateShape",
+            "updateSide",
+            "updateSides",
+            "updateTop"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-frosted.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "<clinit>",
+            "onParryProjectile",
+            "setup"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-lich.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "<init>",
+            "addCloudJumpParticles",
+            "addQualifiedGroupPlayerIfNeeded",
+            "adjustEntityHealthInMultiplayerFights",
+            "alertPlayerCastleIsWIP",
+            "attachLeadToWroughtFence",
+            "createSkullCandle",
+            "gatherPotentialSpawns",
+            "getHealthBasedOnDifficulty",
+            "getSpawnListIndexAt",
+            "grantGroupAdvancementIfNeeded",
+            "handleLeashPathingOverrides",
+            "handleQuestSyncing",
+            "lambda$adjustEntityHealthInMultiplayerFights$4",
+            "lambda$alertPlayerCastleIsWIP$0",
+            "lambda$gatherPotentialSpawns$2",
+            "lambda$handleQuestSyncing$6",
+            "lambda$lichBombsDontBlowUpItems$5",
+            "lambda$removeCastleTextIfAttacked$3",
+            "lambda$stopEndermenFromGrabbingBlocksInTF$7",
+            "lambda$stopEndermenFromGrabbingBlocksInTF$8",
+            "lichBombsDontBlowUpItems",
+            "makeSkullCandle",
+            "ominousFireConversion",
+            "onCasketBreak",
+            "removeCastleTextIfAttacked",
+            "resetFlaskLogic",
+            "stopEndermenFromGrabbingBlocksInTF",
+            "structureSpecialSpawns",
+            "wipeOreMeterOnLeftClick",
+            "zombifiedPlayerAttacks"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "entityHurts",
+            "getGearCoverage",
+            "reduceFrostedEffectIfOnFire",
+            "lambda$reduceFrostedEffectIfOnFire$1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:path:fence_leash_empty_bind",
+      "source": "Native empty nearby lead list",
+      "effect_ids": [
+        "twilightforest:wrought_fence_native_leash"
+      ],
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "setup": "Future native fixture only: Native empty nearby lead list. Use actual native blocks, entities, structure templates and ordinary admission; no synthetic attachment/source or direct HP operation.",
+      "future_controls": [
+        "helperPASS",
+        "eventSUCCESS",
+        "no cost"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Actual registered EntityEvents RightClickBlock callback requires held exact Items.LEAD, actual TF fence, POST!=NONE and server. It calls LeadItem.bindPlayerMobs, then cancels event and sets SUCCESS regardless of helper PASS/SUCCESS. It has no additional item cost. Thus empty nearby lead list still produces this event result. Earlier native interaction cancellation/permission remains possible; this callback does not fabricate a new leash or override target eligibility. LeadItem.leashableInArea uses AABB from pos-7 to pos+7, not a radial sphere or +1 block box. bindPlayerMobs selects any Leashable whose current holder is this player. First match creates/reuses a knot in a +/-1 search box with exact stored BlockPos; new addFreshEntity return ignored. Plays knot placement sound, then setLeashedTo(knot,true) for each. Nonempty list emits BLOCK_ATTACH and SUCCESS; empty list PASS. No second canBeLeashed test and no extra lead consumption; it transfers already legitimate player-held leads.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-frosted.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "<clinit>",
+            "onParryProjectile",
+            "setup"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-lich.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "<init>",
+            "addCloudJumpParticles",
+            "addQualifiedGroupPlayerIfNeeded",
+            "adjustEntityHealthInMultiplayerFights",
+            "alertPlayerCastleIsWIP",
+            "attachLeadToWroughtFence",
+            "createSkullCandle",
+            "gatherPotentialSpawns",
+            "getHealthBasedOnDifficulty",
+            "getSpawnListIndexAt",
+            "grantGroupAdvancementIfNeeded",
+            "handleLeashPathingOverrides",
+            "handleQuestSyncing",
+            "lambda$adjustEntityHealthInMultiplayerFights$4",
+            "lambda$alertPlayerCastleIsWIP$0",
+            "lambda$gatherPotentialSpawns$2",
+            "lambda$handleQuestSyncing$6",
+            "lambda$lichBombsDontBlowUpItems$5",
+            "lambda$removeCastleTextIfAttacked$3",
+            "lambda$stopEndermenFromGrabbingBlocksInTF$7",
+            "lambda$stopEndermenFromGrabbingBlocksInTF$8",
+            "lichBombsDontBlowUpItems",
+            "makeSkullCandle",
+            "ominousFireConversion",
+            "onCasketBreak",
+            "removeCastleTextIfAttacked",
+            "resetFlaskLogic",
+            "stopEndermenFromGrabbingBlocksInTF",
+            "structureSpecialSpawns",
+            "wipeOreMeterOnLeftClick",
+            "zombifiedPlayerAttacks"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "entityHurts",
+            "getGearCoverage",
+            "reduceFrostedEffectIfOnFire",
+            "lambda$reduceFrostedEffectIfOnFire$1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:path:fence_leash_knot_create",
+      "source": "Native knot reuse/create and packet",
+      "effect_ids": [
+        "twilightforest:wrought_fence_native_leash"
+      ],
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "setup": "Future native fixture only: Native knot reuse/create and packet. Use actual native blocks, entities, structure templates and ordinary admission; no synthetic attachment/source or direct HP operation.",
+      "future_controls": [
+        "sameBlockPos",
+        "search1",
+        "failed add",
+        "stopRiding"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "LeadItem.leashableInArea uses AABB from pos-7 to pos+7, not a radial sphere or +1 block box. bindPlayerMobs selects any Leashable whose current holder is this player. First match creates/reuses a knot in a +/-1 search box with exact stored BlockPos; new addFreshEntity return ignored. Plays knot placement sound, then setLeashedTo(knot,true) for each. Nonempty list emits BLOCK_ATTACH and SUCCESS; empty list PASS. No second canBeLeashed test and no extra lead consumption; it transfers already legitimate player-held leads. Native LEASH_KNOT EntityType is noSave, .375x.5, tracking10/updateInterval INT_MAX. Relationship persists on leasheed mob, not standalone knot save. Saved BlockPos restore creates/reuses real knot (add return ignored); unresolved UUID restore waits and at tickCount>100 drops a lead and clears data. LeashData.setLeashHolder clears delayed UUID/position/id. EntityJoin may retain pending saved leash by mayBeLeashed. Runtime save/reload, canceled spawn and failed-add outcomes remain fixture controls, not observed results.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-control-blocks.json",
+          "witness_id": "tf:asmhooks/BlockHooks",
+          "entry": "twilightforest/asmhooks/BlockHooks.class",
+          "methods": [
+            "isRainingAt",
+            "keepSnowyStateForSnowloggableBlocks",
+            "modifySoilDecisionForMushroomBlockSurvivability"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:asmhooks/BlockHooks",
+          "entry": "twilightforest/asmhooks/BlockHooks.class",
+          "methods": [
+            "leashFenceKnotSurvives"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-frosted.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "<clinit>",
+            "onParryProjectile",
+            "setup"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-lich.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "<init>",
+            "addCloudJumpParticles",
+            "addQualifiedGroupPlayerIfNeeded",
+            "adjustEntityHealthInMultiplayerFights",
+            "alertPlayerCastleIsWIP",
+            "attachLeadToWroughtFence",
+            "createSkullCandle",
+            "gatherPotentialSpawns",
+            "getHealthBasedOnDifficulty",
+            "getSpawnListIndexAt",
+            "grantGroupAdvancementIfNeeded",
+            "handleLeashPathingOverrides",
+            "handleQuestSyncing",
+            "lambda$adjustEntityHealthInMultiplayerFights$4",
+            "lambda$alertPlayerCastleIsWIP$0",
+            "lambda$gatherPotentialSpawns$2",
+            "lambda$handleQuestSyncing$6",
+            "lambda$lichBombsDontBlowUpItems$5",
+            "lambda$removeCastleTextIfAttacked$3",
+            "lambda$stopEndermenFromGrabbingBlocksInTF$7",
+            "lambda$stopEndermenFromGrabbingBlocksInTF$8",
+            "lichBombsDontBlowUpItems",
+            "makeSkullCandle",
+            "ominousFireConversion",
+            "onCasketBreak",
+            "removeCastleTextIfAttacked",
+            "resetFlaskLogic",
+            "stopEndermenFromGrabbingBlocksInTF",
+            "structureSpecialSpawns",
+            "wipeOreMeterOnLeftClick",
+            "zombifiedPlayerAttacks"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-travellers-movement.json",
+          "witness_id": "tf:asmhooks/BlockHooks",
+          "entry": "twilightforest/asmhooks/BlockHooks.class",
+          "methods": [
+            "resetBlockFrictionWithUnrestrained",
+            "resetSlimeMomentumWithUnrestrained",
+            "stopBouncing"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "entityHurts",
+            "getGearCoverage",
+            "reduceFrostedEffectIfOnFire",
+            "lambda$reduceFrostedEffectIfOnFire$1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:path:fence_leash_knot_support",
+      "source": "Native installed knot survival extension",
+      "effect_ids": [
+        "twilightforest:wrought_fence_native_leash"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native installed knot survival extension. Use actual native blocks, entities, structure templates and ordinary admission; no synthetic attachment/source or direct HP operation.",
+      "future_controls": [
+        "originalFENCES",
+        "TFPOST/CAPPED",
+        "NONE",
+        "firstIRETURN",
+        "101calls"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Exact registered LeashFenceKnotSurvivesTransformer targets FIRST IRETURN of native survives (raw method has one return). Hook preserves original true, otherwise accepts actual TF fence with POST!=NONE. Original native test is BlockTags.FENCES. Native BlockAttachedEntity server tick checks checkInterval++==100, hence101 calls between checks; if not removed and !survives, discard and dropItem (knot sound). A supported knot becomes invalid after post disappears, subject to this periodic check. This is not immediate universal wall support.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-control-blocks.json",
+          "witness_id": "tf:asmhooks/BlockHooks",
+          "entry": "twilightforest/asmhooks/BlockHooks.class",
+          "methods": [
+            "isRainingAt",
+            "keepSnowyStateForSnowloggableBlocks",
+            "modifySoilDecisionForMushroomBlockSurvivability"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:block/WroughtIronFenceBlock",
+          "entry": "twilightforest/block/WroughtIronFenceBlock.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "appendHoverText",
+            "connectsTo",
+            "createBlockStateDefinition",
+            "fenceShape",
+            "getFluidState",
+            "getShape",
+            "getStateForPlacement",
+            "isConnected",
+            "isPathfindable",
+            "makeFenceState",
+            "makePost",
+            "mirror",
+            "propagatesSkylightDown",
+            "rotate",
+            "shouldAnyBePost",
+            "shouldBePost",
+            "updateShape",
+            "updateSide",
+            "updateSides",
+            "updateTop"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:asmhooks/BlockHooks",
+          "entry": "twilightforest/asmhooks/BlockHooks.class",
+          "methods": [
+            "leashFenceKnotSurvives"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-travellers-movement.json",
+          "witness_id": "tf:asmhooks/BlockHooks",
+          "entry": "twilightforest/asmhooks/BlockHooks.class",
+          "methods": [
+            "resetBlockFrictionWithUnrestrained",
+            "resetSlimeMomentumWithUnrestrained",
+            "stopBouncing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:path:fence_leash_knot_unbind",
+      "source": "Native knot interact unbinding",
+      "effect_ids": [
+        "twilightforest:wrought_fence_native_leash"
+      ],
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "setup": "Future native fixture only: Native knot interact unbinding. Use actual native blocks, entities, structure templates and ordinary admission; no synthetic attachment/source or direct HP operation.",
+      "future_controls": [
+        "transfer first",
+        "none transferred",
+        "creative no drop",
+        "dead holder nexttick"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Native knot interact is client SUCCESS; server queries nearby leads held by player OR this knot, transferring player-held ones first. If none transferred, discard knot; creative explicitly dropLeash(true,false) for attached leads. Noncreative relies on subsequent native leash tick seeing dead holder and dropping lead item. Returns CONSUME. BlockAttached hurt rejects isInvulnerableTo, otherwise server !removed kills/marks hurt/drops and returns true independently of amount. Player skipAttackInteraction checks level.mayInteract then hurt(playerAttack,0). Nonzero move/push similarly kills. thunderHit is empty. Knot is nonliving, so these are removal/hurt-return rules, not HP damage.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-control-blocks.json",
+          "witness_id": "tf:asmhooks/BlockHooks",
+          "entry": "twilightforest/asmhooks/BlockHooks.class",
+          "methods": [
+            "isRainingAt",
+            "keepSnowyStateForSnowloggableBlocks",
+            "modifySoilDecisionForMushroomBlockSurvivability"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:asmhooks/BlockHooks",
+          "entry": "twilightforest/asmhooks/BlockHooks.class",
+          "methods": [
+            "leashFenceKnotSurvives"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-travellers-movement.json",
+          "witness_id": "tf:asmhooks/BlockHooks",
+          "entry": "twilightforest/asmhooks/BlockHooks.class",
+          "methods": [
+            "resetBlockFrictionWithUnrestrained",
+            "resetSlimeMomentumWithUnrestrained",
+            "stopBouncing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:path:fence_leash_knot_remove",
+      "source": "Native attack/move removal of nonliving knot",
+      "effect_ids": [
+        "twilightforest:wrought_fence_native_leash"
+      ],
+      "labels": [
+        "MELEE",
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native attack/move removal of nonliving knot. Use actual native blocks, entities, structure templates and ordinary admission; no synthetic attachment/source or direct HP operation.",
+      "future_controls": [
+        "mayInteract",
+        "invulnerability",
+        "zero amount",
+        "move/push",
+        "emptythunderHit"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Native knot interact is client SUCCESS; server queries nearby leads held by player OR this knot, transferring player-held ones first. If none transferred, discard knot; creative explicitly dropLeash(true,false) for attached leads. Noncreative relies on subsequent native leash tick seeing dead holder and dropping lead item. Returns CONSUME. BlockAttached hurt rejects isInvulnerableTo, otherwise server !removed kills/marks hurt/drops and returns true independently of amount. Player skipAttackInteraction checks level.mayInteract then hurt(playerAttack,0). Nonzero move/push similarly kills. thunderHit is empty. Knot is nonliving, so these are removal/hurt-return rules, not HP damage.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-control-blocks.json",
+          "witness_id": "tf:asmhooks/BlockHooks",
+          "entry": "twilightforest/asmhooks/BlockHooks.class",
+          "methods": [
+            "isRainingAt",
+            "keepSnowyStateForSnowloggableBlocks",
+            "modifySoilDecisionForMushroomBlockSurvivability"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:asmhooks/BlockHooks",
+          "entry": "twilightforest/asmhooks/BlockHooks.class",
+          "methods": [
+            "leashFenceKnotSurvives"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-travellers-movement.json",
+          "witness_id": "tf:asmhooks/BlockHooks",
+          "entry": "twilightforest/asmhooks/BlockHooks.class",
+          "methods": [
+            "resetBlockFrictionWithUnrestrained",
+            "resetSlimeMomentumWithUnrestrained",
+            "stopBouncing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:path:fence_leash_native_motion",
+      "source": "Native leash close/elastic/break intervals",
+      "effect_ids": [
+        "twilightforest:wrought_fence_native_leash",
+        "twilightforest:bound_zombie_leash_follow_override"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native leash close/elastic/break intervals. Use actual native blocks, entities, structure templates and ordinary admission; no synthetic attachment/source or direct HP operation.",
+      "future_controls": [
+        "samelevel",
+        "alive",
+        "6exact",
+        "10exact",
+        "elasticvector",
+        "MOVEflag"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Entity.baseTick on server invokes Leashable.tickLeash. Restore delayed leash first; dead leasheed entity or holder drops leash(true,true). Same-level holder invokes handleLeashAtDistance: Pathfinder restrictTo(holder block,5), true. Distance>10 => drop leash and Mob disables MOVE; >6 => elastic additive velocity per axis copySign((delta/distance)^2*.4,delta/distance), then checkSlowFallDistance; <=6 => closeRange. Pathfinder closeRange follows only if shouldStayCloseToLeashHolder AND !isPanicking, enabling MOVE and navigating at speed1 toward holder with2-unit stop distance. Ordinary autonomous goals and combat remain; no full immobilization.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:asmhooks/EntityHooks",
+          "entry": "twilightforest/asmhooks/EntityHooks.class",
+          "methods": [
+            "overrideStayCloseToHolder"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-travellers-movement.json",
+          "witness_id": "tf:asmhooks/EntityHooks",
+          "entry": "twilightforest/asmhooks/EntityHooks.class",
+          "methods": [
+            "lambda$unrestrainedSwimPredicate$0",
+            "processWaterWalking",
+            "resetFactorWithUnrestrained",
+            "resetStuckUnrestrained",
+            "unrestrainedSprintingInWater",
+            "unrestrainedSwimPredicate"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:path:fence_leash_override",
+      "source": "Native close-follow ASM decision",
+      "effect_ids": [
+        "twilightforest:bound_zombie_leash_follow_override"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native close-follow ASM decision. Use actual native blocks, entities, structure templates and ordinary admission; no synthetic attachment/source or direct HP operation.",
+      "future_controls": [
+        "priorfalse",
+        "attachment",
+        "base-method allreturns",
+        "panic",
+        "ordinary attackAI"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Exact registered PathFinderUnrestrainedByLeashTransformer targets EVERY IRETURN of BASE PathfinderMob.shouldStayCloseToLeashHolder; hook returns prior && !hasData(LEASH_PATHFINDER_OVERRIDE). Only close-range follow decision changes. Elastic pull, leash break, holder-range restriction, damage immunity and hostile goals are not changed. This is not blanket instrumentation of subclass overrides. Actual Unit attachment leashed_pathfinder_override is serialized, without sync/copyOnDeath declared. Registered EntityJoinLevel handler removes it from Pathfinder only if !mayBeLeashed, which means getLeashData()==null, NOT canBeLeashed or !Enemy. Saved unresolved leash data can retain it. No tick-time cleanup; breaking a leash can leave attachment until later join. Entity.baseTick on server invokes Leashable.tickLeash. Restore delayed leash first; dead leasheed entity or holder drops leash(true,true). Same-level holder invokes handleLeashAtDistance: Pathfinder restrictTo(holder block,5), true. Distance>10 => drop leash and Mob disables MOVE; >6 => elastic additive velocity per axis copySign((delta/distance)^2*.4,delta/distance), then checkSlowFallDistance; <=6 => closeRange. Pathfinder closeRange follows only if shouldStayCloseToLeashHolder AND !isPanicking, enabling MOVE and navigating at speed1 toward holder with2-unit stop distance. Ordinary autonomous goals and combat remain; no full immobilization.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-bows-fan.json",
+          "witness_id": "tf:init/TFDataAttachments",
+          "entry": "twilightforest/init/TFDataAttachments.class",
+          "methods": [
+            "lambda$static$1",
+            "lambda$static$19",
+            "lambda$static$47"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-chain.json",
+          "witness_id": "tf:init/TFDataAttachments",
+          "entry": "twilightforest/init/TFDataAttachments.class",
+          "methods": [
+            "lambda$static$8",
+            "lambda$static$9"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:asmhooks/EntityHooks",
+          "entry": "twilightforest/asmhooks/EntityHooks.class",
+          "methods": [
+            "overrideStayCloseToHolder"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-scepter-payloads.json",
+          "witness_id": "tf:init/TFDataAttachments",
+          "entry": "twilightforest/init/TFDataAttachments.class",
+          "methods": [
+            "lambda$static$3"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-travellers-core.json",
+          "witness_id": "tf:init/TFDataAttachments",
+          "entry": "twilightforest/init/TFDataAttachments.class",
+          "methods": [
+            "<init>",
+            "directCopy",
+            "lambda$static$0",
+            "lambda$static$10",
+            "lambda$static$11",
+            "lambda$static$12",
+            "lambda$static$13",
+            "lambda$static$14",
+            "lambda$static$15",
+            "lambda$static$16",
+            "lambda$static$17",
+            "lambda$static$18",
+            "lambda$static$2",
+            "lambda$static$20",
+            "lambda$static$21",
+            "lambda$static$22",
+            "lambda$static$23",
+            "lambda$static$24",
+            "lambda$static$25",
+            "lambda$static$26",
+            "lambda$static$27",
+            "lambda$static$28",
+            "lambda$static$29",
+            "lambda$static$30",
+            "lambda$static$31",
+            "lambda$static$32",
+            "lambda$static$33",
+            "lambda$static$34",
+            "lambda$static$35",
+            "lambda$static$36",
+            "lambda$static$37",
+            "lambda$static$38",
+            "lambda$static$39",
+            "lambda$static$4",
+            "lambda$static$40",
+            "lambda$static$41",
+            "lambda$static$42",
+            "lambda$static$43",
+            "lambda$static$44",
+            "lambda$static$45",
+            "lambda$static$46",
+            "lambda$static$48",
+            "lambda$static$5",
+            "lambda$static$6",
+            "lambda$static$7"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-travellers-movement.json",
+          "witness_id": "tf:asmhooks/EntityHooks",
+          "entry": "twilightforest/asmhooks/EntityHooks.class",
+          "methods": [
+            "lambda$unrestrainedSwimPredicate$0",
+            "processWaterWalking",
+            "resetFactorWithUnrestrained",
+            "resetStuckUnrestrained",
+            "unrestrainedSprintingInWater",
+            "unrestrainedSwimPredicate"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-yeti-queen.json",
+          "witness_id": "tf:init/TFDataAttachments",
+          "entry": "twilightforest/init/TFDataAttachments.class",
+          "methods": [
+            "<clinit>"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:path:fence_leash_room_pool",
+      "source": "Native weighted room selection",
+      "effect_ids": [
+        "twilightforest:bound_zombie_leash_follow_override"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native weighted room selection. Use actual native blocks, entities, structure templates and ordinary admission; no synthetic attachment/source or direct HP operation.",
+      "future_controls": [
+        "size1/3",
+        "poolweight100",
+        "native placement admission"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Registered LichTowerStructure starts LichTowerFoyer/jigsaws. Native WingBridge tryRoomAndBridge/tryGenerateRoom/tryPlaceRoom route through LichTowerUtil.rollRandomRoom: size1 ->5x5 pool, size3 ->9x9. StructureTemplateDefinitions reload/apply and weighted random choose genuine installed templates. Five-by-five zombie_trap has one DATA marker zombie_trap; nine-by-nine holding and lockup each have four DATA zombie_trap|wrought_iron_post markers, each1/2 random choice at processing. Each corresponding installed pool entry has weight100. Selection still requires native jigsaw, terrain and collision admission; no guaranteed generation frequency inferred.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:world/components/structures/lichtowerrevamp/LichTowerWingRoom",
+          "entry": "twilightforest/world/components/structures/lichtowerrevamp/LichTowerWingRoom.class",
+          "methods": [
+            "<init>",
+            "<init>",
+            "getRandomDirectionInsideChunk",
+            "handleDataMarker",
+            "handleDataParams",
+            "postProcess",
+            "putZombieTrap"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:world/components/structures/lichtowerrevamp/LichTowerUtil",
+          "entry": "twilightforest/world/components/structures/lichtowerrevamp/LichTowerUtil.class",
+          "methods": [
+            "<clinit>",
+            "rollRandomRoom"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:world/components/structures/lichtowerrevamp/LichTowerWingBridge",
+          "entry": "twilightforest/world/components/structures/lichtowerrevamp/LichTowerWingBridge.class",
+          "methods": [
+            "lambda$tryPlaceRoom$0",
+            "tryGenerateRoom",
+            "tryPlaceRoom",
+            "tryRoomAndBridge"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-ranged-mobs.json",
+          "witness_id": "tf:world/components/structures/lichtowerrevamp/LichTowerWingRoom",
+          "entry": "twilightforest/world/components/structures/lichtowerrevamp/LichTowerWingRoom.class",
+          "methods": [
+            "putTrappableLectern"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:path:fence_leash_room_marker",
+      "source": "Native real template DATA markers",
+      "effect_ids": [
+        "twilightforest:bound_zombie_leash_follow_override"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native real template DATA markers. Use actual native blocks, entities, structure templates and ordinary admission; no synthetic attachment/source or direct HP operation.",
+      "future_controls": [
+        "one guaranteed label",
+        "four mixed perroom",
+        "randomhalf",
+        "chunkbbox",
+        "placeInWorldfalse"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Registered LichTowerStructure starts LichTowerFoyer/jigsaws. Native WingBridge tryRoomAndBridge/tryGenerateRoom/tryPlaceRoom route through LichTowerUtil.rollRandomRoom: size1 ->5x5 pool, size3 ->9x9. StructureTemplateDefinitions reload/apply and weighted random choose genuine installed templates. Five-by-five zombie_trap has one DATA marker zombie_trap; nine-by-nine holding and lockup each have four DATA zombie_trap|wrought_iron_post markers, each1/2 random choice at processing. Each corresponding installed pool entry has weight100. Selection still requires native jigsaw, terrain and collision admission; no guaranteed generation frequency inferred. TwilightTemplateStructurePiece customPostProcess sets chunk bounding box and requires template.placeInWorld true before filtering STRUCTURE_BLOCK DATA markers. Native StructureTemplate.filterBlocks transforms/offsets positions, respects bounding box, rotates state and preserves NBT. Wing handleDataMarker processes optional > prefix / @ orientation / random | alternatives / : parameters, removes marker without drops and dispatches handleDataParams zombie_trap. putZombieTrap writes TF fence flag2 POST=CAPPED if above AIR, otherwise POST, marks postprocessing; failed write is not success-gated. Shuffles horizontal directions excluding outward chunk edges at x/z0 or15, chooses one or UP sentinel; only non-Y direction creates entities.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:world/components/structures/lichtowerrevamp/LichTowerWingRoom",
+          "entry": "twilightforest/world/components/structures/lichtowerrevamp/LichTowerWingRoom.class",
+          "methods": [
+            "<init>",
+            "<init>",
+            "getRandomDirectionInsideChunk",
+            "handleDataMarker",
+            "handleDataParams",
+            "postProcess",
+            "putZombieTrap"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:world/components/structures/TwilightTemplateStructurePiece",
+          "entry": "twilightforest/world/components/structures/TwilightTemplateStructurePiece.class",
+          "methods": [
+            "customPostProcess",
+            "postProcess"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-ranged-mobs.json",
+          "witness_id": "tf:world/components/structures/lichtowerrevamp/LichTowerWingRoom",
+          "entry": "twilightforest/world/components/structures/lichtowerrevamp/LichTowerWingRoom.class",
+          "methods": [
+            "putTrappableLectern"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:path:fence_leash_room_trap",
+      "source": "Native room fence/zombie creation",
+      "effect_ids": [
+        "twilightforest:wrought_fence_terrain_control",
+        "twilightforest:bound_zombie_leash_follow_override"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native room fence/zombie creation. Use actual native blocks, entities, structure templates and ordinary admission; no synthetic attachment/source or direct HP operation.",
+      "future_controls": [
+        "AIRabove",
+        "chunkedge direction",
+        "UPsentinel",
+        "failed creation",
+        "ignored write/add"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "TwilightTemplateStructurePiece customPostProcess sets chunk bounding box and requires template.placeInWorld true before filtering STRUCTURE_BLOCK DATA markers. Native StructureTemplate.filterBlocks transforms/offsets positions, respects bounding box, rotates state and preserves NBT. Wing handleDataMarker processes optional > prefix / @ orientation / random | alternatives / : parameters, removes marker without drops and dispatches handleDataParams zombie_trap. putZombieTrap writes TF fence flag2 POST=CAPPED if above AIR, otherwise POST, marks postprocessing; failed write is not success-gated. Shuffles horizontal directions excluding outward chunk edges at x/z0 or15, chooses one or UP sentinel; only non-Y direction creates entities. Both real producers call EntityUtil.createEntityIgnoreException(world,type), which uses type.create(world.getLevel()) and catches Exception to null. Only if knot AND Zombie nonnull: move knot to anchor x+.5,y,z+.5; zombie.setPersistenceRequired; zombie.setLeashedTo(knot,false); move zombie to adjacent x+.5,y-1,z+.5; set Unit override; world.addFreshEntity(zombie), ignoring return. They do not add the temporary knot, call finalizeSpawn, tame, disable AI, heal or damage. Zombie attacks retain their native source/eligibility; leash holder is not attack owner. Native setPos stores containing BlockPos, knot recalculation centers x/z+.5,y+.375.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-active-utilities.json",
+          "witness_id": "tf:util/entities/EntityUtil",
+          "entry": "twilightforest/util/entities/EntityUtil.class",
+          "methods": [
+            "convertEntity",
+            "lambda$convertEntity$2"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:world/components/structures/lichtowerrevamp/LichTowerWingRoom",
+          "entry": "twilightforest/world/components/structures/lichtowerrevamp/LichTowerWingRoom.class",
+          "methods": [
+            "<init>",
+            "<init>",
+            "getRandomDirectionInsideChunk",
+            "handleDataMarker",
+            "handleDataParams",
+            "postProcess",
+            "putZombieTrap"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:util/entities/EntityUtil",
+          "entry": "twilightforest/util/entities/EntityUtil.class",
+          "methods": [
+            "createEntityIgnoreException",
+            "createEntityIgnoreException"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-minoshroom-knight.json",
+          "witness_id": "tf:util/entities/EntityUtil",
+          "entry": "twilightforest/util/entities/EntityUtil.class",
+          "methods": [
+            "getKnockback",
+            "killLavaAround",
+            "properlyApplyCustomDamageSource"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-naga.json",
+          "witness_id": "tf:util/entities/EntityUtil",
+          "entry": "twilightforest/util/entities/EntityUtil.class",
+          "methods": [
+            "canDestroyBlock",
+            "canDestroyBlock"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-ranged-mobs.json",
+          "witness_id": "tf:world/components/structures/lichtowerrevamp/LichTowerWingRoom",
+          "entry": "twilightforest/world/components/structures/lichtowerrevamp/LichTowerWingRoom.class",
+          "methods": [
+            "putTrappableLectern"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-scepter-payloads.json",
+          "witness_id": "tf:util/entities/EntityUtil",
+          "entry": "twilightforest/util/entities/EntityUtil.class",
+          "methods": [
+            "getDeathSound"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-structure-gates.json",
+          "witness_id": "tf:util/entities/EntityUtil",
+          "entry": "twilightforest/util/entities/EntityUtil.class",
+          "methods": [
+            "rayTrace",
+            "rayTrace",
+            "rayTrace"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:path:fence_leash_perimeter_choose",
+      "source": "Native perimeter anchor selection",
+      "effect_ids": [
+        "twilightforest:bound_zombie_leash_follow_override"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native perimeter anchor selection. Use actual native blocks, entities, structure templates and ordinary admission; no synthetic attachment/source or direct HP operation.",
+      "future_controls": [
+        "randomfloat.25",
+        "POSTonly",
+        "3/4/6none",
+        "5/7eligible",
+        "shuffle"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "LichTowerStructure.generateFromStartingPiece invokes LichYardBox.beginYard and native perimeter generation (outer_fence3..7). Perimeter constructor randomFloat>0.25 leaves no anchor; otherwise filter actual fence states and remove POST!=POST (CAPPED and NONE excluded), shuffle candidates and save first selected leash_pos. Actual outer_fence3/4/6 templates contain only NONE, whereas5/7 include eligible POST plus excluded CAPPED. postProcess invokes generateBoundZombie after parent; both stored anchor and adjacent zombie position must lie in current chunkBounds, direction is sourceJigsaw.orientation.top. It uses the same creation sequence. leash_pos is serialized; no generated-once flag is written or cleared in this method, so arbitrary rerun idempotence is not asserted.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:world/components/structures/lichtowerrevamp/LichPerimeterFence",
+          "entry": "twilightforest/world/components/structures/lichtowerrevamp/LichPerimeterFence.class",
+          "methods": [
+            "<init>",
+            "<init>",
+            "addAdditionalSaveData",
+            "generateBoundZombie",
+            "generateFence",
+            "generatePerimeter",
+            "generateSidedPerimeter",
+            "generateUntilNearDest",
+            "lambda$generateFence$3",
+            "nextFence",
+            "postProcess",
+            "startPerimeterFence"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:world/components/structures/lichtowerrevamp/LichYardBox",
+          "entry": "twilightforest/world/components/structures/lichtowerrevamp/LichYardBox.class",
+          "methods": [
+            "beginYard",
+            "generateFence",
+            "lambda$beginYard$0",
+            "lambda$beginYard$1",
+            "lambda$beginYard$2"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:path:fence_leash_perimeter_spawn",
+      "source": "Native perimeter bound zombie generation",
+      "effect_ids": [
+        "twilightforest:bound_zombie_leash_follow_override"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native perimeter bound zombie generation. Use actual native blocks, entities, structure templates and ordinary admission; no synthetic attachment/source or direct HP operation.",
+      "future_controls": [
+        "bothpositionsinchunk",
+        "sourcejigsawdirection",
+        "no onceflag",
+        "persistentanchor"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "LichTowerStructure.generateFromStartingPiece invokes LichYardBox.beginYard and native perimeter generation (outer_fence3..7). Perimeter constructor randomFloat>0.25 leaves no anchor; otherwise filter actual fence states and remove POST!=POST (CAPPED and NONE excluded), shuffle candidates and save first selected leash_pos. Actual outer_fence3/4/6 templates contain only NONE, whereas5/7 include eligible POST plus excluded CAPPED. postProcess invokes generateBoundZombie after parent; both stored anchor and adjacent zombie position must lie in current chunkBounds, direction is sourceJigsaw.orientation.top. It uses the same creation sequence. leash_pos is serialized; no generated-once flag is written or cleared in this method, so arbitrary rerun idempotence is not asserted. Both real producers call EntityUtil.createEntityIgnoreException(world,type), which uses type.create(world.getLevel()) and catches Exception to null. Only if knot AND Zombie nonnull: move knot to anchor x+.5,y,z+.5; zombie.setPersistenceRequired; zombie.setLeashedTo(knot,false); move zombie to adjacent x+.5,y-1,z+.5; set Unit override; world.addFreshEntity(zombie), ignoring return. They do not add the temporary knot, call finalizeSpawn, tame, disable AI, heal or damage. Zombie attacks retain their native source/eligibility; leash holder is not attack owner. Native setPos stores containing BlockPos, knot recalculation centers x/z+.5,y+.375.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-active-utilities.json",
+          "witness_id": "tf:util/entities/EntityUtil",
+          "entry": "twilightforest/util/entities/EntityUtil.class",
+          "methods": [
+            "convertEntity",
+            "lambda$convertEntity$2"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:world/components/structures/lichtowerrevamp/LichPerimeterFence",
+          "entry": "twilightforest/world/components/structures/lichtowerrevamp/LichPerimeterFence.class",
+          "methods": [
+            "<init>",
+            "<init>",
+            "addAdditionalSaveData",
+            "generateBoundZombie",
+            "generateFence",
+            "generatePerimeter",
+            "generateSidedPerimeter",
+            "generateUntilNearDest",
+            "lambda$generateFence$3",
+            "nextFence",
+            "postProcess",
+            "startPerimeterFence"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:util/entities/EntityUtil",
+          "entry": "twilightforest/util/entities/EntityUtil.class",
+          "methods": [
+            "createEntityIgnoreException",
+            "createEntityIgnoreException"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-minoshroom-knight.json",
+          "witness_id": "tf:util/entities/EntityUtil",
+          "entry": "twilightforest/util/entities/EntityUtil.class",
+          "methods": [
+            "getKnockback",
+            "killLavaAround",
+            "properlyApplyCustomDamageSource"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-naga.json",
+          "witness_id": "tf:util/entities/EntityUtil",
+          "entry": "twilightforest/util/entities/EntityUtil.class",
+          "methods": [
+            "canDestroyBlock",
+            "canDestroyBlock"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-scepter-payloads.json",
+          "witness_id": "tf:util/entities/EntityUtil",
+          "entry": "twilightforest/util/entities/EntityUtil.class",
+          "methods": [
+            "getDeathSound"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-structure-gates.json",
+          "witness_id": "tf:util/entities/EntityUtil",
+          "entry": "twilightforest/util/entities/EntityUtil.class",
+          "methods": [
+            "rayTrace",
+            "rayTrace",
+            "rayTrace"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:path:fence_leash_gen_save",
+      "source": "Native WorldGenRegion to ProtoChunk save",
+      "effect_ids": [
+        "twilightforest:bound_zombie_leash_follow_override"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native WorldGenRegion to ProtoChunk save. Use actual native blocks, entities, structure templates and ordinary admission; no synthetic attachment/source or direct HP operation.",
+      "future_controls": [
+        "spawncanceled",
+        "nonpassenger",
+        "leashposintarray",
+        "Unitattachment",
+        "temporaryknotnotadded"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Exact NeoForge244 WorldGenRegion.addFreshEntity rejects spawn-canceled Mob, otherwise delegates current chunk.addEntity and returns true. ProtoChunk.addEntity on nonpassenger saves Entity to a new compound then stores it, ignoring save boolean. Native Mob save writes leash data: Knot holder becomes native leash BlockPos int array; other holder becomes UUID compound. Entity save persists serialized attachment. Load restores delayed LeashData and attachment. Subsequent server leash restore for saved position calls getOrCreateKnot in actual ServerLevel and setLeashedTo(...,true). Thus normal ProtoChunk serialization legitimately creates the real knot later; missing direct TF temporary-knot add is NOT a proven defect. No claim all alternative immediate-add WorldGenLevel implementations behave identically. Both real producers call EntityUtil.createEntityIgnoreException(world,type), which uses type.create(world.getLevel()) and catches Exception to null. Only if knot AND Zombie nonnull: move knot to anchor x+.5,y,z+.5; zombie.setPersistenceRequired; zombie.setLeashedTo(knot,false); move zombie to adjacent x+.5,y-1,z+.5; set Unit override; world.addFreshEntity(zombie), ignoring return. They do not add the temporary knot, call finalizeSpawn, tame, disable AI, heal or damage. Zombie attacks retain their native source/eligibility; leash holder is not attack owner. Native setPos stores containing BlockPos, knot recalculation centers x/z+.5,y+.375.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-active-utilities.json",
+          "witness_id": "tf:util/entities/EntityUtil",
+          "entry": "twilightforest/util/entities/EntityUtil.class",
+          "methods": [
+            "convertEntity",
+            "lambda$convertEntity$2"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:world/components/structures/lichtowerrevamp/LichTowerWingRoom",
+          "entry": "twilightforest/world/components/structures/lichtowerrevamp/LichTowerWingRoom.class",
+          "methods": [
+            "<init>",
+            "<init>",
+            "getRandomDirectionInsideChunk",
+            "handleDataMarker",
+            "handleDataParams",
+            "postProcess",
+            "putZombieTrap"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:world/components/structures/lichtowerrevamp/LichPerimeterFence",
+          "entry": "twilightforest/world/components/structures/lichtowerrevamp/LichPerimeterFence.class",
+          "methods": [
+            "<init>",
+            "<init>",
+            "addAdditionalSaveData",
+            "generateBoundZombie",
+            "generateFence",
+            "generatePerimeter",
+            "generateSidedPerimeter",
+            "generateUntilNearDest",
+            "lambda$generateFence$3",
+            "nextFence",
+            "postProcess",
+            "startPerimeterFence"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:util/entities/EntityUtil",
+          "entry": "twilightforest/util/entities/EntityUtil.class",
+          "methods": [
+            "createEntityIgnoreException",
+            "createEntityIgnoreException"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-minoshroom-knight.json",
+          "witness_id": "tf:util/entities/EntityUtil",
+          "entry": "twilightforest/util/entities/EntityUtil.class",
+          "methods": [
+            "getKnockback",
+            "killLavaAround",
+            "properlyApplyCustomDamageSource"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-naga.json",
+          "witness_id": "tf:util/entities/EntityUtil",
+          "entry": "twilightforest/util/entities/EntityUtil.class",
+          "methods": [
+            "canDestroyBlock",
+            "canDestroyBlock"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-ranged-mobs.json",
+          "witness_id": "tf:world/components/structures/lichtowerrevamp/LichTowerWingRoom",
+          "entry": "twilightforest/world/components/structures/lichtowerrevamp/LichTowerWingRoom.class",
+          "methods": [
+            "putTrappableLectern"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-scepter-payloads.json",
+          "witness_id": "tf:util/entities/EntityUtil",
+          "entry": "twilightforest/util/entities/EntityUtil.class",
+          "methods": [
+            "getDeathSound"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-structure-gates.json",
+          "witness_id": "tf:util/entities/EntityUtil",
+          "entry": "twilightforest/util/entities/EntityUtil.class",
+          "methods": [
+            "rayTrace",
+            "rayTrace",
+            "rayTrace"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:path:fence_leash_gen_load",
+      "source": "Native saved leash knot restoration",
+      "effect_ids": [
+        "twilightforest:bound_zombie_leash_follow_override",
+        "twilightforest:wrought_fence_native_leash"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native saved leash knot restoration. Use actual native blocks, entities, structure templates and ordinary admission; no synthetic attachment/source or direct HP operation.",
+      "future_controls": [
+        "ServerLevelrestore",
+        "knotnoSave",
+        "realcreate/reuse",
+        "nativeposition"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Exact NeoForge244 WorldGenRegion.addFreshEntity rejects spawn-canceled Mob, otherwise delegates current chunk.addEntity and returns true. ProtoChunk.addEntity on nonpassenger saves Entity to a new compound then stores it, ignoring save boolean. Native Mob save writes leash data: Knot holder becomes native leash BlockPos int array; other holder becomes UUID compound. Entity save persists serialized attachment. Load restores delayed LeashData and attachment. Subsequent server leash restore for saved position calls getOrCreateKnot in actual ServerLevel and setLeashedTo(...,true). Thus normal ProtoChunk serialization legitimately creates the real knot later; missing direct TF temporary-knot add is NOT a proven defect. No claim all alternative immediate-add WorldGenLevel implementations behave identically. Native LEASH_KNOT EntityType is noSave, .375x.5, tracking10/updateInterval INT_MAX. Relationship persists on leasheed mob, not standalone knot save. Saved BlockPos restore creates/reuses real knot (add return ignored); unresolved UUID restore waits and at tickCount>100 drops a lead and clears data. LeashData.setLeashHolder clears delayed UUID/position/id. EntityJoin may retain pending saved leash by mayBeLeashed. Runtime save/reload, canceled spawn and failed-add outcomes remain fixture controls, not observed results.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-bows-fan.json",
+          "witness_id": "tf:init/TFDataAttachments",
+          "entry": "twilightforest/init/TFDataAttachments.class",
+          "methods": [
+            "lambda$static$1",
+            "lambda$static$19",
+            "lambda$static$47"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-chain.json",
+          "witness_id": "tf:init/TFDataAttachments",
+          "entry": "twilightforest/init/TFDataAttachments.class",
+          "methods": [
+            "lambda$static$8",
+            "lambda$static$9"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:asmhooks/EntityHooks",
+          "entry": "twilightforest/asmhooks/EntityHooks.class",
+          "methods": [
+            "overrideStayCloseToHolder"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:world/components/structures/lichtowerrevamp/LichTowerWingRoom",
+          "entry": "twilightforest/world/components/structures/lichtowerrevamp/LichTowerWingRoom.class",
+          "methods": [
+            "<init>",
+            "<init>",
+            "getRandomDirectionInsideChunk",
+            "handleDataMarker",
+            "handleDataParams",
+            "postProcess",
+            "putZombieTrap"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:world/components/structures/lichtowerrevamp/LichPerimeterFence",
+          "entry": "twilightforest/world/components/structures/lichtowerrevamp/LichPerimeterFence.class",
+          "methods": [
+            "<init>",
+            "<init>",
+            "addAdditionalSaveData",
+            "generateBoundZombie",
+            "generateFence",
+            "generatePerimeter",
+            "generateSidedPerimeter",
+            "generateUntilNearDest",
+            "lambda$generateFence$3",
+            "nextFence",
+            "postProcess",
+            "startPerimeterFence"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-ranged-mobs.json",
+          "witness_id": "tf:world/components/structures/lichtowerrevamp/LichTowerWingRoom",
+          "entry": "twilightforest/world/components/structures/lichtowerrevamp/LichTowerWingRoom.class",
+          "methods": [
+            "putTrappableLectern"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-scepter-payloads.json",
+          "witness_id": "tf:init/TFDataAttachments",
+          "entry": "twilightforest/init/TFDataAttachments.class",
+          "methods": [
+            "lambda$static$3"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-travellers-core.json",
+          "witness_id": "tf:init/TFDataAttachments",
+          "entry": "twilightforest/init/TFDataAttachments.class",
+          "methods": [
+            "<init>",
+            "directCopy",
+            "lambda$static$0",
+            "lambda$static$10",
+            "lambda$static$11",
+            "lambda$static$12",
+            "lambda$static$13",
+            "lambda$static$14",
+            "lambda$static$15",
+            "lambda$static$16",
+            "lambda$static$17",
+            "lambda$static$18",
+            "lambda$static$2",
+            "lambda$static$20",
+            "lambda$static$21",
+            "lambda$static$22",
+            "lambda$static$23",
+            "lambda$static$24",
+            "lambda$static$25",
+            "lambda$static$26",
+            "lambda$static$27",
+            "lambda$static$28",
+            "lambda$static$29",
+            "lambda$static$30",
+            "lambda$static$31",
+            "lambda$static$32",
+            "lambda$static$33",
+            "lambda$static$34",
+            "lambda$static$35",
+            "lambda$static$36",
+            "lambda$static$37",
+            "lambda$static$38",
+            "lambda$static$39",
+            "lambda$static$4",
+            "lambda$static$40",
+            "lambda$static$41",
+            "lambda$static$42",
+            "lambda$static$43",
+            "lambda$static$44",
+            "lambda$static$45",
+            "lambda$static$46",
+            "lambda$static$48",
+            "lambda$static$5",
+            "lambda$static$6",
+            "lambda$static$7"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-travellers-movement.json",
+          "witness_id": "tf:asmhooks/EntityHooks",
+          "entry": "twilightforest/asmhooks/EntityHooks.class",
+          "methods": [
+            "lambda$unrestrainedSwimPredicate$0",
+            "processWaterWalking",
+            "resetFactorWithUnrestrained",
+            "resetStuckUnrestrained",
+            "unrestrainedSprintingInWater",
+            "unrestrainedSwimPredicate"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-yeti-queen.json",
+          "witness_id": "tf:init/TFDataAttachments",
+          "entry": "twilightforest/init/TFDataAttachments.class",
+          "methods": [
+            "<clinit>"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:path:fence_leash_join_cleanup",
+      "source": "Native attachment EntityJoin cleanup",
+      "effect_ids": [
+        "twilightforest:bound_zombie_leash_follow_override"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native attachment EntityJoin cleanup. Use actual native blocks, entities, structure templates and ordinary admission; no synthetic attachment/source or direct HP operation.",
+      "future_controls": [
+        "mayBeLeashed data test",
+        "pendingrestore",
+        "Enemy allowed data",
+        "brokenleash rejoin"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Exact registered PathFinderUnrestrainedByLeashTransformer targets EVERY IRETURN of BASE PathfinderMob.shouldStayCloseToLeashHolder; hook returns prior && !hasData(LEASH_PATHFINDER_OVERRIDE). Only close-range follow decision changes. Elastic pull, leash break, holder-range restriction, damage immunity and hostile goals are not changed. This is not blanket instrumentation of subclass overrides. Actual Unit attachment leashed_pathfinder_override is serialized, without sync/copyOnDeath declared. Registered EntityJoinLevel handler removes it from Pathfinder only if !mayBeLeashed, which means getLeashData()==null, NOT canBeLeashed or !Enemy. Saved unresolved leash data can retain it. No tick-time cleanup; breaking a leash can leave attachment until later join. Native LEASH_KNOT EntityType is noSave, .375x.5, tracking10/updateInterval INT_MAX. Relationship persists on leasheed mob, not standalone knot save. Saved BlockPos restore creates/reuses real knot (add return ignored); unresolved UUID restore waits and at tickCount>100 drops a lead and clears data. LeashData.setLeashHolder clears delayed UUID/position/id. EntityJoin may retain pending saved leash by mayBeLeashed. Runtime save/reload, canceled spawn and failed-add outcomes remain fixture controls, not observed results.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-bows-fan.json",
+          "witness_id": "tf:init/TFDataAttachments",
+          "entry": "twilightforest/init/TFDataAttachments.class",
+          "methods": [
+            "lambda$static$1",
+            "lambda$static$19",
+            "lambda$static$47"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-chain.json",
+          "witness_id": "tf:init/TFDataAttachments",
+          "entry": "twilightforest/init/TFDataAttachments.class",
+          "methods": [
+            "lambda$static$8",
+            "lambda$static$9"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-frosted.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "<clinit>",
+            "onParryProjectile",
+            "setup"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-lich.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "<init>",
+            "addCloudJumpParticles",
+            "addQualifiedGroupPlayerIfNeeded",
+            "adjustEntityHealthInMultiplayerFights",
+            "alertPlayerCastleIsWIP",
+            "attachLeadToWroughtFence",
+            "createSkullCandle",
+            "gatherPotentialSpawns",
+            "getHealthBasedOnDifficulty",
+            "getSpawnListIndexAt",
+            "grantGroupAdvancementIfNeeded",
+            "handleLeashPathingOverrides",
+            "handleQuestSyncing",
+            "lambda$adjustEntityHealthInMultiplayerFights$4",
+            "lambda$alertPlayerCastleIsWIP$0",
+            "lambda$gatherPotentialSpawns$2",
+            "lambda$handleQuestSyncing$6",
+            "lambda$lichBombsDontBlowUpItems$5",
+            "lambda$removeCastleTextIfAttacked$3",
+            "lambda$stopEndermenFromGrabbingBlocksInTF$7",
+            "lambda$stopEndermenFromGrabbingBlocksInTF$8",
+            "lichBombsDontBlowUpItems",
+            "makeSkullCandle",
+            "ominousFireConversion",
+            "onCasketBreak",
+            "removeCastleTextIfAttacked",
+            "resetFlaskLogic",
+            "stopEndermenFromGrabbingBlocksInTF",
+            "structureSpecialSpawns",
+            "wipeOreMeterOnLeftClick",
+            "zombifiedPlayerAttacks"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-scepter-payloads.json",
+          "witness_id": "tf:init/TFDataAttachments",
+          "entry": "twilightforest/init/TFDataAttachments.class",
+          "methods": [
+            "lambda$static$3"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-travellers-core.json",
+          "witness_id": "tf:init/TFDataAttachments",
+          "entry": "twilightforest/init/TFDataAttachments.class",
+          "methods": [
+            "<init>",
+            "directCopy",
+            "lambda$static$0",
+            "lambda$static$10",
+            "lambda$static$11",
+            "lambda$static$12",
+            "lambda$static$13",
+            "lambda$static$14",
+            "lambda$static$15",
+            "lambda$static$16",
+            "lambda$static$17",
+            "lambda$static$18",
+            "lambda$static$2",
+            "lambda$static$20",
+            "lambda$static$21",
+            "lambda$static$22",
+            "lambda$static$23",
+            "lambda$static$24",
+            "lambda$static$25",
+            "lambda$static$26",
+            "lambda$static$27",
+            "lambda$static$28",
+            "lambda$static$29",
+            "lambda$static$30",
+            "lambda$static$31",
+            "lambda$static$32",
+            "lambda$static$33",
+            "lambda$static$34",
+            "lambda$static$35",
+            "lambda$static$36",
+            "lambda$static$37",
+            "lambda$static$38",
+            "lambda$static$39",
+            "lambda$static$4",
+            "lambda$static$40",
+            "lambda$static$41",
+            "lambda$static$42",
+            "lambda$static$43",
+            "lambda$static$44",
+            "lambda$static$45",
+            "lambda$static$46",
+            "lambda$static$48",
+            "lambda$static$5",
+            "lambda$static$6",
+            "lambda$static$7"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-yeti-queen.json",
+          "witness_id": "tf:init/TFDataAttachments",
+          "entry": "twilightforest/init/TFDataAttachments.class",
+          "methods": [
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "entityHurts",
+            "getGearCoverage",
+            "reduceFrostedEffectIfOnFire",
+            "lambda$reduceFrostedEffectIfOnFire$1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:path:fence_leash_holder_loss",
+      "source": "Native dead holder/UUID restore failure",
+      "effect_ids": [
+        "twilightforest:wrought_fence_native_leash",
+        "twilightforest:bound_zombie_leash_follow_override"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native dead holder/UUID restore failure. Use actual native blocks, entities, structure templates and ordinary admission; no synthetic attachment/source or direct HP operation.",
+      "future_controls": [
+        "deadholder",
+        "UUID100boundary",
+        "leaditemdrop",
+        "samelevel",
+        "attachment untiljoin"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Entity.baseTick on server invokes Leashable.tickLeash. Restore delayed leash first; dead leasheed entity or holder drops leash(true,true). Same-level holder invokes handleLeashAtDistance: Pathfinder restrictTo(holder block,5), true. Distance>10 => drop leash and Mob disables MOVE; >6 => elastic additive velocity per axis copySign((delta/distance)^2*.4,delta/distance), then checkSlowFallDistance; <=6 => closeRange. Pathfinder closeRange follows only if shouldStayCloseToLeashHolder AND !isPanicking, enabling MOVE and navigating at speed1 toward holder with2-unit stop distance. Ordinary autonomous goals and combat remain; no full immobilization. Native LEASH_KNOT EntityType is noSave, .375x.5, tracking10/updateInterval INT_MAX. Relationship persists on leasheed mob, not standalone knot save. Saved BlockPos restore creates/reuses real knot (add return ignored); unresolved UUID restore waits and at tickCount>100 drops a lead and clears data. LeashData.setLeashHolder clears delayed UUID/position/id. EntityJoin may retain pending saved leash by mayBeLeashed. Runtime save/reload, canceled spawn and failed-add outcomes remain fixture controls, not observed results.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:asmhooks/EntityHooks",
+          "entry": "twilightforest/asmhooks/EntityHooks.class",
+          "methods": [
+            "overrideStayCloseToHolder"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-frosted.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "<clinit>",
+            "onParryProjectile",
+            "setup"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-lich.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "<init>",
+            "addCloudJumpParticles",
+            "addQualifiedGroupPlayerIfNeeded",
+            "adjustEntityHealthInMultiplayerFights",
+            "alertPlayerCastleIsWIP",
+            "attachLeadToWroughtFence",
+            "createSkullCandle",
+            "gatherPotentialSpawns",
+            "getHealthBasedOnDifficulty",
+            "getSpawnListIndexAt",
+            "grantGroupAdvancementIfNeeded",
+            "handleLeashPathingOverrides",
+            "handleQuestSyncing",
+            "lambda$adjustEntityHealthInMultiplayerFights$4",
+            "lambda$alertPlayerCastleIsWIP$0",
+            "lambda$gatherPotentialSpawns$2",
+            "lambda$handleQuestSyncing$6",
+            "lambda$lichBombsDontBlowUpItems$5",
+            "lambda$removeCastleTextIfAttacked$3",
+            "lambda$stopEndermenFromGrabbingBlocksInTF$7",
+            "lambda$stopEndermenFromGrabbingBlocksInTF$8",
+            "lichBombsDontBlowUpItems",
+            "makeSkullCandle",
+            "ominousFireConversion",
+            "onCasketBreak",
+            "removeCastleTextIfAttacked",
+            "resetFlaskLogic",
+            "stopEndermenFromGrabbingBlocksInTF",
+            "structureSpecialSpawns",
+            "wipeOreMeterOnLeftClick",
+            "zombifiedPlayerAttacks"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-travellers-movement.json",
+          "witness_id": "tf:asmhooks/EntityHooks",
+          "entry": "twilightforest/asmhooks/EntityHooks.class",
+          "methods": [
+            "lambda$unrestrainedSwimPredicate$0",
+            "processWaterWalking",
+            "resetFactorWithUnrestrained",
+            "resetStuckUnrestrained",
+            "unrestrainedSprintingInWater",
+            "unrestrainedSwimPredicate"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "entityHurts",
+            "getGearCoverage",
+            "reduceFrostedEffectIfOnFire",
+            "lambda$reduceFrostedEffectIfOnFire$1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:path:fence_leash_compat_tags",
+      "source": "Native explicit ferromagnetic tag contributions",
+      "effect_ids": [
+        "twilightforest:wrought_fence_terrain_control"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native explicit ferromagnetic tag contributions. Use actual native blocks, entities, structure templates and ordinary admission; no synthetic attachment/source or direct HP operation.",
+      "future_controls": [
+        "externalconsumerunproven",
+        "actualblock/itemIDs",
+        "no packwideclaim"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Registered wrought_iron_fence uses WroughtIronFenceBlock and WroughtIronFenceItem; hardness8/resistance20, requires correct tool, noOcclusion. Native recipe uses six #c:ingots/wrought_iron for3; ordinary block loot returns itself subject to survives_explosion. TF explicitly adds it to minecraft:walls. In pinned raw-Minecraft plus TF block tags it is not in minecraft:fences or wooden_fences; other pack data changes remain unknown. Actual worldgen producers below and ordinary placed block items supply legitimate sources. DIRECT_SOURCE_SPECIFIC: exact TF fence/knot/pathfinder transformers, native attachment producers, and explicit TF contributions to alexscaves:ferromagnetic_blocks / ferromagnetic_items. External AlexsCaves consumer behavior is not established here. GENERIC_CONDITIONAL_PRESENT: native entity/block interaction, placement, leash serialization, spawn cancellation and extensible tags. NONE_PROVEN: inspected fence/leash paths have no direct Tensura/L2/Curios mapping. UNKNOWN: applied runtime transformer order, other pack tag/hook changes and actual fixture outcomes. No pack-wide certification from static absence.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-fence-leash.json",
+          "witness_id": "tf:block/WroughtIronFenceBlock",
+          "entry": "twilightforest/block/WroughtIronFenceBlock.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "appendHoverText",
+            "connectsTo",
+            "createBlockStateDefinition",
+            "fenceShape",
+            "getFluidState",
+            "getShape",
+            "getStateForPlacement",
+            "isConnected",
+            "isPathfindable",
+            "makeFenceState",
+            "makePost",
+            "mirror",
+            "propagatesSkylightDown",
+            "rotate",
+            "shouldAnyBePost",
+            "shouldBePost",
+            "updateShape",
+            "updateSide",
+            "updateSides",
+            "updateTop"
+          ]
+        }
+      ]
+    }
+  ],
+  "damage_profiles": [],
+  "semantic_closure": {
+    "authority": "Installed TF4.8.3345, its exact nested ASM, raw Minecraft1.21.1 and installed NeoForge21.1.244 are the authority. Full outer-class attachment census finds TWO native writers; existing source aids omitted relevant references, so source-text absence was not accepted. Exact methods, resources and eight structurally decoded NBT templates are pinned. This is static research, not a runtime claim or production change.",
+    "fence_source": "Registered wrought_iron_fence uses WroughtIronFenceBlock and WroughtIronFenceItem; hardness8/resistance20, requires correct tool, noOcclusion. Native recipe uses six #c:ingots/wrought_iron for3; ordinary block loot returns itself subject to survives_explosion. TF explicitly adds it to minecraft:walls. In pinned raw-Minecraft plus TF block tags it is not in minecraft:fences or wooden_fences; other pack data changes remain unknown. Actual worldgen producers below and ordinary placed block items supply legitimate sources.",
+    "fence_geometry": "POST!=NONE adds central x/z7..9/16 post of height1. CAPPED also adds neck y16..17/16 and head y17..20/16 (maximum1.25). Each non-NONE directional side adds its fixed width2/16 height1 arm; MIDDLE/BOTTOM/TOP/FULL share that collision shape. With no post and no arms, empty union falls back to a full cube. Inherited BlockBehaviour collision uses getShape when hasCollision; noOcclusion does not disable collision. isPathfindable returns false for all computation types. There is no hurt/HP/status operation in the fence.",
+    "fence_connections": "Connects to WALLS, or non-exception solid face, or IronBarsBlock. makeFenceState checks same-fence block above/below and that layer adjacent self/connectable state: both =>MIDDLE, below only=>TOP, above only=>BOTTOM, neither=>FULL. makePost preserves existing cap only with allowCap and replaceable above, otherwise vertical-column post requirement then own connection requirement. Own post is required for isolation, asymmetric opposite connections, or north/east presence (including cross/corner); a straight opposite pair may have NONE. Upward column search accepts qualifying connections or CAPPED; downward search accepts qualifying connections, without a separate CAPPED test. Rotation/mirror remap direction properties normally.",
+    "fence_placement": "Literal getStateForPlacement reads connections at clicked position but passes pos.above() to fenceShape; subsequent neighbor updates pass actual position. This offset is recorded without repair. WATERLOGGED is true only for actual WATER fluid on placement; returns native source water and schedules water tick on shape updates. Skylight propagates only when not waterlogged. These are terrain/fluid controls, not a new damage source.",
+    "fence_cap": "WroughtIronFenceItem secondary-use branch requires clicked exact item block and block above not that same fence. If capped OR above replaceable, write POST = makePost(...,allowCap=false) for capped, otherwise CAPPED. Write result ignored. Sound and SUCCESS occur even when a nonreplaceable above-block prevented the write. This branch has no stack decrement, durability cost or internal server-only guard. Other cases delegate BlockItem.useOn; native outer interaction/permission hooks remain. Cap can change collision and native knot support, not HP.",
+    "lead_event": "Actual registered EntityEvents RightClickBlock callback requires held exact Items.LEAD, actual TF fence, POST!=NONE and server. It calls LeadItem.bindPlayerMobs, then cancels event and sets SUCCESS regardless of helper PASS/SUCCESS. It has no additional item cost. Thus empty nearby lead list still produces this event result. Earlier native interaction cancellation/permission remains possible; this callback does not fabricate a new leash or override target eligibility.",
+    "lead_eligibility": "Native Entity.interact first requires alive and Leashable. Already held by this player => server dropLeash(true,!hasInfiniteMaterials), game event and sided success. Otherwise held LEAD and canHaveALeashAttachedToIt (canBeLeashed AND !isLeashed) => server setLeashedTo(player,true), then shrink1 on both sides. Exact Player.interactOn rejects spectators and honors CommonHooks.onInteractEntity; consuming result refunds creative instabuild count only when same held stack and count decreased. Mob.canBeLeashed excludes Enemy, so ordinary player-new-lead interaction does not admit zombies. Genuine worldgen setLeashedTo below is a separate native producer. Native setLeashedTo also stops riding if passenger; it does not tame or transfer attack ownership.",
+    "lead_binding": "LeadItem.leashableInArea uses AABB from pos-7 to pos+7, not a radial sphere or +1 block box. bindPlayerMobs selects any Leashable whose current holder is this player. First match creates/reuses a knot in a +/-1 search box with exact stored BlockPos; new addFreshEntity return ignored. Plays knot placement sound, then setLeashedTo(knot,true) for each. Nonempty list emits BLOCK_ATTACH and SUCCESS; empty list PASS. No second canBeLeashed test and no extra lead consumption; it transfers already legitimate player-held leads.",
+    "knot_survival": "Exact registered LeashFenceKnotSurvivesTransformer targets FIRST IRETURN of native survives (raw method has one return). Hook preserves original true, otherwise accepts actual TF fence with POST!=NONE. Original native test is BlockTags.FENCES. Native BlockAttachedEntity server tick checks checkInterval++==100, hence101 calls between checks; if not removed and !survives, discard and dropItem (knot sound). A supported knot becomes invalid after post disappears, subject to this periodic check. This is not immediate universal wall support.",
+    "knot_interaction": "Native knot interact is client SUCCESS; server queries nearby leads held by player OR this knot, transferring player-held ones first. If none transferred, discard knot; creative explicitly dropLeash(true,false) for attached leads. Noncreative relies on subsequent native leash tick seeing dead holder and dropping lead item. Returns CONSUME. BlockAttached hurt rejects isInvulnerableTo, otherwise server !removed kills/marks hurt/drops and returns true independently of amount. Player skipAttackInteraction checks level.mayInteract then hurt(playerAttack,0). Nonzero move/push similarly kills. thunderHit is empty. Knot is nonliving, so these are removal/hurt-return rules, not HP damage.",
+    "leash_motion": "Entity.baseTick on server invokes Leashable.tickLeash. Restore delayed leash first; dead leasheed entity or holder drops leash(true,true). Same-level holder invokes handleLeashAtDistance: Pathfinder restrictTo(holder block,5), true. Distance>10 => drop leash and Mob disables MOVE; >6 => elastic additive velocity per axis copySign((delta/distance)^2*.4,delta/distance), then checkSlowFallDistance; <=6 => closeRange. Pathfinder closeRange follows only if shouldStayCloseToLeashHolder AND !isPanicking, enabling MOVE and navigating at speed1 toward holder with2-unit stop distance. Ordinary autonomous goals and combat remain; no full immobilization.",
+    "leash_override": "Exact registered PathFinderUnrestrainedByLeashTransformer targets EVERY IRETURN of BASE PathfinderMob.shouldStayCloseToLeashHolder; hook returns prior && !hasData(LEASH_PATHFINDER_OVERRIDE). Only close-range follow decision changes. Elastic pull, leash break, holder-range restriction, damage immunity and hostile goals are not changed. This is not blanket instrumentation of subclass overrides. Actual Unit attachment leashed_pathfinder_override is serialized, without sync/copyOnDeath declared. Registered EntityJoinLevel handler removes it from Pathfinder only if !mayBeLeashed, which means getLeashData()==null, NOT canBeLeashed or !Enemy. Saved unresolved leash data can retain it. No tick-time cleanup; breaking a leash can leave attachment until later join.",
+    "wing_route": "Registered LichTowerStructure starts LichTowerFoyer/jigsaws. Native WingBridge tryRoomAndBridge/tryGenerateRoom/tryPlaceRoom route through LichTowerUtil.rollRandomRoom: size1 ->5x5 pool, size3 ->9x9. StructureTemplateDefinitions reload/apply and weighted random choose genuine installed templates. Five-by-five zombie_trap has one DATA marker zombie_trap; nine-by-nine holding and lockup each have four DATA zombie_trap|wrought_iron_post markers, each1/2 random choice at processing. Each corresponding installed pool entry has weight100. Selection still requires native jigsaw, terrain and collision admission; no guaranteed generation frequency inferred.",
+    "wing_marker": "TwilightTemplateStructurePiece customPostProcess sets chunk bounding box and requires template.placeInWorld true before filtering STRUCTURE_BLOCK DATA markers. Native StructureTemplate.filterBlocks transforms/offsets positions, respects bounding box, rotates state and preserves NBT. Wing handleDataMarker processes optional > prefix / @ orientation / random | alternatives / : parameters, removes marker without drops and dispatches handleDataParams zombie_trap. putZombieTrap writes TF fence flag2 POST=CAPPED if above AIR, otherwise POST, marks postprocessing; failed write is not success-gated. Shuffles horizontal directions excluding outward chunk edges at x/z0 or15, chooses one or UP sentinel; only non-Y direction creates entities.",
+    "zombie_creation": "Both real producers call EntityUtil.createEntityIgnoreException(world,type), which uses type.create(world.getLevel()) and catches Exception to null. Only if knot AND Zombie nonnull: move knot to anchor x+.5,y,z+.5; zombie.setPersistenceRequired; zombie.setLeashedTo(knot,false); move zombie to adjacent x+.5,y-1,z+.5; set Unit override; world.addFreshEntity(zombie), ignoring return. They do not add the temporary knot, call finalizeSpawn, tame, disable AI, heal or damage. Zombie attacks retain their native source/eligibility; leash holder is not attack owner. Native setPos stores containing BlockPos, knot recalculation centers x/z+.5,y+.375.",
+    "perimeter_route": "LichTowerStructure.generateFromStartingPiece invokes LichYardBox.beginYard and native perimeter generation (outer_fence3..7). Perimeter constructor randomFloat>0.25 leaves no anchor; otherwise filter actual fence states and remove POST!=POST (CAPPED and NONE excluded), shuffle candidates and save first selected leash_pos. Actual outer_fence3/4/6 templates contain only NONE, whereas5/7 include eligible POST plus excluded CAPPED. postProcess invokes generateBoundZombie after parent; both stored anchor and adjacent zombie position must lie in current chunkBounds, direction is sourceJigsaw.orientation.top. It uses the same creation sequence. leash_pos is serialized; no generated-once flag is written or cleared in this method, so arbitrary rerun idempotence is not asserted.",
+    "generation_persistence": "Exact NeoForge244 WorldGenRegion.addFreshEntity rejects spawn-canceled Mob, otherwise delegates current chunk.addEntity and returns true. ProtoChunk.addEntity on nonpassenger saves Entity to a new compound then stores it, ignoring save boolean. Native Mob save writes leash data: Knot holder becomes native leash BlockPos int array; other holder becomes UUID compound. Entity save persists serialized attachment. Load restores delayed LeashData and attachment. Subsequent server leash restore for saved position calls getOrCreateKnot in actual ServerLevel and setLeashedTo(...,true). Thus normal ProtoChunk serialization legitimately creates the real knot later; missing direct TF temporary-knot add is NOT a proven defect. No claim all alternative immediate-add WorldGenLevel implementations behave identically.",
+    "leash_persistence": "Native LEASH_KNOT EntityType is noSave, .375x.5, tracking10/updateInterval INT_MAX. Relationship persists on leasheed mob, not standalone knot save. Saved BlockPos restore creates/reuses real knot (add return ignored); unresolved UUID restore waits and at tickCount>100 drops a lead and clears data. LeashData.setLeashHolder clears delayed UUID/position/id. EntityJoin may retain pending saved leash by mayBeLeashed. Runtime save/reload, canceled spawn and failed-add outcomes remain fixture controls, not observed results.",
+    "compatibility": "DIRECT_SOURCE_SPECIFIC: exact TF fence/knot/pathfinder transformers, native attachment producers, and explicit TF contributions to alexscaves:ferromagnetic_blocks / ferromagnetic_items. External AlexsCaves consumer behavior is not established here. GENERIC_CONDITIONAL_PRESENT: native entity/block interaction, placement, leash serialization, spawn cancellation and extensible tags. NONE_PROVEN: inspected fence/leash paths have no direct Tensura/L2/Curios mapping. UNKNOWN: applied runtime transformer order, other pack tag/hook changes and actual fixture outcomes. No pack-wide certification from static absence.",
+    "exclusions": "Fence tooltip, sounds and property visual variants are presentation; recipe/loot/tag source attribution is retained without separate damage packages. Native knot removal is not living HP damage. Leash/knot/attachment introduce no custom DamageType or HP/SHP subtraction. Only identified Lich worldgen producer/caller methods are closed here; other room spawners, traps, loot/control paths remain ordinary unfinished work for global source review."
+  },
+  "closure_checklist": {
+    "authority": true,
+    "fence_source": true,
+    "fence_geometry": true,
+    "fence_connections": true,
+    "fence_placement": true,
+    "fence_cap": true,
+    "lead_event": true,
+    "lead_eligibility": true,
+    "lead_binding": true,
+    "knot_survival": true,
+    "knot_interaction": true,
+    "leash_motion": true,
+    "leash_override": true,
+    "wing_route": true,
+    "wing_marker": true,
+    "zombie_creation": true,
+    "perimeter_route": true,
+    "generation_persistence": true,
+    "leash_persistence": true,
+    "compatibility": true,
+    "exclusions": true
+  },
+  "comparison_evidence": [
+    {
+      "evidence_file": "vanilla-evidence/twilight-fence-leash.json",
+      "sha256": "04600b3cdc87f5b1f5c2ef5981db4fe22a0c2d6ceb91b7360dcad9aee9a94308"
+    },
+    {
+      "evidence_file": "reference-evidence/twilight-fence-leash-244.json",
+      "sha256": "044f00a009e021bc04754e605b3aa7776280c438cd2d71e784d765b88d05f698"
+    },
+    {
+      "evidence_file": "reference-evidence/twilight-fence-leash-asm.json",
+      "sha256": "d979949e26915e937fcce3339f2d93a10826a165f0ac530cfb8b648dd62d579c"
+    },
+    {
+      "evidence_file": "reference-routing/twilight-fence-leash.json",
+      "sha256": "275b1c9432a1b327ff3f7de417a6767f3986c7cf436acdc376b156061470cf04"
+    },
+    {
+      "evidence_file": "twilightforest-fence-leash-attachment-census.json",
+      "sha256": "e858cad7ad133f48c98d06351468bdc8530a1775d06563c1ba3ad13f5a5d9d8d"
+    },
+    {
+      "evidence_file": "twilightforest-fence-leash-structure-templates.json",
+      "sha256": "e949245aeb6a2eeefa9d2a8aa23d6fe3d0f882d13f9ccc9ca17f832d73247108"
+    },
+    {
+      "evidence_file": "reference-evidence/twilight-equipment-asm.json",
+      "sha256": "60295fc0a828f69ea19c91437cfe54149ab4b6b8bcc48332be8fb1daece12090"
+    }
+  ],
+  "review_input": {
+    "evidence_file": "review-inputs/twilightforest-fence-leash.json",
+    "sha256": "bdda8530225341430b2d26e08d45eca72f995894b9717b554f754c6288be0cfc"
+  },
+  "source_registration_evidence": [
+    {
+      "evidence_file": "native-evidence/twilight-active-utilities.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$134",
+        "lambda$static$138",
+        "lambda$static$67",
+        "lambda$static$75",
+        "lambda$static$76"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-active-utilities.json",
+      "witness_id": "tf:init/TFBlocks",
+      "entry": "twilightforest/init/TFBlocks.class",
+      "methods": [
+        "lambda$static$378"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-bows-fan.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$125",
+        "lambda$static$126",
+        "lambda$static$128",
+        "lambda$static$77"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-bows-fan.json",
+      "witness_id": "tf:init/TFDataAttachments",
+      "entry": "twilightforest/init/TFDataAttachments.class",
+      "methods": [
+        "lambda$static$1",
+        "lambda$static$19",
+        "lambda$static$47"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-chain.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$111"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-chain.json",
+      "witness_id": "tf:init/TFDataAttachments",
+      "entry": "twilightforest/init/TFDataAttachments.class",
+      "methods": [
+        "lambda$static$8",
+        "lambda$static$9"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-charms.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$144"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-charms.json",
+      "witness_id": "tf:init/TFBlocks",
+      "entry": "twilightforest/init/TFBlocks.class",
+      "methods": [
+        "lambda$static$77",
+        "lambda$static$79"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-constructs-slimes.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$102",
+        "lambda$static$103",
+        "lambda$static$104",
+        "lambda$static$105",
+        "lambda$static$116",
+        "lambda$static$117",
+        "lambda$static$118",
+        "lambda$static$119",
+        "lambda$static$23",
+        "lambda$static$24",
+        "lambda$static$25",
+        "lambda$static$26",
+        "lambda$static$27",
+        "lambda$static$28",
+        "lambda$static$29",
+        "lambda$static$30",
+        "lambda$static$31",
+        "lambda$static$55",
+        "lambda$static$56",
+        "lambda$static$57",
+        "lambda$static$58",
+        "lambda$static$59",
+        "lambda$static$60",
+        "lambda$static$61",
+        "lambda$static$62",
+        "lambda$static$63"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-contact-hazards.json",
+      "witness_id": "tf:init/TFBlocks",
+      "entry": "twilightforest/init/TFBlocks.class",
+      "methods": [
+        "lambda$static$147",
+        "lambda$static$148",
+        "lambda$static$149",
+        "lambda$static$234",
+        "lambda$static$237",
+        "lambda$static$47",
+        "lambda$static$48",
+        "lambda$static$49",
+        "lambda$static$50",
+        "lambda$static$51",
+        "lambda$static$52",
+        "lambda$static$53",
+        "lambda$static$54",
+        "lambda$static$55",
+        "lambda$static$56",
+        "lambda$static$57",
+        "lambda$static$58"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-control-blocks.json",
+      "witness_id": "tf:init/TFBlocks",
+      "entry": "twilightforest/init/TFBlocks.class",
+      "methods": [
+        "lambda$static$129",
+        "lambda$static$130",
+        "lambda$static$131",
+        "lambda$static$133",
+        "lambda$static$165",
+        "lambda$static$166",
+        "lambda$static$167",
+        "lambda$static$168"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-equipment.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$1",
+        "lambda$static$130",
+        "lambda$static$142",
+        "lambda$static$143",
+        "lambda$static$2",
+        "lambda$static$42",
+        "lambda$static$43",
+        "lambda$static$44",
+        "lambda$static$45"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-fence-leash.json",
+      "witness_id": "tf:init/TFStructureTypes",
+      "entry": "twilightforest/init/TFStructureTypes.class",
+      "methods": [
+        "<clinit>"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-fence-leash.json",
+      "witness_id": "tf:init/TFStructures",
+      "entry": "twilightforest/init/TFStructures.class",
+      "methods": [
+        "<clinit>",
+        "bootstrap"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-food-flasks.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$231",
+        "lambda$static$232",
+        "lambda$static$233",
+        "lambda$static$234",
+        "lambda$static$235",
+        "lambda$static$236",
+        "lambda$static$237",
+        "lambda$static$238",
+        "lambda$static$239",
+        "lambda$static$240",
+        "lambda$static$241",
+        "lambda$static$242",
+        "lambda$static$243",
+        "lambda$static$244",
+        "lambda$static$245",
+        "lambda$static$246",
+        "lambda$static$247",
+        "lambda$static$248",
+        "lambda$static$249",
+        "lambda$static$250",
+        "lambda$static$251",
+        "lambda$static$252",
+        "lambda$static$253",
+        "lambda$static$255",
+        "lambda$static$257",
+        "lambda$static$33",
+        "lambda$static$34",
+        "lambda$static$35",
+        "lambda$static$37",
+        "lambda$static$68",
+        "lambda$static$69",
+        "lambda$static$72",
+        "lambda$static$73",
+        "lambda$static$79",
+        "lambda$static$80",
+        "lambda$static$89",
+        "lambda$static$94"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-food-flasks.json",
+      "witness_id": "tf:init/TFBlocks",
+      "entry": "twilightforest/init/TFBlocks.class",
+      "methods": [
+        "lambda$static$142"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-frosted.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "<clinit>",
+        "lambda$static$114",
+        "lambda$static$121",
+        "lambda$static$122",
+        "lambda$static$123",
+        "lambda$static$124",
+        "lambda$static$127",
+        "lambda$static$129"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-giants-tools.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$132",
+        "lambda$static$133",
+        "lambda$static$66"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-giants-tools.json",
+      "witness_id": "tf:init/TFBlocks",
+      "entry": "twilightforest/init/TFBlocks.class",
+      "methods": [
+        "<clinit>",
+        "lambda$static$175"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-maps-information.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$10",
+        "lambda$static$11",
+        "lambda$static$12",
+        "lambda$static$13",
+        "lambda$static$17",
+        "lambda$static$18",
+        "lambda$static$19"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-mechanical-hazards.json",
+      "witness_id": "tf:init/TFBlocks",
+      "entry": "twilightforest/init/TFBlocks.class",
+      "methods": [
+        "lambda$static$137",
+        "lambda$static$138",
+        "lambda$static$139",
+        "lambda$static$22",
+        "lambda$static$23",
+        "lambda$static$24",
+        "lambda$static$25",
+        "lambda$static$26",
+        "lambda$static$27",
+        "lambda$static$35"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-minoshroom-knight.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$106",
+        "lambda$static$107",
+        "lambda$static$108",
+        "lambda$static$110",
+        "lambda$static$112",
+        "lambda$static$113",
+        "lambda$static$64",
+        "lambda$static$65"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-ominous-progression.json",
+      "witness_id": "tf:init/TFBlocks",
+      "entry": "twilightforest/init/TFBlocks.class",
+      "methods": [
+        "lambda$ominousCandle$610",
+        "lambda$ominousCandle$611",
+        "lambda$static$101"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-ominous-progression.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$7"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-passive-entities.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$162"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-portals.json",
+      "witness_id": "tf:init/TFBlocks",
+      "entry": "twilightforest/init/TFBlocks.class",
+      "methods": [
+        "lambda$static$1"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-scepter-payloads.json",
+      "witness_id": "tf:init/TFDataAttachments",
+      "entry": "twilightforest/init/TFDataAttachments.class",
+      "methods": [
+        "lambda$static$3"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-structural-utilities.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$131",
+        "lambda$static$95"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-structural-utilities.json",
+      "witness_id": "tf:init/TFBlocks",
+      "entry": "twilightforest/init/TFBlocks.class",
+      "methods": [
+        "lambda$static$14",
+        "lambda$static$176",
+        "lambda$static$178",
+        "lambda$static$37",
+        "lambda$static$376",
+        "lambda$static$377",
+        "lambda$static$379"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-structure-gates.json",
+      "witness_id": "tf:init/TFBlocks",
+      "entry": "twilightforest/init/TFBlocks.class",
+      "methods": [
+        "lambda$static$112",
+        "lambda$static$113",
+        "lambda$static$208",
+        "lambda$static$210",
+        "lambda$static$212",
+        "lambda$static$214",
+        "lambda$static$216"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-summon-resources.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$3",
+        "lambda$static$4",
+        "lambda$static$5",
+        "lambda$static$6"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-travellers-core.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$48",
+        "lambda$static$49",
+        "lambda$static$50",
+        "lambda$static$51",
+        "lambda$static$52",
+        "lambda$static$53"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-travellers-core.json",
+      "witness_id": "tf:init/TFDataAttachments",
+      "entry": "twilightforest/init/TFDataAttachments.class",
+      "methods": [
+        "<init>",
+        "directCopy",
+        "lambda$static$0",
+        "lambda$static$10",
+        "lambda$static$11",
+        "lambda$static$12",
+        "lambda$static$13",
+        "lambda$static$14",
+        "lambda$static$15",
+        "lambda$static$16",
+        "lambda$static$17",
+        "lambda$static$18",
+        "lambda$static$2",
+        "lambda$static$20",
+        "lambda$static$21",
+        "lambda$static$22",
+        "lambda$static$23",
+        "lambda$static$24",
+        "lambda$static$25",
+        "lambda$static$26",
+        "lambda$static$27",
+        "lambda$static$28",
+        "lambda$static$29",
+        "lambda$static$30",
+        "lambda$static$31",
+        "lambda$static$32",
+        "lambda$static$33",
+        "lambda$static$34",
+        "lambda$static$35",
+        "lambda$static$36",
+        "lambda$static$37",
+        "lambda$static$38",
+        "lambda$static$39",
+        "lambda$static$4",
+        "lambda$static$40",
+        "lambda$static$41",
+        "lambda$static$42",
+        "lambda$static$43",
+        "lambda$static$44",
+        "lambda$static$45",
+        "lambda$static$46",
+        "lambda$static$48",
+        "lambda$static$5",
+        "lambda$static$6",
+        "lambda$static$7"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-travellers-utility.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$137"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-utility-projectiles.json",
+      "witness_id": "tf:init/TFItems",
+      "entry": "twilightforest/init/TFItems.class",
+      "methods": [
+        "lambda$static$136",
+        "lambda$static$78"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-utility-projectiles.json",
+      "witness_id": "tf:init/TFBlocks",
+      "entry": "twilightforest/init/TFBlocks.class",
+      "methods": [
+        "lambda$register$606",
+        "lambda$static$31",
+        "lambda$static$32",
+        "register"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-vanishing-doors.json",
+      "witness_id": "tf:init/TFBlocks",
+      "entry": "twilightforest/init/TFBlocks.class",
+      "methods": [
+        "lambda$static$124",
+        "lambda$static$125",
+        "lambda$static$126",
+        "lambda$static$127",
+        "lambda$static$128",
+        "lambda$static$221",
+        "lambda$static$222",
+        "lambda$static$223",
+        "lambda$static$224",
+        "lambda$static$225",
+        "lambda$static$226",
+        "lambda$static$227",
+        "lambda$static$228"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-yeti-queen.json",
+      "witness_id": "tf:init/TFDataAttachments",
+      "entry": "twilightforest/init/TFDataAttachments.class",
+      "methods": [
+        "<clinit>"
+      ]
+    }
+  ],
+  "full_declared_class_coverage": [
+    "block/WroughtIronFenceBlock",
+    "block/WroughtIronFenceBlock$FenceSide",
+    "block/WroughtIronFenceBlock$PostState",
+    "block/WroughtIronFenceBlock$1",
+    "item/WroughtIronFenceItem"
+  ],
+  "limited_class_coverage": {
+    "events/EntityEvents": [
+      "registered lead binding and attachment join cleanup only"
+    ],
+    "asmhooks/BlockHooks": [
+      "knot survival only"
+    ],
+    "asmhooks/EntityHooks": [
+      "base Pathfinder close-follow override only"
+    ],
+    "world/components/structures/lichtowerrevamp/LichTowerWingRoom": [
+      "native bound-zombie producer and marker callers; other room mechanics pending"
+    ],
+    "world/components/structures/lichtowerrevamp/LichPerimeterFence": [
+      "native bound-zombie producer, constructor selection and perimeter callers"
+    ],
+    "world/components/structures/TwilightTemplateStructurePiece": [
+      "native marker dispatch"
+    ],
+    "util/entities/EntityUtil": [
+      "native entity creation helper"
+    ]
+  },
+  "exclusions": [
+    "Fence tooltip, sounds and property visual variants are presentation; recipe/loot/tag source attribution is retained without separate damage packages. Native knot removal is not living HP damage. Leash/knot/attachment introduce no custom DamageType or HP/SHP subtraction. Only identified Lich worldgen producer/caller methods are closed here; other room spawners, traps, loot/control paths remain ordinary unfinished work for global source review.",
+    "Other EntityEvents, remaining nested ASM and broader worldgen/exclusion closure are unfinished ordinary review, not REVIEW_REQUIRED.",
+    "No runtime, L2, Stage, production, Phase6/7 or balance work. All40 custom DamageTypes remain USED."
+  ],
+  "fixture_groups": [
+    "Real fence placement/neighbor/cap/water state and collision, including literal placement offset and no-write SUCCESS.",
+    "Legitimate native player lead acquisition, fence binding, knot survival/removal, creative costs and native distance control.",
+    "Actual registered Lich room/perimeter templates, native chunk admission, spawn cancellation and ProtoChunk save/load knot restoration.",
+    "Exact attachment close-follow ASM, EntityJoin pending-leash cleanup, elastic/break/hostile-goal preservation and source ownership controls."
+  ],
+  "compatibility_scope": "DIRECT_SOURCE_SPECIFIC: exact TF fence/knot/pathfinder transformers, native attachment producers, and explicit TF contributions to alexscaves:ferromagnetic_blocks / ferromagnetic_items. External AlexsCaves consumer behavior is not established here. GENERIC_CONDITIONAL_PRESENT: native entity/block interaction, placement, leash serialization, spawn cancellation and extensible tags. NONE_PROVEN: inspected fence/leash paths have no direct Tensura/L2/Curios mapping. UNKNOWN: applied runtime transformer order, other pack tag/hook changes and actual fixture outcomes. No pack-wide certification from static absence.",
+  "counts": {
+    "mechanic_packages": 3,
+    "delivery_cases": 24,
+    "classification_totals": {
+      "CUSTOM_CONTROL": 2,
+      "VANILLA_LIKE_EXTENDED": 1
+    },
+    "review_required": 0,
+    "new_custom_types_resolved": 0
+  },
+  "damage_census": {
+    "total_custom_declarations": 40,
+    "previous_reviewed_profiles": 40,
+    "new_used_profiles": 0,
+    "reviewed_profiles_after": 40,
+    "remaining_profiles": 0,
+    "remaining_disposition": "None: all40 custom DamageTypes USED. Fence/leash control adds no damage profile; wider event/ASM/source closure remains."
+  },
+  "exact_next_task": "Continue remaining EntityEvents callbacks (including multiplayer health adjustment), other native Lich worldgen trap/spawner paths and still-unreviewed nested ASM; finish compatibility attribution and global source exclusions. All40 custom types USED. Protect R2f8 remaining-content closure, then deduplicate/promote Twilight COMPLETE before IceAndFire. Static only.",
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false
+}

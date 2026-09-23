@@ -1,6 +1,6 @@
 # Twilight Forest — partial semantic owner table
 
-The installed4.8.3345 review is **PARTIAL** at **R2f8ac**: **267 mechanic-package drafts /972 delivery cases**, **40/40 custom DamageType profiles USED**, zero unfinished types, REVIEW_REQUIRED0. Remaining control/events/ASM/source closure unfinished. Zero final Twilight records promoted. Protected sections/cloth erratum and accepted four mods116/161/217 preserved; runtime0.
+The installed4.8.3345 review is **PARTIAL** at **R2f8ad**: **270 mechanic-package drafts /996 delivery cases**, **40/40 custom DamageType profiles USED**, zero unfinished types, REVIEW_REQUIRED0. Remaining control/events/ASM/source closure unfinished. Zero final Twilight records promoted. Protected sections/cloth erratum and accepted four mods116/161/217 preserved; runtime0.
 
 | Mechanic | Native behavior | Vanilla comparison | Classification / source coverage |
 |---|---|---|---|
@@ -496,3 +496,19 @@ Continues live-verified `8a780600bbf3b6eea309c6f65e26c6f3c3700e26`. Adds five pa
 SnowyDirt appearance, portal-adjacent mushroom support, client cloud presentation and other noncombat consumers are explicitly dispositioned. Accepted four mods 116/161/217 and all previous protected drafts/errata remain unchanged. Runtime tests 0. Validation: exact source/reference/config/caller guards, five tooling tests, subsection/full catalog integrity, preservation and diff checks.
 
 Exact next task: Wrought Iron Fence/native leash/pathfinding control, remaining event callbacks/nested ASM, compatibility and global source exclusions, then R2f8 remaining-content closure and final Twilight dedup/promotion. IceAndFire only after Twilight COMPLETE is pushed and live-verified.
+
+## R2f8ad - Wrought Iron Fence and native leash controls
+
+Continues live-verified `ca0ba916a2f81c2a3f29e4ed11e399780215e97c`. Adds three packages/24 delivery paths; [full native contracts](twilightforest-fence-leash-review.md) and [decoded native templates](twilightforest-fence-leash-structure-templates.json) preserve actual source and lifecycle evidence.
+
+| Mechanic | Native distinction | Classification |
+|---|---|---|
+| Wrought Iron Fence | Native collision, connection/column state, literal placement offset, water and cap controls; failed cap write can still return SUCCESS. | CUSTOM_CONTROL |
+| Native lead/knot support | Genuine player-held leads transfer through native binding; exact TF post extends knot survival. Eligibility, costs, lifetime and elastic/break rules remain native. | VANILLA_LIKE_EXTENDED |
+| Bound-zombie follow override | Two actual Lich Tower producers set serialized Unit attachment. Only base Pathfinder close-follow is suppressed; native restriction, elastic pulling, break and hostile AI remain. | CUSTOM_CONTROL |
+
+Whole installed-class census proves the two writers. Eight native NBT templates prove real room-marker and eligible perimeter-post paths. During normal ProtoChunk generation, the zombie saves its temporary knot position; native loading later creates the real knot. Missing direct temporary-knot addition is therefore not a proven production defect. Explicit AlexsCaves ferromagnetic tags are recorded without claiming the external consumer was validated.
+
+Twilight remains PARTIAL at270/996,40/40 custom types USED, REVIEW_REQUIRED0, zero promoted. Accepted four mods116/161/217 and all protected drafts/errata preserved. Runtime0. Validation: native ordering/producer/persistence guards, exact reference/template integrity, five ClassFile tests plus four NBT-reader tests, subsection/full checks and preservation/diff checks.
+
+Exact next task: remaining EntityEvents callbacks, including multiplayer health adjustment; remaining Lich worldgen trap/spawner paths and nested ASM; global compatibility/source exclusions. Complete R2f8 and final Twilight promotion before IceAndFire. Continue while actual enforced usage remains healthy.

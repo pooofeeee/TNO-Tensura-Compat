@@ -716,3 +716,13 @@ Builder admits 17 placement branches from its <=16 counter test; powered onPlace
 Twilight remains PARTIAL at267 mechanic drafts/972 delivery cases, all40 custom DamageTypes USED, REVIEW_REQUIRED0, zero promoted. Previous protected drafts/errata and accepted four mods116/161/217 remain unchanged; runtime0. Validation includes source/reference/caller/config integrity, native ordering/return guards, all five tooling tests, subsection/full validation, preservation and diff checks.
 
 Exact next task: Wrought Iron Fence/native leash/pathfinding control, then remaining events/nested ASM, compatibility attribution and source exclusions. Protect R2f8 whole remaining-content closure and final Twilight dedup/promotion before IceAndFire. Continue automatically while actual enforced usage remains healthy.
+
+## R2f8ad - native fence, leash and bound-zombie controls
+
+Continues live-verified `ca0ba916a2f81c2a3f29e4ed11e399780215e97c`. Adds three packages/24 paths covering Wrought Iron Fence collision/cap state, genuine native lead/knot support, and two real Lich Tower bound-zombie producers. [Reviewed contracts](benchmarks/external-effects-catalog/twilightforest-fence-leash-review.md) include exact installed ASM, native leash movement/eligibility and save/load admission.
+
+The full installed-class census found two attachment writers omitted by incomplete source aids. Actual room and perimeter templates establish legitimate delivery. Native ProtoChunk saves the zombie's leash position, allowing normal loading to restore the real knot; not adding the temporary knot during structure generation is not a proven defect. The close-follow override retains native elastic pull, leash breaking, holder restriction and hostile AI. No damage source or production fix was added.
+
+Twilight remains PARTIAL at270 mechanics/996 paths, all40 custom types USED, REVIEW_REQUIRED0, zero promoted. Accepted four mods116/161/217 and earlier protected drafts/errata preserved; runtime0. Validation includes source/producer/ordering guards, references and structured template evidence, five tooling tests plus four new NBT parser tests, subsection/full integrity, preservation and diff checks.
+
+Exact next task: remaining EntityEvents callbacks (including multiplayer health adjustment), other Lich worldgen trap/spawner paths and nested ASM; finish compatibility and global source exclusions. Protect R2f8 remaining-content closure, then deduplicate/promote Twilight COMPLETE before IceAndFire. Continue automatically while actual enforced usage remains healthy.
