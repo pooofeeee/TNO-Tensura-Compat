@@ -818,3 +818,7 @@ Ghost phasing/body and magic sword routes, Troll control/regeneration/sun conver
 ## R2g8b — Hydra and Sea Serpent combat
 
 Head severing separated from admitted HP, fire-state survival/regrowth, native Poison/regen, stalled live-owner Serpent bubbles and weapon-versus-dispenser ammo reviewed. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/iceandfire-r2g8b-hydra-serpent-review.md).
+
+## R2g8c — Avian and mount combat
+
+Avian volleys and source gates, real gust actor/target, rider damage/defenses, native mount healing and WaterBreathing reviewed; utility excluded. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/iceandfire-r2g8c-avian-mounts-review.md).

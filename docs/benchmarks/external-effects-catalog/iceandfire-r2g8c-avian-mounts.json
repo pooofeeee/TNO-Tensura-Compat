@@ -1,0 +1,475 @@
+{
+  "schema": "tno.external_effects.iaf_avian_mounts.v1",
+  "checkpoint": "R2g8c-avian-mounts-complete",
+  "previous_checkpoint": "R2g8b-hydra-serpent-complete",
+  "starting_sha": "a5cda1cfdbc1feb0165c3693cc75a504a3653b90",
+  "status": "AVIAN_MOUNTS_COMPLETE",
+  "scope": "Stymphalian/Amphithere, related weapons and combat-special Hippogryph/Hippocampus reviewed; Dread/equipment closure remains.",
+  "summary": "Avian volleys and source gates, real gust actor/target, rider damage/defenses, native mount healing and WaterBreathing reviewed; utility excluded.",
+  "facts": {
+    "bird_hits": "Stymphalian doHurtTarget starts Peck only if NO_ANIMATION,returnstrue. Server aiStep live actualtarget,Pecktick7,distSquared<1.5 requests intATTACK_DAMAGE mob_attack direct=causing=Bird. Native nearest goal uses sight,excludes sameclass/statue,victor,targets eligible Player/Villager/Golem and configAnimals. Peaceful removes Bird; creative/victor target cleared. RangeSquared>3 and<225 starts Shoot outsidePeck/Shoot; whileflying ticks7and14 with collider directpath launches FOUR owned Feather each (8peranimation),speed1.6,inaccuracy14-difficultyId*4. No extra Stage per volley count.",
+    "feather_and_bundle": "StymphalianFeather owned constructor uses configfeatherAttackDamage as baseDamage; AbstractArrow handles native velocity/crit/source/impact/PVP/damage. If shooterBird AND victimBird, onHitEntity suppresses parent entirely; Player bundle feather can damage Bird then decrements arrowCount after parent independent of hurt success. Tick>100discards. FeatherBundle use cooldown15,server8ownedfeathers at yaw+45successively/horizontal pitch0,speed1.5,inaccuracy1,consume1noncreative,returnsPASS. Pickup/drop cosmetics do not add damage. Bird and Player sources share arrow direct=projectile/causer=owner, with distinct friendly gate.",
+    "bird_flock_control": "Server die with Living causing entity assigns VictorUUID to deadBird and all current flock members. getVictor resolves ONLY level.getPlayerByUUID, so nonPlayer killer UUID does not resolve as active victor. Saved VictorUUID blocks targetsetter/nearest target and aiStep clears matching Player target. Leader assignment propagates target only to idle nonleader members; no damage amount modifier. Flee goal requires resolved victor and first eligible visible nonallied Player in boxinflate(10,3,10) equalvictor; native selection/order and inverted-looking continuation distanceSquared<2 retained, not guaranteed full flee duration. Flock and victor are AI control, no Stage value.",
+    "avian_arrows": "StymphalianArrow baseDamage3.5,ordinary AbstractArrow hit,noGravitytrue; when horizontal speed<.1 addsY-.01 aftersuper. AmphithereArrow base2.5,ordinary accepted-Living-hit postcallback excluding Enderman: target hasImpulse, halves horizontal velocity then adds normalized projectile horizontal direction*1.4,Y+.6. No zero-horizontal guard and no Living knockback/resistance callback; rejected hurt does not reach gust. Cosmetic explosion particles are not Explosion damage. Both ArrowItems override createArrow only; protected IafRecipes+ArrowItem.asProjectile prove registered dispenser creates vanilla Arrow, losing these special entity behaviors. Legitimate weapon factory retains native customArrow/enchantment hooks.",
+    "amphithere_body": "doHurtTarget while no Bite/Tail/Wing and no controller chooses Bite half,else Tail ifnotflying/randombit orWing; returns true when starts, no direct hurt. tick actualtarget: Bite tick7 distSquared<10 normal knockback.6 BEFORE intATTACK_DAMAGE hurt; Wing ticks6..21 distSquared<25 requests intATTACK_DAMAGE/2 everytick; Tail tick7 distSquared<10 requests intATTACK_DAMAGE. All source mob_attack direct=causing=Amphithere and no newframeLOS. Wing marks target impulse but resistance check uses ATTACKER knockbackResistance and displacement writes ATTACKER motion; Tail likewise moves ATTACKER, no target displacement beyond impulseflag. Swapped dx/dz vector preserved. No hurt-success control gate.",
+    "amphithere_rider_defense": "Rider controlbit2 with actual owner/tame Player controller (not currenttarget) uses protected rider-ray2.5 and requests intattack EVERYupdate,sourceAmphithere notPlayer,noanimationframegate. Wild adult empty-hand native mount allows riding; untamed rider random1/15 NO_ANIMATION starts BiteRider; serverpositionRider tick6 whileuntame requests mob_attack1 onpassenger. RidingTime increments with Player passenger whilewild,resetswhenabsent; after>configtameTime tames that Player,clears matching target; savedcounter. hurt BEFOREparent marks isFallen for wild flying airborne IS_PROJECTILE server even if later HP rejected. Tame owner causer sharing vehicle returnsfalse. Fallen sets flightBehaviorNONE,uncontrolled flight addsY-.3 and fallen adds-.2; landing stopsflight,cooldown12000wild/50tame. EmptycheckFallDamage prevents ordinary fall route. Native onHearFlute(tame,airborne) also marksfallen; exact Flute item entry retained for equipment closure.",
+    "hippogryph_body": "doHurtTarget starts randomBite/Scratch and returnsfalse when new, true if already either; aiStep tick6,targetdistSquared<8 requests intATTACK_DAMAGE(base5),source mob_attackHippogryph. Scratch independently adds(-.5/sqrt(.5),1,-.5/sqrt(.5)),halveshorizontal,thenonGroundaddsY.3; fixed world-direction motion, not away-from-attacker knockback. Rider controlbit2 actualtameowner Player,protected ray3,choosesanimationifneeded,requests intattack at animationticks10..12; own natural target may also receive tick6path. hurt rejects controller-caused whilevehicle; emptycheckFallDamage suppresses natural fall. Keep owner/passenger target/command/mount admission, no synthetic rider.",
+    "mount_healing": "Hippogryph/Hippocampus server aiStep random1/900,deathTime0 heal1. Hippogryph owner interaction FOOD+MEAT+injured heal5,noncreativeconsume; droppedTAME_HIPPOGRYPH AI movable/chance1/20/liveitem/native reach consumes1,feedings++,heal4 even before taming. Afterfeedings>3 and (>7 orrandom1/3),wild and itemownerPlayer =>tame,clearTarget,sit; independenthealreturn. Amphithere handHEAL_AMPITHERE+injured heal5,noncreativeconsume (BREEDtag branch has priority); droppedtaggeditem movable/chance1/20/distanceSquared<1 consumes1 thenheal5,no injured/owner gate. Hippocampus hand HEAL_HIPPOCAMPUS serverheal5 evenfullHP,consume1noncreative; validbreed branchprecedes. All real heal calls use LivingHealEvent/positiveHP/maxclamp; feeding/taming costs do not depend on accepted heal.",
+    "hippocampus_support": "No custom attack damage callback found. Everytick%20 actualcontrollingpassenger gets WaterBreathing30ticks amp0,ambient/hiddenparticles; not conditioned on water. Controller firstpassenger Mob directly,or firstPlayer if saddled. Native Player mount interaction still requires owner/saddle/adult/notpassenger. Buff effect admission/cures remain and lingers after dismount; no Stage on duration or immunity. Ordinary ride/swim/storage excluded.",
+    "macuahuitl_dagger": "AmphithereMacuahuitl.hurtEnemy after legitimate item hit sets targetimpulse and motion=(halfX+attackerlookX*.6,.8,halfZ+lookZ*.6), thenparent; normal Player.attack item callback gated by accepted original damage, no new HP request. Native mob attacks do not universally call this item callback; use native Player item route,not hypothetical proc. StymphalianDagger override simply delegates SwordItem,ordinary damage/speed only. No special bleed/armor bypass inferred from tooltip. Standard melee Stage once at native attack amount.",
+    "integration": "Native mob_attack/arrow,owner requirements,normal damage/effect/heal admission and installed Tensura/L2 processing preserved. Numeric attacks once at final hurt amount; no second projectile baseDamage/attribute/volley multiplier. Real heal once at healrequest. Direct motion,fallen state,victor,taming and WaterBreathing remain native. No SHP subtraction/custom damage sources. Flute,eggs and unrelated Dread/equipment remain explicitly next work.",
+    "exclusions": "Flight navigation/path details, colors/armor visuals, flute acquisition, pet commands/home/storage, breeding/egg acquisition and feather drops excluded. Their combat-specific callbacks above are retained. No lore-based special effects or runtime completion claims."
+  },
+  "mechanic_packages": [
+    {
+      "id": "iaf:avian_mount_hits",
+      "name": "Avian and mount native HP attacks",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "VANILLA_ROUTED",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at native hurt amount in Bird/Hippogryph aiStep or Amphithere tick/positionRider, rider tick, ordinary Player sword attack.",
+      "stage_reason": "Preserve source and each animation request, no attribute/weapon double scaling.",
+      "delivery_paths": [
+        "iaf:avian-mounts:bird_peck",
+        "iaf:avian-mounts:amphi_bite",
+        "iaf:avian-mounts:amphi_wing",
+        "iaf:avian-mounts:amphi_tail",
+        "iaf:avian-mounts:amphi_rider",
+        "iaf:avian-mounts:amphi_bite_rider",
+        "iaf:avian-mounts:hippogryph_bite",
+        "iaf:avian-mounts:hippogryph_scratch",
+        "iaf:avian-mounts:hippogryph_rider",
+        "iaf:avian-mounts:macuahuitl_melee",
+        "iaf:avian-mounts:dagger_melee"
+      ]
+    },
+    {
+      "id": "iaf:avian_projectiles",
+      "name": "Feather/avian-arrow HP damage",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "VANILLA_ROUTED",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at inherited AbstractArrow final hurt amount after native velocity/crit/enchantment formula.",
+      "stage_reason": "No projectile-baseDamage or volley second multiplier.",
+      "delivery_paths": [
+        "iaf:avian-mounts:bird_feather_volley",
+        "iaf:avian-mounts:player_feather_bundle",
+        "iaf:avian-mounts:stymph_arrow_weapon",
+        "iaf:avian-mounts:stymph_arrow_dispenser",
+        "iaf:avian-mounts:amphi_arrow_weapon",
+        "iaf:avian-mounts:amphi_arrow_dispenser"
+      ]
+    },
+    {
+      "id": "iaf:avian_control",
+      "name": "Native gust/scratch/attack motion",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Keep actual actor/target motion and native hurt-gated arrow/item versus independent creature control.",
+      "delivery_paths": [
+        "iaf:avian-mounts:amphi_arrow_weapon",
+        "iaf:avian-mounts:amphi_bite",
+        "iaf:avian-mounts:amphi_wing",
+        "iaf:avian-mounts:amphi_tail",
+        "iaf:avian-mounts:hippogryph_scratch",
+        "iaf:avian-mounts:macuahuitl_melee"
+      ]
+    },
+    {
+      "id": "iaf:avian_ai_defense",
+      "name": "Victor, taming, rider protection and forced landing",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native allegiance/control/immunity state, not numeric Stage amount.",
+      "delivery_paths": [
+        "iaf:avian-mounts:bird_victor_flock",
+        "iaf:avian-mounts:amphi_fallen",
+        "iaf:avian-mounts:amphi_bite_rider",
+        "iaf:avian-mounts:amphi_rider",
+        "iaf:avian-mounts:hippogryph_rider",
+        "iaf:avian-mounts:mount_dropped_heal"
+      ]
+    },
+    {
+      "id": "iaf:mount_healing",
+      "name": "Mount native healing",
+      "primary_classification": "VANILLA_DIRECT",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "VANILLA_ROUTED",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at native heal(1/4/5) request through LivingHealEvent, retain native food/random/HP gates.",
+      "stage_reason": "No multiplier on feeding/taming count.",
+      "delivery_paths": [
+        "iaf:avian-mounts:mount_passive_heal",
+        "iaf:avian-mounts:mount_hand_heal",
+        "iaf:avian-mounts:mount_dropped_heal"
+      ]
+    },
+    {
+      "id": "iaf:hippocampus_breathing",
+      "name": "Hippocampus rider WaterBreathing",
+      "primary_classification": "VANILLA_DIRECT",
+      "tno_categories": [
+        "VANILLA_ROUTED",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native breathing status, no damage/Stage numeric value.",
+      "delivery_paths": [
+        "iaf:avian-mounts:hippocampus_rider_buff"
+      ]
+    }
+  ],
+  "delivery_paths": [
+    {
+      "id": "iaf:avian-mounts:bird_peck",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "bird_peck; exact delivery/admission/source in facts",
+      "runtime_variants": [
+        "real native eligibility/hurt/effect/heal rejection",
+        "rider/target/delivery distinctions"
+      ]
+    },
+    {
+      "id": "iaf:avian-mounts:bird_feather_volley",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "bird_feather_volley; exact delivery/admission/source in facts",
+      "runtime_variants": [
+        "real native eligibility/hurt/effect/heal rejection",
+        "rider/target/delivery distinctions"
+      ]
+    },
+    {
+      "id": "iaf:avian-mounts:player_feather_bundle",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "player_feather_bundle; exact delivery/admission/source in facts",
+      "runtime_variants": [
+        "real native eligibility/hurt/effect/heal rejection",
+        "rider/target/delivery distinctions"
+      ]
+    },
+    {
+      "id": "iaf:avian-mounts:bird_victor_flock",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "bird_victor_flock; exact delivery/admission/source in facts",
+      "runtime_variants": [
+        "real native eligibility/hurt/effect/heal rejection",
+        "rider/target/delivery distinctions"
+      ]
+    },
+    {
+      "id": "iaf:avian-mounts:stymph_arrow_weapon",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "stymph_arrow_weapon; exact delivery/admission/source in facts",
+      "runtime_variants": [
+        "real native eligibility/hurt/effect/heal rejection",
+        "rider/target/delivery distinctions"
+      ]
+    },
+    {
+      "id": "iaf:avian-mounts:stymph_arrow_dispenser",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "stymph_arrow_dispenser; exact delivery/admission/source in facts",
+      "runtime_variants": [
+        "real native eligibility/hurt/effect/heal rejection",
+        "rider/target/delivery distinctions"
+      ]
+    },
+    {
+      "id": "iaf:avian-mounts:amphi_arrow_weapon",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "amphi_arrow_weapon; exact delivery/admission/source in facts",
+      "runtime_variants": [
+        "real native eligibility/hurt/effect/heal rejection",
+        "rider/target/delivery distinctions"
+      ]
+    },
+    {
+      "id": "iaf:avian-mounts:amphi_arrow_dispenser",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "amphi_arrow_dispenser; exact delivery/admission/source in facts",
+      "runtime_variants": [
+        "real native eligibility/hurt/effect/heal rejection",
+        "rider/target/delivery distinctions"
+      ]
+    },
+    {
+      "id": "iaf:avian-mounts:amphi_bite",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "amphi_bite; exact delivery/admission/source in facts",
+      "runtime_variants": [
+        "real native eligibility/hurt/effect/heal rejection",
+        "rider/target/delivery distinctions"
+      ]
+    },
+    {
+      "id": "iaf:avian-mounts:amphi_wing",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "amphi_wing; exact delivery/admission/source in facts",
+      "runtime_variants": [
+        "real native eligibility/hurt/effect/heal rejection",
+        "rider/target/delivery distinctions"
+      ]
+    },
+    {
+      "id": "iaf:avian-mounts:amphi_tail",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "amphi_tail; exact delivery/admission/source in facts",
+      "runtime_variants": [
+        "real native eligibility/hurt/effect/heal rejection",
+        "rider/target/delivery distinctions"
+      ]
+    },
+    {
+      "id": "iaf:avian-mounts:amphi_rider",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "amphi_rider; exact delivery/admission/source in facts",
+      "runtime_variants": [
+        "real native eligibility/hurt/effect/heal rejection",
+        "rider/target/delivery distinctions"
+      ]
+    },
+    {
+      "id": "iaf:avian-mounts:amphi_bite_rider",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "amphi_bite_rider; exact delivery/admission/source in facts",
+      "runtime_variants": [
+        "real native eligibility/hurt/effect/heal rejection",
+        "rider/target/delivery distinctions"
+      ]
+    },
+    {
+      "id": "iaf:avian-mounts:amphi_fallen",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "amphi_fallen; exact delivery/admission/source in facts",
+      "runtime_variants": [
+        "real native eligibility/hurt/effect/heal rejection",
+        "rider/target/delivery distinctions"
+      ]
+    },
+    {
+      "id": "iaf:avian-mounts:hippogryph_bite",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "hippogryph_bite; exact delivery/admission/source in facts",
+      "runtime_variants": [
+        "real native eligibility/hurt/effect/heal rejection",
+        "rider/target/delivery distinctions"
+      ]
+    },
+    {
+      "id": "iaf:avian-mounts:hippogryph_scratch",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "hippogryph_scratch; exact delivery/admission/source in facts",
+      "runtime_variants": [
+        "real native eligibility/hurt/effect/heal rejection",
+        "rider/target/delivery distinctions"
+      ]
+    },
+    {
+      "id": "iaf:avian-mounts:hippogryph_rider",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "hippogryph_rider; exact delivery/admission/source in facts",
+      "runtime_variants": [
+        "real native eligibility/hurt/effect/heal rejection",
+        "rider/target/delivery distinctions"
+      ]
+    },
+    {
+      "id": "iaf:avian-mounts:mount_passive_heal",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "mount_passive_heal; exact delivery/admission/source in facts",
+      "runtime_variants": [
+        "real native eligibility/hurt/effect/heal rejection",
+        "rider/target/delivery distinctions"
+      ]
+    },
+    {
+      "id": "iaf:avian-mounts:mount_hand_heal",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "mount_hand_heal; exact delivery/admission/source in facts",
+      "runtime_variants": [
+        "real native eligibility/hurt/effect/heal rejection",
+        "rider/target/delivery distinctions"
+      ]
+    },
+    {
+      "id": "iaf:avian-mounts:mount_dropped_heal",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "mount_dropped_heal; exact delivery/admission/source in facts",
+      "runtime_variants": [
+        "real native eligibility/hurt/effect/heal rejection",
+        "rider/target/delivery distinctions"
+      ]
+    },
+    {
+      "id": "iaf:avian-mounts:hippocampus_rider_buff",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "hippocampus_rider_buff; exact delivery/admission/source in facts",
+      "runtime_variants": [
+        "real native eligibility/hurt/effect/heal rejection",
+        "rider/target/delivery distinctions"
+      ]
+    },
+    {
+      "id": "iaf:avian-mounts:macuahuitl_melee",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "macuahuitl_melee; exact delivery/admission/source in facts",
+      "runtime_variants": [
+        "real native eligibility/hurt/effect/heal rejection",
+        "rider/target/delivery distinctions"
+      ]
+    },
+    {
+      "id": "iaf:avian-mounts:dagger_melee",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "dagger_melee; exact delivery/admission/source in facts",
+      "runtime_variants": [
+        "real native eligibility/hurt/effect/heal rejection",
+        "rider/target/delivery distinctions"
+      ]
+    }
+  ],
+  "unexecuted_future_fixtures": [
+    "Bird_Peck_and_two4feather_volley_LOS",
+    "Bird_vs_Player_feather_friendly_gate",
+    "Bundle8arrow_native_PVP_damage_identity",
+    "Victor_Player_vs_nonPlayer_flock_retaliation",
+    "Avian_ammo_weapon_vs_dispenser_class",
+    "AmphiArrow_accepted_hurt_gust_zero_horizontal",
+    "Amphi_bite_knockback_before_hurt",
+    "Amphi_wing16requests_attacker_resistance_selfmotion",
+    "Amphi_tail_selfmotion_not_target",
+    "Amphi_rider_everytick_source_vs_bite_rider1",
+    "Amphi_projectile_HP_rejection_still_fallen",
+    "Hippogryph_AI6_vs_rider10to12_events",
+    "Hippogryph_scratch_fixed_negativeXZ_hurtfalse",
+    "Native_controller_friendly_veto",
+    "Hand_vs_drop_heal_acceptance_consumption_taming",
+    "Hippocampus_Mob_vs_saddledPlayer_breathing_linger",
+    "Macuahuitl_Player_posthit_gust_no_extra_damage"
+  ],
+  "remaining_subsection_native_ambiguities": [],
+  "review_required": [],
+  "exact_next_task": "R2g8d: Dread creature/summon/skull combat. Then remaining equipment (including Dragon Flute delivery), chain/status/resource callbacks and whole-JAR custom DamageType/combat closure; dedup/promote Ice & Fire and continue next target if usage healthy.",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "runtime_tests": 0,
+  "whole_iceandfire_complete": false,
+  "promoted_mechanics": 0,
+  "promoted_paths": 0,
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false,
+  "reference_files": [
+    {
+      "file": "native-evidence/iceandfire-avian-mounts.json",
+      "sha256": "4cf2f51b1e1ec0429fea329399f756625b1f7d7f19f4fd85216b848ca67fee02"
+    },
+    {
+      "file": "iceandfire-avian-mounts-census.json",
+      "sha256": "69f638ea10f63431a903a4a395af4cde5aa8418b3486c2bf6235670e56aa34d1"
+    },
+    {
+      "file": "reference-evidence/iceandfire-hydra-serpent-244.json",
+      "sha256": "a3ff3677b772faeff6b28db86ed357a11c96510660b5b8b3ac186d8ca34c1210"
+    },
+    {
+      "file": "native-evidence/iceandfire-hydra-serpent.json",
+      "sha256": "48010d14cdfbd1934b0b74c0146de6966dacf00ef3df8d22aa5ab38b37ad9dba"
+    },
+    {
+      "file": "reference-evidence/iceandfire-dragon-combat-244.json",
+      "sha256": "119a1674ff76c9a0093d08e03e3f6e28e8798e0dab937924b07b9741d7580865"
+    },
+    {
+      "file": "native-evidence/iceandfire-dragon-combat.json",
+      "sha256": "e4c83a0399f1cec209a9f708f48b809da23b322cbd697965a21bfc78d1dbe7da"
+    },
+    {
+      "file": "reference-evidence/iceandfire-ghost-troll-244.json",
+      "sha256": "559079cfa89fbdaecb5efe241a4f4c7c00ff48518fa6f17dc18870cb9143ab1c"
+    },
+    {
+      "file": "native-evidence/iceandfire-foundation.json",
+      "sha256": "7ec82347885b0666ebbfa8ea8650acd392efd90019a99aacf7e19a21d63f0fdc"
+    },
+    {
+      "file": "iceandfire-frozen-config-snapshot.json",
+      "sha256": "046dffed6e3ec3b3e01e4cd0be4042ac3f1de30302ba7a4facc72e4cd6c4d808"
+    }
+  ]
+}
