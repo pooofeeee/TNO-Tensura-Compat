@@ -798,3 +798,7 @@ Gaze spawns the statue before player hurt; Head uses victim-attributed hurt and 
 ## R2g5a — Dragon elemental combat paths
 
 Native Fire/Lightning direct damage, independent status/control, optional charge explosion and actual fire/spikes are separated. Scaling points target each native damage amount exactly once; no Stage implementation. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/iceandfire-r2g5a-dragon-elements-review.md).
+
+## R2g5b — Dragon body combat and defenses
+
+Shared Dragon body attacks, rider source changes, independent control, roar variants, healing versus direct HP writes, defenses and multipart routing are reviewed with single scaling points. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/iceandfire-r2g5b-dragon-combat-review.md).

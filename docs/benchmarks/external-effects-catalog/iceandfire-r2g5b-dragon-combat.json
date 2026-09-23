@@ -1,0 +1,459 @@
+{
+  "schema": "tno.external_effects.iaf_dragon_combat.v1",
+  "checkpoint": "R2g5b-dragon-body-combat-complete",
+  "previous_checkpoint": "R2g5a-dragon-elements-complete",
+  "starting_sha": "bc5f76c9cc1d4c738f286c847822623f00436fce",
+  "status": "DRAGON_BODY_COMBAT_COMPLETE",
+  "scope": "Dragon elemental and body combat, roar, native defenses and healing/resource integration reviewed; Frozen/Siren/Gorgon preserved. Other Ice & Fire families remain pending.",
+  "summary": "Shared Dragon body attacks, rider source changes, independent control, roar variants, healing versus direct HP writes, defenses and multipart routing are reviewed with single scaling points.",
+  "facts": {
+    "entry": "Dragon.tick runs shared common update, then for live model on server updateDragonServer (including rider update), then updateDragonAttack. Native subtype aiStep and flying proximity may also start attack animations. DragonAIAttackMeleeGoal requires AdvancedPathNavigate, live target, canMove and not flying/hovering to start; native reachSquared=4*dragonWidth^2+targetWidth, cooldown20. Tick LOS controls navigation update, not the final reach/cooldown attack call. The three installed Fire/Ice/Lightning doHurtTarget overrides select animation/possible mount and return false; they do not call the base direct-damage override. DragonBase.doHurtTarget is a fallback method, not an extra guaranteed hit for these subtypes.",
+    "body_attacks": "Shared updateDragonAttack requires playing attack animation,current target,dragon LOS and distance<renderSize*.2574*2+2. Bite requests int(current ATTACK_DAMAGE) at each animation tick16..24; Tail at21..29 adds independent knockback(ageTier*.6); Wing at15/25/35 similarly. All attackTarget booleans discarded here; tail/wing control is not hurt-success gated. Attack randomization does not reset the current animation, so preserve repeated requests and normal i-frames rather than assuming one hit per animation. attackTarget uses mob_attack direct=causing=Dragon if rider null; with current Player rider uses indirect_magic direct=Dragon,causing=rider. No Iaf custom dragon elemental source or weapon/enchantment callback is synthesized.",
+    "tackle": "AI updateDragonServer, while flying with target and tackling, checks asymmetric box.expandTowards(2,2,2) intersection, requests ageTier*3 through attackTarget(target,null), randomizes and lands; no additional LOS at this damage call. Rider travel arms tackling when aggressive,pitch>-5,velocity length>1; updateRider tackling scans box.expandTowards(2,2,2), explicit predicate target!=rider && Living, and calls attackTarget(victim,rider,tier*3) each eligible update. No team/LOS predicate is added to that rider victim lambda; default-query exclusions must not be assumed for explicit-predicate overload. Grounded not-flying clears tackle but the current entered block still continues. Ordinary damage/creative/PVP hooks decide acceptance.",
+    "rider_bite": "Native control bit aggression from real authorized rider update calls riderLookingAtEntity at range=tier+bounding-box width, starts Bite animation if needed and immediately requests int ATTACK_DAMAGE; no animation-frame or item attack cooldown gate here. Ray helper filters onSameTeam/pickable/Living/!self/!allied/!dead-mob, inflates target AABB by pickRadius+2, has no world LOS clip, and uses AABB.clip.orElse(Vec3.ZERO) for a miss. Origin/shared-root cases remain native. Additional !hasSameOwner gate follows selection. Config canHealFromBiting(snapshotfalse) and hurt==true enable heal(raw requested integerDamage*.1), not observed HP loss. The DreadQueen branch contains a Player-only attack condition that ordinary DreadQueen controller cannot satisfy; no fabricated rider fixture.",
+    "shake_prey": "All three subtype SHAKE_PREY branches random1/2, direct collider path, preyWidth<dragonWidth*.5, no controller, ageTier>1, not DragonBase and !isAnimaniaMob (helperfalse) start SHAKEPREY and call prey.startRiding(dragon); return ignored. Native mount admission remains required: already-riding/cycle guards, canMountEntity event, prey canRide (ordinary sneaking/boarding cooldown) and Dragon canAddPassenger (<2 passengers). Otherwise fallback Bite. positionRider handles controller separately, all other passengers via updatePreyInMouth. It forces shake animation, positions prey near mouth until animationTick>55, then requests2*float ATTACK_DAMAGE via mob_attack direct=causing=Dragon. hurt==true and canHealFromBiting enables heal(raw requestedDamage*.5). Nonplayer prey increments hunger1 independent of hurt, then all prey receive stopRiding. Native dismount canMountEntity(false) may veto, so a retained passenger can be processed again; do not assert unconditional release. No direct kill or HP/SHP subtraction.",
+    "roar": "Server random1/500 while awake/live or hurt-entry random1/4 with causing entity can call roar before final damage admission. At tier>3, size=(tier-3)*30, query box.expandTowards(size,size,size) is directional, not symmetric radius. Living recipients except same/higher-tier dragons: owner or same-owner pet gets StrengthI, others WeaknessI. Epic random branch duration50*size and checks native HEAD earplugs only for hostile Weakness; normal duration30*size has NO earplug test. No LOS or Siren/SpiritualNull helper. Effect returns ignored; standard effect immunity/cures and attribute effects remain. Animation already playing does not prevent another effect application. No numeric Stage multiplier on radius/duration/amplifier.",
+    "attributes": "All three constructors use damage endpoints1 and1+configattackDamage(snapshot18), health endpoints.04*configmaxHealth andconfigmaxHealth(snapshot28..700), speed0.15..0.4 and armor1..20. updateAttributes uses age=min(getAgeInDays,125) for rounded maxHP/attack and interpolated speed, but armor uses getAgeInDays without125cap. Server armor modifier replaces same UUID/id with permanent ADD_VALUE of1+sum equipped DragonArmor type protection; reload/equipment/growth can recalculate. getAgeInDays clamps ticks/24000 to0..tamedConfigMax(snapshot128) or128; native tier boundaries25/50/75/100. Native age is not TNO Stage. Keep these attributes as native baselines and apply damage scaling once downstream, not again at each attribute refresh.",
+    "resources": "Hunger setter clamps0..100; server natural aging increments AGE_TICKS unless agingDisabled, refreshes attributes each24000; hunger decrements1 per configured positive hungerTickRate(snapshot3000) while>0. No starvation HP callback appears in these shared logic consumers. Saved age,hunger,model-death and death-stage are restored; body damage/health current native values persist through ordinary entity lifecycle. Spawn initialization and growth are not recurring heal effects; ordinary progression/items beyond these combat changes excluded.",
+    "healing": "Ordinary owner feeding uses valid FoodUtils food points F>0 and hunger<100 OR HP<max; writes setHealth(min(maxHP,int(HP+F/10))), increases hungerF and consumes1 if noncreative. Native AI dropped-food goal hungry<100/canMove (prioritizeItems disallows hunger>=60) selects live food item and on mouth/body proximity writes setHealth(min(maxHP,int(HP+F))), hunger+F, consumes1. Exact Uranus FoodUtils requires FOOD component, MEAT or allowed FISHES for meatOnly, yields nutrition*10. Thus dropped food restores10 times hand-fed nominal HP. These writes bypass LivingHealEvent; native setHealth clamp and installed overrides still apply. Meal owner branch age<cap re-enables growth, grows1,hunger+20 and heal(min(currentHP,floor(maxHP/2))); sickly meal when not agingDisabled heals(maxHP),hunger+20,disables aging. Creative meal live-model branch can tame and uses same min(currentHP,halfmax) heal. Actual heal calls pass native LivingHealEvent and require currentHP>0. No direct SHP write is present; downstream mod interactions untested.",
+    "defenses": "DragonBase.hurt rejects model-dead unless SAME DamageSource object as damageSources.fellOutOfWorld(), controller-caused damage while ridden, and while dragon itself passenger either msgId contains arrow or causing entity equals its vehicle. Rejects exact IN_WALL/FALLING_BLOCK/CRAMMING types before parent. Positive damage may wake/set hostile Player target; roar may occur before later rejection. checkFallDamage empty prevents that ordinary fall path, not a universal FALL-source hurt veto. Only Fire Dragon EntityType is fireImmune; Ice/Lightning registry flagsfalse. Lightning.isInvulnerableTo compares source message id with vanilla lightningBolt message id, calls heal15 and FireResistanceII20ticks then returns true; it is not a broad custom-lightning/tag immunity. This callback can run on invulnerability queries, not exclusively admitted HP hits. Native effects/health hooks and external overrides remain.",
+    "death_and_compat": "tickDeath sets deathTime0,modelDead=true,ejects passengers and only removes once deathStage>=ageDays/5; live server attacks stop for dead model. die calls super then changes its OWN hunger by FoodUtils.getFoodPoints(this), not a proven attacker feeding callback. Existing tensura_iaf IafHandler vetoes skill plunder, energy drain and spiritual hurt on model-dead or deathStage>0 dragons. Keep normal hurt/death and native corpse disposal distinct; no corpse farming or resurrection fix is authorized.",
+    "multipart": "Native DragonPart delegates to MultipartPart.hurt(source,amount*partMultiplier) on parent and returns parent hurt; no separate part HP budget. Head and final tail1.5, neck/other tail1, wings.5 from updateScale. Part override isInvulnerableTo lists fall,drown,inwall,fallingblock,lava,IS_FIRE but own hurt does not invoke it before parent delegation. Client Player-caused part hurt also sends native MultipartInteract payload; receiver nonnullPlayer/serverLivingParent/distance<100/dmg>0 calls parent.hurt(mob_attack(player),supplied amount), otherwise interact. Separate ServerEvents Player ATTACK_ENTITY handles parts via player.attack(parent), plus native PlayerHitMultipart packet on client; its receiver repeats player.attack(parent) with distance<100. Runtime must count server accepted events/actual source and check duplicate delivery, not scale at both part and parent. No packets are fabricated in research.",
+    "census_disposition": "Dragon primitive caller census: DragonBase/Logic/Lightning/AIfood/Multipart and receiver reviewed here; DragonCharge/manager reused fromR2g2b/R2g5a; DragonEgg hatching hunger and cave/roost spawn HP are initialization/progression-only exclusions; DragonSkull hurt is decorative break-to-item utility; DragonFleshItem consumption is explicitly deferred to special equipment/consumables, not lost. Shared network and registry methods contain unrelated families whose presence is not review completion.",
+    "exclusions": "Navigation detail, ordinary travel handling, armor models, corpse loot/acquisition, recipes, taming progression, menu/storage, structure layout and rendering excluded after identifying the actual combat callbacks. Grab position change/mount admission, health writes and source-changing multipart route are retained because they affect compatibility. No runtime boss/L2 tests or production/Stage change.",
+    "target_admission": "Native rider DRAGON_STRIKE key calls attack->control bit2; isAggressive reads bit2, distinct from breath bit3. Protected packet validates actual owner/passenger before state update. Natural target registration preserves owner retaliation and HurtBy goals; non-tamed goal calls native parent search then permits sleeping Player only within squared16, other targets only awake. Registered Player filter requires noncreative and neutralToPlayer=false; nonplayer hunger random gate plus other type/canHostilesTarget/isAlive/shouldTarget. Species shouldTarget selects other eligible smaller live dragon types while wild, otherwise Player/species target tag (Ice also WaterAnimal) and wild villagers. Generic DragonAITargetGoal has an actual old-target-nonnull/different-class check BEFORE super.canUse; do not assume it independently acquires from a null target. It also rejects command1/2,sleeping, wild roosting, checks size, same-owner/live-dragon and tame-player restrictions, and food-positive/movable/hunger<90/native tame-target exclusions. Keep native acquisition in future positive controls; do not repair this ordering or fabricate a target event."
+  },
+  "mechanic_packages": [
+    {
+      "id": "iaf:dragon_body_hits",
+      "name": "Dragon body/rider damage",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "VANILLA_ROUTED",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "At target.hurt amount emitted by IafDragonLogic.attackTarget once (bite/tail/wing/tackle/rider). For shake, native updatePreyInMouth hurt amount once. Same downstream Stage layer, no attribute/animation/part second multiplication.",
+      "stage_reason": "Preserve different source identities, repeated requests and normal native admission.",
+      "delivery_paths": [
+        "iaf:dragon:body:bite",
+        "iaf:dragon:body:tail",
+        "iaf:dragon:body:wing",
+        "iaf:dragon:body:ai_tackle",
+        "iaf:dragon:body:rider_tackle",
+        "iaf:dragon:body:rider_bite",
+        "iaf:dragon:body:shake_prey"
+      ]
+    },
+    {
+      "id": "iaf:dragon_grab_knockback",
+      "name": "Dragon grab and body control",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "No extra numeric Stage value for mount/position/dismount or native tail/wing knockback; preserve hooks and independent hurt returns.",
+      "delivery_paths": [
+        "iaf:dragon:body:tail",
+        "iaf:dragon:body:wing",
+        "iaf:dragon:body:shake_prey"
+      ]
+    },
+    {
+      "id": "iaf:dragon_roar",
+      "name": "Dragon roar Strength/Weakness",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "tno_categories": [
+        "VANILLA_ROUTED",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Leave vanilla effect amplifier/duration/range intact; downstream native attacks already read modified attributes and receive Stage once.",
+      "delivery_paths": [
+        "iaf:dragon:body:normal_roar",
+        "iaf:dragon:body:epic_roar"
+      ]
+    },
+    {
+      "id": "iaf:dragon_healing",
+      "name": "Dragon combat healing and food restoration",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "COMPOSITE",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Heal requests: the one Dragon heal(amount) invocation through native LivingHealEvent. Direct food: only the HP delta at its native setHealth boundary, before native maxHP clamp; never multiply absolute current/maxHP or a paired damage event. Bite uses raw requested native damage for its heal formula, not observed HP loss.",
+      "stage_reason": "Separate future healing policy/runtime approval is required; points identify eligible native amount boundaries, not an implemented multiplier.",
+      "delivery_paths": [
+        "iaf:dragon:body:rider_bite",
+        "iaf:dragon:body:shake_prey",
+        "iaf:dragon:body:hand_food",
+        "iaf:dragon:body:dropped_food",
+        "iaf:dragon:body:dragon_meal",
+        "iaf:dragon:body:sickly_meal",
+        "iaf:dragon:body:creative_meal",
+        "iaf:dragon:body:lightning_absorb"
+      ]
+    },
+    {
+      "id": "iaf:dragon_native_defense",
+      "name": "Dragon native damage/corpse defenses",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "BINARY",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Preserve all source/controller/parent/model gates and lightning message-id admission; never scale boolean rejection.",
+      "delivery_paths": [
+        "iaf:dragon:body:body_defense",
+        "iaf:dragon:body:lightning_absorb",
+        "iaf:dragon:body:corpse"
+      ]
+    },
+    {
+      "id": "iaf:dragon_native_attributes",
+      "name": "Dragon age/armor/hunger baselines",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "tno_categories": [
+        "CUSTOM_ROUTED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native age, health/armor baselines, gear modifier and hunger counters stay native. Numeric attack/heal integration is already assigned elsewhere exactly once.",
+      "delivery_paths": [
+        "iaf:dragon:body:age_equipment_refresh",
+        "iaf:dragon:body:hand_food",
+        "iaf:dragon:body:dropped_food",
+        "iaf:dragon:body:dragon_meal",
+        "iaf:dragon:body:sickly_meal",
+        "iaf:dragon:body:creative_meal"
+      ]
+    },
+    {
+      "id": "iaf:dragon_multipart",
+      "name": "Dragon multipart damage routing",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "CUSTOM_ROUTED",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "No extra part multiplier beyond native partMultiplier. Apply any ordinary Stage amount once to resolved parent damage; native network/player paths require event-count validation.",
+      "delivery_paths": [
+        "iaf:dragon:body:multipart_damage",
+        "iaf:dragon:body:multipart_player_attack"
+      ]
+    }
+  ],
+  "delivery_paths": [
+    {
+      "id": "iaf:dragon:body:bite",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "bite; exact caller/admission in facts",
+      "runtime_variants": [
+        "AI vs current legitimate rider/source identity",
+        "native hurt/effect/heal rejection where applicable"
+      ]
+    },
+    {
+      "id": "iaf:dragon:body:tail",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "tail; exact caller/admission in facts",
+      "runtime_variants": [
+        "AI vs current legitimate rider/source identity",
+        "native hurt/effect/heal rejection where applicable"
+      ]
+    },
+    {
+      "id": "iaf:dragon:body:wing",
+      "labels": [
+        "AOE"
+      ],
+      "native_path": "wing; exact caller/admission in facts",
+      "runtime_variants": [
+        "AI vs current legitimate rider/source identity",
+        "native hurt/effect/heal rejection where applicable"
+      ]
+    },
+    {
+      "id": "iaf:dragon:body:ai_tackle",
+      "labels": [
+        "MOB_ATTACK"
+      ],
+      "native_path": "ai_tackle; exact caller/admission in facts",
+      "runtime_variants": [
+        "AI vs current legitimate rider/source identity",
+        "native hurt/effect/heal rejection where applicable"
+      ]
+    },
+    {
+      "id": "iaf:dragon:body:rider_tackle",
+      "labels": [
+        "MOB_ATTACK"
+      ],
+      "native_path": "rider_tackle; exact caller/admission in facts",
+      "runtime_variants": [
+        "AI vs current legitimate rider/source identity",
+        "native hurt/effect/heal rejection where applicable"
+      ]
+    },
+    {
+      "id": "iaf:dragon:body:rider_bite",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "rider_bite; exact caller/admission in facts",
+      "runtime_variants": [
+        "AI vs current legitimate rider/source identity",
+        "native hurt/effect/heal rejection where applicable"
+      ]
+    },
+    {
+      "id": "iaf:dragon:body:shake_prey",
+      "labels": [
+        "MOB_ATTACK"
+      ],
+      "native_path": "shake_prey; exact caller/admission in facts",
+      "runtime_variants": [
+        "AI vs current legitimate rider/source identity",
+        "native hurt/effect/heal rejection where applicable"
+      ]
+    },
+    {
+      "id": "iaf:dragon:body:normal_roar",
+      "labels": [
+        "PASSIVE_AURA"
+      ],
+      "native_path": "normal_roar; exact caller/admission in facts",
+      "runtime_variants": [
+        "AI vs current legitimate rider/source identity",
+        "native hurt/effect/heal rejection where applicable"
+      ]
+    },
+    {
+      "id": "iaf:dragon:body:epic_roar",
+      "labels": [
+        "PASSIVE_AURA"
+      ],
+      "native_path": "epic_roar; exact caller/admission in facts",
+      "runtime_variants": [
+        "AI vs current legitimate rider/source identity",
+        "native hurt/effect/heal rejection where applicable"
+      ]
+    },
+    {
+      "id": "iaf:dragon:body:hand_food",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "hand_food; exact caller/admission in facts",
+      "runtime_variants": [
+        "AI vs current legitimate rider/source identity",
+        "native hurt/effect/heal rejection where applicable"
+      ]
+    },
+    {
+      "id": "iaf:dragon:body:dropped_food",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "dropped_food; exact caller/admission in facts",
+      "runtime_variants": [
+        "AI vs current legitimate rider/source identity",
+        "native hurt/effect/heal rejection where applicable"
+      ]
+    },
+    {
+      "id": "iaf:dragon:body:dragon_meal",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "dragon_meal; exact caller/admission in facts",
+      "runtime_variants": [
+        "AI vs current legitimate rider/source identity",
+        "native hurt/effect/heal rejection where applicable"
+      ]
+    },
+    {
+      "id": "iaf:dragon:body:sickly_meal",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "sickly_meal; exact caller/admission in facts",
+      "runtime_variants": [
+        "AI vs current legitimate rider/source identity",
+        "native hurt/effect/heal rejection where applicable"
+      ]
+    },
+    {
+      "id": "iaf:dragon:body:creative_meal",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "creative_meal; exact caller/admission in facts",
+      "runtime_variants": [
+        "AI vs current legitimate rider/source identity",
+        "native hurt/effect/heal rejection where applicable"
+      ]
+    },
+    {
+      "id": "iaf:dragon:body:lightning_absorb",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "lightning_absorb; exact caller/admission in facts",
+      "runtime_variants": [
+        "AI vs current legitimate rider/source identity",
+        "native hurt/effect/heal rejection where applicable"
+      ]
+    },
+    {
+      "id": "iaf:dragon:body:body_defense",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "body_defense; exact caller/admission in facts",
+      "runtime_variants": [
+        "AI vs current legitimate rider/source identity",
+        "native hurt/effect/heal rejection where applicable"
+      ]
+    },
+    {
+      "id": "iaf:dragon:body:multipart_damage",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "multipart_damage; exact caller/admission in facts",
+      "runtime_variants": [
+        "AI vs current legitimate rider/source identity",
+        "native hurt/effect/heal rejection where applicable"
+      ]
+    },
+    {
+      "id": "iaf:dragon:body:multipart_player_attack",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "multipart_player_attack; exact caller/admission in facts",
+      "runtime_variants": [
+        "AI vs current legitimate rider/source identity",
+        "native hurt/effect/heal rejection where applicable"
+      ]
+    },
+    {
+      "id": "iaf:dragon:body:age_equipment_refresh",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "age_equipment_refresh; exact caller/admission in facts",
+      "runtime_variants": [
+        "AI vs current legitimate rider/source identity",
+        "native hurt/effect/heal rejection where applicable"
+      ]
+    },
+    {
+      "id": "iaf:dragon:body:corpse",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "corpse; exact caller/admission in facts",
+      "runtime_variants": [
+        "AI vs current legitimate rider/source identity",
+        "native hurt/effect/heal rejection where applicable"
+      ]
+    }
+  ],
+  "unexecuted_future_fixtures": [
+    "body_animation_tick_windows_and_rejected_hurt_knockback",
+    "AI_vs_rider_mob_attack_indirect_magic_identity",
+    "rider_tackle_directional_box_and_team_members",
+    "rider_ray_wall_miss_ZERO_fallback",
+    "shake_mount_veto_tick56_hurt_false_dismount_hunger",
+    "raw_damage_based_bite_heal_config_gate",
+    "roar_normal_vs_epic_earplugs_directional_box",
+    "roar_Strength_owner_pet_and_stronger_dragon",
+    "hand_vs_dropped_food_health_delta_and_heal_event",
+    "meals_clamp_currentHP_and_growth_disabled",
+    "lightning_msgId_query_heal_not_custom_lightning_type",
+    "native_hurt_veto_model_dead_controller_passenger",
+    "multipart_head_wing_tail_parent_multipliers_and_event_counts",
+    "age_reload_equipment_modifier_no_double_Stage",
+    "corpse_plunder_energy_spiritual_veto"
+  ],
+  "remaining_subsection_native_ambiguities": [],
+  "review_required": [],
+  "exact_next_task": "R2g6: Cockatrice gaze/debuff/damage and tame/control semantics plus native Cockatrice Scepter; reuse Gorgon looking/blindfold and Siren MiscData scaffolding without repeating them. Then Death Worm/Cyclops and remaining combat families. No runtime/L2/Stage/production.",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "runtime_tests": 0,
+  "whole_iceandfire_complete": false,
+  "promoted_mechanics": 0,
+  "promoted_paths": 0,
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false,
+  "reference_files": [
+    {
+      "file": "native-evidence/iceandfire-dragon-combat.json",
+      "sha256": "e4c83a0399f1cec209a9f708f48b809da23b322cbd697965a21bfc78d1dbe7da"
+    },
+    {
+      "file": "reference-evidence/iceandfire-dragon-combat-244.json",
+      "sha256": "119a1674ff76c9a0093d08e03e3f6e28e8798e0dab937924b07b9741d7580865"
+    },
+    {
+      "file": "vanilla-evidence/iceandfire-dragon-combat.json",
+      "sha256": "36c1824402669a07ed81992b4596ff8e483351f0f34706c952977e1ada513fc6"
+    },
+    {
+      "file": "reference-routing/iceandfire-dragon-combat.json",
+      "sha256": "d0c16d63a977f1698da31c7e379c2f78746b5c321aa75e2b9901a89fe8fe3c1f"
+    },
+    {
+      "file": "iceandfire-dragon-combat-census.json",
+      "sha256": "19ccbe6967aeba55643ee25aed0509360c396cb7b1777e940fe706e9034ff10b"
+    },
+    {
+      "file": "native-evidence/iceandfire-foundation.json",
+      "sha256": "7ec82347885b0666ebbfa8ea8650acd392efd90019a99aacf7e19a21d63f0fdc"
+    },
+    {
+      "file": "native-evidence/iceandfire-gorgon.json",
+      "sha256": "5e7316b4c79fe5f7be57305597f130762e421ad1f351c96df857b3a3e5ebde3b"
+    },
+    {
+      "file": "native-evidence/iceandfire-frozen-dragons.json",
+      "sha256": "af9ec7b026a9b50f692810471c868be9284569b362f9a49aa813a821eed8e09c"
+    },
+    {
+      "file": "iceandfire-frozen-config-snapshot.json",
+      "sha256": "046dffed6e3ec3b3e01e4cd0be4042ac3f1de30302ba7a4facc72e4cd6c4d808"
+    },
+    {
+      "file": "annotation-evidence/iceandfire-compat-javap.json",
+      "sha256": "d070028b1b517cfebbb890482a9ebfe572410c9b2faad2921a7f6e2dcbd7f058"
+    }
+  ]
+}
