@@ -225,6 +225,9 @@ def validate():
         if (OUT/'eternalstarlight-r2h1-source-foundation.json').exists():
             from validate_eternalstarlight_foundation import validate_foundation as validate_es_foundation
             assert validate_es_foundation()['status']=='PASS'
+        if (OUT/'eternalstarlight-r2h2a-crystal-numbness.json').exists():
+            from validate_eternalstarlight_crystal_numbness import validate_crystal_numbness
+            assert validate_crystal_numbness()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():

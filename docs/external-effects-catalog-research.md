@@ -846,3 +846,7 @@ All726 installed classes cross-checked:188 watched methods,130 targeted callers,
 ## R2h1 — Eternal Starlight source foundation
 
 Installed 0.8.1 source foundation: 18 custom DamageTypes, 9 MobEffects, 29 factory callers and the actual NeoForge combat bridge pinned. Family semantics remain unfinished; Ice & Fire COMPLETE preserved. [Evidence and next task](benchmarks/external-effects-catalog/eternalstarlight-r2h1-source-foundation-review.md).
+
+## R2h2a — Crystal Infection, Numbness and shared admission
+
+Crystal delivery and hurt-return distinctions, finite/infinite tick behavior, armor penalty, native Numbness debt/payout and Crescent/Unrealium admission reviewed; derived damage requires one Stage application on the parent. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/eternalstarlight-r2h2a-crystal-numbness-review.md).

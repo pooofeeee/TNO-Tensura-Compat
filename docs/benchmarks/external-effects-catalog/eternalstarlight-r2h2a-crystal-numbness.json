@@ -1,0 +1,427 @@
+{
+  "schema": "tno.external_effects.es_crystal_numbness.v1",
+  "checkpoint": "R2h2a-crystal-numbness-complete",
+  "previous_checkpoint": "R2h1-eternalstarlight-source-foundation",
+  "starting_sha": "8af2c7777cd3d4fc483ee4f83efd9e4403e8e1e3",
+  "status": "CRYSTAL_NUMBNESS_ADMISSION_COMPLETE",
+  "scope": "R2h2a Crystal Infection, Numbness and shared cap/cure/admission complete; other R2h2 statuses pending.",
+  "summary": "Crystal delivery and hurt-return distinctions, finite/infinite tick behavior, armor penalty, native Numbness debt/payout and Crescent/Unrealium admission reviewed; derived damage requires one Stage application on the parent.",
+  "facts": {
+    "crystal_tick": "CrystalInfectionEffect requests ownerless eternal_starlight:crystal_infection HP damage = amplifier+1 every duration%35==0. Finite effects use remaining duration; infinite effects use recipient tickCount. applyEffectTick returns true regardless of hurt result; rejection does not remove the effect. The separate armor modifier is -1.5*(amplifier+1), ADD_VALUE with one stable armor.crystal_infection ID; native effect update/removal replaces/removes it. This armor penalty affects other armor-routed hits, not the infection source that bypasses armor. No direct HP/SHP subtraction, native magic classification or generic Tensura immunity is implied.",
+    "crystal_melee": "Player.attack calls CrystalGreatswordItem.getAttackDamageBonus before critical multiplication and native hurt. Bonus = existing amplifier * (amplifier>=4 ? .25 : .15) * current input attack damage; absent infection gives zero. At amplifier4 the bonus equals the input damage. Only a successful primary target hurt followed by item.hurtEnemy true (SwordItem returns true), server side/nonempty stack, calls postHurtEnemy. After ordinary durability cost: existing amplifier defaults0; if >=4 attempt removeEffect, otherwise addEffect duration60 amplifier=min(existing+1,4). Thus first application is amplifier1, not0; subsequent native merge/expiry rules apply. Removal failure is not repaired and addEffect failure only suppresses ordinary chime. No separate burst hurt exists in this callback; the particles are cosmetic. Sweep targets do not each execute this item callback. Mob-held delivery is not claimed from the Player-only chain.",
+    "crystal_crossbow": "CrystalCrossbowItem.createProjectile delegates to native CrossbowItem (arrow or firework), writes persistent ARROW_TYPE=eternal_starlight:crystal, and for AbstractArrow adds .25 base damage; shootProjectile then multiplies resulting velocity by1.35. Native ProjectileImpact event invokes ESCommonHandler on the server before normal impact HP handling, not after a successful hurt. Block impact clears the marker but continues this invocation. Five candidate positions within random offset4 are moved upward at most40 until air, then raycast down128 with COLLIDER/Fluid.NONE. A ground hit spawns one CrystalCluster; owner copied only if projectile owner is Living. Entity impact on Living separately adds infection200 amplifier0 if absent, otherwise min(old+1,4), ignoring addEffect return and without shouldHarm/LOS checks in that status branch. Entity impact does not clear the marker. Arrows/piercing and firework impacts are distinct future fixtures. Event cancellation before ES dispatch can suppress the helper; cancellation later does not undo already spawned clusters/status.",
+    "crystal_cluster": "CrystalCluster server tick resolves saved owner UUID in the same ServerLevel; if unresolved it clears that UUID. At spawnedTicks>=20 it discards, without returning; at >5 and nonnull Living owner it still visits Living entities in its AABB inflated.5. shouldHarm(owner,target) must pass, then hurt4 via crystal_infection direct=cluster/causing=owner must return true before infection120 amplifier0 is requested. There is no LOS predicate. The final discard tick can still execute this block. Repeated visits are subject to ordinary native damage cooldown; do not multiply damage by duration or entity count. Ownerless clusters never enter this damage branch. NBT saves owner UUID and spawned_ticks; cluster hurt itself only discards/returns true for BYPASSES_INVULNERABILITY, otherwise false (binary entity removal, no numeric HP).",
+    "crystal_stew": "ESBlocks registers Desert/Withered Desert Amethysia with infection4 seconds and Red/Blue Crystalfleur with10 seconds. DesertFlowerBlock delegates to FlowerBlock, whose SuspiciousStewEffects entry converts seconds to ticks; these are native suspicious-stew effect providers, not contact hazards. SuspiciousStewItem.finishUsingItem applies component entries through ordinary addEffect: amplifier0,80 or200 ticks. Acquisition/crafting and flower placement are excluded beyond identifying this real component route; no invented potion, splash or lingering recipe.",
+    "shared_effect_admission": "All reviewed status producers use ordinary addEffect, not force-add/map insertion. Exact NeoForge LivingEntity.addEffect calls CommonHooks.canMobEffectBeApplied, then Added event and native update/hidden-effect merging. canBeAffected and external applicability hooks remain authoritative; successful hurt does not guarantee status admission. removeEffect and removeAllEffects pass removal hooks; expiration can be canceled. LivingEntityMixin.eat HEAD attempts to remove each non-beneficial effect for Lunaris Cactus Gel, with each removeEffect result ignored; it does not remove beneficial Numbness. Milk/cure behavior remains the native per-effect cure set and removal event, not an unconditional bypass. These custom statuses have no newly proven direct ES-specific Tensura/L2 hook; R2h1 scoped explicit-name scan is not a certification of generic runtime compatibility.",
+    "numbness_admission": "Silver Pungency Fruit native FoodProperties requests Numbness1200 amplifier0 with probability1 (and independent Nausea120 at.8). LivingEntity.eat/addEatEffect performs the server food-effect application through addEffect. LivingDamageEvent.Pre passes current damage to onModifyLivingActualHurtDamage AFTER armor, Resistance and enchantment reductions but BEFORE absorption for both LivingEntity and Player. If Numbness is active: debt += modified*.75, immediate damage = modified*.25. Amplifier has no role. This is deferred damage, not HP healing or a direct subtraction. Debt can be written even when subsequent absorption consumes all immediate damage.",
+    "numbness_release": "LivingEntityMixin injects AFTER updateGlowingStatus inside tickEffects. Exact21.1.244 host executes this only inside effectsDirty && !clientSide, not every entity tick. If Numbness absent and stored debt !=0: request ownerless eternal_starlight:numbness damage equal to the entire debt; then clear debt to0 regardless of hurt result. Ordinary expiration/removal marks effectsDirty, but canceled removal/expiry or a still-active hidden effect can prevent payout. An externally loaded nonzero debt with no dirty effect state has no unconditional per-tick drain. Native NUMBNESS_DAMAGE default0 is Codec.FLOAT serialized, not synced and not configured copyOnDeath. Direct archive field-access census finds only registration, Pre accumulation and this release; no ES retry or guaranteed eventual HP loss. Rejection can consume the debt without HP loss. Payout again passes ordinary armor/Resistance/enchantment/absorption and invulnerability, but its tag bypasses shields and Crescent Pendant; it is not an exact conservation of HP.",
+    "shared_defenses": "Crescent Pendant must occur in ACCESSORIES components of HEAD/CHEST/LEGS/FEET equipment (set union; duplicates do not stack), not merely inventory or weapon. In Pre, unless source has eternal_starlight:bypasses_crescent_pendant, amount>maxHP*.75 is capped to maxHP*.75 BEFORE Numbness split. Finally BYPASSES_INVULNERABILITY returns max(original Pre amount,modified), AFTER debt is stored: bypass can retain full immediate damage plus future debt. Preserve this native ordering, not an inferred immunity override. IncomingDamage veto: exact Unrealium Helmet plus minecraft:in_wall, or exact Unrealium Chestplate plus minecraft:cramming. These are exact type keys, no global suffocation/crushing tag immunity. Shared source/weapon multipliers in onModifyLivingHurtDamage remain later family review.",
+    "damage_identity_and_mitigation": "R2h1 tag closure (rawMC+NeoForge21.1.244+installedES) gives crystal_infection BYPASSES_ARMOR/BYPASSES_ENCHANTMENTS/BYPASSES_SHIELD, whereas numbness only BYPASSES_SHIELD plus BYPASSES_CRESCENT_PENDANT among those. Neither bypasses effects, Resistance, invulnerability or cooldown; neither is IS_MAGIC/IS_PROJECTILE/IS_FIRE/IS_FREEZING from these archives. Both DamageType exhaustion=.1, native scaling=when_caused_by_living_non_player. Infection DOT and Numbness have null direct/null causing; cluster preserves cluster/owner, so Player difficulty scaling may differ. Armor bypass does not imply Resistance bypass: the loader handles Resistance before enchantment bypass. Native death, totem, event cancellation and skill/L2 processing remain untouched and must be observed later.",
+    "single_stage_boundary": "Independent numeric requests: scale infection DOT once at its native hurt amount; cluster once at native hurt4; ordinary Greatsword and Crossbow once at the final native primary/sweep/arrow/firework hurt amount after native weapon calculations. Do not additionally scale attack attributes, bonus fractions, base-damage increment, projectile velocity, stack amplifier, tick duration or cluster count. Numbness inherits the already-scaled parent damage; never multiply the debt or payout again. The native payout can apply mitigation a second time; do not compensate by bypassing defenses. Stage lineage handling is an explicit future implementation/test requirement, not a change made here. Fixed armor modifiers, cap percentage, deferral ratio and binary admission keep native values.",
+    "scope": "Static semantic subsection only. Registry/decompiler aids checked against installed bytecode, exact loader and raw fallback routing. Other status/shared-handler branches and the remaining16 DamageType dispositions are unfinished; no full ES completion claim. Cosmetic chimes/particles, flower placement and ordinary acquisition omitted. All runtime fixtures remain unexecuted."
+  },
+  "mechanic_packages": [
+    {
+      "id": "es:crystal_infection_dot",
+      "name": "Crystal Infection periodic HP",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "CUSTOM_ROUTED",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at CrystalInfectionEffect native hurt(amplifier+1).",
+      "stage_reason": "Keep source, interval and admission.",
+      "delivery_paths": [
+        "es:status:crystal_tick",
+        "es:status:crystal_greatsword",
+        "es:status:crystal_crossbow_arrow",
+        "es:status:crystal_crossbow_firework",
+        "es:status:crystal_cluster",
+        "es:status:crystal_stew"
+      ]
+    },
+    {
+      "id": "es:crystal_infection_status",
+      "name": "Crystal Infection armor and native stack state",
+      "primary_classification": "CUSTOM_STATUS",
+      "tno_categories": [
+        "COMPOSITE",
+        "VANILLA_ROUTED",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Keep native armor/amplifier/duration and ordinary effect admission.",
+      "delivery_paths": [
+        "es:status:crystal_tick",
+        "es:status:crystal_greatsword",
+        "es:status:crystal_crossbow_arrow",
+        "es:status:crystal_crossbow_firework",
+        "es:status:crystal_cluster",
+        "es:status:crystal_stew",
+        "es:status:cactus_gel_cure"
+      ]
+    },
+    {
+      "id": "es:crystal_cluster_damage",
+      "name": "Owned Crystal Cluster impact",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "CUSTOM_ROUTED",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at CrystalCluster native hurt4.",
+      "stage_reason": "Do not also scale count/lifetime or DOT producer.",
+      "delivery_paths": [
+        "es:status:crystal_crossbow_arrow",
+        "es:status:crystal_crossbow_firework",
+        "es:status:crystal_cluster"
+      ]
+    },
+    {
+      "id": "es:crystal_weapon_damage",
+      "name": "Crystal weapon native primary damage",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "VANILLA_ROUTED",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at each final native melee/sweep/arrow/firework hurt request after native weapon calculations.",
+      "stage_reason": "No extra multiplier at bonus, baseDamage or velocity.",
+      "delivery_paths": [
+        "es:status:crystal_greatsword",
+        "es:status:crystal_crossbow_arrow",
+        "es:status:crystal_crossbow_firework"
+      ]
+    },
+    {
+      "id": "es:numbness_debt",
+      "name": "Numbness deferred damage",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "tno_categories": [
+        "COMPOSITE",
+        "CUSTOM_ROUTED",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Parent damage is scaled once before deferral; debt/payout inherits it and must not scale again.",
+      "delivery_paths": [
+        "es:status:numbness_food",
+        "es:status:numbness_pre",
+        "es:status:numbness_release"
+      ]
+    },
+    {
+      "id": "es:crescent_cap",
+      "name": "Crescent Pendant native damage cap",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "tno_categories": [
+        "COMPOSITE",
+        "CUSTOM_ROUTED",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Fraction of current maxHP; preserve source bypass and Numbness order.",
+      "delivery_paths": [
+        "es:status:crescent_cap"
+      ]
+    },
+    {
+      "id": "es:unrealium_admission",
+      "name": "Unrealium exact source veto",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "BINARY",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Exact item/type cancellation.",
+      "delivery_paths": [
+        "es:status:unrealium_admission"
+      ]
+    },
+    {
+      "id": "es:cactus_gel_cure",
+      "name": "Cactus Gel harmful-status removal",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "BINARY",
+        "VANILLA_ROUTED",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Ordinary cancellable effect removal; no HP value.",
+      "delivery_paths": [
+        "es:status:cactus_gel_cure"
+      ]
+    }
+  ],
+  "delivery_paths": [
+    {
+      "id": "es:status:crystal_tick",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "CrystalInfectionEffect.applyEffectTick -> getDamageSource(CRYSTAL_INFECTION) -> hurt(amplifier+1)",
+      "direct_entity": "null",
+      "causing_entity": "null",
+      "admission": "hurt return ignored; effect persists",
+      "runtime_variants": [
+        "native eligibility and cancellation",
+        "source identity; HP versus status/debt side effect"
+      ]
+    },
+    {
+      "id": "es:status:crystal_greatsword",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "Player.attack -> getAttackDamageBonus -> native hurt -> item.hurtEnemy -> postHurtEnemy",
+      "direct_entity": "Player",
+      "causing_entity": "Player",
+      "admission": "successful primary hurt required; remove/add effect independently admissible",
+      "runtime_variants": [
+        "native eligibility and cancellation",
+        "source identity; HP versus status/debt side effect"
+      ]
+    },
+    {
+      "id": "es:status:crystal_crossbow_arrow",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "CrystalCrossbowItem.createProjectile/shootProjectile -> AbstractArrow.tick -> ProjectileImpact -> ES crystal branch; normal onHitEntity follows",
+      "direct_entity": "arrow for ordinary HP",
+      "causing_entity": "shooter for ordinary HP",
+      "admission": "status/spawn precedes normal hurt; event cancellation ordering matters",
+      "runtime_variants": [
+        "native eligibility and cancellation",
+        "source identity; HP versus status/debt side effect"
+      ]
+    },
+    {
+      "id": "es:status:crystal_crossbow_firework",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "CrystalCrossbowItem.createProjectile -> FireworkRocketEntity.onHit -> ProjectileImpact -> ES crystal branch; ordinary explosion follows",
+      "direct_entity": "rocket for ordinary HP",
+      "causing_entity": "owner for ordinary HP",
+      "admission": "impact status independent of explosion hurt; lifetime explosion alone is not impact delivery",
+      "runtime_variants": [
+        "native eligibility and cancellation",
+        "source identity; HP versus status/debt side effect"
+      ]
+    },
+    {
+      "id": "es:status:crystal_cluster",
+      "labels": [
+        "AOE"
+      ],
+      "native_path": "server CrystalCluster.tick >5 with owner -> shouldHarm -> hurt4 -> infection120",
+      "direct_entity": "cluster",
+      "causing_entity": "Living owner",
+      "admission": "hurt must return true for infection request",
+      "runtime_variants": [
+        "native eligibility and cancellation",
+        "source identity; HP versus status/debt side effect"
+      ]
+    },
+    {
+      "id": "es:status:crystal_stew",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "FlowerBlock suspicious effects -> SuspiciousStewItem.finishUsingItem -> addEffect80/200 amp0",
+      "direct_entity": "none",
+      "causing_entity": "null effect cause",
+      "admission": "ordinary effect applicability/merge",
+      "runtime_variants": [
+        "native eligibility and cancellation",
+        "source identity; HP versus status/debt side effect"
+      ]
+    },
+    {
+      "id": "es:status:numbness_food",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "Silver Pungency Fruit -> FoodProperties -> LivingEntity.addEatEffect -> addEffect1200",
+      "direct_entity": "none",
+      "causing_entity": "null effect cause",
+      "admission": "server native food and effect admission",
+      "runtime_variants": [
+        "native eligibility and cancellation",
+        "source identity; HP versus status/debt side effect"
+      ]
+    },
+    {
+      "id": "es:status:numbness_pre",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "LivingDamageEvent.Pre -> ESCommonHandler.onModifyLivingActualHurtDamage -> debt*.75/immediate*.25",
+      "direct_entity": "original source",
+      "causing_entity": "original source",
+      "admission": "after armor/magic before absorption; debt retained independently of later HP result",
+      "runtime_variants": [
+        "native eligibility and cancellation",
+        "source identity; HP versus status/debt side effect"
+      ]
+    },
+    {
+      "id": "es:status:numbness_release",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "dirty server tickEffects -> after updateGlowingStatus -> absent effect && debt!=0 -> hurt(debt) -> clear",
+      "direct_entity": "null",
+      "causing_entity": "null",
+      "admission": "hurt result ignored; no retry",
+      "runtime_variants": [
+        "native eligibility and cancellation",
+        "source identity; HP versus status/debt side effect"
+      ]
+    },
+    {
+      "id": "es:status:crescent_cap",
+      "labels": [
+        "ARMOR_PROC"
+      ],
+      "native_path": "armor component union -> LivingDamageEvent.Pre cap>.75maxHP -> Numbness split",
+      "direct_entity": "original source",
+      "causing_entity": "original source",
+      "admission": "bypass_crescent_pendant skips cap; bypass_invulnerability max-original after debt",
+      "runtime_variants": [
+        "native eligibility and cancellation",
+        "source identity; HP versus status/debt side effect"
+      ]
+    },
+    {
+      "id": "es:status:unrealium_admission",
+      "labels": [
+        "ARMOR_PROC"
+      ],
+      "native_path": "LivingIncomingDamageEvent -> exact equipment/type check -> setCanceled",
+      "direct_entity": "original source",
+      "causing_entity": "original source",
+      "admission": "in_wall Helmet; cramming Chestplate",
+      "runtime_variants": [
+        "native eligibility and cancellation",
+        "source identity; HP versus status/debt side effect"
+      ]
+    },
+    {
+      "id": "es:status:cactus_gel_cure",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "LivingEntityMixin.eat HEAD -> snapshot nonbeneficial effects -> ordinary removeEffect",
+      "direct_entity": "none",
+      "causing_entity": "none",
+      "admission": "removal cancellation preserved; Numbness beneficial excluded",
+      "runtime_variants": [
+        "native eligibility and cancellation",
+        "source identity; HP versus status/debt side effect"
+      ]
+    }
+  ],
+  "damage_types_reviewed": [
+    "eternal_starlight:crystal_infection",
+    "eternal_starlight:numbness"
+  ],
+  "unexecuted_future_fixtures": [
+    "Crystal_DOT_amp0_1_4_finite_vs_infinite",
+    "Crystal_DOT_armor_bypass_Resistance_admission",
+    "Crystal_Greatsword_first_amp1_bonus_at4_removal_veto",
+    "Crystal_primary_vs_sweep_vs_rejected_hurt",
+    "Crystal_crossbow_arrow_piercing_firework_block_entity_impact_veto",
+    "Crystal_cluster_owner_null_unloaded_allied_PvP_and_hurtfalse",
+    "Crystal_cluster_final_discard_tick_and_cooldown",
+    "Crystal_stew80_200_vs_cactus_cure_cancel",
+    "Numbness_Pre_after_mitigation_before_absorption",
+    "Numbness_expiry_remove_hidden_effect_removal_cancel",
+    "Numbness_dirty_vs_clean_loaded_debt",
+    "Numbness_hurtfalse_clears_no_retry",
+    "Numbness_payout_second_mitigation_parent_Stage_once",
+    "Numbness_bypass_invulnerability_full_hit_plus_debt",
+    "Crescent_equipped_component_vs_inventory_duplicate_threshold_source_bypass",
+    "Unrealium_exact_type_and_exact_slot"
+  ],
+  "remaining_subsection_native_ambiguities": [],
+  "review_required": [],
+  "exact_next_task": "R2h2b: finish Eternal Starlight Starfire, Flammable/Brittle, Dream Catcher, Sticky, Teary and Oblivion status/control paths; reuse R2h2a effect/debt admission. Then remaining native combat families and all 18 DamageType caller dispositions; no runtime/Stage/production work.",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "runtime_tests": 0,
+  "whole_eternalstarlight_complete": false,
+  "promoted_mechanics": 0,
+  "promoted_paths": 0,
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false,
+  "reference_files": [
+    {
+      "file": "native-evidence/eternalstarlight-crystal-numbness.json",
+      "sha256": "f442f08b2a2bd38b26f7039c8bb196ba89a6afb9dabfd0bd12302053f8e65e7b"
+    },
+    {
+      "file": "reference-evidence/eternalstarlight-crystal-numbness-244.json",
+      "sha256": "fdc6b79fcd920bfdd9746e117f2bdcd2cfd926c186d85ef822115379e2c6df86"
+    },
+    {
+      "file": "vanilla-evidence/eternalstarlight-crystal-numbness.json",
+      "sha256": "bd8924cd586e0f97a190c8684c957f4249cbbbce218a72d8f28c7765503ac0c3"
+    },
+    {
+      "file": "reference-routing/eternalstarlight-crystal-numbness.json",
+      "sha256": "938b2492583b4e2323568a270c8a6bf113f2f03ebe7024c34b9d878d4afa14b3"
+    },
+    {
+      "file": "annotation-evidence/eternalstarlight-crystal-numbness-javap.json",
+      "sha256": "6bb0f71b1ce574d19952d8dda5947e9549995d16d46e974ace0d620385850c60"
+    },
+    {
+      "file": "annotation-evidence/eternalstarlight-crystal-numbness-javap.txt",
+      "sha256": "c6e7a2ef8e3567c86bf347f713e3e7f66a6737c406fbf4ed31fa096fd80445d2"
+    },
+    {
+      "file": "eternalstarlight-status-attachment-census.json",
+      "sha256": "581f19dcbf7a5a6591328c127d2ca00509282f410e8348a17d0d5932120ed2b2"
+    },
+    {
+      "file": "eternalstarlight-source-census.json",
+      "sha256": "80534c8eb5a86374e6ea75b4c983ae8feffb8b03ed966c93bae287919e4e9698"
+    },
+    {
+      "file": "eternalstarlight-damage-tags.json",
+      "sha256": "e3ddbb993e7c1c5842079da4173c8da218bce10c8f6bdef2b2fbc1db05ab47d3"
+    },
+    {
+      "file": "native-evidence/eternalstarlight-foundation.json",
+      "sha256": "045d7752af404af1f66900ab9f997570242268084b2aeefd9da7b32b0e90ddd8"
+    },
+    {
+      "file": "eternalstarlight-direct-compat-census.json",
+      "sha256": "0099a7492164a069e6f5eaec897ca4203fcf7cd4e7b6203c68c7e05a0232357a"
+    }
+  ]
+}
