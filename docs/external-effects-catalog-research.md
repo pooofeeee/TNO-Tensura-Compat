@@ -970,3 +970,7 @@ Undying whip controls motion without HP; owned Ghost uses its own mob_attack. Kr
 ## R2i8c — Bosses Rise Dragon armor and remaining combat equipment
 
 Dragon boots normally run the same explosion twice and still invoke the explicit pass after start cancellation. Retaliatory fireballs, player SwordWaves and saber-owned pirates reuse reviewed native payloads. [Evidence and resume point](benchmarks/external-effects-catalog/bossesrise-r2i8c-equipment-review.md).
+
+## R2i9a — Bosses Rise combat source closure
+
+All157 watched methods across802 classes have native witnesses. Arena/guardian AI melee admission is confirmed; remaining unmatched methods add no damage source. [Evidence and resume point](benchmarks/external-effects-catalog/bossesrise-r2i9a-closure-review.md).

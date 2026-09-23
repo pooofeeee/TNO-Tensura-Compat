@@ -318,6 +318,9 @@ def validate():
         if (OUT/'bossesrise-r2i8c-equipment.json').exists():
             from validate_bossesrise_equipment import validate_equipment
             assert validate_equipment()['status']=='PASS'
+        if (OUT/'bossesrise-r2i9a-closure.json').exists():
+            from validate_bossesrise_closure import validate_closure as validate_br_closure
+            assert validate_br_closure()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():
