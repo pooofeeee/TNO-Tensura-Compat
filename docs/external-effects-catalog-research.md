@@ -902,3 +902,7 @@ All spell callbacks dispositioned; one passive native Resistance crest and genui
 ## R2h7a — Eternal Starlight hazards and enchantments
 
 Separate native fire requests, true falling-block source, enchantment eligibility and weather-only Rocket trigger reviewed. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/eternalstarlight-r2h7a-hazards-enchantments-review.md).
+
+## R2h7b — Eternal Starlight remaining creature combat
+
+Native riding admission, independent explosions/clouds/summons, ownerless Golem damage, creature defenses/heals and actual melee deliveries reviewed. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/eternalstarlight-r2h7b-creatures-review.md).

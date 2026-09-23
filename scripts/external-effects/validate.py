@@ -267,6 +267,9 @@ def validate():
         if (OUT/'eternalstarlight-r2h7a-hazards-enchantments.json').exists():
             from validate_eternalstarlight_hazards import validate_hazards
             assert validate_hazards()['status']=='PASS'
+        if (OUT/'eternalstarlight-r2h7b-creatures.json').exists():
+            from validate_eternalstarlight_creatures import validate_creatures
+            assert validate_creatures()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():

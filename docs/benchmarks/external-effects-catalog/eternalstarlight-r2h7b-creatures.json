@@ -1,0 +1,721 @@
+{
+  "schema": "tno.external_effects.es_creatures.v1",
+  "checkpoint": "R2h7b-creature-combat-complete",
+  "previous_checkpoint": "R2h7a-hazards-enchantments-complete",
+  "starting_sha": "b865a91f6af1abd4ffedeed972f4635a8318d719",
+  "status": "REMAINING_CREATURE_COMBAT_SEMANTICS_COMPLETE",
+  "scope": "Remaining non-boss creature attacks, summons, admission/defenses and native healing only.",
+  "summary": "Native riding admission, independent explosions/clouds/summons, ownerless Golem damage, creature defenses/heals and actual melee deliveries reviewed.",
+  "facts": {
+    "gleech_egg": "Player native Gleech Egg use or explicitly registered dispenser spawns real projectile. Entity hit first requests native thrown(egg,owner) amount0; return ignored. Server Living victim NOT #gleech_immune creates larval Gleech, attaches before addFreshEntity, sets victim target, then requests mobAttack(victim) amount0 against Gleech, also ignored. No successful hit, shouldHarm or player owner requirement for this summon. Installed immune set Gleech/NightfallSpider/Silverfish/Spider/CaveSpider. Zero requests are native callbacks, not Stage HP. Preserve source/owner and loader admission; never replace them with damage.",
+    "gleech_attachment": "Whole-JAR attachTo caller is GleechEgg only. Server attachTo calls startRiding(victim,true), ignores return and sends ClientMount. Force bypasses canRide/canAddPassenger, but native same-vehicle, couldAcceptPassenger, cycle and NeoForge canMountEntity checks remain. rideTick invokes normal tick, zeroes motion/resets fall; after attachTicks>80 attempts stopRiding and sends ClientDismount. Native dismount event may veto: no claim guaranteed release. Larval/growth saved, attachTicks not saved. No custom life drain/heal/Poison/SHP. Attached or free Gleech uses MeleeAttackGoal and ordinary Mob.doHurtTarget; native cooldown, melee reach and LOS still gate attempts. Native Mob ATTACK_DAMAGE plus enchant modifyDamage -> mob_attack(this), hurttrue gates knockback/enchantment post/last-target. Future fixtures must measure actual mounted attack admission, not assume every riding tick damages.",
+    "creteor": "Creteor hurt activates before super even if rejected. Target/ignition also activate. Swell below80: ignition increments; otherwise target squared distance<=25 plus sensing LOS increments, else decrements, clamp0..80. Once80 there is no distance/LOS abort; noGravity and spin, upward first40, explosion after spin>80. Server explosion radius3 normal/6 powered, native MOB interaction. TinyCreteor has same swell gate but detonates without spin, radius2/3 and NONE interaction. Native creeper igniter and lightning power are legitimate distinct paths. Native explosion direct=causing=Living Creteor/TinyCreteor, so DamageSources.explosion selects player_explosion despite mob identity. Final native per-victim damage only Stage point, after exposure/radius formula; keep source tags, shield/Resistance/admission, no Stage on radius/fuse.",
+    "creteor_aftereffects": "Detonation marks dead before Level.explode, then independently copies current status effects into ownerless native AreaEffectCloud, triggerOnDeathMobEffects(KILLED), discard; Creteor additionally creates2..4 TinyCreteors only if their canSpawn config allows, inheriting powered and target, no player owner. Tiny has no split. Cloud radius2.5, radiusOnUse-.5, wait10, half native duration (600->300), radius shrinks-r/duration; no setOwner. Hurt returns from blast do not gate cloud/split/death-effect callback. Native AEC victim eligibility, reapplication and addEffect/instant-effect handling remain authoritative. No ordinary-death auto-explosion caller found; only native detonation state path. Child ordinary melee/blast reused, no separate summon damage multiplier.",
+    "aethersent_golem": "Every server20ticks stationary Golem queries AABB75 natural AethersentMeteors -> dropAndDiscard(true), a binary interception, no HP. Separately AABB50 Living type#aethersent_golem_targets (Seeker,TinyCreteor,Phantom) requests ownerless native magic8; no LOS/sphere/shouldHarm check, return ignored. Laser particles do not create laser entity. Single final magic hurt Stage point; native magic source remains ownerless. AethersentIngot interaction native heal25 and consumes1 only if actual health changes; native heal event may veto. Heal separately at final native heal once, not item count. Config HP/armor, knockback resistance1 are native defenses.",
+    "astral_golem": "Registry material attack/defense factors: installed iron1/1, deepsilver1.2/1.2, unknown/null fallback1 and IronIngot repair. Attack only if !isGolemBlocking: ATTACK_DAMAGE*material factor then native enchant modifyDamage, mob_attack(self); hurttrue gates knockback/post/last-target/sound. Incoming amount divided by material defense before super, with no explicit bypass-tag exception. Final native outgoing hurt scales once, not material factor again. Offhand native SHIELD_BLOCK action plus distant target enables blocking: threshold squared distance>=3*(bbWidth*2*bbWidth*2+targetWidth)+2. Native using/block direction/source bypass and piercing retained, no universal shield immunity. Empty checkFallDamage gives ordinary fall-check immunity. Repair material heal25 only consumes if actual HP changes, creative exempt; one final native heal scaling point.",
+    "boarwarf": "Before super hurt, causing Living aggressor alerts AstralGolems AABB30 replacing targets, even if hurt rejected; creative Player skipped. Avoid query also alerts when nearby Targeting entity targets Boarwarf or Player native credit<=-30, but only idle Golems. Native setTarget/loader change-target admission remains; no direct damage in alert. Astral incoming causing noncreative Player can change credit before hurt result; preserve existing reputation rather than Stage-scale it. Boarwarf server gameTime%40 native heal1 has no combat exclusion. Scale final native heal once. Trade/chat/storage details excluded.",
+    "luminofish": "Successful superhurt from direct Living while swell<=0 on server sets swell20 and target direct attacker. aiStep old swell==10 and target distance<3 performs ordinary melee then Poison60 amp0 regardless melee return; no extra LOS test there. Native addEffect admission remains independent of HP. Luminofish and Luminaris isInvulnerableTo exact HOT_FLOOR OR super; no explicit bypass exception in that first predicate. Both AbyssalFire immune tag already accepted. Keep projectile direct vs causing distinction: shooter is not direct Living on normal arrow hit.",
+    "snail": "ShadowSnail PANIC_CAUSES hit while hide0 sets hide1, resets transition and stops navigation BEFORE super. States1 after>20 ticks ->2, state2 after>400->3, state3 after>20->0. Only state2 divides incoming amount by8 unless source BYPASSES_INVULNERABILITY. Trigger can occur even when native hurt rejects. No additional Stage multiplier on native defense ratio/timers.",
+    "stranghoul": "Direct Living attacker with current main weapon tagged #stranghoul_vulnerable_to doubles incoming amount before super; no damage-type/bypass exception. Exact installed list deepsilver sword,pickaxe,axe,sickle. Existing Hunger/Teary immunity/ranged weapons remain prior packages. EatGoal may start on eat animation or random reducedTickDelay80 when HP/max<.4 or offhand food and damaged. Can supply tagged food when offhand not food; tick32 native heal(nutrition+saturation*3), then eats. Healing is final native heal Stage point; item nutrition/cadence unscaled. No direct HP write. Food acquisition/drop details excluded.",
+    "spider": "NightfallSpider successful super melee adds Glowing NORMAL140/HARD300, none EASY, owner=this; failed melee adds nothing. Inherited Spider rejects Poison then delegates other effects; loader/native addEffect machinery retained. Native spawn-jockey replacement of vanilla Skeleton with LonestarSkeleton preserves that already-reviewed skeleton ranged route, not new damage type. Target/passenger native admission remains.",
+    "thirst_walker": "Behavior MeleeAttackPhase20/cooldown10 performs ordinary melee at phase tick7 with horizontal reach2; actual query is TargetingConditions.DEFAULT AABB2 and actual target only. Hurttrue Living adds Hunger140*(int)effective local difficulty amp0 and raises hungerLevel by.6 intentional/.1 otherwise capped1. Intentional attempt independently stops anger/flees for100ticks even when hit false, retry movement every20. Resource decays.001 each server tick; below.3, no target and staggered1200tick interval chooses nearby Player inAABB20 and sets intentional. This resource/AI/control is native, unscaled; ordinary final mob hurt scales once.",
+    "seeker_deer": "Seeker aiStep requires alive/AI; attack geometry line5 from center at stored angle intersecting victim expanded box plus sensing LOS. At eligible movement/attack/cooldown state starts attack30/cooldown50, rechecks at attackTicks10 then ordinary Mob melee; no invented projectile. AuroraDeer charge requires target distance<=20, LOS, random1/80, HP/max>=.5 and any antler. Windup80 then captured target point navigation2; every charge goal tick including windup checks AABB+.6 for target, attacks once and ends regardless hurtreturn. While charging nearby LOGS/SNAPS_GOAT_HORN/BASE_STONE_STARLIGHT can probabilistically break antler (1/8, cooldown200), eventually preventing future charge; no block destruction or damage source from antler break. One final mob hurt Stage point, AI/geometry unchanged.",
+    "registry_and_exclusions": "EntityType.fireImmune native builders: Seeker,TheGatekeeper,StarlightGolem,Freeze,Permafrost,SolarCreeper,TearBomb. Preserve native tag-based fire handling, not blanket resistance to every visually hot custom type. Remaining entity tags pinned for whole-mod disposition. Freeze projectile and alliance/fall behavior already covered; TwilightGaze only ordinary retaliation melee, not gaze damage. ZombifiedRatlin aiStep sunlight ignites8seconds using native sun-burn check, inherits passive Ratlin goals; no fabricated hostile attack. GrimstoneGolem is AbstractGolem with panic/display goals, NOT IronGolem melee. Yeti Brain contains panic/idle/temptation/rolling, no attack activity. Ent,Ratlin,Rookfish,ShimmerLacewing ordinary passive/utility only; Lacewing empty fall check is native fall protection. StarfireBird trust removal on successful player-caused hurt is ordinary trust/avoid AI, no additional damage. Config maxHealth/armor/attack attributes retained; base numeric attacks scale at final native hurt, never both attributes and hit.",
+    "scope": "Static only. Mount, damage, healing, status/Resistance, target-change, source identity and generic Tensura/L2 interactions remain future runtime fixtures. No source fallback, direct HP/SHP edit, production/Stage changes or native eligibility bypass."
+  },
+  "mechanic_packages": [
+    {
+      "id": "es:gleech_attachment",
+      "name": "Gleech native attachment/summon",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Fixed native defense/control/resources and modifiers remain unscaled; any resulting already-reviewed HP request keeps its own final scaling.",
+      "delivery_paths": [
+        "es:creatures:egg_player",
+        "es:creatures:egg_dispenser",
+        "es:creatures:gleech"
+      ]
+    },
+    {
+      "id": "es:ordinary_creature_melee",
+      "name": "Native configured creature melee",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at final native mob_attack after attributes/enchantments.",
+      "stage_reason": "Fixed native defense/control/resources and modifiers remain unscaled; any resulting already-reviewed HP request keeps its own final scaling.",
+      "delivery_paths": [
+        "es:creatures:gleech",
+        "es:creatures:split",
+        "es:creatures:astral_melee",
+        "es:creatures:fish",
+        "es:creatures:spider",
+        "es:creatures:thirst",
+        "es:creatures:seeker",
+        "es:creatures:deer",
+        "es:creatures:twilight_gaze"
+      ]
+    },
+    {
+      "id": "es:creteor_explosion",
+      "name": "Creteor/Tiny native explosions",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once per final native explosion hurt after radius/exposure.",
+      "stage_reason": "Fixed native defense/control/resources and modifiers remain unscaled; any resulting already-reviewed HP request keeps its own final scaling.",
+      "delivery_paths": [
+        "es:creatures:creteor_fuse",
+        "es:creatures:tiny_fuse",
+        "es:creatures:igniter",
+        "es:creatures:powered",
+        "es:creatures:split"
+      ]
+    },
+    {
+      "id": "es:creteor_cloud",
+      "name": "Independent native status cloud/death-effect callback",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Fixed native defense/control/resources and modifiers remain unscaled; any resulting already-reviewed HP request keeps its own final scaling.",
+      "delivery_paths": [
+        "es:creatures:cloud"
+      ]
+    },
+    {
+      "id": "es:creteor_split",
+      "name": "Creteor native Tiny summon",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Fixed native defense/control/resources and modifiers remain unscaled; any resulting already-reviewed HP request keeps its own final scaling.",
+      "delivery_paths": [
+        "es:creatures:split"
+      ]
+    },
+    {
+      "id": "es:aethersent_golem_hp",
+      "name": "Aethersent Golem ownerless native magic",
+      "primary_classification": "VANILLA_DIRECT",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at final native magic8 hurt.",
+      "stage_reason": "Fixed native defense/control/resources and modifiers remain unscaled; any resulting already-reviewed HP request keeps its own final scaling.",
+      "delivery_paths": [
+        "es:creatures:aethersent_hp"
+      ]
+    },
+    {
+      "id": "es:aethersent_intercept",
+      "name": "Aethersent Golem natural meteor interception",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Fixed native defense/control/resources and modifiers remain unscaled; any resulting already-reviewed HP request keeps its own final scaling.",
+      "delivery_paths": [
+        "es:creatures:meteor_intercept"
+      ]
+    },
+    {
+      "id": "es:creature_heal",
+      "name": "Native Golem repair/Boarwarf regeneration/Stranghoul food healing",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at each final native heal; preserve event veto and actual-HP-change consumption.",
+      "stage_reason": "Fixed native defense/control/resources and modifiers remain unscaled; any resulting already-reviewed HP request keeps its own final scaling.",
+      "delivery_paths": [
+        "es:creatures:aethersent_heal",
+        "es:creatures:astral_repair",
+        "es:creatures:boarwarf_heal",
+        "es:creatures:stranghoul_heal"
+      ]
+    },
+    {
+      "id": "es:astral_defense",
+      "name": "Astral material defense and ordinary shield admission",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Fixed native defense/control/resources and modifiers remain unscaled; any resulting already-reviewed HP request keeps its own final scaling.",
+      "delivery_paths": [
+        "es:creatures:astral_defense"
+      ]
+    },
+    {
+      "id": "es:boarwarf_alert",
+      "name": "Boarwarf native guard targeting",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Fixed native defense/control/resources and modifiers remain unscaled; any resulting already-reviewed HP request keeps its own final scaling.",
+      "delivery_paths": [
+        "es:creatures:alert"
+      ]
+    },
+    {
+      "id": "es:fish_poison",
+      "name": "Luminofish delayed independent Poison",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Fixed native defense/control/resources and modifiers remain unscaled; any resulting already-reviewed HP request keeps its own final scaling.",
+      "delivery_paths": [
+        "es:creatures:fish"
+      ]
+    },
+    {
+      "id": "es:fish_defense",
+      "name": "Fish exact native hot-floor immunity",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Fixed native defense/control/resources and modifiers remain unscaled; any resulting already-reviewed HP request keeps its own final scaling.",
+      "delivery_paths": [
+        "es:creatures:fish_immune"
+      ]
+    },
+    {
+      "id": "es:snail_defense",
+      "name": "ShadowSnail panic/hide mitigation",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Fixed native defense/control/resources and modifiers remain unscaled; any resulting already-reviewed HP request keeps its own final scaling.",
+      "delivery_paths": [
+        "es:creatures:snail"
+      ]
+    },
+    {
+      "id": "es:stranghoul_vulnerability",
+      "name": "Stranghoul deepsilver direct-weapon vulnerability",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Fixed native defense/control/resources and modifiers remain unscaled; any resulting already-reviewed HP request keeps its own final scaling.",
+      "delivery_paths": [
+        "es:creatures:stranghoul_vulnerable"
+      ]
+    },
+    {
+      "id": "es:spider_glow",
+      "name": "NightfallSpider native Glowing",
+      "primary_classification": "VANILLA_DIRECT",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Fixed native defense/control/resources and modifiers remain unscaled; any resulting already-reviewed HP request keeps its own final scaling.",
+      "delivery_paths": [
+        "es:creatures:spider"
+      ]
+    },
+    {
+      "id": "es:spider_defense",
+      "name": "NightfallSpider inherited Poison immunity",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Fixed native defense/control/resources and modifiers remain unscaled; any resulting already-reviewed HP request keeps its own final scaling.",
+      "delivery_paths": [
+        "es:creatures:spider_immune"
+      ]
+    },
+    {
+      "id": "es:thirst_resource",
+      "name": "ThirstWalker native Hunger and intentional flee resource",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Fixed native defense/control/resources and modifiers remain unscaled; any resulting already-reviewed HP request keeps its own final scaling.",
+      "delivery_paths": [
+        "es:creatures:thirst"
+      ]
+    },
+    {
+      "id": "es:native_creature_traits",
+      "name": "Native fire/fall traits and sunlight ignition",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Fixed native defense/control/resources and modifiers remain unscaled; any resulting already-reviewed HP request keeps its own final scaling.",
+      "delivery_paths": [
+        "es:creatures:fire_traits",
+        "es:creatures:astral_defense"
+      ]
+    }
+  ],
+  "delivery_paths": [
+    {
+      "id": "es:creatures:egg_player",
+      "labels": [
+        "THROWN_PROJECTILE"
+      ],
+      "native_path": "Player native Egg -> independent summon/zero-hit",
+      "runtime_variants": [
+        "native ownership/direct vs causing entity",
+        "hurt-return and independent admission preserved"
+      ]
+    },
+    {
+      "id": "es:creatures:egg_dispenser",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "registered ownerless dispenser Egg -> same summon",
+      "runtime_variants": [
+        "native ownership/direct vs causing entity",
+        "hurt-return and independent admission preserved"
+      ]
+    },
+    {
+      "id": "es:creatures:gleech",
+      "labels": [
+        "MOB_ATTACK"
+      ],
+      "native_path": "mounted/free Gleech native melee reach/LOS",
+      "runtime_variants": [
+        "native ownership/direct vs causing entity",
+        "hurt-return and independent admission preserved"
+      ]
+    },
+    {
+      "id": "es:creatures:creteor_fuse",
+      "labels": [
+        "EXPLOSION"
+      ],
+      "native_path": "Creteor proximity/LOS swell -> spin -> native MOB blast",
+      "runtime_variants": [
+        "native ownership/direct vs causing entity",
+        "hurt-return and independent admission preserved"
+      ]
+    },
+    {
+      "id": "es:creatures:tiny_fuse",
+      "labels": [
+        "EXPLOSION"
+      ],
+      "native_path": "Tiny proximity/LOS swell -> native NONE blast",
+      "runtime_variants": [
+        "native ownership/direct vs causing entity",
+        "hurt-return and independent admission preserved"
+      ]
+    },
+    {
+      "id": "es:creatures:igniter",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "native creeper igniter -> fixed fuse",
+      "runtime_variants": [
+        "native ownership/direct vs causing entity",
+        "hurt-return and independent admission preserved"
+      ]
+    },
+    {
+      "id": "es:creatures:powered",
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "native_path": "native lightning -> powered blast sizes",
+      "runtime_variants": [
+        "native ownership/direct vs causing entity",
+        "hurt-return and independent admission preserved"
+      ]
+    },
+    {
+      "id": "es:creatures:cloud",
+      "labels": [
+        "AOE"
+      ],
+      "native_path": "copied native status ownerless lingering cloud",
+      "runtime_variants": [
+        "native ownership/direct vs causing entity",
+        "hurt-return and independent admission preserved"
+      ]
+    },
+    {
+      "id": "es:creatures:split",
+      "labels": [
+        "SUMMONED_ATTACK"
+      ],
+      "native_path": "Creteor ->2..4 independently attacking TinyCreteor",
+      "runtime_variants": [
+        "native ownership/direct vs causing entity",
+        "hurt-return and independent admission preserved"
+      ]
+    },
+    {
+      "id": "es:creatures:aethersent_hp",
+      "labels": [
+        "MOB_ATTACK"
+      ],
+      "native_path": "Golem native ownerless magic8 tagged targets",
+      "runtime_variants": [
+        "native ownership/direct vs causing entity",
+        "hurt-return and independent admission preserved"
+      ]
+    },
+    {
+      "id": "es:creatures:meteor_intercept",
+      "labels": [
+        "PASSIVE_AURA"
+      ],
+      "native_path": "natural meteor binary interception",
+      "runtime_variants": [
+        "native ownership/direct vs causing entity",
+        "hurt-return and independent admission preserved"
+      ]
+    },
+    {
+      "id": "es:creatures:aethersent_heal",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "AethersentIngot actual native heal25",
+      "runtime_variants": [
+        "native ownership/direct vs causing entity",
+        "hurt-return and independent admission preserved"
+      ]
+    },
+    {
+      "id": "es:creatures:astral_melee",
+      "labels": [
+        "MOB_ATTACK"
+      ],
+      "native_path": "Astral material factor then enchanted mob_attack",
+      "runtime_variants": [
+        "native ownership/direct vs causing entity",
+        "hurt-return and independent admission preserved"
+      ]
+    },
+    {
+      "id": "es:creatures:astral_defense",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "material divisor plus genuine offhand native blocking/fall",
+      "runtime_variants": [
+        "native ownership/direct vs causing entity",
+        "hurt-return and independent admission preserved"
+      ]
+    },
+    {
+      "id": "es:creatures:astral_repair",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "native material repair heal25",
+      "runtime_variants": [
+        "native ownership/direct vs causing entity",
+        "hurt-return and independent admission preserved"
+      ]
+    },
+    {
+      "id": "es:creatures:alert",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Boarwarf harm/reputation -> Golem target selection",
+      "runtime_variants": [
+        "native ownership/direct vs causing entity",
+        "hurt-return and independent admission preserved"
+      ]
+    },
+    {
+      "id": "es:creatures:boarwarf_heal",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "server40tick native heal1",
+      "runtime_variants": [
+        "native ownership/direct vs causing entity",
+        "hurt-return and independent admission preserved"
+      ]
+    },
+    {
+      "id": "es:creatures:fish",
+      "labels": [
+        "MOB_ATTACK"
+      ],
+      "native_path": "direct-Living hurt -> delayed melee plus independent Poison",
+      "runtime_variants": [
+        "native ownership/direct vs causing entity",
+        "hurt-return and independent admission preserved"
+      ]
+    },
+    {
+      "id": "es:creatures:fish_immune",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "exact hot_floor and accepted AbyssalFire exclusions",
+      "runtime_variants": [
+        "native ownership/direct vs causing entity",
+        "hurt-return and independent admission preserved"
+      ]
+    },
+    {
+      "id": "es:creatures:snail",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "panic trigger plus hide2 damage divisor",
+      "runtime_variants": [
+        "native ownership/direct vs causing entity",
+        "hurt-return and independent admission preserved"
+      ]
+    },
+    {
+      "id": "es:creatures:stranghoul_vulnerable",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "direct-Living tagged deepsilver vulnerability",
+      "runtime_variants": [
+        "native ownership/direct vs causing entity",
+        "hurt-return and independent admission preserved"
+      ]
+    },
+    {
+      "id": "es:creatures:stranghoul_heal",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "native EatGoal tick32 heal",
+      "runtime_variants": [
+        "native ownership/direct vs causing entity",
+        "hurt-return and independent admission preserved"
+      ]
+    },
+    {
+      "id": "es:creatures:spider",
+      "labels": [
+        "MOB_ATTACK"
+      ],
+      "native_path": "native melee hurttrue -> difficulty Glowing",
+      "runtime_variants": [
+        "native ownership/direct vs causing entity",
+        "hurt-return and independent admission preserved"
+      ]
+    },
+    {
+      "id": "es:creatures:spider_immune",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "inherited Poison rejection",
+      "runtime_variants": [
+        "native ownership/direct vs causing entity",
+        "hurt-return and independent admission preserved"
+      ]
+    },
+    {
+      "id": "es:creatures:thirst",
+      "labels": [
+        "MOB_ATTACK"
+      ],
+      "native_path": "phase7 melee, hurttrue Hunger/resource; intentional flee independent",
+      "runtime_variants": [
+        "native ownership/direct vs causing entity",
+        "hurt-return and independent admission preserved"
+      ]
+    },
+    {
+      "id": "es:creatures:seeker",
+      "labels": [
+        "MOB_ATTACK"
+      ],
+      "native_path": "line/LOS timed native melee",
+      "runtime_variants": [
+        "native ownership/direct vs causing entity",
+        "hurt-return and independent admission preserved"
+      ]
+    },
+    {
+      "id": "es:creatures:deer",
+      "labels": [
+        "MOB_ATTACK"
+      ],
+      "native_path": "antler/health admitted charge native contact melee",
+      "runtime_variants": [
+        "native ownership/direct vs causing entity",
+        "hurt-return and independent admission preserved"
+      ]
+    },
+    {
+      "id": "es:creatures:twilight_gaze",
+      "labels": [
+        "MOB_ATTACK"
+      ],
+      "native_path": "ordinary retaliation melee",
+      "runtime_variants": [
+        "native ownership/direct vs causing entity",
+        "hurt-return and independent admission preserved"
+      ]
+    },
+    {
+      "id": "es:creatures:fire_traits",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "native entity builder fire immunity and Ratlin sunlight fire",
+      "runtime_variants": [
+        "native ownership/direct vs causing entity",
+        "hurt-return and independent admission preserved"
+      ]
+    }
+  ],
+  "damage_types_newly_reviewed": [],
+  "unexecuted_future_fixtures": [
+    "Gleech_Player_dispenser_immunity_mount_veto_dismount_veto_no_false_HP",
+    "mounted_Gleech_actual_melee_reach_LOS_and_native_target",
+    "Creteor_Tiny_normal_powered_igniter_LOS_abort_before80_and_split_config",
+    "blast_rejected_status_cloud_split_still_independent_ownerless_AEC",
+    "Aethersent_tagged_vs_untagged_LOS_ownerless_magic_meteor_natural_only",
+    "Astral_iron_deepsilver_null_material_shield_front_bypass_pierce_repair_veto",
+    "Boarwarf_rejected_hurt_guard_alert_creative_reputation_and_heal",
+    "Luminofish_direct_melee_vs_arrow_owner_Poison_even_melee_rejected",
+    "Snail_hide_phase_bypass_panic_rejected_trigger",
+    "Stranghoul_tagged_direct_weapon_not_projectile_food_heal_veto",
+    "Spider_Glow_hurttrue_difficulty_and_Poison_admission",
+    "ThirstWalker_failed_intentional_flee_vs_success_Hunger_resource",
+    "Seeker_line_LOS_delayed_hit_Deer_windup_contact_antler_loss",
+    "registry_fire_immunity_vs_visually_hot_custom_types"
+  ],
+  "review_required": [],
+  "remaining_subsection_native_ambiguities": [],
+  "exact_next_task": "R2h8: finish whole-JAR combat caller/disposition coverage (all18 DamageTypes, remaining handlers/mixins/items/entity defenses), deduplicate/promote ES and full validation. Then Bosses Rise static research automatically while usage remains healthy.",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "runtime_tests": 0,
+  "whole_eternalstarlight_complete": false,
+  "promoted_mechanics": 0,
+  "promoted_paths": 0,
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false,
+  "reference_files": [
+    {
+      "file": "native-evidence/eternalstarlight-creatures.json",
+      "sha256": "58d870a33e820d1e411938454ad3936d4c795be97e9352451d2bd59bfd601784"
+    },
+    {
+      "file": "eternalstarlight-creatures-census.json",
+      "sha256": "973c12d920791b63cb17b2702dfbf39ef82c70b04b0442be64ea2b01ff12dc92"
+    },
+    {
+      "file": "reference-evidence/eternalstarlight-creatures-244.json",
+      "sha256": "2d55f5cbaf83ff1af94cdbfca14c6f99b7907051dcd895f347c621c1bf132bf8"
+    },
+    {
+      "file": "vanilla-evidence/eternalstarlight-creatures.json",
+      "sha256": "84d194116051da1d52bd5428a2b148d5283c01732d56e2df8fedf90d3f43820f"
+    },
+    {
+      "file": "reference-routing/eternalstarlight-creatures.json",
+      "sha256": "3003dbd1ae5346823a7dc6cfb949673587bf8d786d61f30d103173be0fabddd2"
+    },
+    {
+      "file": "native-evidence/eternalstarlight-native-ammo.json",
+      "sha256": "9a85914134b665444da4285592f2e82e4a19d8b258c2c0a516168ee56b874e3a"
+    },
+    {
+      "file": "native-evidence/eternalstarlight-golems.json",
+      "sha256": "9963f6e1c3237238d45dbed511359e83e9e1545bc19f9a36c8f90d4d1cece131"
+    },
+    {
+      "file": "reference-evidence/eternalstarlight-status-control-244.json",
+      "sha256": "04a82c87e74245062e84520d044acc7b8099922c42e310861edf65f92895eaed"
+    }
+  ]
+}
