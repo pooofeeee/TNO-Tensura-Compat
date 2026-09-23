@@ -1,0 +1,556 @@
+{
+  "schema": "tno.external_effects.bossesrise_sandworm.v1",
+  "checkpoint": "R2i6-bossesrise-sandworm-complete",
+  "previous_checkpoint": "R2i5b-bossesrise-yeti-offense-complete",
+  "starting_sha": "2a8e5a48303dc777b5ae830e727856260884d0b0",
+  "status": "SANDWORM_COMBAT_SEMANTICS_COMPLETE",
+  "scope": "Sandworm multipart defense, native state attacks, spit/poison and sand column; player gauntlet delivery reserved for equipment.",
+  "summary": "Sandworm segment resource measures real HP loss; direct-source equality can retaliate without an attacker. Body controls and poison hazards are independent of hurt success, while columns push allies before rejecting HP damage.",
+  "facts": {
+    "multipart_admission": "Sixteen native parts use server animation bone positions; part0 dimensions4.5x4.5, others4x4. Parent ordinary hurt rejects client and routes to part1. Part hurt forwards original source to parent and does not apply a second HP pipeline. Sandworm part overload first multiplies incoming amount by1.3 if that segment bit is damaged, rejects result<.01, then invokes inherited hurt through reallyHurt. Only a true result accumulates max(previousHP-currentHP,0) into one GLOBAL recentDamage resource, not one per segment. At>=25 it damages the currently hit segment and resets resource0; otherwise sets reset timer60. Server timer expiry clears the resource. Threshold uses actual net HP loss, including shared lethal restoration. Already-damaged segments can consume another25 threshold; no extra armor stack. Incoming reduction/bonus/resource are native defenses, never a second Stage multiplier.",
+    "retaliation": "After successful inherited hurt and segment update, damaged current segment plus source.isDirect plus absence of BYPASSES_INVULNERABILITY launches spit from that part toward source.directEntity. DamageSource.isDirect means causingEntity==directEntity, including null==null; it is NOT a physical DamageType test and does not require a Living attacker. Thus an admitted ownerless environmental source can launch untargeted retaliation. A normal owned arrow has different direct/causing entities and fails this condition. A hit that first breaks a segment can immediately retaliate. Hurt false does neither accumulation nor retaliation. Preserve source identity and native event ordering.",
+    "defenses": "isInvulnerableTo rejects exact FALL, CACTUS, neoforge:poison and LAVA before inherited checks, even with bypass tag. It does not reject all poison-tagged, fire, magic, projectile or hidden-state damage. Tick removes POISON effect; lavaHurt and knockback are empty, isPushable/isInWall/isAffectedByFluids false, noPhysics/noGravity true. Registration is NOT fireImmune; hidden fire rendering is cosmetic. Hidden parent/parts are not pickable/attackable and do not block building, but hurt contains no hidden predicate. isInvulnerable returns true in active DYING; inherited Entity.isInvulnerableTo reads the backing invulnerable field rather than this virtual getter, then invokes Neo invulnerability hook. Do not claim general DYING HP immunity from that getter. Callers such as SandColumn explicitly use it and do reject DYING targets.",
+    "underground_and_persistence": "applyUndergroundEffects clears damaged segment bits, clears fire, removes the frost MOVEMENT_SPEED modifier and refills air. It does not heal HP or clear ticksFrozen. Recent damage/timer are saved separately when positive and restored only when both tags exist; home and75/50/25 flags are saved, flags read when BossPhase exists. Damaged bits and hidden flag are not saved by Sandworm or its generic parent; they restart defaults while the state stack/timer and HP persist. Native state resumption therefore needs a reload fixture. Part entities are not independently saved. No fabricated save tags are proposed.",
+    "phase_death": "Base HP150/armor20/attack10; finalizeSpawn config defaults HP200/armor20/attack10 and full HP. Nonstructure shows bar; patrol is selected by phase-1. Player target starts fight: stack is dive_start, earthquake_approach, intro in execution order. Intro unhides, clears underground effects, sets phase0; each tick through200 reapplies configured attributes but does not refill HP. chooseAttackState uses actual current HP ratio: first unused75%, then50%, then25% gate; one selection per call. Otherwise nearby target within8+random*8 chooses40% screech/60% dive, or weighted phase pool by int(ratio*4). No HP threshold clamps or healing. Shared AbstractStateBoss lethal restoration runs after normal actual damage/Post and excludes BYPASSES_INVULNERABILITY. First shouldCancelDeath schedules DYING and phase1, later returns true until active DEAD. It can finish current dive/earthquake exit or push emergence before death. DYING through timer98 has cosmetic impacts only; onEnd selects DEAD, whose endAfter300 invokes shared simulatePlayerKill PLAYER_ATTACK999 with resolved source and ignored return. This terminal request is scripted, not a scalable combat payload; normal native rejection/mitigation remains relevant.",
+    "state_delivery": "Native StateGoal ticks the controller every AI tick. ActiveState starts timer-1, increments then runs onStart at0 and onTick. onTickFor calls its callback before ending at timer>=limit; endAfter ends at>=limit. Stack push adds first; StateSequence pushes its next child and ticks it immediately. Controller ends an END result only when the original state is still first. This proves real attack delivery without invoking helpers directly. Server animation positions feed multipart boxes and attack bone lines. Intro, warnings, camera shake and death particles carry no extra damage. Patrol dive/emerge can also execute the same native strike callbacks before phase0; they are not silently treated as combat-phase-only.",
+    "body_geometry": "attackCollidingEntities collects Living targets in each line AABB inflated(maxDistance+2), excludes self and creative/spectator, with no team or LOS check. Projects victim box center onto each finite line. Modifier=1-max((distanceFromLine-2)/maxDistance,0); only positive values, at most1. Each invocation deduplicates by victim and keeps greatest modifier across lines. First SpatialUtil push uses direction*maxDistance*modifier with projection limit2, then shared attackEntity(maxDamageScale*modifier) requests mob_attack based on ATTACK_DAMAGE and native enchantment modification. Boolean is ignored and optional effect/control callback always follows. Scale only the final native hurt amount once, never both parent/helper or raw attribute. Ordinary body contact selects greatest part overlap, then pushes server nonplayers or client players via XOR side predicate, projection limit.3; no HP payload from passive contact.",
+    "body_attack_schedule": "DIVE_START timer9 uses anchor parts0->3, maxDistance2, scale.8. At>=30 hides, clears underground effects and performs terrain-selected dive teleport; hidden movement can teleport to target at distanceSquared<4, then snaps to ground. Warning lasts5 while hidden; emergence unhides onStart, timer3 strikes vertical posY-2->+4, maxDistance1.5, scale1.5, then independent upward1.6*modifier push. BITE timer33 of state60 uses three lines anchors0->2,2->5,5->8, maxDistance2, scale1; independently adds POISON amplifier1 duration int(modifier*200) and horizontal outward1.5*modifier push. EARTHQUAKE_SLAM_EMERGE timer22 of70 strikes vertical posY0->+2 maxDistance1.5 scale.25. EARTHQUAKE_SLAM timers28/85/127/151 of176 strikes body12_fx->body16_fx maxDistance8 scale1, independently emitting columns. No hurt-return gate on bite poison, pushes or column emission. Damage cancellation need not cancel these controls/effects.",
+    "column_producers": "CHASE_CHARGE (ends timer>40 or overshoot<=-20) moves at speed4 and emits delay0 columns every6 ticks in forward window(-10,15) with native target-distance exclusions, or once crossing forward distance.5 toward target; offset toward target is capped1. Earthquake each of four slam frames emits21 candidate grid points x,z=-2..2 with x*x+z*z<=5. Targeted spacing4/jitter±1; without target random center within30, spacing10/jitter±4; central cell no jitter. Delay20+gridDistanceSquared, noncentral silent. Terrain spawn ray is COLLIDER/Fluid.NONE from candidateY+6 toY-8; MISS produces no entity, so84 is candidate count, not guaranteed spawned count. Both genuine boss routes pass Sandworm owner. Whole-JAR census also finds SandwormGauntlet producers, reserved for equipment; do not count them as reviewed boss attacks.",
+    "column_payload": "SandColumn dimensions1.8x3, fireImmune, one pulse. Tick captures old delay then decrements: old0 starts eruption, old-2 scans its own AABB for Living, <=-15 discards. Server runs this; client can execute mirrored callbacks once DATA_ERUPTING true, without authority to certify server HP. damageEntity requires alive and !target.isInvulnerable, excludes resolved owner, then raw pushes normalized victim-column vector with Y scaled.2 plus1.4 BEFORE alliance/damage result. Resolved owner allied target receives push but no hurt. Nonallied owner route requests indirect_magic5 direct column/causing owner; hurttrue plus server gates enchantment post effects. Unresolved/null owner route requests ownerless magic5, ignores result and has no enchantment post callback. Owner UUID lowercase and delay persist; unresolved owner is a legitimate reload/lifetime alternative, not a synthesized fallback. No LOS or distance attenuation beyond box. Stage once at this native hurt; no scaling of impulse/delay.",
+    "spit_and_hazard": "Boss POISON_SPIT state40 independently attempts launch at timers17..20 with probability.75, from part0 using current target only for speed; retaliation aims toward direct entity. Native server constructor sets owner Sandworm, baseDamage5, silent, no knockback setter (default0). Speed target-null3 else boss.distanceTo(target)*.045; direction normalized toward target only for retaliation, otherwise boss look; shoot vector(x*.3,.2,z*.3), inaccuracy20. AbstractArrow supplies physical arrow source direct spit/causing owner and ceil(speed*base) with native enchantment/admission pipeline. onHitEntity calls super then spawns PoisonArea irrespective of hurt result; block impact also creates area. Event subscriber unwraps Neo PartEntity to parent and cancels impact on projectile owner, preventing both impact payloads there. Native projectile impact/PvP/deflection still apply. Area placement traces down20 COLLIDER/Fluid.ANY, uses hit location or original on MISS, adds tiny Y offset; creation does not transfer owner and discards spit. Protected arrow reference covers failed-hit ricochet/fire restoration and hurttrue secondary processing; area remains an independent callback. Gauntlet uses a genuine static shoot helper; its firing cost/input/values remain equipment work, not a dormant path claim.",
+    "poison_effect": "PoisonArea dimensions2.7x.3, stationary, default130 lifetime saved. Server scans touching Living; requires isAffectedByPotions (base implementation !deadOrDying) and absence from local victim cache. Cache expiry tick+20 is written BEFORE addEffect POISON100 amplifier1, so vetoed applications still throttle retry; cache not saved. No owner/team/LOS exclusion and no direct HP request. Bite poison does not use this area/cache or potion-eligibility test. Both still use native addEffect/Neo Applicable, immunity tags and merge rules; Roll veto remains. Installed PoisonMobEffect requests ownerless neoforge:poison1 if current HP>1, falling back to magic only when native registry holder absent. Interval25>>amplifier, hence12 for amp1; result ignored, no directly sourced owner. Base payload has the HP>1 admission predicate but no postdamage clamp: fractional HP just above1 can go below1, and future scaling could make it lethal. Future Stage point is only the eventual native tick hurt, with proven external-effect origin; duration/amplifier/application and tick must not all be scaled. Provenance/merge policy needs design before any implementation, not fabricated attribution.",
+    "screech": "SCREECH state100, timers17..79, calls shared nearby helper with full-side64 AABB and NO_SPECTATORS, excludes self, then Living and distance<=64. Creative Living players remain eligible. XZ normalized outward force uses clampedMap(distance0..20,.3.. .15), Spatial push projection limit2. No hurt or MobEffect, no Stage numeric payload. Body passive contact and screech are control mechanics, not damage or standard resistance-aware Living knockback.",
+    "source_compatibility": "Pinned tag closure: mob_attack and arrow are Neo physical; only arrow is projectile. magic, indirect_magic and neoforge:poison are Neo magic and bypass armor/shield; indirect_magic is not projectile and lacks no_knockback, whereas magic/poison have it. Poison has neoforge:is_poison. None of these five bypasses effects, Resistance, enchantments, invulnerability or cooldown. Native event/source identity must survive integration; raw/Spatial pushes, effect application and hurt-return callbacks have separate admission from HP. Static cross-mod name scan is not Tensura/L2 runtime certification. Generic event veto, source-specific Resistance/Nullification, poison immunity and Roll cases remain unexecuted fixtures.",
+    "scope": "Sandworm boss, native part admission, scheduled payloads and shared hazard semantics are complete. Cosmetic animation/audio/dust, loot/progression, camera shake, danger visualization and terrain art are excluded after checking for combat callbacks. Server bone transforms remain relevant only as attack geometry. Player Sandworm Gauntlet acquisition is excluded; its real combat delivery is reserved for equipment. Whole Bosses Rise is PARTIAL. No runtime, Stage or production changes."
+  },
+  "mechanic_packages": [
+    {
+      "id": "br:sandworm_segments",
+      "name": "Sandworm multipart damage and retaliation resource",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native admission/resources, incoming modifier, scripted defeat, effect delivery or control; no additional scalable HP request here.",
+      "delivery_paths": [
+        "br:sandworm:part",
+        "br:sandworm:retaliation"
+      ]
+    },
+    {
+      "id": "br:sandworm_defenses",
+      "name": "Sandworm native source, hidden and reload defenses",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native admission/resources, incoming modifier, scripted defeat, effect delivery or control; no additional scalable HP request here.",
+      "delivery_paths": [
+        "br:sandworm:hidden",
+        "br:sandworm:reload"
+      ]
+    },
+    {
+      "id": "br:sandworm_phase",
+      "name": "Sandworm native phase and death sequence",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native admission/resources, incoming modifier, scripted defeat, effect delivery or control; no additional scalable HP request here.",
+      "delivery_paths": [
+        "br:sandworm:phase",
+        "br:sandworm:death"
+      ]
+    },
+    {
+      "id": "br:sandworm_contact",
+      "name": "Sandworm passive part collision control",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native admission/resources, incoming modifier, scripted defeat, effect delivery or control; no additional scalable HP request here.",
+      "delivery_paths": [
+        "br:sandworm:contact"
+      ]
+    },
+    {
+      "id": "br:sandworm_body",
+      "name": "Sandworm native scheduled body damage and independent controls",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Shared attackEntity final native mob_attack hurt amount after distance/attack/enchantment factors; only once.",
+      "stage_reason": "Scale only the native outgoing HP request, preserve separate effect/control/admission.",
+      "delivery_paths": [
+        "br:sandworm:dive_start",
+        "br:sandworm:emerge",
+        "br:sandworm:bite",
+        "br:sandworm:quake_emerge",
+        "br:sandworm:quake_slam"
+      ]
+    },
+    {
+      "id": "br:sandworm_column",
+      "name": "Sandworm native sand column damage and push",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "SandColumn.damageEntity native hurt5 after eligibility and with its resolved magic/indirect_magic source; only once.",
+      "stage_reason": "Scale only the native outgoing HP request, preserve separate effect/control/admission.",
+      "delivery_paths": [
+        "br:sandworm:chase_column",
+        "br:sandworm:quake_column",
+        "br:sandworm:column_owned",
+        "br:sandworm:column_unresolved"
+      ]
+    },
+    {
+      "id": "br:sandworm_spit",
+      "name": "Sandworm native spit arrow impact",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "AbstractArrow final native arrow hurt amount after speed/base/enchantment calculation for genuine spit; never also scale baseDamage.",
+      "stage_reason": "Scale only the native outgoing HP request, preserve separate effect/control/admission.",
+      "delivery_paths": [
+        "br:sandworm:retaliation",
+        "br:sandworm:spit_scheduled",
+        "br:sandworm:spit_entity",
+        "br:sandworm:spit_block"
+      ]
+    },
+    {
+      "id": "br:sandworm_poison_delivery",
+      "name": "Sandworm poison applications and hazard admission",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native admission/resources, incoming modifier, scripted defeat, effect delivery or control; no additional scalable HP request here.",
+      "delivery_paths": [
+        "br:sandworm:poison_area",
+        "br:sandworm:poison_bite"
+      ]
+    },
+    {
+      "id": "br:sandworm_poison_tick",
+      "name": "Sandworm-origin native poison HP ticks",
+      "primary_classification": "VANILLA_DIRECT",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Native PoisonMobEffect hurt1 only with proven external-effect provenance and native HP>1 gate; no application/duration/amplifier scaling.",
+      "stage_reason": "Scale only the native outgoing HP request, preserve separate effect/control/admission.",
+      "delivery_paths": [
+        "br:sandworm:poison_tick"
+      ]
+    },
+    {
+      "id": "br:sandworm_screech",
+      "name": "Sandworm native screech control",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native admission/resources, incoming modifier, scripted defeat, effect delivery or control; no additional scalable HP request here.",
+      "delivery_paths": [
+        "br:sandworm:screech"
+      ]
+    }
+  ],
+  "delivery_paths": [
+    {
+      "id": "br:sandworm:part",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native parent/part admission, damaged-segment multiplier and actual HP resource",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native producer, source and admission preserved",
+        "Independent HP/effect/control results and native save/load where relevant"
+      ]
+    },
+    {
+      "id": "br:sandworm:retaliation",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "Successful direct hit on damaged segment launches aimed spit",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native producer, source and admission preserved",
+        "Independent HP/effect/control results and native save/load where relevant"
+      ]
+    },
+    {
+      "id": "br:sandworm:hidden",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Hidden pickability versus actual hurt, exact source and DYING getter admission",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native producer, source and admission preserved",
+        "Independent HP/effect/control results and native save/load where relevant"
+      ]
+    },
+    {
+      "id": "br:sandworm:reload",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native saved state/recent damage with reset hidden/segment defaults",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native producer, source and admission preserved",
+        "Independent HP/effect/control results and native save/load where relevant"
+      ]
+    },
+    {
+      "id": "br:sandworm:phase",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Patrol Player trigger, intro attributes and actual HP pattern gates",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native producer, source and admission preserved",
+        "Independent HP/effect/control results and native save/load where relevant"
+      ]
+    },
+    {
+      "id": "br:sandworm:death",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Shared post-damage lethal restoration through emergence/DYING/DEAD",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native producer, source and admission preserved",
+        "Independent HP/effect/control results and native save/load where relevant"
+      ]
+    },
+    {
+      "id": "br:sandworm:contact",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Passive overlapping part push, no HP",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native producer, source and admission preserved",
+        "Independent HP/effect/control results and native save/load where relevant"
+      ]
+    },
+    {
+      "id": "br:sandworm:dive_start",
+      "labels": [
+        "BOSS_ATTACK"
+      ],
+      "native_path": "Native dive timer9 line attack, including patrol route",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native producer, source and admission preserved",
+        "Independent HP/effect/control results and native save/load where relevant"
+      ]
+    },
+    {
+      "id": "br:sandworm:emerge",
+      "labels": [
+        "BOSS_ATTACK"
+      ],
+      "native_path": "Native emergence timer3 line damage and independent upward push",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native producer, source and admission preserved",
+        "Independent HP/effect/control results and native save/load where relevant"
+      ]
+    },
+    {
+      "id": "br:sandworm:bite",
+      "labels": [
+        "BOSS_ATTACK"
+      ],
+      "native_path": "Native bite timer33 line damage plus independent poison/push",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native producer, source and admission preserved",
+        "Independent HP/effect/control results and native save/load where relevant"
+      ]
+    },
+    {
+      "id": "br:sandworm:quake_emerge",
+      "labels": [
+        "BOSS_ATTACK"
+      ],
+      "native_path": "Earthquake emergence timer22 line attack",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native producer, source and admission preserved",
+        "Independent HP/effect/control results and native save/load where relevant"
+      ]
+    },
+    {
+      "id": "br:sandworm:quake_slam",
+      "labels": [
+        "BOSS_ATTACK"
+      ],
+      "native_path": "Four native body slam frames with independent columns",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native producer, source and admission preserved",
+        "Independent HP/effect/control results and native save/load where relevant"
+      ]
+    },
+    {
+      "id": "br:sandworm:chase_column",
+      "labels": [
+        "AOE"
+      ],
+      "native_path": "Native charge terrain-selected delay0 column",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native producer, source and admission preserved",
+        "Independent HP/effect/control results and native save/load where relevant"
+      ]
+    },
+    {
+      "id": "br:sandworm:quake_column",
+      "labels": [
+        "AOE"
+      ],
+      "native_path": "Four native21-candidate terrain grids with staggered delay",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native producer, source and admission preserved",
+        "Independent HP/effect/control results and native save/load where relevant"
+      ]
+    },
+    {
+      "id": "br:sandworm:column_owned",
+      "labels": [
+        "AOE"
+      ],
+      "native_path": "Column alive/invulnerable/owner/ally gates, indirect_magic5",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native producer, source and admission preserved",
+        "Independent HP/effect/control results and native save/load where relevant"
+      ]
+    },
+    {
+      "id": "br:sandworm:column_unresolved",
+      "labels": [
+        "AOE"
+      ],
+      "native_path": "Native unresolved saved owner -> magic5",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native producer, source and admission preserved",
+        "Independent HP/effect/control results and native save/load where relevant"
+      ]
+    },
+    {
+      "id": "br:sandworm:spit_scheduled",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "Four probabilistic native head spit launch frames",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native producer, source and admission preserved",
+        "Independent HP/effect/control results and native save/load where relevant"
+      ]
+    },
+    {
+      "id": "br:sandworm:spit_entity",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "Native arrow entity impact, then independently create poison area",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native producer, source and admission preserved",
+        "Independent HP/effect/control results and native save/load where relevant"
+      ]
+    },
+    {
+      "id": "br:sandworm:spit_block",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "Native block impact creates poison area",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native producer, source and admission preserved",
+        "Independent HP/effect/control results and native save/load where relevant"
+      ]
+    },
+    {
+      "id": "br:sandworm:poison_area",
+      "labels": [
+        "AOE"
+      ],
+      "native_path": "Area touching/potion eligibility and20tick cache -> POISON100amp1",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native producer, source and admission preserved",
+        "Independent HP/effect/control results and native save/load where relevant"
+      ]
+    },
+    {
+      "id": "br:sandworm:poison_bite",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "Bite callback -> POISON int(modifier*200) amp1 independent HP result",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native producer, source and admission preserved",
+        "Independent HP/effect/control results and native save/load where relevant"
+      ]
+    },
+    {
+      "id": "br:sandworm:poison_tick",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native accepted/merged poison ticks -> neoforge:poison1 at HP>1",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native producer, source and admission preserved",
+        "Independent HP/effect/control results and native save/load where relevant"
+      ]
+    },
+    {
+      "id": "br:sandworm:screech",
+      "labels": [
+        "AOE"
+      ],
+      "native_path": "Native63-frame eligible outward push without HP",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native producer, source and admission preserved",
+        "Independent HP/effect/control results and native save/load where relevant"
+      ]
+    }
+  ],
+  "unexecuted_future_fixtures": [
+    "parent_vs_each_native_part_single_HP_route",
+    "25_net_HP_global_resource_60tick_expiry_and_first_break_retaliation",
+    "direct_entity_equals_causing_including_ownerless_vs_owned_projectile",
+    "hidden_pickability_vs_direct_native_hazard_admission",
+    "DYING_virtual_invulnerable_vs_backingfield_and_column_caller",
+    "exact_poison_vs_tag_other_source_immunity",
+    "native_patrol_intro_config_and_gate75_50_25_order",
+    "shared_postevent_lethal_restore_emerge_dying_dead_scriptedkill",
+    "native_reload_state_stack_hidden_bits_recent_damage",
+    "line_geometry_dedup_noLOS_creative_spectator_and_hurtfalse_control",
+    "bite_damage_cancel_vs_effect_veto_and_distance_duration",
+    "column_terrain_MISS_grid_delay_onepulse_owner_allies_invulnerable",
+    "column_saved_owner_unresolved_magic_identity_and_post_enchant",
+    "native_spit_ownpart_impact_cancel_PvP_deflect_and_block_entity_area",
+    "spit_failed_hurt_area_independence",
+    "area_potion_eligibility_20tick_cache_even_effect_veto_reload",
+    "poison_native_immunity_merge_origin_HP1_fractional_tick_rules",
+    "screech_creative_vs_spectator_raw_push_noHP"
+  ],
+  "review_required": [
+    "Future poison Stage integration requires an origin/merge policy and native HP>1 behavior review; no provenance implementation or runtime claim here."
+  ],
+  "remaining_subsection_native_ambiguities": [],
+  "exact_next_task": "R2i7: Kraken native admission, tentacles, attack/summon/phase/death and cannon delivery. Reuse foundation custom DamageTypes and shared state evidence. Then combat equipment (including genuine Sandworm Gauntlet spit/columns), remaining watched-method/source closure and whole-mod deduplication/promotion. Sandworm boss semantics are complete; no runtime work.",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "block_factorys_bosses",
+  "runtime_tests": 0,
+  "whole_mod_complete": false,
+  "promoted_mechanics": 0,
+  "promoted_paths": 0,
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false,
+  "reference_files": [
+    {
+      "file": "native-evidence/bossesrise-sandworm.json",
+      "sha256": "06266786ab049070d0f57e9670cd22ccbd70b55bcdbfef90bdc2568be7e27480"
+    },
+    {
+      "file": "bossesrise-sandworm-census.json",
+      "sha256": "d30a4c738e45e9975c2ab67d9429961837f4e48282c7160b06158793a7b2c6d8"
+    },
+    {
+      "file": "bossesrise-sandworm-source-profiles.json",
+      "sha256": "eab1b72807e83884560066ff90e3daad7409b9252f93e7869050e6e6a7838e28"
+    },
+    {
+      "file": "reference-evidence/bossesrise-sandworm-244.json",
+      "sha256": "e16e2fb6cb458980e86a2efb41ff0d75043d1c44e152f9f08e8a0138f4805081"
+    },
+    {
+      "file": "vanilla-evidence/bossesrise-sandworm.json",
+      "sha256": "d3a29ef0287a03797a4087d547004857bbfcc5ac4dcb310115fc639d752030c4"
+    },
+    {
+      "file": "reference-routing/bossesrise-sandworm.json",
+      "sha256": "c541dd8afe76eee2aca1e5552edf456ffa287df0c3482299c83f62c45ec0b338"
+    },
+    {
+      "file": "native-evidence/bossesrise-shared.json",
+      "sha256": "a316243721401336a70804d553eb7c6af80eadb6db0af60cf0c9caddeb97a081"
+    },
+    {
+      "file": "bossesrise-r2i2a-roll-admission.json",
+      "sha256": "3d2d456de7c7db5e4a2426b30a4359be6ca9ef6584a645d0ad10a12fba725991"
+    },
+    {
+      "file": "reference-evidence/bossesrise-knight-offense-244.json",
+      "sha256": "ed049f9cd2ac572a1551027589e23f82ff782f98c5bca5e13eb7dfb19ae195b2"
+    }
+  ]
+}

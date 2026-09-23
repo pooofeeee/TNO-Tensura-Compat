@@ -300,6 +300,9 @@ def validate():
         if (OUT/'bossesrise-r2i5b-yeti-offense.json').exists():
             from validate_bossesrise_yeti_offense import validate_yeti_offense
             assert validate_yeti_offense()['status']=='PASS'
+        if (OUT/'bossesrise-r2i6-sandworm.json').exists():
+            from validate_bossesrise_sandworm import validate_sandworm
+            assert validate_sandworm()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():

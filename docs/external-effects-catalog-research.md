@@ -946,3 +946,7 @@ Yeti raw lethal branch bypasses inherited hurt, trident reductions stack, and ph
 ## R2i5b — Bosses Rise Yeti ice attacks and control
 
 Yeti native melee/ice HP separated from iframe/freeze/control; swept magic versus real playerTouch freeze, terrain spawn admission, resource/reload predicates and roll-aware shove resolved. [Evidence and resume point](benchmarks/external-effects-catalog/bossesrise-r2i5b-yeti-offense-review.md).
+
+## R2i6 — Bosses Rise Sandworm combat semantics
+
+Sandworm segment resource measures real HP loss; direct-source equality can retaliate without an attacker. Body controls and poison hazards are independent of hurt success, while columns push allies before rejecting HP damage. [Evidence and resume point](benchmarks/external-effects-catalog/bossesrise-r2i6-sandworm-review.md).
