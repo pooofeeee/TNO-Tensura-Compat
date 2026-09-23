@@ -1,0 +1,399 @@
+{
+  "schema": "tno.external_effects.iaf_worm_cyclops.v1",
+  "checkpoint": "R2g7-worm-cyclops-complete",
+  "previous_checkpoint": "R2g6-cockatrice-scepter-complete",
+  "starting_sha": "a640aa0cd0ba2b5cc3f38af009c2e1bbd9733660",
+  "status": "WORM_CYCLOPS_COMPLETE",
+  "scope": "Death Worm/Cyclops combat and Cyclops Eye complete; other Ice & Fire creature/equipment families pending.",
+  "summary": "Native body attacks, Worm repeated TNT explosions/source changes, Cyclops eye blinding before HP admission, grab hooks and held Eye Weakness reviewed.",
+  "facts": {
+    "worm_melee": "DeathWorm attack goal starts with target,!vehicle,ground-or-sand,cooldown; tick target+LOS+distance<3 calls doHurtTarget. That method starts Bite if needed, independently rolls explosion and returns false. aiStep at Bite tick5, current target and distance<min(4,4*ageScale) requests current ATTACK_DAMAGE via mob_attack direct=causing=Worm; no second LOS at damage frame, hurt return ignored, self Yvelocity-=.4 independent. Rider controlbit2+Player passenger tick uses protected rider ray(range3, native team filters/no world LOS) and immediately requests int ATTACK_DAMAGE through same Worm mob_attack, NOT rider source; can repeat each update while held. Mounted interaction requires wormAge>4, rider no vehicle and fishing rods in both hands; no tame/owner requirement. C2S control requires riding relationship, but Worm case has no owner check. Do not fabricate packets.",
+    "worm_attack_explosions": "AI doHurtTarget random1/3,ageScale>1,mobGriefing true and Iaf ON_GRIEF_BREAK_BLOCK not vetoed constructs BlockLaunchExplosion at target, radiusageScale. Roll is outside new-animation guard and may repeat while bite already active. Rider new Bite animation random1/3 and ageScale>1 constructs explosion at forward offset1.5*scale below eye, radius.75*scale; this path has NO mobGriefing/Iaf grief predicate. Both pass Worm with null explicit DamageSource: exact Explosion defaults yield minecraft:player_explosion direct=causing=Worm (name does not imply Player). Inherited protected damage/visibility/knockback algorithm and onExplosionDetonate run, but manual construct/explode/finalize skips Level onExplosionStart. Existing BlockLaunch finalizer does not spawn its constructed FallingBlock. No extra FallingBlock damage path.",
+    "worm_tnt": "Registered DeathwormAITargetItemsGoal searches dropped nonempty TNT item on SAND below, random1/10, follows nearest; continuation live item/different team/inrange. At distanceSquared<1 consumes1, starts Bite and calls setExplosive(true, resolvedPlayer). Owner is ItemEntity.getOwner UUID resolved to Player, else null. Setter ignores boolean parameter, sets willExplode=true,countdown60,thrower. aiStep decrements to0; at0, if Iaf grief event not vetoed calls Level.explode(thrower, wormPosition, radius2.5*ageScale,false,MOB), then clears thrower. It NEVER clears willExplode or resets/decrements zero, so subsequent live aiSteps can request another explosion with null source. No unconditional self kill. First Player source gives player_explosion direct=causing=Player and excludes that Player from explosion entity query; later null source gives ownerless explosion and can hit Worm. Native death/admission can terminate repetition. Save retains WillExplode but not countdown or thrower; new instance resumes60/null. TNT Level route includes onExplosionStart, onExplosionDetonate and canEntityGrief block-mode selection; mobGriefing false does not inherently suppress entity damage. All actual damage/knockback remains native.",
+    "worm_defense_resources": "Reject exact IN_WALL/FALLING_BLOCK, and current controlling passenger-caused damage while vehicle; canBeTurnedToStone=false. Empty checkFallDamage suppresses native fall path, not arbitrary FALL hurt calls. SlowPart segments use protected parent route with multiplier1. AgeScale=min(baseScale*max(1,wormAge)/5,7), native maxHP=max(6,config10*scale), attack=max(1,config3*scale), speed=min(.2,.15*scale), armor3. Tame killedEntity heals14 and returns false, wild returns true. Young age<5 after growthCounter>1000 increments age, heals15, then setDeathWormScale -> updateAttributes -> setHealth(baseMaxHP), bypassing heal event and filling HP. Reload also calls scale setter before restoring age then recalculates attributes; do not promise unchanged HP on reload. Spawn/growth baselines are not extra Stage healing; retain lifecycle fixture because direct full-HP reset can conflict.",
+    "cyclops_melee_grab": "doHurtTarget random3 selects Stomp/Kick/Eat and returns true without immediate HP damage. Eat requires victim not carrying Cyclops,width<1.95,not Dragon and !CYCLOPS_UNLIFTABLES; stops old ride then startRiding(Cyclops,true), return ignored. Force still passes cycle/already-riding and NeoForge mount admission; no bypass authorized. positionRider while passenger zeros horizontal motion, positions at mouth, forces Eat animation; tick32 requests configbiteDamage(snapshot40) mob_attack direct=causing=Cyclops and stopRiding regardless of hurt. Native dismount hook may veto. aiStep Stomp tick14 rangeSquared<12, Kick tick12 rangeSquared<14 request ATTACK_DAMAGE(snapshot15); Kick knockback2 independent of hurt and ordinary knockback hook/resistance applies. No frame LOS predicate. Native melee goal custom checkAndPerformAttack has reach test and blinded distance>=6 stop, no attack-cooldown check in its override. Roar is sound/animation only, unlike Dragon roar.",
+    "cyclops_eye": "Eye is a parent-routing part, not separate HP. Its hurt checks exact DamageTypes.ARROW, not IS_PROJECTILE and not owner/direct entity class. For Cyclops parent+ARROW calls onHitEye then returns true unconditionally. If not already blinded, onHitEye sets saved Blind=true, followRange6,speed.35,Roar then parent.hurt(originalSource,amount*3), ignoring result. Thus blindness/petrification exclusion can change even if HP hurt rejected. Already blinded ARROW to eye returns true and does NOT forward HP. Other types forward unchanged to parent and return parent hurt; no local part multiplier. isBlinking(tick%50>40) is visual and NOT hurt admission. Blind aiStep clears target beyond squared6, distinct from AI distance6. canBeTurnedToStone=!blinded. Save reload restores boolean but does not call onHitEye/followRange6; setter only data flag. Generic client player multipart path remains separate from server projectile eye route; no synthetic arrow source.",
+    "cyclops_target_and_aura": "Native target filters live nonstatue/nonwater/not Cyclops/not sheep; most ordinary Animals excluded except Wolf/PolarBear/Dragon; creative/spectator Player excluded. Separate nearest Player/retaliation and sheep attack alarm also exist. CyclopsAITargetSheepPlayersGoal predicate alwaysfalse: name is not proof of sheep-disguise functionality. CyclopsEyeItem while exact stack in main/offhand scans Mob in +/-15 cube, no LOS, !self,!allied and target==holder OR lastHurtByMob==holder OR Enemy. Attempts Weakness10ticks amp1. Marks a tick consumed if any eligible Mob even if effect rejected; after counter>120 hurts stack1 using current used-hand slot and resets0. Counter DataComponent persists perstack; unequipped inventory tick can still process an already>120counter. No custom DamageType or direct HP here; no Stage value on weakness/cost.",
+    "compatibility_and_scaling": "Native mob_attack, arrow and explosion identities plus normal armor/effect/hurt/knockback/heal admission are retained. No direct SHP write or per-family Tensura override identified in protected compatibility foundation. Numeric attack/explosion damage is scalable once at final target.hurt amount; never scale radius, native body size, part multiplier or Cyclops x3 again. Knockback/grab/blinding and Weakness remain native binary/control. Native heal14 has one heal-event amount boundary; growth/full-HP initialization is a lifecycle baseline, not scalable absolute HP. TNT repeated requests and changing source require future runtime event-count tests, not a static fix.",
+    "shared_callback_clarification": "R2g6 onLivingSetTarget name is misleading: IceAndFire registers it on EntityEvents.START_TRACKING_TAIL, so chicken alarm has a Player-starts-tracking delivery as well as Player ATTACK_ENTITY. Retain this explicit delivery distinction in final promotion; do not reinterpret it as a vanilla mob target-change event.",
+    "exclusions": "Sand navigation, loot/egg acquisition, growth progression except HP reset, structure generation, sounds, render/blink, home storage and sheep-follow utility excluded. World block breaking has no added falling-entity damage; explosion HP/cover admission retained. No runtime tests or fixes."
+  },
+  "mechanic_packages": [
+    {
+      "id": "iaf:worm_cyclops_hits",
+      "name": "Death Worm/Cyclops native body HP damage",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "VANILLA_ROUTED",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at each native target.hurt amount (worm aiStep/tick, Cyclops aiStep/positionRider), after native attribute/config selection.",
+      "stage_reason": "No Stage on native size/attribute refresh.",
+      "delivery_paths": [
+        "iaf:worm-cyclops:worm_ai_bite",
+        "iaf:worm-cyclops:worm_rider_bite",
+        "iaf:worm-cyclops:cyclops_stomp",
+        "iaf:worm-cyclops:cyclops_kick",
+        "iaf:worm-cyclops:cyclops_grab_bite"
+      ]
+    },
+    {
+      "id": "iaf:worm_explosions",
+      "name": "Death Worm attack and TNT explosions",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "VANILLA_ROUTED",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at inherited Explosion target.hurt final damage amount after native radius/visibility formula; never multiply radius or source creation.",
+      "stage_reason": "Manual and Level routes preserve distinct hooks/attribution.",
+      "delivery_paths": [
+        "iaf:worm-cyclops:worm_ai_explosion",
+        "iaf:worm-cyclops:worm_rider_explosion",
+        "iaf:worm-cyclops:worm_tnt_first",
+        "iaf:worm-cyclops:worm_tnt_repeat_reload"
+      ]
+    },
+    {
+      "id": "iaf:cyclops_grab",
+      "name": "Cyclops grab/kick displacement",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native mount/position/knockback/dismount and independent HP result.",
+      "delivery_paths": [
+        "iaf:worm-cyclops:cyclops_kick",
+        "iaf:worm-cyclops:cyclops_grab_bite"
+      ]
+    },
+    {
+      "id": "iaf:cyclops_blinding",
+      "name": "Cyclops arrow-eye blinding and native vulnerability",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Keep binary blindness/native x3; ordinary parent damage receives Stage once after native x3, no extra part scaling.",
+      "delivery_paths": [
+        "iaf:worm-cyclops:cyclops_arrow_eye",
+        "iaf:worm-cyclops:cyclops_other_part"
+      ]
+    },
+    {
+      "id": "iaf:worm_defense",
+      "name": "Death Worm immunity and multipart routing",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "BINARY",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Keep native source/controller/statue exclusions and multiplier1 parent routing.",
+      "delivery_paths": [
+        "iaf:worm-cyclops:worm_defense_parts"
+      ]
+    },
+    {
+      "id": "iaf:worm_kill_heal",
+      "name": "Tame Death Worm kill heal14",
+      "primary_classification": "VANILLA_DIRECT",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "VANILLA_ROUTED",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at killedEntity heal(14) amount through native LivingHealEvent.",
+      "stage_reason": "Do not confuse returnfalse with guaranteed heal acceptance.",
+      "delivery_paths": [
+        "iaf:worm-cyclops:worm_tame_kill_heal"
+      ]
+    },
+    {
+      "id": "iaf:worm_lifecycle",
+      "name": "Death Worm age/size HP reset",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "tno_categories": [
+        "CUSTOM_ROUTED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native growth/reload baselines; never multiply absolute maxHP reset.",
+      "delivery_paths": [
+        "iaf:worm-cyclops:worm_growth_reload"
+      ]
+    },
+    {
+      "id": "iaf:cyclops_eye_aura",
+      "name": "Held Cyclops Eye Weakness aura",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "tno_categories": [
+        "VANILLA_ROUTED",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Vanilla Weakness modifies native attacks; no extra multiplier on amplifier/duration/counter.",
+      "delivery_paths": [
+        "iaf:worm-cyclops:cyclops_eye_item"
+      ]
+    }
+  ],
+  "delivery_paths": [
+    {
+      "id": "iaf:worm-cyclops:worm_ai_bite",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "worm_ai_bite; exact source/admission in facts",
+      "runtime_variants": [
+        "native eligibility and rejected hurt/effect/heal",
+        "ownership/event-count variants"
+      ]
+    },
+    {
+      "id": "iaf:worm-cyclops:worm_rider_bite",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "worm_rider_bite; exact source/admission in facts",
+      "runtime_variants": [
+        "native eligibility and rejected hurt/effect/heal",
+        "ownership/event-count variants"
+      ]
+    },
+    {
+      "id": "iaf:worm-cyclops:worm_ai_explosion",
+      "labels": [
+        "EXPLOSION"
+      ],
+      "native_path": "worm_ai_explosion; exact source/admission in facts",
+      "runtime_variants": [
+        "native eligibility and rejected hurt/effect/heal",
+        "ownership/event-count variants"
+      ]
+    },
+    {
+      "id": "iaf:worm-cyclops:worm_rider_explosion",
+      "labels": [
+        "EXPLOSION"
+      ],
+      "native_path": "worm_rider_explosion; exact source/admission in facts",
+      "runtime_variants": [
+        "native eligibility and rejected hurt/effect/heal",
+        "ownership/event-count variants"
+      ]
+    },
+    {
+      "id": "iaf:worm-cyclops:worm_tnt_first",
+      "labels": [
+        "EXPLOSION"
+      ],
+      "native_path": "worm_tnt_first; exact source/admission in facts",
+      "runtime_variants": [
+        "native eligibility and rejected hurt/effect/heal",
+        "ownership/event-count variants"
+      ]
+    },
+    {
+      "id": "iaf:worm-cyclops:worm_tnt_repeat_reload",
+      "labels": [
+        "EXPLOSION"
+      ],
+      "native_path": "worm_tnt_repeat_reload; exact source/admission in facts",
+      "runtime_variants": [
+        "native eligibility and rejected hurt/effect/heal",
+        "ownership/event-count variants"
+      ]
+    },
+    {
+      "id": "iaf:worm-cyclops:worm_tame_kill_heal",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "worm_tame_kill_heal; exact source/admission in facts",
+      "runtime_variants": [
+        "native eligibility and rejected hurt/effect/heal",
+        "ownership/event-count variants"
+      ]
+    },
+    {
+      "id": "iaf:worm-cyclops:worm_growth_reload",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "worm_growth_reload; exact source/admission in facts",
+      "runtime_variants": [
+        "native eligibility and rejected hurt/effect/heal",
+        "ownership/event-count variants"
+      ]
+    },
+    {
+      "id": "iaf:worm-cyclops:worm_defense_parts",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "worm_defense_parts; exact source/admission in facts",
+      "runtime_variants": [
+        "native eligibility and rejected hurt/effect/heal",
+        "ownership/event-count variants"
+      ]
+    },
+    {
+      "id": "iaf:worm-cyclops:cyclops_stomp",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "cyclops_stomp; exact source/admission in facts",
+      "runtime_variants": [
+        "native eligibility and rejected hurt/effect/heal",
+        "ownership/event-count variants"
+      ]
+    },
+    {
+      "id": "iaf:worm-cyclops:cyclops_kick",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "cyclops_kick; exact source/admission in facts",
+      "runtime_variants": [
+        "native eligibility and rejected hurt/effect/heal",
+        "ownership/event-count variants"
+      ]
+    },
+    {
+      "id": "iaf:worm-cyclops:cyclops_grab_bite",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "cyclops_grab_bite; exact source/admission in facts",
+      "runtime_variants": [
+        "native eligibility and rejected hurt/effect/heal",
+        "ownership/event-count variants"
+      ]
+    },
+    {
+      "id": "iaf:worm-cyclops:cyclops_arrow_eye",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "cyclops_arrow_eye; exact source/admission in facts",
+      "runtime_variants": [
+        "native eligibility and rejected hurt/effect/heal",
+        "ownership/event-count variants"
+      ]
+    },
+    {
+      "id": "iaf:worm-cyclops:cyclops_other_part",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "cyclops_other_part; exact source/admission in facts",
+      "runtime_variants": [
+        "native eligibility and rejected hurt/effect/heal",
+        "ownership/event-count variants"
+      ]
+    },
+    {
+      "id": "iaf:worm-cyclops:cyclops_eye_item",
+      "labels": [
+        "PASSIVE_ITEM"
+      ],
+      "native_path": "cyclops_eye_item; exact source/admission in facts",
+      "runtime_variants": [
+        "native eligibility and rejected hurt/effect/heal",
+        "ownership/event-count variants"
+      ]
+    }
+  ],
+  "unexecuted_future_fixtures": [
+    "worm_ai_vs_rider_mob_attack_identity",
+    "worm_repeated_AI_vs_new_rider_animation_explosion",
+    "manual_explosion_grief_veto_vs_Level_Start_Detonate",
+    "TNT_dropped_owner_first_vs_null_repeat_self_damage",
+    "TNT_reload_countdown_and_owner_loss",
+    "worm_parts_parent_and_controller_veto",
+    "worm_tame_kill_heal_veto_vs_growth_fullHP",
+    "Cyclops_grab_force_mount_veto_hurt_false_dismount",
+    "Cyclops_kick_rejected_hurt_knockback",
+    "exact_ARROW_eye_vs_other_projectile_damage_type",
+    "first_eye_HP_veto_still_blinded_then_arrow_true_no_damage",
+    "eye_blink_no_gate_reload_followrange",
+    "Eye_item_cube_LOS_effect_veto_121tick_cost",
+    "tracking_vs_attack_chicken_alarm"
+  ],
+  "remaining_subsection_native_ambiguities": [],
+  "review_required": [],
+  "exact_next_task": "R2g8: remaining creature combat, prioritize Ghost/Troll/Myrmex, then Hydra/Sea Serpent/Stymphalian/Amphithere and combat-special mounts; equipment and whole-mod closure/promotion follow. Static only.",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "runtime_tests": 0,
+  "whole_iceandfire_complete": false,
+  "promoted_mechanics": 0,
+  "promoted_paths": 0,
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false,
+  "reference_files": [
+    {
+      "file": "native-evidence/iceandfire-worm-cyclops.json",
+      "sha256": "dae57d1ba5a62dc5ab81499f45b98aca71371cb2d7c3911ee6c2cc48a68c48c2"
+    },
+    {
+      "file": "reference-evidence/iceandfire-worm-cyclops-244.json",
+      "sha256": "fb938892374a34bd29d221714da0cd431810ebc512cc6323d61c95e8a2d1902c"
+    },
+    {
+      "file": "vanilla-evidence/iceandfire-worm-cyclops.json",
+      "sha256": "8104c9b4b0c5e80caa38f9348a4f98405bb40c9422b80a1f2aeb0cbb3e5a76e5"
+    },
+    {
+      "file": "iceandfire-worm-cyclops-census.json",
+      "sha256": "474694414393ef84b2bc32a00d903dafffbb2a15e95de86fbfa4a1582d1b8b9f"
+    },
+    {
+      "file": "native-evidence/iceandfire-dragon-elements.json",
+      "sha256": "c8baa2a5078657faaa845be0a23a59f6b2403ffa97f87e2efdc0a5d780c6f623"
+    },
+    {
+      "file": "reference-evidence/iceandfire-dragon-elements-244.json",
+      "sha256": "af70e4af14a20357ba1cea11a66588a892d379037423ec6b6921dc01c62c9c07"
+    },
+    {
+      "file": "native-evidence/iceandfire-dragon-combat.json",
+      "sha256": "e4c83a0399f1cec209a9f708f48b809da23b322cbd697965a21bfc78d1dbe7da"
+    },
+    {
+      "file": "reference-evidence/iceandfire-dragon-combat-244.json",
+      "sha256": "119a1674ff76c9a0093d08e03e3f6e28e8798e0dab937924b07b9741d7580865"
+    },
+    {
+      "file": "native-evidence/iceandfire-foundation.json",
+      "sha256": "7ec82347885b0666ebbfa8ea8650acd392efd90019a99aacf7e19a21d63f0fdc"
+    },
+    {
+      "file": "iceandfire-frozen-config-snapshot.json",
+      "sha256": "046dffed6e3ec3b3e01e4cd0be4042ac3f1de30302ba7a4facc72e4cd6c4d808"
+    }
+  ]
+}

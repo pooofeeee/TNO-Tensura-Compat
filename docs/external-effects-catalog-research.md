@@ -806,3 +806,7 @@ Shared Dragon body attacks, rider source changes, independent control, roar vari
 ## R2g6 — Cockatrice and Scepter combat
 
 Cockatrice and Scepter ownerless Wither paths, admission differences, native control/taming, healing and attachment lifecycle reviewed without duplicating protected gaze/attachment research. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/iceandfire-r2g6-cockatrice-review.md).
+
+## R2g7 — Death Worm and Cyclops combat
+
+Native body attacks, Worm repeated TNT explosions/source changes, Cyclops eye blinding before HP admission, grab hooks and held Eye Weakness reviewed. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/iceandfire-r2g7-worm-cyclops-review.md).
