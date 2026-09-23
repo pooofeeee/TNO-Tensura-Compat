@@ -914,3 +914,7 @@ Whole1384-class/274-method audit closes Dusk/Furnace/inherited hazards and remai
 ## R2h8b — Eternal Starlight combat catalog COMPLETE
 
 127 deduplicated packages and 274 native paths, all18 DamageTypes mapped; no runtime compatibility certification. [Owner table and exact next task](benchmarks/external-effects-catalog/eternalstarlight-final-owner-table.md).
+
+## R2i1 — Bosses Rise source foundation
+
+Two native DamageTypes,802 classes,157 combat/admission candidates and actual roll/freeze/event hooks pinned; accepted Eternal Starlight records preserved. [Evidence and resume point](benchmarks/external-effects-catalog/bossesrise-r2i1-source-foundation-review.md).

@@ -276,6 +276,9 @@ def validate():
         if (OUT/'eternalstarlight-final-promotion-map.json').exists():
             from validate_eternalstarlight_final import validate_final as validate_es_final
             assert validate_es_final()['status']=='PASS'
+        if (OUT/'bossesrise-r2i1-source-foundation.json').exists():
+            from validate_bossesrise_foundation import validate_foundation as validate_br_foundation
+            assert validate_br_foundation()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():
