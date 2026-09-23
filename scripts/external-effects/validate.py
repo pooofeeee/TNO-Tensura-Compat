@@ -261,6 +261,9 @@ def validate():
         if (OUT/'eternalstarlight-r2h5c-armor-resources.json').exists():
             from validate_eternalstarlight_armor_resources import validate_armor_resources
             assert validate_armor_resources()['status']=='PASS'
+        if (OUT/'eternalstarlight-r2h6-crests-spells.json').exists():
+            from validate_eternalstarlight_crests import validate_crests
+            assert validate_crests()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():

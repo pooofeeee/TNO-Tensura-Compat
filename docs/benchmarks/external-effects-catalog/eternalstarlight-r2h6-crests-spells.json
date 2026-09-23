@@ -1,0 +1,171 @@
+{
+  "schema": "tno.external_effects.es_crests.v1",
+  "checkpoint": "R2h6-crests-spells-complete",
+  "previous_checkpoint": "R2h5c-armor-resources-complete",
+  "starting_sha": "8c5b24d7a743a6e0fe5a95be1431e61a248b9fc6",
+  "status": "CRESTS_SPELLS_COMBAT_SEMANTICS_COMPLETE",
+  "scope": "Installed spell closure, passive Boulders Shield and native combat mana resource. Reuse accepted laser, exclude empty stubs/locator.",
+  "summary": "All spell callbacks dispositioned; one passive native Resistance crest and genuine mana damage/refill paths reviewed.",
+  "facts": {
+    "spell_disposition": "All10 registered spells and all11 installed crest JSONs pinned. Laser Beam is actual combat and reuses accepted GolemLaserBeam source/admission/Stage point. Guidance of Stars is a Starlight-dimension structure locator with particles/sound only: short utility exclusion. Eight others (Burst Spark, Flaming Aftershock, Flaming Arc, Flaming Ring, Merged Fireball, Surrounding Fireballs, Frozen Fog, Icy Spikes) have true extra-condition predicates and EMPTY preparation/spell/start/stop callbacks. Their registered names and crest JSONs do not establish damage, projectile, burn/freeze or crowd control; exclude as native effect stubs, not unresolved damage types. Common cast resource/cooldown processing still runs.",
+    "native_delivery": "OrbOfProphecy server use requires standing Player/SpellCaster, no current cast, bound current-crest component with spell, spell.canCast(checkCrystal=true). That checks cooldown<=0, extra conditions, and creative or ANY matching crystal tag in inventory. start uses owned crest level; normal tick removes a bound current crest absent from owned IDs. Spell source canContinue only same Item identity in recorded hand, not same stack, use animation, crest identity or sustained crystal presence. Actual Laser Orb delivery already reviewed. SimpleSpellItem contains an alternative start(checkCrystal=false)/item-durability path but whole-JAR constructor census finds NO instantiated native SimpleSpellItem route; do not invent a legitimate laser item delivery from this unused class.",
+    "mana_cost": "Orb start damages first matching crystal by1 except infinite materials; common spell tick every15 ticks calls damageCrystal for Player with no separate creative condition, although native item hurtAndBreak may itself reject durability loss. Search matches ANY listed mana type, not one crystal per type; all six type tags include universal mana_crystal. Once casting, canContinue does not recheck crystals; insufficient crystals makes later damageCrystal search do nothing rather than stop the native spell. Cooldown applied on stop; tickSpells increments state, calls stop on continuation failure then may still call tick once if within total duration. Preserve this accepted ordering; no resource affordability or source fallback invented.",
+    "crest_passive": "ES Player tick invokes ESCrestUtil.tickCrests. For every SELECTED crest, creative or first inventory crystal matching crest.type activates it; every60 player ticks damages that first crystal by crest level, then still applies effects on that tick even if crystal breaks. Active effect duration20, amplifier=entry.level+(crest.level-1)*levelAddition, refreshed every tick through native addEffect; removal when disabled is normal short-duration expiry, not explicit removeEffect. Attribute modifier amount=amount+(level-1)*amountAddition, permanent same-ID modifier added only if absent. Old active instances not in new list have modifiers removed after new additions; changing level can leave a one-tick gap before replacement, not guaranteed immediate in-place update. Fuel absent removes attribute via old-active cleanup; effect admission remains native.",
+    "boulders_shield": "Only installed passive crest is Boulders Shield: terra fuel, declared max_level2, native Resistance amp0 at level1 /amp1 at level2 and movement ADD_VALUE -.007 /-.012 respectively. Native Resistance formula reduces eligible damage20%/40%, subject to BYPASSES_EFFECTS and BYPASSES_RESISTANCE plus native effect eligibility/loader hooks; no custom shield resource, no barrier damage source. Modifier limits/levels and event interception stay native. Keep Resistance and speed fixed; Stage only once at original incoming damage source, never on buff potency or duration.",
+    "selection_admission": "UpdateCrestsPacket server handler checks each selected crest ID is among owned crest IDs, then stores supplied list; it does NOT compare submitted levels to owned levels, deduplicate entries or enforce a count in that handler. Crest.Instance.of caps normal constructed level at declared max, while Instance codec uses INT. Catalog describes normal registered level1/2 values, not a server-wide proof that all runtime data is capped. Do not bypass/fix these native selection rules; runtime fixtures must record actual selected levels/duplicates and data-pack overrides instead of assuming UI guarantees.",
+    "mana_refill": "LivingDamageEvent.Post: source.directEntity Player, random nextInt15==0 and at least one #MANA_CRYSTALS stack anywhere in inventory -> spawn one ordinary Mana Crystal Shard ItemEntity at victim. No positive event amount or final HP-loss test in this branch; indirect projectile owner alone does not qualify. ItemEntityMixin.playerTouch HEAD server, pickupDelay0 and targetUUID null/matching and exact shard: cancel ordinary pickup, take/discard whole shard entity, then repair FIRST damaged tagged crystal by shard stack count floored0 and return. Shard is consumed even if no damaged crystal exists; no player HP/heal/SHP/magicule transfer. This is a combat fuel replenishment route, not ordinary inventory loot storage; keep quantities unscaled.",
+    "scope": "Crest entity pickup/acquisition/progression/rendering and its non-Living collectible health are brief exclusions. Spell particles and locator search receive no deep utility review. No runtime tests or production implementation. Native mana item resources/cast cadence, effect duration/amplifier and attribute modifiers have no new Stage quantity; future tests use legitimate Orb/passive/shard paths without fabricating effect-stub output."
+  },
+  "mechanic_packages": [
+    {
+      "id": "es:boulders_crest",
+      "name": "Boulders Shield native Resistance and movement",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native effect/attribute/fuel values stay fixed; original HP request keeps its single final damage scaling point.",
+      "delivery_paths": [
+        "es:crests:passive",
+        "es:crests:switch"
+      ]
+    },
+    {
+      "id": "es:spell_crystal_resource",
+      "name": "Native spell and crest crystal resource",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native effect/attribute/fuel values stay fixed; original HP request keeps its single final damage scaling point.",
+      "delivery_paths": [
+        "es:crests:orb_resource",
+        "es:crests:passive"
+      ]
+    },
+    {
+      "id": "es:mana_shard_refill",
+      "name": "On-hit mana shard and pickup fuel restoration",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native effect/attribute/fuel values stay fixed; original HP request keeps its single final damage scaling point.",
+      "delivery_paths": [
+        "es:crests:shard_drop",
+        "es:crests:shard_pickup"
+      ]
+    }
+  ],
+  "delivery_paths": [
+    {
+      "id": "es:crests:passive",
+      "labels": [
+        "PASSIVE_RESOURCE"
+      ],
+      "native_path": "selected Boulders Shield + native matching crystal -> effect/attribute tick",
+      "runtime_variants": [
+        "actual native selected/owned/fuel values",
+        "native event admission and no effect fabrication"
+      ]
+    },
+    {
+      "id": "es:crests:switch",
+      "labels": [
+        "PASSIVE_RESOURCE"
+      ],
+      "native_path": "native selected-level/fuel change -> old-active attribute cleanup",
+      "runtime_variants": [
+        "actual native selected/owned/fuel values",
+        "native event admission and no effect fabrication"
+      ]
+    },
+    {
+      "id": "es:crests:orb_resource",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "Orb native spell start/tick/stop crystal search and durability",
+      "runtime_variants": [
+        "actual native selected/owned/fuel values",
+        "native event admission and no effect fabrication"
+      ]
+    },
+    {
+      "id": "es:crests:shard_drop",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "direct Player Post damage -> chance crystal shard",
+      "runtime_variants": [
+        "actual native selected/owned/fuel values",
+        "native event admission and no effect fabrication"
+      ]
+    },
+    {
+      "id": "es:crests:shard_pickup",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "native server ItemEntity.playerTouch -> first damaged crystal refill",
+      "runtime_variants": [
+        "actual native selected/owned/fuel values",
+        "native event admission and no effect fabrication"
+      ]
+    }
+  ],
+  "damage_types_newly_reviewed": [],
+  "unexecuted_future_fixtures": [
+    "Boulders1_2_native_Resistance_bypass_effects_resistance_remove_veto",
+    "Crest_fuel_last_durability_effect_refresh_attribute_cleanup_level_switch",
+    "Selected_crest_actual_level_duplicates_datapack_not_UI_assumed",
+    "Orb_matching_ANY_crystal_start_vs_depletion_continue_stop_then_tick",
+    "ManaShard_Post_directPlayer_zero_final_damage_indirect_excluded",
+    "Shard_pickup_UUID_delay_full_stack_first_damaged_crystal_no_damage_consume"
+  ],
+  "review_required": [],
+  "remaining_subsection_native_ambiguities": [],
+  "exact_next_task": "R2h7: remaining non-boss creatures and hazards including Abyssal Fire/enchantments, Gleech Egg attachment, Aetherstrike Rocket weather, native melee/defenses. Then whole ES actual-caller closure, deduplicate/promote, full validation and automatic Bosses Rise continuation while healthy.",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "runtime_tests": 0,
+  "whole_eternalstarlight_complete": false,
+  "promoted_mechanics": 0,
+  "promoted_paths": 0,
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false,
+  "reference_files": [
+    {
+      "file": "native-evidence/eternalstarlight-crests.json",
+      "sha256": "122a1e26b4cf01d7c45ffaa80a3d59f2168583b325fb4f225a1c0f77376b8bd8"
+    },
+    {
+      "file": "eternalstarlight-crests-census.json",
+      "sha256": "4af20618f3e4d77382242d08662dd1b9030856fb0d01627a4a5a14c8e2c98709"
+    },
+    {
+      "file": "native-evidence/eternalstarlight-golems.json",
+      "sha256": "9963f6e1c3237238d45dbed511359e83e9e1545bc19f9a36c8f90d4d1cece131"
+    },
+    {
+      "file": "reference-evidence/eternalstarlight-crystal-numbness-244.json",
+      "sha256": "fdc6b79fcd920bfdd9746e117f2bdcd2cfd926c186d85ef822115379e2c6df86"
+    }
+  ]
+}

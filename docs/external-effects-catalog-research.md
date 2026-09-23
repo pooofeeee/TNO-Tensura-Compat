@@ -894,3 +894,7 @@ Native spin/critical/sweep ordering, concentration identity, shield reflection o
 ## R2h5c — Eternal Starlight armor and resources
 
 Glacite retaliation admission, repeated Deepsilver removal, Unrealium same-ID replacement/vibrations and native resource routes reviewed. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/eternalstarlight-r2h5c-armor-resources-review.md).
+
+## R2h6 — Eternal Starlight crests and spell closure
+
+All spell callbacks dispositioned; one passive native Resistance crest and genuine mana damage/refill paths reviewed. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/eternalstarlight-r2h6-crests-spells-review.md).
