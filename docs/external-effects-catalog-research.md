@@ -736,3 +736,13 @@ Continues live-verified `9784db969a2ca2dd2e9eced38a763fc60d9ff2eb`. R2f8ad remai
 Twilight remains PARTIAL at270 reviewed mechanic drafts/996 paths,40/40 custom DamageTypes USED, no unfinished types, REVIEW_REQUIRED0, zero promoted. Four accepted mods116/161/217 preserved. IceAndFire unstarted; runtime0, no L2/Stage/production/Phase6/7 changes. Full R2f8ad validation, five tooling tests plus four NBT-reader tests, partial witness regeneration/integrity, preservation and diff checks protect the save.
 
 Exact next task: finish multiplayer maximum-health versus current-HP behavior, native spawn/event/participant admission, permanent modifier and transient participant persistence, native reward consumers and source guards from the saved bundle. Then remaining EntityEvents, Lich worldgen trap/spawner paths, nested ASM, compatibility/global exclusions; R2f8 completion and final Twilight promotion before IceAndFire. Stop after push/live equality because of the actual usage save boundary.
+
+## R2f8ae complete - multiplayer review and corrected scope
+
+Resumes protected `b00c1f7fc41c0feb28e1c9d8f9023c8eb46bc2c3` partial evidence. [Completed multiplayer contracts](benchmarks/external-effects-catalog/twilightforest-multiplayer-review.md) add one combat maximum-health package/three native spawn paths: Twilight271 mechanics/999 paths,40/40 custom types USED, zero REVIEW_REQUIRED or promoted records.
+
+Native ordering separates added maximum health from current HP; Naga's later finalizer may refill it. Modifier duplicate IDs throw and permanent state survives reload; participant list does not. Exact damage-post/source/death admission and real loot/advancement consumer routing are closed. Acquisition/progression behaviors are dispositions rather than new combat packages. Existing boss mechanics were reused without re-review or production changes.
+
+The owner explicitly superseded percentage-based stopping and narrowed future scope to combat-significant compatibility mechanics. Remaining utility, maps, storage, crafting, information, progression, cosmetic and noncombat worldgen receive brief exclusions. Continue after this checkpoint through true combat event/worldgen/ASM/source gaps, R2f8 closure, final Twilight dedup/promotion, then IceAndFire only after COMPLETE is pushed/live-verified. Static only; no runtime/L2/Stage/Phase6/7 work.
+
+Validation: native source/order/persistence guards, exact references and resource routes, five tooling tests, targeted/full catalog checks, prior-checkpoint/accepted-mod preservation and diff check.

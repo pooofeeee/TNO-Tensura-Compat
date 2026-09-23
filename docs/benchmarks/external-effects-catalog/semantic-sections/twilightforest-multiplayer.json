@@ -1,0 +1,927 @@
+{
+  "schema": "tno.external_effects.semantic_section.v1",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "twilightforest",
+  "checkpoint": "R2f8ae-multiplayer-complete",
+  "starting_sha": "b00c1f7fc41c0feb28e1c9d8f9023c8eb46bc2c3",
+  "status": "REVIEWED_SUBSET_NOT_MOD_COMPLETE",
+  "subsection_decision": "TWILIGHT_MULTIPLAYER_SEMANTIC_REVIEW_COMPLETE",
+  "semantic_coverage_complete": false,
+  "promoted_to_catalog": false,
+  "remaining_content_subsection": true,
+  "effects": [
+    {
+      "id": "twilightforest:multiplayer_spawn_max_health",
+      "display_name": "Multiplayer native spawn maximum-health adjustment",
+      "owner": "multiplayer_spawn_max_health",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "primary_test_source": "Actual native tagged boss spawner with real nearby eligible players",
+      "alternate_sources": [
+        "native Lich special spawn position",
+        "native Naga non-Easy finalizer",
+        "configNONE",
+        "one player",
+        "creative/spectator/dead",
+        "event cancellation",
+        "duplicate finalization",
+        "reload/no participant persistence"
+      ],
+      "mod_key": "twilightforest",
+      "inspection_status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "classification_provisional": false,
+      "actual_behavior": [
+        "Registered EntityEvents.adjustEntityHealthInMultiplayerFights receives FinalizeSpawnEvent. Requires actual recipient type in twilightforest:multiplayer_inclusive_entities AND TFConfig.multiplayerFightAdjuster.adjustsHealth. Query ServerPlayer intersecting entity bounding box inflated32/10/32, using NO_CREATIVE_OR_SPECTATOR AND ENTITY_STILL_ALIVE. No line of sight, radial distance, party, target or prior-hit requirement. Count n>1 and nonnull MAX_HEALTH attribute admit permanent twilightforest:group_health_boost ADD_VALUE = coefficient*(n-1). Difficulty coefficient from event.getDifficulty().getDifficulty(): EASY20, NORMAL40, HARD60, default0. This is a snapshot at finalization, not live scaling as players enter/leave, and the callback does not require a particular spawn reason.",
+        "Exact enum NONE(false,false), MORE_LOOT(true,false), MORE_HEALTH(false,true), MORE_LOOT_AND_HEALTH(true,true); argument order loot,health. Static/default and installed protected common-config snapshot are NONE; config declares worldRestart. Health and loot callbacks are therefore disabled by that snapshot, but native participation recording/advancement are not gated by it. Source/config comments describing a universal20-hearts increment or multiplayer_multiplier function are not authority: actual amount is difficulty-dependent health points and actual loot function ID is multiplayer_addition. No configuration changed.",
+        "Callback only adds MAX_HEALTH modifier: no heal, setHealth, setBaseValue or current-HP refill. Native attribute calculation sums ADD_VALUE before base/total multipliers and sanitizeValue; it is not necessarily an unbounded final HP increase by exactly the raw modifier. Native Living constructor initializes HP before spawn callback. Native onAttributeUpdated lowers HP only if current HP exceeds new maximum; raising maximum does not fill it. EventHooks.finalizeMobSpawn posts event BEFORE mob.finalizeSpawn, and cancellation skips that finalizer. setSpawnCancelled separately marks Mob and can prevent native addition. Other listeners may cancel/change difficulty; this callback has no internal cancellation test. No blanket claim a health-boosted boss spawns at its enlarged maximum.",
+        "Existing native base BossSpawner tick requires unspawned and qualifying nearby player; server non-Peaceful invokes spawnMyBoss. It creates/moves boss, posts finalize event, initializes restriction, then uses addFreshEntity return; successful result removes spawner and marks spawned. Lich override chooses position above ground before event, then cooldown40/extinguish/home and add. Native Lich finalizer delegates parent then equipment/sound, no HP refill; Minoshroom/Minotaur parent/equipment finalizers likewise have no refill. Reuses protected boss admission/defenses. Knight Phantom has its own six-entity spawner but is excluded by the installed multiplayer tag.",
+        "Naga uses native base spawner but its already-reviewed finalizeSpawn is materially distinct after the event: level difficulty !=EASY, MAX_HEALTH present and difficulty_health_boost absent => add permanent difficulty modifier (HARD130, otherwise80), then setHealth(getMaxHealth). Thus on a fresh native non-Easy Naga this later branch fills the maximum including the earlier multiplayer modifier. EASY or preexisting difficulty modifier does not enter that refill. Event difficulty used for group coefficient and level difficulty used here are separate values; external changes can make them differ. No repair or new heal is introduced.",
+        "No hasModifier/remove/replace guard precedes addPermanentModifier. Native AttributeInstance.addModifier putIfAbsent throws IllegalArgumentException for duplicate same ID; repeated admitted finalization does not safely stack or refresh it. addPermanentModifier records modifier in permanent map; save/load serializes base plus permanent modifiers, Living saves attribute data and Health separately and loads attributes before setHealth. Modifier survives ordinary save/reload; there is no native removal or recalculation when nearby players leave or the config later disables adjustment. Runtime hook/tag outcomes remain future controls.",
+        "Installed tag has exactly naga, lich, minoshroom, hydra, ur_ghast, alpha_yeti, snow_queen and plateau_boss in twilightforest namespace. Knight Phantom and Lich Minion are absent. Tag membership is eligibility, not proof all tagged entities have identical attack/finalization or actual worldgen availability. Real native base/Lich/Naga spawner routes are recorded, not a fabricated summon, tag edit or forced event."
+      ],
+      "components": [
+        {
+          "primitive": "MULTIPLAYER_SPAWN_MAX_HEALTH",
+          "formula": "Registered EntityEvents.adjustEntityHealthInMultiplayerFights receives FinalizeSpawnEvent. Requires actual recipient type in twilightforest:multiplayer_inclusive_entities AND TFConfig.multiplayerFightAdjuster.adjustsHealth. Query ServerPlayer intersecting entity bounding box inflated32/10/32, using NO_CREATIVE_OR_SPECTATOR AND ENTITY_STILL_ALIVE. No line of sight, radial distance, party, target or prior-hit requirement. Count n>1 and nonnull MAX_HEALTH attribute admit permanent twilightforest:group_health_boost ADD_VALUE = coefficient*(n-1). Difficulty coefficient from event.getDifficulty().getDifficulty(): EASY20, NORMAL40, HARD60, default0. This is a snapshot at finalization, not live scaling as players enter/leave, and the callback does not require a particular spawn reason.; Exact enum NONE(false,false), MORE_LOOT(true,false), MORE_HEALTH(false,true), MORE_LOOT_AND_HEALTH(true,true); argument order loot,health. Static/default and installed protected common-config snapshot are NONE; config declares worldRestart. Health and loot callbacks are therefore disabled by that snapshot, but native participation recording/advancement are not gated by it. Source/config comments describing a universal20-hearts increment or multiplayer_multiplier function are not authority: actual amount is difficulty-dependent health points and actual loot function ID is multiplayer_addition. No configuration changed.; Callback only adds MAX_HEALTH modifier: no heal, setHealth, setBaseValue or current-HP refill. Native attribute calculation sums ADD_VALUE before base/total multipliers and sanitizeValue; it is not necessarily an unbounded final HP increase by exactly the raw modifier. Native Living constructor initializes HP before spawn callback. Native onAttributeUpdated lowers HP only if current HP exceeds new maximum; raising maximum does not fill it. EventHooks.finalizeMobSpawn posts event BEFORE mob.finalizeSpawn, and cancellation skips that finalizer. setSpawnCancelled separately marks Mob and can prevent native addition. Other listeners may cancel/change difficulty; this callback has no internal cancellation test. No blanket claim a health-boosted boss spawns at its enlarged maximum.; Existing native base BossSpawner tick requires unspawned and qualifying nearby player; server non-Peaceful invokes spawnMyBoss. It creates/moves boss, posts finalize event, initializes restriction, then uses addFreshEntity return; successful result removes spawner and marks spawned. Lich override chooses position above ground before event, then cooldown40/extinguish/home and add. Native Lich finalizer delegates parent then equipment/sound, no HP refill; Minoshroom/Minotaur parent/equipment finalizers likewise have no refill. Reuses protected boss admission/defenses. Knight Phantom has its own six-entity spawner but is excluded by the installed multiplayer tag.; Naga uses native base spawner but its already-reviewed finalizeSpawn is materially distinct after the event: level difficulty !=EASY, MAX_HEALTH present and difficulty_health_boost absent => add permanent difficulty modifier (HARD130, otherwise80), then setHealth(getMaxHealth). Thus on a fresh native non-Easy Naga this later branch fills the maximum including the earlier multiplayer modifier. EASY or preexisting difficulty modifier does not enter that refill. Event difficulty used for group coefficient and level difficulty used here are separate values; external changes can make them differ. No repair or new heal is introduced.; No hasModifier/remove/replace guard precedes addPermanentModifier. Native AttributeInstance.addModifier putIfAbsent throws IllegalArgumentException for duplicate same ID; repeated admitted finalization does not safely stack or refresh it. addPermanentModifier records modifier in permanent map; save/load serializes base plus permanent modifiers, Living saves attribute data and Health separately and loads attributes before setHealth. Modifier survives ordinary save/reload; there is no native removal or recalculation when nearby players leave or the config later disables adjustment. Runtime hook/tag outcomes remain future controls.; Installed tag has exactly naga, lich, minoshroom, hydra, ur_ghast, alpha_yeti, snow_queen and plateau_boss in twilightforest namespace. Knight Phantom and Lich Minion are absent. Tag membership is eligibility, not proof all tagged entities have identical attack/finalization or actual worldgen availability. Real native base/Lich/Naga spawner routes are recorded, not a fabricated summon, tag edit or forced event.",
+          "numerical_parameters": {
+            "query_inflation_xz": 32,
+            "query_inflation_y": 10,
+            "easy_per_extra_player": 20,
+            "normal_per_extra_player": 40,
+            "hard_per_extra_player": 60
+          },
+          "binary_parameters": [
+            "tagged actual recipient",
+            "health config",
+            "native FinalizeSpawnEvent",
+            "alive noncreative nonspectator nearby count>1",
+            "MAX_HEALTH attribute",
+            "duplicate modifier ID admission"
+          ],
+          "vanilla_relation": "Native permanent ADD_VALUE attribute under custom population/difficulty trigger; HP refill remains separate native finalizer behavior."
+        }
+      ],
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-frosted.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "<clinit>",
+            "onParryProjectile",
+            "setup"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-lich.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "<init>",
+            "addCloudJumpParticles",
+            "addQualifiedGroupPlayerIfNeeded",
+            "adjustEntityHealthInMultiplayerFights",
+            "alertPlayerCastleIsWIP",
+            "attachLeadToWroughtFence",
+            "createSkullCandle",
+            "gatherPotentialSpawns",
+            "getHealthBasedOnDifficulty",
+            "getSpawnListIndexAt",
+            "grantGroupAdvancementIfNeeded",
+            "handleLeashPathingOverrides",
+            "handleQuestSyncing",
+            "lambda$adjustEntityHealthInMultiplayerFights$4",
+            "lambda$alertPlayerCastleIsWIP$0",
+            "lambda$gatherPotentialSpawns$2",
+            "lambda$handleQuestSyncing$6",
+            "lambda$lichBombsDontBlowUpItems$5",
+            "lambda$removeCastleTextIfAttacked$3",
+            "lambda$stopEndermenFromGrabbingBlocksInTF$7",
+            "lambda$stopEndermenFromGrabbingBlocksInTF$8",
+            "lichBombsDontBlowUpItems",
+            "makeSkullCandle",
+            "ominousFireConversion",
+            "onCasketBreak",
+            "removeCastleTextIfAttacked",
+            "resetFlaskLogic",
+            "stopEndermenFromGrabbingBlocksInTF",
+            "structureSpecialSpawns",
+            "wipeOreMeterOnLeftClick",
+            "zombifiedPlayerAttacks"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-multiplayer.json",
+          "witness_id": "tf:config/TFConfig$MultiplayerFightAdjuster",
+          "entry": "twilightforest/config/TFConfig$MultiplayerFightAdjuster.class",
+          "methods": [
+            "$values",
+            "<clinit>",
+            "<init>",
+            "adjustsHealth",
+            "adjustsLootRolls",
+            "getTranslatedName",
+            "valueOf",
+            "values"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-multiplayer.json",
+          "witness_id": "tf:block/entity/spawner/LichSpawnerBlockEntity",
+          "entry": "twilightforest/block/entity/spawner/LichSpawnerBlockEntity.class",
+          "methods": [
+            "spawnMyBoss"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-naga.json",
+          "witness_id": "tf:entity/boss/Naga",
+          "entry": "twilightforest/entity/boss/Naga.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "activateBodySegments",
+            "areSelfAndTargetInHome",
+            "customServerAiStep",
+            "defineSynchedData",
+            "doHurtTarget",
+            "finalizeSpawn",
+            "getAmbientSound",
+            "getBossBarColor",
+            "getBossBarOverlay",
+            "getBossSpawner",
+            "getDeathContainer",
+            "getDeathSound",
+            "getHomeRadius",
+            "getHomeStructure",
+            "getHurtSound",
+            "getMovementPattern",
+            "getParts",
+            "getWalkTargetValue",
+            "hurt",
+            "isCharging",
+            "isDazed",
+            "isDeathAnimationFinished",
+            "isInLava",
+            "isInvulnerableTo",
+            "isMobWithinHomeArea",
+            "isMultipartEntity",
+            "isOtherEntityWithinHomeArea",
+            "isPushable",
+            "isSteppingCarefully",
+            "isStunlessCharging",
+            "makePoofAt",
+            "makePoofParticles",
+            "moveSegments",
+            "recreateFromPacket",
+            "registerAttributes",
+            "registerGoals",
+            "remove",
+            "setCharging",
+            "setDazed",
+            "setSegmentsPerHealth",
+            "setStunlessCharging",
+            "shouldDestroyAllBlocks",
+            "tick",
+            "tickDeathAnimation"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-naga.json",
+          "witness_id": "tf:block/entity/spawner/BossSpawnerBlockEntity",
+          "entry": "twilightforest/block/entity/spawner/BossSpawnerBlockEntity.class",
+          "methods": [
+            "<init>",
+            "anyPlayerInRange",
+            "getRange",
+            "getSpawnerParticle",
+            "initializeCreature",
+            "makeMyCreature",
+            "spawnMyBoss",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "entityHurts",
+            "getGearCoverage",
+            "reduceFrostedEffectIfOnFire",
+            "lambda$reduceFrostedEffectIfOnFire$1"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "twilightforest:path:multiplayer_base",
+        "twilightforest:path:multiplayer_lich",
+        "twilightforest:path:multiplayer_naga"
+      ],
+      "registry_ids": [],
+      "pending": [
+        "Whole Twilight closure/final promotion only; this bounded subsection is reviewed."
+      ],
+      "unresolved_ambiguities": null
+    }
+  ],
+  "paths": [
+    {
+      "id": "twilightforest:path:multiplayer_base",
+      "source": "Native tagged boss base-spawner finalize",
+      "effect_ids": [
+        "twilightforest:multiplayer_spawn_max_health"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future static-to-runtime fixture: Native tagged boss base-spawner finalize through genuine registered spawner/finalizer and ordinary players; do not synthesize event, modifier or direct HP operation.",
+      "future_controls": [
+        "real eligible players",
+        "difficulty",
+        "tag exclusions",
+        "spawn canceled",
+        "modifier persistence"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Registered EntityEvents.adjustEntityHealthInMultiplayerFights receives FinalizeSpawnEvent. Requires actual recipient type in twilightforest:multiplayer_inclusive_entities AND TFConfig.multiplayerFightAdjuster.adjustsHealth. Query ServerPlayer intersecting entity bounding box inflated32/10/32, using NO_CREATIVE_OR_SPECTATOR AND ENTITY_STILL_ALIVE. No line of sight, radial distance, party, target or prior-hit requirement. Count n>1 and nonnull MAX_HEALTH attribute admit permanent twilightforest:group_health_boost ADD_VALUE = coefficient*(n-1). Difficulty coefficient from event.getDifficulty().getDifficulty(): EASY20, NORMAL40, HARD60, default0. This is a snapshot at finalization, not live scaling as players enter/leave, and the callback does not require a particular spawn reason. Exact enum NONE(false,false), MORE_LOOT(true,false), MORE_HEALTH(false,true), MORE_LOOT_AND_HEALTH(true,true); argument order loot,health. Static/default and installed protected common-config snapshot are NONE; config declares worldRestart. Health and loot callbacks are therefore disabled by that snapshot, but native participation recording/advancement are not gated by it. Source/config comments describing a universal20-hearts increment or multiplayer_multiplier function are not authority: actual amount is difficulty-dependent health points and actual loot function ID is multiplayer_addition. No configuration changed. Callback only adds MAX_HEALTH modifier: no heal, setHealth, setBaseValue or current-HP refill. Native attribute calculation sums ADD_VALUE before base/total multipliers and sanitizeValue; it is not necessarily an unbounded final HP increase by exactly the raw modifier. Native Living constructor initializes HP before spawn callback. Native onAttributeUpdated lowers HP only if current HP exceeds new maximum; raising maximum does not fill it. EventHooks.finalizeMobSpawn posts event BEFORE mob.finalizeSpawn, and cancellation skips that finalizer. setSpawnCancelled separately marks Mob and can prevent native addition. Other listeners may cancel/change difficulty; this callback has no internal cancellation test. No blanket claim a health-boosted boss spawns at its enlarged maximum. Existing native base BossSpawner tick requires unspawned and qualifying nearby player; server non-Peaceful invokes spawnMyBoss. It creates/moves boss, posts finalize event, initializes restriction, then uses addFreshEntity return; successful result removes spawner and marks spawned. Lich override chooses position above ground before event, then cooldown40/extinguish/home and add. Native Lich finalizer delegates parent then equipment/sound, no HP refill; Minoshroom/Minotaur parent/equipment finalizers likewise have no refill. Reuses protected boss admission/defenses. Knight Phantom has its own six-entity spawner but is excluded by the installed multiplayer tag. No hasModifier/remove/replace guard precedes addPermanentModifier. Native AttributeInstance.addModifier putIfAbsent throws IllegalArgumentException for duplicate same ID; repeated admitted finalization does not safely stack or refresh it. addPermanentModifier records modifier in permanent map; save/load serializes base plus permanent modifiers, Living saves attribute data and Health separately and loads attributes before setHealth. Modifier survives ordinary save/reload; there is no native removal or recalculation when nearby players leave or the config later disables adjustment. Runtime hook/tag outcomes remain future controls.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-frosted.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "<clinit>",
+            "onParryProjectile",
+            "setup"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-lich.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "<init>",
+            "addCloudJumpParticles",
+            "addQualifiedGroupPlayerIfNeeded",
+            "adjustEntityHealthInMultiplayerFights",
+            "alertPlayerCastleIsWIP",
+            "attachLeadToWroughtFence",
+            "createSkullCandle",
+            "gatherPotentialSpawns",
+            "getHealthBasedOnDifficulty",
+            "getSpawnListIndexAt",
+            "grantGroupAdvancementIfNeeded",
+            "handleLeashPathingOverrides",
+            "handleQuestSyncing",
+            "lambda$adjustEntityHealthInMultiplayerFights$4",
+            "lambda$alertPlayerCastleIsWIP$0",
+            "lambda$gatherPotentialSpawns$2",
+            "lambda$handleQuestSyncing$6",
+            "lambda$lichBombsDontBlowUpItems$5",
+            "lambda$removeCastleTextIfAttacked$3",
+            "lambda$stopEndermenFromGrabbingBlocksInTF$7",
+            "lambda$stopEndermenFromGrabbingBlocksInTF$8",
+            "lichBombsDontBlowUpItems",
+            "makeSkullCandle",
+            "ominousFireConversion",
+            "onCasketBreak",
+            "removeCastleTextIfAttacked",
+            "resetFlaskLogic",
+            "stopEndermenFromGrabbingBlocksInTF",
+            "structureSpecialSpawns",
+            "wipeOreMeterOnLeftClick",
+            "zombifiedPlayerAttacks"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-naga.json",
+          "witness_id": "tf:block/entity/spawner/BossSpawnerBlockEntity",
+          "entry": "twilightforest/block/entity/spawner/BossSpawnerBlockEntity.class",
+          "methods": [
+            "<init>",
+            "anyPlayerInRange",
+            "getRange",
+            "getSpawnerParticle",
+            "initializeCreature",
+            "makeMyCreature",
+            "spawnMyBoss",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "entityHurts",
+            "getGearCoverage",
+            "reduceFrostedEffectIfOnFire",
+            "lambda$reduceFrostedEffectIfOnFire$1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:path:multiplayer_lich",
+      "source": "Native Lich positioned finalize without HP refill",
+      "effect_ids": [
+        "twilightforest:multiplayer_spawn_max_health"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future static-to-runtime fixture: Native Lich positioned finalize without HP refill through genuine registered spawner/finalizer and ordinary players; do not synthesize event, modifier or direct HP operation.",
+      "future_controls": [
+        "ground-derived spawn position",
+        "currentHP vs maximum",
+        "native shields unchanged"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Registered EntityEvents.adjustEntityHealthInMultiplayerFights receives FinalizeSpawnEvent. Requires actual recipient type in twilightforest:multiplayer_inclusive_entities AND TFConfig.multiplayerFightAdjuster.adjustsHealth. Query ServerPlayer intersecting entity bounding box inflated32/10/32, using NO_CREATIVE_OR_SPECTATOR AND ENTITY_STILL_ALIVE. No line of sight, radial distance, party, target or prior-hit requirement. Count n>1 and nonnull MAX_HEALTH attribute admit permanent twilightforest:group_health_boost ADD_VALUE = coefficient*(n-1). Difficulty coefficient from event.getDifficulty().getDifficulty(): EASY20, NORMAL40, HARD60, default0. This is a snapshot at finalization, not live scaling as players enter/leave, and the callback does not require a particular spawn reason. Callback only adds MAX_HEALTH modifier: no heal, setHealth, setBaseValue or current-HP refill. Native attribute calculation sums ADD_VALUE before base/total multipliers and sanitizeValue; it is not necessarily an unbounded final HP increase by exactly the raw modifier. Native Living constructor initializes HP before spawn callback. Native onAttributeUpdated lowers HP only if current HP exceeds new maximum; raising maximum does not fill it. EventHooks.finalizeMobSpawn posts event BEFORE mob.finalizeSpawn, and cancellation skips that finalizer. setSpawnCancelled separately marks Mob and can prevent native addition. Other listeners may cancel/change difficulty; this callback has no internal cancellation test. No blanket claim a health-boosted boss spawns at its enlarged maximum. Existing native base BossSpawner tick requires unspawned and qualifying nearby player; server non-Peaceful invokes spawnMyBoss. It creates/moves boss, posts finalize event, initializes restriction, then uses addFreshEntity return; successful result removes spawner and marks spawned. Lich override chooses position above ground before event, then cooldown40/extinguish/home and add. Native Lich finalizer delegates parent then equipment/sound, no HP refill; Minoshroom/Minotaur parent/equipment finalizers likewise have no refill. Reuses protected boss admission/defenses. Knight Phantom has its own six-entity spawner but is excluded by the installed multiplayer tag.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-frosted.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "<clinit>",
+            "onParryProjectile",
+            "setup"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-lich.json",
+          "witness_id": "tf:entity/boss/Lich",
+          "entry": "twilightforest/entity/boss/Lich.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "<init>",
+            "addAdditionalSaveData",
+            "addClone",
+            "aiStep",
+            "canBeSeenAsEnemy",
+            "countMyClones",
+            "countMyMinions",
+            "customServerAiStep",
+            "defineSynchedData",
+            "deflection",
+            "despawnClones",
+            "die",
+            "displayFireAnimation",
+            "finalizeSpawn",
+            "findVecInLOSOf",
+            "getAllClones",
+            "getAmbientSound",
+            "getAttackCooldown",
+            "getBabyMinionsSummoned",
+            "getBossBarColor",
+            "getBossBarOverlay",
+            "getBossSpawner",
+            "getClones",
+            "getDeathContainer",
+            "getDeathSound",
+            "getDefaultLootTable",
+            "getHomeRadius",
+            "getHomeStructure",
+            "getHurtSound",
+            "getMainHandItem",
+            "getMaster",
+            "getMasterUUID",
+            "getMinionsToSummon",
+            "getNextAttackType",
+            "getPhase",
+            "getPopCooldown",
+            "getScepterTimeLeft",
+            "getShieldStrength",
+            "getTeleportInvisibility",
+            "handleEntityEvent",
+            "homeOrElseCurrent",
+            "hurt",
+            "isDeathAnimationFinished",
+            "isInvisible",
+            "isLeftHanded",
+            "isOutsideHomeRange",
+            "isShadowClone",
+            "lambda$countMyMinions$1",
+            "lambda$deflection$2",
+            "lambda$readAdditionalSaveData$0",
+            "launchProjectileAt",
+            "lichTeleportParticles",
+            "lightNearbyCandles",
+            "lookAtUponDeath",
+            "makeMagicTrail",
+            "placeSpawner",
+            "postRemoval",
+            "readAdditionalSaveData",
+            "registerAttributes",
+            "registerGoals",
+            "resetScepterTime",
+            "rotLerp",
+            "setAttackCooldown",
+            "setBabyMinionsSummoned",
+            "setExtinguishTimer",
+            "setMasterUUID",
+            "setMinionsToSummon",
+            "setNextAttackType",
+            "setPopCooldown",
+            "setScepterTime",
+            "setShieldStrength",
+            "setTeleportInvisibility",
+            "shouldCreateSpawner",
+            "shouldSpawnLoot",
+            "teleportHome",
+            "teleportToNewTarget",
+            "teleportToNoChecks",
+            "teleportToSightOfEntity",
+            "tickBossBar",
+            "tickDeath",
+            "tickDeathAnimation",
+            "turnNearbyCandles",
+            "wantsNewClone",
+            "wantsNewMinion"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-lich.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "<init>",
+            "addCloudJumpParticles",
+            "addQualifiedGroupPlayerIfNeeded",
+            "adjustEntityHealthInMultiplayerFights",
+            "alertPlayerCastleIsWIP",
+            "attachLeadToWroughtFence",
+            "createSkullCandle",
+            "gatherPotentialSpawns",
+            "getHealthBasedOnDifficulty",
+            "getSpawnListIndexAt",
+            "grantGroupAdvancementIfNeeded",
+            "handleLeashPathingOverrides",
+            "handleQuestSyncing",
+            "lambda$adjustEntityHealthInMultiplayerFights$4",
+            "lambda$alertPlayerCastleIsWIP$0",
+            "lambda$gatherPotentialSpawns$2",
+            "lambda$handleQuestSyncing$6",
+            "lambda$lichBombsDontBlowUpItems$5",
+            "lambda$removeCastleTextIfAttacked$3",
+            "lambda$stopEndermenFromGrabbingBlocksInTF$7",
+            "lambda$stopEndermenFromGrabbingBlocksInTF$8",
+            "lichBombsDontBlowUpItems",
+            "makeSkullCandle",
+            "ominousFireConversion",
+            "onCasketBreak",
+            "removeCastleTextIfAttacked",
+            "resetFlaskLogic",
+            "stopEndermenFromGrabbingBlocksInTF",
+            "structureSpecialSpawns",
+            "wipeOreMeterOnLeftClick",
+            "zombifiedPlayerAttacks"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-multiplayer.json",
+          "witness_id": "tf:block/entity/spawner/LichSpawnerBlockEntity",
+          "entry": "twilightforest/block/entity/spawner/LichSpawnerBlockEntity.class",
+          "methods": [
+            "spawnMyBoss"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "entityHurts",
+            "getGearCoverage",
+            "reduceFrostedEffectIfOnFire",
+            "lambda$reduceFrostedEffectIfOnFire$1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "twilightforest:path:multiplayer_naga",
+      "source": "Native Naga later conditional HP fill",
+      "effect_ids": [
+        "twilightforest:multiplayer_spawn_max_health"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future static-to-runtime fixture: Native Naga later conditional HP fill through genuine registered spawner/finalizer and ordinary players; do not synthesize event, modifier or direct HP operation.",
+      "future_controls": [
+        "Easy vs Normal/Hard",
+        "existing difficulty modifier",
+        "event vs level difficulty",
+        "native finalizer canceled"
+      ],
+      "mod_key": "twilightforest",
+      "status": "DRAFT",
+      "subsection_status": "REVIEWED",
+      "native_delivery": "Registered EntityEvents.adjustEntityHealthInMultiplayerFights receives FinalizeSpawnEvent. Requires actual recipient type in twilightforest:multiplayer_inclusive_entities AND TFConfig.multiplayerFightAdjuster.adjustsHealth. Query ServerPlayer intersecting entity bounding box inflated32/10/32, using NO_CREATIVE_OR_SPECTATOR AND ENTITY_STILL_ALIVE. No line of sight, radial distance, party, target or prior-hit requirement. Count n>1 and nonnull MAX_HEALTH attribute admit permanent twilightforest:group_health_boost ADD_VALUE = coefficient*(n-1). Difficulty coefficient from event.getDifficulty().getDifficulty(): EASY20, NORMAL40, HARD60, default0. This is a snapshot at finalization, not live scaling as players enter/leave, and the callback does not require a particular spawn reason. Callback only adds MAX_HEALTH modifier: no heal, setHealth, setBaseValue or current-HP refill. Native attribute calculation sums ADD_VALUE before base/total multipliers and sanitizeValue; it is not necessarily an unbounded final HP increase by exactly the raw modifier. Native Living constructor initializes HP before spawn callback. Native onAttributeUpdated lowers HP only if current HP exceeds new maximum; raising maximum does not fill it. EventHooks.finalizeMobSpawn posts event BEFORE mob.finalizeSpawn, and cancellation skips that finalizer. setSpawnCancelled separately marks Mob and can prevent native addition. Other listeners may cancel/change difficulty; this callback has no internal cancellation test. No blanket claim a health-boosted boss spawns at its enlarged maximum. Naga uses native base spawner but its already-reviewed finalizeSpawn is materially distinct after the event: level difficulty !=EASY, MAX_HEALTH present and difficulty_health_boost absent => add permanent difficulty modifier (HARD130, otherwise80), then setHealth(getMaxHealth). Thus on a fresh native non-Easy Naga this later branch fills the maximum including the earlier multiplayer modifier. EASY or preexisting difficulty modifier does not enter that refill. Event difficulty used for group coefficient and level difficulty used here are separate values; external changes can make them differ. No repair or new heal is introduced.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/twilight-frosted.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "<clinit>",
+            "onParryProjectile",
+            "setup"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-lich.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "<init>",
+            "addCloudJumpParticles",
+            "addQualifiedGroupPlayerIfNeeded",
+            "adjustEntityHealthInMultiplayerFights",
+            "alertPlayerCastleIsWIP",
+            "attachLeadToWroughtFence",
+            "createSkullCandle",
+            "gatherPotentialSpawns",
+            "getHealthBasedOnDifficulty",
+            "getSpawnListIndexAt",
+            "grantGroupAdvancementIfNeeded",
+            "handleLeashPathingOverrides",
+            "handleQuestSyncing",
+            "lambda$adjustEntityHealthInMultiplayerFights$4",
+            "lambda$alertPlayerCastleIsWIP$0",
+            "lambda$gatherPotentialSpawns$2",
+            "lambda$handleQuestSyncing$6",
+            "lambda$lichBombsDontBlowUpItems$5",
+            "lambda$removeCastleTextIfAttacked$3",
+            "lambda$stopEndermenFromGrabbingBlocksInTF$7",
+            "lambda$stopEndermenFromGrabbingBlocksInTF$8",
+            "lichBombsDontBlowUpItems",
+            "makeSkullCandle",
+            "ominousFireConversion",
+            "onCasketBreak",
+            "removeCastleTextIfAttacked",
+            "resetFlaskLogic",
+            "stopEndermenFromGrabbingBlocksInTF",
+            "structureSpecialSpawns",
+            "wipeOreMeterOnLeftClick",
+            "zombifiedPlayerAttacks"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-naga.json",
+          "witness_id": "tf:entity/boss/Naga",
+          "entry": "twilightforest/entity/boss/Naga.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "activateBodySegments",
+            "areSelfAndTargetInHome",
+            "customServerAiStep",
+            "defineSynchedData",
+            "doHurtTarget",
+            "finalizeSpawn",
+            "getAmbientSound",
+            "getBossBarColor",
+            "getBossBarOverlay",
+            "getBossSpawner",
+            "getDeathContainer",
+            "getDeathSound",
+            "getHomeRadius",
+            "getHomeStructure",
+            "getHurtSound",
+            "getMovementPattern",
+            "getParts",
+            "getWalkTargetValue",
+            "hurt",
+            "isCharging",
+            "isDazed",
+            "isDeathAnimationFinished",
+            "isInLava",
+            "isInvulnerableTo",
+            "isMobWithinHomeArea",
+            "isMultipartEntity",
+            "isOtherEntityWithinHomeArea",
+            "isPushable",
+            "isSteppingCarefully",
+            "isStunlessCharging",
+            "makePoofAt",
+            "makePoofParticles",
+            "moveSegments",
+            "recreateFromPacket",
+            "registerAttributes",
+            "registerGoals",
+            "remove",
+            "setCharging",
+            "setDazed",
+            "setSegmentsPerHealth",
+            "setStunlessCharging",
+            "shouldDestroyAllBlocks",
+            "tick",
+            "tickDeathAnimation"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilight-naga.json",
+          "witness_id": "tf:block/entity/spawner/BossSpawnerBlockEntity",
+          "entry": "twilightforest/block/entity/spawner/BossSpawnerBlockEntity.class",
+          "methods": [
+            "<init>",
+            "anyPlayerInRange",
+            "getRange",
+            "getSpawnerParticle",
+            "initializeCreature",
+            "makeMyCreature",
+            "spawnMyBoss",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/twilightforest-r2f1-partial.json",
+          "witness_id": "tf:events/EntityEvents",
+          "entry": "twilightforest/events/EntityEvents.class",
+          "methods": [
+            "entityHurts",
+            "getGearCoverage",
+            "reduceFrostedEffectIfOnFire",
+            "lambda$reduceFrostedEffectIfOnFire$1"
+          ]
+        }
+      ]
+    }
+  ],
+  "damage_profiles": [],
+  "semantic_closure": {
+    "authority_scope": "Resumes b00c1f7 protected partial evidence without repeating boss reviews. Installed TF4.8.3345, exact NeoForge21.1.244 and raw Minecraft1.21.1 are authority. New owner scope admits combat-significant attributes; participation-driven loot and advancement are closed as acquisition/progression dispositions, not new combat packages. Historical drafts stay immutable until final deduplication/promotion. Static only; no runtime, L2, Stage, production or Phase6/7 work.",
+    "health_admission": "Registered EntityEvents.adjustEntityHealthInMultiplayerFights receives FinalizeSpawnEvent. Requires actual recipient type in twilightforest:multiplayer_inclusive_entities AND TFConfig.multiplayerFightAdjuster.adjustsHealth. Query ServerPlayer intersecting entity bounding box inflated32/10/32, using NO_CREATIVE_OR_SPECTATOR AND ENTITY_STILL_ALIVE. No line of sight, radial distance, party, target or prior-hit requirement. Count n>1 and nonnull MAX_HEALTH attribute admit permanent twilightforest:group_health_boost ADD_VALUE = coefficient*(n-1). Difficulty coefficient from event.getDifficulty().getDifficulty(): EASY20, NORMAL40, HARD60, default0. This is a snapshot at finalization, not live scaling as players enter/leave, and the callback does not require a particular spawn reason.",
+    "health_configuration": "Exact enum NONE(false,false), MORE_LOOT(true,false), MORE_HEALTH(false,true), MORE_LOOT_AND_HEALTH(true,true); argument order loot,health. Static/default and installed protected common-config snapshot are NONE; config declares worldRestart. Health and loot callbacks are therefore disabled by that snapshot, but native participation recording/advancement are not gated by it. Source/config comments describing a universal20-hearts increment or multiplayer_multiplier function are not authority: actual amount is difficulty-dependent health points and actual loot function ID is multiplayer_addition. No configuration changed.",
+    "health_vs_hp": "Callback only adds MAX_HEALTH modifier: no heal, setHealth, setBaseValue or current-HP refill. Native attribute calculation sums ADD_VALUE before base/total multipliers and sanitizeValue; it is not necessarily an unbounded final HP increase by exactly the raw modifier. Native Living constructor initializes HP before spawn callback. Native onAttributeUpdated lowers HP only if current HP exceeds new maximum; raising maximum does not fill it. EventHooks.finalizeMobSpawn posts event BEFORE mob.finalizeSpawn, and cancellation skips that finalizer. setSpawnCancelled separately marks Mob and can prevent native addition. Other listeners may cancel/change difficulty; this callback has no internal cancellation test. No blanket claim a health-boosted boss spawns at its enlarged maximum.",
+    "native_boss_routes": "Existing native base BossSpawner tick requires unspawned and qualifying nearby player; server non-Peaceful invokes spawnMyBoss. It creates/moves boss, posts finalize event, initializes restriction, then uses addFreshEntity return; successful result removes spawner and marks spawned. Lich override chooses position above ground before event, then cooldown40/extinguish/home and add. Native Lich finalizer delegates parent then equipment/sound, no HP refill; Minoshroom/Minotaur parent/equipment finalizers likewise have no refill. Reuses protected boss admission/defenses. Knight Phantom has its own six-entity spawner but is excluded by the installed multiplayer tag.",
+    "naga_order": "Naga uses native base spawner but its already-reviewed finalizeSpawn is materially distinct after the event: level difficulty !=EASY, MAX_HEALTH present and difficulty_health_boost absent => add permanent difficulty modifier (HARD130, otherwise80), then setHealth(getMaxHealth). Thus on a fresh native non-Easy Naga this later branch fills the maximum including the earlier multiplayer modifier. EASY or preexisting difficulty modifier does not enter that refill. Event difficulty used for group coefficient and level difficulty used here are separate values; external changes can make them differ. No repair or new heal is introduced.",
+    "health_duplicate_persistence": "No hasModifier/remove/replace guard precedes addPermanentModifier. Native AttributeInstance.addModifier putIfAbsent throws IllegalArgumentException for duplicate same ID; repeated admitted finalization does not safely stack or refresh it. addPermanentModifier records modifier in permanent map; save/load serializes base plus permanent modifiers, Living saves attribute data and Health separately and loads attributes before setHealth. Modifier survives ordinary save/reload; there is no native removal or recalculation when nearby players leave or the config later disables adjustment. Runtime hook/tag outcomes remain future controls.",
+    "exact_tag": "Installed tag has exactly naga, lich, minoshroom, hydra, ur_ghast, alpha_yeti, snow_queen and plateau_boss in twilightforest namespace. Knight Phantom and Lich Minion are absent. Tag membership is eligibility, not proof all tagged entities have identical attack/finalization or actual worldgen availability. Real native base/Lich/Naga spawner routes are recorded, not a fabricated summon, tag edit or forced event.",
+    "participant_admission": "Registered LivingDamageEvent.Post callback first tests recipient multiplayer tag, then getData(MULTIPLAYER_FIGHT), creating empty data even if causing entity null. Nonnull event.source.getEntity goes to maybeAddQualifiedPlayer, which admits ServerPlayer and List.contains dedup. Native Entity.equals compares entity integer ID, not UUID; a replacement player entity is not UUID-deduplicated. No game-mode, alive, distance, config, positive original/final damage or last-hit requirement in this callback. Causing player on genuine owned projectile can qualify; direct projectile alone, ownerless source, ordinary Mob or tame pet causing entity does not. No tame-owner/kill-credit traversal or source rewriting.",
+    "post_order": "Exact Living.hurt native invulnerability/client/dead/fire-resistance/incoming-veto/cooldown gates precede actuallyHurt; boss-specific admission remains upstream. Native actuallyHurt invulnerability gate then armor/magic/pre-damage/absorption processing, optional nonzero HP subtraction and damage callbacks, THEN CommonHooks.onLivingDamagePost. Post is emitted outside the nonzero-HP branch and snapshots original/new damage and source. Zero final HP loss can therefore qualify, including native fully absorbed hits, while earlier rejection does not reach Post. A shield path may reach Post and ultimately return false; hurt return is not the participation predicate. Killing-blow Post precedes ordinary death processing. No bypass of armor, Resistance, eligibility or source identity.",
+    "participant_death_persistence": "MULTIPLAYER_FIGHT builder has no serializer, sync or copyOnDeath; qualifiedPlayers is an in-memory List<ServerPlayer>, exposed as unmodifiable view. It does not persist across normal entity reload. Permanent health modifier and transient participants are distinct. Native CommonHooks.onLivingDeath posts cancellable death event; TF listener requires event not canceled and hasData, without rechecking recipient tag/config. grantGroupAdvancement iterates recorded players without clearing list or rechecking range/alive/connection. A later listener cancellation can occur after this listener; no unconditional final death or award guarantee is asserted.",
+    "loot_consumers_disposition": "Acquisition disposition, no separate combat package. Actual registered multiplayer_rolls provider requires loot flag, THIS_ENTITY and existing attachment, otherwise samples defaultRolls. With q participants: defaultFloat + sum of max(0,perPlayerFloat) sampled independently max(q-1,0) times. Native NumberProvider.getInt uses Math.round on the resulting total when LootPool consumes it; native pool conditions and bonus rolls still apply. multiplayer_addition conditional function requires same config/context/data and q>1, samples value.getInt ONCE, multiplies by(q-1), adds existing stack count and clamps0..stack max. Extra amount is not clamped nonnegative; ordinary signed integer arithmetic is retained. It does not recheck tag itself. Actual JSON pointer routing pins all consumer parameters, conditions and pool order.",
+    "loot_material_distinctions": "Actual Minoshroom axe addition Uniform[-2,1] uses native UniformGenerator.getInt -> Mth.nextInt inclusive bounds. Negative draws can reduce or remove a stack; do not call it guaranteed extra loot. Lich/SnowQueen extra-roll Uniform[-2,1] uses getFloat then max0 per extra player, a different rule. Knight Phantom JSON uses multiplayer_rolls inside looting_rolls then binomial .17; LootingEnchantNumberProvider adds actual ATTACKING_ENTITY Living enchantment level to base, native binomial uses integer n and random trials. Knight is absent from tag, and whole installed-class census finds native participant creation only in tagged damage callback, so ordinary Knight path has no participant attachment and uses default multiplayer rolls. No synthetic attachment path is offered as native. Acquisition/resource parameters are evidence, not combat mechanics.",
+    "advancement_disposition": "Progression disposition, no new combat package. HurtBossTrigger constructs boss entity context, native SimpleCriterionTrigger checks existing listeners, hurt-entity predicate and optional player predicate, then awards qualifying criterion. Six native hurt_boss resources: progress_naga, progress_lich, progress_hydra, progress_ur_ghast, progress_yeti, progress_glacier. was_in_fight is an alternative within their existing kill/item group; additional previous-progression requirement groups remain. Minoshroom/Knight have no such hurt_boss resource in installed census. Triggering does not unconditionally grant full advancement, bypass progression or damage an entity.",
+    "compatibility": "DIRECT_SOURCE_SPECIFIC: TF tagged spawn modifier, serialized attribute ID and TF participation/loot/advancement consumers. GENERIC_CONDITIONAL_PRESENT: NeoForge spawn, incoming/pre/post/death events, native mutable attributes, tag reloads and native loot predicates. NONE_PROVEN: no direct Tensura/L2/Curios mapping in these paths. UNKNOWN: other runtime listeners, applied pack tags/attribute caps and actual compatibility outcomes; no pack-wide compatibility inferred. Future Stage must preserve upstream source eligibility, native post ordering and maximum/current-HP distinction."
+  },
+  "closure_checklist": {
+    "authority_scope": true,
+    "health_admission": true,
+    "health_configuration": true,
+    "health_vs_hp": true,
+    "native_boss_routes": true,
+    "naga_order": true,
+    "health_duplicate_persistence": true,
+    "exact_tag": true,
+    "participant_admission": true,
+    "post_order": true,
+    "participant_death_persistence": true,
+    "loot_consumers_disposition": true,
+    "loot_material_distinctions": true,
+    "advancement_disposition": true,
+    "compatibility": true
+  },
+  "comparison_evidence": [
+    {
+      "evidence_file": "vanilla-evidence/twilight-multiplayer.json",
+      "sha256": "09a7b1cfc023b8c955725aaceea58188bca1d59acc6bb1a2d2a9b5dd55eed0c3"
+    },
+    {
+      "evidence_file": "reference-evidence/twilight-multiplayer-244.json",
+      "sha256": "c0952d4458105f1520e8f97985181bfbbac1058a5a43c36c29e863249f23d62b"
+    },
+    {
+      "evidence_file": "reference-routing/twilight-multiplayer.json",
+      "sha256": "c9e5ac3ff5da771223db04fcf47b9769ddbfae871c12a3ec4778ac8892ce293f"
+    },
+    {
+      "evidence_file": "twilightforest-multiplayer-caller-scan.json",
+      "sha256": "0e2ec16b8b947a54360117f5935374baaa0b5bbc1368c5b202cd8501c9b8ca27"
+    },
+    {
+      "evidence_file": "twilightforest-multiplayer-resource-routing.json",
+      "sha256": "44899a5e0fa7b24a221be272b1cda04803a82bc1cb65ddf07306c88337da0d1b"
+    },
+    {
+      "evidence_file": "twilightforest-control-blocks-config-snapshot.json",
+      "sha256": "480efee269324d3d53d2635e7989b51e408993441d2ba885419c84486286bdcd"
+    },
+    {
+      "evidence_file": "partial-evidence/twilightforest-multiplayer/manifest.json",
+      "sha256": "3070b601417e5a77ff2a5b8808fe9215a1f699b7aae2450a1814622fbf8664df"
+    },
+    {
+      "evidence_file": "partial-evidence/twilightforest-multiplayer/multiplayer-preview.json",
+      "sha256": "98cc7934932618a5defa8a23d08e40fcea362c1312e319f4afd7cfa5fb16e3c7"
+    },
+    {
+      "evidence_file": "partial-evidence/twilightforest-multiplayer/multiplayer-native-preview.json",
+      "sha256": "e83a116dfc0387cd4fe1e1e36f0fae939fe8edda53bc6d52f502ffe2974bebce"
+    },
+    {
+      "evidence_file": "partial-evidence/twilightforest-multiplayer/multiplayer-loader-preview.json",
+      "sha256": "4ce4776f816506b0a80905ad9630ee50aaba124507c81f5398d7984a9b2ba9ed"
+    },
+    {
+      "evidence_file": "partial-evidence/twilightforest-multiplayer/multiplayer-census-preview.json",
+      "sha256": "0e2ec16b8b947a54360117f5935374baaa0b5bbc1368c5b202cd8501c9b8ca27"
+    }
+  ],
+  "review_input": {
+    "evidence_file": "review-inputs/twilightforest-multiplayer.json",
+    "sha256": "2f43fc8c0535927866140a3b5049c025d98730e68fee1882f25ebf11518efaa7"
+  },
+  "source_registration_evidence": [
+    {
+      "evidence_file": "native-evidence/twilight-bows-fan.json",
+      "witness_id": "tf:init/TFDataAttachments",
+      "entry": "twilightforest/init/TFDataAttachments.class",
+      "methods": [
+        "lambda$static$1",
+        "lambda$static$19",
+        "lambda$static$47"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-chain.json",
+      "witness_id": "tf:init/TFDataAttachments",
+      "entry": "twilightforest/init/TFDataAttachments.class",
+      "methods": [
+        "lambda$static$8",
+        "lambda$static$9"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-food-flasks.json",
+      "witness_id": "tf:init/TFAdvancements",
+      "entry": "twilightforest/init/TFAdvancements.class",
+      "methods": [
+        "<clinit>"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-giants-tools.json",
+      "witness_id": "tf:init/TFLoot",
+      "entry": "twilightforest/init/TFLoot.class",
+      "methods": [
+        "<clinit>",
+        "lambda$static$3"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-multiplayer.json",
+      "witness_id": "tf:init/TFLoot",
+      "entry": "twilightforest/init/TFLoot.class",
+      "methods": [
+        "lambda$static$0",
+        "lambda$static$1",
+        "lambda$static$2",
+        "lambda$static$4",
+        "lambda$static$5",
+        "lambda$static$6",
+        "lambda$static$7"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-scepter-payloads.json",
+      "witness_id": "tf:init/TFDataAttachments",
+      "entry": "twilightforest/init/TFDataAttachments.class",
+      "methods": [
+        "lambda$static$3"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-travellers-core.json",
+      "witness_id": "tf:init/TFDataAttachments",
+      "entry": "twilightforest/init/TFDataAttachments.class",
+      "methods": [
+        "<init>",
+        "directCopy",
+        "lambda$static$0",
+        "lambda$static$10",
+        "lambda$static$11",
+        "lambda$static$12",
+        "lambda$static$13",
+        "lambda$static$14",
+        "lambda$static$15",
+        "lambda$static$16",
+        "lambda$static$17",
+        "lambda$static$18",
+        "lambda$static$2",
+        "lambda$static$20",
+        "lambda$static$21",
+        "lambda$static$22",
+        "lambda$static$23",
+        "lambda$static$24",
+        "lambda$static$25",
+        "lambda$static$26",
+        "lambda$static$27",
+        "lambda$static$28",
+        "lambda$static$29",
+        "lambda$static$30",
+        "lambda$static$31",
+        "lambda$static$32",
+        "lambda$static$33",
+        "lambda$static$34",
+        "lambda$static$35",
+        "lambda$static$36",
+        "lambda$static$37",
+        "lambda$static$38",
+        "lambda$static$39",
+        "lambda$static$4",
+        "lambda$static$40",
+        "lambda$static$41",
+        "lambda$static$42",
+        "lambda$static$43",
+        "lambda$static$44",
+        "lambda$static$45",
+        "lambda$static$46",
+        "lambda$static$48",
+        "lambda$static$5",
+        "lambda$static$6",
+        "lambda$static$7"
+      ]
+    },
+    {
+      "evidence_file": "native-evidence/twilight-yeti-queen.json",
+      "witness_id": "tf:init/TFDataAttachments",
+      "entry": "twilightforest/init/TFDataAttachments.class",
+      "methods": [
+        "<clinit>"
+      ]
+    }
+  ],
+  "full_declared_class_coverage": [
+    "components/entity/MultiplayerInclusivityAttachment",
+    "config/TFConfig$MultiplayerFightAdjuster",
+    "loot/MultiplayerBasedNumberProvider",
+    "loot/MultiplayerBasedAdditionLootFunction",
+    "loot/MultiplayerBasedAdditionLootFunction$Builder",
+    "loot/LootingEnchantNumberProvider",
+    "advancements/HurtBossTrigger",
+    "advancements/HurtBossTrigger$TriggerInstance"
+  ],
+  "limited_class_coverage": {
+    "events/EntityEvents": [
+      "registered health/participant/death callbacks only; other callbacks pending"
+    ],
+    "block/entity/spawner/BossSpawnerBlockEntity": [
+      "actual finalize health delivery, prior boss behavior reused"
+    ],
+    "block/entity/spawner/LichSpawnerBlockEntity": [
+      "actual special spawn position/finalize delivery"
+    ],
+    "entity/boss/Naga": [
+      "existing finalizer HP ordering only"
+    ]
+  },
+  "exclusions": [
+    "Acquisition disposition, no separate combat package. Actual registered multiplayer_rolls provider requires loot flag, THIS_ENTITY and existing attachment, otherwise samples defaultRolls. With q participants: defaultFloat + sum of max(0,perPlayerFloat) sampled independently max(q-1,0) times. Native NumberProvider.getInt uses Math.round on the resulting total when LootPool consumes it; native pool conditions and bonus rolls still apply. multiplayer_addition conditional function requires same config/context/data and q>1, samples value.getInt ONCE, multiplies by(q-1), adds existing stack count and clamps0..stack max. Extra amount is not clamped nonnegative; ordinary signed integer arithmetic is retained. It does not recheck tag itself. Actual JSON pointer routing pins all consumer parameters, conditions and pool order.",
+    "Actual Minoshroom axe addition Uniform[-2,1] uses native UniformGenerator.getInt -> Mth.nextInt inclusive bounds. Negative draws can reduce or remove a stack; do not call it guaranteed extra loot. Lich/SnowQueen extra-roll Uniform[-2,1] uses getFloat then max0 per extra player, a different rule. Knight Phantom JSON uses multiplayer_rolls inside looting_rolls then binomial .17; LootingEnchantNumberProvider adds actual ATTACKING_ENTITY Living enchantment level to base, native binomial uses integer n and random trials. Knight is absent from tag, and whole installed-class census finds native participant creation only in tagged damage callback, so ordinary Knight path has no participant attachment and uses default multiplayer rolls. No synthetic attachment path is offered as native. Acquisition/resource parameters are evidence, not combat mechanics.",
+    "Progression disposition, no new combat package. HurtBossTrigger constructs boss entity context, native SimpleCriterionTrigger checks existing listeners, hurt-entity predicate and optional player predicate, then awards qualifying criterion. Six native hurt_boss resources: progress_naga, progress_lich, progress_hydra, progress_ur_ghast, progress_yeti, progress_glacier. was_in_fight is an alternative within their existing kill/item group; additional previous-progression requirement groups remain. Minoshroom/Knight have no such hurt_boss resource in installed census. Triggering does not unconditionally grant full advancement, bypass progression or damage an entity.",
+    "Participant list is native combat attribution for acquisition/progression, not an independently consumed combat resource; source/admission/persistence recorded, no extra package.",
+    "Remaining ordinary utility/storage/maps/crafting/progression/worldgen without combat callback/rendering receives concise disposition under new owner scope. Historical protected sections are not redone."
+  ],
+  "fixture_groups": [
+    "Native eligible player-count/config/difficulty/tag health admission, before/after finalization HP and attribute comparison, duplicate ID and save/reload.",
+    "Actual causing-player vs direct-projectile/ownerless/pet source, upstream damage rejection vs absorbed zero-HP Post and killing-blow ordering; no forced events.",
+    "Native participant identity/reload, death cancellation/criterion predicates, exact real loot-provider resources and config modes, only if later runtime approval is given."
+  ],
+  "compatibility_scope": "DIRECT_SOURCE_SPECIFIC: TF tagged spawn modifier, serialized attribute ID and TF participation/loot/advancement consumers. GENERIC_CONDITIONAL_PRESENT: NeoForge spawn, incoming/pre/post/death events, native mutable attributes, tag reloads and native loot predicates. NONE_PROVEN: no direct Tensura/L2/Curios mapping in these paths. UNKNOWN: other runtime listeners, applied pack tags/attribute caps and actual compatibility outcomes; no pack-wide compatibility inferred. Future Stage must preserve upstream source eligibility, native post ordering and maximum/current-HP distinction.",
+  "counts": {
+    "mechanic_packages": 1,
+    "delivery_cases": 3,
+    "classification_totals": {
+      "VANILLA_LIKE_EXTENDED": 1
+    },
+    "review_required": 0,
+    "new_custom_types_resolved": 0
+  },
+  "damage_census": {
+    "total_custom_declarations": 40,
+    "previous_reviewed_profiles": 40,
+    "new_used_profiles": 0,
+    "reviewed_profiles_after": 40,
+    "remaining_profiles": 0,
+    "remaining_disposition": "All40 custom types USED. Multiplayer adds no DamageType. Only combat-significant global closure remains."
+  },
+  "exact_next_task": "Finish only remaining combat-significant EntityEvents, Lich/worldgen traps or spawners, nested ASM and compatibility/source closure. Briefly disposition utility/acquisition/progression/rendering without deep new subsections. Protect R2f8 remaining-content closure, then deduplicate/promote Twilight COMPLETE before IceAndFireCE beta15. Continue while execution/quota can safely protect work; no arbitrary percentage stop.",
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false
+}

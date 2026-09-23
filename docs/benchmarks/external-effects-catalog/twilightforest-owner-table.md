@@ -1,6 +1,6 @@
 # Twilight Forest — partial semantic owner table
 
-The installed4.8.3345 review is **PARTIAL** at **R2f8ad**: **270 mechanic-package drafts /996 delivery cases**, **40/40 custom DamageType profiles USED**, zero unfinished types, REVIEW_REQUIRED0. Remaining control/events/ASM/source closure unfinished. Zero final Twilight records promoted. Protected sections/cloth erratum and accepted four mods116/161/217 preserved; runtime0.
+The installed4.8.3345 review is **PARTIAL** at **R2f8ae complete**: **271 mechanic-package drafts /999 delivery cases**, **40/40 custom DamageType profiles USED**, zero unfinished types, REVIEW_REQUIRED0. Remaining control/events/ASM/source closure unfinished. Zero final Twilight records promoted. Protected sections/cloth erratum and accepted four mods116/161/217 preserved; runtime0.
 
 | Mechanic | Native behavior | Vanilla comparison | Classification / source coverage |
 |---|---|---|---|
@@ -522,3 +522,13 @@ Continues live-verified `9784db969a2ca2dd2e9eced38a763fc60d9ff2eb`. R2f8ad remai
 Twilight remains PARTIAL at270 reviewed mechanic drafts/996 paths,40/40 custom DamageTypes USED, no unfinished types, REVIEW_REQUIRED0, zero promoted. Four accepted mods116/161/217 preserved. IceAndFire unstarted; runtime0, no L2/Stage/production/Phase6/7 changes. Full R2f8ad validation, five tooling tests plus four NBT-reader tests, partial witness regeneration/integrity, preservation and diff checks protect the save.
 
 Exact next task: finish multiplayer maximum-health versus current-HP behavior, native spawn/event/participant admission, permanent modifier and transient participant persistence, native reward consumers and source guards from the saved bundle. Then remaining EntityEvents, Lich worldgen trap/spawner paths, nested ASM, compatibility/global exclusions; R2f8 completion and final Twilight promotion before IceAndFire. Stop after push/live equality because of the actual usage save boundary.
+
+## R2f8ae complete - multiplayer native semantics
+
+Resumes live-verified `b00c1f7fc41c0feb28e1c9d8f9023c8eb46bc2c3`. [Completed contracts](twilightforest-multiplayer-review.md) close spawn/HP ordering, modifier admission/duplicate/persistence, participant Post/death admission, actual tagged bosses, loot providers and advancement consumers.
+
+One VANILLA_LIKE_EXTENDED combat package and three native spawn paths added. The modifier raises maximum health without healing; Naga's later native non-Easy finalizer can fill it. Duplicate modifier IDs throw instead of stacking. Damage Post can qualify a causing ServerPlayer with zero HP loss; participant list is transient while the health modifier persists. Native loot/advancement consumers are acquisition/progression dispositions, not extra combat packages under the owner's corrected scope.
+
+Twilight PARTIAL271/999;40/40 custom types USED, REVIEW_REQUIRED0, zero promoted. Five tooling tests, source guards, exact reference/resource integrity, subsection/full checks, preservation and diff checks protect this subsection. Runtime0; accepted production and four accepted mod catalogs preserved.
+
+Owner instruction supersedes the80% stop rule: continue while execution and enough quota to protect work remain. Next: only true remaining combat-significant EntityEvents/worldgen/ASM/compatibility/source gaps, concise noncombat exclusions, R2f8 whole closure and final dedup/promotion before IceAndFire.

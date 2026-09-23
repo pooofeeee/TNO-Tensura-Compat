@@ -62,6 +62,9 @@ def validate_remaining():
         if d['slug']=='fence-leash':
             from validate_twilight_fence_leash import validate_fence_leash
             validate_fence_leash(d,s,old,new,methods,ins,pos,target)
+        if d['slug']=='multiplayer':
+            from validate_twilight_multiplayer import validate_multiplayer
+            validate_multiplayer(d,s,old,new,methods,ins,pos,target)
         if d['slug']=='portals':
             from validate_twilight_portals import validate_portals
             validate_portals(d,s,old,new,methods,ins,pos,target)
