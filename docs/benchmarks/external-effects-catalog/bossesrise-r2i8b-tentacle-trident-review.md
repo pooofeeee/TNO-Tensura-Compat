@@ -1,0 +1,53 @@
+# R2i8b — Bosses Rise Undying Tentacle and Kraken Trident
+
+Undying Tentacle real pull/summon, Ghost timed combat and Kraken Trident native throw/direct/area callbacks.
+
+Static review only. Future runtime fixtures remain unexecuted; whole Bosses’ Rise review is PARTIAL.
+
+## Undying whip
+
+UndyingTentacle durability1000; mainhand ordinary attackDamage+2, attackSpeed-3, entity/block interactionRange+1. Normal use returns consume_partial and server first costs1 durability/cooldown40, even when no eligible hit. Scans playerBB.inflate40 excluding user, candidate piston push reaction NORMAL and not tagged neoforge:bosses. Closest point on candidate box must be<=40 from eye, within1.5 of view ray evaluated at that distance, and player.hasLineOfSight true. Chooses nearest eligible point; target setDeltaMovement=(eye-closestPoint)*.25 replaces existing velocity. No explicit Living/owner/team/alive/spectator filter. If no eligible entity, COLLIDER/Fluid.NONE ray40 to block hit pushes player via Spatial toward (blockHit-playerPosition)*.25. No hurt/MobEffect/fall reset; movement consequences remain native. Immunity to HP/knockback does not automatically veto these raw/Spatial controls. Native cooldown/use admission remains, not a new fallback damage route.
+
+## Undying summon
+
+Secondary use starts real item use/BOW, duration40. finishUsingItem on ServerPlayer attempts Ghosts at four cardinal positions exactly3 blocks away. Each requires level.noBlockCollision on native Ghost spawn AABB; creates Ghost directly without finalizeMobSpawn, assigns player owner UUID, adds it and suppresses experience. spawnGhost returns true after addFreshEntity without checking that boolean, so logical spawnedAny means at least one terrain-admitted attempt, not guaranteed server insertion. No accepted attempts ->cooldown10 and return. Otherwise cooldown40, then every Entity within playerBB.inflate3 and strict distance<3 gets existing velocity+Y3; no owner/team/pushability/LOS/HP filter beyond query. Native per-entity setDeltaMovement overrides can still ignore it. No durability deduction in summon completion and no direct damage. Early release does no summon and sets cooldown40. Rendering, sound and ordinary acquisition excluded.
+
+## Ghost attack
+
+Ghost is independent Monster, owner UUID targets use shared Ownable helpers. Base HP20/armor6/attack5/KBresistance.1; no copied player attack attribute. Its anonymous MeleeAttackGoal.canPerformAttack returnsfalse, so navigation is not a second HP route. Actual baseTick cooldown starts30, increments while target<16 until40, then target<4.5 selects20tick animation/reset0. At countdown4 current target must be<6; turns to target eyes, and alive attacker with blocking target applies Player active-item cooldown100 then returns without HP/push. Otherwise alive attacker requests mob_attack current ATTACK_DAMAGE direct/causing Ghost, ignores result, then raw target velocity +=lookXZ*.2/Y.1. Owner is NOT causing entity of melee DamageSource. No LOS in timed callback and no enchantment modify/post call. Dead attacker can still reach independent push if callback otherwise executes. Keep targeting exclusions separate from generic damage immunity. Stage once at final native hurt.
+
+## Ghost lifetime
+
+Server tickCount>200 skips attack logic and calls native kill if not dead/dying. Installed LivingEntity.kill requests generic_kill Float.MAX_VALUE through hurt; this is a scripted terminal request, not direct subtraction and not a Stage combat payload. Corpse removal>=30 server death ticks. Native owner, ghost_age and attack animation persist; cooldown key mismatch writes attack_cooldown but reads Dataattack_cooldown, normally resetting0. Ghost is unpushable, ignores setDeltaMovement/pushEntities and piston reactionIGNORE, so whip and trident area pushability gates normally exclude it. It is not generally immune to HP. No custom loot; native expiry/effect cancellation can be runtime-tested without inventing owner attribution.
+
+## Trident real throw
+
+KrakenTridentItem extends native TridentItem; registry durability2500, ordinary melee attackDamage+9/attackSpeed-2.9. Installed required mixin list names KrakenTridentTridentItemMixin, whose releaseUsing NEW redirect replaces only a pickup ItemStack of exact KRAKEN_TRIDENT; every other item constructs vanilla ThrownTrident. Access transformer exposes the inherited pickup/loyalty/foil fields/method used by subclass initialization. Real native use rejects damage>=max-1 and Riptide-strength>0 when not in water/rain; starts use otherwise. Release by Player after>=10 ticks repeats those gates, costs1 durability server. Spin strength0 constructs redirected custom trident, owner shooter, speed2.5/inaccuracy1, removes survival inventory item, creative-only pickup for infinite materials. Positive spin strength keeps native push/auto-spin20 with native8 base and does NOT construct projectile or trigger mod area pull. Native Riptide/melee paths need no added mod-specific Stage multiplier.
+
+## Trident direct hit
+
+Custom projectile extends ThrownTrident/AbstractArrow. Native tick, collision, PvP, Neo impact veto, deflection and dealtDamage/loyalty remain. Inherited onHitEntity requests trident source direct projectile/causing owner, falling back to projectile itself when absent; base8 modified by native enchantments, not speed*base and not item melee+9. dealtDamage is set BEFORE hurt. Hurttrue gates post enchantment effects and Living knockback/posthurt; successful Enderman hit returns early within superclass. False hurt still marks dealtDamage and normal return motion changes. Subclass calls pullEntities AFTER super returns, so false hurt and superclass Enderman early return do not skip mod area callback. Final direct native hurt is one Stage point, preserving native source/eligibility.
+
+## Trident area
+
+Both subclass onHitEntity and onHitBlock call super then pullEntities. Box full-side10 centered at current projectile position, predicate candidate.isPushable AND distanceSquared<=25; excludes only projectile via query. There is no explicit owner/team/LOS/Living/alive/creative/PvP exclusion. Each candidate first requests trident5 direct same projectile/causing owner else self, ignores hurt result, then raw Entity.push normalized(projectile-victim)*.4. Therefore admitted native impact can pull/damage thrower or allies, and nonpushable bosses are excluded from this extra HP attempt. Block hit can create the same area request even without direct target; inherited block enchantment effects occur first. Native HP cooldown/iframes, Resistance and source shield checks may reject second hit; do not promise8+5 HP. Direct and area requests have separate single scaling points; control strength and radius are not scaled.
+
+## Trident persistence factory
+
+Custom constructors copy pickup stack/name, remove input intangible component for creative-only pickup, initialize loyalty from item/foil, then set native owner for shooter route. Inherited saved pickup/owner/DealtDamage and loyalty restoration continue. After dealtDamage or sufficient inGround time, positive loyalty with valid live owner returns via native noPhysics motion; absent/dead/spectator owner follows native drop/discard rules. Normal entity-hit search returnsnull once dealtDamage, so do not invent repeated entity area pulses. KrakenTridentItem.asProjectile exists and creates ownerless custom projectile with pickupALLOWED, but this mod JAR has no dispenser registration caller and installed DispenseItemBehavior bootstrap does not register this item or automatically every ProjectileItem. Class factory capability is not promoted as a delivered dispenser path; do not invoke it manually to claim a native positive control. Other mods could register it later, which remains a separate runtime discovery, not a present native ambiguity.
+
+## Compatibility scope
+
+Native trident is projectile and Neo physical, with ordinary armor/shield/Resistance/enchantment admission, not one of the two custom Bosses Rise DamageTypes. Native mob_attack Ghost source is similarly ordinary physical. Terminal generic_kill remains native and is not scaled. Undying whip checks neoforge:bosses/piston/LOS; trident pull uses pushability and a sphere; Ghost targeting checks ownership independently. These predicates materially differ and cannot be collapsed into one immunity rule. No fallback source/direct subtraction proposed. Existing ordinary melee/Riptide behavior stays native. The two numeric trident channels and Ghost HP request need future runtime source/result fixtures. Lore/render/repair-item oddity/acquisition are excluded; whole mod remains PARTIAL.
+
+- **Undying Tentacle native entity/block pull**: COMPOSITE, ADMISSION_GATED, NO_STAGE_VALUE. Stage: Native control/admission/summon resource, ordinary inherited use or scripted lifetime; no additional scalable HP callback.
+- **Undying Tentacle Ghost summon and lift resources**: COMPOSITE, ADMISSION_GATED, NO_STAGE_VALUE. Stage: Native control/admission/summon resource, ordinary inherited use or scripted lifetime; no additional scalable HP callback.
+- **Ghost Tentacle timed native melee**: COMPOSITE, ADMISSION_GATED, NUMERIC_SCALABLE. Stage: GhostTentacle.baseTick final native mob_attack ATTACK_DAMAGE hurt once; never summon count or player damage attribute.
+- **Ghost Tentacle control, ownership and lifetime**: COMPOSITE, ADMISSION_GATED, NO_STAGE_VALUE. Stage: Native control/admission/summon resource, ordinary inherited use or scripted lifetime; no additional scalable HP callback.
+- **Kraken Trident native item and ownership lifecycle**: COMPOSITE, ADMISSION_GATED, NO_STAGE_VALUE. Stage: Native control/admission/summon resource, ordinary inherited use or scripted lifetime; no additional scalable HP callback.
+- **Kraken Trident inherited direct hit**: COMPOSITE, ADMISSION_GATED, NUMERIC_SCALABLE. Stage: Inherited ThrownTrident.onHitEntity final native trident hurt after enchantment adjustment of8; no item attribute or speed scaling again.
+- **Kraken Trident native area hit and independent pull**: COMPOSITE, ADMISSION_GATED, NUMERIC_SCALABLE. Stage: ThrownKrakenTrident.pullEntity final trident5 native hurt once; do not scale radius/control or re-scale inherited direct hit.
+
+[Machine evidence, packages and native paths](bossesrise-r2i8b-tentacle-trident.json).
+
+Exact next task: R2i8c: Dragon armor Post-damage retaliation/boots explosion, remaining special weapons/armor/shields and combat hooks. Then reconcile whole-JAR watched-method closure (including anonymous melee goal admission), deduplicate/promote Bosses Rise and run full validation. Gauntlets, Undying Tentacle/Ghost and Kraken Trident are complete; no runtime work.

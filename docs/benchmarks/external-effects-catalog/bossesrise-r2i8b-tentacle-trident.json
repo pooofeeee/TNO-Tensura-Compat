@@ -1,0 +1,408 @@
+{
+  "schema": "tno.external_effects.bossesrise_tentacle_trident.v1",
+  "checkpoint": "R2i8b-bossesrise-tentacle-trident-complete",
+  "previous_checkpoint": "R2i8a-bossesrise-gauntlets-complete",
+  "starting_sha": "431943bc5f04edf6bb4d0aeeeb0d128bb8cb60f0",
+  "status": "UNDYING_TENTACLE_GHOST_KRAKEN_TRIDENT_COMPLETE",
+  "scope": "Undying Tentacle real pull/summon, Ghost timed combat and Kraken Trident native throw/direct/area callbacks.",
+  "summary": "Undying whip controls motion without HP; owned Ghost uses its own mob_attack. Kraken Trident adds a separate native5 area request and pull after inherited hits, including failed direct HP results.",
+  "facts": {
+    "undying_whip": "UndyingTentacle durability1000; mainhand ordinary attackDamage+2, attackSpeed-3, entity/block interactionRange+1. Normal use returns consume_partial and server first costs1 durability/cooldown40, even when no eligible hit. Scans playerBB.inflate40 excluding user, candidate piston push reaction NORMAL and not tagged neoforge:bosses. Closest point on candidate box must be<=40 from eye, within1.5 of view ray evaluated at that distance, and player.hasLineOfSight true. Chooses nearest eligible point; target setDeltaMovement=(eye-closestPoint)*.25 replaces existing velocity. No explicit Living/owner/team/alive/spectator filter. If no eligible entity, COLLIDER/Fluid.NONE ray40 to block hit pushes player via Spatial toward (blockHit-playerPosition)*.25. No hurt/MobEffect/fall reset; movement consequences remain native. Immunity to HP/knockback does not automatically veto these raw/Spatial controls. Native cooldown/use admission remains, not a new fallback damage route.",
+    "undying_summon": "Secondary use starts real item use/BOW, duration40. finishUsingItem on ServerPlayer attempts Ghosts at four cardinal positions exactly3 blocks away. Each requires level.noBlockCollision on native Ghost spawn AABB; creates Ghost directly without finalizeMobSpawn, assigns player owner UUID, adds it and suppresses experience. spawnGhost returns true after addFreshEntity without checking that boolean, so logical spawnedAny means at least one terrain-admitted attempt, not guaranteed server insertion. No accepted attempts ->cooldown10 and return. Otherwise cooldown40, then every Entity within playerBB.inflate3 and strict distance<3 gets existing velocity+Y3; no owner/team/pushability/LOS/HP filter beyond query. Native per-entity setDeltaMovement overrides can still ignore it. No durability deduction in summon completion and no direct damage. Early release does no summon and sets cooldown40. Rendering, sound and ordinary acquisition excluded.",
+    "ghost_attack": "Ghost is independent Monster, owner UUID targets use shared Ownable helpers. Base HP20/armor6/attack5/KBresistance.1; no copied player attack attribute. Its anonymous MeleeAttackGoal.canPerformAttack returnsfalse, so navigation is not a second HP route. Actual baseTick cooldown starts30, increments while target<16 until40, then target<4.5 selects20tick animation/reset0. At countdown4 current target must be<6; turns to target eyes, and alive attacker with blocking target applies Player active-item cooldown100 then returns without HP/push. Otherwise alive attacker requests mob_attack current ATTACK_DAMAGE direct/causing Ghost, ignores result, then raw target velocity +=lookXZ*.2/Y.1. Owner is NOT causing entity of melee DamageSource. No LOS in timed callback and no enchantment modify/post call. Dead attacker can still reach independent push if callback otherwise executes. Keep targeting exclusions separate from generic damage immunity. Stage once at final native hurt.",
+    "ghost_lifetime": "Server tickCount>200 skips attack logic and calls native kill if not dead/dying. Installed LivingEntity.kill requests generic_kill Float.MAX_VALUE through hurt; this is a scripted terminal request, not direct subtraction and not a Stage combat payload. Corpse removal>=30 server death ticks. Native owner, ghost_age and attack animation persist; cooldown key mismatch writes attack_cooldown but reads Dataattack_cooldown, normally resetting0. Ghost is unpushable, ignores setDeltaMovement/pushEntities and piston reactionIGNORE, so whip and trident area pushability gates normally exclude it. It is not generally immune to HP. No custom loot; native expiry/effect cancellation can be runtime-tested without inventing owner attribution.",
+    "trident_real_throw": "KrakenTridentItem extends native TridentItem; registry durability2500, ordinary melee attackDamage+9/attackSpeed-2.9. Installed required mixin list names KrakenTridentTridentItemMixin, whose releaseUsing NEW redirect replaces only a pickup ItemStack of exact KRAKEN_TRIDENT; every other item constructs vanilla ThrownTrident. Access transformer exposes the inherited pickup/loyalty/foil fields/method used by subclass initialization. Real native use rejects damage>=max-1 and Riptide-strength>0 when not in water/rain; starts use otherwise. Release by Player after>=10 ticks repeats those gates, costs1 durability server. Spin strength0 constructs redirected custom trident, owner shooter, speed2.5/inaccuracy1, removes survival inventory item, creative-only pickup for infinite materials. Positive spin strength keeps native push/auto-spin20 with native8 base and does NOT construct projectile or trigger mod area pull. Native Riptide/melee paths need no added mod-specific Stage multiplier.",
+    "trident_direct_hit": "Custom projectile extends ThrownTrident/AbstractArrow. Native tick, collision, PvP, Neo impact veto, deflection and dealtDamage/loyalty remain. Inherited onHitEntity requests trident source direct projectile/causing owner, falling back to projectile itself when absent; base8 modified by native enchantments, not speed*base and not item melee+9. dealtDamage is set BEFORE hurt. Hurttrue gates post enchantment effects and Living knockback/posthurt; successful Enderman hit returns early within superclass. False hurt still marks dealtDamage and normal return motion changes. Subclass calls pullEntities AFTER super returns, so false hurt and superclass Enderman early return do not skip mod area callback. Final direct native hurt is one Stage point, preserving native source/eligibility.",
+    "trident_area": "Both subclass onHitEntity and onHitBlock call super then pullEntities. Box full-side10 centered at current projectile position, predicate candidate.isPushable AND distanceSquared<=25; excludes only projectile via query. There is no explicit owner/team/LOS/Living/alive/creative/PvP exclusion. Each candidate first requests trident5 direct same projectile/causing owner else self, ignores hurt result, then raw Entity.push normalized(projectile-victim)*.4. Therefore admitted native impact can pull/damage thrower or allies, and nonpushable bosses are excluded from this extra HP attempt. Block hit can create the same area request even without direct target; inherited block enchantment effects occur first. Native HP cooldown/iframes, Resistance and source shield checks may reject second hit; do not promise8+5 HP. Direct and area requests have separate single scaling points; control strength and radius are not scaled.",
+    "trident_persistence_factory": "Custom constructors copy pickup stack/name, remove input intangible component for creative-only pickup, initialize loyalty from item/foil, then set native owner for shooter route. Inherited saved pickup/owner/DealtDamage and loyalty restoration continue. After dealtDamage or sufficient inGround time, positive loyalty with valid live owner returns via native noPhysics motion; absent/dead/spectator owner follows native drop/discard rules. Normal entity-hit search returnsnull once dealtDamage, so do not invent repeated entity area pulses. KrakenTridentItem.asProjectile exists and creates ownerless custom projectile with pickupALLOWED, but this mod JAR has no dispenser registration caller and installed DispenseItemBehavior bootstrap does not register this item or automatically every ProjectileItem. Class factory capability is not promoted as a delivered dispenser path; do not invoke it manually to claim a native positive control. Other mods could register it later, which remains a separate runtime discovery, not a present native ambiguity.",
+    "compatibility_scope": "Native trident is projectile and Neo physical, with ordinary armor/shield/Resistance/enchantment admission, not one of the two custom Bosses Rise DamageTypes. Native mob_attack Ghost source is similarly ordinary physical. Terminal generic_kill remains native and is not scaled. Undying whip checks neoforge:bosses/piston/LOS; trident pull uses pushability and a sphere; Ghost targeting checks ownership independently. These predicates materially differ and cannot be collapsed into one immunity rule. No fallback source/direct subtraction proposed. Existing ordinary melee/Riptide behavior stays native. The two numeric trident channels and Ghost HP request need future runtime source/result fixtures. Lore/render/repair-item oddity/acquisition are excluded; whole mod remains PARTIAL."
+  },
+  "mechanic_packages": [
+    {
+      "id": "br:undying_whip",
+      "name": "Undying Tentacle native entity/block pull",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native control/admission/summon resource, ordinary inherited use or scripted lifetime; no additional scalable HP callback.",
+      "delivery_paths": [
+        "br:tentacle_trident:whip_entity",
+        "br:tentacle_trident:whip_block"
+      ]
+    },
+    {
+      "id": "br:undying_summon",
+      "name": "Undying Tentacle Ghost summon and lift resources",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native control/admission/summon resource, ordinary inherited use or scripted lifetime; no additional scalable HP callback.",
+      "delivery_paths": [
+        "br:tentacle_trident:summon",
+        "br:tentacle_trident:summon_lift",
+        "br:tentacle_trident:early_release"
+      ]
+    },
+    {
+      "id": "br:ghost_tentacle_melee",
+      "name": "Ghost Tentacle timed native melee",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "GhostTentacle.baseTick final native mob_attack ATTACK_DAMAGE hurt once; never summon count or player damage attribute.",
+      "stage_reason": "Only actual native outgoing HP request once.",
+      "delivery_paths": [
+        "br:tentacle_trident:ghost_melee"
+      ]
+    },
+    {
+      "id": "br:ghost_tentacle_control",
+      "name": "Ghost Tentacle control, ownership and lifetime",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native control/admission/summon resource, ordinary inherited use or scripted lifetime; no additional scalable HP callback.",
+      "delivery_paths": [
+        "br:tentacle_trident:ghost_block",
+        "br:tentacle_trident:ghost_push",
+        "br:tentacle_trident:ghost_expiry",
+        "br:tentacle_trident:ghost_reload"
+      ]
+    },
+    {
+      "id": "br:kraken_trident_delivery",
+      "name": "Kraken Trident native item and ownership lifecycle",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native control/admission/summon resource, ordinary inherited use or scripted lifetime; no additional scalable HP callback.",
+      "delivery_paths": [
+        "br:tentacle_trident:trident_throw",
+        "br:tentacle_trident:trident_riptide",
+        "br:tentacle_trident:trident_reload"
+      ]
+    },
+    {
+      "id": "br:kraken_trident_hit",
+      "name": "Kraken Trident inherited direct hit",
+      "primary_classification": "VANILLA_DIRECT",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Inherited ThrownTrident.onHitEntity final native trident hurt after enchantment adjustment of8; no item attribute or speed scaling again.",
+      "stage_reason": "Only actual native outgoing HP request once.",
+      "delivery_paths": [
+        "br:tentacle_trident:trident_direct"
+      ]
+    },
+    {
+      "id": "br:kraken_trident_area",
+      "name": "Kraken Trident native area hit and independent pull",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "ThrownKrakenTrident.pullEntity final trident5 native hurt once; do not scale radius/control or re-scale inherited direct hit.",
+      "stage_reason": "Only actual native outgoing HP request once.",
+      "delivery_paths": [
+        "br:tentacle_trident:trident_entity_area",
+        "br:tentacle_trident:trident_block_area"
+      ]
+    }
+  ],
+  "delivery_paths": [
+    {
+      "id": "br:tentacle_trident:whip_entity",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "Normal-use native closest eligible entity -> replace velocity",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native input, ownership and source",
+        "Separate admission and HP/control callback results"
+      ]
+    },
+    {
+      "id": "br:tentacle_trident:whip_block",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "No eligible entity -> native block ray and player Spatial pull",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native input, ownership and source",
+        "Separate admission and HP/control callback results"
+      ]
+    },
+    {
+      "id": "br:tentacle_trident:summon",
+      "labels": [
+        "SUMMONED_ATTACK"
+      ],
+      "native_path": "Fortytick secondary use -> four collision-admitted Ghost attempts",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native input, ownership and source",
+        "Separate admission and HP/control callback results"
+      ]
+    },
+    {
+      "id": "br:tentacle_trident:summon_lift",
+      "labels": [
+        "AOE"
+      ],
+      "native_path": "Any admitted summon attempt -> nearby raw Y+3 without hurt",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native input, ownership and source",
+        "Separate admission and HP/control callback results"
+      ]
+    },
+    {
+      "id": "br:tentacle_trident:early_release",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "Release before finish -> cooldown40 and no summon",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native input, ownership and source",
+        "Separate admission and HP/control callback results"
+      ]
+    },
+    {
+      "id": "br:tentacle_trident:ghost_melee",
+      "labels": [
+        "SUMMONED_ATTACK"
+      ],
+      "native_path": "Owned Ghost actual timed mob_attack; ordinary AI hit disabled",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native input, ownership and source",
+        "Separate admission and HP/control callback results"
+      ]
+    },
+    {
+      "id": "br:tentacle_trident:ghost_block",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Blocking victim active item cooldown100, no HP/push",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native input, ownership and source",
+        "Separate admission and HP/control callback results"
+      ]
+    },
+    {
+      "id": "br:tentacle_trident:ghost_push",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Independent Ghost raw push after native hurt",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native input, ownership and source",
+        "Separate admission and HP/control callback results"
+      ]
+    },
+    {
+      "id": "br:tentacle_trident:ghost_expiry",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Saved age>200 -> native genericKill terminal request",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native input, ownership and source",
+        "Separate admission and HP/control callback results"
+      ]
+    },
+    {
+      "id": "br:tentacle_trident:ghost_reload",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Owner/age/animation persistence and cooldown-key mismatch",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native input, ownership and source",
+        "Separate admission and HP/control callback results"
+      ]
+    },
+    {
+      "id": "br:tentacle_trident:trident_throw",
+      "labels": [
+        "THROWN_PROJECTILE"
+      ],
+      "native_path": "Inherited legitimate release -> registered exact-item constructor redirect",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native input, ownership and source",
+        "Separate admission and HP/control callback results"
+      ]
+    },
+    {
+      "id": "br:tentacle_trident:trident_direct",
+      "labels": [
+        "THROWN_PROJECTILE"
+      ],
+      "native_path": "Inherited native trident8/enchant direct hit",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native input, ownership and source",
+        "Separate admission and HP/control callback results"
+      ]
+    },
+    {
+      "id": "br:tentacle_trident:trident_entity_area",
+      "labels": [
+        "AOE"
+      ],
+      "native_path": "After native entity hit -> pushable-radius5 trident5 and independent pull",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native input, ownership and source",
+        "Separate admission and HP/control callback results"
+      ]
+    },
+    {
+      "id": "br:tentacle_trident:trident_block_area",
+      "labels": [
+        "AOE"
+      ],
+      "native_path": "After native block callback -> same separate area payload",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native input, ownership and source",
+        "Separate admission and HP/control callback results"
+      ]
+    },
+    {
+      "id": "br:tentacle_trident:trident_riptide",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native Riptide path creates no custom projectile/area",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native input, ownership and source",
+        "Separate admission and HP/control callback results"
+      ]
+    },
+    {
+      "id": "br:tentacle_trident:trident_reload",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native saved dealtDamage/owner/loyalty and pickup lifecycle",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine native input, ownership and source",
+        "Separate admission and HP/control callback results"
+      ]
+    }
+  ],
+  "unexecuted_future_fixtures": [
+    "native_whip_boss_tag_piston_LOS_closest_entity_vs_blockfallback",
+    "whip_failed_target_still_cost_cooldown_no_HP",
+    "summon40_four_collision_checks_vs_failed_add_boolean_and_lift",
+    "early_release_vs_finish_no_summon_durability_cost",
+    "Ghost_owner_targeting_source_self_not_owner_and_no_AI_doublehit",
+    "Ghost_range4_5_start6_hit_noLOS_block_cooldown_falsehurt_push",
+    "Ghost_saved_age200_terminal_genericKill_native_rejection",
+    "native_trident_redirect_exact_item_charge10_durability_survival_creative",
+    "native_Riptide_wet_gate_no_mod_projectile_callback",
+    "trident_direct8_enchant_vs_separate_area5_native_iframes",
+    "trident_failed_hit_Enderman_return_still_subclass_area",
+    "trident_block_native_enchant_then_area",
+    "trident_area_owner_ally_PvP_pushable_nonLiving_radius_noLOS",
+    "trident_falsehurt_independentrawpull_and_nonpushable_exclusion",
+    "native_saved_projectile_owner_dealtDamage_loyalty"
+  ],
+  "review_required": [],
+  "remaining_subsection_native_ambiguities": [],
+  "exact_next_task": "R2i8c: Dragon armor Post-damage retaliation/boots explosion, remaining special weapons/armor/shields and combat hooks. Then reconcile whole-JAR watched-method closure (including anonymous melee goal admission), deduplicate/promote Bosses Rise and run full validation. Gauntlets, Undying Tentacle/Ghost and Kraken Trident are complete; no runtime work.",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "block_factorys_bosses",
+  "runtime_tests": 0,
+  "whole_mod_complete": false,
+  "promoted_mechanics": 0,
+  "promoted_paths": 0,
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false,
+  "reference_files": [
+    {
+      "file": "native-evidence/bossesrise-tentacle-trident.json",
+      "sha256": "e9d55b0c043b9c94cfe104fba935b54c05df2e20bcafd3a2e153bca4ff7a817e"
+    },
+    {
+      "file": "bossesrise-tentacle-trident-support.json",
+      "sha256": "ae55c66fcba9a5fb6ab1f0c9ee22247b1affc4362e5ac042b995ec6a7fb36383"
+    },
+    {
+      "file": "reference-evidence/bossesrise-tentacle-trident-244.json",
+      "sha256": "9c326297576901d87d49e84610c640d671036402fbbcb4333702f64573cf9382"
+    },
+    {
+      "file": "vanilla-evidence/bossesrise-tentacle-trident.json",
+      "sha256": "05cedbd304b355f796ff330510b13b1690d0129fe361a9f1af5bc7506aafdc49"
+    },
+    {
+      "file": "reference-routing/bossesrise-tentacle-trident.json",
+      "sha256": "21c7736e7fb32aa2dc6dbb84fc7f7bbd424b29c927a51b91db0c0455f770e6ac"
+    },
+    {
+      "file": "native-evidence/bossesrise-shared.json",
+      "sha256": "a316243721401336a70804d553eb7c6af80eadb6db0af60cf0c9caddeb97a081"
+    },
+    {
+      "file": "reference-evidence/bossesrise-gauntlets-244.json",
+      "sha256": "6e1e72f2bb65ee4bf67446a15b7c8369d9feb4044e1dc013d04bf4ad7bbbe8d6"
+    },
+    {
+      "file": "reference-evidence/bossesrise-knight-offense-244.json",
+      "sha256": "ed049f9cd2ac572a1551027589e23f82ff782f98c5bca5e13eb7dfb19ae195b2"
+    },
+    {
+      "file": "bossesrise-damage-tags.json",
+      "sha256": "4a7a0652ac13ae0eacadf7b48a455cf8eb9e82f1248368ddd794355533ce2c62"
+    }
+  ]
+}

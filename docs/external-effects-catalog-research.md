@@ -962,3 +962,7 @@ Native Living-owned cannon/crate explosions are player_explosion; only cannon cu
 ## R2i8a — Bosses Rise Ice and Sandworm Gauntlet delivery
 
 Gauntlets extend nine existing native hazard packages; inherited shield use, active landing, shard ownership and real Sandworm constructor delivery are pinned. Prior static-helper wording corrected additively. [Evidence and resume point](benchmarks/external-effects-catalog/bossesrise-r2i8a-gauntlets-review.md).
+
+## R2i8b — Bosses Rise Undying Tentacle and Kraken Trident
+
+Undying whip controls motion without HP; owned Ghost uses its own mob_attack. Kraken Trident adds a separate native5 area request and pull after inherited hits, including failed direct HP results. [Evidence and resume point](benchmarks/external-effects-catalog/bossesrise-r2i8b-tentacle-trident-review.md).
