@@ -898,3 +898,7 @@ Glacite retaliation admission, repeated Deepsilver removal, Unrealium same-ID re
 ## R2h6 — Eternal Starlight crests and spell closure
 
 All spell callbacks dispositioned; one passive native Resistance crest and genuine mana damage/refill paths reviewed. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/eternalstarlight-r2h6-crests-spells-review.md).
+
+## R2h7a — Eternal Starlight hazards and enchantments
+
+Separate native fire requests, true falling-block source, enchantment eligibility and weather-only Rocket trigger reviewed. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/eternalstarlight-r2h7a-hazards-enchantments-review.md).

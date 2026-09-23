@@ -1,0 +1,539 @@
+{
+  "schema": "tno.external_effects.es_hazards.v1",
+  "checkpoint": "R2h7a-hazards-enchantments-complete",
+  "previous_checkpoint": "R2h6-crests-spells-complete",
+  "starting_sha": "17a9837aef77546ce5fb44fa30538d6c43aaa682",
+  "status": "HAZARDS_ENCHANTMENTS_COMBAT_SEMANTICS_COMPLETE",
+  "scope": "Native environmental damage/control/resources, remaining enchantment semantics and indirect Rocket weather delivery.",
+  "summary": "Separate native fire requests, true falling-block source, enchantment eligibility and weather-only Rocket trigger reviewed.",
+  "facts": {
+    "abyssal_fire": "AbyssalFireBlock.entityInside if type NOT #abyssal_fire_immune and entity.tickCount%30==0 requests ownerless native in_fire3; ignores hurt result. Independently server sets ABYSSAL_FIRE_TICKS=max(old,5) even on immune type. Server entity tick while old timer>0 decrements1, and if not immune and tick%30==0 saves victim invulnerableTime, sets0, requests ownerless native on_fire3, then restores saved time regardless return. Contact and timer are separate requests and may coincide; neither uses a new ES DamageType or direct HP write. Preserve both source identities, exact iframe handling and native fire immunity/Fire Resistance/IS_FIRE processing. Scale each final native hurt once; no Stage on timer duration/cadence.",
+    "abyssal_admission": "Installed immune tag exactly Luminofish, Luminaris, Twilight Gaze. Whole-JAR state producers only block contact and IgniteAbyssalFire enchantment effect; timer consumer ES tick and EntityFlagsPredicate mixin plus cosmetic render readers. Predicate wrapper treats ordinary isOnFire OR timer>0 as on-fire in EntityFlagsPredicate.matches; it does not universally override Entity.isOnFire or ordinary fire ticks. Water contact does not explicitly clear this custom counter in these native writers/consumer. Immune tagged entities may retain counter yet reject the custom timer damage request before native hurt. Preserve tag reload and effect-source admission, no fake fire source.",
+    "abyssal_touch": "Native Abyssal Touch enchantment max2, supported/primary whip tag MAINHAND, post_attack enchanted=attacker affected=victim with no extra JSON predicate. IgniteAbyssalFire.apply sets timer=max(old,(int)duration(level)*20); installed duration5/10 seconds ->100/200 ticks. Whip successful hit supplies genuine native enchantment post callback; do not fabricate a callback on rejected hit. No direct source from effect apply; later timer uses ownerless on_fire and loses attacker attribution by design. Leave post eligibility and timer unchanged; final native DOT hurt is only Stage point.",
+    "amaramber_fire": "Every AmaramberFireBlock contact requests ownerless native in_fire1; return ignored, and Living target separately receives native Regeneration100 amp0. No canHarm, special owner, success requirement or fire-tick increment in this override. Thus native fire rejection can coexist with accepted healing buff, and effect rejection can coexist with fire damage. Scale final native in_fire hurt once; native Regeneration healing retains its existing final heal processing, duration/amplifier unscaled.",
+    "contact_hazards": "Lunaris Cactus only when FRUIT=false requests ownerless cactus1; fruiting state does not request damage. Stellagmite Block/Slab/Stair/Wall all delegate shared step: block must be a molten value in TO_MOLTEN mapping, target Living and not stepping carefully, then ownerless hot_floor1. No enchantment/Frost Walker test in ES wrapper; later native source admission remains. Native hot-floor immunity on relevant fish is separate creature review. Each final native contact hurt is single future Stage point, not callback count or block-state probability.",
+    "icicle": "Upward TIP landing invokes causeFallDamage(fallDistance+2,2,native stalagmite); other states delegate normal block fall. Unsupported downward formation tick spawns native FallingBlockEntity; only TIP gets setHurtsEntities(5,40). Icicle is Block/SimpleWaterloggedBlock, not Fallable, so exact native FallingBlockEntity.causeFallDamage uses falling_block direct=causing=falling entity (no player owner), not falling_stalactite. It selects alive Living excluding creative/spectator in impact box, i=ceil(fallDistance-1), skips i<0, requests min(floor(i*5),40), ignores each hurt return and method returnsfalse. No ES iframe reset or cold damage. Projectile mayInteract AND mayBreak AND speed>.6 can destroy supporting icicle via native callback; block-update falling is indirect environment delivery, not projectile damage. Scale each final actual stalagmite/falling_block hurt once after native fall calculation.",
+    "cushion_jet": "Crinoa Bale native causeFallDamage(distance,.2,fall). Yeti Fur normal fall when suppressing bounce, otherwise native fall multiplier0 and rebound negativeY by.8 Living/.6 other; no new HP damage added. Golem Steel Jet server tick with power>0 and cooldown0 gets all Entities in blockAABB expanded facing.05, adds velocity direction*sqrt(power*.21)*(oxidized?.9:1), marks motion, and for Player sets currentImpulseImpactPos plus ignore-fall-damage-from-current-impulse. Success sets cooldown5. No attack/source/hurt or knockback-resistance query; environmental movement and fall admission remain unscaled. Existing native resulting fall damage, if any, gets only final damage scaling.",
+    "abyss_air": "Player tick in THE_ABYSS biome with water at eyes and Y<0 clamps current air down to max(round((maxAir+Y*3)/30)*30-15,0). Post living damage to Player in same biome+water eyes with air>0 subtracts30 floored0, with no amount>0 test. These are independent air-resource writes, not HP/SHP damage or custom drowning DamageType. Native later drowning remains source/admission authority. Preserve Water Breathing/air refills and actual environment intersection; no Stage on depth formula or30-air penalty.",
+    "freeze_enchant": "Glacial Sowing max2 MAINHAND Seeds Launcher, native post_attack enchanted attacker/affected victim requires direct_attacker entitytype shot_seeds. Native ShotSeeds only calls its enchantment post path on hurttrue; owned item/source branch and saved-weapon limitations were reviewed earlier. Freeze.apply adds duration(level)*20 then int cast to current frozen ticks, capped600; installed4/8 seconds adds80/160. There is NO canFreeze test in this effect. Control and subsequent native freeze admission are separate; no new custom FREEZE source or independent Stage on frozen ticks.",
+    "other_enchants": "Fearless native mainhand sharp-weapon enchantment max2 adds knockback .5/1 and post_attack affected victim invokes PushTowardsEntity: if item.owner nonnull, random speed[.1,.1] at level1 /[.1,.3] at2 floored0, owner moves toward victim and is motion-marked. It does not push victim or inspect owner knockback resistance. Poisoning armor enchantment max4, enchanted victim/affected attacker, uses native ApplyMobEffect Poison: duration random[2.5,2.5+.5*(level-1)] seconds converted round(*20), amplifier round(random[0,level]) floored0. Affected attacker resolves DamageSource.getEntity (causing owner), not direct projectile; absent causing entity yields no application. Thus indirect native projectile can poison its Living shooter if its legitimate enchantment post callback runs. Native addEffect immunity remains; chance/duration/amplifier/control not Stage quantities. Preserve callback-specific hurt-return behavior; do not assume all custom attacks call vanilla post.",
+    "enchant_disposition": "All13 installed enchantment JSONs pinned. Already accepted paths: Fertile Seeds count +2*level; Overheat native projectile-spawn ignite, Seeds hurttrue fire delivery; Precision boomerang crit +.16*level, Homing strength .1+.75*(level-1), Gathering pickup radius utility; Soul Snatcher Chain damage +.5*level after direct chain predicate; Tracing native Glowing on genuine Chain post; Tearing native Teary on direct Pungency spear. Swift Lash mainhand whip attack-speed +.2*level is ordinary native attribute. These modify existing requests or fixed native control/cadence, not new HP sources. No second Stage multiplier on their bonus or projectile count. Acquisition/exclusivity/crafting details excluded except genuine item/source eligibility.",
+    "rocket_weather": "AetherstrikeRocketItem native useOn server spawns owned rocket at clicked face offset and shrinks stack1; explicitly registered ownerless dispenser uses angle-shot constructor. Rocket custom tick native hitTargetOrDeflectSelf, entity/block impact or lifetime expiry calls explode. This method only gameEvent EXPLODE, sound/particles, possible WEATHER activation and discard: NO Level.explode or entity hurt. In server Starlight dimension, random<.6 and canSeeSky sets natural METEOR_SHOWER for native sampled duration; only successful weather activation with Player owner sets item cooldown2400. Does not require current weather empty. Later natural meteors use already-reviewed ownerless METEOR path, not rocket owner attribution. Block hit first calls impacted block.entityInside on rocket before trigger, then normal onHitBlock. Keep native weather/dimension/sky/probability/deflection and ownership, no Stage on rocket or weather trigger.",
+    "scope": "Static hazard/enchantment completion only; runtime fixtures remain pending. Do not equate fire visuals/ice names/EXPLODE game event with invented HP damage. Fixed counters, movement, resource, effect eligibility and cadence stay native. Source mitigation/Resistance/loader/L2 later processing must remain; no runtime, production or Stage changes."
+  },
+  "mechanic_packages": [
+    {
+      "id": "es:abyssal_fire",
+      "name": "Abyssal Fire contact and timed native HP",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once per final native in_fire3/on_fire3 hurt; preserve timer iframe handling.",
+      "stage_reason": "Keep native control/resource/attributes and triggers; later native HP/heal retains its own final single scaling point.",
+      "delivery_paths": [
+        "es:hazards:abyss_contact",
+        "es:hazards:abyss_tick",
+        "es:hazards:abyss_enchant"
+      ]
+    },
+    {
+      "id": "es:amaramber_fire",
+      "name": "Amaramber Fire contact HP",
+      "primary_classification": "VANILLA_DIRECT",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at native in_fire1 hurt.",
+      "stage_reason": "Keep native control/resource/attributes and triggers; later native HP/heal retains its own final single scaling point.",
+      "delivery_paths": [
+        "es:hazards:amaramber"
+      ]
+    },
+    {
+      "id": "es:amaramber_fire_regeneration",
+      "name": "Amaramber Fire independent native Regeneration",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Keep native control/resource/attributes and triggers; later native HP/heal retains its own final single scaling point.",
+      "delivery_paths": [
+        "es:hazards:amaramber"
+      ]
+    },
+    {
+      "id": "es:contact_block_hp",
+      "name": "Cactus and molten Stellagmite contact HP",
+      "primary_classification": "VANILLA_DIRECT",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at final native cactus/hot_floor hurt.",
+      "stage_reason": "Keep native control/resource/attributes and triggers; later native HP/heal retains its own final single scaling point.",
+      "delivery_paths": [
+        "es:hazards:cactus",
+        "es:hazards:stellagmite"
+      ]
+    },
+    {
+      "id": "es:icicle_hp",
+      "name": "Icicle native pointed and falling HP",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at final native stalagmite/falling_block hurt after fall formula.",
+      "stage_reason": "Keep native control/resource/attributes and triggers; later native HP/heal retains its own final single scaling point.",
+      "delivery_paths": [
+        "es:hazards:icicle_up",
+        "es:hazards:icicle_down",
+        "es:hazards:icicle_projectile"
+      ]
+    },
+    {
+      "id": "es:fall_cushions",
+      "name": "Crinoa Bale and Yeti Fur fall admission",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Keep native control/resource/attributes and triggers; later native HP/heal retains its own final single scaling point.",
+      "delivery_paths": [
+        "es:hazards:bale",
+        "es:hazards:fur"
+      ]
+    },
+    {
+      "id": "es:golem_jet",
+      "name": "Golem Steel Jet motion and fall admission",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Keep native control/resource/attributes and triggers; later native HP/heal retains its own final single scaling point.",
+      "delivery_paths": [
+        "es:hazards:jet"
+      ]
+    },
+    {
+      "id": "es:abyss_air",
+      "name": "Abyss depth and post-hit air resource",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Keep native control/resource/attributes and triggers; later native HP/heal retains its own final single scaling point.",
+      "delivery_paths": [
+        "es:hazards:depth",
+        "es:hazards:air_hit"
+      ]
+    },
+    {
+      "id": "es:glacial_sowing",
+      "name": "Glacial Sowing frozen counter",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Keep native control/resource/attributes and triggers; later native HP/heal retains its own final single scaling point.",
+      "delivery_paths": [
+        "es:hazards:freeze"
+      ]
+    },
+    {
+      "id": "es:fearless",
+      "name": "Fearless native knockback and owner movement",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Keep native control/resource/attributes and triggers; later native HP/heal retains its own final single scaling point.",
+      "delivery_paths": [
+        "es:hazards:fearless"
+      ]
+    },
+    {
+      "id": "es:poisoning",
+      "name": "Poisoning armor native attacker Poison",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Keep native control/resource/attributes and triggers; later native HP/heal retains its own final single scaling point.",
+      "delivery_paths": [
+        "es:hazards:poison_melee",
+        "es:hazards:poison_projectile"
+      ]
+    },
+    {
+      "id": "es:enchantment_modifiers",
+      "name": "Native enchantment modifiers on reviewed attack families",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Keep native control/resource/attributes and triggers; later native HP/heal retains its own final single scaling point.",
+      "delivery_paths": [
+        "es:hazards:enchant_mods"
+      ]
+    },
+    {
+      "id": "es:aetherstrike_weather",
+      "name": "Aetherstrike Rocket indirect meteor weather trigger",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Keep native control/resource/attributes and triggers; later native HP/heal retains its own final single scaling point.",
+      "delivery_paths": [
+        "es:hazards:rocket_owned",
+        "es:hazards:rocket_dispenser"
+      ]
+    }
+  ],
+  "delivery_paths": [
+    {
+      "id": "es:hazards:abyss_contact",
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "native_path": "Abyssal Fire block contact -> native in_fire",
+      "runtime_variants": [
+        "native source and environmental eligibility",
+        "hurt-return/control admission separated"
+      ]
+    },
+    {
+      "id": "es:hazards:abyss_tick",
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "native_path": "native timer -> ownerless on_fire iframe-save-reset-restore",
+      "runtime_variants": [
+        "native source and environmental eligibility",
+        "hurt-return/control admission separated"
+      ]
+    },
+    {
+      "id": "es:hazards:abyss_enchant",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "Abyssal Touch genuine Whip post -> timer",
+      "runtime_variants": [
+        "native source and environmental eligibility",
+        "hurt-return/control admission separated"
+      ]
+    },
+    {
+      "id": "es:hazards:amaramber",
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "native_path": "Amaramber Fire independent native fire and Regeneration",
+      "runtime_variants": [
+        "native source and environmental eligibility",
+        "hurt-return/control admission separated"
+      ]
+    },
+    {
+      "id": "es:hazards:cactus",
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "native_path": "non-fruiting Lunaris Cactus collision",
+      "runtime_variants": [
+        "native source and environmental eligibility",
+        "hurt-return/control admission separated"
+      ]
+    },
+    {
+      "id": "es:hazards:stellagmite",
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "native_path": "molten Stellagmite block/slab/stair/wall step",
+      "runtime_variants": [
+        "native source and environmental eligibility",
+        "hurt-return/control admission separated"
+      ]
+    },
+    {
+      "id": "es:hazards:icicle_up",
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "native_path": "upward Icicle TIP fall",
+      "runtime_variants": [
+        "native source and environmental eligibility",
+        "hurt-return/control admission separated"
+      ]
+    },
+    {
+      "id": "es:hazards:icicle_down",
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "native_path": "unsupported downward Icicle TIP -> native falling block",
+      "runtime_variants": [
+        "native source and environmental eligibility",
+        "hurt-return/control admission separated"
+      ]
+    },
+    {
+      "id": "es:hazards:icicle_projectile",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "authorized fast projectile break -> formation update/falling",
+      "runtime_variants": [
+        "native source and environmental eligibility",
+        "hurt-return/control admission separated"
+      ]
+    },
+    {
+      "id": "es:hazards:bale",
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "native_path": "Crinoa Bale native reduced fall",
+      "runtime_variants": [
+        "native source and environmental eligibility",
+        "hurt-return/control admission separated"
+      ]
+    },
+    {
+      "id": "es:hazards:fur",
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "native_path": "Yeti Fur native no-fall/bounce vs suppressing bounce",
+      "runtime_variants": [
+        "native source and environmental eligibility",
+        "hurt-return/control admission separated"
+      ]
+    },
+    {
+      "id": "es:hazards:jet",
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "native_path": "powered Golem Steel Jet velocity/impulse fall admission",
+      "runtime_variants": [
+        "native source and environmental eligibility",
+        "hurt-return/control admission separated"
+      ]
+    },
+    {
+      "id": "es:hazards:depth",
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "native_path": "Abyss Player depth water-eye air clamp",
+      "runtime_variants": [
+        "native source and environmental eligibility",
+        "hurt-return/control admission separated"
+      ]
+    },
+    {
+      "id": "es:hazards:air_hit",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Abyss underwater Player Post damage air loss",
+      "runtime_variants": [
+        "native source and environmental eligibility",
+        "hurt-return/control admission separated"
+      ]
+    },
+    {
+      "id": "es:hazards:freeze",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "Glacial Sowing native successful ShotSeeds post",
+      "runtime_variants": [
+        "native source and environmental eligibility",
+        "hurt-return/control admission separated"
+      ]
+    },
+    {
+      "id": "es:hazards:fearless",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "Fearless native post pulls weapon owner toward victim",
+      "runtime_variants": [
+        "native source and environmental eligibility",
+        "hurt-return/control admission separated"
+      ]
+    },
+    {
+      "id": "es:hazards:poison_melee",
+      "labels": [
+        "ARMOR_PROC"
+      ],
+      "native_path": "Poisoning victim armor post -> causing melee attacker",
+      "runtime_variants": [
+        "native source and environmental eligibility",
+        "hurt-return/control admission separated"
+      ]
+    },
+    {
+      "id": "es:hazards:poison_projectile",
+      "labels": [
+        "ARMOR_PROC"
+      ],
+      "native_path": "Poisoning victim armor post -> causing projectile owner",
+      "runtime_variants": [
+        "native source and environmental eligibility",
+        "hurt-return/control admission separated"
+      ]
+    },
+    {
+      "id": "es:hazards:enchant_mods",
+      "labels": [
+        "PASSIVE_ITEM"
+      ],
+      "native_path": "native item enchantment modifiers on existing reviewed attacks",
+      "runtime_variants": [
+        "native source and environmental eligibility",
+        "hurt-return/control admission separated"
+      ]
+    },
+    {
+      "id": "es:hazards:rocket_owned",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "Aetherstrike useOn owned native weather trigger",
+      "runtime_variants": [
+        "native source and environmental eligibility",
+        "hurt-return/control admission separated"
+      ]
+    },
+    {
+      "id": "es:hazards:rocket_dispenser",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "registered ownerless Aetherstrike native weather trigger",
+      "runtime_variants": [
+        "native source and environmental eligibility",
+        "hurt-return/control admission separated"
+      ]
+    }
+  ],
+  "damage_types_newly_reviewed": [],
+  "unexecuted_future_fixtures": [
+    "AbyssalFire_contact_timer_same_tick_iframe_restore_tag_water_fire_resistance",
+    "AbyssalTouch_true_post_timer_ownerless_source_no_false_hit_proc",
+    "Amaramber_fire_reject_regeneration_accept_and_reverse",
+    "Cactus_fruit_molten_stellagmite_sneak_geometry_and_source_immunity",
+    "Icicle_up_stalagmite_vs_down_falling_block_cap_alive_noncreative",
+    "Icicle_projectile_mayInteract_mayBreak_speed_gate",
+    "Bale_Fur_crouch_fall_Jet_impulse_player_vs_mob_no_KB_query",
+    "Abyss_depth_and_Post_air_zero_damage_water_breathing",
+    "GlacialSowing_direct_seed_owner_weapon_freeze_immune_counter600",
+    "Fearless_moves_owner_Poisoning_causing_projectile_shooter_admission",
+    "Rocket_owned_dispenser_impact_expiry_sky_dimension_weather_no_direct_HP"
+  ],
+  "review_required": [],
+  "remaining_subsection_native_ambiguities": [],
+  "exact_next_task": "R2h7b: remaining non-boss creature combat, especially Gleech attachment/Egg, Creteor/TinyCreteor native blasts, Aethersent/Astral Golems, animal/Stranghoul/Boarwarf defenses/heals and ordinary melee. Then whole ES actual-caller coverage, dedup/promotion/full validation; continue Bosses Rise automatically while healthy.",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "runtime_tests": 0,
+  "whole_eternalstarlight_complete": false,
+  "promoted_mechanics": 0,
+  "promoted_paths": 0,
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false,
+  "reference_files": [
+    {
+      "file": "native-evidence/eternalstarlight-hazards.json",
+      "sha256": "46f506676eb69ff600e78e67b4335a12ea4e615c433dc8b015a389b4ed9ac9f4"
+    },
+    {
+      "file": "eternalstarlight-hazards-census.json",
+      "sha256": "1362712db2f21d90a9ff130811c70dd03d803bea2c1359399a5b42b9dccec1c9"
+    },
+    {
+      "file": "reference-evidence/eternalstarlight-hazards-244.json",
+      "sha256": "f06805c7684986f39f5b35c5f84efaa8d5ca775a415e3bec8ea1e77c745b9685"
+    },
+    {
+      "file": "vanilla-evidence/eternalstarlight-hazards.json",
+      "sha256": "8c314a9410c4c53fee07a7022aae441c38587da7bccf1b39a9037ca7d9d6ea30"
+    },
+    {
+      "file": "reference-routing/eternalstarlight-hazards.json",
+      "sha256": "ec64fbbbc60300e2a8ecc6113d1d9f333c2f6c058511479023cab4b2bd9d70ae"
+    },
+    {
+      "file": "native-evidence/eternalstarlight-status-control.json",
+      "sha256": "3d6fde83de2e737384d51bc7b98b2d38cd2a4ebbd2e5f2d8e27c2426f963d15e"
+    },
+    {
+      "file": "native-evidence/eternalstarlight-sonar-meteor-seeds.json",
+      "sha256": "fd1637141a702ec320dcebbc453386e3d9db76c40fb94f549f31aa8282218b82"
+    },
+    {
+      "file": "reference-evidence/eternalstarlight-status-control-244.json",
+      "sha256": "04a82c87e74245062e84520d044acc7b8099922c42e310861edf65f92895eaed"
+    }
+  ]
+}
