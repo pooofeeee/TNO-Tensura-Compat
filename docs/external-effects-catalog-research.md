@@ -926,3 +926,7 @@ Real server delivery,14..8 invulnerability window, native HP/effect/freeze gates
 ## R2i2b — Bosses Rise shared combat contracts
 
 One shared scalable attack boundary; native before/after-Post death restoration, unchanged multipart forwarding and raw push distinguished. Uncalled death helper excluded. [Evidence and resume point](benchmarks/external-effects-catalog/bossesrise-r2i2b-shared-combat-review.md).
+
+## R2i3a — Bosses Rise Knight defense and native mark
+
+Stack break separated from HP, real mark producers/forwarding, ordered phase gates and native arena/reload distinctions resolved; no extra Stage amount. [Evidence and resume point](benchmarks/external-effects-catalog/bossesrise-r2i3a-knight-defense-review.md).

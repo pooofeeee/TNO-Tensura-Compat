@@ -1,0 +1,358 @@
+{
+  "schema": "tno.external_effects.bossesrise_knight_defense.v1",
+  "checkpoint": "R2i3a-bossesrise-knight-defense-complete",
+  "previous_checkpoint": "R2i2b-bossesrise-shared-combat-complete",
+  "starting_sha": "34cb8abb65826a84a33cdd2d4e491456ca95a423",
+  "status": "KNIGHT_DEFENSE_MARK_PHASE_SEMANTICS_COMPLETE",
+  "scope": "Underworld Knight native defense, stack/mark and phase admission only; offensive payloads remain next.",
+  "summary": "Stack break separated from HP, real mark producers/forwarding, ordered phase gates and native arena/reload distinctions resolved; no extra Stage amount.",
+  "facts": {
+    "native_initialization": "Constructor fields hpGate75/50/25=true; synced immuneStacks1, immuneMax1, undeadCinematic0, cinematicfalse, transformedfalse, introAttack10. createAttributes defaultsHP250/armor0/attack15/move.3/KBresistance1; finalizeSpawn overridesHP280/armor10/attack13 from native config defaults (actual server config may differ). Installed arena NBT explicitly contains Knight Health150,BossPhase-1,Stateidle,Timer5951,SpawnAnimtime0,UndeadCinematic0,HpGate50/25true but no HpGate75 or immune stack keys. Reader retains constructor stack defaults when keys absent; reads missing HpGate75 asfalse when BossPhase present. These are source/data initialization contracts, not measured final runtime HP. Native arena versus ordinary finalized spawn are distinct future fixtures.",
+    "admission_order": "hurt delegates processHurt(source,amount,false). If state dead OR source BYPASSES_INVULNERABILITY with raw health-amount STRICTLY<0, delegate directly to super.hurt before bespoke cinematic/source/stack gates. Otherwise cinematictrue returnsfalse even for fromMark and exactly-lethal bypass. flag=fromMark OR bypass tag. flag skips server/UndeadCinematic<=0/exact-type exclusions(IN_FIRE,FALL,LIGHTNING_BOLT,WITHER,WITHER_SKULL), and skips the isInvulnerable stack branch. Ordinary sources must satisfy those filters; then if stacks>0 (or underlying invulnerable) only stuck-state branch can proceed. Non-stuck ordinary hit returnsfalse. All delegated hits still face native Entity/LivingEntity admission, incoming events, armor, Resistance, absorption and iframes; no Tensura/L2 bypass is proposed.",
+    "stack_vs_hp": "isInvulnerable returns stacks>0 OR base getter; removeOneImmuneStack simply subtracts1, no clamp. Ordinary admitted hit while state stuck removes one stack BEFORE hurt. If still invulnerable -> stagger; otherwise idle_to_knocked_down. Then super.hurt(source,min(20,amount*.1)) regardless eventual return. No positive-amount or successful-hurt requirement for stack removal in this branch. Therefore stack break and reduced HP attempt are distinct; a failed downstream hit can still consume a stack. Exact installed Entity.isInvulnerableTo checks backing invulnerable field rather than virtual isInvulnerable getter, so remaining Knight stacks do not by themselves cancel the delegated reduced hit. Source/event-based native rejection still applies. No second Stage scaling for .1 reduction/cap.",
+    "hp_gates": "Unshielded or flag-admitted branch computes proposed ratio=(raw currentHP-raw incoming amount)/MAX_HEALTH before native mitigation. The75% gate is outerif;50% then25% are in its else branch. Each enabled flag is cleared before super.hurt, even if downstream damage fails. Phase2 gate75/50/25 clamps crossing amount to max(amount-(threshold-proposedHP),1), chooses respective ranged pattern/index0 and jump_back. Phase2 50% additionally immuneMax2/stacks2; outsidephase2 50% setsstacks1. Phase0 75% can consume itsflag without entering latergates on samehit. Minimum1 is literal, not perfect post-mitigation HP lock. Never Stage-scale gates/ratios/cap or undo native pre-hurt state mutation.",
+    "stuck_delivery": "Server doAttack tracks light/heavy counts only while invulnerable; heavy/light-heavy incrementsheavy and setsisStuck if lightCounter>=3 OR heavyCounter>=(HP ratio>.5?3:5); non-LIGHT_ATTACK resetslight count after check. End of heavy/light-heavy enters stuck ifisStuck then resetscounts, else stuck_to_idle. setState(stuck) creates native scale1 mark before base state transition. Thus genuine stack-opening opportunities come from actual native attacks; no forced-state prototype authorized.",
+    "mark_creation": "Server placeMark discards existing first-passenger KnightMark, creates mark with random side offset, sets scale and ownerUUID to Knight, calls native startRiding(this) without force and ignores its result, then addFreshEntity. PositionRider uses mark stored world-axis offset. Actual producers: stuck(scale1); heavy/light-heavy timer5(scale.5); combo1 derived attackAnimtime60 whenheavy below3/5; combo2 timer115 same threshold(scale.5); vertical ranged timer1 at patternIndex3(scale1). Scale affects lifetime/visuals, not hurt multiplier. baseTick server discards when ownerUUIDnull or tickCount>(int)(100*scale), normally50/100; unresolved nonnullUUID alone does not immediate-discard.",
+    "mark_hit": "KnightMark.hurt server with nullUUID discards and returnstrue. With resolved Living owner: multiply incomingamount by2. Knight owner and doubledamount>4 -> removeone stack only ifpositive, setState(knocked_down) even ifno stacks; then processHurt(originalsource,doubledamount,true), IGNORE result. Doubledamount<=4 still forwards with fromMarktrue but no forcedknockdown/stackloss. OtherLiving owner gets hurt(same source,doubledamount), resultignored. Mark then discards and returnstrue independently of owner HP success. Missing/nonliving owner delegates Entity.hurt; client returns true. Thus incoming>2 can break stack independently of HP, and low hits can bypass bespoke stack filter without breaking stack. No attackertype/projectile/melee exclusion exists here. fromMark does NOT skip cinematic or native fire/armor/Resistance/event checks. Stage belongs only to original admitted attack amount once; marker forwarding/native×2 receives no additional multiplier.",
+    "phases_and_death": "R2i2b legacy post-HP/pre-Post .1 restoration calls Knight shouldCancelDeath. State dead returns !isTimerDone; otherwise phase0 ->phase1/stacks1/fake_dead; phase1 returns true; phase2 ->RANGED_0/index0/jump_back/phase3/stacks1; phase3 ->dead. Shared bypass-invulnerability skips restoration. Fake_dead duration85 then requires nearestPlayer within20 before resurrect, returns home ifpresent and setscinematictrue. Resurrect timer160 sets transformed; duration440 completion clearscinematic, phase2, resetsall HP gates, stacks1, setHealth(MAX_HEALTH), idle. This is native resurrection/reset, no heal scaling. Phase3 revenge completion stacks0/revenge_knocked_down(duration700); itscompletion returnsphase2/stacks1. Dead duration155 completion requests native self999 player_attack only if getSourceEntity isPlayer, otherwise fell_out_of_world; actualhurt result is not used. Preserve source/admission and scripted defeat, no Stage multiplier on999.",
+    "timing_and_intro": "Base setState resets timer to-3 when nonzero; timer increments each tick and isTimerDone uses strictly>duration. Server concrete tick skips state payloads while transitioning. Arena phase-1 idle plus Player in32x16x32box centeredY+8 starts intro and cinematictrue; duration377 completion clearscinematic, setsphase0/idle. Old baseTick->procedure->onSpawn(226) is genuinely called but requires positive SpawnAnimtime. Native default and installedarena both0; census has no active positive native setter, only deserialization/decrement. Treat shared R2i2b knight_spawn as dormant conditional legacy route, not a demonstrated arena-delivered HP reset/teleport. Do not synthesize positiveNBT merely to produce a test. Cinematic cleanup discards nearbySoulSkeleton/SoulKnightWitherSkeleton inBBinflate64; cosmetic camera details excluded.",
+    "traits_and_persistence": "Knight fireImmune=true (also builderfireImmune), canFreeze=false, isPushable=false, nativeKBresistance1. canBeSeenAsEnemy returns canBeSeenByAnyone instead of hiding because stackgetter istrue; native target/event criteria remain. Exact-type FALL/LIGHTNING/WITHER exclusions are bespoke and flag-skippable, while nativefiretag immunity still applies downstream. Storedstack/gate/counter/state/phase persistence preserved. KnightMark writes UUID key Owner but reads owner; normal roundtrip cannot restore that UUID, so server mark disposal follows nullUUID. Knight attackpattern save also reverses key/value (attackname -> AttackN), reader expects AttackN ->name; retained as distinct reload coverage, no repair. No claim that runtime event listeners or data fixes have been tested.",
+    "tno_decision": "Five defense/control packages, none creates an independently scalable numeric payload. Native reductions/doubling affect the incoming attack once; do not multiply original attack and forwarding again. Separately test stackcount change, state transition, hurtboolean, HP change and source identity. Runtime remains NOT_RUN; no production/Stage/L2/Phase6/7 changes. Offensive tick branches are witnessed for state context but NOT yet semantically complete."
+  },
+  "mechanic_packages": [
+    {
+      "id": "br:knight_stacks",
+      "name": "Knight stack resource and hurt admission",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native defense/resource/phase or incoming-attack modifier; no additional Stage multiplier.",
+      "delivery_paths": [
+        "br:knight_defense:ordinary_gate",
+        "br:knight_defense:stuck_break",
+        "br:knight_defense:stuck_projectile",
+        "br:knight_defense:bypass"
+      ]
+    },
+    {
+      "id": "br:knight_mark",
+      "name": "Knight native weak-point mark forwarding",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native defense/resource/phase or incoming-attack modifier; no additional Stage multiplier.",
+      "delivery_paths": [
+        "br:knight_defense:mark",
+        "br:knight_defense:mark_projectile",
+        "br:knight_defense:mark_creation",
+        "br:knight_defense:saved_mark"
+      ]
+    },
+    {
+      "id": "br:knight_hp_gates",
+      "name": "Knight native HP-triggered state gates",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native defense/resource/phase or incoming-attack modifier; no additional Stage multiplier.",
+      "delivery_paths": [
+        "br:knight_defense:hp_gates",
+        "br:knight_defense:saved_knight"
+      ]
+    },
+    {
+      "id": "br:knight_lifecycle",
+      "name": "Knight cinematic/resurrection/revenge/death control",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native defense/resource/phase or incoming-attack modifier; no additional Stage multiplier.",
+      "delivery_paths": [
+        "br:knight_defense:cinematic",
+        "br:knight_defense:lethal",
+        "br:knight_defense:revenge",
+        "br:knight_defense:defeat"
+      ]
+    },
+    {
+      "id": "br:knight_traits",
+      "name": "Knight native combat defenses and visibility",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native defense/resource/phase or incoming-attack modifier; no additional Stage multiplier.",
+      "delivery_paths": [
+        "br:knight_defense:native_traits"
+      ]
+    }
+  ],
+  "delivery_paths": [
+    {
+      "id": "br:knight_defense:ordinary_gate",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native Knight processHurt cinematic/source/stacks admission",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "stack/state change separate from HP and hurtboolean",
+        "native direct/causing source retained"
+      ]
+    },
+    {
+      "id": "br:knight_defense:stuck_break",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "Actual native stuck window -> stack loss then independent reduced HP attempt",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "stack/state change separate from HP and hurtboolean",
+        "native direct/causing source retained"
+      ]
+    },
+    {
+      "id": "br:knight_defense:stuck_projectile",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "Native projectile source into same stuck gate; no melee-only predicate",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "stack/state change separate from HP and hurtboolean",
+        "native direct/causing source retained"
+      ]
+    },
+    {
+      "id": "br:knight_defense:mark",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "Native mark hit -> original source×2 forwarding, optional stackloss/knockdown",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "stack/state change separate from HP and hurtboolean",
+        "native direct/causing source retained"
+      ]
+    },
+    {
+      "id": "br:knight_defense:mark_projectile",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "Native projectile hit on mark -> same independent forwarding/resource effects",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "stack/state change separate from HP and hurtboolean",
+        "native direct/causing source retained"
+      ]
+    },
+    {
+      "id": "br:knight_defense:mark_creation",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Actual native heavy/combo/ranged/stuck mark producers",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "stack/state change separate from HP and hurtboolean",
+        "native direct/causing source retained"
+      ]
+    },
+    {
+      "id": "br:knight_defense:hp_gates",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Proposed raw damage crosses75/50/25 native phase gates",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "stack/state change separate from HP and hurtboolean",
+        "native direct/causing source retained"
+      ]
+    },
+    {
+      "id": "br:knight_defense:bypass",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "BYPASSES_INVULNERABILITY ordinary/exactly-lethal/strict-overkill branches",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "stack/state change separate from HP and hurtboolean",
+        "native direct/causing source retained"
+      ]
+    },
+    {
+      "id": "br:knight_defense:cinematic",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native arena intro and fake-death/resurrection cinematic admission",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "stack/state change separate from HP and hurtboolean",
+        "native direct/causing source retained"
+      ]
+    },
+    {
+      "id": "br:knight_defense:lethal",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native phase-specific lethal hit .1 restoration",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "stack/state change separate from HP and hurtboolean",
+        "native direct/causing source retained"
+      ]
+    },
+    {
+      "id": "br:knight_defense:revenge",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Phase3 native revenge exposure then phase2 recovery",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "stack/state change separate from HP and hurtboolean",
+        "native direct/causing source retained"
+      ]
+    },
+    {
+      "id": "br:knight_defense:defeat",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Dead timer completion genuine player_attack/fell_out_of_world selfhurt",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "stack/state change separate from HP and hurtboolean",
+        "native direct/causing source retained"
+      ]
+    },
+    {
+      "id": "br:knight_defense:native_traits",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Fire/freeze/push/target visibility traits",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "stack/state change separate from HP and hurtboolean",
+        "native direct/causing source retained"
+      ]
+    },
+    {
+      "id": "br:knight_defense:saved_mark",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native marker lifetime and Owner/owner save-load mismatch",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "stack/state change separate from HP and hurtboolean",
+        "native direct/causing source retained"
+      ]
+    },
+    {
+      "id": "br:knight_defense:saved_knight",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native stack/gate/phase and attackpattern save-load behavior",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "stack/state change separate from HP and hurtboolean",
+        "native direct/causing source retained"
+      ]
+    }
+  ],
+  "prior_candidate_dispositions": [
+    {
+      "path_id": "br:shared:knight_spawn",
+      "disposition": "DORMANT_CONDITIONAL_LEGACY_CALLBACK_NOT_DEMONSTRATED_NATIVE_ARENA_DELIVERY",
+      "reason": "Native default and pinned installed arena SpawnAnimtime0; no active positive setter in installed native classes. Preserve code contract; omit as ordinary live delivery at promotion unless genuine native producer is proven."
+    }
+  ],
+  "unexecuted_future_fixtures": [
+    "native_arena_vs_finalized_spawn_stats_intro_state",
+    "stuck_stack2_and1_hurtfalse_vs_actualHP_reduced_amount_cap",
+    "mark_incoming2_vs_above2_stack_and_forward_hurtfalse",
+    "mark_melee_projectile_source_identity_no_double_Stage",
+    "cinematic_mark_can_change_stack_but_forward_rejected",
+    "bypass_exactlylethal_vs_strictoverkill_cinematic_dead",
+    "phase_rawHP_threshold_flags_mutated_before_mitigated_rejectedhurt",
+    "native_fire_freeze_vs_source_exact_type_flags",
+    "native_resurrection_revenge_exposure_then_final_defeat",
+    "mark_mount_veto_lifetime_and_Owner_reload_null",
+    "Knight_saved_attackpattern_key_mismatch_and_gate_state"
+  ],
+  "review_required": [],
+  "remaining_subsection_native_ambiguities": [],
+  "exact_next_task": "R2i3b: Underworld Knight offensive payloads only: actual server melee states/attackCombo1 ring, SwordWave horizontal/vertical sources, jumpSlash SoulShockwave, revenge Rift/BigRift and legitimate soul-skeleton summon deliveries/defenses. Reuse completed R2i3a stack/mark/phase defense and R2i2b helpers; do not repeat them. Then Infernal Dragon, Yeti, Sandworm, Kraken and equipment. Static only.",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "block_factorys_bosses",
+  "runtime_tests": 0,
+  "whole_mod_complete": false,
+  "promoted_mechanics": 0,
+  "promoted_paths": 0,
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false,
+  "reference_files": [
+    {
+      "file": "native-evidence/bossesrise-knight-defense.json",
+      "sha256": "5f7ab2676301bfd79e10d387ccb2830264c7e103ca9a5db222d6437d9ac6d2fd"
+    },
+    {
+      "file": "bossesrise-knight-defense-census.json",
+      "sha256": "db88aab64cf0ac66ca808bee7ab6bfc4082cd5d7e1a974356e30c18236bfcd8f"
+    },
+    {
+      "file": "bossesrise-knight-arena-initialization.json",
+      "sha256": "4ad48aefe606559954cebc5ced94b77a2a9f68693c11b445b09a4e3c012220a7"
+    },
+    {
+      "file": "reference-evidence/bossesrise-knight-defense-244.json",
+      "sha256": "0a9d233dd1dd999aa0677eadfe89adb5aca5e0049ff34e1df25f618c68de7f91"
+    },
+    {
+      "file": "native-evidence/bossesrise-shared.json",
+      "sha256": "a316243721401336a70804d553eb7c6af80eadb6db0af60cf0c9caddeb97a081"
+    },
+    {
+      "file": "reference-evidence/bossesrise-shared-244.json",
+      "sha256": "b40148cdeeb46f19e9baa2fb483fc157bc9643e912cdfbc6e05ffa861f152f76"
+    }
+  ]
+}
