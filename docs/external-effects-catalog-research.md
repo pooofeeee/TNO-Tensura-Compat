@@ -746,3 +746,11 @@ Native ordering separates added maximum health from current HP; Naga's later fin
 The owner explicitly superseded percentage-based stopping and narrowed future scope to combat-significant compatibility mechanics. Remaining utility, maps, storage, crafting, information, progression, cosmetic and noncombat worldgen receive brief exclusions. Continue after this checkpoint through true combat event/worldgen/ASM/source gaps, R2f8 closure, final Twilight dedup/promotion, then IceAndFire only after COMPLETE is pushed/live-verified. Static only; no runtime/L2/Stage/Phase6/7 work.
 
 Validation: native source/order/persistence guards, exact references and resource routes, five tooling tests, targeted/full catalog checks, prior-checkpoint/accepted-mod preservation and diff check.
+
+## R2f8af — remaining combat callbacks
+
+Resumes live-verified multiplayer checkpoint `98a9bd4d9f1083eb2de212ca269e9ae59b78f4f5`. [Remaining native combat review](benchmarks/external-effects-catalog/twilightforest-combat-closure-review.md) closes Hedge, Arctic Fur, inherited Maze Slime fall/motion, Sinister and bookshelf encounter spawning, controlled structure spawn selection, remaining event dispositions and the final ten nested ASM transforms. All31 registered transforms now have pinned coverage; no runtime application is claimed.
+
+The bookshelf cannot consume a slot through its normal successful-spawn call chain while SPAWNER is true. Burning it uses native exceptions to cap/light checks, retains collision/Peaceful/native insertion, and destroys the block. Sinister uses native spawn-position checks that bookshelf does not. Conquered structure spawn selection returns null and leaves the incoming list unchanged. These are native source facts, not proposed production fixes.
+
+Twilight remains PARTIAL at277 mechanic drafts/1014 paths, all40 custom DamageTypes USED, REVIEW_REQUIRED0, zero promoted; four accepted mods116/161/217 and historical evidence preserved. New callback/source/ASM guards, evidence integrity, five tooling tests, full validation and diff/preservation checks protect this checkpoint. Exact next task: final global combat-source/exclusion and compatibility census, protect R2f8 remaining-content completion, then deduplicate/promote Twilight COMPLETE before starting IceAndFireCE beta15. No runtime/L2/Stage/production/Phase6/7 work.

@@ -1,0 +1,126 @@
+# r2f8af - TWILIGHT_REMAINING_COMBAT_CALLBACKS_SEMANTIC_REVIEW_COMPLETE
+
+DIRECT_SOURCE_SPECIFIC: actual TF callback eligibility and loaded native producer states; Curios/Parry/Travellers integrations reuse protected decisions. CosmeticArmorCompat is conditionally registered by TwilightForestMod when cosmeticarmorreworked loaded; if CharmEvents player data contains TFCharmInventory, cancels cosmetic death drops. Inventory preservation only, no HP/source effect, excluded new package. GENERIC_CONDITIONAL_PRESENT: mutable NeoForge spawn/position/incoming/damage/death hooks, actual source tags, attributes and native armor/Resistance/enchantments; no runtime certification. NONE_PROVEN for direct Tensura/L2 translation in these reviewed paths. UNKNOWN for other listeners/config/tag reload and future runtime interactions. Do not infer pack-wide absence from local source. No production recommendation from static native quirks.
+
+Adds 6 reviewed packages / 15 delivery cases. Twilight remains PARTIAL at 277/1014 drafts, zero promoted. REVIEW_REQUIRED 0.
+
+## Native contracts
+
+### Authority
+
+Static installed Twilight4.8.3345, raw Minecraft1.21.1 and exact NeoForge21.1.244. Reuses protected boss, mob, source, damage pipeline, Frosted, equipment, charm, utility and multiplayer decisions. No runtime, synthetic damage, L2, Stage, production or Phase6/7 work. Remaining ordinary utility/progression/acquisition/presentation is dispositioned briefly under the owner scope correction.
+
+### Hedge contact
+
+HedgeBlock entityInside and stepOn request native minecraft:cactus3 only when shouldDamage: entity not Spider, not ItemEntity, not isIgnoringBlockTriggers, and recursively every vehicle also qualifies. This is class-based Spider admission, not the arthropod tag, armor or a new effect. Collision shape is full X/Z with height.9375. Path type DANGER_OTHER only for nonnull qualifying Mob; otherwise null. Callbacks have no internal server guard, with native recipient hurt authority retained.
+
+### Hedge attack
+
+Player attack callback server-only requests cactus3 then schedules10 ticks regardless of hurt result. Scheduled tick queries Player in block AABB inflated8, requires swinging, then EntityUtil.rayTrace: eye/view at1.0, actual BLOCK_INTERACTION_RANGE attribute, OUTLINE blocks/Fluid.NONE; exact BlockHit position must equal this hedge. It requests cactus3 and reschedules10 for each qualifying player. No shouldDamage, creative, survival, alive, hand/tool, LOS-to-entity or positive-HP test here; native hurt admission remains. Loop stops scheduling when no player qualifies, not a guaranteed every10-tick damage interval. playerDestroy calls superclass then cactus3, also without shouldDamage/internal server guard. All four caller bodies discard hurt return; damage immunity/cooldown/armor/shield/Resistance/enchantment/absorption/events remain native.
+
+### Hedge source
+
+Native DamageSources.cactus is cached ownerless/direct-null source, no attacking Player attribution for hedge retaliation. Raw Minecraft cactus contact requests1; TF requests3 plus custom eligibility and attack scheduling. Exact source type/tags, native recipient admission and future pack tag changes remain separate from delivery. Genuine registered block placement and HedgeMaze generated HEDGE references are source paths; no invented effect/DamageType or guaranteed final HP loss.
+
+### Arctic fur
+
+Registered ArcticFurBlock fallOn calls recipient.causeFallDamage(actual fallDistance,.1,native fall) and discards return. Reuses protected Cloud .1 native fall calculation and fall immunity/modifier/events; do not interpret as final HP multiplied.1 or unconditional immunity. No sneak/bounce branch here. Shears break progress and tooltip are utility exclusions. Final dedup must merge equivalent .1 fall primitive with Cloud while retaining this distinct block source.
+
+### Maze slime
+
+Registered MazeSlimeBlock inherits native SlimeBlock fall, bounce and step behavior without overrides: suppressed bounce delegates ordinary Block fall and after-fall behavior; otherwise causeFallDamage(distance,0,fall), and downward velocity reverses Y at1 for Living or.8 other entities. stepOn when abs(vY)<.1 and not stepping-carefully scales XZ by .4+abs(vY)*.2. Existing protected Unrestrained coremod changes suppression/momentum admission conditionally; not a new unconditional TF bounce. Its declared change is piston adhesion only to another MazeSlimeBlock or MAZESTONE tag, rather than all ordinary slime-compatible blocks. That building utility is excluded; inherited combat fall/motion is a VANILLA_DIRECT source/comparison.
+
+### Sinister state
+
+Registered SinisterSpawner block dispatches server/client tick to its owned BE/logic. Base defaults delay20,min200,max800 exclusive,maxNearby6,requiredPlayerRange16,spawnCount4,spawnRange4; native BaseSpawner isNearPlayer uses hasNearbyAlivePlayer around block center. Sinister entityScanRange initially4, load explicit EntityScanRange else spawnRange. Native base delay selects min+nextInt(max-min), or min when max<=min, and optional weighted next SpawnData. Sinister spawnBuffer/checkPos/countNextToSpawn are transient, not serialized. When near and count<1, draw nextInt(1+max(0,spawnCount)); positive selected count is not reset by successful spawn. It limits buffered candidate positions, not a guarantee of that many entities per cycle.
+
+### Sinister search
+
+Each near-player server tick initializes delay when<=-1, then scans one candidate before decrementing positive delay. Search resets null/out-of-range checkPos around the block: below if air, otherwise above. If block below candidate is air, move down. Otherwise admit solid support OR CORONATION_CARPET, randomBoolean, unique buffer position and air candidate. Pick horizontal direction, move if adjacent not solid, otherwise clear checkPos. At delay0 empty buffer becomes-1; next tick resets delay. At ready nonempty buffer, iterate candidates until one successful addition, clear buffer and break after delay reset. Thus spawnCount4 is not four successful spawns each firing. Failed collision/position can leave buffer for later retries.
+
+### Sinister admission
+
+Resolve actual SpawnData EntityType; invalid/null entity resets delay/returns. Position centerXZ and candidateY. Require entity-type spawn AABB noCollision. With custom rules: hostile+Peaceful rejects and custom position light rules must pass; otherwise SpawnPlacements.checkSpawnRules(SPAWNER). Load native NBT/passengers, count exact Java class in spawner block AABB inflated entityScanRange with NO_SPECTATORS, >=maxNearby resets delay/returns. Mob requires EventHooks.checkSpawnPositionSpawner: mutable native PositionCheck result or (custom rules present OR mob.checkSpawnRules) AND mob.checkSpawnObstruction. Then finalizeMobSpawnSpawner posts event with actual BE owner; only uncanceled event AND id-only SpawnData calls mob finalizer. Equipment applied afterward. Native tryAddFreshEntityWithPassengers must return true before success/events/clear/reset; spawn cancellation and UUID/insertion checks remain. No native HP/source payload in spawner itself.
+
+### Lich worldgen
+
+Existing Lich room dispatch handles spawner, sinister_spawner, lectern, chiseled_canopy_shelf. Ordinary and Sinister spawners configure SpawnData id and custom light bounds block0..7/sky0..15, no equipment. Parameters choose actual registered entity, special hedge_spider/swarm_spider aliases or native EntityType.byString fallbackZombie; absent list defaults Zombie3/10,Skeleton3/10,Swarm/Hedge/CaveSpider/Spider each1/10. Ordinary spawner optional third parameter only when length==3 clamps spawnRange1..16; Sinister length>=3 range1..16, fourth scan1..32 else scan=spawnRange. Sinister ominous flame PARTICLE and loot table do not apply ominous fire damage/conversion. Ordinary BaseSpawner retains its separate random-position/multi-attempt cycle; not Sinister ground-buffer behavior. Structured native NBT marker census pins actual producer resources, not assumed availability from a class name.
+
+### Bookshelf producers
+
+Lich chiseled_canopy_shelf marker is hostile with nextInt12==0; each of6 slots filled when nextInt3!=0. Hostile config selects actual DeathTome SpawnData; nonhostile book/enchantment acquisition excluded. Genuine SpawnEggItem useOn can set any supported registered entity through Spawner.setEntityId. TF block empty shelf+egg returns CONSUME without configuring; nonempty shelf+egg returns SKIP_DEFAULT_BLOCK_INTERACTION, allowing native item route. BE setEntityId turns SPAWNER true; inventory insertion/extraction locked while active. Native item shrink and event admission are retained. This is not proof the producer always creates a Tome or needs a custom DamageSource. Lich lectern marker randomBoolean creates persistent actual Tome, sets onLectern, directly calls STRUCTURE finalizeSpawn then addFreshEntityWithPassengers; the previously reviewed egg and Tome gaze/hurt/bolt contracts are reused.
+
+### Bookshelf tick
+
+Bookshelf BE server tick only while SPAWNER true. INCLUDING_CREATIVE_PLAYERS detector selects nonspectator ServerPlayers with block-position distance<requiredPlayerRange8 and requireLineOfSight=true; VISUAL blocks/Fluid.NONE from player eye to shelf center, hit same shelf block or MISS. No separate explicit alive predicate. Defaults delay20,min200,max400 exclusive,maxNearby4,spawnCheckRange12,spawnRange4. At ready, shuffle occupied slot snapshot, attempt each until true then delay/break. Empty initial occupied snapshot turns SPAWNER false. Delay and SpawnData/potentials/limits serialized. spawnRange is stored but not used in attempt coordinates: front-facing neighbor X/Z plus (randomDouble-randomDouble)*2, Y plus difference of two doubles.
+
+### Bookshelf admission
+
+attempt requires valid native EntityType and replaceable block directly in front, then noCollision at randomized position. Collision failure with maxTries!=0 recursively tries maxTries-1 but DISCARDS nested boolean and returns false; native fire caller5 allows at most6 attempted positions per occupied slot. Hostile+Peaceful remains rejection. Custom light rules fail only when not fire; absent custom rules does NOT call SpawnPlacements.checkSpawnRules. Load real native entity/passengers; fire sets remainingFireTicks200; nonnull assailant targets each loaded Mob through native setTarget. Count exact-class nonspectators in block AABB inflated12; cap4 enforced only when not fire. Unlike Sinister, NO checkSpawnPositionSpawner or checkSpawnObstruction call. Mob finalization/equipment and native tryAddFreshEntityWithPassengers remain; false insertion resets delay and fails. These are actual native differences, not compatibility bypasses introduced by this research.
+
+### Bookshelf consumption
+
+After successful insertion/game event/spawn animation, calls be.setItem(slot,EMPTY), then returns true. Exact raw native ChiseledBookShelfBlockEntity.setItem EMPTY branch invokes virtual removeItem(slot,1). TF ChiseledCanopyShelfBlockEntity.removeItem returns EMPTY without delegation whenever SPAWNER true. Therefore this native success path does NOT remove the book or clear occupied state; normal hostile shelf can repeat spawns subject to player/timing/cap/admission. Do NOT describe6 occupied slots as finite charges or patch this behavior. With an already-empty snapshot it can still disable. onCaughtFire requires active actual shelf+server+BE, attempts every occupied incoming state slot with fire=true/assailant/5 retries, then destroys block without drops regardless of success, finally calls superclass. Fire ignores player detector, delay, normal cap and custom light condition, but retains replaceable-front/collision/Peaceful/native insertion. Whole-block destruction ends this route. No direct HP loss or damage event is issued here; any later fire or mob/bolt damage is separately native.
+
+### Ambient selection
+
+EntityEvents.structureSpecialSpawns handles ServerLevel PotentialSpawns. gatherPotentialSpawns selects FIRST valid ControlledSpawns structure from current chunk. NonMONSTER returns category list. MONSTER: conquered TFStructureStart =>null; HollowHill outside normalized volume sqrt(hx²+hy²+hz²)<.975 =>null; maximum nonnegative SpawnIndexProvider index among containing pieces selects labelled list, none=>null. hx/hz map bounding extents to[-1,1],hy to[0,1]. ConfigurableSpawns returns indexed monster, ambient or water list, otherwise empty; missing label empty. NONNULL list replaces event list, including empty list. NULL leaves incoming list UNCHANGED: conquest is not a blanket no-monster-spawn cancellation. Native EventHooks returns NO_SPAWNS only if event canceled by a listener, otherwise selected weighted list; native spawn caps/placement/events still apply. No damage or immediate entity creation in this callback.
+
+### Enderman disposition
+
+Remaining EntityJoin callback finds any existing EndermanTakeBlockGoal, removes and replaces same priority with Extended wrapper. canUse evaluates original delegate first, then rejects exact TWILIGHT_DIM_TYPE holder. Exact244 delegate requires no carried block, native canEntityGrief event/rules, random reducedTickDelay20; tick still uses native holdable tag/outline visibility/removal/carried-block state. No attack/anger/target/damage change or immunity, so record as terrain-grief utility exclusion, not extra combat mechanic. It does not remove a carried block or cancel other Enderman goals.
+
+### Misc disposition
+
+MiscEvents.addPrey adds ordinary native target goals: Cat priority1 NonTame targets DwarfRabbit/Squirrel/TinyBird; Ocelot priority1 nearest same; Fox priority6 Rabbit/Squirrel; Wolf priority7 NonTame Rabbit/Squirrel/Bighorn; all mustSee=true. Native target/taming/admission/ordinary attacks remain, no new attack damage/status; short native AI source disposition. addTomesToLecterns already protected; washOffCloth uses protected counted erratum; equipped Cicada sound only. EntityEvents castle advancement/chat and tagged Interaction/Display removal, quest syncing, ore-meter clearing, candle construction, cloud jump particles and flask advancement reset are presentation/acquisition/progression exclusions. All remaining callbacks mapped to protected sections or this review; no boss behavior repeated.
+
+### Multipart sync
+
+Final registered SendDirtyEntityData transformer targets ServerEntity.sendDirtyEntityData, after first GETFIELD entity inserts hook returning SAME Entity. For native isMultipartEntity, send UpdateTFMultipartPacket to tracking players. Snapshot filters actual parts to TFPart; writes root entityID, positive partID keyed position/rotation/dimensions/fixed and packDirty synced values, -1 terminator. Registered playToClient only. Handler enqueues, resolves native root, requires multipart and parts, matches actual TFPart IDs, readData lerps3, setSize/assignValues/refreshDimensions. No new attack packet, hurt forwarding, independent HP or source rewrite. Protected boss part admission remains authoritative; state/dimensions synchronization matters to future client geometry fixtures. Other two multipart transformers wrap render iterator/renderer lookup only; no server damage override.
+
+### Remaining asm
+
+All ten remaining transformer bodies pinned from actual nested jar. StructureStartLoadStatic inserts after first StructureStart constructor, passes original/pieces/NBT to WorldgenHooks; CustomStructureData reconstructs TFStructureStart or KnightStructureStart when knight_y present and loads conquered boolean, preserving protected source/admission state. ChunkStatusTask after first buildSurface calls chunkBlanketing; three Beardifier transformers add density iterator, gather custom terrain during noise chunk creation, and add summed densities at double returns. Book first ARETURN makes translatable title only with TRANSLATABLE_BOOK; foliage first IRETURN uses color resolver. These seven worldgen/presentation transforms are brief exclusions, not seven mechanics; multipart three as above. Combined with protected21 =>31 registered transformers covered, no transformer edits or runtime application claims.
+
+### Placeholder exclusions
+
+RovingCube registered HP10/speed.23/attack5 but only redstone-symbol move/center goals, no attack goal/collision payload; ANNihilate particles are client presentation, not annihilation damage. PlateauBoss registered/fireproof and multiplayer-tagged, native Monster attrs and protected BaseTFBoss home/death infrastructure, no attack goals or new payload. FinalBossSpawner.spawnMyBoss unconditionally false, so no legitimate boss-spawner production claimed. Administrative registered summon is distinct from an active encounter. HelmetCrab, unregistered Boggard and HarbingerCube already assessed in protected sections, reused without extra packages. SkullChest storage, Brazier/candle lighting, trophy visuals, recipes/maps/GUI and unrelated worldgen have no new combat package under corrected scope.
+
+### Compatibility
+
+DIRECT_SOURCE_SPECIFIC: actual TF callback eligibility and loaded native producer states; Curios/Parry/Travellers integrations reuse protected decisions. CosmeticArmorCompat is conditionally registered by TwilightForestMod when cosmeticarmorreworked loaded; if CharmEvents player data contains TFCharmInventory, cancels cosmetic death drops. Inventory preservation only, no HP/source effect, excluded new package. GENERIC_CONDITIONAL_PRESENT: mutable NeoForge spawn/position/incoming/damage/death hooks, actual source tags, attributes and native armor/Resistance/enchantments; no runtime certification. NONE_PROVEN for direct Tensura/L2 translation in these reviewed paths. UNKNOWN for other listeners/config/tag reload and future runtime interactions. Do not infer pack-wide absence from local source. No production recommendation from static native quirks.
+
+## Packages
+
+| Mechanic | Primary classification |
+|---|---|
+| Hedge native cactus retaliation/contact | VANILLA_LIKE_EXTENDED |
+| Arctic fur native fall multiplier source | VANILLA_LIKE_EXTENDED |
+| Maze slime inherited fall and motion | VANILLA_DIRECT |
+| Configured native encounter spawning | VANILLA_LIKE_EXTENDED |
+| Hostile bookshelf native spawn and fire release | CUSTOM_CONTROL |
+| Controlled structure ambient encounter selection | CUSTOM_CONTROL |
+
+## Custom source callers
+
+| Type | Amount | Source identity |
+|---|---|---|
+
+## Scope and exclusions
+
+- Remaining EntityJoin callback finds any existing EndermanTakeBlockGoal, removes and replaces same priority with Extended wrapper. canUse evaluates original delegate first, then rejects exact TWILIGHT_DIM_TYPE holder. Exact244 delegate requires no carried block, native canEntityGrief event/rules, random reducedTickDelay20; tick still uses native holdable tag/outline visibility/removal/carried-block state. No attack/anger/target/damage change or immunity, so record as terrain-grief utility exclusion, not extra combat mechanic. It does not remove a carried block or cancel other Enderman goals.
+- MiscEvents.addPrey adds ordinary native target goals: Cat priority1 NonTame targets DwarfRabbit/Squirrel/TinyBird; Ocelot priority1 nearest same; Fox priority6 Rabbit/Squirrel; Wolf priority7 NonTame Rabbit/Squirrel/Bighorn; all mustSee=true. Native target/taming/admission/ordinary attacks remain, no new attack damage/status; short native AI source disposition. addTomesToLecterns already protected; washOffCloth uses protected counted erratum; equipped Cicada sound only. EntityEvents castle advancement/chat and tagged Interaction/Display removal, quest syncing, ore-meter clearing, candle construction, cloud jump particles and flask advancement reset are presentation/acquisition/progression exclusions. All remaining callbacks mapped to protected sections or this review; no boss behavior repeated.
+- RovingCube registered HP10/speed.23/attack5 but only redstone-symbol move/center goals, no attack goal/collision payload; ANNihilate particles are client presentation, not annihilation damage. PlateauBoss registered/fireproof and multiplayer-tagged, native Monster attrs and protected BaseTFBoss home/death infrastructure, no attack goals or new payload. FinalBossSpawner.spawnMyBoss unconditionally false, so no legitimate boss-spawner production claimed. Administrative registered summon is distinct from an active encounter. HelmetCrab, unregistered Boggard and HarbingerCube already assessed in protected sections, reused without extra packages. SkullChest storage, Brazier/candle lighting, trophy visuals, recipes/maps/GUI and unrelated worldgen have no new combat package under corrected scope.
+- All ten remaining transformer bodies pinned from actual nested jar. StructureStartLoadStatic inserts after first StructureStart constructor, passes original/pieces/NBT to WorldgenHooks; CustomStructureData reconstructs TFStructureStart or KnightStructureStart when knight_y present and loads conquered boolean, preserving protected source/admission state. ChunkStatusTask after first buildSurface calls chunkBlanketing; three Beardifier transformers add density iterator, gather custom terrain during noise chunk creation, and add summed densities at double returns. Book first ARETURN makes translatable title only with TRANSLATABLE_BOOK; foliage first IRETURN uses color resolver. These seven worldgen/presentation transforms are brief exclusions, not seven mechanics; multipart three as above. Combined with protected21 =>31 registered transformers covered, no transformer edits or runtime application claims.
+- Historical utility records remain immutable here; final owner-authorized promotion will filter/deduplicate with explicit mapping. Cosmetic-armor inventory preservation receives compatibility attribution without a combat effect package.
+
+## Future native controls
+
+- Hedge four distinct admissions and ownerless native cactus; Arctic/Cloud .1 and ordinary slime/native traveller controls.
+- Real Sinister ground-buffer vs ordinary spawner; actual collision/light/Peaceful/cap/finalizer/insert outcomes.
+- Actual hostile bookshelf normal/fire/egg, slot persistence, recursive return and original fire/mob/bolt sources.
+- Native potential-spawn null/empty distinction and conquered persistence; actual multipart client size/state synchronization, no server source rewriting.
+
+[Semantic packages and paths](semantic-sections/twilightforest-combat-closure.json), [integrity](twilightforest-combat-closure-integrity.json), [full validation](r2f8af-combat-closure-validation.json).
+
+Exact next task: Finish global combat-source/exclusion and compatibility census, protect R2f8 TWILIGHT_REMAINING_CONTENT_COMPLETE, then final deduplication/promotion of Twilight; start IceAndFireCE beta15 only after COMPLETE is pushed/live-verified. Continue while execution can safely protect work; no arbitrary percentage stop.

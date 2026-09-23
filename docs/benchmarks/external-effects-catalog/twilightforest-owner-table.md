@@ -1,6 +1,6 @@
 # Twilight Forest — partial semantic owner table
 
-The installed4.8.3345 review is **PARTIAL** at **R2f8ae complete**: **271 mechanic-package drafts /999 delivery cases**, **40/40 custom DamageType profiles USED**, zero unfinished types, REVIEW_REQUIRED0. Remaining control/events/ASM/source closure unfinished. Zero final Twilight records promoted. Protected sections/cloth erratum and accepted four mods116/161/217 preserved; runtime0.
+The installed4.8.3345 review is **PARTIAL** at **R2f8af**: **277 mechanic-package drafts /1014 delivery cases**, **40/40 custom DamageType profiles USED**, zero unfinished types, REVIEW_REQUIRED0. Remaining combat callbacks and all31 registered transformers reviewed; final global source/exclusion census and promotion pending. Zero final Twilight records promoted. Protected sections/cloth erratum and accepted four mods116/161/217 preserved; runtime0.
 
 | Mechanic | Native behavior | Vanilla comparison | Classification / source coverage |
 |---|---|---|---|
@@ -532,3 +532,11 @@ One VANILLA_LIKE_EXTENDED combat package and three native spawn paths added. The
 Twilight PARTIAL271/999;40/40 custom types USED, REVIEW_REQUIRED0, zero promoted. Five tooling tests, source guards, exact reference/resource integrity, subsection/full checks, preservation and diff checks protect this subsection. Runtime0; accepted production and four accepted mod catalogs preserved.
 
 Owner instruction supersedes the80% stop rule: continue while execution and enough quota to protect work remain. Next: only true remaining combat-significant EntityEvents/worldgen/ASM/compatibility/source gaps, concise noncombat exclusions, R2f8 whole closure and final dedup/promotion before IceAndFire.
+
+## R2f8af — remaining combat callbacks complete
+
+[Native contracts and source paths](twilightforest-combat-closure-review.md) add6 packages/15 paths. Hedge requests ownerless cactus3 through distinct contact, initial attack, scheduled ray and destruction admissions. Arctic Fur shares Cloud native .1 fall calculation; Maze Slime retains native fall/motion with protected traveller hooks. Final promotion must merge equivalent primitives and retain these sources.
+
+Sinister grounded buffer spawning and ordinary Lich room spawners retain different native position/finalization rules. Hostile bookshelf tick/fire/egg paths are proven: successful spawn does **not** consume its book, because native setItem(EMPTY) dispatches to TF removeItem, which rejects active-SPAWNER removal. Fire bypasses only the native specified light/cap checks, preserves collision/Peaceful/insertion and destroys the shelf. No fix was made.
+
+Controlled structure spawn null results leave the incoming list unchanged; empty results replace it. All31 nested transformers are covered, including actual client multipart size/state synchronization. Utility/presentation/progression callbacks, native prey goals and placeholder entities have explicit short dispositions. Protected sections remain immutable. Final global source/exclusion and compatibility census is next, then R2f8 and dedup/promotion; IceAndFire remains unstarted.

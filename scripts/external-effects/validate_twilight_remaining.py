@@ -65,6 +65,9 @@ def validate_remaining():
         if d['slug']=='multiplayer':
             from validate_twilight_multiplayer import validate_multiplayer
             validate_multiplayer(d,s,old,new,methods,ins,pos,target)
+        if d['slug']=='combat-closure':
+            from validate_twilight_combat_closure import validate_combat_closure
+            validate_combat_closure(d,s,old,new,methods,ins,pos,target)
         if d['slug']=='portals':
             from validate_twilight_portals import validate_portals
             validate_portals(d,s,old,new,methods,ins,pos,target)
