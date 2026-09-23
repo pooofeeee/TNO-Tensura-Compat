@@ -934,3 +934,7 @@ Stack break separated from HP, real mark producers/forwarding, ordered phase gat
 ## R2i3b — Bosses Rise Knight offensive payloads
 
 Actual source/return differences across melee/ring/wave/arrow+area/Rift and independent arena mob paths resolved; unused helpers excluded. [Evidence and resume point](benchmarks/external-effects-catalog/bossesrise-r2i3b-knight-offense-review.md).
+
+## R2i4 — Bosses Rise Infernal Dragon and guardians
+
+Dragon phase and causing-entity admission, native arrow/fire/explosion/breath paths and independent guardian control resolved; HP and ignition/phase/control remain separate. [Evidence and resume point](benchmarks/external-effects-catalog/bossesrise-r2i4-infernal-dragon-review.md).

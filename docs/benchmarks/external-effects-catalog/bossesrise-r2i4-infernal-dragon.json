@@ -1,0 +1,626 @@
+{
+  "schema": "tno.external_effects.bossesrise_dragon.v1",
+  "checkpoint": "R2i4-bossesrise-infernal-dragon-complete",
+  "previous_checkpoint": "R2i3b-bossesrise-knight-offense-complete",
+  "starting_sha": "055802a7f96ff37111ee2d88889f880c1c3891a4",
+  "status": "INFERNAL_DRAGON_AND_GUARDIANS_SEMANTICS_COMPLETE",
+  "scope": "Infernal Dragon, native Blazing Fireball/Fire Area and three guardian combat semantics only.",
+  "summary": "Dragon phase and causing-entity admission, native arrow/fire/explosion/breath paths and independent guardian control resolved; HP and ignition/phase/control remain separate.",
+  "facts": {
+    "admission": "InfernalDragonEntity.hurt first delegates BYPASSES_INVULNERABILITY unchanged. Otherwise phases -1,1,4 reject before any incoming modifier; exact IN_FIRE/FALL/CACTUS, positive DATA_HIT_ANIMTIME or DATA_SPAWN_ANIMTIME reject next. Remaining phase0 hits multiply amount by2 only when DamageSource.getEntity() (CAUSING entity) instanceof Projectile; then every phase divides by2 if that causing entity is IceSpikeProjectileEntity. Finally original source enters inherited hurt. No getDirectEntity test. Owned native arrows and owned Ice Spike indirect_magic have their Living owner as cause, so neither modifier follows merely from projectile delivery. Ownerless Ice Spike onHitEntity explicitly falls back to itself as cause: phase0 x2 then /2 nets1; other admitted phases /2. Do not fabricate such a source or claim a native ownerless producer; unresolved-owner/reload fixture must use genuine projectile lifecycle. Incoming modifiers are NOT a second Stage point.",
+    "traits_and_stats": "canFreeze=false, fireImmune=true, isPushable=false, causeFallDamage=false, knockback resistance1. Native Entity/Living gates still apply after Dragon override, including fire-tag admission; bypassing the local exact-source checks is not a blanket bypass of downstream events. createAttributes gives HP250, armor15, attack14. finalizeSpawn applies config Dragon Health250 and Armor25 defaults and fills HP; spawner hook also applies configured HP. DRAGON_ATK default15 has only its static declaration PUTSTATIC and zero GETSTATIC consumers in installed whole-artifact census: do not report it as applied attack damage. Default phase0 and legacy counters0; positive counter guards are code contracts, not proof that normal native Dragon hits set them.",
+    "phase_lifecycle": "Native BossSpawner callback with resolved wall position establishes HadSpawner=true, phase-1, intro230 and cinematic effects230; closes arena exit and anchors wall position. Server tick manages phases then runs handleAttackDamage. Intro timer done ->phase0. At HP ratio<=.85 phase0 enters1 (wall variant knocked_down90, relocate to spawner, cinematic90); this earlier return shadows its later .5/.25 branches. Phase1 without spawner advances2 immediately; with spawner waits knocked-down timer. Phase2 <=.5 enters3 (its later .25 test is shadowed). Phase3 <=.25 stops circling, disables noGravity, waits onGround then phase4 transition230 with cinematic225; completion phase5. No phase HP refill/clamp here. Ground/flight/circle pools change delivery position and cadence, not source identity. Native setState remaps names containing flight/fire/wall to idle while doAttack retains attack/head state; actual handleAttackDamage has only attack!=null, not an isCinematic/isDeath guard. Include retained-attack-at-transition fixture rather than assuming all attacks cease in cinematics. Shared timer completion is strictly >duration.",
+    "cinematic_and_death": "onCinematicStarted applies native Slowness amplifier4 and Resistance amplifier255 for passed ticks to players in AABB.ofSize(position,128,128,128), no source/LOS/creative exclusion here. Native Applicable/effect rules remain; Roll can reject both effects (including beneficial Resistance). Resistance reduction max(amount*(25-5*(amp+1))/25,0) makes ordinary eligible damage0; BYPASSES_EFFECTS/RESISTANCE still matters. No scaling of effect amplifier/duration. shouldCancelDeath sets dead180, disables noGravity, applies cinematic180 and returns true; while dead returns !isTimerDone. Shared legacy lethal restoration to .1 occurs before Post, excluding BYPASSES_INVULNERABILITY. Dead completion requests native selfhurt999999 PLAYER_ATTACK with getSourceEntity as direct/causing entity (may be fallback Living/self, not necessarily Player), result ignored; script finalization, NO Stage. No new production change.",
+    "melee": "Server handleAttackDamage dispatches claw timer43 range6 scale.834, bite25 range7 scale.667, tail32 range8 scale1, each arc argument120. dealMeleeAttackDamage queries Players in Dragon BB.inflate(range), excludes spectator/creative, requires Euclidean position distance<=range and actual yaw expression abs(degrees(atan2(toPlayer.z,toPlayer.x)-radians(yRot))), if>180 replaced by360-difference, <=120. Preserve this expression, do not reinterpret as a conventional centered half-angle cone. No LOS check. Shared attackEntity requests current ATTACK_DAMAGE*scale, then enchantment modification, mob_attack direct/causing Dragon. Returned boolean is ignored here: raw player.push(normalized full toPlayer vector X/Z*1.2,Y.4) follows even rejected HP. Stage once at final shared hurt amount, never scale attribute and helper both. Ground/flight_dash motion itself has no separate hurt producer.",
+    "fireball_delivery": "Native Dragon spawnFireball occurs at head timer9,19,29; target nonnull, aims at target eyes, owner=Dragon. First two baseDamage1 speed2; third base1.5 speed3, inaccuracy0, anonymous knockback1 and pierce0, noGravity. FlamingSkeletonGuardFireball timed producer independently uses base1 speed1.5 inaccuracy3 owner=guard with same knockback1/pierce0. Collision is inherited AbstractArrow: native owner/vehicle exclusion, PvP, Neo projectile-impact veto, deflection and hurt admission retained; amount ceil(clamp(current speed*enchantment-adjusted base,0,INT_MAX)) plus native crit only if set. Actual factories do not set crit/fired weapon. Source minecraft:arrow, direct ball, cause owner else ball; NOT fireball or fire-tag damage by name. hurttrue non-Enderman triggers native post-hit/enchantment/knockback, custom arrow-count decrement. Stage only final arrow hurt amount. Inherited arrow baseDamage/owner persist; anonymous captured knockback is not serialized, registered reloaded class default0: future fixture. Static shoot convenience helpers have no external invokestatic native callers; armor producer exists but is reserved for equipment review.",
+    "fireball_secondaries": "BlazingFireBallEntity.onHitEntity invokes super then HitsLivingEntityProcedure regardless of hit success/Enderman early return inside super. Server spawns FireArea at hit entity block position, then discards ball; despite procedure name no Living-only predicate, and no explosion on this path. Block callback invokes super then spawns FireArea at ball block position; if spawn succeeds, radius2 fire=true ExplosionInteraction.NONE explosion with new FireArea as source; discard independent. Flying-tick callback after super queries ALL entities in center box inflated.5 (full side1), excludes only BlazingFireBallEntity and calls igniteForSeconds3, no owner/LOS/hurt/impact-event gate. Authoritative server executes it; callback also runs client. Thus projectile veto may stop impact payload while proximity ignition remains distinct. Tick discards inGround. Do not couple any of these callbacks to arrow hurttrue.",
+    "fire_area_and_explosion": "FireArea is plain Entity, no stored owner. Registered dimensions3.5x.3. Server tick iterates Living touching its own BB, excludes fireImmune, requests ownerless minecraft:in_fire1.5, then independently igniteForSeconds4. Counter starts130, decrements until nonpositive discard; water/bubble discard; counter saved. Block-impact native explosion direct=FireArea, causing=null, minecraft:explosion (no ownership transfer from ball). Radius2 gives distance radius4; native exposure formula ((q*q+q)/2*7*4+1), q=(1-distance/4)*seenPercent, only native admitted entities/range/nonzero direction and calculator.shouldDamageEntity. Native ExplosionStart veto and Detonate list/event respected; native independent impulse/explosion-knockback resistance and event need separate fixture from hurtboolean. NONE means KEEP blocks, not zero HP or zero fire: finalizeExplosion fire loop remains, 1/3 at selected air over solid-render support, before ServerLevel clears toBlow for packet. Stage once final explosion hurt argument after exposure, not radius/exposure plus HP; FireArea1.5 separately once at its hurt call.",
+    "breath": "Native fire_breathing head timer25..60 every5 (8 emissions when uninterrupted), target nonnull determines aim. Initial aim target eye jitter +-1.5 each axis and sprint offset1.5 away; retained aim lerps .5 toward current target if distance>.5. March100 steps*.5 (max50). First non-air block beyond squared distance25 stops BEFORE player callback at that step, writes FIRE in3x3 above impact only if air/cobblestone; cobblestone random removal does not prevent subsequent fire replacement. No ordinary LOS raycast through first5 blocks. Each unobstructed sample iterates level.players, not all Living; squared distance <.5 sprinting or<1.25 otherwise. No creative/spectator/owner/alive filter in callback. setRemainingFireTicks overwrites with100 sprinting/250 otherwise, then ONLY when hasEffect(FIRE_RESISTANCE) requests ownerless magic1.5/2 respectively; hurt return ignored. Native magic has no IS_FIRE tag so Fire Resistance does not itself reject this damage; Resistance/armor-bypass rules and native events remain. No per-player/sample dedup; iframes control repeated HP admission. Stage once at magic hurt, not ignition duration/number of samples. Native fire blocks and subsequent on_fire are separate routes.",
+    "burning_and_tags": "Vanilla ignition max-extends ticks via igniteForSeconds; breath direct setRemainingFireTicks can shorten an existing burn. Entity server baseTick requests ownerless on_fire1 every20 remaining ticks when non-fireImmune and not in lava; Fire Resistance rejection occurs in Living hurt. Native fire-block contact uses in_fire/fireDamage (ordinary FIRE1) and independent ignition counter, also native fireImmune handling. Pin tags: arrow/mob_attack/player_attack Neo physical; magic/indirect_magic Neo magic and armor+shield bypass; in_fire is fire/environment but NO armor/shield bypass; on_fire fire/environment and armor+shield bypass; explosion IS_EXPLOSION/no_knockback but NO armor/shield bypass. None of these eight bypass resistance/effects/enchantments/invulnerability/cooldown. Explosion difficulty scaling ALWAYS; other pinned resource scaling when_caused_by_living_non_player (ownerless sources lack Living cause). Preserve native source credit loss for breath/pool/burn/explosion; no fallback owner. Stage once per actual final native hurt payload, including shared vanilla burn/fire paths only with proven origin attribution; do not globally scale unrelated fire or also scale ignition.",
+    "guardians": "DragonGuardSword, FlamingSkeletonGuardSword, FlamingSkeletonGuardFireball are independent Monster subclasses, no owner contract and no Dragon summon producer proven. Registry/placement routes are genuine fixtures; do not assign Dragon ownership. All have normal MeleeAttackGoal canPerformAttack cooldown, distanceSq<ownWidth^2+targetWidth, native sensingLOS -> Mob.doHurtTarget current attribute/enchant/native mob_attack. Defaults attack7/9/4 respectively. Separate baseTick timed procedures use target identity in box, no LOS: swords cooldown>=40 starts20 when target within2.75-inflated center; hit remaining12 within3.5; cooldown increments with target within8; initial30. If attacker alive requests explicit mob_attack (direct=causing guard) current attribute, no enchantment amount helper in timed call. Independently adds velocity .2*look XZ,+.1Y even hurtfalse. Flaming sword also blocking Living victim AND Player -> active-use item cooldown100, independent of hurt/alive attacker and no stopUsingItem call. Fireball guard ready>=70, starts25 within8, emits at19 within8.5 if alive/server; cooldown increments within16. All fireImmune and exact IN_FIRE veto; timed state saved. Native ordinary melee and timed hit/ranged callbacks can both run: distinct fixtures, native iframes retained.",
+    "exclusions_and_coverage": "Rendering, sounds/particles, loot/acquisition and FireArea smelting are excluded briefly. Flight/circling/arena blocks reviewed only where admission/aim/reach changes; no new numeric payload inferred. DragonArmorEvents native BlazingFireball producer remains equipment work, not repeated here. IceSpike full control/persistence/producer review remains Yeti, only Dragon source predicate resolved here. No custom DamageType added; foundation two custom keys unchanged. Static semantics complete for Dragon/three guardians, all future fixtures unexecuted; whole Bosses Rise still PARTIAL."
+  },
+  "mechanic_packages": [
+    {
+      "id": "br:dragon_admission",
+      "name": "Infernal Dragon phase/source admission",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native admission, phase/resource or control; no independent outgoing HP amount.",
+      "delivery_paths": [
+        "br:dragon:phase",
+        "br:dragon:traits",
+        "br:dragon:cause",
+        "br:dragon:reload"
+      ]
+    },
+    {
+      "id": "br:dragon_cinematic",
+      "name": "Dragon cinematic effects and death control",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native admission, phase/resource or control; no independent outgoing HP amount.",
+      "delivery_paths": [
+        "br:dragon:cinematic",
+        "br:dragon:death"
+      ]
+    },
+    {
+      "id": "br:dragon_melee",
+      "name": "Dragon timed melee",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "NUMERIC_SCALABLE",
+        "ADMISSION_GATED",
+        "VANILLA_ROUTED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "AbstractBossEntity.attackEntity final target.hurt amount after attackScale*ATTACK_DAMAGE and native enchantment modifier.",
+      "stage_reason": "Final native HP request only; keep durations/resources/admission/control and incoming modifiers native.",
+      "delivery_paths": [
+        "br:dragon:claw",
+        "br:dragon:bite",
+        "br:dragon:tail"
+      ]
+    },
+    {
+      "id": "br:dragon_melee_push",
+      "name": "Dragon independent melee displacement",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native admission, phase/resource or control; no independent outgoing HP amount.",
+      "delivery_paths": [
+        "br:dragon:melee_push"
+      ]
+    },
+    {
+      "id": "br:blazing_arrow",
+      "name": "Blazing Fireball native arrow hit",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "NUMERIC_SCALABLE",
+        "ADMISSION_GATED",
+        "VANILLA_ROUTED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Inherited AbstractArrow.onHitEntity final ceil/clamp/crit native hurt amount, not baseDamage and hit both.",
+      "stage_reason": "Final native HP request only; keep durations/resources/admission/control and incoming modifiers native.",
+      "delivery_paths": [
+        "br:dragon:ball_dragon",
+        "br:dragon:ball_guard"
+      ]
+    },
+    {
+      "id": "br:blazing_area_delivery",
+      "name": "Blazing Fireball independent impact hazard and ignition",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native admission, phase/resource or control; no independent outgoing HP amount.",
+      "delivery_paths": [
+        "br:dragon:ball_entity",
+        "br:dragon:ball_trail",
+        "br:dragon:breath_ignition"
+      ]
+    },
+    {
+      "id": "br:blazing_explosion",
+      "name": "Blazing Fireball block-impact explosion",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "tno_categories": [
+        "COMPOSITE",
+        "NUMERIC_SCALABLE",
+        "ADMISSION_GATED",
+        "VANILLA_ROUTED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Native Explosion.explode final damageCalculator amount at entity.hurt after exposure, not radius.",
+      "stage_reason": "Final native HP request only; keep durations/resources/admission/control and incoming modifiers native.",
+      "delivery_paths": [
+        "br:dragon:ball_block"
+      ]
+    },
+    {
+      "id": "br:fire_area",
+      "name": "Fire Area native contact damage",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "NUMERIC_SCALABLE",
+        "ADMISSION_GATED",
+        "VANILLA_ROUTED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "FireAreaEntity.tick touchingEntity.hurt(inFire,1.5) final amount.",
+      "stage_reason": "Final native HP request only; keep durations/resources/admission/control and incoming modifiers native.",
+      "delivery_paths": [
+        "br:dragon:pool"
+      ]
+    },
+    {
+      "id": "br:dragon_breath_magic",
+      "name": "Dragon breath conditional magic",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "NUMERIC_SCALABLE",
+        "ADMISSION_GATED",
+        "VANILLA_ROUTED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "InfernalDragonEntity lambda$spawnFireBreath$5 final magic2 or1.5 Player.hurt request.",
+      "stage_reason": "Final native HP request only; keep durations/resources/admission/control and incoming modifiers native.",
+      "delivery_paths": [
+        "br:dragon:breath_magic"
+      ]
+    },
+    {
+      "id": "br:dragon_fire_contact",
+      "name": "Native fire block damage from Dragon paths",
+      "primary_classification": "VANILLA_DIRECT",
+      "tno_categories": [
+        "COMPOSITE",
+        "NUMERIC_SCALABLE",
+        "ADMISSION_GATED",
+        "VANILLA_ROUTED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "BaseFireBlock.entityInside final inFire fireDamage request with proven native-origin attribution; no global unrelated-fire scaling.",
+      "stage_reason": "Final native HP request only; keep durations/resources/admission/control and incoming modifiers native.",
+      "delivery_paths": [
+        "br:dragon:fire_blocks"
+      ]
+    },
+    {
+      "id": "br:dragon_burning",
+      "name": "Native burning from Dragon/Blazing paths",
+      "primary_classification": "VANILLA_DIRECT",
+      "tno_categories": [
+        "COMPOSITE",
+        "NUMERIC_SCALABLE",
+        "ADMISSION_GATED",
+        "VANILLA_ROUTED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Entity.baseTick final onFire1 hurt request with proven origin attribution, not ignition duration plus damage.",
+      "stage_reason": "Final native HP request only; keep durations/resources/admission/control and incoming modifiers native.",
+      "delivery_paths": [
+        "br:dragon:burn"
+      ]
+    },
+    {
+      "id": "br:dragon_guard_ai",
+      "name": "Dragon guardians ordinary AI melee",
+      "primary_classification": "VANILLA_DIRECT",
+      "tno_categories": [
+        "COMPOSITE",
+        "NUMERIC_SCALABLE",
+        "ADMISSION_GATED",
+        "VANILLA_ROUTED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Inherited Mob.doHurtTarget final mob_attack amount after native attributes/enchantments.",
+      "stage_reason": "Final native HP request only; keep durations/resources/admission/control and incoming modifiers native.",
+      "delivery_paths": [
+        "br:dragon:guard_ai"
+      ]
+    },
+    {
+      "id": "br:dragon_guard_timed",
+      "name": "Dragon sword guardians timed melee",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "NUMERIC_SCALABLE",
+        "ADMISSION_GATED",
+        "VANILLA_ROUTED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Guardian timed Procedure.execute final explicit mob_attack current-attribute hurt amount.",
+      "stage_reason": "Final native HP request only; keep durations/resources/admission/control and incoming modifiers native.",
+      "delivery_paths": [
+        "br:dragon:guard_timed"
+      ]
+    },
+    {
+      "id": "br:dragon_guard_control",
+      "name": "Guardian timed push and blocking-item cooldown",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native admission, phase/resource or control; no independent outgoing HP amount.",
+      "delivery_paths": [
+        "br:dragon:guard_control"
+      ]
+    }
+  ],
+  "delivery_paths": [
+    {
+      "id": "br:dragon:phase",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native spawner/nonspawner phase admission and HP thresholds",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source/direct/causing identity, immunity and hurtfalse independent side effects",
+        "Only genuine spawn/attack/lifecycle routes; no fabricated damage"
+      ]
+    },
+    {
+      "id": "br:dragon:traits",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Dragon fire/freeze/fall/push and configured stats",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source/direct/causing identity, immunity and hurtfalse independent side effects",
+        "Only genuine spawn/attack/lifecycle routes; no fabricated damage"
+      ]
+    },
+    {
+      "id": "br:dragon:cause",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "Owned arrow/Ice Spike vs legitimately lost owner causing-entity predicate",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source/direct/causing identity, immunity and hurtfalse independent side effects",
+        "Only genuine spawn/attack/lifecycle routes; no fabricated damage"
+      ]
+    },
+    {
+      "id": "br:dragon:cinematic",
+      "labels": [
+        "AOE"
+      ],
+      "native_path": "Native intro/knockdown/transform/death Slowness+Resistance",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source/direct/causing identity, immunity and hurtfalse independent side effects",
+        "Only genuine spawn/attack/lifecycle routes; no fabricated damage"
+      ]
+    },
+    {
+      "id": "br:dragon:death",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Legacy .1 restoration then timed999999 native selfhurt",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source/direct/causing identity, immunity and hurtfalse independent side effects",
+        "Only genuine spawn/attack/lifecycle routes; no fabricated damage"
+      ]
+    },
+    {
+      "id": "br:dragon:claw",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "Claw43 range6 shared attack scale.834",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source/direct/causing identity, immunity and hurtfalse independent side effects",
+        "Only genuine spawn/attack/lifecycle routes; no fabricated damage"
+      ]
+    },
+    {
+      "id": "br:dragon:bite",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "Bite25 range7 scale.667",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source/direct/causing identity, immunity and hurtfalse independent side effects",
+        "Only genuine spawn/attack/lifecycle routes; no fabricated damage"
+      ]
+    },
+    {
+      "id": "br:dragon:tail",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "Tail32 range8 scale1",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source/direct/causing identity, immunity and hurtfalse independent side effects",
+        "Only genuine spawn/attack/lifecycle routes; no fabricated damage"
+      ]
+    },
+    {
+      "id": "br:dragon:melee_push",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Independent post-request raw push even failed HP",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source/direct/causing identity, immunity and hurtfalse independent side effects",
+        "Only genuine spawn/attack/lifecycle routes; no fabricated damage"
+      ]
+    },
+    {
+      "id": "br:dragon:ball_dragon",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "Dragon burst first/second/third native arrow impact",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source/direct/causing identity, immunity and hurtfalse independent side effects",
+        "Only genuine spawn/attack/lifecycle routes; no fabricated damage"
+      ]
+    },
+    {
+      "id": "br:dragon:ball_guard",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "Guard timed native arrow impact",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source/direct/causing identity, immunity and hurtfalse independent side effects",
+        "Only genuine spawn/attack/lifecycle routes; no fabricated damage"
+      ]
+    },
+    {
+      "id": "br:dragon:ball_entity",
+      "labels": [
+        "AOE"
+      ],
+      "native_path": "Entity impact independent FireArea spawn, no explosion",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source/direct/causing identity, immunity and hurtfalse independent side effects",
+        "Only genuine spawn/attack/lifecycle routes; no fabricated damage"
+      ]
+    },
+    {
+      "id": "br:dragon:ball_block",
+      "labels": [
+        "EXPLOSION"
+      ],
+      "native_path": "Block impact FireArea radius2 NONE explosion",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source/direct/causing identity, immunity and hurtfalse independent side effects",
+        "Only genuine spawn/attack/lifecycle routes; no fabricated damage"
+      ]
+    },
+    {
+      "id": "br:dragon:ball_trail",
+      "labels": [
+        "PASSIVE_AURA"
+      ],
+      "native_path": "Ball proximity3s ignition independent of impact",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source/direct/causing identity, immunity and hurtfalse independent side effects",
+        "Only genuine spawn/attack/lifecycle routes; no fabricated damage"
+      ]
+    },
+    {
+      "id": "br:dragon:pool",
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "native_path": "FireArea contact in_fire1.5 and4s ignition",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source/direct/causing identity, immunity and hurtfalse independent side effects",
+        "Only genuine spawn/attack/lifecycle routes; no fabricated damage"
+      ]
+    },
+    {
+      "id": "br:dragon:breath_magic",
+      "labels": [
+        "AOE"
+      ],
+      "native_path": "Breath Fire Resistance-present magic2/1.5",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source/direct/causing identity, immunity and hurtfalse independent side effects",
+        "Only genuine spawn/attack/lifecycle routes; no fabricated damage"
+      ]
+    },
+    {
+      "id": "br:dragon:breath_ignition",
+      "labels": [
+        "AOE"
+      ],
+      "native_path": "Breath direct fire ticks250/100, all players on samples",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source/direct/causing identity, immunity and hurtfalse independent side effects",
+        "Only genuine spawn/attack/lifecycle routes; no fabricated damage"
+      ]
+    },
+    {
+      "id": "br:dragon:fire_blocks",
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "native_path": "Breath/explosion native fire block contact",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source/direct/causing identity, immunity and hurtfalse independent side effects",
+        "Only genuine spawn/attack/lifecycle routes; no fabricated damage"
+      ]
+    },
+    {
+      "id": "br:dragon:burn",
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "native_path": "Native later on_fire ticks from legitimate ignition",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source/direct/causing identity, immunity and hurtfalse independent side effects",
+        "Only genuine spawn/attack/lifecycle routes; no fabricated damage"
+      ]
+    },
+    {
+      "id": "br:dragon:guard_ai",
+      "labels": [
+        "MOB_ATTACK"
+      ],
+      "native_path": "All three guardians inherited AI melee",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source/direct/causing identity, immunity and hurtfalse independent side effects",
+        "Only genuine spawn/attack/lifecycle routes; no fabricated damage"
+      ]
+    },
+    {
+      "id": "br:dragon:guard_timed",
+      "labels": [
+        "MOB_ATTACK"
+      ],
+      "native_path": "Two sword guardians timed attribute damage",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source/direct/causing identity, immunity and hurtfalse independent side effects",
+        "Only genuine spawn/attack/lifecycle routes; no fabricated damage"
+      ]
+    },
+    {
+      "id": "br:dragon:guard_control",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Timed independent velocity and flaming sword blocking-item cooldown",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source/direct/causing identity, immunity and hurtfalse independent side effects",
+        "Only genuine spawn/attack/lifecycle routes; no fabricated damage"
+      ]
+    },
+    {
+      "id": "br:dragon:reload",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Dragon phase/pools, guardian counters, FireArea and native arrow state reload",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Native source/direct/causing identity, immunity and hurtfalse independent side effects",
+        "Only genuine spawn/attack/lifecycle routes; no fabricated damage"
+      ]
+    }
+  ],
+  "unexecuted_future_fixtures": [
+    "native_spawner_wall_intro_vs_normal_spawn_phase_and_stats",
+    "native_phase0_85_then2_50_then3_25_grounding_transition5",
+    "owned_projectile_causingLiving_no_x2_or_ice_half_vs_genuine_unresolvedOwner",
+    "fire_freeze_fall_bypass_and_legacy_counter_admission",
+    "cinematic_effects_Applicable_and_Roll_beneficial_rejection",
+    "lethal_restore_Post_order_and_death_completion_source",
+    "retained_attack_during_phase_or_death_transition",
+    "melee_yaw_expression_creative_spectator_LOS_and_hurtfalse_push",
+    "ball_Dragon_first_third_and_guard_speed_at_impact",
+    "ball_native_arrow_veto_deflection_armor_shield_Resistance_Enderman",
+    "entity_impact_hurtfalse_still_pool_vs_blockimpact_explosion",
+    "trail_ignition_through_owner_impact_veto_and_server_client",
+    "pool_fireImmune_vs_FireResistance_ownerless_source_and_water_expiry",
+    "explosion_start_cancel_exposure_armor_shield_HP_vs_impulse_and_fire_NONE",
+    "breath_sprint_radii_overwrite_fireTicks_and_fireResistance_present_magic",
+    "breath_near5block_obstruction_vs_farstop_multi_sample_iframe",
+    "fire_block_contact_and_onFire_distinct_native_origin_credit_loss",
+    "all_guardian_AI_LOS_vs_timed_noLOS_native_iframes",
+    "flaming_sword_blocking_item_cooldown_hurtfalse",
+    "native_arrow_reload_captured_knockback_vs_persisted_base_owner",
+    "Dragon_and_guardian_native_saved_phase_counters"
+  ],
+  "review_required": [],
+  "remaining_subsection_native_ambiguities": [],
+  "exact_next_task": "R2i5: Yeti native defenses/phase, melee and ice delivery including Ice Spike/cluster/projectile and glacial control. Reuse completed roll/shared/Knight/Dragon semantics. Then Sandworm, Kraken/cannon, equipment and whole-mod closure; no runtime, L2 or Stage/production changes.",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "block_factorys_bosses",
+  "runtime_tests": 0,
+  "whole_mod_complete": false,
+  "promoted_mechanics": 0,
+  "promoted_paths": 0,
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false,
+  "reference_files": [
+    {
+      "file": "native-evidence/bossesrise-dragon.json",
+      "sha256": "1a6965bef27b510b20228f7aea67fa98709b8539e0b7270d28a77cdf7ae4e073"
+    },
+    {
+      "file": "bossesrise-dragon-census.json",
+      "sha256": "b6813aeb14ee61294ab0dea2b3238ca66ea71b5506b09ce97d343ffa24e71e57"
+    },
+    {
+      "file": "bossesrise-dragon-source-profiles.json",
+      "sha256": "d156e32aea85770b34362ac911b252dff66d395013776f2e14e85c419e8b08bc"
+    },
+    {
+      "file": "reference-evidence/bossesrise-dragon-244.json",
+      "sha256": "e5d6d4f45b3d7600a075fd4ac9c485d7916405f32ae335f9c06f3ec93d84ac82"
+    },
+    {
+      "file": "vanilla-evidence/bossesrise-dragon.json",
+      "sha256": "aa4051861b318e02aaa864bd1ce3faf5cb464910aadf51e7c870697360155700"
+    },
+    {
+      "file": "reference-routing/bossesrise-dragon.json",
+      "sha256": "c541dd8afe76eee2aca1e5552edf456ffa287df0c3482299c83f62c45ec0b338"
+    },
+    {
+      "file": "native-evidence/bossesrise-shared.json",
+      "sha256": "a316243721401336a70804d553eb7c6af80eadb6db0af60cf0c9caddeb97a081"
+    },
+    {
+      "file": "reference-evidence/bossesrise-shared-244.json",
+      "sha256": "b40148cdeeb46f19e9baa2fb483fc157bc9643e912cdfbc6e05ffa861f152f76"
+    },
+    {
+      "file": "reference-evidence/bossesrise-knight-offense-244.json",
+      "sha256": "ed049f9cd2ac572a1551027589e23f82ff782f98c5bca5e13eb7dfb19ae195b2"
+    },
+    {
+      "file": "bossesrise-r2i2a-roll-admission.json",
+      "sha256": "3d2d456de7c7db5e4a2426b30a4359be6ca9ef6584a645d0ad10a12fba725991"
+    }
+  ]
+}
