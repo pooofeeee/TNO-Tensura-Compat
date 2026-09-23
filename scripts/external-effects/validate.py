@@ -249,6 +249,9 @@ def validate():
         if (OUT/'eternalstarlight-r2h4a-sonar-meteor-seeds.json').exists():
             from validate_eternalstarlight_sonar_meteor_seeds import validate_sonar_meteor_seeds
             assert validate_sonar_meteor_seeds()['status']=='PASS'
+        if (OUT/'eternalstarlight-r2h4b-ether-blade-wilt.json').exists():
+            from validate_eternalstarlight_ether_blade_wilt import validate_ether_blade_wilt
+            assert validate_ether_blade_wilt()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():

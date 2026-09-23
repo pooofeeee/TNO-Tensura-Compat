@@ -878,3 +878,7 @@ Ordered Gatekeeper damage admission, pre-hurt healing interruption, native melee
 ## R2h4a — Eternal Starlight sonar, meteor and seeds
 
 Sonar source distinction, owner-identity manual meteor AoE/shared cooldown and speed/ammo/enchantment seed formula protected with native predicates and future fixtures. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/eternalstarlight-r2h4a-sonar-meteor-seeds-review.md).
+
+## R2h4b — Eternal Starlight Ether, Shattered Blade and Wilt
+
+Ether contact vs corrosion vs shard separation, Shattered Blade owner-attribute and return gates, Wilt aura vs petal/Wither and firework exclusion reviewed. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/eternalstarlight-r2h4b-ether-blade-wilt-review.md).
