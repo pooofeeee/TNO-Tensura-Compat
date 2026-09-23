@@ -794,3 +794,7 @@ Flute uses a serialized loveTicks attachment driven by native EntityTickEvent.Po
 ## R2g4 — Gorgon
 
 Gaze spawns the statue before player hurt; Head uses victim-attributed hurt and requires true before player statue creation. Non-player branches remove directly. Petrification is binary and receives no Stage multiplier; fallback melee/Poison retain native numeric routes. [Combat semantics, immunity, exact integration points and future fixtures](benchmarks/external-effects-catalog/iceandfire-r2g4-review.md). Dragons next; Ice & Fire PARTIAL.
+
+## R2g5a — Dragon elemental combat paths
+
+Native Fire/Lightning direct damage, independent status/control, optional charge explosion and actual fire/spikes are separated. Scaling points target each native damage amount exactly once; no Stage implementation. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/iceandfire-r2g5a-dragon-elements-review.md).
