@@ -1,0 +1,399 @@
+{
+  "schema": "tno.external_effects.es_energy.v1",
+  "checkpoint": "R2h3a-energy-complete",
+  "previous_checkpoint": "R2h2b-status-control-complete",
+  "starting_sha": "baf8e7503551e89e251cafce7fb3d956a76edc0d",
+  "status": "ENERGY_COMBAT_SEMANTICS_COMPLETE",
+  "scope": "Energy weapon/projectile/hazard and Golem smash payloads complete; full boss defenses/phases and other debris producers remain later work.",
+  "summary": "Energy sources, native iframe differences, mechanical firework null-weapon gate, boomerang callback identity, ownerless ground smash and damaging debris reviewed.",
+  "facts": {
+    "spark_payload": "EnergySpark.onHitEntity and tick target-AABB contact converge on hurtTarget. Require (no assigned target OR contacted entity is assigned target) AND entity!=owner. Native code writes target invulnerableTime=0 without restoring it, then requests ENERGIZED_FLAME3 direct=Spark/causing=owner; ignores hurt return. No shouldHarm/ally check and no ignition here. Discard occurs even if contact fails those predicates. Block contact reflects the corresponding velocity axis. Server resolves/clears target UUID, clears dead target; native homing/jitter does not change damage. Lifetime is >600 spawnedTicks with Player owner, >120 otherwise. These native iframe rules are evidence, not permission for compat to bypass admission.",
+    "spark_producers": "EnergySword.postHurtEnemy follows native successful primary Player melee/item callback and, server-side with item cooldown clear, creates5..7 Sparks targeting victim then cooldown75. MechanicalCrossbow marks both arrow and firework, adds1 AbstractArrow piercing and multiplies shot velocity1.75. OnProjectileImpact server Living entity branch clears marker BEFORE checking Living owner, nonnull projectile.getWeaponItem and item cooldown; then spawns5..7 Sparks and cooldown75 without requiring native primary hurt success. Block impact does not clear this mechanical marker. Exact installed FireworkRocketEntity and Projectile declare no getWeaponItem override; inherited Entity getter returns null, so native mechanical firework fails this weapon prerequisite and spawns no Sparks. Arrow stores its fired weapon and can qualify. StarlightGolemSmashPhase tick30 with target creates5 owned Sparks in a fan, all assigned to target. SpecialItemCooldown is per owning entity and item identity (not stack identity), ticks down server-side through ESCommonHandler.onEntityTick.",
+    "ball_lightning": "GolemSteelGreatsword successful melee callback OR native swing_attack packet calls performSpecialAttack: server, cooldown clear ->3 owned BallLightning at yaw offsets-15/0/15 and speed.8; each later ball targets the preceding ball; cooldown100 shared by both triggers. Tick target link >16 blocks is removed. With a target, ESEntityUtil.raytrace returns entities along the full segment and a separate block result: BallLightning ignores block result, so intervening walls do not truncate this beam. Living recipients passing shouldHarm(owner,recipient) get ELECTRIC_SHOCK8 direct=ball/causing=owner; only hurt true ignites2 seconds. Ordinary cooldown applies to beam. Block impacts bounce. Owner distance>32 or spawnedTicks>600 calls explodeAndDiscard: manual AABB+2 Living recipients passing shouldHarm get ENERGIZED_FLAME8, no Level.explode and no ignition; Player owner resets each recipient iframe0 without restoration, other owners do not. Hurt result ignored. Distance discard has no early return, so tick may continue beam work and a simultaneous lifetime expiry may call burst again. Ownerless/null-source behavior is kept native, not replaced by invented ownership.",
+    "energized_hazard": "EnergizedFlame server tick, after tickCount20, requires resolved nonnull owner; its AABB is expanded XZ.5 and extends6 upward. Living recipients passing shouldHarm receive ENERGIZED_FLAME2 direct=hazard/causing=owner, then ignite3 seconds regardless of hurt result. No LOS or iframe override. Owner UUID persists, unresolved lookup clears it. Lifetime>60 discards without an early return. Incoming damage to hazard only discards on BYPASSES_INVULNERABILITY (binary, not HP scaling). Golem.spawnEnergizedFlame optionally creates one at target position+velocity*20, then random available empty/sturdy-ground positions without replacement. SummonFlame phase0, cooldown over, target and attackEnergy>=0 starts and subtracts20 floored0; every40 behavior ticks spawn(2,15,true). LaserBeam phase requires cooldown, target and (phase1 OR energy>=30), subtracts50 floored0; beam spawns tick60, and ticks>=60 divisible40 spawn(1,15,phase==1). Boss phase/admission remains next subsection.",
+    "boomerang_primary": "BoomerangItem.use fails when damage>=maxDamage-1; native hand use otherwise consumes durability1, spawns owned no-gravity EnergyBoomerang speed2/inaccuracy.3, removes noncreative held stack and sets ordinary use cooldown15. EnergyBoomerang.asProjectile is an ownerless factory, but whole ES dispenser-registration census/commonSetup shows no native registration for it: do not claim default dispenser delivery. Base ThrownBoomerang uses owner ATTACK_DAMAGE base value (fallback1), replaces owner modifiers with matching weapon attack-modifier IDs, prepends weapon modifiers then appends remaining owner modifiers, and applies native ADD_VALUE/BASE/TOTAL loop order. Enchantment damage adjustment precedes Precision critical chance (installed .16 per level, max5), random success multiplies damage1.5. Actual HP source is vanilla thrown direct=boomerang/causing=owner. dealtDamage is set BEFORE hurt. Only hurt true, after Enderman early return, runs enchantment Post, knockback and Living doPostHurtEffects. Enchantment Post alone receives a separate player_attack/mob_attack source for Living owner; it does not replace the HP source. Subsequent entity hits are disabled once dealtDamage. Homing uses enchantment strength clamp0..1 (installed .1+.75*(level-1)), nearest shouldHarm Living within AABB3 and forward dot>.5; no explicit LOS check. Return/invalid-owner rules govern one-flight lifetime; item recovery is utility, not another HP mechanic.",
+    "boomerang_secondary": "ThrownEnergyBoomerang successful primary Living callback always ignites primary2 seconds. If owner/weapon missing or special item cooldown clear, server visits Living in victim AABB+2 passing shouldHarm and excluding primary; writes iframe0 without restoration then requests ELECTRIC_SHOCK8 direct=boomerang/causing=owner. Only secondary hurt true ignites2 seconds. Afterwards, owner+weapon sets item cooldown40 even when no recipient or all hits rejected. Primary and secondary are independent native numeric attacks. Native fire ticks reuse R2h2b native_elemental_ticks; do not multiply burn duration or invent electric/fire tags.",
+    "smash_and_debris": "GolemSmash can start with cooldown over OR phase1/onGround/cooldown(3)<150, requires target and (phase1 OR attackEnergy>=0), then consumes16 floored0. Tick30 captures shockwave direction and creates Sparks. From tick40 radius=int((behaviorTicks-30)/3); unvisited nonair terrain must lie in radial shell, pitch difference<75 and yaw<30, with air above or below. Exposed-above or random1/6 flagged positions spawn ESFallingBlock duration100 and request ownerless GROUND_SMASH4 on nearby Living except the Golem, without ally/LOS checks or hurt-result dependency. This source has null direct/causing entity, so Golem-causer Incoming attackDamageScale does not apply. Lava visited positions instead have random1/25 event-vetoable magma replacement. ESFallingBlock is an ES Entity, not vanilla FallingBlockEntity: default damage=true, each tick Living in its AABB gets vanilla falling_block3 sourced by the debris (direct=causing=debris); no ally/owner/hurt-success gate in that method. Gravity/velocity/lifetime and damage flag persist; hurt only binary bypass-invulnerability discard. Debris is a separate HP delivery, not merely visual. Other debris producers remain assigned to later families.",
+    "admission_scaling": "R2h1 exact tag closure: energized_flame/electric_shock have no IS_FIRE/IS_LIGHTNING/IS_PROJECTILE, armor/shield/enchantment/Resistance bypass or cooldown bypass tags; energized_flame JSON effects=burning is feedback, not elemental admission. Ground_smash likewise has no armor/shield/enchantment bypass. Source cause still drives native difficulty/config and generic mod hooks. Each independent native hurt amount (3/8/2/4/3 or computed weapon amount) gets at most one future Stage multiplier at final request after native calculations. Keep primary, independent secondary, native burn ticks, and binary projectile/hazard removal distinct. Native iframe writes, enchantment-only rewritten source, allies, target assignment, item cooldown and hurt return must remain intact; Tensura/L2 runtime outcomes are untested.",
+    "exclusions": "Exclude particle geometry, trails, sounds, item acquisition and normal pickup/storage. Keep boomerang homing/one-hit return only because it changes delivery coverage. Do not research extra cosmetic or classification detail."
+  },
+  "mechanic_packages": [
+    {
+      "id": "es:energy_sparks",
+      "name": "Energy Sparks",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "CUSTOM_ROUTED",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at EnergySpark.hurtTarget final ENERGIZED_FLAME3 request.",
+      "stage_reason": "Preserve native cadence/counts, admission and independent callbacks; no attribute plus request double scaling.",
+      "delivery_paths": [
+        "es:energy:sword_sparks",
+        "es:energy:mechanical_arrow",
+        "es:energy:mechanical_firework_negative",
+        "es:energy:golem_sparks",
+        "es:energy:spark_contact"
+      ]
+    },
+    {
+      "id": "es:mechanical_primary",
+      "name": "Mechanical Crossbow primary HP",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "VANILLA_ROUTED",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at native arrow/firework final hurt; do not separately scale velocity/piercing.",
+      "stage_reason": "Preserve native cadence/counts, admission and independent callbacks; no attribute plus request double scaling.",
+      "delivery_paths": [
+        "es:energy:mechanical_arrow",
+        "es:energy:mechanical_firework_negative"
+      ]
+    },
+    {
+      "id": "es:ball_lightning",
+      "name": "Ball Lightning linked beam and expiry burst",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "CUSTOM_ROUTED",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at each independent native ELECTRIC_SHOCK8 beam or ENERGIZED_FLAME8 burst hurt request.",
+      "stage_reason": "Preserve native cadence/counts, admission and independent callbacks; no attribute plus request double scaling.",
+      "delivery_paths": [
+        "es:energy:greatsword_hit",
+        "es:energy:greatsword_swing",
+        "es:energy:ball_beam",
+        "es:energy:ball_burst"
+      ]
+    },
+    {
+      "id": "es:energized_flame",
+      "name": "Energized Flame ground hazard",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "CUSTOM_ROUTED",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at EnergizedFlame.tick native ENERGIZED_FLAME2 request.",
+      "stage_reason": "Preserve native cadence/counts, admission and independent callbacks; no attribute plus request double scaling.",
+      "delivery_paths": [
+        "es:energy:golem_flame_summon",
+        "es:energy:golem_flame_laser"
+      ]
+    },
+    {
+      "id": "es:energy_boomerang",
+      "name": "Energy Boomerang primary and electrical secondary",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "COMPOSITE",
+        "VANILLA_ROUTED",
+        "CUSTOM_ROUTED",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once per independent final primary thrown hurt after attributes/enchant/crit OR secondary ELECTRIC_SHOCK8 request.",
+      "stage_reason": "Preserve native cadence/counts, admission and independent callbacks; no attribute plus request double scaling.",
+      "delivery_paths": [
+        "es:energy:energy_boomerang_throw",
+        "es:energy:energy_boomerang_arc"
+      ]
+    },
+    {
+      "id": "es:golem_ground_smash",
+      "name": "Golem terrain shockwave HP",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "CUSTOM_ROUTED",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at ownerless GROUND_SMASH4 native hurt.",
+      "stage_reason": "Preserve native cadence/counts, admission and independent callbacks; no attribute plus request double scaling.",
+      "delivery_paths": [
+        "es:energy:smash_shell"
+      ]
+    },
+    {
+      "id": "es:es_falling_debris",
+      "name": "ES damaging falling debris",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "VANILLA_ROUTED",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at ESFallingBlock.tick final falling_block3 request.",
+      "stage_reason": "Preserve native cadence/counts, admission and independent callbacks; no attribute plus request double scaling.",
+      "delivery_paths": [
+        "es:energy:smash_debris"
+      ]
+    }
+  ],
+  "delivery_paths": [
+    {
+      "id": "es:energy:sword_sparks",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "successful native Player/item postHurtEnemy -> EnergySword cooldown75 -> owned target Sparks",
+      "runtime_variants": [
+        "source direct/causing identity and native mitigation",
+        "hurt false/true and downstream callback separately"
+      ]
+    },
+    {
+      "id": "es:energy:mechanical_arrow",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "MechanicalCrossbow arrow marker -> uncanceled native impact -> weapon/owner/cooldown gate -> Sparks before HP result",
+      "runtime_variants": [
+        "source direct/causing identity and native mitigation",
+        "hurt false/true and downstream callback separately"
+      ]
+    },
+    {
+      "id": "es:energy:mechanical_firework_negative",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "native marked firework entity impact -> marker clear -> inherited null weapon -> no Sparks",
+      "runtime_variants": [
+        "source direct/causing identity and native mitigation",
+        "hurt false/true and downstream callback separately"
+      ]
+    },
+    {
+      "id": "es:energy:golem_sparks",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "GolemSmash tick30 -> five owned target Sparks",
+      "runtime_variants": [
+        "source direct/causing identity and native mitigation",
+        "hurt false/true and downstream callback separately"
+      ]
+    },
+    {
+      "id": "es:energy:spark_contact",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "native projectile impact or target AABB overlap -> hurtTarget ENERGIZED_FLAME3",
+      "runtime_variants": [
+        "source direct/causing identity and native mitigation",
+        "hurt false/true and downstream callback separately"
+      ]
+    },
+    {
+      "id": "es:energy:greatsword_hit",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "successful melee item callback -> three linked balls",
+      "runtime_variants": [
+        "source direct/causing identity and native mitigation",
+        "hurt false/true and downstream callback separately"
+      ]
+    },
+    {
+      "id": "es:energy:greatsword_swing",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "native swing packet -> same cooldown-gated three linked balls",
+      "runtime_variants": [
+        "source direct/causing identity and native mitigation",
+        "hurt false/true and downstream callback separately"
+      ]
+    },
+    {
+      "id": "es:energy:ball_beam",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "BallLightning tick target segment -> ELECTRIC_SHOCK8 -> hurttrue ignition",
+      "runtime_variants": [
+        "source direct/causing identity and native mitigation",
+        "hurt false/true and downstream callback separately"
+      ]
+    },
+    {
+      "id": "es:energy:ball_burst",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "owner distance/lifetime expiry -> manual AABB ENERGIZED_FLAME8",
+      "runtime_variants": [
+        "source direct/causing identity and native mitigation",
+        "hurt false/true and downstream callback separately"
+      ]
+    },
+    {
+      "id": "es:energy:golem_flame_summon",
+      "labels": [
+        "PASSIVE_AURA"
+      ],
+      "native_path": "SummonFlame phase -> predicted-target/random-ground hazard -> ENERGIZED_FLAME2",
+      "runtime_variants": [
+        "source direct/causing identity and native mitigation",
+        "hurt false/true and downstream callback separately"
+      ]
+    },
+    {
+      "id": "es:energy:golem_flame_laser",
+      "labels": [
+        "PASSIVE_AURA"
+      ],
+      "native_path": "Laser phase periodic flames -> same hazard payload",
+      "runtime_variants": [
+        "source direct/causing identity and native mitigation",
+        "hurt false/true and downstream callback separately"
+      ]
+    },
+    {
+      "id": "es:energy:energy_boomerang_throw",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "native hand throw -> computed vanilla thrown hurt -> non-Enderman success callback",
+      "runtime_variants": [
+        "source direct/causing identity and native mitigation",
+        "hurt false/true and downstream callback separately"
+      ]
+    },
+    {
+      "id": "es:energy:energy_boomerang_arc",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "successful primary -> cooldown-gated neighbor ELECTRIC_SHOCK8",
+      "runtime_variants": [
+        "source direct/causing identity and native mitigation",
+        "hurt false/true and downstream callback separately"
+      ]
+    },
+    {
+      "id": "es:energy:smash_shell",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "GolemSmash terrain shockwave shell -> ownerless GROUND_SMASH4",
+      "runtime_variants": [
+        "source direct/causing identity and native mitigation",
+        "hurt false/true and downstream callback separately"
+      ]
+    },
+    {
+      "id": "es:energy:smash_debris",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "GolemSmash creates damaging ESFallingBlock -> native falling_block3",
+      "runtime_variants": [
+        "source direct/causing identity and native mitigation",
+        "hurt false/true and downstream callback separately"
+      ]
+    }
+  ],
+  "damage_types_newly_reviewed": [
+    "eternal_starlight:energized_flame",
+    "eternal_starlight:electric_shock",
+    "eternal_starlight:ground_smash"
+  ],
+  "reused_packages": [
+    "es:native_elemental_ticks"
+  ],
+  "unexecuted_future_fixtures": [
+    "Spark_target_owner_ally_vs_contact_discard_and_iframe0",
+    "Mechanical_arrow_vs_firework_nullweapon_block_vs_entity_impact_and_hurtfalse",
+    "Sword_vs_swing_packet_shared_item_cooldowns",
+    "Ball_beam_walls_targetloss_vs_expiry_burst_Player_iframe",
+    "Ball_simultaneous_distance_lifetime_noearlyreturn",
+    "Flame_ownerloss_hurtfalse_ignition_and_last_discard_tick",
+    "Boomerang_native_throw_owner_modifier_replacement_crit_homing",
+    "Boomerang_hurtfalse_Enderman_singleflight_and_enchantment_only_source_rewrite",
+    "Boomerang_primary_vs_secondary_cooldown40_no_recipient",
+    "Smash_nullcauser_vs_ownedSpark_Golem_config_scaling",
+    "Smash_event_veto_and_debris_damageflag_native_fallingblock_source"
+  ],
+  "review_required": [],
+  "remaining_subsection_native_ambiguities": [],
+  "exact_next_task": "R2h3b: close Eternal Starlight Golem/Lunar/Gatekeeper attack and defense families, rays and remaining custom damage callers; then remaining equipment/resources and whole-mod closure. Reuse R2h2a/b statuses and R2h3a energy payloads. No runtime/Stage/production changes.",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "runtime_tests": 0,
+  "whole_eternalstarlight_complete": false,
+  "promoted_mechanics": 0,
+  "promoted_paths": 0,
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false,
+  "reference_files": [
+    {
+      "file": "native-evidence/eternalstarlight-energy.json",
+      "sha256": "36aa3ef70741ae00b3a0d489f660247a1b0acdd8927519b96b0dec8a2b8e8677"
+    },
+    {
+      "file": "reference-evidence/eternalstarlight-energy-244.json",
+      "sha256": "4598f8a7ba7a86086702bc117d00e5c50d2e568b08bb074618f65316864b617e"
+    },
+    {
+      "file": "vanilla-evidence/eternalstarlight-energy.json",
+      "sha256": "b46dbb1bdeaa1f4c9ec911f50ff76eb96baa6eb06008f69e11ab984b1cae7c1f"
+    },
+    {
+      "file": "reference-routing/eternalstarlight-energy.json",
+      "sha256": "c541dd8afe76eee2aca1e5552edf456ffa287df0c3482299c83f62c45ec0b338"
+    },
+    {
+      "file": "eternalstarlight-energy-producer-census.json",
+      "sha256": "807f6505c40a4434af5baf5bbc611005437e725926289fc1d1b0ae28165706e3"
+    },
+    {
+      "file": "eternalstarlight-firework-weapon-hierarchy.json",
+      "sha256": "72437ff18e10e5471d8a4d110efd9a99d1bd81b9d98801efed5b2e322b96c780"
+    },
+    {
+      "file": "eternalstarlight-damage-tags.json",
+      "sha256": "e3ddbb993e7c1c5842079da4173c8da218bce10c8f6bdef2b2fbc1db05ab47d3"
+    },
+    {
+      "file": "native-evidence/eternalstarlight-foundation.json",
+      "sha256": "045d7752af404af1f66900ab9f997570242268084b2aeefd9da7b32b0e90ddd8"
+    },
+    {
+      "file": "native-evidence/eternalstarlight-crystal-numbness.json",
+      "sha256": "f442f08b2a2bd38b26f7039c8bb196ba89a6afb9dabfd0bd12302053f8e65e7b"
+    },
+    {
+      "file": "native-evidence/eternalstarlight-status-control.json",
+      "sha256": "3d6fde83de2e737384d51bc7b98b2d38cd2a4ebbd2e5f2d8e27c2426f963d15e"
+    },
+    {
+      "file": "reference-evidence/eternalstarlight-crystal-numbness-244.json",
+      "sha256": "fdc6b79fcd920bfdd9746e117f2bdcd2cfd926c186d85ef822115379e2c6df86"
+    },
+    {
+      "file": "reference-evidence/twilight-frosted-244.json",
+      "sha256": "f8ea775daf3592c157707199bea3ade0b43cdc2e4f817644d863a4fab82bd909"
+    }
+  ]
+}

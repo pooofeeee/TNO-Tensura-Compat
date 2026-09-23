@@ -854,3 +854,7 @@ Crystal delivery and hurt-return distinctions, finite/infinite tick behavior, ar
 ## R2h2b — Remaining Eternal Starlight status and control
 
 Remaining seven statuses, derived Starfire, persistent Teary budget/immunity divergence, selective Oblivion collision, Whip and Permafrost paths, and native Tear Bomb clouds reviewed. No repeated Stage on derived hits. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/eternalstarlight-r2h2b-status-control-review.md).
+
+## R2h3a — Eternal Starlight energy combat
+
+Energy sources, native iframe differences, mechanical firework null-weapon gate, boomerang callback identity, ownerless ground smash and damaging debris reviewed. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/eternalstarlight-r2h3a-energy-review.md).
