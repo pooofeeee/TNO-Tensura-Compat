@@ -282,6 +282,9 @@ def validate():
         if (OUT/'bossesrise-r2i2a-roll-admission.json').exists():
             from validate_bossesrise_roll import validate_roll
             assert validate_roll()['status']=='PASS'
+        if (OUT/'bossesrise-r2i2b-shared-combat.json').exists():
+            from validate_bossesrise_shared import validate_shared
+            assert validate_shared()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():

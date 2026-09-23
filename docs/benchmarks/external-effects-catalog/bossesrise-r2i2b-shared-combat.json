@@ -1,0 +1,340 @@
+{
+  "schema": "tno.external_effects.bossesrise_shared.v1",
+  "checkpoint": "R2i2b-bossesrise-shared-combat-complete",
+  "previous_checkpoint": "R2i2a-bossesrise-roll-admission-complete",
+  "starting_sha": "8d6a9fb2fb77ba9d9628d8bc102cd6bf200eb63d",
+  "status": "SHARED_BOSS_COMBAT_CONTRACTS_COMPLETE",
+  "scope": "Shared native boss attack, death callback ordering, multipart/owner and raw-motion contracts; concrete families remain pending.",
+  "summary": "One shared scalable attack boundary; native before/after-Post death restoration, unchanged multipart forwarding and raw push distinguished. Uncalled death helper excluded.",
+  "facts": {
+    "authority_and_scope": "Both installed base classes have the same attack helper body. AbstractBossEntity is parent of UnderworldKnight/InfernalDragon/Yeti; AbstractStateBossEntity is parent of Sandworm/Kraken. The39-method whole-artifact shared-caller census pins real attack/death/motion references. Full concrete phase timing/geometry/immunities still belong to each boss family; this section completes only shared contracts, not five bosses.",
+    "attack_amount": "attackEntity(target,damageScale) selects native mobAttack(this), whose direct and causing entities are the boss. Explicit-source overload retains caller-supplied DamageSource unchanged. damageScale<=0 returns false before damage. Otherwise requested damage = damageScale * current ATTACK_DAMAGE; on ServerLevel EnchantmentHelper.modifyDamage uses getWeaponItem,target,same source,amount before target.hurt. Hurtfalse returns false; hurttrue runs native server post-attack enchantments, records lastHurtMob, returns true. No hardcoded universal damage amount, no source substitution and no owner-to-player rewrite. Single numeric Stage point is final helper hurt argument after native attribute/enchantment formula; never multiply both attribute and helper or concrete caller and helper.",
+    "melee_geometry_and_return": "meleeAttack uses LivingEntity query in AABB.ofSize(position+getLookOffset(reach),aabbSize,aabbSize,aabbSize), excluding self. Default offset height1.5; size is full side length, not radius. Shared helper adds no LOS, team/owner, attackable, current-target-only or native TargetingConditions predicate; callers may choose their own predicates separately. For each selected entity, attackEntity success is required before raw outward normalized horizontal push*pushForce (Y=.2) and consumer callback. Hurtfalse prevents both these followups. Caller-specific damageScale, box, timing and callbacks remain next; no geometric inflation/eligibility repair.",
+    "legacy_death_order": "Exact NeoForge LivingEntity.actuallyHurt performs native armor/magic/Pre/absorption processing; when final newDamage!=0, records damage, setHealth(oldHP-newDamage), game event, then virtual onDamageTaken. Only afterward calls CommonHooks.onLivingDamagePost. AbstractBossEntity.onDamageTaken invokes maybeCancelDeath: require deadOrDying, source NOT BYPASSES_INVULNERABILITY, shouldCancelDeath true; if still dead, setHealth(.1), then BossCancelDieProcedure. Base shouldCancelDeath always sets state dead and returns whether prior state was not dead. This is native conditional death choreography, not heal/event amount replacement. Subclasses override decision (pending exact family semantics). Post listeners can observe already-restoredHP while reported damage remains unchanged; no measured-HP-loss equivalence assumed.",
+    "state_death_order": "AbstractStateBossEntity overrides actuallyHurt: call super.actuallyHurt completely (including native Post callback), then maybeCancelDeath(source). Same dead/non-bypass/shouldCancelDeath predicates and .1 restoration, followed by cancelDeath. Base shouldCancelDeath=false and cancelDeath empty; only real subclass overrides enable it. Thus state bosses perform this restoration AFTER Post while legacy bosses do it BEFORE Post. Neither is an unconditional boss immunity or ordinary heal. BYPASSES_INVULNERABILITY skips this shared choreography, subject to the concrete boss own hurt admission. Do not scale .1 restoration or intercepted death-state duration.",
+    "defeat_sources": "Both getSourceEntity methods try stored SourceUUID lookup in ServerLevel and require LivingEntity; on missing/invalid/nonliving use current Living target else self. AbstractStateBossEntity.simulatePlayerKill creates ordinary PLAYER_ATTACK source with that resolved entity in the single-entity constructor (direct=causing resolved entity, not necessarily a Player), requests999 against self, ignores hurt result. Actual callers are Kraken two state lambdas and Sandworm one state lambda, with exact state gating pending respective review. This is native defeat scripting, NO_STAGE_VALUE, not a proposed fallback damage implementation. Native source tags/admission and callbacks still apply.",
+    "legacy_procedures": "BossCancelDieProcedure only acts when state dead/fake_dead: Dragon death timer88, Yeti60; no generic Knight timer branch. BossCancelDie2 IncomingDamage helper never cancels damage/death: on apparent lethal amount and BF_BOSS tag it attempts source UUID writes; its if/else-if uses instanceof-other-type defaults0, so the first non-Sandworm condition is true with no write and skips later Dragon/Yeti/Knight branches. Preserve actual control flow, not intended name. EnderDragon/KNIGHT_SWORD branch spawns loot and is excluded. AbstractBossOnEntityTickUpdateProcedure.onDying contains native PLAYER_ATTACK999 at countdown1 but has ZERO installed invocation callers; do not promote it as a delivered attack. onSpawn DOES have native UnderworldKnight procedure caller; while spawn timer>0 it sets bossHP=MAX_HEALTH/zero motion, at initialservertick repositions Players in32full-side AABB, and during timer>10 constrains their motion/facing. Exact Knight activation is next; scripted initialization/control has no Stage multiplier.",
+    "parts": "AbstractEntityPart.hurt forwards unchanged source and amount to parent.hurt(thisPart,source,amount), with no extra hurt invocation, damage formula or source rewriting. Parent chooses part-specific defense (Sandworm/Tentacle pending). Fire ticks/clearFire route to parent; part.is recognizes self or parent, attackable/pickable delegated. Part itself is not independently saved. Scale admitted parent damage only once, never part forwarding plus parent. Native direct entity in source remains actual attacker/projectile, not automatically part or parent.",
+    "ownership": "OwnableByAllEntity.getOwner uses UUID; nullUUID returnsnull; server resolves any LivingEntity byUUID, client resolves Player only. No fallback boss/shooter is invented. OwnerHurtBy/OwnerHurtTarget require owner, changed native timestamp and TargetingConditions.DEFAULT admission before setting Mob target. All three owner-aware goals exclude exact resolved owner and OwnableEntity whose resolved owner is same object (including null==null for ownerless candidates in DoNotAttackOwnerGoal), then native TargetGoal.canAttack. This controls target selection only, not blanket allied damage immunity or source credit; actual mob/projectile callbacks determine source.",
+    "displacement": "SpatialUtil.pushEntity computes additive raw force. With speedLimit>=0, project newMotion=(current+force) onto normalized force; if projection>limit replace force with normalized newMotion*limit, then target.push(force). This is NOT a strict final velocity cap. Native Entity.push(Vec3/doubles) adds delta and marks impulse, without LivingEntity.knockback resistance/event path. For ServerPlayer also sends PlayerPushMessage(force), whose CLIENTBOUND handler applies client push; no second server damage/Stage event. Generic roll has no blanket push veto; only concrete payloads such as already-indexed GlacialShove add one.",
+    "tno_decision": "One numeric shared attack package with one final native hurt boundary; native control/death/part/source/resource bookkeeping stays unscaled. No direct HP/SHP edits are introduced by research. Future runtime must distinguish canceled hurt vs post callbacks, source attribution with unresolved owners, two death timing models, bypass tags, parts forwarding, native push vs knockback and cloned/summoned eligibility. No runtime, Stage, production, Phase6/7 changes.",
+    "exclusions": "Boss bars, music, sounds, render pose, loot/advancements and registry acquisition are short exclusions. State persistence retained only as native prerequisite; no exhaustive state-controller or cosmetic archaeology. Uncalled onDying helper is explicitly excluded from live delivery claims."
+  },
+  "mechanic_packages": [
+    {
+      "id": "br:shared_boss_attack",
+      "name": "Shared native boss damage",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at final target.hurt amount after damageScale * ATTACK_DAMAGE and EnchantmentHelper.modifyDamage.",
+      "stage_reason": "Native control/source/part/death choreography; no additional scalable amount.",
+      "delivery_paths": [
+        "br:shared:legacy_attack",
+        "br:shared:state_attack",
+        "br:shared:explicit_source",
+        "br:shared:melee_callback"
+      ]
+    },
+    {
+      "id": "br:shared_death",
+      "name": "Native boss lethal-hit choreography",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native control/source/part/death choreography; no additional scalable amount.",
+      "delivery_paths": [
+        "br:shared:legacy_death",
+        "br:shared:state_death",
+        "br:shared:defeat_script"
+      ]
+    },
+    {
+      "id": "br:knight_spawn_control",
+      "name": "Knight native spawn HP/control prerequisite",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native control/source/part/death choreography; no additional scalable amount.",
+      "delivery_paths": [
+        "br:shared:knight_spawn"
+      ]
+    },
+    {
+      "id": "br:part_admission",
+      "name": "Native multipart damage forwarding",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native control/source/part/death choreography; no additional scalable amount.",
+      "delivery_paths": [
+        "br:shared:part_forward"
+      ]
+    },
+    {
+      "id": "br:owner_targeting",
+      "name": "Native owner-aware summon targeting",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native control/source/part/death choreography; no additional scalable amount.",
+      "delivery_paths": [
+        "br:shared:owner_defend",
+        "br:shared:owner_exclusion"
+      ]
+    },
+    {
+      "id": "br:raw_displacement",
+      "name": "Native raw additive combat displacement",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native control/source/part/death choreography; no additional scalable amount.",
+      "delivery_paths": [
+        "br:shared:melee_callback",
+        "br:shared:raw_push",
+        "br:shared:player_push"
+      ]
+    }
+  ],
+  "delivery_paths": [
+    {
+      "id": "br:shared:legacy_attack",
+      "labels": [
+        "BOSS_ATTACK"
+      ],
+      "native_path": "Legacy base native attribute/enchantment mob_attack helper",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "native owner/direct vs causing attribution",
+        "native hurt/admission/event ordering"
+      ]
+    },
+    {
+      "id": "br:shared:state_attack",
+      "labels": [
+        "BOSS_ATTACK"
+      ],
+      "native_path": "State base native attribute/enchantment mob_attack helper",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "native owner/direct vs causing attribution",
+        "native hurt/admission/event ordering"
+      ]
+    },
+    {
+      "id": "br:shared:explicit_source",
+      "labels": [
+        "BOSS_ATTACK"
+      ],
+      "native_path": "Helper overload preserves explicit native source",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "native owner/direct vs causing attribution",
+        "native hurt/admission/event ordering"
+      ]
+    },
+    {
+      "id": "br:shared:melee_callback",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "Native AABB selection -> hurttrue -> push plus callback",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "native owner/direct vs causing attribution",
+        "native hurt/admission/event ordering"
+      ]
+    },
+    {
+      "id": "br:shared:legacy_death",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Legacy non-bypass lethal HP -> onDamageTaken restoration beforePost",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "native owner/direct vs causing attribution",
+        "native hurt/admission/event ordering"
+      ]
+    },
+    {
+      "id": "br:shared:state_death",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "State subclass non-bypass lethal -> restoration afterPost",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "native owner/direct vs causing attribution",
+        "native hurt/admission/event ordering"
+      ]
+    },
+    {
+      "id": "br:shared:defeat_script",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native Kraken/Sandworm state -> self PLAYER_ATTACK999 with source lookup",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "native owner/direct vs causing attribution",
+        "native hurt/admission/event ordering"
+      ]
+    },
+    {
+      "id": "br:shared:knight_spawn",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Genuine Knight spawn procedure -> HP initialization/Player positioning",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "native owner/direct vs causing attribution",
+        "native hurt/admission/event ordering"
+      ]
+    },
+    {
+      "id": "br:shared:part_forward",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native entity part -> unchanged parent hurt admission",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "native owner/direct vs causing attribution",
+        "native hurt/admission/event ordering"
+      ]
+    },
+    {
+      "id": "br:shared:owner_defend",
+      "labels": [
+        "SUMMONED_ATTACK"
+      ],
+      "native_path": "Owner hurt/attack timestamp -> native follower targeting",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "native owner/direct vs causing attribution",
+        "native hurt/admission/event ordering"
+      ]
+    },
+    {
+      "id": "br:shared:owner_exclusion",
+      "labels": [
+        "SUMMONED_ATTACK"
+      ],
+      "native_path": "Native owner/same-owner target exclusion",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "native owner/direct vs causing attribution",
+        "native hurt/admission/event ordering"
+      ]
+    },
+    {
+      "id": "br:shared:raw_push",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Raw server entity displacement",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "native owner/direct vs causing attribution",
+        "native hurt/admission/event ordering"
+      ]
+    },
+    {
+      "id": "br:shared:player_push",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Raw server displacement plus native client PlayerPushMessage",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "native owner/direct vs causing attribution",
+        "native hurt/admission/event ordering"
+      ]
+    }
+  ],
+  "unexecuted_future_fixtures": [
+    "attribute_enchantment_scale_once_rejected_hit_no_melee_followup",
+    "shared_AABB_fullside_no_added_LOS_or_team_filter",
+    "legacy_lethal_Post_observes_restoredHP_vs_state_Post_before_restore",
+    "BYPASSES_INVULNERABILITY_and_concrete_state_gates",
+    "native_defeat_script_source_player_mob_missingUUID_self",
+    "part_hurt_unchanged_source_amount_single_scaling",
+    "native_owner_target_goal_ownerless_same_owner_and_changed_timestamp",
+    "push_resistance_event_difference_and_Player_network_client",
+    "Knight_actual_spawn_HP_reposition_and_control_window"
+  ],
+  "review_required": [],
+  "remaining_subsection_native_ambiguities": [],
+  "exact_next_task": "R2i3: Underworld Knight concrete hurt admission, immunity stacks/phases, real melee/SwordWave/Rift/KnightMark/SoulShockwave producers and summoned skeletons. Reuse completed roll and shared helper contracts; review live callers, skip unused helper/cosmetic/acquisition branches. Then Infernal Dragon, Yeti, Sandworm, Kraken/cannon and combat equipment. Static only.",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "block_factorys_bosses",
+  "runtime_tests": 0,
+  "whole_mod_complete": false,
+  "promoted_mechanics": 0,
+  "promoted_paths": 0,
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false,
+  "reference_files": [
+    {
+      "file": "native-evidence/bossesrise-shared.json",
+      "sha256": "a316243721401336a70804d553eb7c6af80eadb6db0af60cf0c9caddeb97a081"
+    },
+    {
+      "file": "bossesrise-shared-census.json",
+      "sha256": "f6d81cc7289fb18f2a51a65c5bac1d04538cc543207ff5be5a1644b3ed42cdc9"
+    },
+    {
+      "file": "reference-evidence/bossesrise-shared-244.json",
+      "sha256": "b40148cdeeb46f19e9baa2fb483fc157bc9643e912cdfbc6e05ffa861f152f76"
+    },
+    {
+      "file": "native-evidence/bossesrise-foundation.json",
+      "sha256": "05a8c17b1d75a0c7508aa080bccecaf363691498a3279d516a332f09e2c44c71"
+    },
+    {
+      "file": "reference-evidence/twilight-equipment-244.json",
+      "sha256": "1ca1c0bacd1285636a145cb02e89adfea938b1c1226ed022464fb4e8543bff4d"
+    },
+    {
+      "file": "vanilla-evidence/eternalstarlight-creatures.json",
+      "sha256": "84d194116051da1d52bd5428a2b148d5283c01732d56e2df8fedf90d3f43820f"
+    }
+  ]
+}

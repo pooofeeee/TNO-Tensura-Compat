@@ -922,3 +922,7 @@ Two native DamageTypes,802 classes,157 combat/admission candidates and actual ro
 ## R2i2a — Bosses Rise native roll admission
 
 Real server delivery,14..8 invulnerability window, native HP/effect/freeze gates, sequential charge resource and ineffective ordinary projectile-impact callback resolved. [Evidence and resume point](benchmarks/external-effects-catalog/bossesrise-r2i2a-roll-admission-review.md).
+
+## R2i2b — Bosses Rise shared combat contracts
+
+One shared scalable attack boundary; native before/after-Post death restoration, unchanged multipart forwarding and raw push distinguished. Uncalled death helper excluded. [Evidence and resume point](benchmarks/external-effects-catalog/bossesrise-r2i2b-shared-combat-review.md).
