@@ -778,3 +778,7 @@ Twilight COMPLETE protected at `86b6e670819be918b2df9ddcd73bf81b729282fc`. IceAn
 ## R2g2a — Frozen core and weapons
 
 Ice & Fire remains PARTIAL. Frozen core/lifecycle, six ordinary weapon paths and the existing ColdNullification dispatcher are reviewed. Frozen is velocity control; weapon Slowness/MiningFatigue are independent, and fire-removal is vetoable. Ice blood bonus is a distinct native secondary hurt attempt. Dragon manager payload evidence is saved; actual dragon delivery roots remain next. [Findings and exact resume](benchmarks/external-effects-catalog/iceandfire-r2g2a-review.md). All accepted Twilight records remain unchanged.
+
+## R2g2b — Frozen native delivery complete
+
+Frozen native source mapping is complete: six ordinary weapon paths plus seven dragon entry routes, three area contracts. Damage, Frozen, terrain grief and companion statuses remain separate. Native charge entity collision rejects TamableAnimal through a self-owner comparison; charge area requires canGrief while breath living payload does not. No behavior was changed. [Review and next task](benchmarks/external-effects-catalog/iceandfire-r2g2b-review.md). Ice & Fire remains PARTIAL; Siren charm is next.

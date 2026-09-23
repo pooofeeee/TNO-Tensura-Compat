@@ -1,0 +1,69 @@
+# R2g2b — Frozen native delivery complete
+
+**Frozen native semantic review is complete; Ice & Fire remains PARTIAL.** R2g2a core/weapon findings are reused unchanged. Seven dragon entry routes complete this family. All runtime fixtures remain unexecuted.
+
+## Closure
+
+Native Frozen family producer mapping is complete within installed Iaf beta15: FrozenTargetAbility (six weapons, R2g2a) and manager.applyDragonEffect ICE branch. Client renderer is a read-only status consumer. No other Iaf FROZEN producer appears in the all726-class field-reference census. Seven dragon entry routes and three payload contracts below complete the previously pending Frozen source map. This does not close all dragon attacks, defenses, terrain hazards or the whole mod.
+
+## Age and timing
+
+Native dragon age tier (getDragonStage, unrelated to TNO Stage) is1 under25days,2 at25,3 at50,4 at75,5 at100. isBaby is tier<2. DragonBase.tick calls superclass, updateDragonCommon, then live server updateDragonServer/updateDragonAttack; server flight-manager update requires isFlying && no controlling passenger. updateDragonCommon stops breathing when fireBreathTicks>ageDays*maxBreathTimeMul (snapshot2), otherwise increments fireBreathTicks and burnProgress to40 when breathing, resets burnProgress when not. isActuallyBreathingFire requires fireBreathTicks>20 and breathing. Sleep/dead and owner-rider fireStopTicks paths can stop server breathing; the source compares getRemainingFireTicks>tier*25, not fireBreathTicks, in its other stop predicate. AI mode randomization remains native.
+
+## Ground ai
+
+IceDragon.aiStep server target branch calls shootIceAtMob when groundAttack FIRE and (usingGroundAttack||onGround). The helper accepts ground FIRE or airborne SCORCH_STREAM/HOVER_BLAST state. Ground random1/5 or non-ground HOVER_BLAST selects charge: start FIRECHARGE animation, spawn IceDragonCharge at animation tick15. Otherwise it starts breathing, then after actual-breath gate calls breathAttack(target position,false). Created charge owner is the dragon through constructor->Fireball->AbstractHurtingProjectile.setOwner; server addFreshEntity and head-position relocation are native. Do not replace this with direct manager invocation in a fixture.
+
+## Flight ai
+
+With a living target, flight manager HOVER_BLAST calls breathAttack(target position,true); base performChargeAttack starts FIRECHARGE then creates the subtype charge at tick20, head-positioned and server-spawned, then randomizes attacks. This differs from direct IceDragon target/rider tick15 creation. SCORCH_STREAM requires startPreyVec/startAttackVec populated by onSetAttackTarget and calls tryScorchTarget, which waits for actual breathing and aims at target Y plus horizontal progress clamp(fireBreathTicks,0,40)/40 before breathAttack(false). In water, IceDragon manager switches a present-target attack to TACKLE, so that update does not also launch Hover/Scorch breath.
+
+## Rider
+
+Client native DRAGON_BREATH key calls controller.strike -> control bit3; changed byte sends DragonControlC2SPayload. Server receiver requires nonnull Player, entity passenger-tree membership and dragon.isOwnedBy(player), then sets control byte. updateRider requires a valid controlling passenger and tier>1 before strike starts breathing/calls riderShootFire and sets fireStopTicks10. Controller is first living passenger whose UUID matches nonnull owner UUID, dragon tame, and target!=passenger; getRidingPlayer additionally requires Player. Native riderShootFire random1/5 and !baby chooses tick15 charge along controller look vector; otherwise actual breathing uses COLLIDER/Fluid.NONE ray from rider eyes for10*tier blocks and breathAttack(false). The DreadQueen controller branch is retained as code, not assumed ordinary Player setup; its source attribution uses getRidingPlayer result.
+
+## Forge collateral
+
+Forge is not deeply cataloged as crafting. Its actual combat collateral route is included: server input ticker, assembled core with canSmelt, lure search AABB+-50 selects first matching dragon type that is chained or tame and passes canSeeInput; assigns burningTarget. canSeeInput compares head-to-ray-hit distance <10+2*width, not strict endpoint MISS. updateBurnTarget additionally requires non-sleeping/non-dead/non-baby, still assembled, squared center distance<115*tier and canPositionBeSeen; calls IceDragon.breathFireAtPos, which waits for actual breath and targets block center via breathAttack(false). Area living damage/Frozen can occur near that forge aim. Recipe/acquisition internals are explicitly excluded.
+
+## Breath sampling
+
+breathAttack invokes ON_DRAGON_FIRE_BLOCK; any true registered callback cancels helper dispatch. Normal breath stops navigation, aims from head, computes distance=2.5*sqrt(dragon.distanceToSqr(aim)), conqueredDistance=burnProgress/40*distance, increment=ceil(conqueredDistance/100). Invisible sampled positions clip from dragon eyes and server-call destroyAreaBreath at the resulting block position; visible samples only make particles. Once burnProgress>=40 and endpoint visible, server area center is target plus independent [-1.5,1.5) random offsets, floored to BlockPos. canPositionBeSeen accepts clip endpoint distanceSquared<=1 or MISS. Multiple sampled areas can occur per native call; no one-hit-per-breath claim.
+
+## Area breath
+
+destroyAreaBreath first honors ON_DRAGON_DAMAGE_BLOCK cancellation. ICE duration=50*tier ticks; requested damage=tier*attackDamageIce (installed snapshot2.5). Living AABB centered at integer center, half extent3.5 for tier<=3, otherwise2.5+1.2*((x+y+z)*0.333+0.5), x=y=z=2 at tier4 or3 at tier5 (nextInt(1) contributes0). Native default query excludes spectators; then !DragonUtils.onSameTeam, !dragon.is(target), dragon.hasLineOfSight. Hurt return is discarded, then Frozen is attempted. Terrain branch checks mobGriefing/canGrief, but living branch does not depend on terrain changes. LOS requires same level, eye-distance<=128 and COLLIDER/Fluid.NONE MISS.
+
+## Area charge
+
+Only a non-MISS charge collision that survives all early returns and has Dragon owner with DragonUtils.canGrief reaches destroyAreaCharge. Manager again honors ON_DRAGON_DAMAGE_BLOCK and nonnull dragon. ICE Frozen duration400; requested area damage=max(1,tier-1)*2. Default x/y/z half-extents2. When canGrief && mobGriefing and tier>=4, each starts radius2(tier4) or3(tier5)+nextInt(2), then increments once before target AABB (3..4 or4..5). mobGriefing=false leaves half-extents2 and still admits area if outer canGrief true. Targets pass default nonspectator query,!dragon.isAlliedTo,!self,LOS; hurt result discarded then Frozen. canGrief=false suppresses this entire charge area path, but not the earlier direct entity-damage branch. Optional configured explosion is after area/status; snapshot explosiveBreath=false, its complete non-Frozen behavior belongs to later dragon explosion review.
+
+## Teams and sources
+
+canGrief=false for tame dragon with tamedGriefing=false, otherwise returns global dragon.griefing. Dragon.isAlliedTo returns true for dead model; when tame treats its owner as allied, other TamableAnimal via target.isOwnedBy(owner), other recipients via owner alliance if owner available, else native superclass. DragonUtils.onSameTeam starts from alliance but if both entities (including multipart parents) have nonnull tame owners replaces result by owner1.is(owner2). Manager ICE source has direct=dragon, causing=controlling Player when getRidingPlayer nonnull; otherwise direct=causing=dragon. Charges construct owner=dragon, yet direct impact causeDamage receives CURRENT riding Player if any else dragon and uses direct ICE factory, so direct=causing=that cause, never direct=projectile. Mount changes between launch and impact can change source selection; projectile owner is not reassigned by these hit paths.
+
+## Charge tick and filter
+
+DragonCharge.tick uses super.baseTick, not AbstractHurtingProjectile.tick. Server processing requires owner null or owner.isAlive and loaded current chunk; failed gate discards. It obtains ProjectileUtil move-vector collision then directly calls onHit for non-MISS, without its superclass tick impact-event/deflection routing. Native geometric helper clips blocks, then finds nearest admitted entity before the block. canHitMob requires target!=this, superclass canHitEntity (alive/pickable, owner/leftOwner/shared-vehicle predicate), nonnull owner, !target.isAlliedTo(owner), and not DragonPartEntity. Own class isPickable=false and hurt always false; no own attack-reflection implementation. External changes are not certified. Null owner therefore cannot pass entity filter and cannot yield dragon area on block hit.
+
+## Charge hit order
+
+Server entity hit: IDragonProjectile returns; Dragon owner alliance/self/its multipart returns. For entity!=owner with Dragon owner, any TamableAnimal then tests shootingDragon.isOwnedBy(shootingDragon.getOwner()) and returns if true. Exact native TamableAnimal.isOwnedBy is reference equality to getOwner, including null==null. Thus ordinary stable-owner evaluation rejects ANY TamableAnimal entity collision here, not merely a same-owner target. This occurs before removal, direct hurt and area; a prior ally filter may reject even earlier. Do not silently repair the apparent native predicate. Otherwise randomize attacks and discard (without returning), then surviving entity!=owner branch checks another shared-owner predicate and calls causeDamage/current-rider selection, requested direct damage=attackDamageIce*tier. Hurt boolean is discarded; living HP==0 triggers another attack randomization. Discard does not itself stop following area dispatch. Non-MISS block hit has no direct entity hurt, but can area damage/Frozen. Direct entity hit adds no Frozen by itself.
+
+## Separation
+
+Native HP damage, Frozen status, vanilla weapon companion effects, terrain grief and optional explosion are separate attempts with different predicates. A denied damage hurt can still be followed by Frozen in manager areas; a rejected projectile collision cannot. A Frozen immunity can reject status without erasing native HP damage. No generic percent HP/SHP loss is inferred from requested damage. R2g1 damage identity/tags and R2g2a native add/removal/ColdNullification rules remain authoritative.
+
+## Positive control
+
+Future static-derived setup only (not executed): native live tier>=2 IceDragon, native target/attack AI or legitimate owner rider breath input, distinct non-Tamable non-allied living target, same-level LOS, loaded collision area, no event veto; enable grief for charge variant. Observe real projectile/area callbacks and Frozen holder rather than invoking a helper/fabricating damage. Contrast breath with canGrief=false, charge with canGrief=false, mobGriefing=false, TamableAnimal collision, native cold-null toggle and creative target. Protect all native owner, damage and effect predicates.
+
+## Boundaries
+
+Frozen native family is semantically closed by R2g2a+b; runtime fixtures remain unexecuted. Iaf remains PARTIAL with0 promoted records. Other dragon combat (body attacks, roar, death/model defense, fire/lightning, terrain ice spikes/explosions), Siren, Gorgon and other families still pending. Presence of broader methods in witnesses does not mark their unrelated bodies reviewed. No permanent fix, runtime boss/L2 test, TNO Stage, production, Phase6/7 or arbitrary balance change.
+
+## Evidence and validation
+
+[Findings and route records](iceandfire-r2g2b-frozen-dragons.json), [native witnesses](native-evidence/iceandfire-frozen-dragons.json), [exact loader references](reference-evidence/iceandfire-frozen-dragons-244.json), [raw fallback routing](reference-routing/iceandfire-frozen-dragons.json). Target validation recollects evidence, checks ownership/self-owner bug and direct-versus-area hurt dependencies, verifies all accepted views and protected prior evidence unchanged, runs five tooling tests and diff checks. This is a bounded checkpoint validation, not a new whole-catalog full validation.
+
+Exact next task: R2g3: Siren charm native semantic/source review. Start SirenEntity tickMovement/lambda$tickMovement$8, SirenCharmStatusEffect, SirenData and actual CommonEvents/ServerEvents tick consumers; trace charm acquisition, duration/removal, target movement/control and earplug/SpiritualAttackNullification admission. Then Gorgon and remaining Ice & Fire combat families. Reuse protected R2g1 sources and completed R2g2a/b Frozen; no runtime/L2/Stage/production work.

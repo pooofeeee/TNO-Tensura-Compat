@@ -174,6 +174,9 @@ def validate():
         if (OUT/'iceandfire-r2g2a-frozen-core.json').exists():
             from validate_iceandfire_frozen_core import validate_frozen_core
             assert validate_frozen_core()['status']=='PASS'
+        if (OUT/'iceandfire-r2g2b-frozen-dragons.json').exists():
+            from validate_iceandfire_frozen_dragons import validate_frozen_dragons
+            assert validate_frozen_dragons()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():
