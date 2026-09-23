@@ -910,3 +910,7 @@ Native riding admission, independent explosions/clouds/summons, ownerless Golem 
 ## R2h8a — Eternal Starlight combat closure
 
 Whole1384-class/274-method audit closes Dusk/Furnace/inherited hazards and remaining native source/physics prerequisites;18 custom source families retained. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/eternalstarlight-r2h8a-closure-review.md).
+
+## R2h8b — Eternal Starlight combat catalog COMPLETE
+
+127 deduplicated packages and 274 native paths, all18 DamageTypes mapped; no runtime compatibility certification. [Owner table and exact next task](benchmarks/external-effects-catalog/eternalstarlight-final-owner-table.md).
