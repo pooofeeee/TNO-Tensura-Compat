@@ -866,3 +866,7 @@ Protection/charge admission, pre-hurt interruption counters, Frozen Tube splash 
 ## R2h3c — Eternal Starlight Lunar and toxic combat
 
 Lunar admission/stun, distinct POISON damage/status routes, independent Wand departure hazards, decoy ownership and native skull blast attribution reviewed. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/eternalstarlight-r2h3c-lunar-review.md).
+
+## R2h3d — Eternal Starlight soul and hunger resources
+
+Soul drain/heal basis and native collision, exact no-pull tag, old-state dagger penalty and owner-dependent Voracious rewards reviewed. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/eternalstarlight-r2h3d-soul-hunger-review.md).

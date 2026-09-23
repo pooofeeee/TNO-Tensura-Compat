@@ -1,0 +1,51 @@
+# R2h3d — Eternal Starlight soul and hunger resources
+
+Chain damage/healing/control, Dagger native dual-wield/hunger state and Voracious Arrow rewards. Remaining equipment and boss families pending.
+
+Static subsection complete. Runtime fixtures remain unexecuted; no Stage or production implementation.
+
+## Chain delivery
+
+ChainOfSoulsItem native use server retrieves/discards existing Chain resolved by GRAPPLING, else durability1 and new Player-owned chain with fired weapon, speed5 from eye. Native tick uses ProjectileUtil.getHitResultOnMoveVector with canHitEntity(entity)!=owner, then directly calls inherited onHit when no target. Utility first clips block COLLIDER/Fluid.NONE then entity segment. This path has no NeoForge onProjectileImpact call and no hitTargetOrDeflectSelf wrapper; ordinary living hurt hooks remain. onHitEntity latches only server, no existing target, alive Living target within maxRange from CHAIN and shouldHarm(Player owner,target); sets native length=max(eye-hit distance*.5-1,1.5). onHitBlock stops velocity and length=max(distance*.5-3,1.5). Inherited onHit also redirects a hit #minecraft:redirectable_projectile via its deflect(AIM_DEFLECT,chainOwner,chainOwner,true), changing that other projectile owner on server; it is not a soul-damage hit. Preserve this native route rather than fabricate an impact event.
+
+## Chain damage and heal
+
+Server tick resolves target UUID and clears if unresolved; validates target Living/alive/range from current chain position, then attaches chain to target center. Only Living non-ArmorStand target and Player owner -> SOUL_ABSORB requested config.soulAbsorbDamage (native default and file snapshot2), adjusted by EnchantmentHelper.modifyDamage if fired weapon present. Direct=chain, causing=Player. Every attached tick attempts hurt; no iframe reset or independent attack cooldown. Only hurt true calls EnchantmentHelper.doPostAttackEffects and Player.heal(local adjusted requested damage * config.healPercentage default.5), regardless measured HP delta. Absorption, reduction, overkill and other mods may make actual HP loss differ; heal is not derived from that loss. Native heal event can modify/cancel and heal requires current HP>0. ES heal handler multiplies amount by HEAL_MULTIPLIER attribute (default1 range0..1024). SOUL_ABSORB bypasses armor/enchantments/shield in pinned tags but not native Resistance, generic invulnerability/cooldowns or event cancellation. No Tensura SHP subtraction is implemented or inferred.
+
+## Chain control lifetime
+
+shouldHarm is checked when latching, not rechecked during attached drain, so later alliance/eligibility changes need a fixture. Pull runs independently of hurt true for eligible Living non-ArmorStand target: unless type in exact misspelled #eternal_starlight:chan_of_souls_cannot_pull (installed #c:bosses), if owner-center distance>length*1.2 add normalized velocity*(1-sqrt(min(distanceSquared,4096))/64)^2 and mark hurt. That tag prevents this pull, not soul HP admission. Drain counter increments even on rejected hurt and discards after>50 attached Player ticks; ArmorStand latch is allowed but skips damage/pull/counter branch. Target invalidation clears reference; absent-target start resets counter. Damage/control processing precedes shouldRetract, so losing held item, owner death or owner-range excess can still permit a final native attempt. End-of-tick retract requires alive nonremoved Player, nonnull weapon matching either hand by same item/components and distance<=maxRange (default64), else discard. Owner/weapon/target/length persist but absorb counter is not saved. Attached control has no LOS recheck. Block-latched targetless chain exposes Grappling.shouldPull=true: PlayerMixin native pull resets fall distance and adjusts owner movement when rope taut; entity-latched chain pulls target instead. No control quantity gets Stage.
+
+## Chain stage
+
+Future single points: scale the final SOUL_ABSORB hurt argument once after native enchantments, leaving native local damage variable intact; scale the separate native heal request once from its original local damage*.5 basis. Do not scale that local variable AND both consumers, multiply heal percentage, or replace healing with actual HP/SHP loss. This differs from Starfire/Numbness, whose native stored/Post amounts already inherit parent damage processing. Preserve native boolean success dependency and generic heal hooks. This is a proposed integration boundary only, not production implementation.
+
+## Dagger primary resource
+
+DaggerOfHunger successful native item postHurtEnemy calls super then requests Hunger60 amp0 on victim; independently Player attacker FoodData.eat(3,0), and this stack HUNGER_LEVEL clamped[-1,1] increases.05 capped1. Status rejection does not prevent food/state gain. Dagger removes durability components in its constructor. Native inventoryTick every entity.tickCount%1200==0 computes OLD clamped hunger, writes max(-1,old-.06), and only if OLD==-1 requests ownerless DAGGER_OF_HUNGER3 (direct/cause null), ignores hurt return then raises state.05 (normally-.95). A newly reaching -1 stack waits until a later1200 boundary; slot/selected flag is not a gate and method has no explicit server-side guard. Multiple independently ticking stacks remain separate attempts subject to native immunity/cooldowns. Every600 boundary, after decay if simultaneous, state=min(2,int((hunger+1)*1.5)) selects penalty/default/bonus native weapon modifiers. Tooth-of-Hunger tier bonus2.5 -> attack modifiers4.5/5.5/6.5 and speed modifiers-2.9/-2.4/-1.9 respectively. Do not multiply hunger state/attribute bonus and final HP both.
+
+## Dual wield path
+
+DualWieldingSword.use permits offhand attack only when hand=OFF_HAND and mainhand item is this SAME ITEM type. Native pick clips against nearer block, nonspectator/pickable entity, and separate interaction ranges. Set OFFHAND_ATTACK=true -> ordinary Player.attack(target) -> false; reset offhand timer and swing even when pick misses. PlayerMixin substitutes offhand weapon/item reads and uses clamp((offhandTimer+partial)/getCurrentItemAttackStrengthDelay,0,1), with dedicated reset; it does not swap the equipped attack-attribute container. ES server tick increments timer, resets only on offhand item-type change (component-only change updates snapshot), preserving distinct stack hunger states. Incoming direct source with direct entity current weapon DualWieldingSword caps postattack invulnerability ticks at15. Native Player attack eligibility, events, crit/enchant/mitigation and successful item callback remain; no direct HP subtraction or synthetic attack. Mainhand native and offhand native item use are distinct runtime paths.
+
+## Voracious arrow
+
+VoraciousArrow successful Living AbstractArrow callback, after hurttrue and Enderman early return, applies Hunger default200 amp0 with getEffectSource; duration persists. Independently Player owner gets FoodData.eat(3,0), and EVERY Dagger stack across player inventory gains.05 capped1 (this callback does not clamp the lower bound first). Status rejection does not cancel reward. Native bow/crossbow createArrow supplies Living owner, explicitly registered dispenser asProjectile supplies no owner: ownerless can still apply Hunger after native damage success but cannot feed Player/stack resource. Piercing repeats callback per successful victim through native arrow mechanics; no per-arrow reward-once gate. Arrow primary amount is native speed/base/crit, distinct from food/Hunger resource.
+
+## Native hunger and scaling
+
+Native Hunger effect applies each tick only to Player: causeFoodExhaustion(.005*(amp+1)), which retains ordinary Player server/invulnerability admission. Native FoodData.eat(3,0) adds3 food capped20 and adds zero saturation; it is not healing or direct target food theft. Generic effect immunity and Stranghoul rejection of Hunger remain. Future Stage: Dagger ordinary Player attack and Voracious native arrow each once at final hurt; dagger self-punishment once at final ownerless DAGGER_OF_HUNGER3 request. This custom type has no armor/shield/enchantment/Resistance bypass. Hunger duration/exhaustion, food restoration, stack resource state and native attack-speed modifiers stay native. UI bars, sounds, repair/acquisition and ordinary item recovery are excluded.
+
+## TNO integration decisions
+
+- **Chain of Souls native drain**: COMPOSITE, ADMISSION_GATED, NUMERIC_SCALABLE. Stage: Once at final SOUL_ABSORB hurt argument after enchantments; do not mutate shared local basis.
+- **Chain of Souls conditional requested-amount healing**: COMPOSITE, ADMISSION_GATED, NUMERIC_SCALABLE. Stage: Once at native heal request computed from unchanged local damage*healPercentage; do not additionally scale shared local variable.
+- **Chain latch, pull, grapple and native redirection**: COMPOSITE, ADMISSION_GATED, NO_STAGE_VALUE. Stage: no additional multiplier; Preserve native local amounts, state and return gates; do not double-scale.
+- **Dagger Hunger and food/weapon-state cycle**: COMPOSITE, ADMISSION_GATED, NO_STAGE_VALUE. Stage: no additional multiplier; Preserve native local amounts, state and return gates; do not double-scale.
+- **Dagger of Hunger starvation punishment**: COMPOSITE, ADMISSION_GATED, NUMERIC_SCALABLE. Stage: Once at final ownerless DAGGER_OF_HUNGER3 hurt request.
+- **Dual-wield sword native Player damage**: COMPOSITE, ADMISSION_GATED, NUMERIC_SCALABLE. Stage: Once at final native Player.attack hurt after native attribute/charge/enchantments.
+- **Voracious Arrow damage and Hunger reward**: COMPOSITE, ADMISSION_GATED, NUMERIC_SCALABLE. Stage: Once at native AbstractArrow final hurt; Hunger/food/stack gain unscaled.
+
+[Machine-readable packages, delivery paths and future fixtures](eternalstarlight-r2h3d-soul-hunger.json). Exact archive/method witnesses and targeted semantic assertions are reproducible. No whole-mod completion claim.
+
+Exact next task: R2h3e: Gatekeeper and Solar Creeper combat/defense; then remaining ES damage callers (sonar/meteor/seeds/ether/shattered_blade/wilt), equipment/spells/resources and whole-mod closure. Reuse Chain/Soul/Hunger and previous accepted families; no runtime or production changes.
