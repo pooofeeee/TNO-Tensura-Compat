@@ -315,6 +315,9 @@ def validate():
         if (OUT/'bossesrise-r2i8b-tentacle-trident.json').exists():
             from validate_bossesrise_tentacle_trident import validate_tentacle_trident
             assert validate_tentacle_trident()['status']=='PASS'
+        if (OUT/'bossesrise-r2i8c-equipment.json').exists():
+            from validate_bossesrise_equipment import validate_equipment
+            assert validate_equipment()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():
