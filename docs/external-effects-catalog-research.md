@@ -906,3 +906,7 @@ Separate native fire requests, true falling-block source, enchantment eligibilit
 ## R2h7b — Eternal Starlight remaining creature combat
 
 Native riding admission, independent explosions/clouds/summons, ownerless Golem damage, creature defenses/heals and actual melee deliveries reviewed. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/eternalstarlight-r2h7b-creatures-review.md).
+
+## R2h8a — Eternal Starlight combat closure
+
+Whole1384-class/274-method audit closes Dusk/Furnace/inherited hazards and remaining native source/physics prerequisites;18 custom source families retained. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/eternalstarlight-r2h8a-closure-review.md).
