@@ -890,3 +890,7 @@ Native ammo distinction and conditional effects, real Frozen Bomb explosion vs A
 ## R2h5b — Eternal Starlight special weapons and shields
 
 Native spin/critical/sweep ordering, concentration identity, shield reflection ownership and real additional thorn/whip paths reviewed. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/eternalstarlight-r2h5b-special-weapons-review.md).
+
+## R2h5c — Eternal Starlight armor and resources
+
+Glacite retaliation admission, repeated Deepsilver removal, Unrealium same-ID replacement/vibrations and native resource routes reviewed. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/eternalstarlight-r2h5c-armor-resources-review.md).

@@ -1,0 +1,567 @@
+{
+  "schema": "tno.external_effects.es_armor_resources.v1",
+  "checkpoint": "R2h5c-armor-resources-complete",
+  "previous_checkpoint": "R2h5b-special-weapons-complete",
+  "starting_sha": "1b57d733617d8e207fafb91a666f6bed2e98c02b",
+  "status": "ARMOR_RESOURCES_COMBAT_SEMANTICS_COMPLETE",
+  "scope": "Remaining armor, material Post effects, accessory attribute routing, native healing/air resources and consumable cleanse.",
+  "summary": "Glacite retaliation admission, repeated Deepsilver removal, Unrealium same-ID replacement/vibrations and native resource routes reviewed.",
+  "facts": {
+    "material_post": "Neo LivingDamageEvent.Post routes to ES onPostLivingHurt with native source and event new damage. Material branches have no amount>0 test. ANY ThermalSpringstoneArmorItem among four worn slots plus source.directEntity Living adds200 fire ticks to that direct attacker; tagged Thermal Springstone current weapon on direct Living adds200 to victim. No explicit fireImmune test in these writes; later native burning admission is separate. ANY GlaciteArmorItem similarly adds80 frozen ticks capped300 to direct Living attacker WITHOUT canFreeze; tagged Glacite weapon adds80 capped300 to victim WITH canFreeze. Pieces are OR membership, not four stacked retaliation calls. Non-Living direct projectile with Living causing owner does not meet these material branches. No additional HP source or direct health subtraction. Leave counters native and scale only existing later native fire/freeze hurt once.",
+    "material_status": "Direct-Living current weapon #MALARITE_WEAPONS requests native Poison60 amp0; #PUNGENCY_FRUIT_WEAPONS requests Poison80 amp1 and Nausea120 amp0, each independent of effect acceptance. Native addEffect eligibility/event rejection remains; no new custom poison DamageType. Tagged spear HELD melee can reach these Post branches; thrown material spear instead uses its reviewed projectile post-hit branch, so do not count both on a non-Living direct spear source. Native Starfire and Petal Scythe Post branches already accepted; no duplicate semantic research/package here.",
+    "deepsilver": "Every worn TickableArmor item receives tick callback; Deepsilver verifies all four armor-slot stacks are DeepsilverArmorItem and attempts removeEffect for currently present entries in #deepsilver_armor_can_remove. Installed tag: Poison, Wither, Nausea, Hunger, Slowness, Infested, Blindness. This is repeated removal, not canBeAffected immunity, and no arbitrary negative-effect cleanse; custom ES/Tensura/L2 effects are not in this installed tag. Four-piece dispatch can attempt four removals in a tick if prior native removal was vetoed. Native removeEffect event and downstream effect callbacks remain. Deepsilver also adds attack speed .05 and movement .01 per matching slot, standard native attributes. No Stage value on removal or attributes.",
+    "armor_attributes": "Thermal Springstone adds ES FIRE_RESISTANCE .24 per slot; attribute clamped0..1, four ordinary pieces .96 before other modifiers. Its IS_FIRE Incoming multiplier already reviewed; burning effects do not automatically mean source IS_FIRE. AirSac adds WATER_MOVEMENT_EFFICIENCY .9 per slot, preserving native attribute limits. Alchemist adds THROWN_POTION_DISTANCE .25 and ETHER_RESISTANCE .3 per piece; Ether resistance semantics already reviewed. ProjectileMixin scales native getMovementToShoot result by living-owner potion-distance attribute (default1,range0..1024) ONLY for ThrownPotion; ownerless dispenser unaffected. This changes splash/lingering delivery trajectory, not damage or effect potency. Standard armor/toughness/knockback and ordinary Starlit Diamond armor retain native processing; Neo subclass is texture-only. None receives a separate Stage multiplier.",
+    "unrealium_attributes": "Unrealium extra component declares MOVEMENT_SPEED +.05 ADD_VALUE then +.1 ADD_MULTIPLIED_TOTAL using SAME minecraft:armor.<slot> ID and attribute. Raw ItemAttributeModifiers.Builder appends both entries; exact loader IItemStackExtension passes defaults through ItemAttributeModifierEvent; without an external rewrite, native collectEquipmentChanges iterates order and removes the ID before each addTransientModifier. Thus later +.1 total replaces earlier +.05 flat on equipped attribute instance; do not claim their sum. Each piece also contributes KNOCKBACK_RESISTANCE -.05 total, ENEMY_FOLLOW_RANGE_MULTIPLIER -.15 additive. Helmet fogvision50 excluded as rendering; chest EXPLOSION_KNOCKBACK_RESISTANCE+1, leggings GRAVITY-.02, boots MOVEMENT_EFFICIENCY+1 and STEP_HEIGHT+.5. Native clamps, same-ID replacement and external modifier-event rewrites remain runtime fixture concerns. No Stage quantity.",
+    "unrealium_admission": "Native IN_WALL helmet and CRAMMING chest source veto already accepted in R2h2a. Additional server VanillaGameEvent cancellation checks source Living wearing exact piece: helmet EAT/ITEM_INTERACT_START/FINISH; chest ENTITY_DAMAGE; legs HIT_GROUND/SPLASH; boots STEP/HIT_GROUND. Cancelling propagation can suppress vibration-driven detection; this is distinct from cosmetic sound suppression and does not make entity untargetable. ES visibility attribute multiplies native LivingVisibilityEvent modifier; default1, range0..1024, four-.15=0.4 before other modifiers, not absolute target immunity. Preserve binary events/visibility; no Stage value.",
+    "amaramber": "ES entity tick requires exact Amaramber Mask and Chestplate plus EMPTY legs and feet, then ensures permanent ARMOR+7 with fixed amaramber_bonus ID; otherwise removes that ID. This is native armor mitigation, not direct damage cancellation or max-HP change. No Stage scaling of armor; preserve source bypass_armor and later native defensive processing. Natural Amaramber inventory durability mending is short excluded maintenance.",
+    "accessory_delivery": "Actual ES accessory component on equipment is delivered by ItemStackMixin RETURN in BOTH forEachModifier overloads (slot and slotGroup). It iterates stored accessory stacks, reads ACCESSORY attributeModifiers and invokes only matching slot entries; does not multiply by accessory stack count. Native apply slots/IDs govern stacking. Normal combination UI checks target tag, available slot count and no duplicate item; direct runtime data may differ and must not be presumed valid. Active armor accessory queries use a SET across worn slots for proc membership; numeric attribute entries still follow native per-slot rules. Equipment passive armor, weapon-held and direct-source proc routes are distinct future fixtures.",
+    "accessory_attributes": "Six native Accessory builders: Battleaxe Pendant and Warhammer Pendant each +.15 total attack speed MAINHAND; Butterfly Wings Amulet +.5 Ether resistance CHEST; Fungus Amulet +.5 HEAL_MULTIPLIER CHEST; Pearl Necklace +3 OXYGEN_BONUS and +4 total submerged-mining-speed CHEST (mining excluded); Crescent Pendant +.15 total attack damage CHEST. Preserve these modifiers and apply Stage once at final native HP/heal path, not another multiplier on attributes. Existing Warhammer movement proc, Butterfly armor erosion and Crescent incoming cap are reused, not duplicated. Battleaxe stripping/durability and Crescent periodic repair are excluded maintenance/utility.",
+    "heal_fungus": "All living entities receive HEAL_MULTIPLIER default1 range0..1024; ES LivingHealEvent handler returns current amount*attribute, then native heal accepts positive result on alive target and clamps via native health setter. Fungus chest accessory gives ordinary factor1.5 before other modifiers, not a separate healing event, HP transfer or immunity bypass. Parent native heal is the only future Stage point if that parent heal is in scope; never scale both modifier and resulting heal. Fungus also changes absent food properties for tagged #c:mushrooms while any active worn Fungus Amulet: Item.use/getUseDuration/finishUsingItem obtain food nutrition6/saturationModifier1.2. Existing food properties take precedence. Native food admission/consumption/replenishment remains; no instant custom heal.",
+    "air_resources": "AirSac Mask hook only when Neo LivingBreatheEvent cannot breathe and consumeAirAmount>0. If swimming, random half returns-1 -> reduce consumption by1 floored0; otherwise horizontal stored MOVEMENT length<.01 returns+1 -> setCanBreathe(true), refill1. Other case no change. Movement uses reviewed accumulator and can remain stale without new move callback; no permanent universal water immunity. Pearl Necklace gives native oxygen bonus and Player tick outside WATER eyes refills max air immediately. Native drowning admission/source remain; air counts, cadence and oxygen modifier are not Stage quantities. Abyss depth/attack air loss is separately reserved for hazards.",
+    "food_cleanse": "LivingEntityMixin eat HEAD: exact Lunaris Cactus Gel iterates active effects and removes each effect whose isBeneficial is false (includes neutral as well as harmful), with normal removeEffect return/veto and cleanup; exact Pungency Stew removes Hunger. No fabricated milk event, damage or HP write. Gel can attempt removal of custom Numbness and leave its already-reviewed deferred release behavior; removal is not debt deletion. This is materially distinct from Deepsilver tag-only repeated cleanse and should be runtime-tested against Tensura/L2 effect removal listeners.",
+    "food_effects": "ESFoods native consumable effect definitions preserve duration/amplifier/chance and native canBeAffected: Cactus Fruit Glowing600 and Poison200 each.8; Abyssal Fruit Glowing600 .3 and WaterBreathing400 .15; Velvetumoss WaterBreathing400 .2; Pungency Fruit/Stew and Silver Pungency Nausea120 .8; Shadow Snail Meat Nausea600 .3; Doomeden Carrion Hunger600 .8 and Rotten Ham Hunger600 .3. All amp0. Existing Bouldershroom Sticky2400 .8, Forgotten Millet Oblivion300 certain and Silver Pungency Numbness1200 certain reuse reviewed status packages. Food effects do not call HP directly; ordinary nutrition/recipes and containers are brief exclusions. Any later native Poison/DOT/healing follows its single existing final native scaling point, never duration/chance amplification.",
+    "scope": "Remaining armor/resources section is static only. No runtime claims, L2 pass, direct SHP/HP mutation or Stage/production implementation. No classification-only research. Generic attributes and resources are retained natively; combat quantities are identified at already-existing final HP/heal processing. Rendering, tooltip, crafting, textures, repair, food-only nutrition and mining are excluded without separate archaeology."
+  },
+  "mechanic_packages": [
+    {
+      "id": "es:thermal_post",
+      "name": "Thermal material fire counters",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Preserve native control/resource/attribute values; any underlying HP/DOT/heal request has only its parent final native scaling point.",
+      "delivery_paths": [
+        "es:armor:thermal_retaliation",
+        "es:armor:thermal_weapon"
+      ]
+    },
+    {
+      "id": "es:glacite_post",
+      "name": "Glacite material frozen counters",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Preserve native control/resource/attribute values; any underlying HP/DOT/heal request has only its parent final native scaling point.",
+      "delivery_paths": [
+        "es:armor:glacite_retaliation",
+        "es:armor:glacite_weapon"
+      ]
+    },
+    {
+      "id": "es:material_post_poison",
+      "name": "Malarite/Pungency held-weapon Poison and Nausea",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Preserve native control/resource/attribute values; any underlying HP/DOT/heal request has only its parent final native scaling point.",
+      "delivery_paths": [
+        "es:armor:malarite",
+        "es:armor:pungency"
+      ]
+    },
+    {
+      "id": "es:deepsilver_cleanse",
+      "name": "Deepsilver full-set tagged cleanse",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Preserve native control/resource/attribute values; any underlying HP/DOT/heal request has only its parent final native scaling point.",
+      "delivery_paths": [
+        "es:armor:deepsilver"
+      ]
+    },
+    {
+      "id": "es:armor_attributes",
+      "name": "Native armor combat attribute modifiers",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Preserve native control/resource/attribute values; any underlying HP/DOT/heal request has only its parent final native scaling point.",
+      "delivery_paths": [
+        "es:armor:attributes"
+      ]
+    },
+    {
+      "id": "es:potion_distance",
+      "name": "Alchemist living-owner potion trajectory",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Preserve native control/resource/attribute values; any underlying HP/DOT/heal request has only its parent final native scaling point.",
+      "delivery_paths": [
+        "es:armor:potion_owned",
+        "es:armor:potion_ownerless"
+      ]
+    },
+    {
+      "id": "es:unrealium_attributes",
+      "name": "Unrealium movement/knockback/gravity attributes",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Preserve native control/resource/attribute values; any underlying HP/DOT/heal request has only its parent final native scaling point.",
+      "delivery_paths": [
+        "es:armor:unrealium"
+      ]
+    },
+    {
+      "id": "es:unrealium_vibration",
+      "name": "Unrealium native vibration suppression and visibility",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Preserve native control/resource/attribute values; any underlying HP/DOT/heal request has only its parent final native scaling point.",
+      "delivery_paths": [
+        "es:armor:vibration",
+        "es:armor:visibility"
+      ]
+    },
+    {
+      "id": "es:amaramber_armor",
+      "name": "Amaramber exposed lower slots armor bonus",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Preserve native control/resource/attribute values; any underlying HP/DOT/heal request has only its parent final native scaling point.",
+      "delivery_paths": [
+        "es:armor:amaramber"
+      ]
+    },
+    {
+      "id": "es:accessory_attributes",
+      "name": "Native ES accessory slot modifiers",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Preserve native control/resource/attribute values; any underlying HP/DOT/heal request has only its parent final native scaling point.",
+      "delivery_paths": [
+        "es:armor:accessories"
+      ]
+    },
+    {
+      "id": "es:heal_multiplier",
+      "name": "ES native healing multiplier and Fungus food admission",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Preserve native control/resource/attribute values; any underlying HP/DOT/heal request has only its parent final native scaling point.",
+      "delivery_paths": [
+        "es:armor:healing",
+        "es:armor:fungus"
+      ]
+    },
+    {
+      "id": "es:armor_air",
+      "name": "AirSac Mask and Pearl air resource",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Preserve native control/resource/attribute values; any underlying HP/DOT/heal request has only its parent final native scaling point.",
+      "delivery_paths": [
+        "es:armor:airsac",
+        "es:armor:pearl"
+      ]
+    },
+    {
+      "id": "es:consumable_cleanse",
+      "name": "Gel nonbeneficial and Stew Hunger cleanse",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Preserve native control/resource/attribute values; any underlying HP/DOT/heal request has only its parent final native scaling point.",
+      "delivery_paths": [
+        "es:armor:gel",
+        "es:armor:stew"
+      ]
+    },
+    {
+      "id": "es:native_food_effects",
+      "name": "Native combat-significant consumable effects",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Preserve native control/resource/attribute values; any underlying HP/DOT/heal request has only its parent final native scaling point.",
+      "delivery_paths": [
+        "es:armor:food"
+      ]
+    }
+  ],
+  "delivery_paths": [
+    {
+      "id": "es:armor:thermal_retaliation",
+      "labels": [
+        "PASSIVE_EQUIPMENT"
+      ],
+      "native_path": "LivingDamageEvent.Post any Thermal armor -> direct Living fire",
+      "runtime_variants": [
+        "native slot/source/direct entity admission",
+        "external event veto and existing native quantity limits"
+      ]
+    },
+    {
+      "id": "es:armor:thermal_weapon",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "Post direct Living thermal tagged weapon -> victim fire",
+      "runtime_variants": [
+        "native slot/source/direct entity admission",
+        "external event veto and existing native quantity limits"
+      ]
+    },
+    {
+      "id": "es:armor:glacite_retaliation",
+      "labels": [
+        "PASSIVE_EQUIPMENT"
+      ],
+      "native_path": "Post any Glacite armor -> direct Living frozen without canFreeze",
+      "runtime_variants": [
+        "native slot/source/direct entity admission",
+        "external event veto and existing native quantity limits"
+      ]
+    },
+    {
+      "id": "es:armor:glacite_weapon",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "Post direct Living Glacite weapon -> canFreeze victim",
+      "runtime_variants": [
+        "native slot/source/direct entity admission",
+        "external event veto and existing native quantity limits"
+      ]
+    },
+    {
+      "id": "es:armor:malarite",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "Post tagged Malarite held weapon -> Poison60",
+      "runtime_variants": [
+        "native slot/source/direct entity admission",
+        "external event veto and existing native quantity limits"
+      ]
+    },
+    {
+      "id": "es:armor:pungency",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "Post tagged Pungency held weapon -> PoisonII/Nausea",
+      "runtime_variants": [
+        "native slot/source/direct entity admission",
+        "external event veto and existing native quantity limits"
+      ]
+    },
+    {
+      "id": "es:armor:deepsilver",
+      "labels": [
+        "PASSIVE_EQUIPMENT"
+      ],
+      "native_path": "full-set per-piece tick -> tagged native removal",
+      "runtime_variants": [
+        "native slot/source/direct entity admission",
+        "external event veto and existing native quantity limits"
+      ]
+    },
+    {
+      "id": "es:armor:attributes",
+      "labels": [
+        "PASSIVE_EQUIPMENT"
+      ],
+      "native_path": "slot-matched armor native modifier application",
+      "runtime_variants": [
+        "native slot/source/direct entity admission",
+        "external event veto and existing native quantity limits"
+      ]
+    },
+    {
+      "id": "es:armor:potion_owned",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "Alchemist living-owner ThrownPotion movement multiplier",
+      "runtime_variants": [
+        "native slot/source/direct entity admission",
+        "external event veto and existing native quantity limits"
+      ]
+    },
+    {
+      "id": "es:armor:potion_ownerless",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "native ownerless potion unaffected negative control",
+      "runtime_variants": [
+        "native slot/source/direct entity admission",
+        "external event veto and existing native quantity limits"
+      ]
+    },
+    {
+      "id": "es:armor:unrealium",
+      "labels": [
+        "PASSIVE_EQUIPMENT"
+      ],
+      "native_path": "Unrealium native same-ID attribute replacement",
+      "runtime_variants": [
+        "native slot/source/direct entity admission",
+        "external event veto and existing native quantity limits"
+      ]
+    },
+    {
+      "id": "es:armor:vibration",
+      "labels": [
+        "PASSIVE_EQUIPMENT"
+      ],
+      "native_path": "worn Unrealium source -> VanillaGameEvent cancellation",
+      "runtime_variants": [
+        "native slot/source/direct entity admission",
+        "external event veto and existing native quantity limits"
+      ]
+    },
+    {
+      "id": "es:armor:visibility",
+      "labels": [
+        "PASSIVE_EQUIPMENT"
+      ],
+      "native_path": "native LivingVisibilityEvent multiplier",
+      "runtime_variants": [
+        "native slot/source/direct entity admission",
+        "external event veto and existing native quantity limits"
+      ]
+    },
+    {
+      "id": "es:armor:amaramber",
+      "labels": [
+        "PASSIVE_EQUIPMENT"
+      ],
+      "native_path": "mask/chest and empty lower slots -> native ARMOR+7",
+      "runtime_variants": [
+        "native slot/source/direct entity admission",
+        "external event veto and existing native quantity limits"
+      ]
+    },
+    {
+      "id": "es:armor:accessories",
+      "labels": [
+        "PASSIVE_EQUIPMENT"
+      ],
+      "native_path": "equipment forEachModifier -> accessory slot attributes",
+      "runtime_variants": [
+        "native slot/source/direct entity admission",
+        "external event veto and existing native quantity limits"
+      ]
+    },
+    {
+      "id": "es:armor:healing",
+      "labels": [
+        "PASSIVE_EQUIPMENT"
+      ],
+      "native_path": "LivingHealEvent -> HEAL_MULTIPLIER",
+      "runtime_variants": [
+        "native slot/source/direct entity admission",
+        "external event veto and existing native quantity limits"
+      ]
+    },
+    {
+      "id": "es:armor:fungus",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "active Fungus Amulet -> tagged otherwise nonfood native use",
+      "runtime_variants": [
+        "native slot/source/direct entity admission",
+        "external event veto and existing native quantity limits"
+      ]
+    },
+    {
+      "id": "es:armor:airsac",
+      "labels": [
+        "PASSIVE_EQUIPMENT"
+      ],
+      "native_path": "native LivingBreatheEvent -> movement/swimming mask gate",
+      "runtime_variants": [
+        "native slot/source/direct entity admission",
+        "external event veto and existing native quantity limits"
+      ]
+    },
+    {
+      "id": "es:armor:pearl",
+      "labels": [
+        "PASSIVE_EQUIPMENT"
+      ],
+      "native_path": "Player outside-water eyes -> Pearl air refill",
+      "runtime_variants": [
+        "native slot/source/direct entity admission",
+        "external event veto and existing native quantity limits"
+      ]
+    },
+    {
+      "id": "es:armor:gel",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "Lunaris Cactus Gel eat HEAD nonbeneficial removal",
+      "runtime_variants": [
+        "native slot/source/direct entity admission",
+        "external event veto and existing native quantity limits"
+      ]
+    },
+    {
+      "id": "es:armor:stew",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "Pungency Stew eat HEAD Hunger removal",
+      "runtime_variants": [
+        "native slot/source/direct entity admission",
+        "external event veto and existing native quantity limits"
+      ]
+    },
+    {
+      "id": "es:armor:food",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "native ES food effect application",
+      "runtime_variants": [
+        "native slot/source/direct entity admission",
+        "external event veto and existing native quantity limits"
+      ]
+    }
+  ],
+  "damage_types_newly_reviewed": [],
+  "unexecuted_future_fixtures": [
+    "Material_Post_directLiving_vs_projectile_zero_final_damage_and_piece_OR",
+    "Glacite_armor_canFreeze_false_vs_weapon_canFreeze_gate",
+    "NativePoison_effect_reject_vs_thrown_spear_separate_delivery",
+    "Deepsilver_fullset_tag_reload_repeated_remove_event_veto",
+    "Unrealium_duplicate_ID_lastwins_attribute_event_rewrite",
+    "Unrealium_vibration_vs_sound_target_visibility_and_source_veto_reuse",
+    "Amaramber_exact_mask_chest_empty_legs_feet_modifier_cleanup",
+    "Accessory_slot_both_overloads_sameID_set_proc_vs_numeric_attributes",
+    "HealMultiplier_Fungus_native_heal_modifier_no_double_Stage",
+    "AirSac_swim_half_saving_stationary_stale_vector_vs_Pearl_refill",
+    "Alchemist_owned_splash_lingering_vs_ownerless_potion",
+    "Gel_neutral_harmful_custom_remove_veto_Numbness_debt_vs_Deepsilver_tag"
+  ],
+  "review_required": [],
+  "remaining_subsection_native_ambiguities": [],
+  "exact_next_task": "R2h6: spells/crests and mana resource delivery, then remaining non-boss creatures/hazards and whole ES caller closure/promotion/full validation. Bosses Rise follows automatically while usage remains healthy. Do not repeat prior reviewed families.",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "runtime_tests": 0,
+  "whole_eternalstarlight_complete": false,
+  "promoted_mechanics": 0,
+  "promoted_paths": 0,
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false,
+  "reference_files": [
+    {
+      "file": "native-evidence/eternalstarlight-armor-resources.json",
+      "sha256": "8667d29c8f69eb3122b5c7300a985cfcfadff679a718073f09825113b5050a99"
+    },
+    {
+      "file": "eternalstarlight-armor-resources-census.json",
+      "sha256": "251abacce042b8305f0c15d87751799ef8e631076cfd90037e9fab46d7921726"
+    },
+    {
+      "file": "reference-evidence/eternalstarlight-armor-resources-244.json",
+      "sha256": "4b6fa46415ea48df4d059f2d9769e9bcf993c1e78579d6c0f9f467f4d2e76b14"
+    },
+    {
+      "file": "vanilla-evidence/eternalstarlight-armor-resources.json",
+      "sha256": "e552f4b3aae3793a38c6b8cae1ad42490b28495433309876468a67cc0356f8c9"
+    },
+    {
+      "file": "reference-routing/eternalstarlight-armor-resources.json",
+      "sha256": "168e5865857c60a0de649b7328bb0261cd79ab24e16b67972fb8ded6f2b60c6d"
+    },
+    {
+      "file": "native-evidence/eternalstarlight-special-weapons.json",
+      "sha256": "6bdd4808282e353b1d917c2218b188f04d0c3835a6bbe74d6be7ee78a7b8edfa"
+    },
+    {
+      "file": "reference-evidence/eternalstarlight-crystal-numbness-244.json",
+      "sha256": "fdc6b79fcd920bfdd9746e117f2bdcd2cfd926c186d85ef822115379e2c6df86"
+    },
+    {
+      "file": "reference-evidence/eternalstarlight-status-control-244.json",
+      "sha256": "04a82c87e74245062e84520d044acc7b8099922c42e310861edf65f92895eaed"
+    }
+  ]
+}
