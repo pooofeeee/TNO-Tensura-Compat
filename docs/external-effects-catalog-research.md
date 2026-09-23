@@ -822,3 +822,7 @@ Head severing separated from admitted HP, fire-state survival/regrowth, native P
 ## R2g8c — Avian and mount combat
 
 Avian volleys and source gates, real gust actor/target, rider damage/defenses, native mount healing and WaterBreathing reviewed; utility excluded. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/iceandfire-r2g8c-avian-mounts-review.md).
+
+## R2g8d — Dread combat and summons
+
+Dread melee, summons, skull sources and defenses reviewed. Native Lich skull origin, unresolved Beast/Scuttler commanders, unreachable legacy necromancy and unregistered Queen are retained as availability limits. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/iceandfire-r2g8d-dread-review.md).

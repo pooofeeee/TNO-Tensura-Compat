@@ -1,0 +1,391 @@
+{
+  "schema": "tno.external_effects.iaf_dread.v1",
+  "checkpoint": "R2g8d-dread-complete",
+  "previous_checkpoint": "R2g8c-avian-mounts-complete",
+  "starting_sha": "4d309a53ae19fa1bf98e76b8c3c26d48a5e84584",
+  "status": "DREAD_COMPLETE",
+  "scope": "Dread combat and native availability reviewed; remaining equipment and whole-mod closure pending.",
+  "summary": "Dread melee, summons, skull sources and defenses reviewed. Native Lich skull origin, unresolved Beast/Scuttler commanders, unreachable legacy necromancy and unregistered Queen are retained as availability limits.",
+  "facts": {
+    "body_damage": "Ghoul aiStep requires actual target, distance<4 and current LOS: Slash ticks9 and19 each request float ATTACK_DAMAGE (base5) with mob_attack direct=causing=Ghoul, then knockback.25 independent of hurt success. Beast and Scuttler use the same range/LOS gate with Bite tick6, bases4 and7 respectively, then independent knockback.25. doHurtTarget only starts an animation and returns true, not proof of HP damage. Thrall and Knight inherit ordinary Mob.doHurtTarget (base attribute2 plus actual equipment/enchantments); unstaffed Lich uses the same melee route (base1). Keep native damage admission, armor, Resistance and L2 processing. Scale once at final hurt amount, never both attribute and event. Scream/spawn animations add no special damage or invulnerability.",
+    "lich_summon": "Mainhand exact LICH_STAFF selects DreadLichAIStrifeGoal; otherwise ordinary melee. Strife requires target/staff and calls performRangedAttack on every tick with sensing LOS. Its squared15 range controls movement, not a hard delivery range; attackCooldown field is assigned100 but unused in tick. Entity fireCooldown/minionCooldown provide actual100-tick cooldowns, decrement in aiStep, not saved. With minionCount<5 and minionCooldown0, summon takes precedence over skull that invocation: Thrall chance>0.5, Ghoul>0.35, Beast>0.15, otherwise Scuttler. Summon is immediate, not animation-frame gated; uses target, nearby native placement/finalizeSpawn, CommanderUUID=Lich and server addFreshEntity. It increments count and cooldown regardless of addFreshEntity success. Summon count/cooldown/placement are native binary/resource admission, not Stage quantities.",
+    "commander_resource": "CommanderUUID and Lich MinionCount persist. Base DreadMob resolves Player UUID first, otherwise loaded LivingEntity in same server dimension. Server aiStep copies a living Lich target when resolved. DreadMob.remove decrements a resolved Lich counter on any first removal reason, not only death, with no clamp. Beast and Scuttler override getCommander to return null: their stored commander never resolves, so no base target-follow or removal decrement. Initial summon setTarget still works. Lich also returns null. Thrall/Ghoul/Knight use base resolution. DreadHorse extends SkeletonHorse separately, resolves Player only and has no DreadMob decrement. Counts can remain stale or change on unloading; no automatic reconciliation is present. Test natural summon/kill/unload/reload without repairing counters.",
+    "lich_skull_delivery": "When no summon occurs and fireCooldown0, Lich constructs owned DreadLichSkull(baseDamage6), shoot speed0, addFreshEntity, cooldown100. The owned skull constructor calls AbstractArrow(EntityType,Level), setOwner and setBaseDamage only. This constructor chain leaves Entity at (0,0,0); setOwner does not position it. Lich never sets projectile position. Therefore a legitimate Lich launch must first be tested for spawn location/delivery, not assumed to hit near its caster. Player LichStaff.use on server explicitly sets position to (playerX,playerY+1,playerZ), adds projectile, then shoots speed1/inaccuracy1 along noisy look. An earlier shoot(speed7) is overwritten; staff costs durability1 and cooldown4. No ammo/charge threshold. Preserve the native divergence; no relocation fix or synthetic hit is authorized.",
+    "skull_homing": "Skull tick before inherited arrow tick: if horizontal speed<.1 OR collision/inGround, and tickCount>5, remove(DISCARDED), without immediate return. Mob owner with target adds (targetPosition-skullPosition)*.015 to velocity; no local LOS/alive/range gate. Player owner first uses player.getKillCredit (not necessarily attacked target); if absent/dead, searches live Enemy in asymmetric projectile box expanded10, chooses nearest to Player, not nearest projectile, with no LOS/alliance filter at acquisition. Player live target steers each axis 10% toward sign(delta)*.5. NoGravity=true and isInWater=false; inherited collision/PVP/projectile-impact handling still applies. Stage belongs at final native arrow hurt amount, not homing speed or baseDamage.",
+    "skull_damage": "onHitEntity suppresses parent only when victim.isAlliedTo(owner); null owner is allowed. Ordinary AbstractArrow creates minecraft:arrow direct=skull, causing=owner (or projectile itself when no owner), amount ceil(clamp(speed*baseDamage)), plus native critical handling if applicable. These launchers do not provide firedFromWeapon/enchantment state. Normal hurt false prevents post-hurt shield wear; successful Living hit reaches doPostHurtEffects (native Enderman early return retained). Non-owner Player actively using a ShieldItem and baseDamage>=3 receives extra durability wear1+floor(baseDamage)=7 at default6, independent of actual HP lost. This does not bypass blocking or force hurt true, and is separate from HP scaling. No custom Dread damage type, freeze, soul scatter, direct SHP drain or direct HP subtraction.",
+    "necromancy_unreachable": "DreadMob.onKillEntity(LivingEntity):void is a legacy standalone method. Whole installed Iaf726-class and compat24-class instruction census finds zero calls to it; necromancyEntity is called only from it. Exact installed LivingEntity.die invokes killer.killedEntity(ServerLevel,LivingEntity):boolean, not onKillEntity; Dread classes do not override that callback. Thus native death-to-minion conversion is not a proven reachable delivery in this version. Do not promote it as an active path or manually invoke it in tests. Dormant helper would exclude Dragon, map arthropod->Scuttler, Zombie/IHumanoid->Ghoul, undead/skeleton/Player->Thrall, horse->Horse, otherAnimal->Beast, increment commander count and assign DreadMob commander. This is sufficient to explain the gap; no conversion implementation authorized.",
+    "defenses_targets": "Dread alliance treats any IDreadMob as allied, plus inherited teams. NonDread target goal preserves parent targeting, excludes IDreadMob and DragonUtils.isAlive false; hostile predicate excludes creative/peaceful Player and model-dead Dragon. Scuttler explicitly rejects Poison then calls normal canBeAffected. Installed entity tags list all seven Dread creatures as freeze_immune_entity_types (powder-snow mechanic, not Iaf Frozen); all except Scuttler are undead, Scuttler arthropod. Native healing/harming/Regeneration/Poison tag behavior and enchantment eligibility therefore matter; do not equate undead with blanket magic immunity. Registry fireImmune is false for Dread types. No custom broad hurt immunity exists in reviewed classes.",
+    "knight_mount": "DreadKnight has native horse-mount goal: when not passenger, samples unoccupied AbstractHorse within inflate(16,7,16) every4 game ticks, chooses first, approaches and at squared distance<4 sets horse tamed then startRiding(non-force). Native mount hook may reject; tamed flag is already written. No owner check, no special mounted damage packet/source or extra horse attack. Retain a mounted normal-melee fixture; ordinary horse movement/storage excluded.",
+    "queen_exclusion": "DreadQueenEntity class exists with ordinary melee attributes/equipment and boss bar, but IafEntities contains no Queen entity registration or attribute registration. Whole Iaf/compat census finds no external constructor/launch invocation; other references are instanceof rider checks and rendering. No legitimate native Queen boss delivery established. DreadQueenStaffItem is a plain Item with no active combat callback; Queen/Dread swords are standard equipment, handled by ordinary melee. Do not force-spawn an unregistered class or invent staff summons.",
+    "direct_compat": "Pinned tensura_iaf data declares cold_resistance and native spiritual-health/magicule baselines for each Dread creature; all are cold_source and no_charisma entity-tag members. Lich additionally belongs to full_gravity_control, no_fear, no_mind_control and no_possession. These are data declarations, not measured runtime immunity or a new damage source; preserve Tensura consumers and pack/tag composition for later tests. No Dread-specific compat mixin restores legacy kill conversion, skull positioning or Queen registration. Entity-existence and gear progression values are not multiplied by this research.",
+    "exclusions": "Dread blocks, portal/spawner acquisition/worldgen, loot, texture variants, scream visuals and staff repair are excluded briefly. Registered creature combat and all reachable native skull/summon paths above remain in future runtime coverage. No runtime, Stage, L2 or production work performed."
+  },
+  "mechanic_packages": [
+    {
+      "id": "iaf:dread_melee",
+      "name": "Dread native melee HP damage",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "VANILLA_ROUTED",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at final native hurt amount in animated aiStep or inherited Mob.doHurtTarget.",
+      "stage_reason": "Do not multiply attribute/equipment and hurt event twice.",
+      "delivery_paths": [
+        "iaf:dread:ghoul_slash",
+        "iaf:dread:beast_bite",
+        "iaf:dread:scuttler_bite",
+        "iaf:dread:thrall_melee",
+        "iaf:dread:knight_melee",
+        "iaf:dread:lich_unstaffed_melee"
+      ]
+    },
+    {
+      "id": "iaf:dread_motion",
+      "name": "Dread animated attack knockback",
+      "primary_classification": "VANILLA_DIRECT",
+      "tno_categories": [
+        "VANILLA_ROUTED",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Fixed native knockback independent of hurt result; retain resistance hook.",
+      "delivery_paths": [
+        "iaf:dread:ghoul_slash",
+        "iaf:dread:beast_bite",
+        "iaf:dread:scuttler_bite"
+      ]
+    },
+    {
+      "id": "iaf:dread_summon",
+      "name": "Lich summon and commander resource",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "tno_categories": [
+        "COMPOSITE",
+        "CUSTOM_ROUTED",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Preserve count/cooldown and actual commander resolution, no Stage multiplier.",
+      "delivery_paths": [
+        "iaf:dread:lich_summon",
+        "iaf:dread:summon_target_follow",
+        "iaf:dread:minion_removal_reload"
+      ]
+    },
+    {
+      "id": "iaf:dread_skull",
+      "name": "Dread skull HP damage and homing",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "VANILLA_ROUTED",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at inherited AbstractArrow final hurt amount after speed/base/crit calculation.",
+      "stage_reason": "Native Lich launch position gap is an availability prerequisite, not permission to fix it.",
+      "delivery_paths": [
+        "iaf:dread:lich_skull_launch",
+        "iaf:dread:player_staff_skull",
+        "iaf:dread:skull_mob_homing",
+        "iaf:dread:skull_player_homing",
+        "iaf:dread:skull_impact"
+      ]
+    },
+    {
+      "id": "iaf:dread_shield",
+      "name": "Dread skull extra shield wear",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "VANILLA_ROUTED",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Durability resource uses baseDamage, not HP amount; keep native7 default.",
+      "delivery_paths": [
+        "iaf:dread:skull_shield_wear"
+      ]
+    },
+    {
+      "id": "iaf:dread_admission",
+      "name": "Dread tags, allegiance, immunity and mounting",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "BINARY",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Preserve native and Tensura admission. No Stage on tags, owner, mount or immunity.",
+      "delivery_paths": [
+        "iaf:dread:dread_defense_admission",
+        "iaf:dread:knight_mount"
+      ]
+    }
+  ],
+  "delivery_paths": [
+    {
+      "id": "iaf:dread:ghoul_slash",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "ghoul_slash; exact caller, amount and admission in facts",
+      "runtime_variants": [
+        "native delivery/owner and normal hurt acceptance",
+        "eligibility and stated version-specific delivery limits"
+      ]
+    },
+    {
+      "id": "iaf:dread:beast_bite",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "beast_bite; exact caller, amount and admission in facts",
+      "runtime_variants": [
+        "native delivery/owner and normal hurt acceptance",
+        "eligibility and stated version-specific delivery limits"
+      ]
+    },
+    {
+      "id": "iaf:dread:scuttler_bite",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "scuttler_bite; exact caller, amount and admission in facts",
+      "runtime_variants": [
+        "native delivery/owner and normal hurt acceptance",
+        "eligibility and stated version-specific delivery limits"
+      ]
+    },
+    {
+      "id": "iaf:dread:thrall_melee",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "thrall_melee; exact caller, amount and admission in facts",
+      "runtime_variants": [
+        "native delivery/owner and normal hurt acceptance",
+        "eligibility and stated version-specific delivery limits"
+      ]
+    },
+    {
+      "id": "iaf:dread:knight_melee",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "knight_melee; exact caller, amount and admission in facts",
+      "runtime_variants": [
+        "native delivery/owner and normal hurt acceptance",
+        "eligibility and stated version-specific delivery limits"
+      ]
+    },
+    {
+      "id": "iaf:dread:lich_unstaffed_melee",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "lich_unstaffed_melee; exact caller, amount and admission in facts",
+      "runtime_variants": [
+        "native delivery/owner and normal hurt acceptance",
+        "eligibility and stated version-specific delivery limits"
+      ]
+    },
+    {
+      "id": "iaf:dread:lich_summon",
+      "labels": [
+        "SUMMONED_ATTACK"
+      ],
+      "native_path": "lich_summon; exact caller, amount and admission in facts",
+      "runtime_variants": [
+        "native delivery/owner and normal hurt acceptance",
+        "eligibility and stated version-specific delivery limits"
+      ]
+    },
+    {
+      "id": "iaf:dread:summon_target_follow",
+      "labels": [
+        "SUMMONED_ATTACK"
+      ],
+      "native_path": "summon_target_follow; exact caller, amount and admission in facts",
+      "runtime_variants": [
+        "native delivery/owner and normal hurt acceptance",
+        "eligibility and stated version-specific delivery limits"
+      ]
+    },
+    {
+      "id": "iaf:dread:minion_removal_reload",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "minion_removal_reload; exact caller, amount and admission in facts",
+      "runtime_variants": [
+        "native delivery/owner and normal hurt acceptance",
+        "eligibility and stated version-specific delivery limits"
+      ]
+    },
+    {
+      "id": "iaf:dread:lich_skull_launch",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "lich_skull_launch; exact caller, amount and admission in facts",
+      "runtime_variants": [
+        "native delivery/owner and normal hurt acceptance",
+        "eligibility and stated version-specific delivery limits"
+      ]
+    },
+    {
+      "id": "iaf:dread:player_staff_skull",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "player_staff_skull; exact caller, amount and admission in facts",
+      "runtime_variants": [
+        "native delivery/owner and normal hurt acceptance",
+        "eligibility and stated version-specific delivery limits"
+      ]
+    },
+    {
+      "id": "iaf:dread:skull_mob_homing",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "skull_mob_homing; exact caller, amount and admission in facts",
+      "runtime_variants": [
+        "native delivery/owner and normal hurt acceptance",
+        "eligibility and stated version-specific delivery limits"
+      ]
+    },
+    {
+      "id": "iaf:dread:skull_player_homing",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "skull_player_homing; exact caller, amount and admission in facts",
+      "runtime_variants": [
+        "native delivery/owner and normal hurt acceptance",
+        "eligibility and stated version-specific delivery limits"
+      ]
+    },
+    {
+      "id": "iaf:dread:skull_impact",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "skull_impact; exact caller, amount and admission in facts",
+      "runtime_variants": [
+        "native delivery/owner and normal hurt acceptance",
+        "eligibility and stated version-specific delivery limits"
+      ]
+    },
+    {
+      "id": "iaf:dread:skull_shield_wear",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "skull_shield_wear; exact caller, amount and admission in facts",
+      "runtime_variants": [
+        "native delivery/owner and normal hurt acceptance",
+        "eligibility and stated version-specific delivery limits"
+      ]
+    },
+    {
+      "id": "iaf:dread:dread_defense_admission",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "dread_defense_admission; exact caller, amount and admission in facts",
+      "runtime_variants": [
+        "native delivery/owner and normal hurt acceptance",
+        "eligibility and stated version-specific delivery limits"
+      ]
+    },
+    {
+      "id": "iaf:dread:knight_mount",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "knight_mount; exact caller, amount and admission in facts",
+      "runtime_variants": [
+        "native delivery/owner and normal hurt acceptance",
+        "eligibility and stated version-specific delivery limits"
+      ]
+    }
+  ],
+  "unexecuted_future_fixtures": [
+    "Ghoul_two_slashes_hurtfalse_knockback",
+    "Beast_Scuttler_bite_LOS_poison_admission",
+    "Thrall_Knight_equipped_native_Mob_attack",
+    "Lich_staff_vs_unstaffed_melee",
+    "Lich_summon_precedence_count5_join_veto",
+    "Beast_Scuttler_commander_null_target_and_counter",
+    "Minion_unload_reload_removal_counter",
+    "Lich_skull_native_origin_vs_Player_staff_position",
+    "Skull_Mob_vs_Player_getKillCredit_homing",
+    "Skull_alliance_PVP_impact_cancellation",
+    "Skull_speed_damage_hurtfalse_vs_shield_wear7",
+    "Dread_undead_arthropod_freeze_tags_vs_IafFrozen",
+    "Dread_Tensura_cold_source_and_control_tags",
+    "Knight_mount_hook_reject_after_tamed",
+    "Native_kill_has_no_legacy_necromancy_observation_only"
+  ],
+  "remaining_subsection_native_ambiguities": [],
+  "review_required": [],
+  "unavailable_native_paths": [
+    "legacy_onKillEntity_conversion",
+    "unregistered_DreadQueen_boss"
+  ],
+  "exact_next_task": "R2g9: remaining special equipment, chain/status/resource and Pixie callbacks; then whole-JAR combat/source closure, dedup/promote Ice & Fire, and continue next target if usage healthy.",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "runtime_tests": 0,
+  "whole_iceandfire_complete": false,
+  "promoted_mechanics": 0,
+  "promoted_paths": 0,
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false,
+  "reference_files": [
+    {
+      "file": "native-evidence/iceandfire-dread.json",
+      "sha256": "86f4fb2b1efd27e9aa7f280ee9323aa0899d8b67323f1f1780ae240ad9b0d3ac"
+    },
+    {
+      "file": "iceandfire-dread-census.json",
+      "sha256": "9df5028570eaade642d8d512f8fdb4d38123e8a03a5e9460d2583ec43cbe1243"
+    },
+    {
+      "file": "reference-evidence/iceandfire-dread-244.json",
+      "sha256": "f14ba9aae54a2746e41a5d793c8f3acf349311e38cf3d3f2ef02f9e32764d4e6"
+    },
+    {
+      "file": "reference-evidence/iceandfire-ghost-troll-244.json",
+      "sha256": "559079cfa89fbdaecb5efe241a4f4c7c00ff48518fa6f17dc18870cb9143ab1c"
+    },
+    {
+      "file": "reference-evidence/iceandfire-dragon-combat-244.json",
+      "sha256": "119a1674ff76c9a0093d08e03e3f6e28e8798e0dab937924b07b9741d7580865"
+    },
+    {
+      "file": "native-evidence/iceandfire-foundation.json",
+      "sha256": "7ec82347885b0666ebbfa8ea8650acd392efd90019a99aacf7e19a21d63f0fdc"
+    },
+    {
+      "file": "iceandfire-frozen-config-snapshot.json",
+      "sha256": "046dffed6e3ec3b3e01e4cd0be4042ac3f1de30302ba7a4facc72e4cd6c4d808"
+    }
+  ]
+}
