@@ -192,6 +192,9 @@ def validate():
         if (OUT/'iceandfire-r2g5b-dragon-combat.json').exists():
             from validate_iceandfire_dragon_combat import validate_dragon_combat
             assert validate_dragon_combat()['status']=='PASS'
+        if (OUT/'iceandfire-r2g6-cockatrice.json').exists():
+            from validate_iceandfire_cockatrice import validate_cockatrice
+            assert validate_cockatrice()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():

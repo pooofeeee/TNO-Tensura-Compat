@@ -802,3 +802,7 @@ Native Fire/Lightning direct damage, independent status/control, optional charge
 ## R2g5b — Dragon body combat and defenses
 
 Shared Dragon body attacks, rider source changes, independent control, roar variants, healing versus direct HP writes, defenses and multipart routing are reviewed with single scaling points. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/iceandfire-r2g5b-dragon-combat-review.md).
+
+## R2g6 — Cockatrice and Scepter combat
+
+Cockatrice and Scepter ownerless Wither paths, admission differences, native control/taming, healing and attachment lifecycle reviewed without duplicating protected gaze/attachment research. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/iceandfire-r2g6-cockatrice-review.md).
