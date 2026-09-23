@@ -882,3 +882,7 @@ Sonar source distinction, owner-identity manual meteor AoE/shared cooldown and s
 ## R2h4b — Eternal Starlight Ether, Shattered Blade and Wilt
 
 Ether contact vs corrosion vs shard separation, Shattered Blade owner-attribute and return gates, Wilt aura vs petal/Wither and firework exclusion reviewed. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/eternalstarlight-r2h4b-ether-blade-wilt-review.md).
+
+## R2h5a — Eternal Starlight native ammunition
+
+Native ammo distinction and conditional effects, real Frozen Bomb explosion vs Aethersent cosmetic blast, water trajectory and ordered spear damage reviewed. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/eternalstarlight-r2h5a-native-ammo-review.md).
