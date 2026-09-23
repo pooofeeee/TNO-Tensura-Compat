@@ -942,3 +942,7 @@ Dragon phase and causing-entity admission, native arrow/fire/explosion/breath pa
 ## R2i5a — Bosses Rise Yeti defense and phase ordering
 
 Yeti raw lethal branch bypasses inherited hurt, trident reductions stack, and phase/counter writes precede damage results; legacy selfhurt counter is dormant in normal native lifecycle. [Evidence and resume point](benchmarks/external-effects-catalog/bossesrise-r2i5a-yeti-defense-review.md).
+
+## R2i5b — Bosses Rise Yeti ice attacks and control
+
+Yeti native melee/ice HP separated from iframe/freeze/control; swept magic versus real playerTouch freeze, terrain spawn admission, resource/reload predicates and roll-aware shove resolved. [Evidence and resume point](benchmarks/external-effects-catalog/bossesrise-r2i5b-yeti-offense-review.md).
