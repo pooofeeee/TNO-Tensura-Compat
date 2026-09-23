@@ -726,3 +726,13 @@ The full installed-class census found two attachment writers omitted by incomple
 Twilight remains PARTIAL at270 mechanics/996 paths, all40 custom types USED, REVIEW_REQUIRED0, zero promoted. Accepted four mods116/161/217 and earlier protected drafts/errata preserved; runtime0. Validation includes source/producer/ordering guards, references and structured template evidence, five tooling tests plus four new NBT parser tests, subsection/full integrity, preservation and diff checks.
 
 Exact next task: remaining EntityEvents callbacks (including multiplayer health adjustment), other Lich worldgen trap/spawner paths and nested ASM; finish compatibility and global source exclusions. Protect R2f8 remaining-content closure, then deduplicate/promote Twilight COMPLETE before IceAndFire. Continue automatically while actual enforced usage remains healthy.
+
+## R2f8ae - multiplayer partial evidence saved at usage boundary
+
+Continues live-verified `9784db969a2ca2dd2e9eced38a763fc60d9ff2eb`. R2f8ad remains the latest completed semantic subsection. The actual enforced weekly allowance reached80% used/20% remaining, so new research stopped and valid multiplayer read-ahead was preserved. No reset credit redeemed.
+
+[Exact resume notes](benchmarks/external-effects-catalog/partial-notes/twilightforest-r2f8ae-multiplayer.md) and [pinned partial evidence](benchmarks/external-effects-catalog/partial-evidence/twilightforest-multiplayer/manifest.json) save installed TF/raw Minecraft/exact NeoForge witnesses and a whole outer-JAR source/resource census. This bundle is PARTIAL, adds no reviewed mechanics/paths and no REVIEW_REQUIRED entry. It must not be treated as semantic closure.
+
+Twilight remains PARTIAL at270 reviewed mechanic drafts/996 paths,40/40 custom DamageTypes USED, no unfinished types, REVIEW_REQUIRED0, zero promoted. Four accepted mods116/161/217 preserved. IceAndFire unstarted; runtime0, no L2/Stage/production/Phase6/7 changes. Full R2f8ad validation, five tooling tests plus four NBT-reader tests, partial witness regeneration/integrity, preservation and diff checks protect the save.
+
+Exact next task: finish multiplayer maximum-health versus current-HP behavior, native spawn/event/participant admission, permanent modifier and transient participant persistence, native reward consumers and source guards from the saved bundle. Then remaining EntityEvents, Lich worldgen trap/spawner paths, nested ASM, compatibility/global exclusions; R2f8 completion and final Twilight promotion before IceAndFire. Stop after push/live equality because of the actual usage save boundary.
