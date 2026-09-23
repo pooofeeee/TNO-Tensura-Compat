@@ -930,3 +930,7 @@ One shared scalable attack boundary; native before/after-Post death restoration,
 ## R2i3a — Bosses Rise Knight defense and native mark
 
 Stack break separated from HP, real mark producers/forwarding, ordered phase gates and native arena/reload distinctions resolved; no extra Stage amount. [Evidence and resume point](benchmarks/external-effects-catalog/bossesrise-r2i3a-knight-defense-review.md).
+
+## R2i3b — Bosses Rise Knight offensive payloads
+
+Actual source/return differences across melee/ring/wave/arrow+area/Rift and independent arena mob paths resolved; unused helpers excluded. [Evidence and resume point](benchmarks/external-effects-catalog/bossesrise-r2i3b-knight-offense-review.md).
