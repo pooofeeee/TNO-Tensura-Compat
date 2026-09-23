@@ -1,0 +1,364 @@
+{
+  "schema": "tno.external_effects.es_golems.v1",
+  "checkpoint": "R2h3b-golems-complete",
+  "previous_checkpoint": "R2h3a-energy-complete",
+  "starting_sha": "747c7be9d557cf630cb24bfe56cfa9b9ad584bdb",
+  "status": "GOLEM_PERMAFROST_AND_LASER_SEMANTICS_COMPLETE",
+  "scope": "Starlight Golem defense/resources/charge, Permafrost and Freeze delivery, Frozen Tube counterplay and LASER native boss/Orb paths. Other bosses/spells remain pending.",
+  "summary": "Protection/charge admission, pre-hurt interruption counters, Frozen Tube splash vs owner-gated HP, and block-clipped boss/Orb lasers reviewed.",
+  "facts": {
+    "shared_boss_control": "ESBoss.hurt delegates ordinary Monster hurt unchanged and records participating ServerPlayer only on success; it is not a global boss damage veto. Native phase defaults0 and is persisted; behavior defaults0, activation defaults true. setActivated(true) resets behavior/ticks; activation is not checked as a universal hurt gate here. Native bosses cannot change dimension or ride. When canBossMove=false, ESBoss.tick locks XZ to initial position in same dimension; Golem permits movement only outside phase0. Loot/chests, music and render animation are excluded. Golem/Permafrost manager runs server-side only while alive and !NoAi. BehaviorManager selects eligible phases at smallest priority, randomly among that priority, passes cooldown<=0 to canStart; explicit transitions start their destination without rechecking canStart. Active phase tick runs while canContinue and behaviorTicks<=duration, then increments; cooldowns decrement after processing. This inclusive boundary matters for repeated heals/attacks but is not a Stage quantity.",
+    "golem_protection": "StarlightGolem.aiStep runs behavior manager before refreshing hasProtection. Phase0: behavior5 (charge) protects iff any lit ENERGY_BLOCK POI within48 (nearest-first list limit5); all other behaviors protect. Phase1 always clears protection. Protection is a cached native field, so phase starts/ends may observe the prior refresh within that tick. hurt first rejects protected hits unless BYPASSES_INVULNERABILITY. Separate isInvulnerableTo rejects self-caused sources and exact FALLING_BLOCK in addition to inherited immunity; skipping protection with a tag does not bypass these separate predicates. Unprotected non-bypass attempts with nonnull causing entity other than self increment chargeHurtCount when tickCount-lastHurtCount>10 and add raw requested amount to chargeHurtAmount BEFORE super.hurt, even if ordinary admission later fails. After super returns (regardless result), health/maxHealth<.2 in phase0 moves to phase1 and event-vetoable nearby weathering steel destruction. Phase1 every60 ticks performs native generic0 hurt then sets iframe0; this zero-valued trigger is not an extra HP attack to scale.",
+    "energy_blocks_charge": "ChargeStart requires cooldown over, target, attackEnergy<=0 and phase0. onStart sets energy100, lights up to5 nearby registered Energy Blocks and clears hit counters. Transitions4->5->6: start duration35 heals.04 while cached protection; charge duration1200 heals.02 while protection, continues only phase0 AND count<7 AND requestedAmount<maxHP/1.5; end duration35 heals.02 while protection, then sets phase4 cooldown800. These heals are ordinary native heal requests and may be canceled/modified by generic hooks and ES HEAL_MULTIPLIER. EnergyBlock defaults unlit; native non-MISS projectile block hit turns a lit block off without owner/damage-type/hurt gate, and useWithoutItem does the same. Destroying a registered block also changes the POI scan through native world state. Do not fabricate HP damage or directly adjust charge to implement these binary prerequisites. R2h3a already records energy costs and attack payloads; do not rescale costs/counts.",
+    "permafrost_native_melee": "Permafrost ATTACK_DAMAGE defaults6; maxHP/armor/followRange come from installed config. It and Freeze reject fall damage and treat #starlight_golem_allies as allied in addition to super. Permafrost has no custom hurt/armor bypass override. Successful native super.doHurtTarget, and only success, adds150 frozenTicks capped300 if victim.canFreeze. BehaviorPhase melee helper visits nearby Living via TargetingConditions.DEFAULT in AABB inflated range; admits current target OR, when attackOtherEnemies, Targeting entity actively targeting attacker within native facing threshold. No extra explicit shouldHarm/LOS test in that helper. Native Mob.doHurtTarget computes attribute/enchantment mob_attack with direct=causing=Permafrost; success gates freeze and phase knockback. Melee opener requires cooldown, reach4+halfwidths and downward ground ray hit, duration20 -> descent phase2 until ground ray hits (or duration200) -> end phase3. End hits at tick3 range4.5 and ticks10..25 range1.5, other-enemy angle360; success pushes away with multipliers1.25/.5/1.25. Ranged phase cooldown200/reach20+halfwidths: ticks21..45 additionally melee at range1.5 (success push2) and divisible3 ticks launch six owned Frozen Tubes, one targeted speed1.25 and five radial speed.5. Sneeze cooldown300/reach20 launches Spit tick75; its damage/status/cloud is already R2h2b.",
+    "frozen_tube_hp": "FrozenTube.onHit calls super first (entity direct callback), then non-MISS impact splash. onHitEntity requires Living owner and shouldHarm(owner,hitEntity); source FREEZE direct=tube/causing=owner. Requested amount selected by OWNER type: Player6; Freeze config.attackDamage(); Permafrost .4*(ATTACK_DAMAGE if present else12), default2.4 with native6 attribute; other Living3. Hurt return ignored. The source aid has a malformed pattern-switch rendering; saved javap confirms getOwner -> nonnull -> typeSwitch Player/Freeze/Permafrost and exact branch constants, not an uninitialized native variable. FREEZE has no IS_FREEZING or projectile tag and no armor/shield/enchantment bypass in pinned tag scope. canFreeze is NOT a prerequisite for this custom HP request. Native Resistance/protection/cancellation/cooldown remain.",
+    "frozen_tube_control": "After any non-MISS impact, independent of direct hurt return, server splash visits Living in tube AABB+2 passing shouldHarm(owner,recipient), no LOS. If canFreeze, +100 frozenTicks cap300. Separately, ServerPlayer owner hitting StarlightGolem with energy>0 reduces energy5 floored0 and phase4 cooldown60 floored0; this does not depend on canFreeze or boss HP/protection admission. Nearby EnergizedFlames in AABB+5 are discarded regardless owner/allies; this is binary hazard removal, not damage. Impact also extinguishes FIRE and freezes source WATER within squared block distance16, converts source LAVA within distance4, and discards tube; no HP prerequisite. Keep tactical fire/hazard suppression, omit cosmetic splash particles. Ownerless splash passes shouldHarm(null,recipient), but direct custom HP fails Living-owner gate and Golem energy drain fails ServerPlayer gate.",
+    "frozen_tube_delivery": "Player item use server spawns owned tube, speed1.5/inaccuracy1, consumes1 and ordinary cooldown20. ESCommonSetup explicitly registers Frozen Tube dispenser; asProjectile supplies no owner. Freeze mob native RangedAttackGoal interval120/radius15 sets attacking, then server tick at attackTicks12 with current target creates owned tube speed.9/inaccuracy.2; state ends after20. Permafrost ranged volleys are the third producer. Whole-JAR constructor/factory census pins these paths; entity registry/render suppliers are not additional attacks. Freeze uses configured direct tube amount, not a guessed attack attribute. Separate future fixtures cover dispenser splash-only, Player, Freeze and Permafrost amounts.",
+    "laser_payload": "RayAttack server tick update -> trace ideal radius20 -> truncate endpoint at first block hit -> trace again to that endpoint -> Living hits excluding caster, unlike Ball Lightning full-segment behavior. Caster must exist and shouldHarm(caster,target). GolemLaserBeam requests LASER4 for StarlightGolem caster; otherwise3+.5*SPELL_CAST_DATA.strength for SpellCaster, else3. Base RayAttack default8 is not the registered GolemLaserBeam payload. Direct entity=beam, causing=caster. Ordinary iframes apply; only hurt true sets remainingFireTicks=max(old,100). This direct fire-tick field write is preserved rather than converted to igniteForSeconds. LASER is not IS_FIRE despite burning feedback, and has no armor/shield/enchantment/Resistance bypass. Ray hurt only binary discard for BYPASSES_INVULNERABILITY. Server caster is an object reference with empty additional-save methods: no persisted owner resolver. Golem beam discards when no caster, or Golem behavior!=1/dead; SpellCaster beam discards if no active exact LASER_BEAM spell. updatePosition discard has no early return in enclosing tick, so a final tick can still attack.",
+    "laser_spell_path": "Golem LaserBeamPhase creates beam tick60; R2h3a pins phase eligibility/cost and flame side payload. Distinct native Player path: OrbOfProphecy.use requires standing pose, bound CURRENT_CREST, SpellCaster (installed PlayerMixin interface), no existing spell, selected crest spell and canCast(checkCrystal=true). Installed blazing_beam crest references laser_beam and maxLevel3. canCast requires Player infinite materials OR inventory crystal in any accepted BLAZE/LIGHT mana tag, spell cooldown<=0 and extra condition true. start records item+hand spell source and owned crest level (getCrestLevel fallback0), consumes crystal durability for noncreative start, and sets cast data. Native laser properties prep30/spell400/cooldown250; tickSpells increases cast tick, validates total duration and source hand still holds SAME ITEM (not stack/components), then AbstractSpell calls onSpellTick; relative spell tick1 spawns beam. Every15 absolute ticks damageCrystal is called without another creative check or requirement that a crystal still exists; loss of crystals alone does not stop this spell. On source/continue failure, stop removes cast data and sets cooldown, but enclosing tickSpells can still call spell.tick once with saved local ticks; record the final-callback boundary, do not repair it. Other spell families and passive crest effects remain later research.",
+    "integration": "Future Stage applies once at final independent native LASER/FREEZE/Mob melee hurt or charge heal request. Do not scale protection, hit-count/health-ratio thresholds, energy, frozenTicks, projectile number, range, cadence, spell strength and final damage both, or field-based burn duration. Native burn/freezing DOT reuses R2h2b. Keep generic Tensura/L2 immunity/event hooks; pinned R2h1 found no explicit named direct bridge, not a runtime compatibility certification. Golem, Permafrost and Freeze source-specific eligibility must remain unchanged."
+  },
+  "mechanic_packages": [
+    {
+      "id": "es:golem_defense",
+      "name": "Golem Energy Block protection and charge interruption",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "BINARY",
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Preserve admission/state/native counters and ratios.",
+      "delivery_paths": [
+        "es:golems:golem_shield",
+        "es:golems:energy_block_projectile",
+        "es:golems:energy_block_use",
+        "es:golems:tube_splash_control"
+      ]
+    },
+    {
+      "id": "es:golem_charge_heal",
+      "name": "Golem protected charge healing",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "VANILLA_ROUTED",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at native phase heal(.04/.02) request.",
+      "stage_reason": "No cadence/threshold multiplier.",
+      "delivery_paths": [
+        "es:golems:golem_charge_heal"
+      ]
+    },
+    {
+      "id": "es:permafrost_melee",
+      "name": "Permafrost melee and successful-hit freezing",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "COMPOSITE",
+        "VANILLA_ROUTED",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at native Mob.doHurtTarget final hurt after native attribute/enchantment computation.",
+      "stage_reason": "Frozen ticks and knockback remain native.",
+      "delivery_paths": [
+        "es:golems:permafrost_slam",
+        "es:golems:permafrost_close_volley"
+      ]
+    },
+    {
+      "id": "es:frozen_tube_damage",
+      "name": "Frozen Tube owner-selected direct HP",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "CUSTOM_ROUTED",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at FrozenTube.onHitEntity final FREEZE request after owner-type formula.",
+      "stage_reason": "Do not multiply owner attribute and request separately.",
+      "delivery_paths": [
+        "es:golems:permafrost_tubes",
+        "es:golems:freeze_mob_tube",
+        "es:golems:player_tube",
+        "es:golems:dispenser_tube"
+      ]
+    },
+    {
+      "id": "es:frozen_tube_control",
+      "name": "Frozen Tube splash and Golem counterplay",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "BINARY",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native freeze state, energy/cooldown drain and hazard discard, independent of direct HP.",
+      "delivery_paths": [
+        "es:golems:tube_splash_control",
+        "es:golems:permafrost_tubes",
+        "es:golems:freeze_mob_tube",
+        "es:golems:player_tube",
+        "es:golems:dispenser_tube"
+      ]
+    },
+    {
+      "id": "es:golem_laser",
+      "name": "Golem and Orb LASER beam",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "CUSTOM_ROUTED",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at RayAttack.doHurtTarget final LASER request after GolemLaserBeam amount calculation.",
+      "stage_reason": "No second Stage on spell strength or ignition.",
+      "delivery_paths": [
+        "es:golems:golem_laser",
+        "es:golems:orb_laser"
+      ]
+    }
+  ],
+  "delivery_paths": [
+    {
+      "id": "es:golems:golem_shield",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Golem hurt -> cached protection veto -> raw charge counters -> ordinary hurt -> HP phase threshold",
+      "runtime_variants": [
+        "native direct/causing attribution and immunity",
+        "request vs hurt-return vs separate control effects"
+      ]
+    },
+    {
+      "id": "es:golems:energy_block_projectile",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "native non-MISS projectile block callback -> lit=false",
+      "runtime_variants": [
+        "native direct/causing attribution and immunity",
+        "request vs hurt-return vs separate control effects"
+      ]
+    },
+    {
+      "id": "es:golems:energy_block_use",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "native useWithoutItem -> lit=false",
+      "runtime_variants": [
+        "native direct/causing attribution and immunity",
+        "request vs hurt-return vs separate control effects"
+      ]
+    },
+    {
+      "id": "es:golems:golem_charge_heal",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "phase4/5/6 protected tick -> native heal .04/.02",
+      "runtime_variants": [
+        "native direct/causing attribution and immunity",
+        "request vs hurt-return vs separate control effects"
+      ]
+    },
+    {
+      "id": "es:golems:permafrost_slam",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "melee1->2->3 -> native helper Mob hurt -> success freeze/push",
+      "runtime_variants": [
+        "native direct/causing attribution and immunity",
+        "request vs hurt-return vs separate control effects"
+      ]
+    },
+    {
+      "id": "es:golems:permafrost_close_volley",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "ranged phase ticks21..45 -> melee helper and success freeze/push",
+      "runtime_variants": [
+        "native direct/causing attribution and immunity",
+        "request vs hurt-return vs separate control effects"
+      ]
+    },
+    {
+      "id": "es:golems:permafrost_tubes",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "ranged phase divisible3 ticks21..45 -> six owned tubes",
+      "runtime_variants": [
+        "native direct/causing attribution and immunity",
+        "request vs hurt-return vs separate control effects"
+      ]
+    },
+    {
+      "id": "es:golems:freeze_mob_tube",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "native ranged goal -> attackTicks12 -> owned tube",
+      "runtime_variants": [
+        "native direct/causing attribution and immunity",
+        "request vs hurt-return vs separate control effects"
+      ]
+    },
+    {
+      "id": "es:golems:player_tube",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "native item use -> Player-owned tube FREEZE6",
+      "runtime_variants": [
+        "native direct/causing attribution and immunity",
+        "request vs hurt-return vs separate control effects"
+      ]
+    },
+    {
+      "id": "es:golems:dispenser_tube",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "registered ownerless projectile -> no direct HP, splash still eligible",
+      "runtime_variants": [
+        "native direct/causing attribution and immunity",
+        "request vs hurt-return vs separate control effects"
+      ]
+    },
+    {
+      "id": "es:golems:tube_splash_control",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "non-MISS after direct callback -> native freeze/energy drain/flame removal",
+      "runtime_variants": [
+        "native direct/causing attribution and immunity",
+        "request vs hurt-return vs separate control effects"
+      ]
+    },
+    {
+      "id": "es:golems:golem_laser",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Golem phase1 tick60 -> attributed LASER4 ray",
+      "runtime_variants": [
+        "native direct/causing attribution and immunity",
+        "request vs hurt-return vs separate control effects"
+      ]
+    },
+    {
+      "id": "es:golems:orb_laser",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "selected blazing_beam Orb + crystal/cooldown -> native spell -> attributed LASER3+.5strength",
+      "runtime_variants": [
+        "native direct/causing attribution and immunity",
+        "request vs hurt-return vs separate control effects"
+      ]
+    }
+  ],
+  "damage_types_newly_reviewed": [
+    "eternal_starlight:laser"
+  ],
+  "damage_types_additional_callers_reviewed": [
+    "eternal_starlight:freeze"
+  ],
+  "reused_packages": [
+    "es:energy_sparks",
+    "es:energized_flame",
+    "es:golem_ground_smash",
+    "es:es_falling_debris",
+    "es:permafrost_damage",
+    "es:native_elemental_ticks"
+  ],
+  "unexecuted_future_fixtures": [
+    "Golem_cached_protection_charge_energyblock_projectile_vs_use",
+    "Golem_bypass_tag_vs_fallingblock_self_immunity",
+    "Golem_charge_attempt_counters_hurtfalse_nullcauser_gap10_and_hp20pct",
+    "Golem_charge_heal_veto_multiplier_and_transition_cached_state",
+    "Permafrost_target_vs_other_attacker_reach_and_hurttrue_freeze",
+    "FrozenTube_Player_Freeze_Permafrost_otherLiving_and_ownerless",
+    "FrozenTube_hurtfalse_vs_canFreeze_independent_energy_drain",
+    "FrozenTube_noLOS_ownerless_splash_and_allowner_flame_removal",
+    "Laser_blockclip_vs_Ball_fullsegment_iframes_and_hurttrue_firefield",
+    "Laser_Golem_vs_Orb_strength0_1_3_and_source_tags",
+    "Orb_native_crest_crystals_cooldown_sameitem_hand_continue",
+    "Spell_stop_still_final_tick_and_ray_discard_final_hurt"
+  ],
+  "review_required": [],
+  "remaining_subsection_native_ambiguities": [],
+  "exact_next_task": "R2h3c: Lunar Monstrosity boss attacks/defense, toxic hazards, BITE/POISON/SOUL_ABSORB callers. Then Gatekeeper/Solar Creeper and remaining custom sources/equipment/resources; finish all18 DamageType dispositions and whole-mod promotion. Reuse accepted statuses/energy/Golem/Frozen Tube/ray mechanics.",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "runtime_tests": 0,
+  "whole_eternalstarlight_complete": false,
+  "promoted_mechanics": 0,
+  "promoted_paths": 0,
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false,
+  "reference_files": [
+    {
+      "file": "native-evidence/eternalstarlight-golems.json",
+      "sha256": "9963f6e1c3237238d45dbed511359e83e9e1545bc19f9a36c8f90d4d1cece131"
+    },
+    {
+      "file": "eternalstarlight-golems-producer-census.json",
+      "sha256": "9e92ea802a6563eca1eebdbb31bd4b4b093f7f506cc0ff3f67a45bb189e6d674"
+    },
+    {
+      "file": "annotation-evidence/eternalstarlight-frozen-tube-javap.json",
+      "sha256": "d592a5fd5ce0012ac11c6d14138b50a68295f62a72eba1ed6262baf6f11d2dca"
+    },
+    {
+      "file": "annotation-evidence/eternalstarlight-frozen-tube-javap.txt",
+      "sha256": "57405cea7ea641a8d25b92898520aeaf56338d3c40d53e6e93be13c3aac11352"
+    },
+    {
+      "file": "eternalstarlight-damage-tags.json",
+      "sha256": "e3ddbb993e7c1c5842079da4173c8da218bce10c8f6bdef2b2fbc1db05ab47d3"
+    },
+    {
+      "file": "native-evidence/eternalstarlight-energy.json",
+      "sha256": "36aa3ef70741ae00b3a0d489f660247a1b0acdd8927519b96b0dec8a2b8e8677"
+    },
+    {
+      "file": "native-evidence/eternalstarlight-status-control.json",
+      "sha256": "3d6fde83de2e737384d51bc7b98b2d38cd2a4ebbd2e5f2d8e27c2426f963d15e"
+    },
+    {
+      "file": "native-evidence/eternalstarlight-foundation.json",
+      "sha256": "045d7752af404af1f66900ab9f997570242268084b2aeefd9da7b32b0e90ddd8"
+    },
+    {
+      "file": "reference-evidence/iceandfire-ghost-troll-244.json",
+      "sha256": "559079cfa89fbdaecb5efe241a4f4c7c00ff48518fa6f17dc18870cb9143ab1c"
+    },
+    {
+      "file": "reference-evidence/eternalstarlight-status-control-244.json",
+      "sha256": "04a82c87e74245062e84520d044acc7b8099922c42e310861edf65f92895eaed"
+    }
+  ]
+}

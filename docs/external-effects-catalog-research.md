@@ -858,3 +858,7 @@ Remaining seven statuses, derived Starfire, persistent Teary budget/immunity div
 ## R2h3a — Eternal Starlight energy combat
 
 Energy sources, native iframe differences, mechanical firework null-weapon gate, boomerang callback identity, ownerless ground smash and damaging debris reviewed. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/eternalstarlight-r2h3a-energy-review.md).
+
+## R2h3b — Eternal Starlight Golem, Permafrost and laser paths
+
+Protection/charge admission, pre-hurt interruption counters, Frozen Tube splash vs owner-gated HP, and block-clipped boss/Orb lasers reviewed. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/eternalstarlight-r2h3b-golems-review.md).
