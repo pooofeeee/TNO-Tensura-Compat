@@ -1,6 +1,6 @@
 # Twilight Forest — partial semantic owner table
 
-The installed4.8.3345 review is **PARTIAL** at **R2f8ab**: **262 mechanic-package drafts /936 delivery cases**, **40/40 custom DamageType profiles USED**, zero unfinished types, REVIEW_REQUIRED0. Remaining control/events/ASM/source closure unfinished. Zero final Twilight records promoted. Protected sections/cloth erratum and accepted four mods116/161/217 preserved; runtime0.
+The installed4.8.3345 review is **PARTIAL** at **R2f8ac**: **267 mechanic-package drafts /972 delivery cases**, **40/40 custom DamageType profiles USED**, zero unfinished types, REVIEW_REQUIRED0. Remaining control/events/ASM/source closure unfinished. Zero final Twilight records promoted. Protected sections/cloth erratum and accepted four mods116/161/217 preserved; runtime0.
 
 | Mechanic | Native behavior | Vanilla comparison | Classification / source coverage |
 |---|---|---|---|
@@ -480,3 +480,19 @@ Adds7/32; four custom sources closed. [Contracts and future fixtures](twilightfo
 | Configured initial/respawn | Genuine registered events; portal or NoReturn path, ignored travel return before respawn/BANISHED writes | Disabled in snapshot; real conditional path and native saved/copyOnDeath state reviewed |
 
 [Five packages/36 paths](semantic-sections/twilightforest-portals.json). No runtime fixture or production changes. Next: remaining Builder/Antibuilder/cloud/control, callbacks/ASM/compatibility/source closure and final Twilight promotion; no IceAndFire yet.
+
+## R2f8ac - Builder, Antibuilder and cloud controls
+
+Continues live-verified `8a780600bbf3b6eea309c6f65e26c6f3c3700e26`. Adds five packages/36 delivery paths; complete contracts and references are in [control-block review](twilightforest-control-blocks-review.md). Whole Twilight remains PARTIAL; 40/40 custom types USED, zero REVIEW_REQUIRED and zero promoted.
+
+| Mechanic | Native distinction | Classification |
+|---|---|---|
+| Carminite Builder | Neighbor signal schedules construction; powered onPlace does not. Native player tracking permits 17 placement branches, with transient counters and later removal chains. | CUSTOM_CONTROL |
+| Antibuilder | Compares block types in 729 transient cells; substitutes Antibuilt Blocks, not original inventory/materials. AIR replacement permits native drops. Installed tags do not ignore the substitute. | CUSTOM_CONTROL |
+| Cloud fall | All four use native fall with .1 input multiplier before rounding; hooks, attributes, passengers and hurt admission remain. | VANILLA_LIKE_EXTENDED |
+| Cloud precipitation | Local snow and native block precipitation callbacks, including real cauldron filling; no Frosted or global weather change. | CUSTOM_CONTROL |
+| Cloud rain query | Exact all-return ASM extends local rain eligibility; sensitive damage, hydration, extinguishing, Riptide and Conduit retain native predicates and source identity. | VANILLA_LIKE_EXTENDED |
+
+SnowyDirt appearance, portal-adjacent mushroom support, client cloud presentation and other noncombat consumers are explicitly dispositioned. Accepted four mods 116/161/217 and all previous protected drafts/errata remain unchanged. Runtime tests 0. Validation: exact source/reference/config/caller guards, five tooling tests, subsection/full catalog integrity, preservation and diff checks.
+
+Exact next task: Wrought Iron Fence/native leash/pathfinding control, remaining event callbacks/nested ASM, compatibility and global source exclusions, then R2f8 remaining-content closure and final Twilight dedup/promotion. IceAndFire only after Twilight COMPLETE is pushed and live-verified.

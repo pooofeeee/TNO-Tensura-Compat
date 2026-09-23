@@ -706,3 +706,13 @@ Installed destructivePortalLightning=true makes a visual-only bolt but explicitl
 Twilight remains PARTIAL at262 mechanic drafts/936 delivery cases;40/40 custom types USED, REVIEW_REQUIRED0, zero promoted. Earlier protected drafts/errata and accepted four mods116/161/217 unchanged; runtime0. Validation saved: source/caller/ordering/config integrity, native references, five tooling tests, subsection/full catalog checks, preservation and diff checks.
 
 Exact next task: Builder/Antibuilder and cloud/snow/control blocks, remaining event callbacks/nested ASM, compatibility attribution and source exclusions. Then protect R2f8 remaining-content closure and final Twilight dedup/promotion. IceAndFire remains unstarted until Twilight COMPLETE is pushed and live-verified. Continue automatically while actual enforced usage remains healthy.
+
+## R2f8ac - native Builder, Antibuilder and cloud controls
+
+Continues live-verified `8a780600bbf3b6eea309c6f65e26c6f3c3700e26`. Adds five packages/36 paths covering custom terrain construction/substitution, native fall reduction, local precipitation and exact cloud rain-query consumers. [Reviewed contracts and evidence](benchmarks/external-effects-catalog/twilightforest-control-blocks-review.md).
+
+Builder admits 17 placement branches from its <=16 counter test; powered onPlace does not itself schedule construction. Antibuilder compares block types in a transient 729-cell snapshot and substitutes Antibuilt Blocks, without restoring original inventories. Its native AIR-removal path permits drops. Cloud fall multiplies native input by .1 before rounding and retains all fall/hurt gates. Exact cloud rain ASM affects local wetness consumers, including native water-sensitive damage and Conduit/Riptide eligibility; it does not set global weather or bypass those consumers' additional prerequisites. Snow/mushroom support and client presentation are explicitly dispositioned without extra combat packages.
+
+Twilight remains PARTIAL at267 mechanic drafts/972 delivery cases, all40 custom DamageTypes USED, REVIEW_REQUIRED0, zero promoted. Previous protected drafts/errata and accepted four mods116/161/217 remain unchanged; runtime0. Validation includes source/reference/caller/config integrity, native ordering/return guards, all five tooling tests, subsection/full validation, preservation and diff checks.
+
+Exact next task: Wrought Iron Fence/native leash/pathfinding control, then remaining events/nested ASM, compatibility attribution and source exclusions. Protect R2f8 whole remaining-content closure and final Twilight dedup/promotion before IceAndFire. Continue automatically while actual enforced usage remains healthy.

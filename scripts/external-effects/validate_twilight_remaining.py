@@ -56,6 +56,9 @@ def validate_remaining():
         if d['slug']=='vanishing-doors':
             from validate_twilight_vanishing_doors import validate_vanishing_doors
             validate_vanishing_doors(d,s,old,new,methods,ins,pos,target)
+        if d['slug']=='control-blocks':
+            from validate_twilight_control_blocks import validate_control_blocks
+            validate_control_blocks(d,s,old,new,methods,ins,pos,target)
         if d['slug']=='portals':
             from validate_twilight_portals import validate_portals
             validate_portals(d,s,old,new,methods,ins,pos,target)

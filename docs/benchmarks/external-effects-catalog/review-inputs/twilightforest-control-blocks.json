@@ -1,0 +1,1203 @@
+{
+  "slug": "control-blocks",
+  "checkpoint_short": "r2f8ac",
+  "checkpoint": "R2f8ac-control-blocks-complete",
+  "decision": "TWILIGHT_CONTROL_BLOCKS_SEMANTIC_REVIEW_COMPLETE",
+  "starting_sha": "8a780600bbf3b6eea309c6f65e26c6f3c3700e26",
+  "previous_checkpoint": "R2f8ab-portals-complete",
+  "previous_draft": "partial-drafts/twilightforest-r2f8ab-partial.json",
+  "facts": {
+    "authority": "Installed TF 4.8.3345 and exact nested ASM, Minecraft 1.21.1 and NeoForge 21.1.244 are the static authority. Prior protected sections and all 40 USED custom DamageTypes are preserved. No runtime fixture, L2, Stage, production or Phase 6/7 change. Native terrain control, fall mitigation and native rain consumers are separate mechanics; no fabricated cloud damage source.",
+    "builder_producer": "Actual registered carminite_builder creates the typed TOWER_BUILDER block entity. DarkTowerMain.addTopBuilderPlatform and makeBuilderPlatform place default inactive Builders with native unpowered levers; makeBuilderPlatforms routes to them. Genuine placed block/redstone callbacks also supply the native path. Default state BUILDER_INACTIVE; only ACTIVE state supplies its ticker, and block entity tick work is server-side. Builder hardness 10/resistance 6, piston BLOCK; built_block hardness 50/resistance 2000, full native collision despite noOcclusion, no loot, piston BLOCK.",
+    "builder_activation": "Server neighborChanged INACTIVE+powered writes ACTIVE, sounds and schedules 4 ticks. ACTIVE+unpowered writes INACTIVE and schedules 4; TIMEOUT+unpowered writes INACTIVE without scheduling. These are separate checks on captured original variant. Server onPlace INACTIVE+powered writes ACTIVE and sounds but does NOT schedule or startBuilding. Scheduled ACTIVE+still powered calls letsBuild only if the actual block entity exists and is not makingBlocks. Scheduled INACTIVE/TIMEOUT requires a non-null cast block entity, resets counters and activates six adjacent Built Blocks for removal. Initial powered placement alone can therefore run the idle countdown rather than start construction.",
+    "builder_tracking": "startBuilding sets makingBlocks=true then resetStats. When making and trackedPlayer is null, nearest player within strict distance 16 from block center is selected using getNearestPlayer(...,false): native NO_SPECTATORS includes creative and has no explicit alive predicate. No owner, team, line-of-sight or subsequent range/alive revalidation. Direction is floor(pitch*4/360+1.5)&3: 0 UP, 2 DOWN, otherwise player horizontal getDirection. Without a player, nextFacing is null and construction can wait indefinitely without adding blockedCounter.",
+    "builder_build": "While making on server, increment ticksRunning; every 10 counts, with lastBlockCoords and direction, inspect adjacent destination. If blocksMade<=16 AND isEmptyBlock, set native inactive built_block with flags 3, sound, advance last coordinates, clear blockedCounter and increment blocksMade; write return is ignored. Starting at 0 permits 17 placement branches, not 16. A blocked destination or exhausted allowance increments blockedCounter; >0 then stops making, clears tracked player and resets stopped counter. No direct hurt, setHealth, entity displacement or player placement/break event in this body; resulting collision is native terrain behavior.",
+    "builder_removal": "When active ticker is not making, it clears trackedPlayer; ++ticksStopped==60 writes TIMEOUT and schedules 4 ticks. Builder scheduled inactive/timeout or actual block replacement activates exact adjacent built_block if not ACTIVE: writes ACTIVE and schedules 10 ticks. TranslucentBuiltBlock scheduled ACTIVE removes itself without drops then activates all six neighbors; removals/writes are not success-gated. This is a propagating terrain-removal chain, not an attack or lock search.",
+    "builder_persistence": "Block state and native scheduled ticks persist normally. Block entity has no custom save/load methods for makingBlocks, tracking, counters or last position. resetStats resets blocksMade, last position, ticksStopped and blockedCounter, but NOT makingBlocks, ticksRunning or trackedPlayer. Inactive block states have no ticker, so a power cycle may retain making/tracking/cadence in the live block entity; reload reconstructs those transient fields. No guaranteed fresh owner or ten-tick phase is inferred on each power cycle.",
+    "antibuilder_producer": "Actual antibuilder creates typed AntibuilderBlockEntity; ticker available on both sides, client branch only particles. Native Dark Tower unbuilder maze and makeBuilderPlatforms place the block. Server operation requires hasNearbyAlivePlayer(center,16): strict distance <16, native NO_SPECTATORS AND LIVING_ENTITY_STILL_ALIVE; creative is admitted. Antibuilder hardness 10/resistance 6, light 10, no loot, piston BLOCK. Absence of a qualifying player clears snapshot and tickCount, not the other transient counters.",
+    "antibuilder_snapshot": "After qualifying range increments tickCount, server captures 9x9x9=729 BlockState references only if snapshot null and areaLoaded radius 4; starts slowScan. Existing snapshot scans every tick when fast, otherwise tickCount%20==0. Only block TYPE identity differences are tested, so same-block properties, inventory and block entity NBT changes are not restored. revertBlock true keeps original snapshot, sets fastScan and ticksSinceChange=0. False adopts current state as new baseline. More than 20 unchanged scan results returns to slow mode. Snapshot and all counters lack custom NBT persistence; leaving/re-entering range or reloading captures a new world baseline.",
+    "antibuilder_revert": "Reject/adopt change if current is AIR and original snapshot does not block motion, current destroy speed <0, or current/original is in ANTIBUILDER_IGNORES. Otherwise each scan has nextInt(10)==0 write chance. Original non-air becomes default ANTIBUILT_BLOCK, not the original material/state/inventory; original air becomes AIR. If current is air, emit block-break level event for replacement. Then native Block.updateOrDestroy(current,replacement,level,pos,2). Returns true even if randomness declined or write had no effect, so pending eligible changes keep fast scanning. Installed ignored tag does NOT contain antibuilt_block, including common_protections expansion: replacement can remain a type mismatch with original forever; native same-state updateOrDestroy then does nothing on later write attempts.",
+    "antibuilder_native_removal": "Native Block.updateOrDestroy checks replacement identity. Replacement AIR calls server destroyBlock with dropItems=(flags&32)==0; flags 2 therefore permits normal native drops. Non-air calls setBlock with flags&~32. Native drops/removal/block callbacks remain; no original inventory restoration, direct player BreakEvent, HP operation or ownership claim. ANTIBUILT_BLOCK is ordinary full-collision Block, no loot/noOcclusion, hardness .3/resistance 2000, piston BLOCK. Source ignored tag includes redstone_lamp, tnt, water, specified tower machinery, common_protections and optional gravestone:gravestone. Optional tag entry is source-specific integration evidence, not proof of loaded pack behavior.",
+    "cloud_producers": "Native block items/resources provide wispy_cloud, fluffy_cloud, rainy_cloud and snowy_cloud. Trollcave CloudComponent places wispy/fluffy through setIfAir; CloudTree and CloudCastle foundations place fluffy. GrowingBeanstalk cloud replacement is reused from the protected structural-utilities review. Wispy has collision height 14/16 despite forceSolidOff/replaceable/noOcclusion, hardness .3/resistance 0 and no randomTicks; fixed precipitation NONE. Other three have ordinary full Block collision, hardness .8/resistance 0 and randomTicks; all piston DESTROY. Client CloudEvents rendering/sounds and registered EntityEvents.addCloudJumpParticles do not change velocity, server weather, effects or HP.",
+    "cloud_fall": "All four inherit fallOn -> entity.causeFallDamage(distance,.1,damageSources.fall()), discarding return and not calling parent fallOn. Native Entity forwards to passengers unless FALL_DAMAGE_IMMUNE, and returns false. Living first runs CommonHooks.onLivingFall; canceled hook returns false; otherwise uses hook-adjusted distance/multiplier, then superclass/passengers and calculateFallDamage. Immune type yields 0; otherwise ceil((double)((distance-(float)SAFE_FALL_DISTANCE)*multiplier)*FALL_DAMAGE_MULTIPLIER). With unmodified inputs multiplier=.1 BEFORE rounding. No additional Jump Boost subtraction in this formula. If computed >0, native sound then hurt(fall,computed) return discarded and causeFallDamage returns true even when hurt fails. Not universal 90% final HP reduction or unconditional fall immunity.",
+    "native_damage_identities": "Exact machine-readable vanilla-source profiles pin declarations and installed tag membership. fall/drown/magic/dry_out factories are cached ownerless sources: direct null, causing null, position null, so when_caused_by_living_non_player does not scale them. fall bypasses armor/shield, is_fall/no_knockback and NeoForge physical; drown bypasses armor/shield/wolf armor, is_drowning/no_impact/no_knockback/wither_immune_to and environmental; magic bypasses armor/shield/wolf armor, no_knockback, magic and its native subtype tags (including Twilight breaks_lich_shields, which alone does not establish a legitimate Lich shield break). dry_out is environmental, bypasses wolf armor but NOT armor/shield. None is fire/projectile/explosion or bypasses effects/resistance/enchantments/invulnerability/cooldown. Native Resistance/protection/absorption/incoming hooks and recipient-specific admission remain. No success implies HP delta, and no SHP bypass is introduced.",
+    "cloud_precipitation": "Installed commonCloudBlockPrecipitationDistance=32 (config range 0..INT_MAX); 0 disables additional rain query and random precipitation. Fluffy null mode uses biome precipitation only if global rainLevel>0, with that intensity. Rainy always RAIN/1; snowy always SNOW/1; wispy NONE/1. Server randomTick requires areaLoaded radius 1 and distance !=0, positive intensity and RAIN/SNOW. Start highest=cloudY-1; scan y=Y-1 while y>Y-distance and current state is not MOTION_BLOCKING opaque, assigning highest=y-1. If highest>minBuildHeight, snow logic then invokes actual block.handlePrecipitation at highest for either rain or snow. This does not set global weather or manufacture fluid/rain damage.",
+    "cloud_snow_cauldron": "Snow: gamerule snowAccumulationHeight>0; position highest+1 within build height, BLOCK light<10, current AIR or SNOW and default SNOW.canSurvive. Existing layers increment only below min(rule,8), call native pushEntitiesUp then setBlockAndUpdate; fresh snow writes default state. No freeze/Frosted callback. Native cauldron precipitation is an actual consumer: empty cauldron uses random<.05 rain -> WATER_CAULDRON level1, <.1 snow -> POWDER_SNOW_CAULDRON level1. Layered cauldron requires matching precipitation and level!=3, increments one with same random gate. Subsequent native burning-entity content contact clears fire, then mayInteract gates level consumption; snow content converts to water while lowering. Other actual block overrides remain dynamic, not universal farmland/fire behavior.",
+    "cloud_rain_asm": "Exact installed IsRainingAtTransformer targets Level.isRainingAt(BlockPos)Z, every IRETURN, inserting original bool+local0 Level+local1 position into BlockHooks.isRainingAt. Registered TFCoreMod/service is reused. Original true remains true. Otherwise distance>0 and hasChunkAt are required; scan current query Y inclusive to <Y+distance in its loaded chunk. First CloudBlock with current precipitation RAIN returns true BEFORE its opacity check. Any earlier MOTION_BLOCKING opaque state returns false. Thus rainy clouds can supply local rain without sky/global rain/biome eligibility; fluffy still requires its biome/weather condition. Snowy and wispy do not provide RAIN, and opaque non-rain clouds may block higher clouds. No stored wetness status or owner is assigned.",
+    "cloud_wet_damage": "Native Entity.isInRain tests isRainingAt at block position OR bounding-box maxY at same integer X/Z. Native isInWaterOrRain and isInWaterRainOrBubble share that result. Living.aiStep server + isSensitiveToWater + wet calls hurt(drown,1) each qualifying callback; return discarded, with native hurt cooldown/defenses still limiting accepted damage. Exact Blaze, EnderMan, Strider and SnowGolem return true; ordinary Living false. EnderMan ownerless nonprojectile hurt first calls super, then server nextInt(10)!=0 attempts native teleport regardless of super hurt result; invulnerability rejection precedes that. Native destination solidity/no-water, alive/server, teleport hook, collision and return conditions remain.",
+    "cloud_wet_preservation": "Alive Living.baseTick wetness calls extinguishFire; native Entity.move and AbstractArrow.tick retain their own wet fire cleanup. Mob.isSunBurnTick treats wetness as a rejection alongside its daylight/brightness/sky/random gates. Axolotl !noAI baseTick handles air: wet resets maxAir 6000; dry alive decreases, at -20 resets0 and requests dry_out2. Dolphin !noAI wet resets moisture2400; dry decrements, <=0 requests dry_out1 and ground dry branch can flop. These are prevention of native dryness/fire consequences, not healing or cloud-emitted dry_out. Native Wolf wet/shake visuals are not a new combat effect.",
+    "cloud_riptide": "Native TridentItem use rejects too-damaged stack or positive spin strength while !isInWaterOrRain. Release requires Player, charge>=10, wet if strength>0 and usable durability; retains native server cost1. Positive native enchantment spin strength pushes normalized view vector*strength, startAutoSpinAttack(20,8,stack), and if grounded moves up1.1999999. Cloud changes the wet prerequisite only; native enchantments, attack/equipment callbacks and movement/collision remain. Zero-strength thrown-trident branch is not a cloud-created attack or alternate damage source.",
+    "cloud_conduit": "Native Conduit server gameTime%40: active requires every block in centered3x3x3 isWaterAt plus >=16 valid frame blocks (exact loader isConduitFrame). Rain does not satisfy that actual water requirement. Active effect radius integer frameCount/7*16, expanded query plus strict native block-position distance; qualifying Player wet -> CONDUIT_POWER260/amp0 ambient/visible through native addEffect. Attack needs >=42 frames. Fresh selection chooses random Enemy+wet within AABB(blockpos).inflate8; existing target instead checks alive and strict block-distance8, without rechecking wet/Enemy. Saved UUID reacquisition uses unique matching UUID in that box. If non-null, native sound then hurt(magic,4), return ignored. Cloud can admit fresh wet targets/players but does not own the source, replace native mitigation, bypass structure or guarantee continued rain eligibility.",
+    "cloud_weather_limits": "FarmBlock.randomTick uses isRainingAt(above) independently of global rain: permits moisture7, not damage. FireBlock main rain extinguish/spread branches still require global isRaining (and doFireTick etc); local query cannot alone enable all of them. Actual neighbor checkBurnOut after flammability/onCaughtFire uses !isRainingAt directly when choosing fire placement versus removal, so local cloud rain can affect that branch without global rain. Natural lightning in ServerLevel.tickChunk first requires global rain AND thunder AND nextInt(100000)==0; the cloud hook changes only later isRainingAt. No cloud-only thunder/Channeling claim. Native fishing rain timing is noncombat (25% extra decrement, independent sky penalty); Leaves animation rain drips are presentation.",
+    "snow_support_exclusion": "Exact KeepGrassSnowyForSnowloggableBlocksTransformer targets every IRETURN of static SnowyDirtBlock.isSnowySetting, passes original bool and local0 state. Hook preserves true or accepts SnowLoggable with SNOW_LAYERS>0. Native placement/up-neighbor consumer sets SNOWY appearance property; no damage, resistance or extra snow layers in this hook. Existing SnowLoggable plant snow behavior remains the protected contact-hazards review, not duplicated here.",
+    "mushroom_support_exclusion": "Exact ModifySoilDecisionForMushroomBlockSurvivabilityTransformer inserts after each BlockState.canSustainPlant invocation in native MushroomBlock.canSurvive, passing result+level local2+position local3. Hook preserves non-DEFAULT TriState; DEFAULT becomes TRUE if any of 8 adjacent X/Z positions at Y-1 is actual TF portal (either state). It excludes center. Exact loader still admits MUSHROOM_GROW_BLOCK directly, otherwise non-default decision controls survival, else native brightness<13 and soil test. Thus portal vicinity can satisfy survival despite ordinary light/soil failure, but no healing/damage/portal transport is performed. Explicit support exclusion, not an unresolved combat mechanic.",
+    "compatibility": "DIRECT_SOURCE_SPECIFIC: native tower/cloud/portal tags and three actual registered TF transformers; optional gravestone block tag is explicit integration. GENERIC_CONDITIONAL_PRESENT: native fall/incoming/teleport hooks, native rain-query and precipitation consumers, extensible conduit frame and block tags. NONE_PROVEN: inspected control logic has no direct Tensura/L2/Curios mapping. UNKNOWN: runtime transformer application, third-party hooks/tag changes/world gamerules and pack-wide outcomes. Static trace is not compatibility certification."
+  },
+  "packages": [
+    {
+      "id": "twilightforest:carminite_builder_terrain_control",
+      "display_name": "Carminite Builder construction/removal control",
+      "owner": "carminite_builder_terrain_control",
+      "primary_classification": "CUSTOM_CONTROL",
+      "facts": [
+        "builder_producer",
+        "builder_activation",
+        "builder_tracking",
+        "builder_build",
+        "builder_removal",
+        "builder_persistence"
+      ],
+      "classes": [
+        "block/BuilderBlock",
+        "block/entity/CarminiteBuilderBlockEntity",
+        "block/TranslucentBuiltBlock"
+      ],
+      "parameters": {
+        "player_range": 16,
+        "schedule_delay": 4,
+        "build_cadence": 10,
+        "placement_branches_max": 17,
+        "idle_timeout": 60,
+        "chain_delay": 10
+      },
+      "gates": [
+        "server",
+        "native block state/redstone",
+        "native player query",
+        "empty destination"
+      ],
+      "relation": "Native block placement/removal driven by custom state machine.",
+      "primary_test_source": "Actual generated Dark Tower Builder and lever",
+      "alternate_sources": [
+        "placed powered",
+        "no player",
+        "creative/spectator",
+        "obstruction",
+        "power cycle",
+        "reload"
+      ]
+    },
+    {
+      "id": "twilightforest:antibuilder_terrain_substitution",
+      "display_name": "Antibuilder snapshot and terrain substitution",
+      "owner": "antibuilder_terrain_substitution",
+      "primary_classification": "CUSTOM_CONTROL",
+      "facts": [
+        "antibuilder_producer",
+        "antibuilder_snapshot",
+        "antibuilder_revert",
+        "antibuilder_native_removal"
+      ],
+      "classes": [
+        "block/AntibuilderBlock",
+        "block/entity/AntibuilderBlockEntity"
+      ],
+      "parameters": {
+        "player_range": 16,
+        "snapshot_radius": 4,
+        "snapshot_cells": 729,
+        "slow_period": 20,
+        "write_chance_denominator": 10
+      },
+      "gates": [
+        "alive nonspectator player",
+        "loaded initial capture",
+        "block-type difference",
+        "hardness/tag admission"
+      ],
+      "relation": "Custom transient snapshot substitute; native drops remain on AIR removal.",
+      "primary_test_source": "Actual native Antibuilder in Dark Tower",
+      "alternate_sources": [
+        "property-only change",
+        "inventory",
+        "ignored tag",
+        "unbreakable",
+        "no player",
+        "failed chance",
+        "reload"
+      ]
+    },
+    {
+      "id": "twilightforest:cloud_native_fall_reduction",
+      "display_name": "Cloud native fall request reduction",
+      "owner": "cloud_native_fall_reduction",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "facts": [
+        "cloud_producers",
+        "cloud_fall",
+        "native_damage_identities"
+      ],
+      "classes": [
+        "block/CloudBlock",
+        "block/WispyCloudBlock"
+      ],
+      "parameters": {
+        "input_fall_multiplier": 0.1,
+        "wispy_collision_height": 0.875
+      },
+      "gates": [
+        "actual fallOn",
+        "native entity type",
+        "fall hook",
+        "positive computed damage",
+        "native hurt admission"
+      ],
+      "relation": "Native fall pipeline with reduced pre-round multiplier.",
+      "primary_test_source": "Genuine falling entity landing on native cloud",
+      "alternate_sources": [
+        "four cloud variants",
+        "fall immune",
+        "passenger",
+        "fall hook veto",
+        "attribute changes",
+        "hurt false"
+      ]
+    },
+    {
+      "id": "twilightforest:cloud_native_precipitation_terrain",
+      "display_name": "Cloud snow and native precipitation callbacks",
+      "owner": "cloud_native_precipitation_terrain",
+      "primary_classification": "CUSTOM_CONTROL",
+      "facts": [
+        "cloud_producers",
+        "cloud_precipitation",
+        "cloud_snow_cauldron"
+      ],
+      "classes": [
+        "block/CloudBlock",
+        "block/WispyCloudBlock"
+      ],
+      "parameters": {
+        "default_distance": 32,
+        "snow_layer_cap": 8,
+        "rain_cauldron_chance": 0.05,
+        "snow_cauldron_chance": 0.1
+      },
+      "gates": [
+        "loaded area",
+        "config",
+        "actual cloud mode",
+        "opacity scan",
+        "native snow support and gamerule",
+        "recipient block callback"
+      ],
+      "relation": "Custom local precipitation routing through native snow/cauldron behavior.",
+      "primary_test_source": "Native rainy/snowy/fluffy cloud random ticks",
+      "alternate_sources": [
+        "zero distance",
+        "obstruction",
+        "light",
+        "snow rule",
+        "full/wrong cauldron",
+        "block override"
+      ]
+    },
+    {
+      "id": "twilightforest:cloud_native_rain_query",
+      "display_name": "Cloud local rain eligibility and native consumers",
+      "owner": "cloud_native_rain_query",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "facts": [
+        "cloud_rain_asm",
+        "cloud_wet_damage",
+        "cloud_wet_preservation",
+        "cloud_riptide",
+        "cloud_conduit",
+        "cloud_weather_limits",
+        "native_damage_identities"
+      ],
+      "classes": [
+        "block/CloudBlock",
+        "asmhooks/BlockHooks"
+      ],
+      "parameters": {
+        "default_query_distance": 32,
+        "water_sensitive_request": 1,
+        "conduit_request": 4,
+        "conduit_period": 40,
+        "conduit_effect_duration": 260,
+        "conduit_effect_amplifier": 0
+      },
+      "gates": [
+        "exact installed transformer",
+        "original rain or loaded unobstructed cloud column",
+        "native consumer prerequisites",
+        "actual recipient and hurt hooks"
+      ],
+      "relation": "Extended native local rain query; downstream native mechanics retain separate gates.",
+      "primary_test_source": "Actual rainy cloud above native sensitive/wetness consumer",
+      "alternate_sources": [
+        "global dry",
+        "fluffy biome",
+        "snowy/wispy",
+        "roof",
+        "Conduit frame/water",
+        "Riptide enchantment",
+        "teleport veto",
+        "native mitigation"
+      ]
+    }
+  ],
+  "paths": [
+    {
+      "id": "twilightforest:path:control_blocks_builder_worldgen",
+      "source": "Native Dark Tower Builder and lever",
+      "effect_ids": [
+        "twilightforest:carminite_builder_terrain_control"
+      ],
+      "facts": [
+        "builder_producer",
+        "builder_activation"
+      ],
+      "classes": [
+        "world/components/structures/darktower/DarkTowerMainComponent",
+        "block/BuilderBlock"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native Dark Tower Builder and lever. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "unpowered generated lever",
+        "actual neighbor signal"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_builder_place",
+      "source": "Native Builder placed under existing power",
+      "effect_ids": [
+        "twilightforest:carminite_builder_terrain_control"
+      ],
+      "facts": [
+        "builder_activation"
+      ],
+      "classes": [
+        "block/BuilderBlock",
+        "block/entity/CarminiteBuilderBlockEntity"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native Builder placed under existing power. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "onPlace no schedule",
+        "idle timeout",
+        "later neighbor notification"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_builder_redstone",
+      "source": "Native signal activation/deactivation",
+      "effect_ids": [
+        "twilightforest:carminite_builder_terrain_control"
+      ],
+      "facts": [
+        "builder_activation"
+      ],
+      "classes": [
+        "block/BuilderBlock"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native signal activation/deactivation. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "inactive/active/timeout",
+        "captured variant",
+        "four-tick schedule"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_builder_player",
+      "source": "Native Builder player acquisition/tracking",
+      "effect_ids": [
+        "twilightforest:carminite_builder_terrain_control"
+      ],
+      "facts": [
+        "builder_tracking"
+      ],
+      "classes": [
+        "block/entity/CarminiteBuilderBlockEntity"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native Builder player acquisition/tracking. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "strict16",
+        "creative",
+        "spectator",
+        "no alive filter",
+        "moving away"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_builder_direction",
+      "source": "Native pitch and heading construction",
+      "effect_ids": [
+        "twilightforest:carminite_builder_terrain_control"
+      ],
+      "facts": [
+        "builder_tracking",
+        "builder_build"
+      ],
+      "classes": [
+        "block/entity/CarminiteBuilderBlockEntity"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native pitch and heading construction. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "pitch bins",
+        "horizontal direction",
+        "ten-count cadence"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_builder_limit",
+      "source": "Native seventeen-branch empty-block construction",
+      "effect_ids": [
+        "twilightforest:carminite_builder_terrain_control"
+      ],
+      "facts": [
+        "builder_build"
+      ],
+      "classes": [
+        "block/entity/CarminiteBuilderBlockEntity"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native seventeen-branch empty-block construction. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "17 vs16",
+        "obstruction",
+        "failed state write",
+        "full native collision"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_builder_no_player",
+      "source": "Native no-player construction wait",
+      "effect_ids": [
+        "twilightforest:carminite_builder_terrain_control"
+      ],
+      "facts": [
+        "builder_tracking",
+        "builder_build"
+      ],
+      "classes": [
+        "block/entity/CarminiteBuilderBlockEntity"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native no-player construction wait. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "null facing",
+        "no blocked increment",
+        "later player"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_builder_timeout",
+      "source": "Native blocked construction and idle timeout",
+      "effect_ids": [
+        "twilightforest:carminite_builder_terrain_control"
+      ],
+      "facts": [
+        "builder_build",
+        "builder_removal"
+      ],
+      "classes": [
+        "block/entity/CarminiteBuilderBlockEntity",
+        "block/BuilderBlock"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native blocked construction and idle timeout. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "first blocked attempt",
+        "60 idle ticks",
+        "four-tick removal start"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_builder_chain",
+      "source": "Native Built Block removal propagation",
+      "effect_ids": [
+        "twilightforest:carminite_builder_terrain_control"
+      ],
+      "facts": [
+        "builder_removal"
+      ],
+      "classes": [
+        "block/BuilderBlock",
+        "block/TranslucentBuiltBlock"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native Built Block removal propagation. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "six neighbors",
+        "ten-tick chain",
+        "removed Builder",
+        "no drops"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_builder_save",
+      "source": "Native Builder power-cycle and reload state",
+      "effect_ids": [
+        "twilightforest:carminite_builder_terrain_control"
+      ],
+      "facts": [
+        "builder_persistence"
+      ],
+      "classes": [
+        "block/BuilderBlock",
+        "block/entity/CarminiteBuilderBlockEntity"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native Builder power-cycle and reload state. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "counters not all reset",
+        "inactive no ticker",
+        "transient reload"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_antibuilder_worldgen",
+      "source": "Native generated Antibuilder maze/platform",
+      "effect_ids": [
+        "twilightforest:antibuilder_terrain_substitution"
+      ],
+      "facts": [
+        "antibuilder_producer"
+      ],
+      "classes": [
+        "world/components/structures/darktower/DarkTowerMainComponent",
+        "block/AntibuilderBlock"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native generated Antibuilder maze/platform. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "actual block entity",
+        "no loot",
+        "native player proximity"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_antibuilder_player",
+      "source": "Native living-player range admission",
+      "effect_ids": [
+        "twilightforest:antibuilder_terrain_substitution"
+      ],
+      "facts": [
+        "antibuilder_producer"
+      ],
+      "classes": [
+        "block/entity/AntibuilderBlockEntity"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native living-player range admission. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "strict16",
+        "alive",
+        "spectator",
+        "creative"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_antibuilder_capture",
+      "source": "Native loaded snapshot and scan cadence",
+      "effect_ids": [
+        "twilightforest:antibuilder_terrain_substitution"
+      ],
+      "facts": [
+        "antibuilder_snapshot"
+      ],
+      "classes": [
+        "block/entity/AntibuilderBlockEntity"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native loaded snapshot and scan cadence. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "729 cells",
+        "areaLoaded4",
+        "slow20",
+        "fast each tick"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_antibuilder_sameblock",
+      "source": "Native same-type state/inventory control",
+      "effect_ids": [
+        "twilightforest:antibuilder_terrain_substitution"
+      ],
+      "facts": [
+        "antibuilder_snapshot"
+      ],
+      "classes": [
+        "block/entity/AntibuilderBlockEntity"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native same-type state/inventory control. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "property change",
+        "inventory change",
+        "NBT not captured"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_antibuilder_ignore",
+      "source": "Native rejected change becomes baseline",
+      "effect_ids": [
+        "twilightforest:antibuilder_terrain_substitution"
+      ],
+      "facts": [
+        "antibuilder_revert"
+      ],
+      "classes": [
+        "block/entity/AntibuilderBlockEntity"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native rejected change becomes baseline. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "air/nonmotion",
+        "negative hardness",
+        "current or saved tag",
+        "optional gravestone"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_antibuilder_replace",
+      "source": "Native solid replacement with Antibuilt Block",
+      "effect_ids": [
+        "twilightforest:antibuilder_terrain_substitution"
+      ],
+      "facts": [
+        "antibuilder_revert",
+        "antibuilder_native_removal"
+      ],
+      "classes": [
+        "block/entity/AntibuilderBlockEntity"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native solid replacement with Antibuilt Block. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "one-in-ten",
+        "default substitute",
+        "no inventory restoration",
+        "continued mismatch"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_antibuilder_delete",
+      "source": "Native deletion of added blocks",
+      "effect_ids": [
+        "twilightforest:antibuilder_terrain_substitution"
+      ],
+      "facts": [
+        "antibuilder_revert",
+        "antibuilder_native_removal"
+      ],
+      "classes": [
+        "block/entity/AntibuilderBlockEntity"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native deletion of added blocks. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "saved AIR",
+        "native drops",
+        "recipient onRemove",
+        "no direct BreakEvent"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_antibuilder_save",
+      "source": "Native range exit and reload baseline",
+      "effect_ids": [
+        "twilightforest:antibuilder_terrain_substitution"
+      ],
+      "facts": [
+        "antibuilder_snapshot"
+      ],
+      "classes": [
+        "block/entity/AntibuilderBlockEntity"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native range exit and reload baseline. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "snapshot cleared",
+        "new baseline",
+        "unsaved counters"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_cloud_worldgen",
+      "source": "Native troll cloud terrain/block-item source",
+      "effect_ids": [
+        "twilightforest:cloud_native_fall_reduction",
+        "twilightforest:cloud_native_precipitation_terrain",
+        "twilightforest:cloud_native_rain_query"
+      ],
+      "facts": [
+        "cloud_producers"
+      ],
+      "classes": [
+        "block/CloudBlock",
+        "block/WispyCloudBlock",
+        "world/components/structures/trollcave/CloudComponent",
+        "world/components/structures/trollcave/CloudTreeComponent"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native troll cloud terrain/block-item source. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "wispy14/16",
+        "other full collision",
+        "real resources"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_cloud_fall",
+      "source": "Native cloud fall callback",
+      "effect_ids": [
+        "twilightforest:cloud_native_fall_reduction"
+      ],
+      "facts": [
+        "cloud_fall",
+        "native_damage_identities"
+      ],
+      "classes": [
+        "block/CloudBlock"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native cloud fall callback. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "four variants",
+        "pre-round .1",
+        "attributes",
+        "native fall source"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_cloud_fall_gate",
+      "source": "Native fall cancellation/passenger/HP admission",
+      "effect_ids": [
+        "twilightforest:cloud_native_fall_reduction"
+      ],
+      "facts": [
+        "cloud_fall"
+      ],
+      "classes": [
+        "block/CloudBlock"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native fall cancellation/passenger/HP admission. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "fall hook veto",
+        "immune type",
+        "passengers",
+        "hurt return independent"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_cloud_modes",
+      "source": "Native cloud precipitation variants/config",
+      "effect_ids": [
+        "twilightforest:cloud_native_precipitation_terrain"
+      ],
+      "facts": [
+        "cloud_precipitation"
+      ],
+      "classes": [
+        "block/CloudBlock",
+        "block/WispyCloudBlock"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native cloud precipitation variants/config. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "rainy always",
+        "snowy always",
+        "fluffy biome/weather",
+        "wispy none",
+        "zero32 boundary"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_cloud_column",
+      "source": "Native precipitation loaded/opaque column",
+      "effect_ids": [
+        "twilightforest:cloud_native_precipitation_terrain"
+      ],
+      "facts": [
+        "cloud_precipitation"
+      ],
+      "classes": [
+        "block/CloudBlock"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native precipitation loaded/opaque column. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "areaLoaded1",
+        "strict bottom bound",
+        "min build",
+        "first opaque"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_cloud_snow",
+      "source": "Native snow accumulation and entity displacement",
+      "effect_ids": [
+        "twilightforest:cloud_native_precipitation_terrain"
+      ],
+      "facts": [
+        "cloud_snow_cauldron"
+      ],
+      "classes": [
+        "block/CloudBlock"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native snow accumulation and entity displacement. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "light<10",
+        "native survival",
+        "rule0/1/8/above8",
+        "pushEntitiesUp",
+        "no Frosted"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_cloud_cauldron",
+      "source": "Native cauldron fill and later fire contact",
+      "effect_ids": [
+        "twilightforest:cloud_native_precipitation_terrain"
+      ],
+      "facts": [
+        "cloud_snow_cauldron"
+      ],
+      "classes": [
+        "block/CloudBlock"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native cauldron fill and later fire contact. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "rain/snow chance",
+        "matching type",
+        "level3",
+        "content contact",
+        "mayInteract"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_cloud_rain_query",
+      "source": "Native installed local-rain ASM path",
+      "effect_ids": [
+        "twilightforest:cloud_native_rain_query"
+      ],
+      "facts": [
+        "cloud_rain_asm"
+      ],
+      "classes": [
+        "asmhooks/BlockHooks",
+        "block/CloudBlock"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native installed local-rain ASM path. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "every IRETURN",
+        "original true",
+        "loaded chunk",
+        "cloud before opacity",
+        "distance boundary"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_cloud_sensitive",
+      "source": "Native water-sensitive entity damage",
+      "effect_ids": [
+        "twilightforest:cloud_native_rain_query"
+      ],
+      "facts": [
+        "cloud_wet_damage",
+        "native_damage_identities"
+      ],
+      "classes": [
+        "asmhooks/BlockHooks"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native water-sensitive entity damage. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "Blaze/EnderMan/Strider/SnowGolem",
+        "ordinary Living",
+        "drown1",
+        "native cooldown"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_cloud_enderman",
+      "source": "Native wet damage and ownerless teleport response",
+      "effect_ids": [
+        "twilightforest:cloud_native_rain_query"
+      ],
+      "facts": [
+        "cloud_wet_damage"
+      ],
+      "classes": [
+        "asmhooks/BlockHooks"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native wet damage and ownerless teleport response. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "invulnerability",
+        "hurt false",
+        "90% attempt",
+        "native teleport veto/collision"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_cloud_extinguish",
+      "source": "Native living/entity/projectile fire cleanup",
+      "effect_ids": [
+        "twilightforest:cloud_native_rain_query"
+      ],
+      "facts": [
+        "cloud_wet_preservation"
+      ],
+      "classes": [
+        "asmhooks/BlockHooks"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native living/entity/projectile fire cleanup. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "alive Living",
+        "movement branch",
+        "burning Arrow",
+        "no heal"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_cloud_sunburn",
+      "source": "Native wet sunburn admission",
+      "effect_ids": [
+        "twilightforest:cloud_native_rain_query"
+      ],
+      "facts": [
+        "cloud_wet_preservation"
+      ],
+      "classes": [
+        "asmhooks/BlockHooks"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native wet sunburn admission. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "server daytime",
+        "brightness/random",
+        "sky",
+        "wet rejection"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_cloud_hydration",
+      "source": "Native Axolotl/Dolphin hydration",
+      "effect_ids": [
+        "twilightforest:cloud_native_rain_query"
+      ],
+      "facts": [
+        "cloud_wet_preservation"
+      ],
+      "classes": [
+        "asmhooks/BlockHooks"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native Axolotl/Dolphin hydration. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "noAI",
+        "air6000",
+        "moisture2400",
+        "dry-out avoided",
+        "no healing"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_cloud_riptide",
+      "source": "Native Riptide use and release",
+      "effect_ids": [
+        "twilightforest:cloud_native_rain_query"
+      ],
+      "facts": [
+        "cloud_riptide"
+      ],
+      "classes": [
+        "asmhooks/BlockHooks"
+      ],
+      "labels": [
+        "ACTIVE_ITEM",
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native Riptide use and release. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "wet both checks",
+        "native enchantment",
+        "charge10",
+        "durability",
+        "auto-spin20/8"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_cloud_conduit_effect",
+      "source": "Native Conduit player effect admission",
+      "effect_ids": [
+        "twilightforest:cloud_native_rain_query"
+      ],
+      "facts": [
+        "cloud_conduit"
+      ],
+      "classes": [
+        "asmhooks/BlockHooks"
+      ],
+      "labels": [
+        "ENVIRONMENT",
+        "AOE"
+      ],
+      "setup": "Future native fixture only: Native Conduit player effect admission. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "real3x3x3 water",
+        "16+ frame",
+        "40 ticks",
+        "integer radius",
+        "wet Player",
+        "native effect admission"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_cloud_conduit_attack",
+      "source": "Native Conduit fresh/existing target attack",
+      "effect_ids": [
+        "twilightforest:cloud_native_rain_query"
+      ],
+      "facts": [
+        "cloud_conduit",
+        "native_damage_identities"
+      ],
+      "classes": [
+        "asmhooks/BlockHooks"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native Conduit fresh/existing target attack. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "42 frames",
+        "fresh Enemy wet",
+        "existing alive range",
+        "UUID route",
+        "magic4 return ignored"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_cloud_fire",
+      "source": "Native rain-sensitive fire branches",
+      "effect_ids": [
+        "twilightforest:cloud_native_rain_query"
+      ],
+      "facts": [
+        "cloud_weather_limits"
+      ],
+      "classes": [
+        "asmhooks/BlockHooks"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native rain-sensitive fire branches. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "global rain main gates",
+        "local checkBurnOut",
+        "native flammability/fire callbacks"
+      ]
+    },
+    {
+      "id": "twilightforest:path:control_blocks_cloud_thunder",
+      "source": "Native natural lightning additional admission",
+      "effect_ids": [
+        "twilightforest:cloud_native_rain_query"
+      ],
+      "facts": [
+        "cloud_weather_limits"
+      ],
+      "classes": [
+        "asmhooks/BlockHooks"
+      ],
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "setup": "Future native fixture only: Native natural lightning additional admission. Use real registered block/state/callback and ordinary eligible recipients; no synthetic source or direct HP operation.",
+      "future_controls": [
+        "global rain AND thunder",
+        "random100000",
+        "local query only",
+        "no cloud-generated bolt"
+      ]
+    }
+  ],
+  "damage_profiles": [],
+  "new_damage_types": 0,
+  "full_classes": [
+    "block/BuilderBlock",
+    "block/TranslucentBuiltBlock",
+    "block/AntibuilderBlock",
+    "block/CloudBlock",
+    "block/WispyCloudBlock",
+    "block/entity/CarminiteBuilderBlockEntity",
+    "block/entity/AntibuilderBlockEntity",
+    "enums/TowerDeviceVariant",
+    "client/event/CloudEvents",
+    "client/event/CloudEvents$PrecipitationRenderHelper",
+    "world/components/structures/trollcave/CloudComponent",
+    "world/components/structures/trollcave/CloudTreeComponent"
+  ],
+  "limited_classes": {
+    "asmhooks/BlockHooks": [
+      "cloud rain query, SnowyDirt and mushroom support; other hooks protected or pending"
+    ],
+    "world/components/structures/darktower/DarkTowerMainComponent": [
+      "actual Builder/Antibuilder worldgen producers"
+    ],
+    "events/EntityEvents": [
+      "registered cloud jump particles only; remaining event closure pending"
+    ],
+    "config/TFConfig": [
+      "common cloud config rebake"
+    ],
+    "config/TFCommonConfig": [
+      "actual cloud config definition"
+    ]
+  },
+  "registration_classes": [
+    "init/TFBlocks",
+    "init/TFBlockEntities"
+  ],
+  "closure_checklist": [
+    "builder_actual_source",
+    "redstone_schedule_vs_onPlace",
+    "native_player_selection",
+    "seventeen_placement_branches",
+    "write_results",
+    "removal_chain",
+    "transient_counters",
+    "antibuilder_player_gate",
+    "snapshot_type_not_inventory",
+    "revert_probability_and_tags",
+    "native_drops",
+    "cloud_actual_producers_collision",
+    "fall_pre_round_multiplier",
+    "native_damage_identities",
+    "precipitation_native_callbacks",
+    "snow_notFrosted",
+    "cloud_asm_all_returns",
+    "wet_consumers_admission",
+    "native_damage_return_dependencies",
+    "conduit_structure_and_selection",
+    "global_weather_limits",
+    "snow_mushroom_exclusions",
+    "compat_attribution"
+  ],
+  "compatibility_scope": "DIRECT_SOURCE_SPECIFIC: native tower/cloud/portal tags and three actual registered TF transformers; optional gravestone block tag is explicit integration. GENERIC_CONDITIONAL_PRESENT: native fall/incoming/teleport hooks, native rain-query and precipitation consumers, extensible conduit frame and block tags. NONE_PROVEN: inspected control logic has no direct Tensura/L2/Curios mapping. UNKNOWN: runtime transformer application, third-party hooks/tag changes/world gamerules and pack-wide outcomes. Static trace is not compatibility certification.",
+  "current_scope": "Prior Twilight plus native Builder/Antibuilder control, all four clouds, fall/native rain consumers, and exact cloud/snow/mushroom support transformers. Whole Twilight PARTIAL, zero promoted.",
+  "exact_next_task": "Continue Wrought Iron Fence/native leash and pathfinding control, then remaining event callbacks/nested ASM, compatibility attribution and global source exclusions. All 40 custom types already USED. Protect R2f8 whole remaining-content closure and final Twilight dedup/promotion before IceAndFire; static only.",
+  "damage_census": {
+    "total_custom_declarations": 40,
+    "previous_reviewed_profiles": 40,
+    "new_used_profiles": 0,
+    "reviewed_profiles_after": 40,
+    "remaining_profiles": 0,
+    "remaining_disposition": "None: all 40 custom types USED. Native vanilla consumers do not add custom declarations. Wider event/ASM/source closure remains."
+  },
+  "comparison_files": [
+    "vanilla-evidence/twilight-control-blocks.json",
+    "reference-evidence/twilight-control-blocks-244.json",
+    "reference-evidence/twilight-control-blocks-asm.json",
+    "reference-routing/twilight-control-blocks.json",
+    "twilightforest-control-blocks-caller-scan.json",
+    "twilightforest-control-blocks-config-snapshot.json",
+    "twilightforest-control-blocks-vanilla-sources.json",
+    "reference-evidence/twilight-equipment-asm.json",
+    "reference-evidence/twilight-portals-244.json",
+    "semantic-sections/twilightforest-contact-hazards.json",
+    "semantic-sections/twilightforest-structural-utilities.json"
+  ],
+  "exclusions": [
+    "Exact KeepGrassSnowyForSnowloggableBlocksTransformer targets every IRETURN of static SnowyDirtBlock.isSnowySetting, passes original bool and local0 state. Hook preserves true or accepts SnowLoggable with SNOW_LAYERS>0. Native placement/up-neighbor consumer sets SNOWY appearance property; no damage, resistance or extra snow layers in this hook. Existing SnowLoggable plant snow behavior remains the protected contact-hazards review, not duplicated here.",
+    "Exact ModifySoilDecisionForMushroomBlockSurvivabilityTransformer inserts after each BlockState.canSustainPlant invocation in native MushroomBlock.canSurvive, passing result+level local2+position local3. Hook preserves non-DEFAULT TriState; DEFAULT becomes TRUE if any of 8 adjacent X/Z positions at Y-1 is actual TF portal (either state). It excludes center. Exact loader still admits MUSHROOM_GROW_BLOCK directly, otherwise non-default decision controls survival, else native brightness<13 and soil test. Thus portal vicinity can satisfy survival despite ordinary light/soil failure, but no healing/damage/portal transport is performed. Explicit support exclusion, not an unresolved combat mechanic.",
+    "Client CloudEvents, cloud movement/jump/landing particles, Wolf wet/shake and Leaves rain drips are presentation; no new combat package.",
+    "Farmland hydration and fishing rain timing are traced native consumers, not new damage. Conduit and Riptide retain ordinary native prerequisites.",
+    "All 40 Twilight custom DamageTypes remain USED; listed vanilla factories are separate downstream sources, with dry_out prevented through hydration.",
+    "Wrought Iron Fence/leash/pathfinder, remaining callbacks/ASM and global source closure are unfinished ordinary work, not REVIEW_REQUIRED."
+  ],
+  "fixture_groups": [
+    "Actual Dark Tower/placed Builder redstone cycle, player/pitch, 17-branch limit, blocked/idle removal, power cycle and reload controls.",
+    "Actual Antibuilder snapshot/range, block-type versus inventory/state, ignored tags, probabilistic substitute, native drops and reload controls.",
+    "Native falls on all four clouds with attributes, fall-event veto, passengers, source/mitigation and hurt-false controls.",
+    "Native cloud precipitation with loaded/opaque column, config, biome/weather, snow light/support/rule and real cauldron callbacks.",
+    "Exact cloud rain transformer with native sensitive/fire/hydration/Riptide/Conduit/weather consumers; no runtime outcome asserted."
+  ],
+  "expected_counts": {
+    "mechanic_packages": 5,
+    "delivery_cases": 36,
+    "classification_totals": {
+      "CUSTOM_CONTROL": 3,
+      "VANILLA_LIKE_EXTENDED": 2
+    },
+    "review_required": 0,
+    "new_custom_types_resolved": 0
+  }
+}
