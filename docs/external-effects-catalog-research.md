@@ -830,3 +830,7 @@ Dread melee, summons, skull sources and defenses reviewed. Native Lich skull ori
 ## R2g9a — Remaining special weapons
 
 Post-hit bonus, fire and lightning paths, Dragonsteel chain, gauntlet/sweep, Dragonbone delivery and Tide Trident reviewed with single Stage points and distinct admission fixtures. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/iceandfire-r2g9a-weapons-review.md).
+
+## R2g9b — Control, Pixie and combat support
+
+Chain and Tensura attachment admission, flute ownership, Pixie source/status/resource effects, combat foods and real lightning armor veto reviewed. Remaining work is whole-JAR closure and promotion. [Evidence, decisions and resume point](benchmarks/external-effects-catalog/iceandfire-r2g9b-control-review.md).
