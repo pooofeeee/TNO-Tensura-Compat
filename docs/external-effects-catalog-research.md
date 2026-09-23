@@ -790,3 +790,7 @@ Native song control is a Siren-owned target map, independent of its30tick HARMFU
 ## R2g3b — Siren Flute and attacks
 
 Flute uses a serialized loveTicks attachment driven by native EntityTickEvent.Post. It clears Mob target/navigation after normal entity tick; it is not a MobEffect or universal damage veto. Siren bite/pull damage uses native mob_attack; pull motion does not depend on hurt succeeding and its X term uses old Z velocity. [Evidence and exact next task](benchmarks/external-effects-catalog/iceandfire-r2g3b-review.md). Gorgon is next; Ice & Fire remains PARTIAL.
+
+## R2g4 — Gorgon
+
+Gaze spawns the statue before player hurt; Head uses victim-attributed hurt and requires true before player statue creation. Non-player branches remove directly. Petrification is binary and receives no Stage multiplier; fallback melee/Poison retain native numeric routes. [Combat semantics, immunity, exact integration points and future fixtures](benchmarks/external-effects-catalog/iceandfire-r2g4-review.md). Dragons next; Ice & Fire PARTIAL.

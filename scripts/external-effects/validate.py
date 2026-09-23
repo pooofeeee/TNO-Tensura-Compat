@@ -183,6 +183,9 @@ def validate():
         if (OUT/'iceandfire-r2g3b-siren-flute-attacks.json').exists():
             from validate_iceandfire_siren_flute import validate_siren_flute
             assert validate_siren_flute()['status']=='PASS'
+        if (OUT/'iceandfire-r2g4-gorgon.json').exists():
+            from validate_iceandfire_gorgon import validate_gorgon
+            assert validate_gorgon()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():

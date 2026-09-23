@@ -1,0 +1,244 @@
+{
+  "schema": "tno.external_effects.iaf_gorgon.v1",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "checkpoint": "R2g4-gorgon-complete",
+  "starting_sha": "71e033d0cb6f2e82ff10accae511fbad953c00ac",
+  "status": "GORGON_SEMANTIC_REVIEW_COMPLETE",
+  "facts": {
+    "gaze_entry": "Gorgon.aiStep follows super, decrements positive playerStatueCooldown, and works on the current target. Gorgon/prey Blindness and deathTime gate forced Mob look control; the stare goal can also force Mob look. Mutual IafEntityUtil.isEntityLookingAt(...,0.4), !isBlindfolded(target), neither participant Blindness, no rejecting BlacklistedFromStatues, deathTime==0, SCARE animation tick>10, server side and cooldown==0 admit conversion. SCARE starts on eligible mutual gaze; no proof of 10 uninterrupted gaze ticks is implied. Cooldown is assigned40 and target cleared after conversion; it is not serialized by this class. No direct target-current-HP or creative check occurs at this final gaze block: native acquisition, LOS and subsequent player hurt still matter.",
+    "gaze_geometry": "isEntityLookingAt multiplies degree by 1+0.1*looker.distanceTo(seen); normalized view dot normalized eye-direction must exceed 1-degree/eyeDistance. It then requires looker.hasLineOfSight(seen) and seen not StoneStatue. Exact LivingEntity LOS requires same level, eye distance<=128 and COLLIDER/Fluid.NONE ray MISS. Both directions are checked. Stare goal15block squared-distance/20seen ticks control navigation/strafe, not an additional final petrification range. Gorgon.isTargetBlocked returns COLLIDER/Fluid.NONE ray !=MISS; its sole installed caller is DragonUtils.getBlockInTargetsViewGorgon, which has no installed direct caller. Do not substitute this unused positioning helper for actual gaze LOS.",
+    "gaze_order": "aiStep builds and attempts to add statue BEFORE victim disposal. addFreshEntity return is ignored. Player hurt uses causeGorgonDamage(this), float2147483648 (rounded integer-max float), discards hurt result; direct=causing=Gorgon. Thus rejected player damage can coexist with a statue. Non-player remove(KILLED) does not call hurt/die, emit this DamageSource, or directly subtract HP/SHP. Native entity removal callbacks still occur; no generic damage/death-hook guarantee is invented.",
+    "head_entry": "GorgonHead.use starts use, sets ACTIVE and returns SUCCESS; use duration72000, empty onUseTick. releaseUsing has no minimum charge-time test. A32block eye/view segment queries expanded entity bounds; no block ray or LOS check. Candidates Living, pickable, !deadOrDying, !Blindness, !IMMUNE_TO_GORGON_STONE, no rejecting BlacklistedFromStatues, and Player or DragonUtils.isAlive. That helper additionally excludes model-dead dragons/IDeadMob/StoneStatue; it is not itself the generic HP check. Unlike gaze, Head does not invoke isBlindfolded, so native blindfold equipment, BLINDED and the compat helper are not automatically Head gates.",
+    "head_order": "Nearest inflated-AABB segment selection preserves shared-root-vehicle rules. If an AABB contains the ray origin, code sets best distance0 WITHOUT selecting that entity; do not copy Siren Flute behavior. Player hurt is first, using causeGorgonDamage(pointedEntity): direct=causing=VICTIM, not wielder or item. Only hurt==true admits statue creation; true is not proof of death or HP loss. Non-player server remove(KILLED) precedes statue construction; success flag remains true. Server spawn return is ignored. A selected Living target consumes one Head for noncreative Player user even when player hurt rejects; no selected target consumes none. ACTIVE removed at end. Player hurt/item consumption has no whole-method server guard; only non-player removal and statue spawn are explicitly server gated.",
+    "native_admission": "R2g1 GORGON resource: only scoped bypasses_armor/bypasses_shield, no bypass_invulnerability/cooldown/resistance/effects/enchantments. Exact ServerPlayer hurt checks invulnerability, spawn protection and causing-Player canHarmPlayer, then Player ability invulnerability, death, difficulty scaling and Living incoming/shield/cooldown/reduction/death/totem hooks. Head self-attribution therefore enters player-PVP/team checks against the victim itself; PVP disabled rejects. Gaze has Gorgon attribution. Neither gigantic requested amount nor hurt=true certifies death, SHP loss or Nullification bypass. Non-player conversion never reaches this damage admission at all.",
+    "immunity": "Native isBlindfolded: nonnull target with HEAD blindfold item OR Blindness OR BLINDED entity tag. Installed BLINDED lists deathworm,dragon_skull,mob_skull. IMMUNE_TO_GORGON_STONE declares optional #c:bosses/#neoforge:bosses plus warden; final merged tags are runtime data, not this static list. Native gaze itself does not read IMMUNE tag, but installed tensura_iaf HEAD cancellable isBlindfolded injection returns true for that tag or SkillUtils.isSkillToggled(ABNORMAL_CONDITION_NULLIFICATION). Protected helper requires instance toggled and mastery>=0; it does not perform ResistSkill.canInteractSkill here. Head checks IMMUNE tag directly but does not call this helper. Cockatrice,DeathWorm,DragonEgg,DragonSkull,Ghost,MobSkull,StoneStatue return false from canBeTurnedToStone; Cyclops returns !isBlinded. No assumption that every boss is immune without tag membership.",
+    "compatibility": "Existing required compat mixins classify exact GORGON as abnormal and not physical. Ordinary player hurt still traverses actual Tensura/NeoForge/L2 pipelines; final interactions require runtime tests. Non-player remove can avoid damage-based defenses because that is the installed native route; research does not add or authorize a bypass. IafHandler rejects nonnull MobEffect additions to StoneStatue via Manas LivingEffectAdded. That is not a veto of statue creation/removal. Native Head versus gaze differences must survive future integration.",
+    "fallback_melee": "setTarget invokes parent then chooses server melee/stare goals using own/target Blindness, rejecting blacklist OR isBlindfolded(target), provided deathTime==0 for melee. doHurtTarget has narrower poison predicate: own Blindness OR CURRENT target Blindness OR rejecting CURRENT target blacklist, and deathTime==0. Mere blindfold/tag/compat immunity switches AI but does not alone grant poison. If predicate passes, animation HIT starts and actual Living entityIn gets Poison100ticks amplifier2 before parent Monster/Mob.doHurtTarget; addEffect result ignored, poison not gated by melee hurt. Parent uses current ATTACK_DAMAGE(base3), native mob_attack, enchantment modification then hurt; accepted-hit knockback/postattack retains native result gate. Poison ticks use installed NeoForge poison holder (native magic fallback), source without entity,1requested HP when HP>1, interval25>>2=6; independent normal effect admission/removal/cures and damage hooks remain.",
+    "statue_state": "buildStatueEntity creates a separate stone_statue LivingEntity; non-Player saveWithoutId snapshot attempted (exception caught), Player trapped NBT empty; stores registry type,width,height,age scale. It does not preserve a live prisoner or implement timed release. Defaults pig,emptyNBT,.5width/.5height,scale1,cracks0. Saves CrackAmount int but reloads getByte; saves/reloads dimensions,scale,type,tag. No native resurrection path in reviewed statue consumers. Item restore creates another statue, not trapped creature; resets cracks0. ServerEvents player attack repairs statue to maxHP before tool logic, increments cracks for MAINHAND PICKAXES and removes at>9, interrupting attack; other player attack interrupts default. Silk-touch storage/replacement is a short persistence disposition, not a new combat family.",
+    "statue_defense": "StoneStatue.hurt first checks source IS_PROJECTILE && amount>0; if so it optionally awards server XP from newly constructed trapped type, removes KILLED and returns true BEFORE parent hurt. No owner/causer requirement, HP subtraction, hurt-hook or invulnerability check in this branch. Non-projectile/zero amount delegates LivingEntity.hurt. isInvulnerable() returns true, but exact Entity.isInvulnerableTo reads its FIELD rather than calling that override; do not claim universal statue damage immunity. baseTick/push are empty, kill removes, and canBeTurnedToStone=false. Ordinary non-projectile damage/loaded Invulnerable field and external overrides require separate runtime observation.",
+    "excluded": "Rendering/statue pose/sounds, Head acquisition/crafting/lore and ordinary storage cosmetics excluded. Statue NBT/item restoration retained only to distinguish persistence from resurrection and admission state. Gorgon prolonged cosmetic death, utility data/components and unconnected positioning helpers receive no separate deep review. Troll sunlight uses the shared statue constructor but its trigger belongs to the later Troll family."
+  },
+  "mechanic_packages": [
+    {
+      "id": "iaf:gorgon_petrification",
+      "name": "Gorgon petrification",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "BINARY",
+        "CUSTOM_ROUTED",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "combat_behavior": "Binary victim conversion/disposal with materially different player and non-player branches. The huge float is an execution proxy, not a scalable attack budget.",
+      "admission": "Mutual gaze/LOS/blindfold/blacklist vs Head ray/tag; player hurt/totem/PVP/source identity and statue ordering.",
+      "delivery_paths": [
+        "iaf:gorgon:gaze_player",
+        "iaf:gorgon:gaze_nonplayer",
+        "iaf:gorgon:head_player",
+        "iaf:gorgon:head_nonplayer"
+      ]
+    },
+    {
+      "id": "iaf:gorgon_melee",
+      "name": "Gorgon fallback melee",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "VANILLA_ROUTED",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "The amount delivered by native Mob.doHurtTarget to victim.hurt(mob_attack,amount), once in the normal damage pipeline. Do not also multiply ATTACK_DAMAGE or Gorgon animation.",
+      "combat_behavior": "Base3 attribute-based ordinary hit; native knockback/enchantment postattack admission.",
+      "admission": "Native melee goal and ordinary hurt hooks.",
+      "delivery_paths": [
+        "iaf:gorgon:melee_poison",
+        "iaf:gorgon:melee_blindfold"
+      ]
+    },
+    {
+      "id": "iaf:gorgon_poison",
+      "name": "Gorgon conditional Poison",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "VANILLA_ROUTED",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Existing vanilla/NeoForge Poison damage route at PoisonMobEffect.applyEffectTick -> hurt(amount), once per admitted pulse; no Iaf-specific second multiplier and no duration/amplifier scaling. Preserve HP>1 predicate; scaled nonlethal behavior requires future runtime/policy review before implementation.",
+      "combat_behavior": "100ticks PoisonIII requested before melee damage; native interval6 and1requested pulse.",
+      "admission": "Own/current-target blindness or rejecting blacklist, then native effect and tick-damage admission; no melee-success dependency.",
+      "delivery_paths": [
+        "iaf:gorgon:melee_poison"
+      ]
+    },
+    {
+      "id": "iaf:stone_statue_admission",
+      "name": "Stone statue persistence and destruction",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "BINARY",
+        "CUSTOM_ROUTED",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "combat_behavior": "Persistent separate statue; positive projectile deletes; player pickaxe cracks threshold10; other damage delegates.",
+      "admission": "IS_PROJECTILE positive gate, native parent hurt/Invulnerable field, PlayerEvent intercept and Manas statue effect veto; never infer all damage immune.",
+      "delivery_paths": [
+        "iaf:gorgon:statue_projectile",
+        "iaf:gorgon:statue_other_damage",
+        "iaf:gorgon:statue_pickaxe",
+        "iaf:gorgon:statue_other_player_attack",
+        "iaf:gorgon:statue_reload"
+      ]
+    }
+  ],
+  "delivery_paths": [
+    {
+      "id": "iaf:gorgon:gaze_player",
+      "labels": [
+        "BOSS_ATTACK"
+      ],
+      "native_path": "Gorgon.aiStep mutual gaze -> statue spawn -> GORGON Player hurt; result ignored"
+    },
+    {
+      "id": "iaf:gorgon:gaze_nonplayer",
+      "labels": [
+        "BOSS_ATTACK"
+      ],
+      "native_path": "Gorgon.aiStep mutual gaze -> statue spawn -> remove(KILLED); no hurt"
+    },
+    {
+      "id": "iaf:gorgon:head_player",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "GorgonHead.releaseUsing entity ray -> victim-attributed GORGON hurt -> statue iff true"
+    },
+    {
+      "id": "iaf:gorgon:head_nonplayer",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "GorgonHead.releaseUsing entity ray -> server remove -> statue"
+    },
+    {
+      "id": "iaf:gorgon:melee_poison",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "native melee goal -> Gorgon.doHurtTarget conditional Poison -> parent native mob_attack"
+    },
+    {
+      "id": "iaf:gorgon:melee_blindfold",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "blindfold/tag/compat fallback melee without poison predicate -> parent mob_attack"
+    },
+    {
+      "id": "iaf:gorgon:statue_projectile",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "StoneStatue.hurt positive IS_PROJECTILE -> remove before parent hurt"
+    },
+    {
+      "id": "iaf:gorgon:statue_other_damage",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "StoneStatue.hurt nonprojectile -> normal LivingEntity.hurt"
+    },
+    {
+      "id": "iaf:gorgon:statue_pickaxe",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "PlayerEvent.ATTACK_ENTITY -> ServerEvents.onPlayerAttack heal + cracks, remove at10"
+    },
+    {
+      "id": "iaf:gorgon:statue_other_player_attack",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "same native callback heals then interruptDefault"
+    },
+    {
+      "id": "iaf:gorgon:statue_reload",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "saved statue/StoneStatueItem restore -> statue only, no victim resurrection"
+    }
+  ],
+  "unexecuted_future_fixtures": [
+    "gaze_player_damage_accept_reject_totem_statue_count",
+    "gaze_nonplayer_no_hurt_event",
+    "gaze_interrupted_animation_mutual_LOS_range",
+    "blindfold_Blindness_BLINDED_IMMUNE_and_toggle_mastery",
+    "head_player_self_attribution_PVP_team_spawn_protection",
+    "head_player_hurt_true_without_death_and_hurt_false_consumption",
+    "head_nonplayer_removal_statue_snapshot",
+    "head_wall_origin_containment_vehicle_charge_time",
+    "poison_before_rejected_melee_vs_blindfold_only",
+    "poison_NeoForge_source_null_attribution_tick_admission",
+    "statue_projectile_ownerless_amount_zero_vs_positive",
+    "statue_other_damage_invulnerable_field_override",
+    "statue_pickaxe_10_and_nonpickaxe_intercept",
+    "statue_reload_cracks_byte_and_item_no_resurrection",
+    "statue_effect_veto_and_external_L2_Tensura_hooks"
+  ],
+  "reference_files": [
+    {
+      "file": "native-evidence/iceandfire-gorgon.json",
+      "sha256": "5e7316b4c79fe5f7be57305597f130762e421ad1f351c96df857b3a3e5ebde3b"
+    },
+    {
+      "file": "iceandfire-gorgon-census.json",
+      "sha256": "891003e5cbfe1b4d9b060490e5f97b1320e014cfada0ab39a930fb9396b1a727"
+    },
+    {
+      "file": "reference-evidence/iceandfire-gorgon-244.json",
+      "sha256": "e5ff09ef8c7c41ed12e403f30936e9d294767ebe320cd3ab92a2d54036367a05"
+    },
+    {
+      "file": "native-evidence/iceandfire-foundation.json",
+      "sha256": "7ec82347885b0666ebbfa8ea8650acd392efd90019a99aacf7e19a21d63f0fdc"
+    },
+    {
+      "file": "annotation-evidence/iceandfire-compat-javap.json",
+      "sha256": "d070028b1b517cfebbb890482a9ebfe572410c9b2faad2921a7f6e2dcbd7f058"
+    },
+    {
+      "file": "reference-evidence/vv-loader-244.json",
+      "sha256": "dfe810015f36cdea97cb304342459b0d95d0d4179a32bc2a64e01c0349934f48"
+    },
+    {
+      "file": "reference-evidence/iceandfire-frozen-tensura.json",
+      "sha256": "745cdd3c0250bb5223288b676d28f2e5f085f3208151a40bdb3b4ff6f3d0c516"
+    },
+    {
+      "file": "iceandfire-damage-tag-census.json",
+      "sha256": "dd90f5821787d45d6e188852690fde72d1b7caf4f70b6295b6ee35dbba40f473"
+    }
+  ],
+  "remaining_subsection_native_ambiguities": [],
+  "review_required": [],
+  "whole_iceandfire_complete": false,
+  "promoted_mechanics": 0,
+  "promoted_paths": 0,
+  "exact_next_task": "R2g5: Dragons combat review: shared native attack/admission, fire/lightning breath and charge payloads, melee specials, age attributes and defenses. Reuse R2g1 factories and R2g2b Frozen/charge routing unchanged; no runtime/L2/Stage/production work.",
+  "runtime_tests": 0,
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false
+}
