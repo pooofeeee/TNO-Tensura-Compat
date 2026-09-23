@@ -1,0 +1,453 @@
+{
+  "schema": "tno.external_effects.iaf_ghost_troll.v1",
+  "checkpoint": "R2g8a-ghost-troll-myrmex-complete",
+  "previous_checkpoint": "R2g7-worm-cyclops-complete",
+  "starting_sha": "8b1fac4748332b1fdac8c5c1a3f2a2966dbcfa1f",
+  "status": "GHOST_TROLL_COMPLETE_MYRMEX_ABSENT",
+  "scope": "Ghost/Troll, related sword/armor callbacks complete; Myrmex absent in installed JAR. Other Ice & Fire combat pending.",
+  "summary": "Ghost phasing/body and magic sword routes, Troll control/regeneration/sun conversion, installed armor absorption hook mismatch and Myrmex absence reviewed.",
+  "facts": {
+    "ghost_body": "GhostAICharge with actual target/not charging starts approach then rush; no-animation+distance<1.4 starts Hit. Ghost.aiStep Hit ticks4 and5 with current target/distance<1.4 calls inherited Mob.doHurtTarget, no new LOS. Exact Mob reads ATTACK_DAMAGE, vanilla mob_attack direct=causing=Ghost, server EnchantmentHelper.modifyDamage, then hurt. Only hurt true enables native knockback/postAttack effects/setLastHurtMob. Natural Player/Villager acquisition does not require sight. noPhysics=true each aiStep and noGravity=true permit native phasing; not magical damage identity. Chest startOpen outside PEACEFUL creates persistent Ghost once per saved generatedGhost unless configalwaysSpawn, sets noncreative opener target and fromChest=true; distinct summon path retains same body source.",
+    "ghost_defense": "Reject Poison/Wither effects before parent canBeAffected; isInvulnerableTo adds IS_FIRE and exact IN_WALL/CACTUS/DROWN/FALLING_BLOCK/FALLING_ANVIL/SWEET_BERRY_BUSH to parent. Does not generally reject magic/arrow/wither DamageSource solely because effect immunity. Unpushable and not petrifiable. Server day gate uses level.isDay, BLOCK light>0.5 and canSeeSky at y+4 (Boat y+1), !fromChest. Day mode zeros motion, isNoAi/isSilent true, after100ticks invisible; leaving resets counter/invisibility to native Invisibility effect. This is activity/invisibility control, not daytime hurt immunity. Existing Hit animation checks are outside day branch. Saved mode/counter/fromChest persist; visual scare/haunted manuscript cosmetic excluded.",
+    "ghost_sword_launch": "Native Iaf LivingEntityMixin injects swing(hand,boolean) HEAD, checks swung-hand SUMMON_GHOST_SWORD tag and config phantasmalBladeAbility(snapshottrue). Ability only Player, but reads MAINHAND stack regardless of triggering hand, tests its item cooldown, sums raw ATTACK_DAMAGE modifier amounts without attribute-operation/slot evaluation, baseDamage=.5*sum. Creates owned GhostSword with firing stack, shoots speed1/inaccuracy.5, adds entity, consumes durability1 mainhand, cooldown10. No whole-method server guard or attack-strength gate. Mainhand/offhand asymmetry and client/server spawn/event counts require native runtime fixture. Ordinary GhostSwordItem melee remains standard SwordItem, separately scaled once.",
+    "ghost_sword_impact": "GhostSword extends AbstractArrow; custom tick first calls super.tick, then sets noPhysics=true and performs an additional entity sweep from current position to position+velocity. Block collider clip truncates that sweep but block result is not onHit; phasing occurs through movement, not guaranteed immediate through-wall hit. Custom sweep performs Player-owner PVP eligibility then direct onHit, no onProjectileImpact or hitTargetOrDeflectSelf; superclass first-tick route can still use those hooks before noPhysics set. Parent normal admission/findHitEntity remains. onHitEntity requests ceil(max(speed*baseDamage,0)) plus native crit RNG. Living owner => indirect_magic direct=GhostSword,causing=owner; absent/nonliving owner => ownerless magic. Neither identity becomes arrow/projectile merely from its entity class. Ordinary hurt/Tensura/L2 rules remain.",
+    "ghost_sword_returns": "On-fire projectile ignites non-Enderman5seconds before hurt, with no restore on rejection (saved fireticks unused). Hurt true: Enderman immediate return; otherwise optional push via private knockbackStrength*.6 +Y.1, calls inherited doPostHurtEffects (empty in exact class), then discard if pierce<=0. No explicit EnchantmentHelper.doPostAttackEffects in custom hit. Hurt false reverses velocity*.1 and discards on server if speedSquared<1e-7. Native superclass constructor copies firing weapon, processes projectile-spawn enchantments and piercing count. Subclass piercedEntities differs from superclass piercingIgnoreEntityIds used by inherited canHitEntity: do not assume reliable unique-target piercing or safe loop termination for nonzero PierceLevel. Native nonzero-pierce availability must be checked before any later fixture; no fabricated enchant/packet. Standard launch does not set private punch or critical flags.",
+    "troll_body_explosion": "Troll.doHurtTarget randomly selects horizontal/vertical Strike and returns true without damage. aiStep tick10,current target,rangeSquared<4,deathTime<=0 requests ATTACK_DAMAGE mob_attack direct=causing=Troll. Horizontal additionally SETS target velocity=(sin(yaw),cos(yaw),.4), independently of hurt; this is not ordinary knockback/resistance. When navigation done,target at squared distance>3 and<30,mobGriefing true, it can start vertical Strike random1/15 and at tick10 manually constructs vanilla Explosion at weapon offset, radius1+randomFloat, firefalse,BlockInteraction.KEEP; Iaf grief veto gates explode/finalize. Native default player_explosion direct=causing=Troll, inherited entity damage/knockback/detonate hooks; no Level start hook and no block destruction. Overlap3<distanceSquared<4 can request melee plus explosion same frame. Roar only sound.",
+    "troll_regen_conversion": "When not statue,injured,tickCount%30==0 Troll attempts Regeneration30ticks amp1 hidden particles/icon. Exact RegenerationMobEffect heals1 if below max, interval50>>amp=25 using remaining duration; effect/HealEvent rejection preserved. Daytime server SKY light>0.5+canSeeSky at feet (Boat above) creates StoneStatue snapshot and removes Troll KILLED regardless of addFreshEntity success, without hurt/GORGON source or death protection. Protected statue persistence applies. This conversion is binary, not huge numeric HP damage. Native hurt rejects any source msgId containing lowercase arrow; it is not IS_PROJECTILE immunity. Armor9 and knockbackResistance1 native baselines; neither prevents custom direct velocity changes.",
+    "armor_real_hook": "ServerEvents.onEntityDamage computes TrollArmor IS_PROJECTILE reduction factors per HEAD.1/CHEST.3/LEGS.2/FEET.1 (full factor.3). Same callback handles exact DRAGON_FIRE/ICE/LIGHTNING holders for DragonScale/Steel armor with same weights; overlapping conditions sequentially multiply. BUT installed Uranus dispatch is PlayerEntityMixin ModifyExpressionValue at Math.max(FF) in Player.actuallyHurt, not a generic damage event for every LivingEntity. Exact NeoForge21.1.244 has ONE such call: setAbsorptionAmount(max(0,absorption-absorbed)), after armor/magic/onLivingDamagePre. Therefore absent another mod transformation, callback multiplies remaining absorption, NOT final HP damage; DamageContainer.newDamage used for HP is unchanged by this hook. It may consume extra leftover absorption and has no direct value when zero. Uranus DAMAGE returns on first callback that changes amount. This pinned static mismatch must be tested with real installed mixin composition; do not claim intended projectile/dragon HP reduction or apply Stage at this expression.",
+    "troll_weapon": "Troll weapons have ordinary sword damage/speed attributes and no extra hurt request. Player hurtEnemy returns cooldown<.95 OR attackAnim!=0; this occurs in native post-hit item handling and does not itself veto already applied HP damage. Nonplayer delegates parent. inventoryTick selected+cooldown<.95+attackAnim>0 decrements swingTime. Declared onEntitySwing(LivingEntity,ItemStack) has reversed arguments versus exact NeoForge IItemExtension(ItemStack,LivingEntity[,hand]); TrollWeapon does not implement Uranus ISwingable either. No native caller proves that custom swing method runs. Treat it as inactive signature, not a verified attack block. Standard melee covers damage once; animation/cost detail no Stage value.",
+    "myrmex": "Installed archive census finds zero Myrmex-named entries and zero Myrmex class constants. No native entity/item/status registry or combat implementation to catalog for this installed build. Excluded as absent, not inferred from older Ice & Fire versions.",
+    "compatibility": "No direct SHP writes. GhostSword indirect_magic versus Ghost/Troll mob_attack and real explosion tags are materially different Resistance/Nullification/L2 inputs; preserve them. Numeric damage or native heal amounts get one downstream amount point. No Stage on phasing, daytime activity, statue conversion, vanilla regeneration duration/amplifier, native immunity, armor percent or remaining absorption. No production fix for Uranus hook, GhostSword callback or Troll swing signature is authorized.",
+    "exclusions": "Rendering, jump scare, colors/manuscript, lore, drops, crafting, armor models and world generation excluded. Chest summon retained because it changes combat target/day admission. Myrmex absent. All future runtime fixtures remain unexecuted."
+  },
+  "mechanic_packages": [
+    {
+      "id": "iaf:ghost_troll_body",
+      "name": "Ghost/Troll melee and native swords",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "VANILLA_ROUTED",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at native target.hurt request after native attack attribute/enchantment calculation; Ghost inherited Mob, Troll aiStep, sword ordinary Player attack.",
+      "stage_reason": "No duplicate item/attribute Stage.",
+      "delivery_paths": [
+        "iaf:ghost-troll:ghost_natural_hit",
+        "iaf:ghost-troll:ghost_chest_hit",
+        "iaf:ghost-troll:troll_vertical",
+        "iaf:ghost-troll:troll_horizontal",
+        "iaf:ghost-troll:sword_melee",
+        "iaf:ghost-troll:troll_weapon_melee"
+      ]
+    },
+    {
+      "id": "iaf:ghost_sword_magic",
+      "name": "Ghost Sword magic projectile damage",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "VANILLA_ROUTED",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at GhostSword.onHitEntity hurt amount after native speed/ceil/crit formula, not at both summed weapon modifier/baseDamage and impact.",
+      "stage_reason": "Keep magic/indirect_magic identity and owned eligibility.",
+      "delivery_paths": [
+        "iaf:ghost-troll:sword_main_swing",
+        "iaf:ghost-troll:sword_offhand_swing",
+        "iaf:ghost-troll:sword_super_impact",
+        "iaf:ghost-troll:sword_custom_sweep",
+        "iaf:ghost-troll:sword_ownerless"
+      ]
+    },
+    {
+      "id": "iaf:ghost_sword_aux",
+      "name": "Ghost Sword native impact control/fire/lifecycle",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Ignition native timer; generic on_fire damage only once downstream. Preserve hurt-success push and failure bounce; no synthetic projectile hook.",
+      "delivery_paths": [
+        "iaf:ghost-troll:sword_super_impact",
+        "iaf:ghost-troll:sword_custom_sweep",
+        "iaf:ghost-troll:sword_ownerless"
+      ]
+    },
+    {
+      "id": "iaf:ghost_defense",
+      "name": "Ghost phasing, effect immunity and daytime inactivity",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "BINARY",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Activity and native source/effect gates are not damage amounts.",
+      "delivery_paths": [
+        "iaf:ghost-troll:ghost_day_defense",
+        "iaf:ghost-troll:ghost_chest_hit"
+      ]
+    },
+    {
+      "id": "iaf:troll_explosion",
+      "name": "Troll weapon explosion HP damage",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "VANILLA_ROUTED",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at inherited Explosion final target.hurt amount, not radius/visibility/source.",
+      "stage_reason": "Keep manual explosion admission and native knockback.",
+      "delivery_paths": [
+        "iaf:ghost-troll:troll_explosion"
+      ]
+    },
+    {
+      "id": "iaf:troll_control",
+      "name": "Troll strike motion, arrow veto and sunlight statue conversion",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native fixed velocity, msgId veto and binary replacement remain native.",
+      "delivery_paths": [
+        "iaf:ghost-troll:troll_horizontal",
+        "iaf:ghost-troll:troll_arrow_veto",
+        "iaf:ghost-troll:troll_sun_statue"
+      ]
+    },
+    {
+      "id": "iaf:troll_regeneration",
+      "name": "Troll vanilla regeneration",
+      "primary_classification": "VANILLA_DIRECT",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "VANILLA_ROUTED",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at native RegenerationMobEffect heal(1) through LivingHealEvent; no multiplier on status duration/amplifier.",
+      "stage_reason": "Keep native effect/health eligibility.",
+      "delivery_paths": [
+        "iaf:ghost-troll:troll_regen"
+      ]
+    },
+    {
+      "id": "iaf:iaf_armor_callback",
+      "name": "Troll/Dragon armor installed absorption hook",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "tno_categories": [
+        "CUSTOM_ROUTED",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Never scale this remaining-absorption expression. Intended HP mitigation is not proven in installed loader; test native composition first.",
+      "delivery_paths": [
+        "iaf:ghost-troll:troll_armor_player",
+        "iaf:ghost-troll:dragon_armor_player"
+      ]
+    }
+  ],
+  "delivery_paths": [
+    {
+      "id": "iaf:ghost-troll:ghost_natural_hit",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "ghost_natural_hit; exact combat/admission/source in facts",
+      "runtime_variants": [
+        "real native delivery and downstream rejection",
+        "source/ownership/side/version-specific hook coverage"
+      ]
+    },
+    {
+      "id": "iaf:ghost-troll:ghost_chest_hit",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "ghost_chest_hit; exact combat/admission/source in facts",
+      "runtime_variants": [
+        "real native delivery and downstream rejection",
+        "source/ownership/side/version-specific hook coverage"
+      ]
+    },
+    {
+      "id": "iaf:ghost-troll:ghost_day_defense",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "ghost_day_defense; exact combat/admission/source in facts",
+      "runtime_variants": [
+        "real native delivery and downstream rejection",
+        "source/ownership/side/version-specific hook coverage"
+      ]
+    },
+    {
+      "id": "iaf:ghost-troll:sword_main_swing",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "sword_main_swing; exact combat/admission/source in facts",
+      "runtime_variants": [
+        "real native delivery and downstream rejection",
+        "source/ownership/side/version-specific hook coverage"
+      ]
+    },
+    {
+      "id": "iaf:ghost-troll:sword_offhand_swing",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "sword_offhand_swing; exact combat/admission/source in facts",
+      "runtime_variants": [
+        "real native delivery and downstream rejection",
+        "source/ownership/side/version-specific hook coverage"
+      ]
+    },
+    {
+      "id": "iaf:ghost-troll:sword_super_impact",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "sword_super_impact; exact combat/admission/source in facts",
+      "runtime_variants": [
+        "real native delivery and downstream rejection",
+        "source/ownership/side/version-specific hook coverage"
+      ]
+    },
+    {
+      "id": "iaf:ghost-troll:sword_custom_sweep",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "sword_custom_sweep; exact combat/admission/source in facts",
+      "runtime_variants": [
+        "real native delivery and downstream rejection",
+        "source/ownership/side/version-specific hook coverage"
+      ]
+    },
+    {
+      "id": "iaf:ghost-troll:sword_ownerless",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "sword_ownerless; exact combat/admission/source in facts",
+      "runtime_variants": [
+        "real native delivery and downstream rejection",
+        "source/ownership/side/version-specific hook coverage"
+      ]
+    },
+    {
+      "id": "iaf:ghost-troll:sword_melee",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "sword_melee; exact combat/admission/source in facts",
+      "runtime_variants": [
+        "real native delivery and downstream rejection",
+        "source/ownership/side/version-specific hook coverage"
+      ]
+    },
+    {
+      "id": "iaf:ghost-troll:troll_vertical",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "troll_vertical; exact combat/admission/source in facts",
+      "runtime_variants": [
+        "real native delivery and downstream rejection",
+        "source/ownership/side/version-specific hook coverage"
+      ]
+    },
+    {
+      "id": "iaf:ghost-troll:troll_horizontal",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "troll_horizontal; exact combat/admission/source in facts",
+      "runtime_variants": [
+        "real native delivery and downstream rejection",
+        "source/ownership/side/version-specific hook coverage"
+      ]
+    },
+    {
+      "id": "iaf:ghost-troll:troll_explosion",
+      "labels": [
+        "EXPLOSION"
+      ],
+      "native_path": "troll_explosion; exact combat/admission/source in facts",
+      "runtime_variants": [
+        "real native delivery and downstream rejection",
+        "source/ownership/side/version-specific hook coverage"
+      ]
+    },
+    {
+      "id": "iaf:ghost-troll:troll_regen",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "troll_regen; exact combat/admission/source in facts",
+      "runtime_variants": [
+        "real native delivery and downstream rejection",
+        "source/ownership/side/version-specific hook coverage"
+      ]
+    },
+    {
+      "id": "iaf:ghost-troll:troll_sun_statue",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "troll_sun_statue; exact combat/admission/source in facts",
+      "runtime_variants": [
+        "real native delivery and downstream rejection",
+        "source/ownership/side/version-specific hook coverage"
+      ]
+    },
+    {
+      "id": "iaf:ghost-troll:troll_arrow_veto",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "troll_arrow_veto; exact combat/admission/source in facts",
+      "runtime_variants": [
+        "real native delivery and downstream rejection",
+        "source/ownership/side/version-specific hook coverage"
+      ]
+    },
+    {
+      "id": "iaf:ghost-troll:troll_armor_player",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "troll_armor_player; exact combat/admission/source in facts",
+      "runtime_variants": [
+        "real native delivery and downstream rejection",
+        "source/ownership/side/version-specific hook coverage"
+      ]
+    },
+    {
+      "id": "iaf:ghost-troll:dragon_armor_player",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "dragon_armor_player; exact combat/admission/source in facts",
+      "runtime_variants": [
+        "real native delivery and downstream rejection",
+        "source/ownership/side/version-specific hook coverage"
+      ]
+    },
+    {
+      "id": "iaf:ghost-troll:troll_weapon_melee",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "troll_weapon_melee; exact combat/admission/source in facts",
+      "runtime_variants": [
+        "real native delivery and downstream rejection",
+        "source/ownership/side/version-specific hook coverage"
+      ]
+    }
+  ],
+  "unexecuted_future_fixtures": [
+    "Ghost_natural_vs_chest_daylight_blocklight_sky",
+    "Ghost_effect_immunity_vs_wither_DamageSource",
+    "Ghost_two_animation_ticks_native_Mob_postattack",
+    "Sword_main_vs_offhand_tag_mainstack_amount",
+    "Sword_client_server_swing_spawn_eventcounts",
+    "Sword_first_super_vs_custom_impact_hook_deflection",
+    "Sword_wall_clip_phasing_owner_PVP_admission",
+    "Sword_indirect_magic_vs_ownerless_magic_Resistance",
+    "Sword_hurt_false_ignition_bounce_vs_Enderman_true",
+    "Sword_piercing_supported_native_availability_before_execution",
+    "Troll_vertical_horizontal_hurt_false_axis_motion",
+    "Troll_melee_plus_KEEP_explosion_overlap",
+    "Troll_regen_effect_and_heal_veto",
+    "Troll_sun_binary_statue_join_reject",
+    "Troll_msgId_arrow_vs_projectiletag_only",
+    "Armor_Player_leftover_absorption_vs_HP_damage",
+    "Armor_nonplayer_no_dispatch_and_other_mod_mixin_composition",
+    "Troll_weapon_actual_posthit_return_and_inactive_swing_signature"
+  ],
+  "remaining_subsection_native_ambiguities": [],
+  "review_required": [],
+  "exact_next_task": "R2g8b: Hydra/Sea Serpent/Stymphalian/Amphithere and combat-special Hippogryph/Hippocampus; remaining special equipment/status/custom DamageTypes and whole-mod closure/dedup/promotion. Static only.",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "runtime_tests": 0,
+  "whole_iceandfire_complete": false,
+  "promoted_mechanics": 0,
+  "promoted_paths": 0,
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false,
+  "reference_files": [
+    {
+      "file": "native-evidence/iceandfire-ghost-troll.json",
+      "sha256": "5fd865d62a73d53e43cbfd0bc6fa0a7baeebf7f482146caa713caf10d55413df"
+    },
+    {
+      "file": "reference-evidence/iceandfire-ghost-troll-244.json",
+      "sha256": "559079cfa89fbdaecb5efe241a4f4c7c00ff48518fa6f17dc18870cb9143ab1c"
+    },
+    {
+      "file": "vanilla-evidence/iceandfire-ghost-troll.json",
+      "sha256": "ae63bed8ce6c70747a7559a5447e1c3d71655d913ec76027cfd8dbe67284b987"
+    },
+    {
+      "file": "reference-routing/iceandfire-ghost-troll.json",
+      "sha256": "5d4eb79fc207c1794490a1fda9abead4a2f325acbbf881404e7899021db09400"
+    },
+    {
+      "file": "iceandfire-ghost-troll-census.json",
+      "sha256": "346233c54d6ab745aeda67a73a09480dfed1d35e513f576a0dca696d01f55cdd"
+    },
+    {
+      "file": "native-evidence/iceandfire-gorgon.json",
+      "sha256": "5e7316b4c79fe5f7be57305597f130762e421ad1f351c96df857b3a3e5ebde3b"
+    },
+    {
+      "file": "reference-evidence/iceandfire-dragon-elements-244.json",
+      "sha256": "af70e4af14a20357ba1cea11a66588a892d379037423ec6b6921dc01c62c9c07"
+    },
+    {
+      "file": "reference-evidence/iceandfire-worm-cyclops-244.json",
+      "sha256": "fb938892374a34bd29d221714da0cd431810ebc512cc6323d61c95e8a2d1902c"
+    },
+    {
+      "file": "native-evidence/iceandfire-foundation.json",
+      "sha256": "7ec82347885b0666ebbfa8ea8650acd392efd90019a99aacf7e19a21d63f0fdc"
+    },
+    {
+      "file": "iceandfire-frozen-config-snapshot.json",
+      "sha256": "046dffed6e3ec3b3e01e4cd0be4042ac3f1de30302ba7a4facc72e4cd6c4d808"
+    },
+    {
+      "file": "annotation-evidence/iceandfire-ghost-troll-javap.json",
+      "sha256": "5b9c07716ac167cd3da79057e71ae21d8f26e4b94b8e59bf20a7cb110b5d0808"
+    },
+    {
+      "file": "annotation-evidence/iceandfire-ghost-troll-javap.txt",
+      "sha256": "6096ad187085b471258e9877d2aebb17fedd9f704fd73d61fa091de1372386d9"
+    }
+  ]
+}
