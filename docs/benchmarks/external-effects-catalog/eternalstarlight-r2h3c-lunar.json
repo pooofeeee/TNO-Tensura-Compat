@@ -1,0 +1,592 @@
+{
+  "schema": "tno.external_effects.es_lunar.v1",
+  "checkpoint": "R2h3c-lunar-complete",
+  "previous_checkpoint": "R2h3b-golems-complete",
+  "starting_sha": "3f203f78fa8f9c8d298187229fa64c1b990fdb25",
+  "status": "LUNAR_POISON_AND_TANGLED_SEMANTICS_COMPLETE",
+  "scope": "Lunar boss, all five custom POISON callers, native Tangled/Skull and Moonring/Petal/Wand combat paths; Chain of Souls and other families still pending.",
+  "summary": "Lunar admission/stun, distinct POISON damage/status routes, independent Wand departure hazards, decoy ownership and native skull blast attribution reviewed.",
+  "facts": {
+    "lunar_admission": "LunarMonstrosity.hurt first rejects behavior6/8 or causing entity in #lunar_monstrosity_allies (Tangled, TangledSkull, LunarMonstrosity), unless BYPASSES_INVULNERABILITY. Inside the admitted branch, phase0 HP/maxHP<.5 transitions to phase1/behavior8/ticks0 both before and after super.hurt, independently of hurt return. The preexisting outer gate is not rerun after the pre-hurt transition; the current request can still reach super. During bite behavior4, causing entity=current target and requested amount>=6 sets stun -1/ticks0 BEFORE amount cap and native hurt. Cap is min(3,requested), except bypass_invulnerability, onFire, Starfire STATUS or stun -1; the interrupting hit therefore releases its own cap even if later native admission rejects it. addEffect explicitly rejects native Poison, while custom POISON DamageType is a separate HP route. ignoreExplosion rejects blasts whose indirect Living source type is in the same ally tag. No fabricated bypass is proposed.",
+    "lunar_counterplay": "Native blockedByShield when behavior4 and blocker=current target sets behavior-1, then calls super knockback; unlike incoming-hit stun this method does NOT reset behaviorTicks. Exact LivingEntity hurt invokes attacker.blockedByShield through defender.blockUsingShield only on admitted shield-block handling with direct Living attacker and source not IS_PROJECTILE. BITE direct/cause boss and no projectile/bypass-shield tag can satisfy that path. Native interaction with #lunar_monstrosity_igniters sets fire ticks to max(old,100 phase0 or20 phase1), costing item/durability. Installed six entries are flint_and_steel, fire_charge, blaze_rod, blaze_powder, saltpeter_matchbox and thermal_springstone_ingot. R2h2b already establishes Starfire status releases cap but STARFIRE source identity alone does not. Keep ignition, shield counterplay, source-attributed interrupt and HP damage distinct.",
+    "lunar_bite_and_movement": "Phase1 Bite cooldown100 requires target and canBite: target in native nearby AABB+3 and horizontal target-to-boss direction dot boss view<0. At behavior tick17, doBiteDamage requests BITE20 on ALL nearby Living meeting same frontal dot test, not just target; native TargetingConditions.DEFAULT applies, but this method has no explicit shouldHarm/ally check. Hurt return ignored. Direct=causing=boss; native Incoming lunar attackDamageScale applies by causer. Dig eligibility is (cooldownOver AND target AND not reach10) OR (fleeFromLavaCooldown<=0 AND inLava); lava branch does not require target/cooldown. Dig31 -> sneak6 duration200 -> emerge7 duration45. Sneak clears fire, shrinks dimensions to.1 and permits ordinary melee navigation; doHurtTarget changes6->7/ticks0 BEFORE ordinary mob_attack (ATTACK_DAMAGE5), regardless success. Sneak every20 entity ticks in/near lava may LandRandomPos away20/8 then native randomTeleport; loaded chunk, ground, collision and no-liquid admission can reject and restore old position. This uses native randomTeleport, not the Wand event path. Soul transition state8 tick70 only pushes nearby nonally-tag entities radius5 strength2.5 with damage=false; it creates no SOUL_ABSORB event.",
+    "toxic_breath": "Phase1 ToxicBreath requires target/cooldown200, spawns owned ray tick20, duration110. Inherits reviewed RayAttack block-clipped radius20/caster/ordinary cooldown path. LunarMonstrosityBreath requests POISON3 direct=breath/causing=caster when shouldHarm. Only hurt true AND no existing native Poison adds Poison60 amp0. No ignition or freeze. Beam discards on no caster or Lunar caster behavior!=1/dead; enclosing ray tick can still finish after discard. Custom POISON has no armor/shield/enchantment/Resistance bypass, projectile or elemental tag in pinned scope; rejecting MobEffects.POISON alone does not reject this distinct native damage type.",
+    "lunar_thorns": "Thorn phase cooldown200/target, ticks divisible15 through inclusive duration90: attempts (tick/15+1)*6 thorns along target direction spacing1.25; downward sturdy-ground search places mode1 owner=boss with spawnedTicks=-index. Every wave pushes nearby nonally-tag entities radius1.5 strength1.2; ticks>=60 additionally native mob_attack3.6, whose hurt result does not gate the already-applied movement. In phase1 also spawns one shot TangledSkull each wave. LunarThorn server tick resolves Living owner UUID once/clears unresolved, discards at spawnedTicks>=200 with no early return; >40 ticks, owner required, Living AABB+.5 and shouldHarm -> mode0 POISON4, other modes3. Mode1 first applies Slowness10 amp0 only if absent, independent of hurt; hurt result ignored. No explicit LOS/iframe override. Thorn own hurt only binary bypass-invulnerability discard.",
+    "moonring_thorns": "MoonringBow.createProjectile adds.75 AbstractArrow base damage; ordinary arrow primary is separate. releaseUsing calls super then checks server Player and getPowerForTime==1; it does NOT require successful shot/hurt or return from super. Attempts16 mode0 thorns forward spacing1.5, delay i*5; source-ground helper scans upward up to40 if needed then raycasts down40 and only places on hit. Native release/admission must be tested with missing ammo or other bow-hook cancellation: do not assume thorns are gated by arrow success. Same createThorn helper is used by Wand and preserves caller owner and mode0.",
+    "lunar_spores": "Spore phase target/cooldown200/duration100 launches owned no-gravity LunarSpore on ticks5,15,...95, speed.9. LunarSpore impact calls super then bursts for non-entity result OR entity passing shouldHarm; server tick also bursts when age>60 Player owner, >200 otherwise, or speed<.001. Burst is manual Living AABB+2 POISON5, not Level.explode, with shouldHarm(owner,target), direct=spore/causing=owner. Player owner resets iframe0 without restoration; other owners retain ordinary cooldown. Hurt return ignored; no native Poison status is applied. Own hurt alwaysfalse and not pickable. Spore creation by TangledHusk is a separate legitimate Player path with gravity and lifetime differences; a tick can continue after impact discard, so do not impose an invented one-burst guard.",
+    "petal_cloud": "PetalScythe successful item postHurtEnemy OR native swing_attack packet, server shared special item cooldown clear -> five owned PoisonousCloud fan at speed.6, cooldown100. Cloud resolves/clears owner UUID; lifetime>100 discard no early return. Owner required, AABB recipients shouldHarm, no LOS: save iframe, set0, request POISON5, restore saved iframe; independently apply Poison80 amp1 ignoring addEffect result. Any hurt success sets shared cooldown10; all rejected retries next tick. Movement follows native velocity damping. Cloud own hurt only binary bypass discard. Separate ESCommonHandler direct-Living Petal Scythe Post proc applies Poison80 amp1 to Living in victim AABB2.5 except attacker without shouldHarm/LOS; same primary hurt success event, different recipient and cooldown rules. Ordinary scythe melee/sweep details remain shared equipment review.",
+    "wand_and_husk": "Wand.use raycasts64 using ESEntityUtil full entity segment: first non-player entity wins even if block result nearer, else any nonnull block result (no MISS test), offset toward player by min(distance,2). No explicit server-only guard in use/helper. teleportPlayer FIRST attempts35 mode0 source-position thorns and creates owned TangledHusk. Only then ESNeoPlatform posts cancellable EntityTeleportEvent; not canceled -> native teleportTo supplied destination and another35 destination thorns. Modified event coordinates are not read. Source thorns/husk and durability1/cooldown600 remain even if teleport vetoed. No independent noCollision/safe-landing test here. Husk is a LivingEntity whose hurt rejects everything except bypass-invulnerability passed to normal super HP (not binary discard). Server resolves owner; ownerless discard has no early return. Each tick Mob AABB10 with target==owner gets setTarget(husk), lastHurtByMob and ATTACK_TARGET memory; no ally/LOS or success rollback. If owner unresolved/null, target==null mobs can match on that final tick. Incremented spawnedTicks>100: native nearby AABB2 shouldHarm -> POISON10 direct=causing=OWNER via getEntityDamageSource, not husk; only hurt true pushes1.25. Independently create15 owned random-direction LunarSpores and discard. The direct Living owner identity can trigger generic weapon Post callbacks; keep it native.",
+    "tangled_and_skulls": "Tangled native behavior melee range2/tick15/duration20/cooldown10 calls ordinary mob_attack using configured ATTACK_DAMAGE; hurttrue Living target random1/5 with no Poison gets Poison40. First death tick has native50% chance plus tangledSkull.canSpawn config to spawn a normal non-shot skull with current target, independent of killer identity. Normal skull charge goal hits intersecting current target with native mob_attack using configured attribute, then stops charging regardless hurt. Skull noPhysics wraps super.tick; setNoGravity. Shot mode overrides target=null and motion; Monstrosity shots hold still until entity tick30, then prescribed motion1.5. Normal item use and registered dispenser create shot skull speed1 with no shooter-owner link and no boss-shot flag; dispenser first tries ArmorItem.dispenseArmor. All shot skulls reject ordinary hurt unless bypass_invulnerability. Boss-shot Living nonally collision applies Darkness/Blindness/Slowness/Weakness60 BEFORE blast, independent of HP; boss-shot ally contact skips blast. Other shot contacts do not use that ally exemption. Any non-MISS admitted contact triggers Level.explode radius1, ExplosionInteraction.NONE then discard. Normal skull death after80 ticks also explodes radius1. Direct=causing=SKULL (it is LivingEntity), even when launched by Player, dispenser or boss; default DamageSources chooses player_explosion because both entities are nonnull, not because causer is a Player. Lunar boss ignoreExplosion therefore rejects these skull blasts by ally type.",
+    "explosion_and_stage": "Native skull explosion radius1 uses ordinary calculator, exposure and distance: f=2*radius, q=(1-distance/f)*seenPercent, amount=((q*q+q)/2)*7*f+1 for eligible entities. Native start/detonate hooks, ignoreExplosion, shield/armor/enchantment/Resistance and separate explosion knockback remain; NONE suppresses block destruction, not entity HP. Future Stage at final per-target Explosion hurt only, never power/radius. Independent BITE/POISON requests and native melee each scale once at final hurt after their native formulas; native Poison DOT uses its own native periodic boundary, status duration/amplifier stay native. Keep state/caps/counters, teleport, AI decoy, knockback, minion count, hazard lifetime and source-specific defenses unscaled. No L2/Tensura runtime outcomes claimed. Rendering, particles, skull acquisition/placement/loot and cosmetic variants excluded."
+  },
+  "mechanic_packages": [
+    {
+      "id": "es:lunar_defense",
+      "name": "Lunar Monstrosity phase/cap/stun defenses",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE",
+        "BINARY"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Keep native source identity, independent return gates and nonnumeric controls; no duplicate Stage.",
+      "delivery_paths": [
+        "es:lunar:lunar_defense",
+        "es:lunar:lunar_shield_stun",
+        "es:lunar:lunar_ignite",
+        "es:lunar:lunar_sneak_melee"
+      ]
+    },
+    {
+      "id": "es:lunar_bite",
+      "name": "Lunar frontal bite",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "COMPOSITE",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at doBiteDamage final BITE20 request.",
+      "stage_reason": "Keep native source identity, independent return gates and nonnumeric controls; no duplicate Stage.",
+      "delivery_paths": [
+        "es:lunar:lunar_bite"
+      ]
+    },
+    {
+      "id": "es:lunar_motion",
+      "name": "Lunar dig/teleport/soul transition control",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Keep native source identity, independent return gates and nonnumeric controls; no duplicate Stage.",
+      "delivery_paths": [
+        "es:lunar:lunar_sneak_melee",
+        "es:lunar:lunar_soul_push",
+        "es:lunar:lunar_thorn_wave"
+      ]
+    },
+    {
+      "id": "es:lunar_native_melee",
+      "name": "Lunar emergence and thorn knockback HP",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "COMPOSITE",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at native mob_attack final request (attribute melee5 or late thorn push3.6).",
+      "stage_reason": "Keep native source identity, independent return gates and nonnumeric controls; no duplicate Stage.",
+      "delivery_paths": [
+        "es:lunar:lunar_sneak_melee",
+        "es:lunar:lunar_thorn_wave"
+      ]
+    },
+    {
+      "id": "es:lunar_breath",
+      "name": "Lunar toxic breath",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "COMPOSITE",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at final native breath POISON3 hurt.",
+      "stage_reason": "Keep native source identity, independent return gates and nonnumeric controls; no duplicate Stage.",
+      "delivery_paths": [
+        "es:lunar:lunar_breath"
+      ]
+    },
+    {
+      "id": "es:lunar_thorns",
+      "name": "Lunar boss/bow/Wand ground thorns",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "COMPOSITE",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at LunarThorn.tick POISON mode0=4/other=3 hurt.",
+      "stage_reason": "Keep native source identity, independent return gates and nonnumeric controls; no duplicate Stage.",
+      "delivery_paths": [
+        "es:lunar:lunar_thorn_wave",
+        "es:lunar:moonring_full_release",
+        "es:lunar:wand_departure",
+        "es:lunar:wand_arrival"
+      ]
+    },
+    {
+      "id": "es:moonring_primary",
+      "name": "Moonring Bow ordinary primary HP",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "COMPOSITE",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at native AbstractArrow final hurt; preserve +.75 base.",
+      "stage_reason": "Keep native source identity, independent return gates and nonnumeric controls; no duplicate Stage.",
+      "delivery_paths": [
+        "es:lunar:moonring_full_release"
+      ]
+    },
+    {
+      "id": "es:lunar_spores",
+      "name": "Lunar Spore manual burst",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "COMPOSITE",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at each native POISON5 burst request.",
+      "stage_reason": "Keep native source identity, independent return gates and nonnumeric controls; no duplicate Stage.",
+      "delivery_paths": [
+        "es:lunar:lunar_spore_volley",
+        "es:lunar:husk_burst"
+      ]
+    },
+    {
+      "id": "es:petal_poison_cloud",
+      "name": "Petal Scythe cloud HP/status and Post Poison",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "COMPOSITE",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at independent cloud POISON5; native Poison DOT separately at its final periodic request.",
+      "stage_reason": "Keep native source identity, independent return gates and nonnumeric controls; no duplicate Stage.",
+      "delivery_paths": [
+        "es:lunar:petal_hit_cloud",
+        "es:lunar:petal_swing_cloud",
+        "es:lunar:petal_post_status"
+      ]
+    },
+    {
+      "id": "es:wand_decoy_control",
+      "name": "Wand teleport and Tangled Husk decoy",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE",
+        "BINARY"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Keep native source identity, independent return gates and nonnumeric controls; no duplicate Stage.",
+      "delivery_paths": [
+        "es:lunar:wand_departure",
+        "es:lunar:wand_arrival",
+        "es:lunar:husk_redirect"
+      ]
+    },
+    {
+      "id": "es:husk_burst",
+      "name": "Tangled Husk owner-direct burst",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "COMPOSITE",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at native POISON10 request; independent spores use their own package.",
+      "stage_reason": "Keep native source identity, independent return gates and nonnumeric controls; no duplicate Stage.",
+      "delivery_paths": [
+        "es:lunar:husk_burst"
+      ]
+    },
+    {
+      "id": "es:tangled_melee",
+      "name": "Tangled and normal skull melee",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "COMPOSITE",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at native Mob final hurt; successful Tangled Poison DOT remains a separate native request.",
+      "stage_reason": "Keep native source identity, independent return gates and nonnumeric controls; no duplicate Stage.",
+      "delivery_paths": [
+        "es:lunar:tangled_melee",
+        "es:lunar:skull_normal_melee"
+      ]
+    },
+    {
+      "id": "es:tangled_skull_blast",
+      "name": "Tangled Skull shot/death blast and debuffs",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "tno_categories": [
+        "NUMERIC_SCALABLE",
+        "COMPOSITE",
+        "ADMISSION_GATED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at native Explosion per-target hurt; do not scale radius or debuffs.",
+      "stage_reason": "Keep native source identity, independent return gates and nonnumeric controls; no duplicate Stage.",
+      "delivery_paths": [
+        "es:lunar:skull_boss_shot",
+        "es:lunar:skull_player_shot",
+        "es:lunar:skull_dispenser",
+        "es:lunar:skull_death_blast"
+      ]
+    }
+  ],
+  "delivery_paths": [
+    {
+      "id": "es:lunar:lunar_defense",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "outer state/ally gate -> phase/interrupt -> cap -> ordinary hurt -> phase check",
+      "runtime_variants": [
+        "source direct/causing identity and admission",
+        "hurt result vs independent status/control"
+      ]
+    },
+    {
+      "id": "es:lunar:lunar_shield_stun",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "native shield block of direct-Living BITE -> boss blockedByShield",
+      "runtime_variants": [
+        "source direct/causing identity and admission",
+        "hurt result vs independent status/control"
+      ]
+    },
+    {
+      "id": "es:lunar:lunar_ignite",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "native tagged item interaction -> fire ticks -> cap release",
+      "runtime_variants": [
+        "source direct/causing identity and admission",
+        "hurt result vs independent status/control"
+      ]
+    },
+    {
+      "id": "es:lunar:lunar_bite",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "phase1 frontal admission -> tick17 BITE20",
+      "runtime_variants": [
+        "source direct/causing identity and admission",
+        "hurt result vs independent status/control"
+      ]
+    },
+    {
+      "id": "es:lunar:lunar_sneak_melee",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "dig/sneak -> native melee changes state before ordinary attack",
+      "runtime_variants": [
+        "source direct/causing identity and admission",
+        "hurt result vs independent status/control"
+      ]
+    },
+    {
+      "id": "es:lunar:lunar_soul_push",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "state8 tick70 -> native push damage=false",
+      "runtime_variants": [
+        "source direct/causing identity and admission",
+        "hurt result vs independent status/control"
+      ]
+    },
+    {
+      "id": "es:lunar:lunar_thorn_wave",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "boss mode1 delayed ground thorns + late mob_attack push",
+      "runtime_variants": [
+        "source direct/causing identity and admission",
+        "hurt result vs independent status/control"
+      ]
+    },
+    {
+      "id": "es:lunar:lunar_breath",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "boss phase1 tick20 -> block-clipped POISON3 ray",
+      "runtime_variants": [
+        "source direct/causing identity and admission",
+        "hurt result vs independent status/control"
+      ]
+    },
+    {
+      "id": "es:lunar:lunar_spore_volley",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "boss spore phase -> owned no-gravity POISON5 burst",
+      "runtime_variants": [
+        "source direct/causing identity and admission",
+        "hurt result vs independent status/control"
+      ]
+    },
+    {
+      "id": "es:lunar:moonring_full_release",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "super bow release then full charge -> mode0 thorns independent of arrow success",
+      "runtime_variants": [
+        "source direct/causing identity and admission",
+        "hurt result vs independent status/control"
+      ]
+    },
+    {
+      "id": "es:lunar:petal_hit_cloud",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "successful item callback -> five clouds shared cooldown100",
+      "runtime_variants": [
+        "source direct/causing identity and admission",
+        "hurt result vs independent status/control"
+      ]
+    },
+    {
+      "id": "es:lunar:petal_swing_cloud",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "native swing packet -> same cloud producer",
+      "runtime_variants": [
+        "source direct/causing identity and admission",
+        "hurt result vs independent status/control"
+      ]
+    },
+    {
+      "id": "es:lunar:petal_post_status",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "direct Living Petal Scythe Damage Post -> independent Poison AOE",
+      "runtime_variants": [
+        "source direct/causing identity and admission",
+        "hurt result vs independent status/control"
+      ]
+    },
+    {
+      "id": "es:lunar:wand_departure",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "native use -> source thorns/husk before teleport event",
+      "runtime_variants": [
+        "source direct/causing identity and admission",
+        "hurt result vs independent status/control"
+      ]
+    },
+    {
+      "id": "es:lunar:wand_arrival",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "uncanceled teleport -> destination thorns",
+      "runtime_variants": [
+        "source direct/causing identity and admission",
+        "hurt result vs independent status/control"
+      ]
+    },
+    {
+      "id": "es:lunar:husk_redirect",
+      "labels": [
+        "PASSIVE_AURA"
+      ],
+      "native_path": "target==owner mobs -> native setTarget/brain/lastHurt decoy",
+      "runtime_variants": [
+        "source direct/causing identity and admission",
+        "hurt result vs independent status/control"
+      ]
+    },
+    {
+      "id": "es:lunar:husk_burst",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "age>100 -> owner-direct POISON10 then fifteen independent spores",
+      "runtime_variants": [
+        "source direct/causing identity and admission",
+        "hurt result vs independent status/control"
+      ]
+    },
+    {
+      "id": "es:lunar:tangled_melee",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "native behavior helper -> ordinary mob_attack -> success poison chance",
+      "runtime_variants": [
+        "source direct/causing identity and admission",
+        "hurt result vs independent status/control"
+      ]
+    },
+    {
+      "id": "es:lunar:skull_normal_melee",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "normal skull charge contact -> native mob_attack",
+      "runtime_variants": [
+        "source direct/causing identity and admission",
+        "hurt result vs independent status/control"
+      ]
+    },
+    {
+      "id": "es:lunar:skull_boss_shot",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "phase1 thorn wave -> boss-flag skull hold30 -> debuffs/impact blast",
+      "runtime_variants": [
+        "source direct/causing identity and admission",
+        "hurt result vs independent status/control"
+      ]
+    },
+    {
+      "id": "es:lunar:skull_player_shot",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "native skull item use -> unattributed-to-player shot skull",
+      "runtime_variants": [
+        "source direct/causing identity and admission",
+        "hurt result vs independent status/control"
+      ]
+    },
+    {
+      "id": "es:lunar:skull_dispenser",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "registered behavior armor-dispense fallback -> shot skull",
+      "runtime_variants": [
+        "source direct/causing identity and admission",
+        "hurt result vs independent status/control"
+      ]
+    },
+    {
+      "id": "es:lunar:skull_death_blast",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "normal skull death80 -> native explosion, including Tangled death-spawn path",
+      "runtime_variants": [
+        "source direct/causing identity and admission",
+        "hurt result vs independent status/control"
+      ]
+    }
+  ],
+  "damage_types_newly_reviewed": [
+    "eternal_starlight:bite",
+    "eternal_starlight:poison"
+  ],
+  "unexecuted_future_fixtures": [
+    "Lunar_outer6_8_ally_bypass_vs_cap_onfire_Starfire_stun",
+    "Lunar_pre_post_hp50pct_hurtfalse_and_target_requested6_interrupt",
+    "Bite_current_target_shield_stun_no_tick_reset_vs_other_blocker",
+    "Lunar_sneak_fireclear_dimensions_lava_randomTeleport_reject",
+    "Soul_transition_push_without_soul_damage",
+    "Breath_hurtfalse_vs_existingPoison_and_blockclip",
+    "Thorn_mode0_vs1_delay_ground_admission_status_before_hurt",
+    "Moonring_full_release_arrow_cancel_or_noammo",
+    "Spore_Player_iframe0_vs_boss_and_final_impact_expiry",
+    "Cloud_save_restore_iframe_hurtfalse_status_and_allreject_retry",
+    "Petal_Post_AOE_vs_cooldown_cloud_different_allies",
+    "Wand_wall_entity_precedence_event_cancel_departure_husk_cost",
+    "Wand_event_coordinate_edit_vs_native_destination_and_side_guard",
+    "Husk_owner_direct_damage_Post_procs_and_ownerloss_final_tick",
+    "Husk_Teary_target_veto_vs_brain_write",
+    "Skull_Player_dispenser_boss_and_death_source_identity",
+    "Skull_boss_contact_debuff_hurtfalse_ally_exemption_and_hold30",
+    "Skull_explosion_NONE_HP_exposure_eventveto_Lunar_ignoreExplosion"
+  ],
+  "remaining_subsection_native_ambiguities": [],
+  "review_required": [],
+  "exact_next_task": "R2h3d: Chain of Souls native SOUL_ABSORB damage/heal/control and remaining resource weapons, then Gatekeeper/Solar Creeper, other custom DamageType callers/equipment and whole-mod closure. Lunar boss, all five custom POISON callers, Tangled/Skull, Moonring/Petal/Wand paths are reviewed; do not redo.",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "runtime_tests": 0,
+  "whole_eternalstarlight_complete": false,
+  "promoted_mechanics": 0,
+  "promoted_paths": 0,
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false,
+  "reference_files": [
+    {
+      "file": "native-evidence/eternalstarlight-lunar.json",
+      "sha256": "3a707344830e8d9ee70567837e9133419e91e6b99c7383add1ce55d1bb623ede"
+    },
+    {
+      "file": "eternalstarlight-lunar-producer-census.json",
+      "sha256": "0a8cad246bd0f72125cf075a8f7fb3adc272b94256f198273060d7e810e3f124"
+    },
+    {
+      "file": "reference-evidence/eternalstarlight-lunar-244.json",
+      "sha256": "c8e208df1f27ca4c0d07e4c50cea82cb95c5fab8d2330c3a4108a148db07f870"
+    },
+    {
+      "file": "eternalstarlight-damage-tags.json",
+      "sha256": "e3ddbb993e7c1c5842079da4173c8da218bce10c8f6bdef2b2fbc1db05ab47d3"
+    },
+    {
+      "file": "native-evidence/eternalstarlight-golems.json",
+      "sha256": "9963f6e1c3237238d45dbed511359e83e9e1545bc19f9a36c8f90d4d1cece131"
+    },
+    {
+      "file": "native-evidence/eternalstarlight-energy.json",
+      "sha256": "36aa3ef70741ae00b3a0d489f660247a1b0acdd8927519b96b0dec8a2b8e8677"
+    },
+    {
+      "file": "native-evidence/eternalstarlight-status-control.json",
+      "sha256": "3d6fde83de2e737384d51bc7b98b2d38cd2a4ebbd2e5f2d8e27c2426f963d15e"
+    },
+    {
+      "file": "native-evidence/eternalstarlight-foundation.json",
+      "sha256": "045d7752af404af1f66900ab9f997570242268084b2aeefd9da7b32b0e90ddd8"
+    },
+    {
+      "file": "reference-evidence/iceandfire-dragon-elements-244.json",
+      "sha256": "af70e4af14a20357ba1cea11a66588a892d379037423ec6b6921dc01c62c9c07"
+    },
+    {
+      "file": "reference-evidence/iceandfire-ghost-troll-244.json",
+      "sha256": "559079cfa89fbdaecb5efe241a4f4c7c00ff48518fa6f17dc18870cb9143ab1c"
+    },
+    {
+      "file": "vanilla-evidence/iceandfire-worm-cyclops.json",
+      "sha256": "8104c9b4b0c5e80caa38f9348a4f98405bb40c9422b80a1f2aeb0cbb3e5a76e5"
+    }
+  ]
+}
