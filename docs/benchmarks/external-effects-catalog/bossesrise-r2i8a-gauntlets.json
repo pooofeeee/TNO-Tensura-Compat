@@ -1,0 +1,539 @@
+{
+  "schema": "tno.external_effects.bossesrise_gauntlets.v1",
+  "checkpoint": "R2i8a-bossesrise-gauntlets-complete",
+  "previous_checkpoint": "R2i7b-bossesrise-kraken-offense-complete",
+  "starting_sha": "8740fe66591a4b7c5692608026aa81062e5fc33d",
+  "status": "ICE_AND_SANDWORM_GAUNTLET_DELIVERY_COMPLETE",
+  "scope": "Ice and Sandworm Gauntlet native item prerequisites, costs, owner/control and hazard delivery; protected payloads reused.",
+  "summary": "Gauntlets extend nine existing native hazard packages; inherited shield use, active landing, shard ownership and real Sandworm constructor delivery are pinned. Prior static-helper wording corrected additively.",
+  "facts": {
+    "ice_native_use": "IceGauntletItem extends ShieldItem, not plain Item. use starts animation then delegates ShieldItem.use, which starts actual item use and returns consume; inherited block animation/use duration72000 supplies charge/jump/holding admission. PlayerAnimationHandler only schedules cosmetic animation and does not substitute for startUsingItem. Native shield eligibility/directional block/source shield bypass and cooldown remain intact. Item durability1200; native mainhand modifiers attackDamage+4, attackSpeed-3, attackKnockback+2.5 are ordinary melee inputs, not extra HP callbacks or additional Stage points. Successful native melee weapon callback hurtEnemy calls super, writes target frozen400 regardless of the returned item boolean, then returns it. It does not invoke hurt, canFreeze or addEffect. Player.attack/ItemStack dispatch still controls whether the callback occurs. Frozen counter/Roll/native freeze immunity and later passive tick use protected R2i5b, not fabricated instant freezing damage.",
+    "ice_wave": "ServerPlayer release while secondary-use active and item cooldown absent computes held ticks i=72000-timeLeft; negative returns. Begins end animation, clips eye/view along blockInteractionRange*1.1 with COLLIDER/Fluid.NONE; MISS returns before cost. Pitch is clamped+/-85 only for wave direction after ray. Calls native iceWave range=min(i/32+.5,1.5)*12 (6..18), count=min(i,32), damage10,speed1, origin hit location. Cooldown80 and durability1 follow even if count0 or all candidate terrain rays reject. Protected helper places normal/cluster candidates, owner player, delays16+j, native stored damage10. No eye-to-each-spike LOS override or guaranteed count; normal versus cluster admitted HP/control/reload semantics remain R2i5b. Scale at later native spike/cluster hurt, never setDamage and hurt both.",
+    "ice_leap": "LivingJumpEvent only ServerPlayer actively using exact gauntlet and no gauntlet cooldown; requires attachment !active and no stored shard UUID. Sets active, costs10durability, stops use, starts jump animation, cooldown400, Spatial push(view+Y2). LivingFallEvent ServerPlayer calls onFall; true cancels fall. PlayerFlyableFallEvent calls it without cancellation. onFall needs ONLY active flag, not continued equipment/use/cooldown; clears flag, starts landing animation, native iceBurst range8/count40/damage3, cluster random1/10 OR index<4, cooldown200. It also independently scans playerBB.inflate2 for any Entity except self, owner-matched OwnableEntity, dead/spectator, normal spike or cluster. Requests ownerless freeze10 then writes frozen200 regardless of hurt result; no Living/canFreeze/team/LOS guard. Passive freeze eligibility remains separate. Falling after item swap or native saved active state is a genuine fixture. Landing HP10 and delayed spikes are separate native payloads; no duplicate Stage scaling.",
+    "ice_shards": "Native cluster interact with gauntlet and free random slot0..3 starts real use, stores UUID, replaces break resource with slot index, sets held and owner player. useOn searches cluster centers near clicked position in full-side3 box and delegates first successful interaction; client only predicts success. Post PlayerTick attachment clears UUIDs whose loaded entity is not Cluster. With at least one valid shard and continued exact gauntlet use, it can collect additional unheld clusters from full-side3x2x3 box one block ahead of eye until4 slots. It does not consume durability or apply a cooldown there. When no longer using that gauntlet, every>=2 game ticks releases the first valid stored cluster: new native IceSpikeProjectile owner player at eye, speed4, inaccuracy=slotIndex*5, baseDamage4, knockback8; then discards cluster, clears UUID and updates lastShot even if addFreshEntity failed. Projectiles preserve R2i5b swept indirect_magic ceil(speed*base) and genuine playerTouch FREEZE8 as different routes. No extra HP added by attachment. Held clusters can release held-state separately when player stops use; native tick ordering/removal matters. Attachment active/shard UUIDs/last_shot persist; missing entities clear naturally.",
+    "sandworm_modes": "SandwormGauntlet extends Item, durability1000, use duration72000/BOW. Crouching on top face in onItemUseFirst sets operation mode earthquake; ordinary use defaults missing mode to poison_barrage, applies its modifiers, starts using and consumes interaction. Earthquake adds MOVEMENT_SPEED and JUMP_STRENGTH negative-infinity ADD_VALUE modifiers keyed freeze, ANY equipment group. Poison mode adds MOVEMENT_SPEED +.5 ADD_MULTIPLIED_BASE under a key named slow: code is a positive base-speed modifier, do not infer a slow from its label. release or dropping clears operation mode and removes these two modifier IDs. Native attribute clamping/use lifecycle must be retained; they are control/resources with no Stage multiplier.",
+    "sandworm_quake": "Server onUseTick in earthquake mode: at useTick30 and every20 thereafter, first costs10 durability via native hurtAndBreak, then chooses up to4 random Living targets other than user in full-side28x8x28 box with strict3<distance<14. No explicit ally/LOS/creative/spectator predicate at candidate selection. Remaining positions use random horizontal radius[3,14). Four native spawnSandColumn attempts pass delay0 and owner user; protected terrain COLLIDER ray may reject each. Column actual victim admission still checks alive, virtual invulnerable, owner and alliance, with push before ally HP rejection. Normal owned payload indirect_magic5 direct column/causing user; unresolved owner magic5 remains native. Cost/count/delay are not Stage values; only final native column HP once.",
+    "sandworm_barrage": "On release in poison mode compute count=clamp(Java integer (useTick+4)/10,0,4), requiring>=1; earliest count1 at6 held ticks, then2/3/4 at16/26/36. Force=clamp(.5+(useTick-7)/5,.5,1), speed=force*1.5 (.75..1.5), inaccuracy8+count*5. Server directly constructs count PoisonSpitPr at eye with firing ItemStack, sets owner user, silent, baseDamage6 and knockback5, then calls inherited instance shoot along view. It does NOT call the static convenience helpers. No native barrage durability deduction or item cooldown in this method; item-use stat increments for Player. AbstractArrow native speed/base/enchantment HP, return-gated projectile knockback and independent impact PoisonArea use R2i6. Area has no owner transfer, so later native poison tick still has no attacker. Keep each stage point downstream; do not scale count or base6 in addition to HP.",
+    "correction_and_reuse": "R2i6 boss payload/admission evidence remains valid. Its sentence that the Gauntlet uses a static shoot helper is superseded by this checkpoint: native constructor plus invokevirtual shooting is the real player path; invokestatic census has only convenience helpers calling each other inside PoisonSpitPrEntity. This is an additive, evidence-backed correction, not a rewrite of protected history. Existing nine hazard packages are extended with player delivery paths under the SAME IDs and same scaling points for final deduplication. Gauntlet input/control and landing pulse add three new packages. Native source tags, Resistance/Nullification/effect applicability and Roll semantics are reused unchanged. Cross-mod runtime results remain untested; origin/merge attribution for passive freeze and poison still requires design before Stage implementation.",
+    "excluded": "IceGauntletMessage handles client sound/particles only, not HP, frozen counters or server input. Player animations, item tooltip/render transforms, mining swing suppression, UUID animation keys and repair acquisition are excluded after identifying genuine use/attack delivery. No runtime/Stage/production changes. Dragon armor, Undying Tentacle and Trident remain next equipment subsections."
+  },
+  "semantic_corrections": [
+    {
+      "checkpoint": "R2i6-bossesrise-sandworm-complete",
+      "file": "bossesrise-r2i6-sandworm.json",
+      "fact": "spit_and_hazard",
+      "superseded_text": "Gauntlet uses a genuine static shoot helper",
+      "replacement": "SandwormGauntletItem.releaseUsingWithPoisonBarrage directly constructs PoisonSpitPrEntity, sets owner/base6/knockback5 and calls its inherited instance shoot(DDDFF). No external invokestatic call to the convenience shooting helpers exists in this installed JAR.",
+      "reason": "Equipment tracing distinguishes opcode/invocation descriptor; text matching the class-qualified shoot name alone does not establish a static helper caller.",
+      "evidence": "bossesrise-gauntlets-helper-census.json"
+    }
+  ],
+  "mechanic_packages": [
+    {
+      "id": "br:ice_spike_damage",
+      "name": "Ice Spike native delayed freezing strike",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE",
+        "VANILLA_ROUTED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "IceSpikeEntity lambda$baseTick final ownerless freeze stored-damage hurt argument.",
+      "stage_reason": "Final native outgoing HP request only; keep amount source/admission and resource/control independent.",
+      "delivery_paths": [
+        "br:gauntlets:ice_wave_spike",
+        "br:gauntlets:ice_burst_spike"
+      ],
+      "extends_existing_package": true
+    },
+    {
+      "id": "br:ice_cluster_damage",
+      "name": "Ice Cluster native delayed freezing strike",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE",
+        "VANILLA_ROUTED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "IceSpikeClusterEntity lambda$baseTick final ownerless freeze stored-damage hurt argument.",
+      "stage_reason": "Final native outgoing HP request only; keep amount source/admission and resource/control independent.",
+      "delivery_paths": [
+        "br:gauntlets:ice_wave_cluster",
+        "br:gauntlets:ice_burst_cluster"
+      ],
+      "extends_existing_package": true
+    },
+    {
+      "id": "br:ice_spike_projectile",
+      "name": "Ice Spike native swept magic hit",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE",
+        "VANILLA_ROUTED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "IceSpikeProjectileEntity.onHitEntity final ceil/clamp speed*baseDamage hurt argument.",
+      "stage_reason": "Final native outgoing HP request only; keep amount source/admission and resource/control independent.",
+      "delivery_paths": [
+        "br:gauntlets:ice_throw"
+      ],
+      "extends_existing_package": true
+    },
+    {
+      "id": "br:ice_spike_touch",
+      "name": "Ice Spike native playerTouch freezing hit",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE",
+        "VANILLA_ROUTED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "IceSpikeProjectileEntity.playerTouch final explicit FREEZE 8 hurt argument.",
+      "stage_reason": "Final native outgoing HP request only; keep amount source/admission and resource/control independent.",
+      "delivery_paths": [
+        "br:gauntlets:ice_touch"
+      ],
+      "extends_existing_package": true
+    },
+    {
+      "id": "br:yeti_passive_freeze",
+      "name": "Native passive freezing from ice counters",
+      "primary_classification": "VANILLA_DIRECT",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE",
+        "VANILLA_ROUTED"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "LivingEntity.aiStep final native freeze 1 hurt request with proven origin attribution, never counter and HP both.",
+      "stage_reason": "Final native outgoing HP request only; keep amount source/admission and resource/control independent.",
+      "delivery_paths": [
+        "br:gauntlets:ice_passive_freeze"
+      ],
+      "extends_existing_package": true
+    },
+    {
+      "id": "br:sandworm_column",
+      "name": "Sandworm native sand column damage and push",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "SandColumn.damageEntity native hurt5 after eligibility and with its resolved magic/indirect_magic source; only once.",
+      "stage_reason": "Scale only the native outgoing HP request, preserve separate effect/control/admission.",
+      "delivery_paths": [
+        "br:gauntlets:sand_quake",
+        "br:gauntlets:sand_column"
+      ],
+      "extends_existing_package": true
+    },
+    {
+      "id": "br:sandworm_spit",
+      "name": "Sandworm native spit arrow impact",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "AbstractArrow final native arrow hurt amount after speed/base/enchantment calculation for genuine spit; never also scale baseDamage.",
+      "stage_reason": "Scale only the native outgoing HP request, preserve separate effect/control/admission.",
+      "delivery_paths": [
+        "br:gauntlets:sand_barrage"
+      ],
+      "extends_existing_package": true
+    },
+    {
+      "id": "br:sandworm_poison_delivery",
+      "name": "Sandworm poison applications and hazard admission",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native admission/resources, incoming modifier, scripted defeat, effect delivery or control; no additional scalable HP request here.",
+      "delivery_paths": [
+        "br:gauntlets:sand_area"
+      ],
+      "extends_existing_package": true
+    },
+    {
+      "id": "br:sandworm_poison_tick",
+      "name": "Sandworm-origin native poison HP ticks",
+      "primary_classification": "VANILLA_DIRECT",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Native PoisonMobEffect hurt1 only with proven external-effect provenance and native HP>1 gate; no application/duration/amplifier scaling.",
+      "stage_reason": "Scale only the native outgoing HP request, preserve separate effect/control/admission.",
+      "delivery_paths": [
+        "br:gauntlets:sand_poison_tick"
+      ],
+      "extends_existing_package": true
+    },
+    {
+      "id": "br:ice_gauntlet_control",
+      "name": "Ice Gauntlet native use, freezing counter, leap and shard resources",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native use/admission/control/resource or counter delivery; no additional outgoing HP multiplier here.",
+      "delivery_paths": [
+        "br:gauntlets:ice_melee",
+        "br:gauntlets:ice_shield_use",
+        "br:gauntlets:ice_jump",
+        "br:gauntlets:ice_capture"
+      ]
+    },
+    {
+      "id": "br:ice_gauntlet_landing",
+      "name": "Ice Gauntlet native landing freezing pulse",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "GauntletAttachment.onFall native ownerless freeze10 hurt argument only; not frozen counter or delayed spike damage.",
+      "stage_reason": "Native landing HP pulse once.",
+      "delivery_paths": [
+        "br:gauntlets:ice_land"
+      ]
+    },
+    {
+      "id": "br:sandworm_gauntlet_control",
+      "name": "Sandworm Gauntlet native modes, cost and movement modifiers",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native use/admission/control/resource or counter delivery; no additional outgoing HP multiplier here.",
+      "delivery_paths": [
+        "br:gauntlets:sand_mode"
+      ]
+    }
+  ],
+  "delivery_paths": [
+    {
+      "id": "br:gauntlets:ice_melee",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "Native successful weapon callback -> frozen400, no extra hurt",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine item use/charge/cost/owner path",
+        "Reuse protected hazard admission and separate HP/control results"
+      ]
+    },
+    {
+      "id": "br:gauntlets:ice_shield_use",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "Inherited ShieldItem use starts real blocking/charging",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine item use/charge/cost/owner path",
+        "Reuse protected hazard admission and separate HP/control results"
+      ]
+    },
+    {
+      "id": "br:gauntlets:ice_wave_spike",
+      "labels": [
+        "AOE"
+      ],
+      "native_path": "Secondary-use release -> terrain-selected normal spikes damage10",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine item use/charge/cost/owner path",
+        "Reuse protected hazard admission and separate HP/control results"
+      ]
+    },
+    {
+      "id": "br:gauntlets:ice_wave_cluster",
+      "labels": [
+        "AOE"
+      ],
+      "native_path": "Same native release -> cluster branch damage10",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine item use/charge/cost/owner path",
+        "Reuse protected hazard admission and separate HP/control results"
+      ]
+    },
+    {
+      "id": "br:gauntlets:ice_jump",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "Using/no cooldown/no shards -> active leap and400tick cooldown",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine item use/charge/cost/owner path",
+        "Reuse protected hazard admission and separate HP/control results"
+      ]
+    },
+    {
+      "id": "br:gauntlets:ice_land",
+      "labels": [
+        "AOE"
+      ],
+      "native_path": "Active fall -> freeze10/frozen200 independent of delayed burst",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine item use/charge/cost/owner path",
+        "Reuse protected hazard admission and separate HP/control results"
+      ]
+    },
+    {
+      "id": "br:gauntlets:ice_burst_spike",
+      "labels": [
+        "AOE"
+      ],
+      "native_path": "Native landing burst normal spike stored damage3",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine item use/charge/cost/owner path",
+        "Reuse protected hazard admission and separate HP/control results"
+      ]
+    },
+    {
+      "id": "br:gauntlets:ice_burst_cluster",
+      "labels": [
+        "AOE"
+      ],
+      "native_path": "Landing burst first4 cluster candidates plus1/10 others, damage3",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine item use/charge/cost/owner path",
+        "Reuse protected hazard admission and separate HP/control results"
+      ]
+    },
+    {
+      "id": "br:gauntlets:ice_capture",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "Genuine cluster interact/useOn and held secondary collection",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine item use/charge/cost/owner path",
+        "Reuse protected hazard admission and separate HP/control results"
+      ]
+    },
+    {
+      "id": "br:gauntlets:ice_throw",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "Stored cluster release -> player-owned swept magic spike",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine item use/charge/cost/owner path",
+        "Reuse protected hazard admission and separate HP/control results"
+      ]
+    },
+    {
+      "id": "br:gauntlets:ice_touch",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "Player-owned spike real Player touch -> explicitFREEZE8",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine item use/charge/cost/owner path",
+        "Reuse protected hazard admission and separate HP/control results"
+      ]
+    },
+    {
+      "id": "br:gauntlets:ice_passive_freeze",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native counters -> eligible passive freeze tick",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine item use/charge/cost/owner path",
+        "Reuse protected hazard admission and separate HP/control results"
+      ]
+    },
+    {
+      "id": "br:gauntlets:sand_mode",
+      "labels": [
+        "ACTIVE_ITEM"
+      ],
+      "native_path": "Native mode/use/release/drop and attribute resources",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine item use/charge/cost/owner path",
+        "Reuse protected hazard admission and separate HP/control results"
+      ]
+    },
+    {
+      "id": "br:gauntlets:sand_quake",
+      "labels": [
+        "AOE"
+      ],
+      "native_path": "Thirtytick charge/every20 -> four owned column attempts",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine item use/charge/cost/owner path",
+        "Reuse protected hazard admission and separate HP/control results"
+      ]
+    },
+    {
+      "id": "br:gauntlets:sand_column",
+      "labels": [
+        "AOE"
+      ],
+      "native_path": "Column native owned/unresolved source and hurt-return payload",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine item use/charge/cost/owner path",
+        "Reuse protected hazard admission and separate HP/control results"
+      ]
+    },
+    {
+      "id": "br:gauntlets:sand_barrage",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "Real release count1..4 constructor/base6/KB5/instance shoot",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine item use/charge/cost/owner path",
+        "Reuse protected hazard admission and separate HP/control results"
+      ]
+    },
+    {
+      "id": "br:gauntlets:sand_area",
+      "labels": [
+        "AOE"
+      ],
+      "native_path": "Player spit entity/block impact -> independent ownerless poison area",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine item use/charge/cost/owner path",
+        "Reuse protected hazard admission and separate HP/control results"
+      ]
+    },
+    {
+      "id": "br:gauntlets:sand_poison_tick",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native poison effect after player hazard -> ownerless HP tick",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "Genuine item use/charge/cost/owner path",
+        "Reuse protected hazard admission and separate HP/control results"
+      ]
+    }
+  ],
+  "unexecuted_future_fixtures": [
+    "native_ShieldItem_use_source_bypass_blocking_and_release",
+    "hurttrue_player_itemcallback_frozen400_vs_canFreeze_Roll",
+    "wave_secondary_release0_32_rayMISS_cost_candidateMISS",
+    "native_jump_active_item_swap_savedactive_landing_fall_veto",
+    "landing_anyEntity_owner_exclusion_noCanFreeze_hurtfalse_frozen200",
+    "normal_vs_cluster_landing_first4_candidate_terrain_branches",
+    "capture_four_slots_loadedUUID_cleanup_auto_collect",
+    "native_shard_release_every2tick_owner_base4_KB8_touch_vs_sweep",
+    "sand_mode_crouch_top_vs_default_and_release_drop_modifiercleanup",
+    "sand_positive_speed_modifier_not_label_inference",
+    "sandquake_use30_every20_cost10_fourterrain_attempts",
+    "sandbarrage_charge6_16_26_36_force_no_native_cost_orcooldown",
+    "gauntlet_column_owner_ally_push_and_unresolved_reload",
+    "gauntlet_spit_hurtfalse_ownerlessarea_nativepoison_origin"
+  ],
+  "review_required": [
+    "Future passive freeze/poison Stage requires proven origin and merge policy; no attribution bypass or production change."
+  ],
+  "remaining_subsection_native_ambiguities": [],
+  "exact_next_task": "R2i8b: Undying Tentacle real item modes/Ghost Tentacle and Kraken Trident native special delivery; then Dragon armor procs/remaining weapons, watched-method closure and Bosses Rise final dedup/promotion. Apply the R2i8a additive Sandworm producer correction during promotion; protected prior evidence remains immutable.",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "block_factorys_bosses",
+  "runtime_tests": 0,
+  "whole_mod_complete": false,
+  "promoted_mechanics": 0,
+  "promoted_paths": 0,
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false,
+  "reference_files": [
+    {
+      "file": "native-evidence/bossesrise-gauntlets.json",
+      "sha256": "41efbae60fe830ae1dddc73239637a38fcf733c02b85739baf9071abf74e63ea"
+    },
+    {
+      "file": "bossesrise-gauntlets-helper-census.json",
+      "sha256": "5f5da10c197728446e99ac537ce8aeeb8a54aef685687fa3021882a2623221d6"
+    },
+    {
+      "file": "reference-evidence/bossesrise-gauntlets-244.json",
+      "sha256": "6e1e72f2bb65ee4bf67446a15b7c8369d9feb4044e1dc013d04bf4ad7bbbe8d6"
+    },
+    {
+      "file": "vanilla-evidence/bossesrise-gauntlets.json",
+      "sha256": "79179fdcf1f9f97ffadcf5f94c2d8b45d7e23245bd5d8b5894ff81ed76d5724e"
+    },
+    {
+      "file": "reference-routing/bossesrise-gauntlets.json",
+      "sha256": "2100dacc35fe904bd3953a02f69df49e0355dd716eb6a3b02f78fcaabb421707"
+    },
+    {
+      "file": "bossesrise-r2i5b-yeti-offense.json",
+      "sha256": "590537b8a5d2d14e803b57c90bc4fe3453660c01647e28e149c132cf71caba09"
+    },
+    {
+      "file": "bossesrise-r2i6-sandworm.json",
+      "sha256": "3c5f441c962f6e62071c23fe6111c8d2c08bdf1a291bc6a46fe8b491c81108ed"
+    },
+    {
+      "file": "native-evidence/bossesrise-yeti-offense.json",
+      "sha256": "e7f74b9a4451b94f0ac3c3423177e30f8c0c7b3c72c4a15717db97cf035efe9e"
+    },
+    {
+      "file": "native-evidence/bossesrise-sandworm.json",
+      "sha256": "06266786ab049070d0f57e9670cd22ccbd70b55bcdbfef90bdc2568be7e27480"
+    },
+    {
+      "file": "bossesrise-r2i2a-roll-admission.json",
+      "sha256": "3d2d456de7c7db5e4a2426b30a4359be6ca9ef6584a645d0ad10a12fba725991"
+    }
+  ]
+}

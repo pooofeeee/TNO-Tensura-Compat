@@ -309,6 +309,9 @@ def validate():
         if (OUT/'bossesrise-r2i7b-kraken-offense.json').exists():
             from validate_bossesrise_kraken_offense import validate_kraken_offense
             assert validate_kraken_offense()['status']=='PASS'
+        if (OUT/'bossesrise-r2i8a-gauntlets.json').exists():
+            from validate_bossesrise_gauntlets import validate_gauntlets
+            assert validate_gauntlets()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():

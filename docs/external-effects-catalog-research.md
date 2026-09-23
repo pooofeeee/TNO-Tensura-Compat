@@ -958,3 +958,7 @@ Kraken hidden state sets real invulnerability; cannon5 takes priority over proje
 ## R2i7b — Bosses Rise Kraken attacks, cannon and pirates
 
 Native Living-owned cannon/crate explosions are player_explosion; only cannon custom impact receives the usual Kraken5 weakness. Tentacle goals use adjusted goal ticks, and pirate AI melee hits are disabled in favor of timed callbacks. [Evidence and resume point](benchmarks/external-effects-catalog/bossesrise-r2i7b-kraken-offense-review.md).
+
+## R2i8a — Bosses Rise Ice and Sandworm Gauntlet delivery
+
+Gauntlets extend nine existing native hazard packages; inherited shield use, active landing, shard ownership and real Sandworm constructor delivery are pinned. Prior static-helper wording corrected additively. [Evidence and resume point](benchmarks/external-effects-catalog/bossesrise-r2i8a-gauntlets-review.md).
