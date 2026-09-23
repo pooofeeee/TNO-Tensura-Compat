@@ -768,3 +768,9 @@ Promoted the protected R2f8 whole-source closure at `393426ae12907217f25279013d4
 [Final review and classifications](benchmarks/external-effects-catalog/twilightforest-final-review.md), [total deduplication map](benchmarks/external-effects-catalog/twilightforest-final-promotion-map.json), [future runtime fixtures](benchmarks/external-effects-catalog/twilightforest-future-runtime-fixtures.json), [integrity](benchmarks/external-effects-catalog/twilightforest-final-integrity.json), [full validation](benchmarks/external-effects-catalog/r2f-final-validation.json). Historical subsections remain immutable; their earlier partial counts/next tasks are superseded by this current checkpoint.
 
 After commit/push/live equality, begin narrow installed IceAndFireCE beta15 combat research automatically. No runtime boss/L2 tests, Stage, production, Phase 6 or Phase 7 work.
+
+## R2g1 — Ice & Fire source foundation
+
+Twilight COMPLETE protected at `86b6e670819be918b2df9ddcd73bf81b729282fc`. IceAndFireCE beta15 static combat review is now PARTIAL. Two custom statuses, five custom damage declarations, seven factory caller methods and six status-reference methods are pinned. The indirect lightning factory actually selects the ICE holder; direct lightning charge hits and manager area damage use different source routes. Existing Tensura-Iaf compatibility directly classifies those actual holders. Full family eligibility/effects remain unfinished; zero Ice & Fire records promoted.
+
+[Foundation and exact next task](benchmarks/external-effects-catalog/iceandfire-r2g1-review.md). No runtime boss/L2/Stage/production/Phase 6/7 changes.
