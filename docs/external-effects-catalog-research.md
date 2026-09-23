@@ -918,3 +918,7 @@ Whole1384-class/274-method audit closes Dusk/Furnace/inherited hazards and remai
 ## R2i1 — Bosses Rise source foundation
 
 Two native DamageTypes,802 classes,157 combat/admission candidates and actual roll/freeze/event hooks pinned; accepted Eternal Starlight records preserved. [Evidence and resume point](benchmarks/external-effects-catalog/bossesrise-r2i1-source-foundation-review.md).
+
+## R2i2a — Bosses Rise native roll admission
+
+Real server delivery,14..8 invulnerability window, native HP/effect/freeze gates, sequential charge resource and ineffective ordinary projectile-impact callback resolved. [Evidence and resume point](benchmarks/external-effects-catalog/bossesrise-r2i2a-roll-admission-review.md).

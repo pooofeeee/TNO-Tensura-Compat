@@ -1,0 +1,262 @@
+{
+  "schema": "tno.external_effects.bossesrise_roll.v1",
+  "checkpoint": "R2i2a-bossesrise-roll-admission-complete",
+  "previous_checkpoint": "R2i1-bossesrise-source-foundation",
+  "starting_sha": "01df64b10240ab28d6cad7af63b15cd451cf86d5",
+  "status": "ROLL_NATIVE_ADMISSION_SEMANTICS_COMPLETE",
+  "scope": "Dodge Roll combat-significant resource/control/admission only; no whole-mod completion claim.",
+  "summary": "Real server delivery,14..8 invulnerability window, native HP/effect/freeze gates, sequential charge resource and ineffective ordinary projectile-impact callback resolved.",
+  "facts": {
+    "delivery": "Native client rising-edge Dodge Roll key (default keycode90) sends DodgeRollMessage(type0,left,forward) and calls local pressAction for prediction. Registered payload handler processes only SERVERBOUND, queues work with context.player (no arbitrary target player), then pressAction. Actual server pressAction requires nonempty current chunk, type0, config CAN_USE_ROLL true, not swimming, an available charge with cooldown<=0, and successful startRoll. startRoll independently requires roll<=-5 and onGround. No native spectator/creative/gear/boss-presence predicate is added here. Native registered networking and event annotations are pinned; actual runtime delivery/sync is untested.",
+    "state": "Constructor starts roll0, duration14, no charge entries. PlayerTickEvent.Post calls tick; every tick charge capacity is max(0, configured DEFAULT_ROLL_COUNT + integer ROLL_COUNT attribute). Default capacity2, native syncable attribute default0 range0..9. Newly added slots start0; removed slots are removeLast after prior sorting. Successful start resets rollDuration14 and roll14, then caller sets used cooldown1 and sorts. isRolling is roll>0; isInvulnerable is strictly roll>7, i.e. counter values14..8 only. Counter decrements one per Post until-5, including5tick recovery after roll0. These are method counter windows, not a promise of wall-clock invulnerability independent of event order.",
+    "recharge": "Only when roll already<=-5 does tick subtract1/ROLL_COOLDOWN from the first positive cooldown and stop; charge recovery is sequential, paused through active roll/recovery. Default configured40; negative config sets firstpositive0, zero uses native float division (no added clamp). ROLL_COOLDOWN_MORE default20 exists but has zero GETSTATIC consumers anywhere in installed artifact, so do not invent per-extra-charge delay. Charges/duration/cooldown are native resources with no Stage value. Equipment ROLL_COUNT producers are indexed for later equipment review; no uncalled attribute helper is promoted as a working delivery.",
+    "damage_admission": "RollAttachment.preDamage default SubscribeEvent: Player and isInvulnerable -> setCanceled(true), with no DamageType/tag/attacker/amount exception. Exact installed NeoForge CommonHooks posts LivingIncomingDamageEvent and returns isCanceled; LivingEntity.hurt returns false on cancellation before shield handling, armor/Resistance/final damage and ordinary HP effects. Earlier isInvulnerableTo/client/dead/fireResistance rejects still happen before this hook. Retain event ordering and other listeners; no blanket runtime claim against custom direct HP/SHP edits or nonstandard callbacks.",
+    "effect_admission": "preEffect applies to Player and same roll>7 window, sets Applicable.Result.DO_NOT_APPLY without filtering harmful/beneficial/source/duration. Installed addEffect and forceAddEffect call CommonHooks.canMobEffectBeApplied; event getApplicationResult returns true for APPLY, native canBeAffected only for DEFAULT, false for DO_NOT_APPLY. This rejects application/refresh through those paths, not removal or cleansing existing effects and not arbitrary instant-effect functions/healing. Later event listeners can change final result; Tensura/L2 ordering remains future runtime work.",
+    "freeze": "RollMixin injects Entity.setTicksFrozen HEAD cancellable, cancels every Player write while roll>7, including attempts to lower/clear the counter. It does not reset preexisting frozen ticks and does not declare isFreezing/canFreeze immunity. A freeze-derived HP attempt reaching LivingIncomingDamage still meets the separate native damage cancellation. Preserve this write gate exactly; no synthetic Frozen status or duration scaling.",
+    "projectile_identity": "Native ProjectileImpactEvent constructor accepts Projectile and calls EntityEvent(projectile); inherited getEntity returns that projectile. EventHooks.onProjectileImpact constructs precisely this event. RollAttachment.preImpact tests event.getEntity instanceof Player, not EntityHitResult target. Player cannot also be Projectile, so this branch cannot cancel ordinary native projectile impacts. Do not promote it as projectile deflection/impact immunity. Damage/effect cancellation may still reject later callbacks, while independent explosions, motion, summons, discard or hurt-ignored callbacks can proceed; each payload family must retain its native return dependencies.",
+    "movement": "startRoll forces CROUCHING; move normalizes existing horizontal velocity plus desired input and sets horizontal magnitude MOVEMENT_SPEED *6*(10/rollDuration), retaining vertical velocity and marking impulse. Direction selected from dominant input with forward fallback, orientation aligned with head. During rolling, tick clears shift and repeats movement while grounded. ControlMixin returns true from Player.isImmobile while roll>0; no blanket attack/use-item veto is inferred. On transition positive->0, horizontal speed becomes MOVEMENT_SPEED, retainsY, and clears forced pose only if still CROUCHING. Native terrain/collision and aerial behavior remain; no additional Stage multiplier.",
+    "other_gate_and_persistence": "Only other installed direct RollAttachment.isInvulnerable consumer is Yeti GlacialShove: ServerPlayer in its native zone is skipped while roll>7. That is a separate explicit displacement/status gate, not evidence ordinary knockback is canceled everywhere; full Yeti producer/geometry is pending. Attachment serialization retains direction,duration,roll,count and each cooldown; registry uses AttachmentType.serializable. Do not synthesize/clear saved state. Death-copy/synchronization behavior is not assumed from serialization alone.",
+    "integration": "Four native nonnumeric packages: roll charge resource, movement/control, damage/effect admission and freeze-write gate. No new damage source or HP/SHP amount exists, so no Stage scaling point. Preserve native Player predicate, source identity, effect admission and exact counter window. Future runtime variants include damage rejected but projectile secondary callback still executes, benign effect rejected, existing effect retained, decrementing freeze write rejected, charge recovery and genuine server input. Runtime tests remain NOT_RUN.",
+    "exclusions": "Roll GUI/camera/animations/sounds are cosmetic and excluded except animation duration is passed from the same native14tick state. No deep UI/network infrastructure or unrelated equipment/boss payload review in this section."
+  },
+  "mechanic_packages": [
+    {
+      "id": "br:roll_resource",
+      "name": "Dodge Roll native charges and recovery",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "tno_categories": [
+        "CUSTOM_ROUTED",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Fixed native resource/control/admission; no numeric HP/SHP payload to scale.",
+      "delivery_paths": [
+        "br:roll:server_key",
+        "br:roll:charges",
+        "br:roll:saved_state"
+      ]
+    },
+    {
+      "id": "br:roll_movement",
+      "name": "Dodge Roll native movement and control",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "CUSTOM_ROUTED",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Fixed native resource/control/admission; no numeric HP/SHP payload to scale.",
+      "delivery_paths": [
+        "br:roll:server_key",
+        "br:roll:movement"
+      ]
+    },
+    {
+      "id": "br:roll_admission",
+      "name": "Dodge Roll damage/effect and explicit GlacialShove admission",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "CUSTOM_ROUTED",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Fixed native resource/control/admission; no numeric HP/SHP payload to scale.",
+      "delivery_paths": [
+        "br:roll:damage",
+        "br:roll:effect",
+        "br:roll:projectile_secondary",
+        "br:roll:glacial_gate"
+      ]
+    },
+    {
+      "id": "br:roll_freeze_write",
+      "name": "Dodge Roll native freeze-write veto",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "CUSTOM_ROUTED",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Fixed native resource/control/admission; no numeric HP/SHP payload to scale.",
+      "delivery_paths": [
+        "br:roll:freeze"
+      ]
+    }
+  ],
+  "delivery_paths": [
+    {
+      "id": "br:roll:server_key",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native key edge -> server payload -> pressAction -> admitted startRoll",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "counter14/8/7/0/-5 boundary",
+        "native admission and event order retained"
+      ]
+    },
+    {
+      "id": "br:roll:charges",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native Player Post tick, default/config/attribute capacity and sequential recharge",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "counter14/8/7/0/-5 boundary",
+        "native admission and event order retained"
+      ]
+    },
+    {
+      "id": "br:roll:damage",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Player roll14..8 -> IncomingDamage cancel -> hurtfalse",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "counter14/8/7/0/-5 boundary",
+        "native admission and event order retained"
+      ]
+    },
+    {
+      "id": "br:roll:effect",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Player roll14..8 -> Applicable DO_NOT_APPLY for addEffect/forceAddEffect",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "counter14/8/7/0/-5 boundary",
+        "native admission and event order retained"
+      ]
+    },
+    {
+      "id": "br:roll:freeze",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Player roll14..8 -> cancel setTicksFrozen writes",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "counter14/8/7/0/-5 boundary",
+        "native admission and event order retained"
+      ]
+    },
+    {
+      "id": "br:roll:movement",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native grounded roll movement and isImmobile; end/recovery",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "counter14/8/7/0/-5 boundary",
+        "native admission and event order retained"
+      ]
+    },
+    {
+      "id": "br:roll:projectile_secondary",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "Ordinary impact remains admitted; resulting damage/effect gates are independent",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "counter14/8/7/0/-5 boundary",
+        "native admission and event order retained"
+      ]
+    },
+    {
+      "id": "br:roll:glacial_gate",
+      "labels": [
+        "BOSS_ATTACK"
+      ],
+      "native_path": "Yeti native GlacialShove ServerPlayer skip during roll14..8; payload reviewed later",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "counter14/8/7/0/-5 boundary",
+        "native admission and event order retained"
+      ]
+    },
+    {
+      "id": "br:roll:saved_state",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Serialized roll/charges resume via native attachment",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "counter14/8/7/0/-5 boundary",
+        "native admission and event order retained"
+      ]
+    }
+  ],
+  "unexecuted_future_fixtures": [
+    "key_edge_server_authority_ground_swim_config_type_charge_recovery",
+    "14_8_7_0_minus5_damage_window_native_source_tags_and_mitigation",
+    "reject_incoming_HP_without_suppressing_projectile_independent_secondary",
+    "harmful_and_beneficial_Applicable_reject_existing_status_kept",
+    "forceAddEffect_and_later_listener_order",
+    "freeze_increase_decrease_clear_all_writes_and_preexisting_freeze",
+    "charge_capacity_change_sequential_recovery_native_float_config",
+    "roll_movement_terrain_air_pose_cleanup",
+    "GlacialShove_ServerPlayer_skip_counter_boundary",
+    "saved_roll_state_native_reconnect"
+  ],
+  "review_required": [],
+  "remaining_subsection_native_ambiguities": [],
+  "exact_next_task": "R2i2b: Bosses Rise shared boss attack helper and damage/death/state admission (AbstractBossEntity, AbstractStateBossEntity, entity parts and ownership). Then distinct Underworld Knight, Infernal Dragon, Yeti, Sandworm, Kraken/cannon and equipment payload families. Roll is complete; do not repeat it. Static only.",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "block_factorys_bosses",
+  "runtime_tests": 0,
+  "whole_mod_complete": false,
+  "promoted_mechanics": 0,
+  "promoted_paths": 0,
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false,
+  "reference_files": [
+    {
+      "file": "native-evidence/bossesrise-roll.json",
+      "sha256": "9a5417d787d1251b970fdeea5a7045bee0f47c6621f707a47d5ad7530758bfbd"
+    },
+    {
+      "file": "bossesrise-roll-census.json",
+      "sha256": "4ada49fe2e927a76865b568b306e48274f948eb16b39b1a3b16d6c4ae28e9efd"
+    },
+    {
+      "file": "reference-evidence/bossesrise-roll-244.json",
+      "sha256": "26a9bfb1f3a91f607b75d13989851e02fe0311e3ef2400a311ac65a20817839f"
+    },
+    {
+      "file": "annotation-evidence/bossesrise-roll-javap.json",
+      "sha256": "7e5a25e84ff6a26a870cfb4c2a59a0d0dfc31f2ca0c4152c7329a7214cec5d3a"
+    },
+    {
+      "file": "annotation-evidence/bossesrise-roll-javap.txt",
+      "sha256": "c958973bfef75c103f0f74a690fd4ef473e6fb85d191a51769bbf8639f3c9a23"
+    },
+    {
+      "file": "annotation-evidence/bossesrise-foundation-javap.json",
+      "sha256": "e0e680c20ed8d73692bdcb96ce5af45228727c5d140fde18b789434170c06d92"
+    },
+    {
+      "file": "annotation-evidence/bossesrise-foundation-javap.txt",
+      "sha256": "37b3bac2f4b6b984247d2dd339aab392b47d01901535d0951477e354b66c6b13"
+    }
+  ]
+}
