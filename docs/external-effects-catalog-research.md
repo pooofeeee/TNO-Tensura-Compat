@@ -842,3 +842,7 @@ All726 installed classes cross-checked:188 watched methods,130 targeted callers,
 ## R2g10b — Ice & Fire combat catalog COMPLETE
 
 81 reviewed combat packages and 228 native source/control/defense contracts promoted after explicit deduplication; no runtime compatibility certification. [Owner table, Stage points and next task](benchmarks/external-effects-catalog/iceandfire-final-owner-table.md).
+
+## R2h1 — Eternal Starlight source foundation
+
+Installed 0.8.1 source foundation: 18 custom DamageTypes, 9 MobEffects, 29 factory callers and the actual NeoForge combat bridge pinned. Family semantics remain unfinished; Ice & Fire COMPLETE preserved. [Evidence and next task](benchmarks/external-effects-catalog/eternalstarlight-r2h1-source-foundation-review.md).
