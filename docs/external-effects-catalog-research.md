@@ -994,3 +994,7 @@ Native missile status independent of hurt success, captured-Lich comet explosion
 ## R2j4 — Bosses of Mass Destruction Obsidilith
 
 Rune-resource shield separated from HP admission; three shield_piercing producers, repeated rift callbacks, five-tick fire and client motion, native landing/death explosions pinned. [Evidence and resume point](benchmarks/external-effects-catalog/bomd-r2j4-obsidilith-review.md).
+
+## R2j5 — Bosses of Mass Destruction Nether Gauntlet
+
+Genuine eye-part delivery, native melee laser, unconditional punch motion, anonymous death explosion and origin-sensitive fire captured without changes. [Evidence and resume point](benchmarks/external-effects-catalog/bomd-r2j5-gauntlet-review.md).

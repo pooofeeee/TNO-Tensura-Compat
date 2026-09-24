@@ -1,0 +1,492 @@
+{
+  "schema": "tno.external_effects.bomd_gauntlet.v1",
+  "checkpoint": "R2j5-bomd-gauntlet-complete",
+  "previous_checkpoint": "R2j4-bomd-obsidilith-complete",
+  "starting_sha": "5cc162af4652ebbc5ddb473b34d51862597fa305",
+  "status": "GAUNTLET_COMBAT_SEMANTICS_COMPLETE",
+  "scope": "Nether Gauntlet native part admission, awakening, attacks, control/heal and explosion/fire semantics complete; whole BOMD PARTIAL.",
+  "summary": "Genuine eye-part delivery, native melee laser, unconditional punch motion, anonymous death explosion and origin-sensitive fire captured without changes.",
+  "facts": {
+    "scope": "Nether Gauntlet combat semantics complete from16 native witnesses, installed CerbonsAPI multipart/EventSeries paths and exact Minecraft/NeoForge references. This reviews actual eye admission and native attacks, not a runtime boss matrix. Existing production and Phase6 remain locked.",
+    "hitbox_admission": "GauntletHitboxes.shouldDamage captures nextDamagedPart then clears it for EVERY attempt. If MiscUtils.isModLoaded(bettercombat) OR epicfight at helper initialization, returntrue from this handler. Otherwise eye part OR BYPASSES_INVULNERABILITY passes. For null/non-eye part and no bypass, IS_EXPLOSION also passes when nonnull source.getSourcePosition yields vector(sourcePos->GauntletEye) with dot(lookAngle)<=0; perpendicular boundary is included. DamageSource.getSourcePosition uses explicit source position, otherwise direct entity current position, otherwise null; it is not necessarily the explosion center. This is a front-side source-position test, not a shield_piercing exemption or a per-victim amount cap. Remaining cases reject; nonprojectile causing Living attacker receives native knockback.5, fire-tagged sources only suppress clink sound. Earlier shared before/after hooks remain and remaining native super.hurt admission applies. The compatibility toggle does not disable every native defense.",
+    "parts": "Open-hand native EntityBounds includes eye and fingers/thumb/pinky/root shapes. Closed fist has rootFist/rootFistYaw and NO eye. Geometry follows entity yaw/pitch/position; setOpenHandHitbox/setClosedFistHitbox sends native ChangeHitboxS2C. Thus genuine closed-fist geometry cannot supply an eye part, but invulnerability bypass/front explosion/compatibility-toggle rules still apply. GauntletClientEnergyShieldHandler only renders isEnergized particles/alpha; it is not a separate damage shield or charge resource. Preserve actual part selection rather than setting eye by a harness shortcut.",
+    "projectile_part_delivery": "Required CerbonsAPI ProjectileMixin injects at Projectile.onHit HEAD. On EntityHitResult whose victim is MultipartAwareEntity, it raycasts victim.getBounds from projectile.position to position+deltaMovement and passes the returned part string to setNextDamagedPart. EntityBounds.raycast chooses the nearest intersecting named part. It does not fabricate a DamageSource or multiply amount. Genuine vanilla projectile impact/deflection/cancellation and projectile-specific superclass calls must reach this hook; a raw target.hurt call does not supply a part. Missing ray hit writesnull; consumed field does not grant persistent eye admission.",
+    "melee_part_delivery": "Client MultiPlayerGameMode attack HEAD raycasts camera eye/view to ENTITY_INTERACTION_RANGE. If nonnull part, sends native MultipartEntityInteractionC2SPacket; nonspectator locally sets part, attacks and resets attack ticker, cancels original client method. Server packet requires nonclient side and sender, resolves entity id, writes native part through MultipartAwareEntity and calls ServerPlayer.attack(entity). It does not directly subtract HP or create substitute damage. The pinned packet body does not perform its own server raycast/reach check; research fixtures must use genuine native ray/packet delivery, not inject a part. Ordinary non-multipart/generic attack callbacks are separate missing-part fixtures. Runtime mixin application/packet registration still needs observation.",
+    "aggro_and_defense": "GauntletGoalHandler starts isAggroed=false; its afterDamage activates goals only on hurt resulttrue, once, and writes/loads isAggroed NBT. Rejected body attempts do not wake it. Base moveHandler denies ordinary move until aggro. Player target acquisition then uses existing FindTargetGoal visibility/range controls. Native getArmorValue is24 while no target, otherwise superclass installed armor8 before modifiers; HP250,attack16. Registry fireImmune, fall callbacks disabled, isInWall=false. Poison/Wither holder mismatch remains R2j2. Unlike other bosses, targetless server tick directly calls heal(config idleHealingPerTick=.5), with no milestone cap; native heal admission/max HP still applies.",
+    "move_selection": "After aggro, ActionGoal runs alive+target, initial cooldown80. Cancel supplier for attacks is deadOrDying OR current targetnull. Regular punch weight1; laser weight.7 only HP ratio<.85 and not previous move8; swirl weight.7 only ratio<.7 and not previous10; blindness weight1 only ratio<.5 and absent from last-four move history. These are native current-ratio selection gates, not TNO Stage or forced one-shot rage transitions. Exact equality at thresholds excludes the corresponding move.",
+    "punch": "Punch captures target-based overshoot point, attempts native block clear, pushes bossY+.7. Close fist delay7, accelerate from16 for15 updates (.6 first then.32, stop near target squared distance<9 or cancel), active impact from16 for40 updates, stop animation56, reopen64 without cancellation. Each active callback tests block collision then entity overlap then records current speed as previousSpeed; previousSpeed field persists between moves. Collision horizontal/vertical AND previousSpeed>.55 requests actor-source native explosion strength(previousSpeed*normalPunchExplosionMultiplier), installed multiplier1.5. No once-per-punch explosion flag. Entity impact queries Living entities in current native bounding box excluding boss only, calls Mob.doHurtTarget then unconditionally target.addDeltaMovement(bossVelocity*.5), even on hurtfalse. No target-only/team/LOS predicate or per-target hit cache.",
+    "swirl": "Swirl sets isEnergized=true and bossY+.7, closes fist7, accelerates30 for15 updates (.6 then.4), active impact30 for30, reopens60 and clears energized without cancellation. Entity contact uses same native melee and independent extra velocity. First qualifying block collision while energized requests actor-source explosion configured4.5 with fire=true, then clears energized; later collisions use speed*1.5 firefalse. Native isEnergized changes explosion mode, not a separate absorption shield. Counts, velocity, hitbox timing and explosion strength remain native.",
+    "melee_and_laser_amount": "Punch/Swirl native Mob.doHurtTarget selects mob_attack direct=causing Gauntlet, current ATTACK_DAMAGE with server EnchantmentHelper.modifyDamage, then victim.hurt. Success gates native knockback/postattack/lastHurt bookkeeping; extra punch velocity outside helper is unconditional. Laser ALSO calls this same melee helper. Per selected laser victim it temporarily adds id bosses_of_mass_destruction:laser, ADD_MULTIPLIED_BASE=-.25 to ATTACK_DAMAGE, calls doHurtTarget, then removes modifier regardless boolean. With otherwise unmodified attack16 this contributes12 before native enchantments; it is not a separate magic/fire DamageType. Single future scaling point for all is final native Mob.doHurtTarget hurt amount after native attribute/enchantment selection; do not scale temporary modifier and helper together.",
+    "laser_delivery": "Laser captures a Living target, builds HistoricalData(Vec3.ZERO,8), then EventSeries: delay25 start target-id sync;60 updates of position recording/application; final uncancelled stop clears history/id and emits stop event. EventSeries advances through removed/canceled members and preserves final cleanup, not parallel scheduling. After seven captured positions, list size first reaches8 and oldest is still initial Vec3.ZERO, so first application aims along that direction; thereafter oldest is a lagged target center. At most54 applications in an uncanceled60-update recording stage; no claim of54 hits. Extend eye->selected position to length30, block clip COLLIDER/Fluid.NONE truncates beam to hit location; every even boss tick attempts tiny-AABB native block clearing. FindEntitiesInLine uses segment AABB and each candidate bounding-box clip, excludes boss, then selects Living; no extra team/current-target-only filter. Native helper damage/cooldown repeats determine actual HP loss.",
+    "block_clear": "Despite destroyBlocks name, installed helper destroys ONLY nonair block equal to Blocks.FIRE, with mobGriefing true and not WITHER_IMMUNE. It does not clear stone or general cover, or soul fire. Laser therefore does not tunnel through ordinary solid cover via this helper. This binary native gate is relevant to delivery; no worldgen/utility archaeology or bypass is proposed.",
+    "blindness": "BlindnessAction closes fist10, reopens43 without cancellation. At delay30 with normal cancel supplier, collects native nearby Players using TargetingConditions.forCombat.range64 and AABB inflated64/32/64. Native conditions retain canBeSeen, attacker canAttack/type/alliance, visibility-adjusted range, and mob LOS. If list nonempty send cosmetic indicator packet, then after50 more with normal cancel supplier addEffect(Blindness140,amp0) to CAPTURED players; it does not requery LOS/distance/team at application. Native addEffect admission remains, no hurt or HP prerequisite. Packet itself only calls client particle handler; it does not apply an independent status.",
+    "explosions_and_fire": "Punch and energized collision explosions have direct=causing Gauntlet and native minecraft:player_explosion; preserve earlier engine admission/exposure/independent native vector. Energized fire=true can place native fire at eligible affected air blocks above solid-render support with native one-in-three choice. BaseFireBlock.getState selects ordinary or soul fire from below-block state. Native in_fire contact amount comes from that block instance (ordinary1,soul2), plus ignition and later on_fire ticks1 through native Entity.baseTick; source identities remain anonymous fire, not Gauntlet damage sources. Fire immunity/Resistance, native timers and normal damage hooks still govern actual HP. Do not assume every fiery explosion places a block or burns a victim, and do not scale strength/radius/timers.",
+    "death": "Native custom deathServerTick increments deathTime; exactly50 creates Level.explode(null,currentPos,4,MOB), then optional debris/loot and experience (excluded), then remove(KILLED). Unlike punch explosions, direct and causing entities are null, so source is minecraft:explosion, not player_explosion. Config spawnAncientDebrisOnDeath controls loot, not this explosion. Native explosion eligibility/mitigation still applies. Preserve anonymous identity: infer no killer/boss owner or fallback entity.",
+    "stage_and_followup": "Scalable numeric families here are native melee (including laser), native explosion HP, native environmental fire HP, and uncapped native targetless heal. Apply once at their terminal native amount boundaries; preserve eligibility/state/counts/source identity. For anonymous Gauntlet death explosion, resulting fire and already-reviewed unowned summoned Phantoms, generic source type alone cannot identify BOMD origin. Any future scaling must establish narrow native origin context without changing owner/source; provenance remains an explicit future integration review item, not unresolved static behavior. All eye/part, aggro, phase selection, client rendering, timers, blindness and raw velocity remain unscaled. No Stage code, production fix, runtime boss/L2 test or Phase6/7 work."
+  },
+  "mechanic_packages": [
+    {
+      "id": "bomd:gauntlet_admission",
+      "name": "Native Gauntlet eye/source-direction admission",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native admission/phase/count/control/scheduling, no independent scalable HP payload.",
+      "delivery_paths": [
+        "bomd:gauntlet:projectile_eye",
+        "bomd:gauntlet:player_eye",
+        "bomd:gauntlet:missing_part",
+        "bomd:gauntlet:front_explosion",
+        "bomd:gauntlet:bypass_hit",
+        "bomd:gauntlet:closed_fist"
+      ]
+    },
+    {
+      "id": "bomd:gauntlet_aggro",
+      "name": "Native Gauntlet awakening and movement admission",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native admission/phase/count/control/scheduling, no independent scalable HP payload.",
+      "delivery_paths": [
+        "bomd:gauntlet:aggro"
+      ]
+    },
+    {
+      "id": "bomd:gauntlet_heal",
+      "name": "Native uncapped targetless healing",
+      "primary_classification": "VANILLA_DIRECT",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at GauntletEntity native heal argument; preserve target-null and native healing admission/max HP.",
+      "stage_reason": "Native admission/phase/count/control/scheduling, no independent scalable HP payload.",
+      "delivery_paths": [
+        "bomd:gauntlet:idle_heal"
+      ]
+    },
+    {
+      "id": "bomd:gauntlet_melee",
+      "name": "Native Gauntlet contact and laser melee",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at Gauntlet Mob.doHurtTarget final victim.hurt amount after native attribute/enchantment formula; laser modifier stays native.",
+      "stage_reason": "Native admission/phase/count/control/scheduling, no independent scalable HP payload.",
+      "delivery_paths": [
+        "bomd:gauntlet:punch_contact",
+        "bomd:gauntlet:swirl_contact",
+        "bomd:gauntlet:laser"
+      ]
+    },
+    {
+      "id": "bomd:gauntlet_motion",
+      "name": "Native extra punch victim motion",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native admission/phase/count/control/scheduling, no independent scalable HP payload.",
+      "delivery_paths": [
+        "bomd:gauntlet:punch_contact",
+        "bomd:gauntlet:swirl_contact"
+      ]
+    },
+    {
+      "id": "bomd:native_explosion",
+      "name": "Native attributed or anonymous Gauntlet explosions",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at attributed native Explosion.explode per-victim final hurt amount; preserve strength/geometry/source and independent displacement.",
+      "stage_reason": "Native admission/phase/count/control/scheduling, no independent scalable HP payload.",
+      "delivery_paths": [
+        "bomd:gauntlet:punch_collision",
+        "bomd:gauntlet:swirl_energized",
+        "bomd:gauntlet:swirl_later",
+        "bomd:gauntlet:death"
+      ]
+    },
+    {
+      "id": "bomd:gauntlet_laser_delivery",
+      "name": "Native lagged laser geometry and phase sequence",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native admission/phase/count/control/scheduling, no independent scalable HP payload.",
+      "delivery_paths": [
+        "bomd:gauntlet:laser"
+      ]
+    },
+    {
+      "id": "bomd:gauntlet_blindness",
+      "name": "Native delayed Blindness",
+      "primary_classification": "VANILLA_DIRECT",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native admission/phase/count/control/scheduling, no independent scalable HP payload.",
+      "delivery_paths": [
+        "bomd:gauntlet:blindness"
+      ]
+    },
+    {
+      "id": "bomd:native_fire_hp",
+      "name": "Native environmental fire damage",
+      "primary_classification": "VANILLA_DIRECT",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once on the native fire contact/timer terminal hurt amount with separately proven origin context; preserve anonymous source, fire eligibility and timers.",
+      "stage_reason": "Native admission/phase/count/control/scheduling, no independent scalable HP payload.",
+      "delivery_paths": [
+        "bomd:gauntlet:fire_contact",
+        "bomd:gauntlet:fire_tick"
+      ]
+    }
+  ],
+  "delivery_paths": [
+    {
+      "id": "bomd:gauntlet:projectile_eye",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "Genuine projectile onHit -> nearest native part -> eye/body admission",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native part/owner/callback delivery",
+        "hurt return, HP, status, raw motion and phase state observed separately"
+      ]
+    },
+    {
+      "id": "bomd:gauntlet:player_eye",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "Native client ray -> multipart C2S -> part marker -> ServerPlayer.attack",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native part/owner/callback delivery",
+        "hurt return, HP, status, raw motion and phase state observed separately"
+      ]
+    },
+    {
+      "id": "bomd:gauntlet:missing_part",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native non-part-producing attack -> null part and ordinary rejection",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native part/owner/callback delivery",
+        "hurt return, HP, status, raw motion and phase state observed separately"
+      ]
+    },
+    {
+      "id": "bomd:gauntlet:front_explosion",
+      "labels": [
+        "EXPLOSION"
+      ],
+      "native_path": "Native explosion source-position dot gate",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native part/owner/callback delivery",
+        "hurt return, HP, status, raw motion and phase state observed separately"
+      ]
+    },
+    {
+      "id": "bomd:gauntlet:bypass_hit",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native BYPASSES_INVULNERABILITY or installed compatibility-toggle gate",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native part/owner/callback delivery",
+        "hurt return, HP, status, raw motion and phase state observed separately"
+      ]
+    },
+    {
+      "id": "bomd:gauntlet:closed_fist",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native timed hitbox change -> no eye part -> later reopen",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native part/owner/callback delivery",
+        "hurt return, HP, status, raw motion and phase state observed separately"
+      ]
+    },
+    {
+      "id": "bomd:gauntlet:aggro",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "First admitted hurttrue -> native aggro goals/persistence",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native part/owner/callback delivery",
+        "hurt return, HP, status, raw motion and phase state observed separately"
+      ]
+    },
+    {
+      "id": "bomd:gauntlet:idle_heal",
+      "labels": [
+        "PASSIVE_AURA"
+      ],
+      "native_path": "Targetless server tick -> native heal .5",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native part/owner/callback delivery",
+        "hurt return, HP, status, raw motion and phase state observed separately"
+      ]
+    },
+    {
+      "id": "bomd:gauntlet:punch_contact",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "Normal active punch overlap -> native mob_attack plus extra motion",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native part/owner/callback delivery",
+        "hurt return, HP, status, raw motion and phase state observed separately"
+      ]
+    },
+    {
+      "id": "bomd:gauntlet:swirl_contact",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "Swirl overlap -> same native melee plus extra motion",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native part/owner/callback delivery",
+        "hurt return, HP, status, raw motion and phase state observed separately"
+      ]
+    },
+    {
+      "id": "bomd:gauntlet:punch_collision",
+      "labels": [
+        "EXPLOSION"
+      ],
+      "native_path": "Normal previousSpeed collision -> actor-source explosion",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native part/owner/callback delivery",
+        "hurt return, HP, status, raw motion and phase state observed separately"
+      ]
+    },
+    {
+      "id": "bomd:gauntlet:swirl_energized",
+      "labels": [
+        "EXPLOSION"
+      ],
+      "native_path": "First energized collision -> actor-source4.5 fiery explosion",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native part/owner/callback delivery",
+        "hurt return, HP, status, raw motion and phase state observed separately"
+      ]
+    },
+    {
+      "id": "bomd:gauntlet:swirl_later",
+      "labels": [
+        "EXPLOSION"
+      ],
+      "native_path": "Later swirl collision -> speed-dependent ordinary explosion",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native part/owner/callback delivery",
+        "hurt return, HP, status, raw motion and phase state observed separately"
+      ]
+    },
+    {
+      "id": "bomd:gauntlet:laser",
+      "labels": [
+        "BOSS_ATTACK"
+      ],
+      "native_path": "Native EventSeries/lagged line clip -> temporary native attribute -> mob_attack",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native part/owner/callback delivery",
+        "hurt return, HP, status, raw motion and phase state observed separately"
+      ]
+    },
+    {
+      "id": "bomd:gauntlet:blindness",
+      "labels": [
+        "BOSS_ATTACK"
+      ],
+      "native_path": "Native combat-eligible player query -> delayed captured-list Blindness",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native part/owner/callback delivery",
+        "hurt return, HP, status, raw motion and phase state observed separately"
+      ]
+    },
+    {
+      "id": "bomd:gauntlet:death",
+      "labels": [
+        "EXPLOSION"
+      ],
+      "native_path": "DeathTime50 -> source-null native explosion4",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native part/owner/callback delivery",
+        "hurt return, HP, status, raw motion and phase state observed separately"
+      ]
+    },
+    {
+      "id": "bomd:gauntlet:fire_contact",
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "native_path": "Native energized explosion fire placement -> in_fire contact",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native part/owner/callback delivery",
+        "hurt return, HP, status, raw motion and phase state observed separately"
+      ]
+    },
+    {
+      "id": "bomd:gauntlet:fire_tick",
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "native_path": "Native fire ignition -> anonymous on_fire timer damage",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native part/owner/callback delivery",
+        "hurt return, HP, status, raw motion and phase state observed separately"
+      ]
+    }
+  ],
+  "unexecuted_future_fixtures": [
+    "native_projectile_eye_body_and_multipart_melee_vs_missing_part_damage",
+    "closed_fist_no_eye_native_explosion_front_perpendicular_back_null_position_and_bypass",
+    "compatibility_toggle_loaded_state_native_part_clearing_and_hurt_admission",
+    "aggro_first_hurttrue_vs_rejected_hit_persistence_and_armor_idle24_active8",
+    "targetless_uncapped_heal_event_and_maxHP",
+    "punch_swirl_repeated_overlap_hurtfalse_extra_velocity_vs_native_knockback",
+    "first_energized_fire_explosion_later_speed_explosions_source_identity",
+    "laser_strict_HP_thresholds_first_ZERO_history_then_lag_block_cover_native_melee_source",
+    "laser_temporary_modifier_native_enchantments_hurttrue_callbacks_no_double_scale",
+    "blindness_initial_native_LOS_team_visibility_and_delayed_no_requery_effect_admission",
+    "death50_anonymous_explosion_loot_toggle_does_not_cancel_damage",
+    "ordinary_soul_fire_contact_and_timer_native_immunity_anonymous_source_and_provenance"
+  ],
+  "review_required": [
+    {
+      "id": "bomd-native-origin-context",
+      "reason": "Before future Stage implementation, retain source-null death/fire and unowned vanilla summon identities while proving narrow BOMD origin context. Never broadly scale all anonymous explosions/fire or all Phantoms."
+    },
+    {
+      "id": "bomd-native-laser-initial-history",
+      "reason": "Static laser first eligible application uses initial ZERO history; preserve and observe native behavior before any separately approved fix."
+    }
+  ],
+  "remaining_subsection_native_ambiguities": [],
+  "exact_next_task": "R2j6: BOMD Void Blossom native multipart admission/retaliation, spikes/waves/spore ball/leaf blade, spawned healing blossoms and native boss death effects. Reuse shared/RiftBurst/part-delivery contracts. Then bounded combat equipment and whole-mod coverage/deduplication/promotion. Static only; continue automatically while quota is healthy.",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "bosses_of_mass_destruction",
+  "runtime_tests": 0,
+  "whole_mod_complete": false,
+  "promoted_mechanics": 0,
+  "promoted_paths": 0,
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false,
+  "reference_files": [
+    {
+      "file": "native-evidence/bomd-gauntlet.json",
+      "sha256": "57aaa2fb56db92b8e35851244a2a97f996b3181383aa8170810c421d54a2993b"
+    },
+    {
+      "file": "reference-evidence/bomd-gauntlet-244.json",
+      "sha256": "2b8512e9e489fa5ecb8859201e74a64050cd60a2d1e4700326c9312307f333b7"
+    },
+    {
+      "file": "vanilla-evidence/bomd-gauntlet.json",
+      "sha256": "2a1eed4be1d1fb24ad8f03e5422bd7d3299b91c2e91c7e5157f5709c4f826f55"
+    },
+    {
+      "file": "annotation-evidence/bomd-multipart-javap.json",
+      "sha256": "7d5994f164d21f2133b9da589750600bd8dc7c0a3aab67cce202c466111c7f36"
+    },
+    {
+      "file": "annotation-evidence/bomd-multipart-javap.txt",
+      "sha256": "b821eedebfb00b32bdd06a4fecb81626f2c8c8f3f3622b24002d8214216d9c8c"
+    },
+    {
+      "file": "native-evidence/bomd-lich.json",
+      "sha256": "03a75b19ebe7947564e47af28f877ed878680e163e702616295d58951c2c6b00"
+    },
+    {
+      "file": "reference-evidence/bomd-lich-244.json",
+      "sha256": "bdf2fbefa2d64606454a6655b418bb76f98f32514d2ee02bdf2742c960de3bc8"
+    },
+    {
+      "file": "vanilla-evidence/bomd-lich.json",
+      "sha256": "9ac4ec72ed4c886a9a2c71ea412d44330c34d6c01edc757f3091ceac64c62079"
+    },
+    {
+      "file": "reference-evidence/bomd-shared-244.json",
+      "sha256": "e414210a3e350720dc75d2690968923ec576f51da25f69f1f523dbef5ee20b99"
+    },
+    {
+      "file": "bomd-r2j2-shared-admission.json",
+      "sha256": "52ff1f0a54fb6d004afb33d4c4de38e2afb304c0c55ccb87abfd769b392ce0bf"
+    },
+    {
+      "file": "bomd-r2j4-obsidilith.json",
+      "sha256": "2864850dd42c869c482f4df48c5bb22f981b480d9b27691880244a825d5fc8b1"
+    },
+    {
+      "file": "bomd-installed-config.json",
+      "sha256": "fabb58fba8de27539889466841d365bb4dc5331db2a0914ad8db34e0f7a304ba"
+    }
+  ]
+}

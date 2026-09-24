@@ -336,6 +336,9 @@ def validate():
         if (OUT/'bomd-r2j4-obsidilith.json').exists():
             from validate_bomd_obsidilith import validate_obsidilith
             assert validate_obsidilith()['status']=='PASS'
+        if (OUT/'bomd-r2j5-gauntlet.json').exists():
+            from validate_bomd_gauntlet import validate_gauntlet
+            assert validate_gauntlet()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():
