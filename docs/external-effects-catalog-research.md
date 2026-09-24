@@ -1034,3 +1034,9 @@ Proved two anonymous abyssal_burn DOT callers, native hurt-dependent teleport wi
 ## R2k2e — Cataclysm status cores complete
 
 All twelve effect cores reviewed. Final five distinguish native healing, armor reduction, speed/control, lightning vulnerability and anonymous magic DOT; six packages/thirty future paths. [Evidence and resume point](benchmarks/external-effects-catalog/cataclysm-r2k2e-remaining-status-review.md).
+
+## R2k3a — Cataclysm Ender Guardian admission and phase
+
+Proved concrete prefilters before shared caps, the altar-only mass-phase initialization among installed setter callers, a real native helmet-loss explosion and two materially different teleport gates. Four packages/seventeen future paths; no runtime or fix. [Evidence and resume point](benchmarks/external-effects-catalog/cataclysm-r2k3a-guardian-admission-review.md).
+
+User-requested pause after R2k3a: [protected scope and exact resume task](benchmarks/external-effects-catalog/cataclysm-r2k3a-resume.md). Do not automatically begin the next subsection in this session.
