@@ -974,3 +974,7 @@ Dragon boots normally run the same explosion twice and still invoke the explicit
 ## R2i9a — Bosses Rise combat source closure
 
 All157 watched methods across802 classes have native witnesses. Arena/guardian AI melee admission is confirmed; remaining unmatched methods add no damage source. [Evidence and resume point](benchmarks/external-effects-catalog/bossesrise-r2i9a-closure-review.md).
+
+## R2i9b — Bosses Rise combat catalog COMPLETE
+
+82 deduplicated packages, 232 native paths and both custom DamageTypes mapped. Static semantics complete; future integration reviews remain explicit. [Owner table and next task](benchmarks/external-effects-catalog/bossesrise-final-owner-table.md).
