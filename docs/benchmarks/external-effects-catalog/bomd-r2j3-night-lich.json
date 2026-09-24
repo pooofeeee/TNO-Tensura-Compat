@@ -1,0 +1,453 @@
+{
+  "schema": "tno.external_effects.bomd_lich.v1",
+  "checkpoint": "R2j3-bomd-night-lich-complete",
+  "previous_checkpoint": "R2j2-bomd-shared-admission-complete",
+  "starting_sha": "d5ff12f0a8eefad6adf8392ba70c11f61008f68b",
+  "status": "NIGHT_LICH_COMBAT_SEMANTICS_COMPLETE",
+  "scope": "BOMD Night Lich combat/admission/projectile/teleport/minion semantics complete; whole mod remains PARTIAL.",
+  "summary": "Native missile status independent of hurt success, captured-Lich comet explosion source, genuine Phantom initialization and teleport placement/cancellation proven; no mechanics repaired.",
+  "facts": {
+    "scope": "BOMD Night Lich only; Twilight Lich remains accepted and untouched. Twenty-seven installed native class witnesses, exact loader projectile/explosion paths, selected CerbonsAPI geometry helpers and raw vanilla Phantom/source bytecode pin the actual implementation. No runtime boss test is represented here.",
+    "admission": "LichEntity has no hurt/isInvulnerableTo/canBeAffected override or configured EffectsImmunity. All installed shared damage handlers admit; ordinary inherited damage/effect admission and external hooks remain. There is no native boss shield, fixed damage cap, reflection requirement or projectile-type immunity in this Lich code. Lich registry does not set fireImmune. causeFallDamage=false and checkFallDamage empty suppress native falling damage. canCollideWith returns the mutable collides flag; that flag is not a damage invulnerability flag and is never consulted by BaseEntity.hurt. Native despawn helper keeps it except Peaceful. File HP300 and attack9 were pinned in R2j1; no base-attribute multiplier is proposed.",
+    "delivery_and_phase": "Server constructor registers Player FindTargetGoal with visibility=true, reachability=false, reciprocal chance10, search AABB inflated by range and unseenMemoryTicks200. Attack ActionGoal requires alive/not deadOrDying and a target, updates every tick, uses initial CooldownAction80; stop raises remaining cooldown to at least80. Concrete actions require target instanceof ServerPlayer. Shared phase change adds priority actions comet rage12, volley rage11, minion rage8 in that order; crossing several milestones still schedules one bundle per monitored hit. Regular weighted choice may choose comet/volley/minion/teleport; exact attack counts are native. Native callbacks cancel when deadOrDying OR current target null; changing to another nonnull target does not by itself cancel captures of an earlier ServerPlayer.",
+    "projectile_admission": "ProjectileThrower creates the native projectile with constructor owner, computes target-current position, adds horizontal-distance*.2 vertical compensation, shoots speed1.6/divergence0 and adds it to the level. Inherited ThrowableProjectile checks native ray hit and NeoForge onProjectileImpact cancellation before hitTargetOrDeflectSelf. A native non-NONE target deflection suppresses onHit; default self-deflection forwards the CURRENT owner, not automatically the defender. BaseThrownItemProjectile.onHit further requires server side, then entityCollisionPredicate. ExemptEntities rejects by exact entity TYPE; Lich missiles/comets exempt minecraft:phantom, including unrelated wild Phantoms. Inherited canHitEntity and owner/vehicle-leftOwner rules remain. No extra LOS/team/current-target-only or Tensura eligibility is invented.",
+    "missile_damage": "Native entity id bosses_of_mass_destruction:blue_fireball is MagicMissileProjectile, despite its name. On admitted entityHit: current getOwner must be LivingEntity; request owner current ATTACK_DAMAGE with native damageSources.thrown(this,owner), direct missile/causing current owner. It ignores hurt return, then invokes its nonnull LivingEntity callback, then discards unconditionally, including missing/nonliving-owner cases. No post-attack enchantment or ignition callback exists in this body. Actual source is minecraft:thrown, not magic, fire or shield_piercing. Single Stage point: final native entity.hurt argument after the owner attribute read; never multiply both attribute and hit.",
+    "missile_status": "Volley/VolleyRage resolve configured MobEffect id from the native registry and pass a callback that wraps that effect as a holder and calls target.addEffect(instance) without effect-source entity argument. Installed snapshot Slowness duration100 amplifier2. The callback runs after hurt regardless of its boolean, but still requires a Living owner, Living victim and nonnull callback; addEffect has separate native/NeoForge admission. Absent lookup gives no callback effect, without fallback. Keep duration/amplifier/control native, NO_STAGE_VALUE. Default/loading constructor does not rebuild this Java callback; it is not a substitute positive-control constructor.",
+    "volleys": "Ordinary volley schedules five missiles after delay46 and aims at captured ServerPlayer current bounding-box center with plane-projected launch offsets. Rage schedules four volleys at60,90,120,150:9 horizontal,9 vertical,18 cross,18 rotated-cross =54 projectile creations if uncanceled, including coincident crossing offsets; return duration180. Helpers prove lineCallback emits exactly points and circleCallback exactly points. Counts and geometry are native, not extra scaling points. A hit or status application is not guaranteed per creation.",
+    "comet": "Comet uses the same native owner/exemption/delivery helper but deals no separate entity-impact HP hit. Entity hit, block hit, or CometProjectile.hurt calls onImpact. onImpact first checks and sets impacted=true; then if CURRENT owner Living, invokes nonnull captured impactAction at projectile.position and discards. Missing/nonliving owner sets impacted with no callback and no discard in this branch. Default/load constructor has null callback. hurt invokes onImpact BEFORE super.hurt and returns the superclass result: explosion is not conditional on attack damage being accepted, and onImpact has no independent server guard (natural collision delivery is server-gated by the base). This is detonation, not a native reflection mechanic.",
+    "comet_source": "Both CometAction constructors capture the creating Lich in their explosion callback: level.explode(lich,x,y,z,config.comet.explosionStrength,ExplosionInteraction.MOB), default fire=false. Installed strength4. Native explosion direct source is that captured Lich and indirect source is the same Living Lich, selecting minecraft:player_explosion even though the attacker is a mob. The comet projectile and the entity that hurt it are neither direct nor causing explosion source. Owner changes alone would not rewrite the captured callback. Do not fabricate PLAYER identity from the DamageType name. A native source exclusion keeps the Lich out of the initial explosion candidate list, subject to later event-list modifications.",
+    "explosion_payload": "Native explosion selects within radius2*strength, permits ignoreExplosion and damage-calculator admission, checks nonzero directional length, posts NeoForge detonation hooks, then calls victim.hurt with calculator amount. Default amount: ((exposure*(1-distance/(2*strength)))^2 + exposure*(1-distance/(2*strength)))/2 *7*(2*strength)+1. Native exposure and geometry remain; damage hurt return is ignored and explosion displacement proceeds independently with native EXPLOSION_KNOCKBACK_RESISTANCE and EventHooks.getExplosionKnockback. Monolith ExplosionMixin may change supplied strength and is pending equipment review. Single future Stage point is this attributed native explosion per-victim final hurt amount; do not scale strength/radius, exposure, knockback or both callback and explosion engine.",
+    "comet_delivery": "Ordinary comet requires ServerPlayer at scheduling, launches once at delay60 through ThrowProjectileAction, which uses whatever nonnull current target exists at execution; cooldown80. Rage captures ServerPlayer, emits six comet creations at delays60+30*i, i0..5, from a six-point radius3 ring and aims at captured player current center; return duration240. Entity-hit, block-hit and projectile-hurt detonation are distinct runtime entry paths. Prevent duplicate damage by retaining impacted flag; never add an entity-impact fallback.",
+    "minion_delivery": "Ordinary summon queues beginSummonSingleMob after40; that copies fixed NBT, adds id minecraft:phantom, resolves through EntityType.loadEntityRecursive, attempts up to30 placements, then schedules actual SimpleMobSpawner.spawn after another40 with cancellation. Rage queues nine begin calls at40+40*i-3*i*(i+1)/2 (i0..8), then each successful rune waits40; total action duration292. Placement requires loaded chunk, no liquid in prospective spawn AABB, no collision and valid native empty spawn block. No owner/tame/team inheritance or forced target is written. SimpleMobSpawner sets position, calls native finalizeSpawn(MOB_SUMMONED), then adds entity with passengers; genuine later Phantom AI supplies melee.",
+    "minion_actual_state": "Literal summon NBT is Health14,Size2,Attributes:[{Name:generic.max_health,Base:14f}]. Installed LivingEntity load reads lowercase attributes, so the legacy Attributes list does not set max health. Health14 is loaded through native setHealth; Phantom read sets size2, but subsequent SimpleMobSpawner.finalizeSpawn calls Phantom.finalizeSpawn, which resets size0. Native size update sets attack base6+size, hence6 after this reset before external modifiers. Do not record maxHP14 or effective size2 from the literal alone. Phantom sweep intersection calls native Mob.doHurtTarget: mob_attack direct=causing Phantom, current ATTACK_DAMAGE plus native server enchantment formula; successful hurt gates native knockback/postattack/lastHurt bookkeeping. No Lich-owner damage credit is introduced. Current runtime stats/HP remain future observations, not measured here.",
+    "placement_geometry": "RangedSpawnPosition uses CerbonsAPI randVec with each component in[-.5,.5), normalizes it, and clamps its ORIGINAL length to[min,max]. That length is below.867, so ordinary normalized vectors are always scaled to min, not uniformly across the advertised interval. Lich teleport thus uses nominal20 rather than20..35, minion positions nominal4 rather than4..8; preserve native near-zero normalization behavior and placement rejection. This affects test coverage, not a Stage value or a proposed fix.",
+    "teleport": "Chosen teleport requires ServerPlayer. First attempts100 positions around captured player position with native spawn predicate AND Lich.inLineOfSight(target). The latter checks existing Lich eye-to-target collider-block ray/Fluid.NONE and target look dot(targetEye->LichEye)>0; it does NOT test LOS from prospective candidate pos. If all fail, backup attempts100 around target heightmap MOTION_BLOCKING_NO_LEAVES position using only spawn predicate. Successful placement queues delay10 with normal cancellation; on execution collides=false and queues nested delay30 with default no-cancellation supplier, then teleports to captured pos, emits native end event and sets collides=true. It does not set invulnerable or require a successful damage event. Targetless-attacker afterDamage can schedule this but if target remains null until outer delay, normal cancellation prevents execution; once inner event queued it lacks that cancellation.",
+    "night_context": "Installed eternalNighttime=true makes Lich serverTick force current day to time16000 through LichUtils.timeToNighttime. This matters to vanilla Phantom daylight burning: Phantom.aiStep performs native sunlight test and ignition. Keep the world-time context in summon fixtures; it is not an extra damage or Stage amount. No unrelated time-system research.",
+    "death_cleanup": "Lich.die queues experience drops (excluded acquisition), then obtains every Phantom in new AABB(blockPosition).inflate(100,100,100) and invokes LivingEntity.kill before super.die. It does not check summon ownership or call hurt boolean. Patched kill requests generic_kill Float.MAX_VALUE against each Phantom, subject to native admission/hooks. This is death cleanup, NO_STAGE_VALUE, not a scalable combat nuke or proposed fallback. Ordinary wild Phantoms and any other matching Phantoms in the box are included by this code.",
+    "source_tags": "Pinned closure: thrown is_projectile + neoforge:is_physical + panic_causes; mob_attack is_physical + panic_causes; player_explosion is_explosion, no_knockback, avoids_guardian_thorns, always_hurts_ender_dragons, can_break_armor_stand, panic_causes. None has native armor/shield/Resistance/enchantment/invulnerability/cooldown bypass tags in this scope. Explosion no_knockback suppresses generic hurt knockback, not the separate native explosion vector. generic_kill has technical, armor/shield/invulnerability/Resistance/wolf-armor bypass and no_knockback; preserve exact cleanup source. Other mod/datapack changes remain untested.",
+    "tno_and_exclusions": "Three numeric payload boundaries: missile native hurt, comet attributed per-victim explosion hurt, and summoned Phantom native melee hurt. Slowness, summon count/state, teleport/collision, fall veto, native phase scheduling and death cleanup stay unscaled; shared capped healing was already reviewed and is not duplicated. Native literal/state discrepancies are recorded, not repaired. Skip rendering/animations without callbacks, experience/loot, soul-star acquisition ; the combat-relevant nighttime context is recorded above."
+  },
+  "mechanic_packages": [
+    {
+      "id": "bomd:lich_missile",
+      "name": "Native Lich thrown missile damage",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at MagicMissileProjectile.entityHit final hurt argument after current living owner ATTACK_DAMAGE read.",
+      "stage_reason": "Native control/eligibility/counts/phase or cleanup; no additional scalable payload.",
+      "delivery_paths": [
+        "bomd:lich:missile_volley",
+        "bomd:lich:missile_rage"
+      ]
+    },
+    {
+      "id": "bomd:lich_slow",
+      "name": "Configured native missile Slowness",
+      "primary_classification": "VANILLA_DIRECT",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native control/eligibility/counts/phase or cleanup; no additional scalable payload.",
+      "delivery_paths": [
+        "bomd:lich:missile_volley",
+        "bomd:lich:missile_rage"
+      ]
+    },
+    {
+      "id": "bomd:native_explosion",
+      "name": "Native attributed comet explosion damage",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at attributed native Explosion.explode per-victim final hurt amount; preserve strength/geometry/source and independent displacement.",
+      "stage_reason": "Native control/eligibility/counts/phase or cleanup; no additional scalable payload.",
+      "delivery_paths": [
+        "bomd:lich:comet_entity",
+        "bomd:lich:comet_block",
+        "bomd:lich:comet_hurt",
+        "bomd:lich:comet_rage"
+      ]
+    },
+    {
+      "id": "bomd:lich_summon",
+      "name": "Native Phantom creation and initialization",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native control/eligibility/counts/phase or cleanup; no additional scalable payload.",
+      "delivery_paths": [
+        "bomd:lich:summon_normal",
+        "bomd:lich:summon_rage"
+      ]
+    },
+    {
+      "id": "bomd:summon_melee",
+      "name": "Native summoned Phantom melee",
+      "primary_classification": "VANILLA_DIRECT",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at summoned Phantom Mob.doHurtTarget final hurt argument after native attribute/enchantment formula.",
+      "stage_reason": "Native control/eligibility/counts/phase or cleanup; no additional scalable payload.",
+      "delivery_paths": [
+        "bomd:lich:phantom_melee"
+      ]
+    },
+    {
+      "id": "bomd:lich_teleport",
+      "name": "Native Lich teleport and collision window",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native control/eligibility/counts/phase or cleanup; no additional scalable payload.",
+      "delivery_paths": [
+        "bomd:lich:teleport_chosen",
+        "bomd:lich:teleport_reactive",
+        "bomd:lich:teleport_backup"
+      ]
+    },
+    {
+      "id": "bomd:lich_admission",
+      "name": "Native Lich admission and fall veto",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native control/eligibility/counts/phase or cleanup; no additional scalable payload.",
+      "delivery_paths": [
+        "bomd:lich:native_admission",
+        "bomd:lich:fall_veto"
+      ]
+    },
+    {
+      "id": "bomd:lich_phase",
+      "name": "Native Lich priority rage sequence",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native control/eligibility/counts/phase or cleanup; no additional scalable payload.",
+      "delivery_paths": [
+        "bomd:lich:phase_rage"
+      ]
+    },
+    {
+      "id": "bomd:lich_cleanup",
+      "name": "Native Lich death Phantom cleanup",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native control/eligibility/counts/phase or cleanup; no additional scalable payload.",
+      "delivery_paths": [
+        "bomd:lich:death_cleanup"
+      ]
+    }
+  ],
+  "delivery_paths": [
+    {
+      "id": "bomd:lich:missile_volley",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "Normal five-shot native volley -> missile thrown hurt -> independent configured effect",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "exact native source direct/causing entity and missing owner",
+        "native admission, HP, status and secondary callbacks observed separately"
+      ]
+    },
+    {
+      "id": "bomd:lich:missile_rage",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "Native54 missile rage deliveries -> same hurt/effect callbacks",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "exact native source direct/causing entity and missing owner",
+        "native admission, HP, status and secondary callbacks observed separately"
+      ]
+    },
+    {
+      "id": "bomd:lich:comet_entity",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "Normal native comet admitted entity hit -> captured Lich explosion",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "exact native source direct/causing entity and missing owner",
+        "native admission, HP, status and secondary callbacks observed separately"
+      ]
+    },
+    {
+      "id": "bomd:lich:comet_block",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "Native comet block hit -> captured Lich explosion",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "exact native source direct/causing entity and missing owner",
+        "native admission, HP, status and secondary callbacks observed separately"
+      ]
+    },
+    {
+      "id": "bomd:lich:comet_hurt",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native attack on comet -> onImpact before super.hurt -> captured Lich explosion",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "exact native source direct/causing entity and missing owner",
+        "native admission, HP, status and secondary callbacks observed separately"
+      ]
+    },
+    {
+      "id": "bomd:lich:comet_rage",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "Native six-comet rage -> same detonation callbacks",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "exact native source direct/causing entity and missing owner",
+        "native admission, HP, status and secondary callbacks observed separately"
+      ]
+    },
+    {
+      "id": "bomd:lich:summon_normal",
+      "labels": [
+        "SUMMONED_ATTACK"
+      ],
+      "native_path": "Normal placement/rune/finalizeSpawn -> unowned vanilla Phantom",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "exact native source direct/causing entity and missing owner",
+        "native admission, HP, status and secondary callbacks observed separately"
+      ]
+    },
+    {
+      "id": "bomd:lich:summon_rage",
+      "labels": [
+        "SUMMONED_ATTACK"
+      ],
+      "native_path": "Nine scheduled placement/rune/finalizeSpawn attempts",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "exact native source direct/causing entity and missing owner",
+        "native admission, HP, status and secondary callbacks observed separately"
+      ]
+    },
+    {
+      "id": "bomd:lich:phantom_melee",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "Summoned Phantom native sweep -> Mob.doHurtTarget",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "exact native source direct/causing entity and missing owner",
+        "native admission, HP, status and secondary callbacks observed separately"
+      ]
+    },
+    {
+      "id": "bomd:lich:teleport_chosen",
+      "labels": [
+        "BOSS_ATTACK"
+      ],
+      "native_path": "Native chosen teleport -> placement -> cancellable outer/uncancelled inner event",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "exact native source direct/causing entity and missing owner",
+        "native admission, HP, status and secondary callbacks observed separately"
+      ]
+    },
+    {
+      "id": "bomd:lich:teleport_reactive",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Targetless-attacker afterDamage -> native ServerPlayer teleport scheduling",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "exact native source direct/causing entity and missing owner",
+        "native admission, HP, status and secondary callbacks observed separately"
+      ]
+    },
+    {
+      "id": "bomd:lich:teleport_backup",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Failed primary100 positions -> heightmap backup100 attempts",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "exact native source direct/causing entity and missing owner",
+        "native admission, HP, status and secondary callbacks observed separately"
+      ]
+    },
+    {
+      "id": "bomd:lich:native_admission",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Lich inherited hurt/effect admission and mutable collision flag",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "exact native source direct/causing entity and missing owner",
+        "native admission, HP, status and secondary callbacks observed separately"
+      ]
+    },
+    {
+      "id": "bomd:lich:fall_veto",
+      "labels": [
+        "ENVIRONMENT"
+      ],
+      "native_path": "Native Lich falling callback returns false",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "exact native source direct/causing entity and missing owner",
+        "native admission, HP, status and secondary callbacks observed separately"
+      ]
+    },
+    {
+      "id": "bomd:lich:phase_rage",
+      "labels": [
+        "BOSS_ATTACK"
+      ],
+      "native_path": "Strict native HP milestone change -> priority comet/volley/minion rage queue",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "exact native source direct/causing entity and missing owner",
+        "native admission, HP, status and secondary callbacks observed separately"
+      ]
+    },
+    {
+      "id": "bomd:lich:death_cleanup",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native Lich die -> all nearby Phantoms generic_kill -> super.die",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "exact native source direct/causing entity and missing owner",
+        "native admission, HP, status and secondary callbacks observed separately"
+      ]
+    }
+  ],
+  "unexecuted_future_fixtures": [
+    "missile_native_volley_and_rage_count_vs_hits",
+    "missile_hurtfalse_or_zeroHP_loss_vs_independent_Slowness_admission",
+    "missile_Phantom_type_exclusion_owner_vehicle_native_projectile_impact_cancel_and_deflection",
+    "comet_entity_block_hurt_trigger_false_return_single_impacted_guard",
+    "comet_source_captured_Lich_vs_projectile_current_owner_and_attacker",
+    "native_explosion_armor_shield_Resistance_exposure_blocking_events_separate_push_Monolith_modifier",
+    "natural_projectile_constructor_vs_default_reload_missing_callback_negative_controls",
+    "normal_and_rage_Phantom_placement_cancel_loader_health_maxHP_size0_attack6_and_independent_AI",
+    "phantom_melee_native_source_Phantom_enchantments_hurttrue_secondaries",
+    "teleport_current_position_LOS_facing_vs_candidate_backup_actual_minradius",
+    "targetless_reactive_outer_cancel_vs_uncancelled_inner_collision_flag_no_hurt_immunity",
+    "native_phase_equality_and_priority_rage_queue_without_extra_damage_scaling",
+    "death_cleanup_unowned_wild_and_summoned_Phantoms_technical_source"
+  ],
+  "review_required": [
+    {
+      "id": "bomd-lich-native-summon-state",
+      "reason": "Legacy Attributes NBT is ignored and finalizeSpawn resets Phantom size. Native static path is resolved; observe actual pack stats before any separately authorized change."
+    },
+    {
+      "id": "bomd-native-placement-minradius",
+      "reason": "Native random vector length causes nominal min-radius placement; keep genuine behavior in fixtures, no repair authorized."
+    }
+  ],
+  "remaining_subsection_native_ambiguities": [],
+  "exact_next_task": "R2j4: BOMD Obsidilith shield/pillar admission and break rules, native Burst/Wave/Spike/anvil delivery, hurt-return/secondary effects and exact custom shield_piercing formulas. Reuse R2j1/R2j2 source, effect-filter, phase, scheduler and capped-heal evidence. Then Nether Gauntlet, Void Blossom and combat equipment. Static only; continue automatically while quota is healthy.",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "bosses_of_mass_destruction",
+  "runtime_tests": 0,
+  "whole_mod_complete": false,
+  "promoted_mechanics": 0,
+  "promoted_paths": 0,
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false,
+  "reference_files": [
+    {
+      "file": "native-evidence/bomd-lich.json",
+      "sha256": "03a75b19ebe7947564e47af28f877ed878680e163e702616295d58951c2c6b00"
+    },
+    {
+      "file": "reference-evidence/bomd-lich-244.json",
+      "sha256": "bdf2fbefa2d64606454a6655b418bb76f98f32514d2ee02bdf2742c960de3bc8"
+    },
+    {
+      "file": "vanilla-evidence/bomd-lich.json",
+      "sha256": "9ac4ec72ed4c886a9a2c71ea412d44330c34d6c01edc757f3091ceac64c62079"
+    },
+    {
+      "file": "bomd-lich-source-tags.json",
+      "sha256": "5397aeb57717edd63886a4b8582414b07d7068064b20bcff88a0627188442378"
+    },
+    {
+      "file": "native-evidence/bomd-foundation.json",
+      "sha256": "8c65c8c9f205f62422017871e68a9f4ff1286887b4a85b42e52f55265af0b07f"
+    },
+    {
+      "file": "bomd-installed-config.json",
+      "sha256": "fabb58fba8de27539889466841d365bb4dc5331db2a0914ad8db34e0f7a304ba"
+    },
+    {
+      "file": "bomd-r2j2-shared-admission.json",
+      "sha256": "52ff1f0a54fb6d004afb33d4c4de38e2afb304c0c55ccb87abfd769b392ce0bf"
+    },
+    {
+      "file": "reference-evidence/bomd-shared-244.json",
+      "sha256": "e414210a3e350720dc75d2690968923ec576f51da25f69f1f523dbef5ee20b99"
+    }
+  ]
+}

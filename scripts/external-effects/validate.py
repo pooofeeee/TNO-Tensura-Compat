@@ -330,6 +330,9 @@ def validate():
         if (OUT/'bomd-r2j2-shared-admission.json').exists():
             from validate_bomd_shared import validate_shared as validate_bomd_shared
             assert validate_bomd_shared()['status']=='PASS'
+        if (OUT/'bomd-r2j3-night-lich.json').exists():
+            from validate_bomd_lich import validate_lich as validate_bomd_lich
+            assert validate_bomd_lich()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():

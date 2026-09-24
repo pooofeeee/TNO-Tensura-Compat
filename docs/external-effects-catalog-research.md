@@ -986,3 +986,7 @@ One custom DamageType, five native source callers,287 classes and37 combat/admis
 ## R2j2 — Bosses of Mass Destruction shared admission
 
 Confirmed native Holder/value filter mismatch without repairing it; preserved rejected-hit callbacks, requested-damage memory, strict HP milestones and cap-safe single healing point. [Evidence and resume point](benchmarks/external-effects-catalog/bomd-r2j2-shared-admission-review.md).
+
+## R2j3 — Bosses of Mass Destruction Night Lich
+
+Native missile status independent of hurt success, captured-Lich comet explosion source, genuine Phantom initialization and teleport placement/cancellation proven; no mechanics repaired. [Evidence and resume point](benchmarks/external-effects-catalog/bomd-r2j3-night-lich-review.md).
