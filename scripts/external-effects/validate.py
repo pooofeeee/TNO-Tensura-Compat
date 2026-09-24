@@ -345,6 +345,9 @@ def validate():
         if (OUT/'bomd-r2j7-equipment.json').exists():
             from validate_bomd_equipment import validate_equipment as validate_bomd_equipment
             assert validate_bomd_equipment()['status']=='PASS'
+        if (OUT/'bomd-final-promotion-map.json').exists():
+            from validate_bomd_final import validate_final as validate_bomd_final
+            assert validate_bomd_final()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():

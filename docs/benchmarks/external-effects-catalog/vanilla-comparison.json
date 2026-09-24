@@ -1,7 +1,7 @@
 {
   "schema": "tno.external_effects.vanilla_comparison.v1",
   "status": "PARTIAL",
-  "checkpoint": "R2j7-bomd-equipment-complete",
+  "checkpoint": "R2j8-bomd-complete",
   "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
   "note": "Completed per-mod mappings only. Cross-mod normalization/source minimization waits for R3.",
   "comparisons": [
@@ -3266,6 +3266,1708 @@
             "Preserve native source, owner, immunity, return value and callback ordering."
           ],
           "vanilla_relation": "CUSTOM_RESOURCE",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:shared_admission",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "BINARY_MECHANIC",
+      "closest_vanilla": "BINARY_MECHANIC; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "BaseEntity.hurt captures a handler reference and EntityStats wrapper. Server: all beforeDamage hooks run first; then handler.shouldDamage(this,source,amount) short-circuits super.hurt when false; afterDamage runs server-side with the original source and requested amount and the boolean result even when admission rejected or super returned false. shouldDamage itself is not server-gated. With no handler, it directly uses super.hurt. The wrapper stores the LivingEntity, not an immutable HP snapshot: getHealth/getMaxHealth read current native values. This layer does not multiply damage, rewrite sources or directly subtract HP.",
+        "CompositeDamageHandler preserves supplied order for all beforeDamage and all afterDamage callbacks. shouldDamage stops at the first false handler. Thus a rejecting inner handler does not prevent the outer before/after notifications. Actual installed order: Lich phase detector, targetless-attacker callback, LichMoveLogic, DamageMemory; Obsidilith move logic, ShieldDamageHandler, DamageMemory; Gauntlet hitbox helper, goal handler, DamageMemory; VoidBlossom HP detector, composite hitbox handlers, DamageMemory. Concrete handler predicates belong to their boss family. No new TNO scale at the wrapper or each handler."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native binary admission, source-aware bookkeeping, phase state or scheduler; no independent scalable payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j2-shared-admission.json#bomd:shared_admission"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "BINARY_MECHANIC",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:effect_filter",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "BINARY_MECHANIC",
+      "closest_vanilla": "BINARY_MECHANIC; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "Exactly two installed constructors create EffectsImmunity: Obsidilith and Gauntlet, passing MobEffects.WITHER.value() and POISON.value() into a MobEffect array. The filter stores Arrays.asList(values) but canBeAffected calls !list.contains(effect.getEffect()). Patched MobEffectInstance.getEffect returns Holder. Arrays$ArrayList.indexOf compares the supplied holder via equals to each stored MobEffect. Patched Holder.Reference.equals requires identity or another Holder of reference kind with the same key; the MobEffect value is neither. Therefore these ordinary registered effects are NOT excluded by this filter, including Poison and Wither. The code never unwraps the candidate holder. This is a proven native Holder/value mismatch, not an intended immunity to preserve by inference. BaseEntity uses this filter result directly, bypassing its super.canBeAffected fallback while configured. No repair is implemented or authorized.",
+        "The filter mismatch is not an unconditional force-apply bypass. Patched LivingEntity.addEffect calls CommonHooks.canMobEffectBeApplied before inserting/updating an effect. That posts NeoForge MobEffectEvent.Applicable; APPLY admits, DEFAULT calls virtual canBeAffected, DO_NOT_APPLY rejects. Tensura/L2 or other listeners may still reject through this path. Native parent tag checks (immune_to_infested, immune_to_oozing, ignores_poison_and_regen) are in the superclass branch and are skipped by configured filter delegation; actual pack tags/traits are runtime fixture work. Other two bosses have no installed EffectsImmunity constructor here and inherit the fallback unless their own family changes admission."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native binary admission, source-aware bookkeeping, phase state or scheduler; no independent scalable payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j2-shared-admission.json#bomd:effect_filter"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "BINARY_MECHANIC",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:phase_monitor",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "closest_vanilla": "CUSTOM_RESOURCE; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "StagedDamageHandler is native HP-phase bookkeeping, unrelated to TNO Stage. beforeDamage saves HP/MAX_HP; afterDamage recomputes HP ratio and compares MathUtils.roundedStep(ratio,milestones,false) for the two values. It ignores result and calls its Runnable once when the selected milestone differs; not once per crossed threshold. Installed rounding sorts ascending and picks the first step STRICTLY GREATER than ratio, otherwise the final step. Thus equality at0.75 maps to1.0, just below0.75 maps to0.75; equivalent rules hold at0.5/0.25. The comparison is inequality, not a downward-only test, so a change upward within the before/after interval can also trigger. An unchanged rejected hit does not change phase. Quarter milestone lists are native constants. Exact phase actions remain boss review."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native binary admission, source-aware bookkeeping, phase state or scheduler; no independent scalable payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j2-shared-admission.json#bomd:phase_monitor"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "CUSTOM_RESOURCE",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:damage_history",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "CUSTOM_CONTROL; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "DamageMemory.afterDamage records only result==true AND source.getEntity()!=null AND requested amount>4 (strict); it stores that original request, source object and entity.tickCount. It does not measure final HP loss, absorption, resistance or actual damage events. Its initial history item is amount0/fellOutOfWorld/age0 and is not an attack. Installed Lich/Gauntlet capacity5, Obsidilith/VoidBlossom10; CerbonsAPI adds newest and removes oldest on overflow. Do not multiply the history amount separately or invent owners for null causing entities.",
+        "TargetSwitcher consumes this history: causing attacker must be LivingEntity, sensed LOS, strict distanceSquared<FOLLOW_RANGE squared, entity.canAttack true, and ageWhenDamaged+600>=current tick. Group by causing entity, sum recorded requested amounts, choose maximum; if selected target differs and random.nextInt(2)==0, set target. No damage is created and no unconditional player rewrite occurs. Whole-JAR calls from Lich/Obsidilith/Gauntlet/VoidBlossom move logic are indexed; their scheduling remains family review. DamagedAttackerNotSeen separately invokes its callback when current target null and causing entity Living, regardless hurt result, with no LOS test despite its name. Installed Lich callback further requires ServerPlayer before teleport action; teleport eligibility is next."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native binary admission, source-aware bookkeeping, phase state or scheduler; no independent scalable payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j2-shared-admission.json#bomd:damage_history"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "CUSTOM_CONTROL",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:capped_heal",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "VANILLA_LIKE_EXTENDED; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "CappedHeal server tick requires getTarget()==null; LichUtils.cappedHeal also requires isAlive. Native request = clamp(nextStrictMilestone(HP/MAX_HP)*MAX_HP - HP -1,0,healingStrength), invoked only if positive through entity.heal. Lich/Obsidilith/VoidBlossom install it in their server tick pipeline; file values are0.2/0.5/0.5. At exact threshold, strict rounding selects the next threshold, whereas just below it heal stops one HP before that threshold. This is heal/event processing, not setHealth. Shared helper also has a VoidBlossomBlock caller, whose distinct native delivery is deferred to that family. Gauntlet has no CappedHeal constructor despite its config idle-heal field; do not claim delivery solely from config.",
+        "Future numeric scaling belongs ONCE on healingStrength at the shared clamp upper-bound input, leaving target-null/alive predicates, milestone selection and one-HP gap native. This produces min(native positive gap,scaled healingStrength). Multiplying the already capped result could cross the native cap; do not do that. Never also multiply config, heal callback and global healing event. Native LivingEntity.heal keeps NeoForge healing hooks and native alive checks; healing callbacks can change the eventual result. No implementation is made.",
+        "VoidBlossomBlock.onPlace schedules blocktick1; each tick schedules next64 and queries ALL VoidBlossom in AABB(block).inflate(40,20,40), without owner link. For each captured boss, world scheduler delay16 invokes LichUtils.cappedHeal with strength10, alive guard and next-strict-quarter maxHP gap minus1. No targetnull condition and no callback-time block/range recheck. Removing the block after queueing does not cancel that heal. This extends shared bomd:capped_heal: one future point is strength10 BEFORE clamp, never multiply final capped amount. Separate targetless idle strength.5 uses the same capped helper. Native heal hooks/maxHP still apply. HealS2C is visual only."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_FINAL_AMOUNT",
+          "formula": "Once on healingStrength at LichUtils.cappedHeal clamp upper-bound input; preserve native milestone gap and heal callback.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j2-shared-admission.json#bomd:capped_heal",
+              "bomd-r2j6-void-blossom.json#bomd:capped_heal"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NUMERIC_SCALABLE"
+          ],
+          "stage_scaling_needed": true,
+          "single_scaling_point": "Once on healingStrength at LichUtils.cappedHeal clamp upper-bound input; preserve native milestone gap and heal callback."
+        },
+        {
+          "primitive": "UNSCALED_NATIVE_COMPANIONS",
+          "formula": "Native radius/phase/count/cadence/modifier/status/control/source remain unchanged; no second Stage multiplier.",
+          "numerical_parameters": {},
+          "binary_parameters": [],
+          "vanilla_relation": "Source-specific native companion contract",
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:combat_schedule",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "CUSTOM_CONTROL; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "BaseEntity updates preTickEvents before its client/server tick hooks and super.tick, then postTickEvents afterward. CerbonsAPI EventScheduler moves its pending HashSet into its queue, clears pending, calls shouldDoEvent only on tickSize divisibility, then doEvent, removes events by shouldRemoveEvent, increments scheduler ticks. TimedEvent.tickSize=1; shouldDoEvent tests age++>=delay and !cancel, shouldRemoveEvent tests cancel OR age>=delay+duration; default duration1. With delay d>=0 and no cancellation, callback first runs on the (d+1)th update after admission to the queue. Events added during a callback wait for the next scheduler update. Pending HashSet does not promise sibling ordering. Cancellation does not require HP damage success unless the actual supplier says so. Preserve native duration/counts; actual world-scheduler delivery and concrete suppliers remain family review."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native binary admission, source-aware bookkeeping, phase state or scheduler; no independent scalable payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j2-shared-admission.json#bomd:combat_schedule"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "CUSTOM_CONTROL",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:native_thrown",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "VANILLA_LIKE_EXTENDED; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "ProjectileThrower creates the native projectile with constructor owner, computes target-current position, adds horizontal-distance*.2 vertical compensation, shoots speed1.6/divergence0 and adds it to the level. Inherited ThrowableProjectile checks native ray hit and NeoForge onProjectileImpact cancellation before hitTargetOrDeflectSelf. A native non-NONE target deflection suppresses onHit; default self-deflection forwards the CURRENT owner, not automatically the defender. BaseThrownItemProjectile.onHit further requires server side, then entityCollisionPredicate. ExemptEntities rejects by exact entity TYPE; Lich missiles/comets exempt minecraft:phantom, including unrelated wild Phantoms. Inherited canHitEntity and owner/vehicle-leftOwner rules remain. No extra LOS/team/current-target-only or Tensura eligibility is invented.",
+        "Native entity id bosses_of_mass_destruction:blue_fireball is MagicMissileProjectile, despite its name. On admitted entityHit: current getOwner must be LivingEntity; request owner current ATTACK_DAMAGE with native damageSources.thrown(this,owner), direct missile/causing current owner. It ignores hurt return, then invokes its nonnull LivingEntity callback, then discards unconditionally, including missing/nonliving-owner cases. No post-attack enchantment or ignition callback exists in this body. Actual source is minecraft:thrown, not magic, fire or shield_piercing. Single Stage point: final native entity.hurt argument after the owner attribute read; never multiply both attribute and hit.",
+        "SporeAction requires ServerPlayer, after45 throws one native SporeBall from boss eye toward captured target eye with speed.75, divergence0, gravity compensation.2. Constructor exempts ALL VoidBlossom entity types from entityHit through ExemptEntities. BaseThrownItemProjectile calls native superclass onHit then gated entityHit; Spore overrides outer collision predicate totrue on both sides. Entity contact on server requires current owner Living and victim!=owner, requests minecraft:thrown(direct ball, causing current owner), amount current owner ATTACK_DAMAGE, discards boolean. It does NOT latch impacted, call onImpact, discard, poison or start burst. Native projectile collision/deflection still applies; it can continue and encounter blocks later.",
+        "BladeAction requires ServerPlayer; three callbacks after28/52/75 each aim11 native PetalBlade projectiles across a target-center line of halfwidth7 with random-sign20-degree rotation. Maximum33 creations if uncanceled, not33 hits. Speed.9, noGravitytrue, owner boss, exempts boss entity TYPE. Native entity hit with current owner Living requests minecraft:thrown(direct blade, causing currentowner), currentowner attack12; then supplied callback runs on Living victim regardless hurtboolean (this boss supplies EMPTY callback); discard always follows, including missing/nonliving owner. Block callback calls superclass then discards. No native hurt override that provides player reflection; retain engine deflection/ownership semantics without inventing one. Predicate/callback fields and spore impacted are not explicitly serialized by these classes; later native save/load fixture must compare reconstructed default constructor state with launched state."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_FINAL_AMOUNT",
+          "formula": "Once at final native projectile entityHit hurt amount after current-owner attribute selection; preserve separate missile/spore/petal predicates and secondaries.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j3-night-lich.json#bomd:lich_missile",
+              "bomd-r2j6-void-blossom.json#bomd:blossom_thrown"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NUMERIC_SCALABLE"
+          ],
+          "stage_scaling_needed": true,
+          "single_scaling_point": "Once at final native projectile entityHit hurt amount after current-owner attribute selection; preserve separate missile/spore/petal predicates and secondaries."
+        },
+        {
+          "primitive": "UNSCALED_NATIVE_COMPANIONS",
+          "formula": "Native radius/phase/count/cadence/modifier/status/control/source remain unchanged; no second Stage multiplier.",
+          "numerical_parameters": {},
+          "binary_parameters": [],
+          "vanilla_relation": "Source-specific native companion contract",
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:lich_slow",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "VANILLA_DIRECT",
+      "closest_vanilla": "VANILLA_DIRECT; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "Volley/VolleyRage resolve configured MobEffect id from the native registry and pass a callback that wraps that effect as a holder and calls target.addEffect(instance) without effect-source entity argument. Installed snapshot Slowness duration100 amplifier2. The callback runs after hurt regardless of its boolean, but still requires a Living owner, Living victim and nonnull callback; addEffect has separate native/NeoForge admission. Absent lookup gives no callback effect, without fallback. Keep duration/amplifier/control native, NO_STAGE_VALUE. Default/loading constructor does not rebuild this Java callback; it is not a substitute positive-control constructor.",
+        "Ordinary volley schedules five missiles after delay46 and aims at captured ServerPlayer current bounding-box center with plane-projected launch offsets. Rage schedules four volleys at60,90,120,150:9 horizontal,9 vertical,18 cross,18 rotated-cross =54 projectile creations if uncanceled, including coincident crossing offsets; return duration180. Helpers prove lineCallback emits exactly points and circleCallback exactly points. Counts and geometry are native, not extra scaling points. A hit or status application is not guaranteed per creation."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native control/eligibility/counts/phase or cleanup; no additional scalable payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j3-night-lich.json#bomd:lich_slow"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "VANILLA_DIRECT",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:native_explosion",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "VANILLA_LIKE_EXTENDED; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "Comet uses the same native owner/exemption/delivery helper but deals no separate entity-impact HP hit. Entity hit, block hit, or CometProjectile.hurt calls onImpact. onImpact first checks and sets impacted=true; then if CURRENT owner Living, invokes nonnull captured impactAction at projectile.position and discards. Missing/nonliving owner sets impacted with no callback and no discard in this branch. Default/load constructor has null callback. hurt invokes onImpact BEFORE super.hurt and returns the superclass result: explosion is not conditional on attack damage being accepted, and onImpact has no independent server guard (natural collision delivery is server-gated by the base). This is detonation, not a native reflection mechanic.",
+        "Both CometAction constructors capture the creating Lich in their explosion callback: level.explode(lich,x,y,z,config.comet.explosionStrength,ExplosionInteraction.MOB), default fire=false. Installed strength4. Native explosion direct source is that captured Lich and indirect source is the same Living Lich, selecting minecraft:player_explosion even though the attacker is a mob. The comet projectile and the entity that hurt it are neither direct nor causing explosion source. Owner changes alone would not rewrite the captured callback. Do not fabricate PLAYER identity from the DamageType name. A native source exclusion keeps the Lich out of the initial explosion candidate list, subject to later event-list modifications.",
+        "Native explosion selects within radius2*strength, permits ignoreExplosion and damage-calculator admission, checks nonzero directional length, posts NeoForge detonation hooks, then calls victim.hurt with calculator amount. Default amount: ((exposure*(1-distance/(2*strength)))^2 + exposure*(1-distance/(2*strength)))/2 *7*(2*strength)+1. Native exposure and geometry remain; damage hurt return is ignored and explosion displacement proceeds independently with native EXPLOSION_KNOCKBACK_RESISTANCE and EventHooks.getExplosionKnockback. Monolith ExplosionMixin may change supplied strength and is pending equipment review. Single future Stage point is this attributed native explosion per-victim final hurt amount; do not scale strength/radius, exposure, knockback or both callback and explosion engine.",
+        "Ordinary comet requires ServerPlayer at scheduling, launches once at delay60 through ThrowProjectileAction, which uses whatever nonnull current target exists at execution; cooldown80. Rage captures ServerPlayer, emits six comet creations at delays60+30*i, i0..5, from a six-point radius3 ring and aims at captured player current center; return duration240. Entity-hit, block-hit and projectile-hurt detonation are distinct runtime entry paths. Prevent duplicate damage by retaining impacted flag; never add an entity-impact fallback.",
+        "AnvilAction server path captures current target object and after20, if actor alive, reads target.position, remembers original boss pos and moveTo target+Y24. After another delay1, if alive, enqueue Event whose condition is onGround OR Y<0, removal is dead OR condition. If condition true it explodes at boss current position with actor source, configured strength4, MOB, then queues return to saved originalPos after20 canceled if boss dead. No falling-block/anvil DamageSource is produced. Because Event executes before removal and its condition ignores alive, an already-enqueued landing event can detonate if both landing condition and death are true in the same update. No extra immediate HP attack is hidden in relocation.",
+        "If spawnPillarOnDeath=true (installed), Obsidilith.die invokes onDeath before super.die. Server onDeath creates native actor-centered explosion strength2/MOB/firefalse, then schedules obsidian pillar construction and loot/experience (brief exclusion after the combat explosion). Both anvil and death explosions use direct=causing Obsidilith and thus minecraft:player_explosion, independent of hurt success. Reuse R2j3 native exposure/mitigation/independent explosion vector; Monolith may alter strength in its pending equipment hook. Config false prevents this native death branch. Source actor is excluded from initial explosion candidate list, external event changes remain possible.",
+        "Punch captures target-based overshoot point, attempts native block clear, pushes bossY+.7. Close fist delay7, accelerate from16 for15 updates (.6 first then.32, stop near target squared distance<9 or cancel), active impact from16 for40 updates, stop animation56, reopen64 without cancellation. Each active callback tests block collision then entity overlap then records current speed as previousSpeed; previousSpeed field persists between moves. Collision horizontal/vertical AND previousSpeed>.55 requests actor-source native explosion strength(previousSpeed*normalPunchExplosionMultiplier), installed multiplier1.5. No once-per-punch explosion flag. Entity impact queries Living entities in current native bounding box excluding boss only, calls Mob.doHurtTarget then unconditionally target.addDeltaMovement(bossVelocity*.5), even on hurtfalse. No target-only/team/LOS predicate or per-target hit cache.",
+        "Swirl sets isEnergized=true and bossY+.7, closes fist7, accelerates30 for15 updates (.6 then.4), active impact30 for30, reopens60 and clears energized without cancellation. Entity contact uses same native melee and independent extra velocity. First qualifying block collision while energized requests actor-source explosion configured4.5 with fire=true, then clears energized; later collisions use speed*1.5 firefalse. Native isEnergized changes explosion mode, not a separate absorption shield. Counts, velocity, hitbox timing and explosion strength remain native.",
+        "Punch and energized collision explosions have direct=causing Gauntlet and native minecraft:player_explosion; preserve earlier engine admission/exposure/independent native vector. Energized fire=true can place native fire at eligible affected air blocks above solid-render support with native one-in-three choice. BaseFireBlock.getState selects ordinary or soul fire from below-block state. Native in_fire contact amount comes from that block instance (ordinary1,soul2), plus ignition and later on_fire ticks1 through native Entity.baseTick; source identities remain anonymous fire, not Gauntlet damage sources. Fire immunity/Resistance, native timers and normal damage hooks still govern actual HP. Do not assume every fiery explosion places a block or burns a victim, and do not scale strength/radius/timers.",
+        "Native custom deathServerTick increments deathTime; exactly50 creates Level.explode(null,currentPos,4,MOB), then optional debris/loot and experience (excluded), then remove(KILLED). Unlike punch explosions, direct and causing entities are null, so source is minecraft:explosion, not player_explosion. Config spawnAncientDebrisOnDeath controls loot, not this explosion. Native explosion eligibility/mitigation still applies. Preserve anonymous identity: infer no killer/boss owner or fallback entity.",
+        "Scalable numeric families here are native melee (including laser), native explosion HP, native environmental fire HP, and uncapped native targetless heal. Apply once at their terminal native amount boundaries; preserve eligibility/state/counts/source identity. For anonymous Gauntlet death explosion, resulting fire and already-reviewed unowned summoned Phantoms, generic source type alone cannot identify BOMD origin. Any future scaling must establish narrow native origin context without changing owner/source; provenance remains an explicit future integration review item, not unresolved static behavior. All eye/part, aggro, phase selection, client rendering, timers, blindness and raw velocity remain unscaled. No Stage code, production fix, runtime boss/L2 test or Phase6/7 work.",
+        "ExplosionMixin modifies float at ServerLevel.explode HEAD through MonolithBlock.getExplosionPower. Query cached monolith positions across origin chunk plus/minus4X/Z; first block whose absolute block-coordinate deltas are EACH strictly<64 returns power*1.3. Nonstacking even with multiple halves/monoliths; exact64 excluded, no radial-distance/owner/source/team/LOS filter. This is native radius/strength modification for ANY explosion through that overload, changing native geometry and resultant per-victim amount; it does not invoke hurt itself. Keep this existing1.3 radius behavior native; candidate Stage still applies ONCE at final native Explosion per-victim amount, never add a second Stage on radius. Actual mixin application remains a runtime fixture, not static-certified."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_FINAL_AMOUNT",
+          "formula": "Once at originating native Explosion per-victim final hurt amount after exposure/calculator. Preserve source-null or native entity attribution, Monolith radius, fire and independent motion; no wrapper/radius duplicate multiplier.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j3-night-lich.json#bomd:native_explosion",
+              "bomd-r2j4-obsidilith.json#bomd:native_explosion",
+              "bomd-r2j5-gauntlet.json#bomd:native_explosion",
+              "bomd-r2j7-equipment.json#bomd:native_explosion"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NUMERIC_SCALABLE"
+          ],
+          "stage_scaling_needed": true,
+          "single_scaling_point": "Once at originating native Explosion per-victim final hurt amount after exposure/calculator. Preserve source-null or native entity attribution, Monolith radius, fire and independent motion; no wrapper/radius duplicate multiplier."
+        },
+        {
+          "primitive": "UNSCALED_NATIVE_COMPANIONS",
+          "formula": "Native radius/phase/count/cadence/modifier/status/control/source remain unchanged; no second Stage multiplier.",
+          "numerical_parameters": {},
+          "binary_parameters": [],
+          "vanilla_relation": "Source-specific native companion contract",
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:lich_summon",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "CUSTOM_CONTROL; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "Ordinary summon queues beginSummonSingleMob after40; that copies fixed NBT, adds id minecraft:phantom, resolves through EntityType.loadEntityRecursive, attempts up to30 placements, then schedules actual SimpleMobSpawner.spawn after another40 with cancellation. Rage queues nine begin calls at40+40*i-3*i*(i+1)/2 (i0..8), then each successful rune waits40; total action duration292. Placement requires loaded chunk, no liquid in prospective spawn AABB, no collision and valid native empty spawn block. No owner/tame/team inheritance or forced target is written. SimpleMobSpawner sets position, calls native finalizeSpawn(MOB_SUMMONED), then adds entity with passengers; genuine later Phantom AI supplies melee.",
+        "Literal summon NBT is Health14,Size2,Attributes:[{Name:generic.max_health,Base:14f}]. Installed LivingEntity load reads lowercase attributes, so the legacy Attributes list does not set max health. Health14 is loaded through native setHealth; Phantom read sets size2, but subsequent SimpleMobSpawner.finalizeSpawn calls Phantom.finalizeSpawn, which resets size0. Native size update sets attack base6+size, hence6 after this reset before external modifiers. Do not record maxHP14 or effective size2 from the literal alone. Phantom sweep intersection calls native Mob.doHurtTarget: mob_attack direct=causing Phantom, current ATTACK_DAMAGE plus native server enchantment formula; successful hurt gates native knockback/postattack/lastHurt bookkeeping. No Lich-owner damage credit is introduced. Current runtime stats/HP remain future observations, not measured here.",
+        "RangedSpawnPosition uses CerbonsAPI randVec with each component in[-.5,.5), normalizes it, and clamps its ORIGINAL length to[min,max]. That length is below.867, so ordinary normalized vectors are always scaled to min, not uniformly across the advertised interval. Lich teleport thus uses nominal20 rather than20..35, minion positions nominal4 rather than4..8; preserve native near-zero normalization behavior and placement rejection. This affects test coverage, not a Stage value or a proposed fix."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native control/eligibility/counts/phase or cleanup; no additional scalable payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j3-night-lich.json#bomd:lich_summon"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "CUSTOM_CONTROL",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:native_mob_melee",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "VANILLA_LIKE_EXTENDED; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "Literal summon NBT is Health14,Size2,Attributes:[{Name:generic.max_health,Base:14f}]. Installed LivingEntity load reads lowercase attributes, so the legacy Attributes list does not set max health. Health14 is loaded through native setHealth; Phantom read sets size2, but subsequent SimpleMobSpawner.finalizeSpawn calls Phantom.finalizeSpawn, which resets size0. Native size update sets attack base6+size, hence6 after this reset before external modifiers. Do not record maxHP14 or effective size2 from the literal alone. Phantom sweep intersection calls native Mob.doHurtTarget: mob_attack direct=causing Phantom, current ATTACK_DAMAGE plus native server enchantment formula; successful hurt gates native knockback/postattack/lastHurt bookkeeping. No Lich-owner damage credit is introduced. Current runtime stats/HP remain future observations, not measured here.",
+        "Installed eternalNighttime=true makes Lich serverTick force current day to time16000 through LichUtils.timeToNighttime. This matters to vanilla Phantom daylight burning: Phantom.aiStep performs native sunlight test and ignition. Keep the world-time context in summon fixtures; it is not an extra damage or Stage amount. No unrelated time-system research.",
+        "Punch/Swirl native Mob.doHurtTarget selects mob_attack direct=causing Gauntlet, current ATTACK_DAMAGE with server EnchantmentHelper.modifyDamage, then victim.hurt. Success gates native knockback/postattack/lastHurt bookkeeping; extra punch velocity outside helper is unconditional. Laser ALSO calls this same melee helper. Per selected laser victim it temporarily adds id bosses_of_mass_destruction:laser, ADD_MULTIPLIED_BASE=-.25 to ATTACK_DAMAGE, calls doHurtTarget, then removes modifier regardless boolean. With otherwise unmodified attack16 this contributes12 before native enchantments; it is not a separate magic/fire DamageType. Single future scaling point for all is final native Mob.doHurtTarget hurt amount after native attribute/enchantment selection; do not scale temporary modifier and helper together.",
+        "Punch captures target-based overshoot point, attempts native block clear, pushes bossY+.7. Close fist delay7, accelerate from16 for15 updates (.6 first then.32, stop near target squared distance<9 or cancel), active impact from16 for40 updates, stop animation56, reopen64 without cancellation. Each active callback tests block collision then entity overlap then records current speed as previousSpeed; previousSpeed field persists between moves. Collision horizontal/vertical AND previousSpeed>.55 requests actor-source native explosion strength(previousSpeed*normalPunchExplosionMultiplier), installed multiplier1.5. No once-per-punch explosion flag. Entity impact queries Living entities in current native bounding box excluding boss only, calls Mob.doHurtTarget then unconditionally target.addDeltaMovement(bossVelocity*.5), even on hurtfalse. No target-only/team/LOS predicate or per-target hit cache.",
+        "Swirl sets isEnergized=true and bossY+.7, closes fist7, accelerates30 for15 updates (.6 then.4), active impact30 for30, reopens60 and clears energized without cancellation. Entity contact uses same native melee and independent extra velocity. First qualifying block collision while energized requests actor-source explosion configured4.5 with fire=true, then clears energized; later collisions use speed*1.5 firefalse. Native isEnergized changes explosion mode, not a separate absorption shield. Counts, velocity, hitbox timing and explosion strength remain native.",
+        "Laser captures a Living target, builds HistoricalData(Vec3.ZERO,8), then EventSeries: delay25 start target-id sync;60 updates of position recording/application; final uncancelled stop clears history/id and emits stop event. EventSeries advances through removed/canceled members and preserves final cleanup, not parallel scheduling. After seven captured positions, list size first reaches8 and oldest is still initial Vec3.ZERO, so first application aims along that direction; thereafter oldest is a lagged target center. At most54 applications in an uncanceled60-update recording stage; no claim of54 hits. Extend eye->selected position to length30, block clip COLLIDER/Fluid.NONE truncates beam to hit location; every even boss tick attempts tiny-AABB native block clearing. FindEntitiesInLine uses segment AABB and each candidate bounding-box clip, excludes boss, then selects Living; no extra team/current-target-only filter. Native helper damage/cooldown repeats determine actual HP loss."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_FINAL_AMOUNT",
+          "formula": "Once at native Mob.doHurtTarget final hurt amount after native attributes/enchantments. Keep owned Gauntlet and unowned Phantom identities, laser modifier and independent motion native.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j3-night-lich.json#bomd:summon_melee",
+              "bomd-r2j5-gauntlet.json#bomd:gauntlet_melee"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NUMERIC_SCALABLE"
+          ],
+          "stage_scaling_needed": true,
+          "single_scaling_point": "Once at native Mob.doHurtTarget final hurt amount after native attributes/enchantments. Keep owned Gauntlet and unowned Phantom identities, laser modifier and independent motion native."
+        },
+        {
+          "primitive": "UNSCALED_NATIVE_COMPANIONS",
+          "formula": "Native radius/phase/count/cadence/modifier/status/control/source remain unchanged; no second Stage multiplier.",
+          "numerical_parameters": {},
+          "binary_parameters": [],
+          "vanilla_relation": "Source-specific native companion contract",
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:lich_teleport",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "CUSTOM_CONTROL; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "Chosen teleport requires ServerPlayer. First attempts100 positions around captured player position with native spawn predicate AND Lich.inLineOfSight(target). The latter checks existing Lich eye-to-target collider-block ray/Fluid.NONE and target look dot(targetEye->LichEye)>0; it does NOT test LOS from prospective candidate pos. If all fail, backup attempts100 around target heightmap MOTION_BLOCKING_NO_LEAVES position using only spawn predicate. Successful placement queues delay10 with normal cancellation; on execution collides=false and queues nested delay30 with default no-cancellation supplier, then teleports to captured pos, emits native end event and sets collides=true. It does not set invulnerable or require a successful damage event. Targetless-attacker afterDamage can schedule this but if target remains null until outer delay, normal cancellation prevents execution; once inner event queued it lacks that cancellation.",
+        "RangedSpawnPosition uses CerbonsAPI randVec with each component in[-.5,.5), normalizes it, and clamps its ORIGINAL length to[min,max]. That length is below.867, so ordinary normalized vectors are always scaled to min, not uniformly across the advertised interval. Lich teleport thus uses nominal20 rather than20..35, minion positions nominal4 rather than4..8; preserve native near-zero normalization behavior and placement rejection. This affects test coverage, not a Stage value or a proposed fix."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native control/eligibility/counts/phase or cleanup; no additional scalable payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j3-night-lich.json#bomd:lich_teleport"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "CUSTOM_CONTROL",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:lich_admission",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "BINARY_MECHANIC",
+      "closest_vanilla": "BINARY_MECHANIC; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "LichEntity has no hurt/isInvulnerableTo/canBeAffected override or configured EffectsImmunity. All installed shared damage handlers admit; ordinary inherited damage/effect admission and external hooks remain. There is no native boss shield, fixed damage cap, reflection requirement or projectile-type immunity in this Lich code. Lich registry does not set fireImmune. causeFallDamage=false and checkFallDamage empty suppress native falling damage. canCollideWith returns the mutable collides flag; that flag is not a damage invulnerability flag and is never consulted by BaseEntity.hurt. Native despawn helper keeps it except Peaceful. File HP300 and attack9 were pinned in R2j1; no base-attribute multiplier is proposed."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native control/eligibility/counts/phase or cleanup; no additional scalable payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j3-night-lich.json#bomd:lich_admission"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "BINARY_MECHANIC",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:lich_phase",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "closest_vanilla": "CUSTOM_RESOURCE; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "Server constructor registers Player FindTargetGoal with visibility=true, reachability=false, reciprocal chance10, search AABB inflated by range and unseenMemoryTicks200. Attack ActionGoal requires alive/not deadOrDying and a target, updates every tick, uses initial CooldownAction80; stop raises remaining cooldown to at least80. Concrete actions require target instanceof ServerPlayer. Shared phase change adds priority actions comet rage12, volley rage11, minion rage8 in that order; crossing several milestones still schedules one bundle per monitored hit. Regular weighted choice may choose comet/volley/minion/teleport; exact attack counts are native. Native callbacks cancel when deadOrDying OR current target null; changing to another nonnull target does not by itself cancel captures of an earlier ServerPlayer."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native control/eligibility/counts/phase or cleanup; no additional scalable payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j3-night-lich.json#bomd:lich_phase"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "CUSTOM_RESOURCE",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:lich_cleanup",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "BINARY_MECHANIC",
+      "closest_vanilla": "BINARY_MECHANIC; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "Lich.die queues experience drops (excluded acquisition), then obtains every Phantom in new AABB(blockPosition).inflate(100,100,100) and invokes LivingEntity.kill before super.die. It does not check summon ownership or call hurt boolean. Patched kill requests generic_kill Float.MAX_VALUE against each Phantom, subject to native admission/hooks. This is death cleanup, NO_STAGE_VALUE, not a scalable combat nuke or proposed fallback. Ordinary wild Phantoms and any other matching Phantoms in the box are included by this code."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native control/eligibility/counts/phase or cleanup; no additional scalable payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j3-night-lich.json#bomd:lich_cleanup"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "BINARY_MECHANIC",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:obsidilith_shield",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "BINARY_MECHANIC",
+      "closest_vanilla": "BINARY_MECHANIC; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "Synced isShielded initially false. Native resource is activePillars, an append-only-until-cleanup list of BlockPos, not hit count or HP. RuneBlock.onPlace schedules its native block tick after10; that tick links itself to EVERY Obsidilith in AABB(pos).inflate(15,40,15), by addActivePillar with no owner test or deduplication. Each boss serverTick removes positions whose block is no longer OBSIDILITH_RUNE OR whose BlockPos is not strictly closerThan boss.blockPosition,64, then sets shield to list nonempty. Removing all valid linked rune blocks or moving them/boss out of this distance clears shield at that update. Breaking supporting obsidian alone does not break the link if rune remains. Multiple nearby bosses and duplicate link entries are legitimate native cases.",
+        "Shared beforeDamage runs before ShieldDamageHandler.shouldDamage. If shield true and source NOT BYPASSES_INVULNERABILITY: when source NOT IS_PROJECTILE and causing entity Living, invoke that attacker knockback(.5, bossX-attackerX,bossZ-attackerZ); play native shield sound; return false so super.hurt never runs. Native knockback uses its own NeoForge event and KNOCKBACK_RESISTANCE. Any amount is rejected here; ordinary hits neither decrement resource nor damage HP. A BYPASSES_INVULNERABILITY source passes this handler but leaves all runes/shield unchanged and still faces remaining native admission. Exact shield_piercing only disables normal LivingEntity shield blocking: it has no invulnerability-bypass tag and therefore does not pierce this boss rune gate. Keep rune removal, passing admission and HP damage separate.",
+        "Shared native quarter-milestone change sets shouldDoPillarDefense; next move selection consumes that flag and uses PillarAction. PillarAction server path attempts four horizontal random radius13 locations, runs native ground scans, schedules construction after40 canceling if boss not alive, and returns100; client path returns80. Each successful build writes two obsidian blocks with rune above, triggering the delayed native linking path. No additional per-hit shield counter exists. Rune native block properties strength50/resistance1200 and requiresCorrectToolForDrops use ordinary native block breaking/explosion rules; no special damage type or attack-tag removal callback. Exact production block-removal eligibility must stay native. The position list persists as activePillars int triples, reload appends them and the next server tick validates blocks/range; initial synced flag is not separately loaded."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native admission/state/movement/status/count/timing; no additional scalable HP payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j4-obsidilith.json#bomd:obsidilith_shield"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "BINARY_MECHANIC",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:obsidilith_defense",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "BINARY_MECHANIC",
+      "closest_vanilla": "BINARY_MECHANIC; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "Registry sets Obsidilith fireImmune; its isOnFire override also returnsfalse, and causeFallDamage returnsfalse. It overrides move to preserve only Y motion and push(Entity) is empty; these are concrete movement routes, not blanket immunity to every effect or displacement API. getArmorValue returns24 while target null, else superclass (installed armor attribute14 before modifiers). Native idle heal is target-null/alive and milestone-capped per R2j2. Config HP300/attack16 are reference file values. Poison/Wither filter mismatch and external MobEffect admission remain R2j2; no immunity repaired."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native admission/state/movement/status/count/timing; no additional scalable HP payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j4-obsidilith.json#bomd:obsidilith_defense"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "BINARY_MECHANIC",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:shield_piercing_hp",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "closest_vanilla": "CUSTOM_DAMAGE; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "RiftBurst default placement begins14 blocks above requested point, finds sturdy upward FULL support down to min build height, chooses ground.above, requires upY+28>=aboveY and replaceability using DirectionalPlaceContext. On placement schedule indicator wait riftTime, cancel while original block no longer replaceable OR actor dead. Once that event executes, it queues inner TimedEvent(delay0,duration7,cancel=false). For seven updates it queries LivingEntity in one-block AABB at pos+(0,2*k,0), k0..6, excludes only exact actor and calls onImpact for each. No LOS/team/owner/canAttack/target-only filter or per-target deduplication is added. Adjacent tiles, height intersections and later waves can attempt repeated hits; native hurt cooldown/admission determines HP progress. Once inner queue begins, actor death or loss of target/open block does not cancel it.",
+        "BurstAction uses filled block disk radius7 around actor current position, RiftBurst delay30, cooldown80. Every delivered callback reads actor current ATTACK_DAMAGE (installed16) then, if victim ServerPlayer, sends raw client velocity packet preserving server-observed X/Z and replacing Y with1.3 BEFORE hurt. It then requests shield_piercing with direct=causing Obsidilith and ignores hurt return. Packet is not LivingEntity.knockback and this method does not directly set server victim motion. Hurt rejection cannot retroactively prevent the prior packet.",
+        "WaveAction schedules start after20, captures target object, at execution takes normalized direction actor->target times4, and makes five line centers from actor+direction to that start+direction*7.5. Each center gets a delay8*i action placing a filled radius4 block disk; each rift then waits20. Outer stages cancel only when actor dead, not target changed or null later. Callback sends ServerPlayer client Y=.8 preserving X/Z, then setRemainingFireTicks(5), then shield_piercing ATTACK_DAMAGE. Both secondaries precede hurt and ignore its result. This is FIVE TICKS, not five seconds: baseTick tests positive fire counter divisible by20 before decrement. A fresh isolated value5 alone produces no native on_fire tick before expiry; it can shorten an existing longer fire counter. Do not invent a fire damage event or scale this raw timer write.",
+        "SpikeAction requires current ServerPlayer, otherwise returns80 without attack. Normal path returns100 and queues three preparations at30,60,90. Each uses native recorded player positions to predict position, places filled radius2 disk and RiftBurst delay20, canceling outer work only if actor dead. Predictor = currentPos - .5*sum(horizontal(previousPos-currentPos)); Neo server player Post tick clears history when lastPosition.distanceSquared(current)>5, then adds current; attachment history capacity10. Callback requests shield_piercing ATTACK_DAMAGE, ignores hurt boolean, then independently addEffect(Slowness120,amplifier2), without effect-source entity. Status eligibility is native/NeoForge and separate from damage acceptance.",
+        "SpikeAction requires ServerPlayer (otherwise80); prepares three predicted-player filled radius2 disks after30/60/90, each using Spikes delay20. SpikeWaveAction also requires ServerPlayer, prepares filled radius7 then rings(7,14] and(14,21] after20/45/70 using delay30. Spikes tests three starting heights0/6/12, findGroundBelow with replaceable-or-moss predicate, accepts ground.above when upY+5>=startY, then queues one callback per placement. Callback queries a 1x9x1 AABB (block inflatedY4), Living except exact boss, requests shield_piercing(current boss, current attack12), ignores return. No projectile entity, explosion, native knockback packet or status. No placement/per-target dedup; shared native cooldown governs overlaps. Scheduler is boss preTickEvents and supplied cancel condition; no final open-block recheck in Spikes. Hitbox EventSeries returns to Idle without cancellation. SpikeS2C only visuals, not another damage producer.",
+        "Only native onHitBlock calls onImpact. First call records pitch, sets impacted=true and getDeltaMovement becomesZERO; if current owner Living capture it for doExplosion, otherwise server discards. Despite method name this is NOT Level.explode. Creates radius7 filled disk of RiftBurst columns, ground finder startingY+2, accepts upY+8>=startY and replaceable-or-moss. World scheduler outerdelay30 cancels if blocked or CAPTURED owner not alive. Inner seven callbacks at offsetsY0/2/4/6/8/10/12 are uncanceled and exclude only captured owner, not every VoidBlossom type. Same-delay independent discard event is also queued; it does not cancel queued columns. Callback amount comes from CAPTURED owner current attack, but only when projectile.getOwner()!=null it selects CURRENT owner as both direct/causing shield_piercing source and effect-source argument. Preserve this split if another native mechanism changes owner; null current owner suppresses both area HP and Poison. Do not substitute the projectile as direct source or call native explosion hooks.",
+        "Pinned source tags distinguish thorns (magic-tagged, armor/shield not bypassed here), thrown (projectile/physical), untagged shield_piercing with exact-key blocking mixin, and anonymous neoforge:poison. None certifies packwide Tensura/L2 outcomes. Single future amount boundaries: native thorns hurt requests, native Spikes/area shield_piercing requests, native thrown requests after owner attribute selection, origin-bound Poison terminal tick with native nonlethality retained, and capped-heal strength before clamp. Never scale attack attribute and terminal amount together; leave source identity, counts, geometry, phase threshold, effect duration/amplifier and eligibility unchanged."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_FINAL_AMOUNT",
+          "formula": "Once at final native hurt amount after the actual caller attribute formula. Preserve exact-key native blocking override and spore captured-amount/current-source owner split.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j4-obsidilith.json#bomd:rift_damage",
+              "bomd-r2j6-void-blossom.json#bomd:blossom_spikes_hp"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "CUSTOM_DAMAGE",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NUMERIC_SCALABLE"
+          ],
+          "stage_scaling_needed": true,
+          "single_scaling_point": "Once at final native hurt amount after the actual caller attribute formula. Preserve exact-key native blocking override and spore captured-amount/current-source owner split."
+        },
+        {
+          "primitive": "UNSCALED_NATIVE_COMPANIONS",
+          "formula": "Native radius/phase/count/cadence/modifier/status/control/source remain unchanged; no second Stage multiplier.",
+          "numerical_parameters": {},
+          "binary_parameters": [],
+          "vanilla_relation": "Source-specific native companion contract",
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:rift_motion",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "CUSTOM_CONTROL; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "BMDPackets registers SendDeltaMovementS2CPacket. Its handler rejects Side.SERVER, obtains local player and queues client.setDeltaMovement(packetVec). Burst/Wave invoke Dispatcher.sendToClient only for ServerPlayer. This establishes intended native packet delivery, not measured authoritative server displacement or bypass of external anticheat/corrections. Preserve packet behavior and test client/server motion separately; no new server push/knockback fallback.",
+        "BurstAction uses filled block disk radius7 around actor current position, RiftBurst delay30, cooldown80. Every delivered callback reads actor current ATTACK_DAMAGE (installed16) then, if victim ServerPlayer, sends raw client velocity packet preserving server-observed X/Z and replacing Y with1.3 BEFORE hurt. It then requests shield_piercing with direct=causing Obsidilith and ignores hurt return. Packet is not LivingEntity.knockback and this method does not directly set server victim motion. Hurt rejection cannot retroactively prevent the prior packet.",
+        "WaveAction schedules start after20, captures target object, at execution takes normalized direction actor->target times4, and makes five line centers from actor+direction to that start+direction*7.5. Each center gets a delay8*i action placing a filled radius4 block disk; each rift then waits20. Outer stages cancel only when actor dead, not target changed or null later. Callback sends ServerPlayer client Y=.8 preserving X/Z, then setRemainingFireTicks(5), then shield_piercing ATTACK_DAMAGE. Both secondaries precede hurt and ignore its result. This is FIVE TICKS, not five seconds: baseTick tests positive fire counter divisible by20 before decrement. A fresh isolated value5 alone produces no native on_fire tick before expiry; it can shorten an existing longer fire counter. Do not invent a fire damage event or scale this raw timer write."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native admission/state/movement/status/count/timing; no additional scalable HP payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j4-obsidilith.json#bomd:rift_motion"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "CUSTOM_CONTROL",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:wave_fire_counter",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "VANILLA_DIRECT",
+      "closest_vanilla": "VANILLA_DIRECT; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "WaveAction schedules start after20, captures target object, at execution takes normalized direction actor->target times4, and makes five line centers from actor+direction to that start+direction*7.5. Each center gets a delay8*i action placing a filled radius4 block disk; each rift then waits20. Outer stages cancel only when actor dead, not target changed or null later. Callback sends ServerPlayer client Y=.8 preserving X/Z, then setRemainingFireTicks(5), then shield_piercing ATTACK_DAMAGE. Both secondaries precede hurt and ignore its result. This is FIVE TICKS, not five seconds: baseTick tests positive fire counter divisible by20 before decrement. A fresh isolated value5 alone produces no native on_fire tick before expiry; it can shorten an existing longer fire counter. Do not invent a fire damage event or scale this raw timer write."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native admission/state/movement/status/count/timing; no additional scalable HP payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j4-obsidilith.json#bomd:wave_fire_counter"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "VANILLA_DIRECT",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:spike_slow",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "VANILLA_DIRECT",
+      "closest_vanilla": "VANILLA_DIRECT; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "SpikeAction requires current ServerPlayer, otherwise returns80 without attack. Normal path returns100 and queues three preparations at30,60,90. Each uses native recorded player positions to predict position, places filled radius2 disk and RiftBurst delay20, canceling outer work only if actor dead. Predictor = currentPos - .5*sum(horizontal(previousPos-currentPos)); Neo server player Post tick clears history when lastPosition.distanceSquared(current)>5, then adds current; attachment history capacity10. Callback requests shield_piercing ATTACK_DAMAGE, ignores hurt boolean, then independently addEffect(Slowness120,amplifier2), without effect-source entity. Status eligibility is native/NeoForge and separate from damage acceptance."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native admission/state/movement/status/count/timing; no additional scalable HP payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j4-obsidilith.json#bomd:spike_slow"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "VANILLA_DIRECT",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:obsidilith_anvil_movement",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "CUSTOM_CONTROL; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "AnvilAction server path captures current target object and after20, if actor alive, reads target.position, remembers original boss pos and moveTo target+Y24. After another delay1, if alive, enqueue Event whose condition is onGround OR Y<0, removal is dead OR condition. If condition true it explodes at boss current position with actor source, configured strength4, MOB, then queues return to saved originalPos after20 canceled if boss dead. No falling-block/anvil DamageSource is produced. Because Event executes before removal and its condition ignores alive, an already-enqueued landing event can detonate if both landing condition and death are true in the same update. No extra immediate HP attack is hidden in relocation."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native admission/state/movement/status/count/timing; no additional scalable HP payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j4-obsidilith.json#bomd:obsidilith_anvil_movement"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "CUSTOM_CONTROL",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:world_rift_schedule",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "CUSTOM_CONTROL; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "These attacks use CapabilityUtils -> installed NeoForgeCapabilityHelper -> LevelEventScheduler.get(level), not the boss preTick queue. Installed @SubscribeEvent LevelTickEvent.Post updates that scheduler. Server storage is per-level SavedData with lazily allocated EventScheduler, but save returns the supplied tag unchanged and queued events are not serialized. Boss death does not itself destroy the world queue; each callback supplier controls cancellation. General Event.shouldDoEvent reads condition only; shouldRemoveEvent reads cancellation. Shared scheduler executes eligible callback before checking removal, so condition and cancellation true in the same update can still run the callback. No runtime dispatch is claimed from annotations alone.",
+        "RiftBurst default placement begins14 blocks above requested point, finds sturdy upward FULL support down to min build height, chooses ground.above, requires upY+28>=aboveY and replaceability using DirectionalPlaceContext. On placement schedule indicator wait riftTime, cancel while original block no longer replaceable OR actor dead. Once that event executes, it queues inner TimedEvent(delay0,duration7,cancel=false). For seven updates it queries LivingEntity in one-block AABB at pos+(0,2*k,0), k0..6, excludes only exact actor and calls onImpact for each. No LOS/team/owner/canAttack/target-only filter or per-target deduplication is added. Adjacent tiles, height intersections and later waves can attempt repeated hits; native hurt cooldown/admission determines HP progress. Once inner queue begins, actor death or loss of target/open block does not cancel it."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native admission/state/movement/status/count/timing; no additional scalable HP payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j4-obsidilith.json#bomd:world_rift_schedule"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "CUSTOM_CONTROL",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:gauntlet_admission",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "BINARY_MECHANIC",
+      "closest_vanilla": "BINARY_MECHANIC; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "GauntletHitboxes.shouldDamage captures nextDamagedPart then clears it for EVERY attempt. If MiscUtils.isModLoaded(bettercombat) OR epicfight at helper initialization, returntrue from this handler. Otherwise eye part OR BYPASSES_INVULNERABILITY passes. For null/non-eye part and no bypass, IS_EXPLOSION also passes when nonnull source.getSourcePosition yields vector(sourcePos->GauntletEye) with dot(lookAngle)<=0; perpendicular boundary is included. DamageSource.getSourcePosition uses explicit source position, otherwise direct entity current position, otherwise null; it is not necessarily the explosion center. This is a front-side source-position test, not a shield_piercing exemption or a per-victim amount cap. Remaining cases reject; nonprojectile causing Living attacker receives native knockback.5, fire-tagged sources only suppress clink sound. Earlier shared before/after hooks remain and remaining native super.hurt admission applies. The compatibility toggle does not disable every native defense.",
+        "Open-hand native EntityBounds includes eye and fingers/thumb/pinky/root shapes. Closed fist has rootFist/rootFistYaw and NO eye. Geometry follows entity yaw/pitch/position; setOpenHandHitbox/setClosedFistHitbox sends native ChangeHitboxS2C. Thus genuine closed-fist geometry cannot supply an eye part, but invulnerability bypass/front explosion/compatibility-toggle rules still apply. GauntletClientEnergyShieldHandler only renders isEnergized particles/alpha; it is not a separate damage shield or charge resource. Preserve actual part selection rather than setting eye by a harness shortcut.",
+        "Required CerbonsAPI ProjectileMixin injects at Projectile.onHit HEAD. On EntityHitResult whose victim is MultipartAwareEntity, it raycasts victim.getBounds from projectile.position to position+deltaMovement and passes the returned part string to setNextDamagedPart. EntityBounds.raycast chooses the nearest intersecting named part. It does not fabricate a DamageSource or multiply amount. Genuine vanilla projectile impact/deflection/cancellation and projectile-specific superclass calls must reach this hook; a raw target.hurt call does not supply a part. Missing ray hit writesnull; consumed field does not grant persistent eye admission.",
+        "Client MultiPlayerGameMode attack HEAD raycasts camera eye/view to ENTITY_INTERACTION_RANGE. If nonnull part, sends native MultipartEntityInteractionC2SPacket; nonspectator locally sets part, attacks and resets attack ticker, cancels original client method. Server packet requires nonclient side and sender, resolves entity id, writes native part through MultipartAwareEntity and calls ServerPlayer.attack(entity). It does not directly subtract HP or create substitute damage. The pinned packet body does not perform its own server raycast/reach check; research fixtures must use genuine native ray/packet delivery, not inject a part. Ordinary non-multipart/generic attack callbacks are separate missing-part fixtures. Runtime mixin application/packet registration still needs observation."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native admission/phase/count/control/scheduling, no independent scalable HP payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j5-gauntlet.json#bomd:gauntlet_admission"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "BINARY_MECHANIC",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:gauntlet_aggro",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "CUSTOM_CONTROL; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "GauntletGoalHandler starts isAggroed=false; its afterDamage activates goals only on hurt resulttrue, once, and writes/loads isAggroed NBT. Rejected body attempts do not wake it. Base moveHandler denies ordinary move until aggro. Player target acquisition then uses existing FindTargetGoal visibility/range controls. Native getArmorValue is24 while no target, otherwise superclass installed armor8 before modifiers; HP250,attack16. Registry fireImmune, fall callbacks disabled, isInWall=false. Poison/Wither holder mismatch remains R2j2. Unlike other bosses, targetless server tick directly calls heal(config idleHealingPerTick=.5), with no milestone cap; native heal admission/max HP still applies.",
+        "After aggro, ActionGoal runs alive+target, initial cooldown80. Cancel supplier for attacks is deadOrDying OR current targetnull. Regular punch weight1; laser weight.7 only HP ratio<.85 and not previous move8; swirl weight.7 only ratio<.7 and not previous10; blindness weight1 only ratio<.5 and absent from last-four move history. These are native current-ratio selection gates, not TNO Stage or forced one-shot rage transitions. Exact equality at thresholds excludes the corresponding move."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native admission/phase/count/control/scheduling, no independent scalable HP payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j5-gauntlet.json#bomd:gauntlet_aggro"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "CUSTOM_CONTROL",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:gauntlet_heal",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "VANILLA_DIRECT",
+      "closest_vanilla": "VANILLA_DIRECT; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "GauntletGoalHandler starts isAggroed=false; its afterDamage activates goals only on hurt resulttrue, once, and writes/loads isAggroed NBT. Rejected body attempts do not wake it. Base moveHandler denies ordinary move until aggro. Player target acquisition then uses existing FindTargetGoal visibility/range controls. Native getArmorValue is24 while no target, otherwise superclass installed armor8 before modifiers; HP250,attack16. Registry fireImmune, fall callbacks disabled, isInWall=false. Poison/Wither holder mismatch remains R2j2. Unlike other bosses, targetless server tick directly calls heal(config idleHealingPerTick=.5), with no milestone cap; native heal admission/max HP still applies."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_FINAL_AMOUNT",
+          "formula": "Once at GauntletEntity native heal argument; preserve target-null and native healing admission/max HP.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j5-gauntlet.json#bomd:gauntlet_heal"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "VANILLA_DIRECT",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NUMERIC_SCALABLE"
+          ],
+          "stage_scaling_needed": true,
+          "single_scaling_point": "Once at GauntletEntity native heal argument; preserve target-null and native healing admission/max HP."
+        },
+        {
+          "primitive": "UNSCALED_NATIVE_COMPANIONS",
+          "formula": "Native radius/phase/count/cadence/modifier/status/control/source remain unchanged; no second Stage multiplier.",
+          "numerical_parameters": {},
+          "binary_parameters": [],
+          "vanilla_relation": "Source-specific native companion contract",
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:gauntlet_motion",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "CUSTOM_CONTROL; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "Punch captures target-based overshoot point, attempts native block clear, pushes bossY+.7. Close fist delay7, accelerate from16 for15 updates (.6 first then.32, stop near target squared distance<9 or cancel), active impact from16 for40 updates, stop animation56, reopen64 without cancellation. Each active callback tests block collision then entity overlap then records current speed as previousSpeed; previousSpeed field persists between moves. Collision horizontal/vertical AND previousSpeed>.55 requests actor-source native explosion strength(previousSpeed*normalPunchExplosionMultiplier), installed multiplier1.5. No once-per-punch explosion flag. Entity impact queries Living entities in current native bounding box excluding boss only, calls Mob.doHurtTarget then unconditionally target.addDeltaMovement(bossVelocity*.5), even on hurtfalse. No target-only/team/LOS predicate or per-target hit cache.",
+        "Swirl sets isEnergized=true and bossY+.7, closes fist7, accelerates30 for15 updates (.6 then.4), active impact30 for30, reopens60 and clears energized without cancellation. Entity contact uses same native melee and independent extra velocity. First qualifying block collision while energized requests actor-source explosion configured4.5 with fire=true, then clears energized; later collisions use speed*1.5 firefalse. Native isEnergized changes explosion mode, not a separate absorption shield. Counts, velocity, hitbox timing and explosion strength remain native."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native admission/phase/count/control/scheduling, no independent scalable HP payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j5-gauntlet.json#bomd:gauntlet_motion"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "CUSTOM_CONTROL",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:gauntlet_laser_delivery",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "CUSTOM_CONTROL; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "Laser captures a Living target, builds HistoricalData(Vec3.ZERO,8), then EventSeries: delay25 start target-id sync;60 updates of position recording/application; final uncancelled stop clears history/id and emits stop event. EventSeries advances through removed/canceled members and preserves final cleanup, not parallel scheduling. After seven captured positions, list size first reaches8 and oldest is still initial Vec3.ZERO, so first application aims along that direction; thereafter oldest is a lagged target center. At most54 applications in an uncanceled60-update recording stage; no claim of54 hits. Extend eye->selected position to length30, block clip COLLIDER/Fluid.NONE truncates beam to hit location; every even boss tick attempts tiny-AABB native block clearing. FindEntitiesInLine uses segment AABB and each candidate bounding-box clip, excludes boss, then selects Living; no extra team/current-target-only filter. Native helper damage/cooldown repeats determine actual HP loss.",
+        "Despite destroyBlocks name, installed helper destroys ONLY nonair block equal to Blocks.FIRE, with mobGriefing true and not WITHER_IMMUNE. It does not clear stone or general cover, or soul fire. Laser therefore does not tunnel through ordinary solid cover via this helper. This binary native gate is relevant to delivery; no worldgen/utility archaeology or bypass is proposed.",
+        "After aggro, ActionGoal runs alive+target, initial cooldown80. Cancel supplier for attacks is deadOrDying OR current targetnull. Regular punch weight1; laser weight.7 only HP ratio<.85 and not previous move8; swirl weight.7 only ratio<.7 and not previous10; blindness weight1 only ratio<.5 and absent from last-four move history. These are native current-ratio selection gates, not TNO Stage or forced one-shot rage transitions. Exact equality at thresholds excludes the corresponding move."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native admission/phase/count/control/scheduling, no independent scalable HP payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j5-gauntlet.json#bomd:gauntlet_laser_delivery"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "CUSTOM_CONTROL",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:gauntlet_blindness",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "VANILLA_DIRECT",
+      "closest_vanilla": "VANILLA_DIRECT; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "BlindnessAction closes fist10, reopens43 without cancellation. At delay30 with normal cancel supplier, collects native nearby Players using TargetingConditions.forCombat.range64 and AABB inflated64/32/64. Native conditions retain canBeSeen, attacker canAttack/type/alliance, visibility-adjusted range, and mob LOS. If list nonempty send cosmetic indicator packet, then after50 more with normal cancel supplier addEffect(Blindness140,amp0) to CAPTURED players; it does not requery LOS/distance/team at application. Native addEffect admission remains, no hurt or HP prerequisite. Packet itself only calls client particle handler; it does not apply an independent status."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native admission/phase/count/control/scheduling, no independent scalable HP payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j5-gauntlet.json#bomd:gauntlet_blindness"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "VANILLA_DIRECT",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:native_fire_hp",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "VANILLA_DIRECT",
+      "closest_vanilla": "VANILLA_DIRECT; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "Punch and energized collision explosions have direct=causing Gauntlet and native minecraft:player_explosion; preserve earlier engine admission/exposure/independent native vector. Energized fire=true can place native fire at eligible affected air blocks above solid-render support with native one-in-three choice. BaseFireBlock.getState selects ordinary or soul fire from below-block state. Native in_fire contact amount comes from that block instance (ordinary1,soul2), plus ignition and later on_fire ticks1 through native Entity.baseTick; source identities remain anonymous fire, not Gauntlet damage sources. Fire immunity/Resistance, native timers and normal damage hooks still govern actual HP. Do not assume every fiery explosion places a block or burns a victim, and do not scale strength/radius/timers.",
+        "Scalable numeric families here are native melee (including laser), native explosion HP, native environmental fire HP, and uncapped native targetless heal. Apply once at their terminal native amount boundaries; preserve eligibility/state/counts/source identity. For anonymous Gauntlet death explosion, resulting fire and already-reviewed unowned summoned Phantoms, generic source type alone cannot identify BOMD origin. Any future scaling must establish narrow native origin context without changing owner/source; provenance remains an explicit future integration review item, not unresolved static behavior. All eye/part, aggro, phase selection, client rendering, timers, blindness and raw velocity remain unscaled. No Stage code, production fix, runtime boss/L2 test or Phase6/7 work."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_FINAL_AMOUNT",
+          "formula": "Once on the native fire contact/timer terminal hurt amount with separately proven origin context; preserve anonymous source, fire eligibility and timers.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j5-gauntlet.json#bomd:native_fire_hp"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "VANILLA_DIRECT",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NUMERIC_SCALABLE"
+          ],
+          "stage_scaling_needed": true,
+          "single_scaling_point": "Once on the native fire contact/timer terminal hurt amount with separately proven origin context; preserve anonymous source, fire eligibility and timers."
+        },
+        {
+          "primitive": "UNSCALED_NATIVE_COMPANIONS",
+          "formula": "Native radius/phase/count/cadence/modifier/status/control/source remain unchanged; no second Stage multiplier.",
+          "numerical_parameters": {},
+          "binary_parameters": [],
+          "vanilla_relation": "Source-specific native companion contract",
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:blossom_parts",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "CUSTOM_CONTROL; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "All seven VoidBlossomCompoundHitbox.shouldDamage handlers returntrue: body/flower are not an eye-only immunity gate. Native super.hurt, armor, Resistance and external events still apply. NetworkedHitboxManager writes the native incoming part marker ONLY into the currently selected hitbox; CompositeDamageHandler runs every hitbox afterDamage, each captures then clears its own marker before any retaliation. Idle/Spike spiked parts are neck and rootYaw; Petal, Spore and all SpikeWave forms use rootYaw only. Flower/flowerBottom are not spiked. Genuine CerbonsAPI projectile/client multipart ray delivery is already pinned R2j5; do not fake markers. Incoming IS_PROJECTILE suppresses part retaliation even if its part is spiked. Missing marker cannot independently trigger this retaliation.",
+        "Installed maxHP350 and active armor4; getArmorValue returns20 when targetnull. Registry fireImmune, isInWall=false, move suppresses X/Z. No custom EffectsImmunity assigned, so normal canBeAffected remains. Alive+nonnull target runs attacks after initial80 cooldown; cancel supplier is deadOrDying OR current targetnull. Target switching reuses shared damage memory10. Spike always eligible; wave at target distance<=21; spore also requires strict HP ratio<.75; blade strict ratio<.5. Milestone-change BooleanFlag forces BlossomAction at next move and resets; multiple changes can coalesce, not a shield resource or immediate damage event."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native admission/control/delivery/state only, no independent scalable numeric payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j6-void-blossom.json#bomd:blossom_parts"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "CUSTOM_CONTROL",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:blossom_thorns",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "VANILLA_LIKE_EXTENDED; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "After incoming hurt returns true, a spiked part plus source not IS_PROJECTILE plus nonnull source.getEntity triggers causingEntity.hurt(thorns(VoidBlossom), current boss ATTACK_DAMAGE). Target need not be Living. Resultfalse suppresses retaliation; source direct entity is not the recipient unless it is also causing. Requested native amount is installed attack12 before modifiers, direct=causing boss, minecraft:thorns. Retaliatory hurt result is discarded. Native amount is not multiplied by incoming amount and no HP threshold/owner/team shortcut is added.",
+        "VoidBlossomSpikeTick independently runs in BaseEntity.serverTick: query Living in position-centered box inflated3xyz and movedY1.5, exclude exact boss, then strict target.position distanceSquared<9. It requests same thorns amount12/current attack every tick; no target/LOS/team/part or hurt-success gate, and no hit cache. Native victim cooldown/mitigation decides HP. This is not the same trigger as afterDamage retaliation. BaseEntity invokes serverTick before super.tick even while dying; this proximity callback has no alive guard, so it remains wired through native death animation until removal. Do not invent a safety cutoff.",
+        "Native death composite first increments deathTime in LightBlockRemover, removes at70, and schedules experience when deathTime1; there is no death explosion or new HP damage callback. Existing proximity tick and already-queued uncanceled world callbacks remain distinct. Light/particles/sounds/experience and rendering rotations are short exclusions; vines retained solely as combat obstruction and healing-block removal path."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_FINAL_AMOUNT",
+          "formula": "Once at native thorns victim.hurt amount after boss attack-attribute selection; preserve distinct delivery gates.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j6-void-blossom.json#bomd:blossom_thorns"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NUMERIC_SCALABLE"
+          ],
+          "stage_scaling_needed": true,
+          "single_scaling_point": "Once at native thorns victim.hurt amount after boss attack-attribute selection; preserve distinct delivery gates."
+        },
+        {
+          "primitive": "UNSCALED_NATIVE_COMPANIONS",
+          "formula": "Native radius/phase/count/cadence/modifier/status/control/source remain unchanged; no second Stage multiplier.",
+          "numerical_parameters": {},
+          "binary_parameters": [],
+          "vanilla_relation": "Source-specific native companion contract",
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:blossom_poison",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "VANILLA_DIRECT",
+      "closest_vanilla": "VANILLA_DIRECT; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "Only native onHitBlock calls onImpact. First call records pitch, sets impacted=true and getDeltaMovement becomesZERO; if current owner Living capture it for doExplosion, otherwise server discards. Despite method name this is NOT Level.explode. Creates radius7 filled disk of RiftBurst columns, ground finder startingY+2, accepts upY+8>=startY and replaceable-or-moss. World scheduler outerdelay30 cancels if blocked or CAPTURED owner not alive. Inner seven callbacks at offsetsY0/2/4/6/8/10/12 are uncanceled and exclude only captured owner, not every VoidBlossom type. Same-delay independent discard event is also queued; it does not cancel queued columns. Callback amount comes from CAPTURED owner current attack, but only when projectile.getOwner()!=null it selects CURRENT owner as both direct/causing shield_piercing source and effect-source argument. Preserve this split if another native mechanism changes owner; null current owner suppresses both area HP and Poison. Do not substitute the projectile as direct source or call native explosion hooks.",
+        "Area callback calls hurt(shield_piercing) then addEffect(Poison140,amp0,currentOwner) regardless hurtboolean. Native addEffect/effect immunity/NeoForge applicability still applies. Installed patched PoisonMobEffect requires HP>1 and requests1 at interval25>>amplifier (amp0 every25), using anonymous neoforge:poison with fallback minecraft:magic only if poison holder absent. Application source does not become tick DamageSource owner. neoforge:poison bypasses armor/shield, has no_knockback, is_magic/is_poison; does not bypass Resistance/invulnerability by these pinned tags. Stage duration/amplifier remain unchanged. Any future numeric tick scaling must preserve native nonlethality and prove origin attribution; an unconstrained multiplied1 could violate HP>1 guard intent. This remains an explicit future integration constraint, not a static source ambiguity."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native admission/control/delivery/state only, no independent scalable numeric payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j6-void-blossom.json#bomd:blossom_poison"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "VANILLA_DIRECT",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:poison_tick",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "VANILLA_DIRECT",
+      "closest_vanilla": "VANILLA_DIRECT; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "Area callback calls hurt(shield_piercing) then addEffect(Poison140,amp0,currentOwner) regardless hurtboolean. Native addEffect/effect immunity/NeoForge applicability still applies. Installed patched PoisonMobEffect requires HP>1 and requests1 at interval25>>amplifier (amp0 every25), using anonymous neoforge:poison with fallback minecraft:magic only if poison holder absent. Application source does not become tick DamageSource owner. neoforge:poison bypasses armor/shield, has no_knockback, is_magic/is_poison; does not bypass Resistance/invulnerability by these pinned tags. Stage duration/amplifier remain unchanged. Any future numeric tick scaling must preserve native nonlethality and prove origin attribution; an unconstrained multiplied1 could violate HP>1 guard intent. This remains an explicit future integration constraint, not a static source ambiguity.",
+        "Pinned source tags distinguish thorns (magic-tagged, armor/shield not bypassed here), thrown (projectile/physical), untagged shield_piercing with exact-key blocking mixin, and anonymous neoforge:poison. None certifies packwide Tensura/L2 outcomes. Single future amount boundaries: native thorns hurt requests, native Spikes/area shield_piercing requests, native thrown requests after owner attribute selection, origin-bound Poison terminal tick with native nonlethality retained, and capped-heal strength before clamp. Never scale attack attribute and terminal amount together; leave source identity, counts, geometry, phase threshold, effect duration/amplifier and eligibility unchanged."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_FINAL_AMOUNT",
+          "formula": "Once at origin-proven native Poison hurt amount, preserving native nonlethality; do not scale duration/amplifier or application plus tick.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j6-void-blossom.json#bomd:poison_tick"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "VANILLA_DIRECT",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NUMERIC_SCALABLE"
+          ],
+          "stage_scaling_needed": true,
+          "single_scaling_point": "Once at origin-proven native Poison hurt amount, preserving native nonlethality; do not scale duration/amplifier or application plus tick."
+        },
+        {
+          "primitive": "UNSCALED_NATIVE_COMPANIONS",
+          "formula": "Native radius/phase/count/cadence/modifier/status/control/source remain unchanged; no second Stage multiplier.",
+          "numerical_parameters": {},
+          "binary_parameters": [],
+          "vanilla_relation": "Source-specific native companion contract",
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:blossom_blocks",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "CUSTOM_CONTROL; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "Forced BlossomAction on ServerLevel returns120; schedules eight shuffled cardinal/diagonal radius15 positions relative to captured boss position, one after40+8i with native cancel supplier. It directly places moss base and healing blossom above, without a shown replacement/LOS/mobGriefing check. Strict HP<.25 protects6 positions with vine walls; else strict<.5 protects3; otherwise0. Each protected ring uses neighboringx/z in[-1,1] exceptcenter and y0..2. Vines are IronBarsBlock collision, no damage; native scheduled tick destroys them. Breaking blossom schedules neighboring vine removal delays(2-y)*20+random0..19. These are delivery/obstruction mechanics, not HP payloads, and must not receive Stage scaling.",
+        "VoidBlossomBlock.onPlace schedules blocktick1; each tick schedules next64 and queries ALL VoidBlossom in AABB(block).inflate(40,20,40), without owner link. For each captured boss, world scheduler delay16 invokes LichUtils.cappedHeal with strength10, alive guard and next-strict-quarter maxHP gap minus1. No targetnull condition and no callback-time block/range recheck. Removing the block after queueing does not cancel that heal. This extends shared bomd:capped_heal: one future point is strength10 BEFORE clamp, never multiply final capped amount. Separate targetless idle strength.5 uses the same capped helper. Native heal hooks/maxHP still apply. HealS2C is visual only."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native admission/control/delivery/state only, no independent scalable numeric payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j6-void-blossom.json#bomd:blossom_blocks"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "CUSTOM_CONTROL",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:pearl_zero",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "VANILLA_DIRECT",
+      "closest_vanilla": "VANILLA_DIRECT; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "ChargedEnderPearlItem native use adds cooldown180, creates owner-player ChargedEnderPearlEntity serverside, sets native item and shoots speed1.5/divergence1. It does not shrink the stack. onHit calls superclass first; onHitEntity calls superclass then victim.hurt(thrown(this,getOwner),0). This is a genuine native ZERO request, direct pearl/causing current owner (possibly null), not a missing HP event to fix. Boolean is discarded; server onHit then checks !isRemoved and runs collision. No vanilla ThrownEnderpearl inheritance, no native five-point self-hurt or endermite branch. Stage must keep the zero request zero and must not invent HP damage."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native zero-hit/control/mitigation/admission/delivery only; no additional numeric Stage payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j7-equipment.json#bomd:pearl_zero"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "VANILLA_DIRECT",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:pearl_teleport",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "CUSTOM_CONTROL; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "serverCollision teleports owner, independently applies owner buffs and nearby knockback, then visual packet/sound/discard. Player teleport requires accepting connection, same level and not sleeping; passenger dismounts to impact, otherwise teleportTo; resetFallDistance. Nonplayer nonnull owner uses teleportTo/reset without those player gates. Buff/area callbacks still execute when player teleport prerequisites fail or owner null (owner buffs alone then absent). Each projectile tick discards for dead Player owner, not every nonplayer; changeDimension clears owner when owners dimension differs from destination. Native projectile deflection/owner behavior and normal event gates remain; no new source attribution."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native zero-hit/control/mitigation/admission/delivery only; no additional numeric Stage payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j7-equipment.json#bomd:pearl_teleport"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "CUSTOM_CONTROL",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:equipment_buffs",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "VANILLA_DIRECT",
+      "closest_vanilla": "VANILLA_DIRECT; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "Living current owner gets Resistance120amp1 and SlowFalling20amp0 via independent addEffect calls without source entity. Then query all Living in impact AABB inflate6, no owner/team/LOS exclusion. XZ accepts center distanceSquared<9 OR horizontal radius3 point contained in victim box inflatedY10. Y predicate is literally maxY>impactY-1 OR minY<impactY+3, not AND; for ordinary ordered boxes this does not provide the intended interval rejection. The outer6 AABB still bounds query. Native knockback.4 uses impact-minus-victim X/Z (push away), including potentially just-teleported owner; preserves vanilla knockback Resistance and NeoForge hook. Independent of zero hurt result and effect admission. Native Resistance amp1 contributes40% reduction when neither BYPASSES_EFFECTS nor BYPASSES_RESISTANCE, amp0 contributes20%; SlowFalling descending gravity is min(nativeGravity,.01). No Stage multiplier to control or mitigation percentage.",
+        "Registered CrystalFruit properties supply always-edible food: each native server addEatEffect probability1 requests Regeneration300amp1, Heal1amp0, Resistance600amp0. Native Player.eat delegates LivingEntity.eat -> addEatEffect -> addEffect; no custom finishUsingItem or direct HP subtraction. Normal consumption/effect applicability and existing-effect merging remain. The Heal effect is added as a one-tick status; it follows HealOrHarmMobEffect.applyEffectTick, not the potion applyInstantenousEffect source form. Ordinary nutrition/saturation and acquisition excluded."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native zero-hit/control/mitigation/admission/delivery only; no additional numeric Stage payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j7-equipment.json#bomd:equipment_buffs"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "VANILLA_DIRECT",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:pearl_shove",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "VANILLA_LIKE_EXTENDED; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "Living current owner gets Resistance120amp1 and SlowFalling20amp0 via independent addEffect calls without source entity. Then query all Living in impact AABB inflate6, no owner/team/LOS exclusion. XZ accepts center distanceSquared<9 OR horizontal radius3 point contained in victim box inflatedY10. Y predicate is literally maxY>impactY-1 OR minY<impactY+3, not AND; for ordinary ordered boxes this does not provide the intended interval rejection. The outer6 AABB still bounds query. Native knockback.4 uses impact-minus-victim X/Z (push away), including potentially just-teleported owner; preserves vanilla knockback Resistance and NeoForge hook. Independent of zero hurt result and effect admission. Native Resistance amp1 contributes40% reduction when neither BYPASSES_EFFECTS nor BYPASSES_RESISTANCE, amp0 contributes20%; SlowFalling descending gravity is min(nativeGravity,.01). No Stage multiplier to control or mitigation percentage."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native zero-hit/control/mitigation/admission/delivery only; no additional numeric Stage payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j7-equipment.json#bomd:pearl_shove"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:food_regen",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "VANILLA_DIRECT",
+      "closest_vanilla": "VANILLA_DIRECT; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "Registered CrystalFruit properties supply always-edible food: each native server addEatEffect probability1 requests Regeneration300amp1, Heal1amp0, Resistance600amp0. Native Player.eat delegates LivingEntity.eat -> addEatEffect -> addEffect; no custom finishUsingItem or direct HP subtraction. Normal consumption/effect applicability and existing-effect merging remain. The Heal effect is added as a one-tick status; it follows HealOrHarmMobEffect.applyEffectTick, not the potion applyInstantenousEffect source form. Ordinary nutrition/saturation and acquisition excluded.",
+        "Regeneration tick: if HP<maxHP, heal1; interval50>>amp =>25 atamp1. Heal tick: isHarm(false)==isInvertedHealAndHarm -> heal(max(4<<amp,0)) =4; otherwise native anonymous minecraft:magic hurt6. isInvertedHealAndHarm delegates entity type INVERTED_HEALING_AND_HARM, so preserve that admission and do not assume every externally transformed player is inverted. Native heal event, HP>0 guard and maxHP remain. Resistance is native mitigation, not a scalable HP payload. Future single points are originating native Regen heal1 and Heal tick heal4/hurt6; never multiply effect amp/duration or globally scale all heals/magic. Food-specific origin tracking is a future integration requirement."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_FINAL_AMOUNT",
+          "formula": "Once at originating native Regeneration heal argument; preserve effect cadence/amp and normal heal admission.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j7-equipment.json#bomd:food_regen"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "VANILLA_DIRECT",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NUMERIC_SCALABLE"
+          ],
+          "stage_scaling_needed": true,
+          "single_scaling_point": "Once at originating native Regeneration heal argument; preserve effect cadence/amp and normal heal admission."
+        },
+        {
+          "primitive": "UNSCALED_NATIVE_COMPANIONS",
+          "formula": "Native radius/phase/count/cadence/modifier/status/control/source remain unchanged; no second Stage multiplier.",
+          "numerical_parameters": {},
+          "binary_parameters": [],
+          "vanilla_relation": "Source-specific native companion contract",
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:food_heal",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "VANILLA_COMPOSITE; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "Registered CrystalFruit properties supply always-edible food: each native server addEatEffect probability1 requests Regeneration300amp1, Heal1amp0, Resistance600amp0. Native Player.eat delegates LivingEntity.eat -> addEatEffect -> addEffect; no custom finishUsingItem or direct HP subtraction. Normal consumption/effect applicability and existing-effect merging remain. The Heal effect is added as a one-tick status; it follows HealOrHarmMobEffect.applyEffectTick, not the potion applyInstantenousEffect source form. Ordinary nutrition/saturation and acquisition excluded.",
+        "Regeneration tick: if HP<maxHP, heal1; interval50>>amp =>25 atamp1. Heal tick: isHarm(false)==isInvertedHealAndHarm -> heal(max(4<<amp,0)) =4; otherwise native anonymous minecraft:magic hurt6. isInvertedHealAndHarm delegates entity type INVERTED_HEALING_AND_HARM, so preserve that admission and do not assume every externally transformed player is inverted. Native heal event, HP>0 guard and maxHP remain. Resistance is native mitigation, not a scalable HP payload. Future single points are originating native Regen heal1 and Heal tick heal4/hurt6; never multiply effect amp/duration or globally scale all heals/magic. Food-specific origin tracking is a future integration requirement."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_FINAL_AMOUNT",
+          "formula": "Once at native Heal effect selected heal or hurt argument after inversion predicate; never also scale effect amplifier/duration.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j7-equipment.json#bomd:food_heal"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "VANILLA_COMPOSITE",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NUMERIC_SCALABLE"
+          ],
+          "stage_scaling_needed": true,
+          "single_scaling_point": "Once at native Heal effect selected heal or hurt argument after inversion predicate; never also scale effect amplifier/duration."
+        },
+        {
+          "primitive": "UNSCALED_NATIVE_COMPANIONS",
+          "formula": "Native radius/phase/count/cadence/modifier/status/control/source remain unchanged; no second Stage multiplier.",
+          "numerical_parameters": {},
+          "binary_parameters": [],
+          "vanilla_relation": "Source-specific native companion contract",
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:spear_teleport",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "CUSTOM_CONTROL; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "EarthdiveSpear use fails when damage>=maxDamage-1, then native use charge72000 with elapsed>=10 required. Server Player release tries WallTeleport from eye OR eye-minus1 (short circuit), on success durability1 and stat/sound. onUseTick uses preview-only Consumer that spawns particles: it does not teleport early or damage. WallTeleport finds first redstone-conductor block within3 along look, then first air+air-above along20 from it; unbreakable defaultDestroyTime<0 stops search. Actual teleportTo targetsblockcenterXZ without another shown safe-ground/LOS/hurt gate. Ordinary mainhand +8attack/-2.9speed and hurtEnemy durability use native melee, with no extra damage callback. This combat-positioning control has no Stage value."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native zero-hit/control/mitigation/admission/delivery only; no additional numeric Stage payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j7-equipment.json#bomd:spear_teleport"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "CUSTOM_CONTROL",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:monolith_radius",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "CUSTOM_CONTROL; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "ExplosionMixin modifies float at ServerLevel.explode HEAD through MonolithBlock.getExplosionPower. Query cached monolith positions across origin chunk plus/minus4X/Z; first block whose absolute block-coordinate deltas are EACH strictly<64 returns power*1.3. Nonstacking even with multiple halves/monoliths; exact64 excluded, no radial-distance/owner/source/team/LOS filter. This is native radius/strength modification for ANY explosion through that overload, changing native geometry and resultant per-victim amount; it does not invoke hurt itself. Keep this existing1.3 radius behavior native; candidate Stage still applies ONCE at final native Explosion per-victim amount, never add a second Stage on radius. Actual mixin application remains a runtime fixture, not static-certified."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native zero-hit/control/mitigation/admission/delivery only; no additional numeric Stage payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j7-equipment.json#bomd:monolith_radius"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "CUSTOM_CONTROL",
+          "tno_categories": [
+            "COMPOSITE",
+            "ADMISSION_GATED",
+            "NO_STAGE_VALUE"
+          ],
+          "stage_scaling_needed": false,
+          "single_scaling_point": null
+        }
+      ],
+      "status": "VERIFIED_PER_MOD"
+    },
+    {
+      "effect_id": "bomd:table_flight",
+      "mod_key": "bosses_of_mass_destruction",
+      "primary_classification": "BINARY_MECHANIC",
+      "closest_vanilla": "BINARY_MECHANIC; exact native callbacks retained.",
+      "similarities": [
+        "Native damage/effect/heal/source pipeline where delegated."
+      ],
+      "differences": [
+        "ChunkCacheBlockEntity firsttick inserts position, setRemoved removes; ChunkBlockCache stores unique sets and returns empty list when missing. ServerLevel saved-data wrapper stores no contents, lazily rebuilding cache from block ticks. Query does not revalidate blockstate itself. Table of Elevation is flight permission, NOT MobEffects.LEVITATION: server PlayerTick.Post scans nearby5x5chunks, requires player position inside block AABB inflated installed radius3 horizontally; Y uses level.getMinBuildHeight to level.getHeight literally. It inserts player in static flight set even if mayfly alreadytrue; grants mayfly when false. On leaving, if tracked and neither creative nor spectator, clears mayfly AND flying and sends abilities packet, then untracks. It does not preserve another mod flight grant. Existing tracked player whose permission is externally cleared is not regranted by this branch until membership cycles. No ownership/team/cost/HP scaling; future Tensura/L2 fixture must observe native permission conflict without changing it."
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_CONTROL_ADMISSION_RESOURCE",
+          "formula": "Native zero-hit/control/mitigation/admission/delivery only; no additional numeric Stage payload.",
+          "numerical_parameters": {
+            "source_variants": [
+              "bomd-r2j7-equipment.json#bomd:table_flight"
+            ]
+          },
+          "binary_parameters": [
+            "Preserve native owner/source, eligibility, mitigation, hurt-return dependency and callback ordering."
+          ],
+          "vanilla_relation": "BINARY_MECHANIC",
           "tno_categories": [
             "COMPOSITE",
             "ADMISSION_GATED",
@@ -36279,11 +37981,5 @@
       "status": "VERIFIED_PER_MOD"
     }
   ],
-  "last_completed_mod": "block_factorys_bosses",
-  "unfinished_review": {
-    "mod_key": "bosses_of_mass_destruction",
-    "status": "PARTIAL",
-    "promoted_records": 0,
-    "notes_file": "bomd-r2j7-equipment.json"
-  }
+  "last_completed_mod": "bosses_of_mass_destruction"
 }

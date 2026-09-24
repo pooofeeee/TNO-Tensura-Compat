@@ -1006,3 +1006,7 @@ Separate thorns, thrown, shield-piercing and anonymous Poison paths; native heal
 ## R2j7 — Bosses of Mass Destruction equipment and block hooks
 
 Zero-hit pearl, registered food HP effects, native wall traversal, Monolith radius and flight permission conflict mapped; utility excluded. [Evidence and resume point](benchmarks/external-effects-catalog/bomd-r2j7-equipment-review.md).
+
+## R2j8 — Bosses of Mass Destruction combat catalog COMPLETE
+
+44 deduplicated mechanics, 85 native paths; sole custom DamageType USED at five callers. Static semantics complete, future runtime/integration decisions explicit. [Owner table and next task](benchmarks/external-effects-catalog/bomd-final-owner-table.md).
