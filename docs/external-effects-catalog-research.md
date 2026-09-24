@@ -1030,3 +1030,7 @@ Separated fixed HP revival, Ghost immunity/expiry, empty Sickness cure set versu
 ## R2k2d — Cataclysm Abyssal DOT and teleport
 
 Proved two anonymous abyssal_burn DOT callers, native hurt-dependent teleport without posted ChorusFruit event, and raw remove-then-reapply stacks. Three packages/nine future paths; no fix. [Evidence and resume point](benchmarks/external-effects-catalog/cataclysm-r2k2d-abyssal-status-review.md).
+
+## R2k2e — Cataclysm status cores complete
+
+All twelve effect cores reviewed. Final five distinguish native healing, armor reduction, speed/control, lightning vulnerability and anonymous magic DOT; six packages/thirty future paths. [Evidence and resume point](benchmarks/external-effects-catalog/cataclysm-r2k2e-remaining-status-review.md).

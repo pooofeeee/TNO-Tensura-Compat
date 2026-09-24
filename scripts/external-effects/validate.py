@@ -363,6 +363,9 @@ def validate():
         if (OUT/'cataclysm-r2k2d-abyssal-status.json').exists():
             from validate_cataclysm_abyssal import validate_abyssal
             assert validate_abyssal()['status']=='PASS'
+        if (OUT/'cataclysm-r2k2e-remaining-status.json').exists():
+            from validate_cataclysm_remaining_status import validate_remaining_status
+            assert validate_remaining_status()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():

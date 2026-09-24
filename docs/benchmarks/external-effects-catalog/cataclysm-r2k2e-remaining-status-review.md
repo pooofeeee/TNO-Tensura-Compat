@@ -1,0 +1,80 @@
+# R2k2e — Cataclysm status cores complete
+
+Remaining five status cores, native application slices and Monstrous Helm pulse; full originating boss/projectile/equipment families pending.
+
+Static review only. Future runtime fixtures remain unexecuted; whole Cataclysm review is PARTIAL.
+
+## Scope
+
+Twenty-five installed class witnesses, three selected loader classes and previous pinned native source/attribute contracts cover the remaining five status cores and26effect-field-reference method slices. All twelve registered effect cores are now statically reviewed acrossR2k2b-e; complete originating attacks/launchers, concrete bosses and other equipment/global hooks remain pending. No complete-mod promotion is performed.
+
+## Monstrous
+
+Beneficial Monstrous adds knockback resistance0.5, armor3 and toughness2, all ADD_VALUE*(amp+1) with separate stable IDs. At50>>amp cadence (or every tick when shifted interval<=0), it requests heal1 only when currentHP<maxHP/2. This is a PRECHECK, not a half-HP cap: native1 can cross half; do not invent a clamp. Future Stage belongs once on positive heal1 at EffectMonstrous.applyEffectTick, preserving threshold/cadence/native heal admission, including Fear. Attribute bonuses, duration/amplifier and cooldown stay native.
+
+## Monstrous helm
+
+Monstrous_Helm.inventoryTick calls super then requires Player wearing exact MONSTROUS_HELM in HEAD, HP<=maxHP/2 and no cooldown on this item. It enumerates level.getEntities(player,box.inflate4), for each Living target requests native mobAttack(player) for attackAttribute/2, then directly pushes horizontally by1.5*delta/max(distanceSq,.001) and Y.15 regardless of hurt result. No radial sphere, LOS/alliance or server-side-only guard is added here. After loop, even with no targets/hurtfalse, adds350tick item cooldown and requests Monstrous200amp0. Native mob_attack direct=causing=Player must not be rewritten to player_attack. Future Stage once on that outgoing half-attack hurt amount; retain independent shove/cooldown/status and client/native server admission.
+
+## Brand core
+
+Blazing Brand is harmful: armor and toughness each receive -.2*(amp+1) ADD_MULTIPLIED_TOTAL under distinct IDs. Its tick returns true and does no damage/fire. Fire ignition or healing alongside some application sites belongs to those producers, not a Brand DOT. ServerEventHandler.onCriticalAttack sets criticalHit=true when exact main-hand THE_IMMOLATOR hits a Living target already carrying Brand; remaining crit multiplier/weapon details stay equipment/global review. Preserve native stats/crit predicate and scale the parent eligible HP once, not the status multiplier.
+
+## Brand event paths
+
+LivingDamageEvent.Post: a DIRECT Living damage entity with matching Blazing Grips Curios can apply Brand60amp0 to victim when random<.15*matchingSlotCount; no additional positive-newDamage gate. Ignitium leggings on victim use CAUSING Living attacker!=victim and chance.5 to request Brand100amp0 and ignite5seconds if not already burning, independently of effect return. Bulwark of the Flame native shield event requires exact active item,event.getBlocked(),parryFrame<13 and DIRECT Living attacker: ignite3seconds, knockback.5 and Brand100amp0. These use normal addEffect with null source, no raw stacking and no invented causing-projectile promotion. Full parry-frame lifecycle/crit/damage composition remains equipment review.
+
+## Brand independent items
+
+Gauntlet of Bulwark onUseTick at elapsed20 queries box.inflate4.5 excluding user; Living targets excluding invulnerable Players receive Brand40amp0 regardless of damage, with ground-only shove independent of effect return. Ignitium_Armor.onKeyPacket requires non-null Player,Type5 and ready helmet cooldown: every nearby Living in box.inflate16 gets raw replace Brand160amp=clamp(old+1,0,2), absent->0, ambient=true; no hurt/LOS/alliance test in this helper. Successful addEffect sets helmet cooldown300 inside the loop; no success means no cooldown from that target. Packet equipment admission belongs to later equipment-family review; no synthetic invocation is authorized.
+
+## Brand native attacks
+
+Ignited Sword super.doHurtTarget true applies Brand100amp0 with effect source sword entity. Ignis AreaAttack hurttrue (mob_attack) and positive brandticks raw-stacks+1 cap4, duration caller brandticks, then heals native healParameter*HealingMultiplier*(selectedAmp+1) regardless of addEffect result; Phase_Transition uses indirectMagic(this,this), even animation tick and positive brandticks, same stack cap4, no corresponding heal in that helper. positionRider during existing passenger handling chooses animation tick for POKED_ATTACK (default5 otherwise); when (tick-10)%4==0 and Living passenger/server, mob_attack(4+2%maxHP) hurttrue stacks Brand240cap4 and heals2*HealingMultiplier*(amp+1). Native mount/phase/arc admission and full damage/heal packages remain boss review. Parent healing is not contingent on successful Brand application.
+
+## Brand berserker
+
+Ignited Berserker AreaSwordAttack uses native sword_dance hurt(attackAttribute*damage); true raw-stacks Brand120cap1, then heal3*(amp+1). AreaAttack uses mob_attack, true raw-stacks Brand100cap1, then heal2*(amp+1). Native arc/ally/self exclusions remain; AreaAttack also excludes same Berserker class and is server-gated. AddEffect result does not gate these heals. Do not scale amp/cap to scale damage or healing; later full attack review applies each independent native HP/heal payload once.
+
+## Brand projectiles hazard
+
+Both fired Ignis fireballs require ServerLevel, exclude either fireball class/falling block and Ignis victim when shooter also Ignis. Living owner contact uses mob_projectile, otherwise anonymous magic5; hurttrue can trigger owner healing. After native IgnisExplosion and discard, original contact hurttrue plus Living target raw-stacks Brand200 by2, cap4, ABSENT STARTS AMP1 (not0). Explosion damage result is not the Brand gate. Ordinary/soul fireball versus Abyss fireball damage/blast/reflection remain separate projectile family work. Flame Strike damage helper requires alive,!isInvulnerable,victim!=owner,even tick; owner-null magic versus owned nonallied flame_strike each require hurttrue to stack Brand200 by1 cap4, absent0. Its tick caller adds a5tick schedule; full hazard lifetime/launch remains pending.
+
+## Raw attribute replacement
+
+Brand and Wetness stacking methods first call removeEffectNoUpdate on an existing effect, then request a new effect through normal addEffect. Raw removal directly deletes the map entry and skips EventHooks.onEffectRemoved/onEffectRemoved attribute cleanup. On successful replacement, native onEffectAdded removes/replaces the same modifier IDs. If addEffect rejects, old modifier cleanup was skipped and the removed effect is no longer available for ordinary expiry cleanup: stale native armor/speed modifiers are a concrete future fixture concern. Preserve the native sequence; no silent cleanup or eligibility bypass. Regular nonstacking applications retain native merge/update semantics.
+
+## Fracture
+
+Bone Fracture harmful attributes: movement speed-.02 and attack speed-.15 ADD_VALUE*(amp+1); tick has no HP payload. Leviathan TailWhips server box.inflate7 excludes allies/self/Leviathan; native mob_attack hurttrue launches then applies Fracture200amp0. Netherite Monstrosity aiStep attackState8, ticks20..48, server forward-expanded box, excludes allies/self/same class; mob_attack(.4*attackAttribute) hurttrue shoves then Fracture100amp0. Shield disable/launch and full attack state schedules remain native family review. No Stage on debuff attributes/duration.
+
+## Desert control
+
+Curse of Desert has no custom applyEffectTick; inherited callback is inert. Cataclysm client constructor registers ClientEvent.ClientEvent(), which registers MovementInputUpdateEvent listener. While local Minecraft player has Curse, keyDown adds2 to forwardImpulse,keyUp subtracts2,keyLeft subtracts2 from leftImpulse,keyRight adds2. Ordinary unit keyboard inputs therefore reverse direction, but code ADDS offsets rather than simply negating arbitrary modded input; diagonal/opposed/custom inputs are distinct future fixtures. It does not alter server mob AI, deal HP or scale by amplifier. This is combat-relevant client control, not just rendering; visual overlay is excluded.
+
+## Desert delivery
+
+Sandstorm Projectile server contact: Living owner admits unless both owner and victim are TEAM_ANCIENT_REMNANT, then mob_projectile(getDamage); non-Living/null owner magic(getDamage). Hurttrue Living target receives Desert100amp1 with native effect source owner-or-projectile. Cursed Sandstorm differs: only Living owner enters damage branch; mutual nonallied -> maledictio_sagitta, otherwise allied branch -> anonymous magic(getDamage). NO owner/non-Living owner yields no contact hit/status in this method. It still setsState2. Preserve this native allied magic branch; no correction. Ancient Desert Stele with caster excludes self/caster allies ->mob_projectile; caster-null ->magic; hurttrue Living gets Desert200amp0/null effect-source. Sandstorm entity native damage every third tick requires alive,!isInvulnerable,not caster; anonymous magic7 or mutually nonallied indirectMagic7, true ->Desert200amp0/null source. Native launch, volumes and secondary damage closure stay their families.
+
+## Wetness core
+
+Wetness harmful speed modifier=-.05*(amp+1) ADD_MULTIPLIED_TOTAL. Every effect tick, only isSensitiveToWater() recipients request anonymous native magic1; hurt result ignored, no damage for water-insensitive recipients. This is a new independent constant DOT, so future Stage once on the original magic1 hurt argument, keeping water predicate, source anonymity, cooldown/mitigation and effect cadence. Native water-sensitivity overrides/tags/external behavior are not guessed. Lightning IncomingDamage hook separately computes min(Float.MAX_VALUE,amount+amount*.2*(amp+1)) for IS_LIGHTNING source and present Wetness. Keep this as native original-hit vulnerability; no second Stage at this multiplier.
+
+## Wetness delivery
+
+Water Spear server contact with Living owner requires victim!=owner and mutual nonalliance ->mob_projectile(getDamage); otherwise non-Living/null owner ->magic5. Hurttrue Living victim raw-replaces Wetness200amp+1 cap4, absent0. Wave server attack box.inflate.01 uses mob_projectile(wave,owner), owner null or mutual nonalliance, hurttrue extinguishes fire THEN same Wetness200 stack; raw motion afterward does not require hurt success. Storm Serpent damage requires alive,!isInvulnerable,not caster; null caster requests magic(getDamage) but NO Wetness, while mutually nonallied Living caster uses indirectMagic and hurttrue applies Wetness150amp4 through normal addEffect. Effect source is null for these status calls, distinct from native parent source owners. Full launch/tick/lifetime/knockback remains family review.
+
+## Stage and compatibility
+
+This checkpoint identifies three numeric scaling boundaries: Monstrous heal1, Monstrous Helm half-attack hurt, Wetness water-sensitive magic1. Status potency/duration, counts, cooldowns, input offsets, native elemental vulnerability and admission stay fixed. Parent attack/fireball heals/DOT/blasts retain separately pending one-time payload points; do not double count them through Brand/Wetness. Anonymous delayed Wetness origin context must be resolved later without owner fabrication. All twelve effect cores are reviewed, but cross-mod immunity/nullification/L2 behavior still needs separately authorized runtime fixtures. No runtime, Stage, production or Phase6/7 work.
+
+- **Monstrous native defense and healing**: COMPOSITE, ADMISSION_GATED, NUMERIC_SCALABLE. Stage: Once on positive heal1 at EffectMonstrous.applyEffectTick; retain below-half precheck without inventing a half-HP output cap.
+- **Monstrous Helm native damage/shove pulse**: COMPOSITE, ADMISSION_GATED, NUMERIC_SCALABLE. Stage: Once on final attackAttribute/2 hurt argument in Monstrous_Helm.inventoryTick; native mob_attack source retained.
+- **Blazing Brand armor/toughness reduction and native delivery**: COMPOSITE, ADMISSION_GATED, NO_STAGE_VALUE. Stage: Native status attributes/control, vulnerability or admission; no independent Stage at these values.
+- **Bone Fracture movement/attack-speed debuff**: COMPOSITE, ADMISSION_GATED, NO_STAGE_VALUE. Stage: Native status attributes/control, vulnerability or admission; no independent Stage at these values.
+- **Curse of Desert native client input control**: COMPOSITE, ADMISSION_GATED, NO_STAGE_VALUE. Stage: Native status attributes/control, vulnerability or admission; no independent Stage at these values.
+- **Wetness movement, water-sensitive DOT and lightning vulnerability**: COMPOSITE, ADMISSION_GATED, NUMERIC_SCALABLE. Stage: Once on positive magic1 hurt argument at EffectWetness.applyEffectTick; preserve water predicate and anonymous source; no second Stage on lightning multiplier.
+
+[Machine evidence, packages and native paths](cataclysm-r2k2e-remaining-status.json).
+
+Exact next task: R2k3: Cataclysm Ender Guardian family. Start Ender_Guardian_Entity hurt/isInvulnerableTo and actual DamageCap/DpsCap/RangeLimit/NatureRegen overrides, then phase/attack selection and native AreaAttack/projectile/minion delivery. Reuse R2k2 shared/status contracts; do not repeat status cores. Other concrete bosses, full equipment/launch chains and remaining global event/attribute/attachment hooks are still pending. Static only; no runtime, Stage or production changes.
