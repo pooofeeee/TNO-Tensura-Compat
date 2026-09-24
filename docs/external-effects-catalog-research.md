@@ -990,3 +990,7 @@ Confirmed native Holder/value filter mismatch without repairing it; preserved re
 ## R2j3 — Bosses of Mass Destruction Night Lich
 
 Native missile status independent of hurt success, captured-Lich comet explosion source, genuine Phantom initialization and teleport placement/cancellation proven; no mechanics repaired. [Evidence and resume point](benchmarks/external-effects-catalog/bomd-r2j3-night-lich-review.md).
+
+## R2j4 — Bosses of Mass Destruction Obsidilith
+
+Rune-resource shield separated from HP admission; three shield_piercing producers, repeated rift callbacks, five-tick fire and client motion, native landing/death explosions pinned. [Evidence and resume point](benchmarks/external-effects-catalog/bomd-r2j4-obsidilith-review.md).
