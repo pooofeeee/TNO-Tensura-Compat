@@ -360,6 +360,9 @@ def validate():
         if (OUT/'cataclysm-r2k2c-ghost-fear.json').exists():
             from validate_cataclysm_ghost_fear import validate_ghost_fear
             assert validate_ghost_fear()['status']=='PASS'
+        if (OUT/'cataclysm-r2k2d-abyssal-status.json').exists():
+            from validate_cataclysm_abyssal import validate_abyssal
+            assert validate_abyssal()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():

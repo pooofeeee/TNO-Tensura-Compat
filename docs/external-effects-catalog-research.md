@@ -1026,3 +1026,7 @@ Verified native STUN restrictions, two-overload Skull rejection, nonlethal Post 
 ## R2k2c — Cataclysm Ghost, Fear and Blessing
 
 Separated fixed HP revival, Ghost immunity/expiry, empty Sickness cure set versus ineffective removal listener, Fear healing veto, and native Blessing cleanse. Six packages/thirteen future paths; no repair. [Evidence and resume point](benchmarks/external-effects-catalog/cataclysm-r2k2c-ghost-fear-review.md).
+
+## R2k2d — Cataclysm Abyssal DOT and teleport
+
+Proved two anonymous abyssal_burn DOT callers, native hurt-dependent teleport without posted ChorusFruit event, and raw remove-then-reapply stacks. Three packages/nine future paths; no fix. [Evidence and resume point](benchmarks/external-effects-catalog/cataclysm-r2k2d-abyssal-status-review.md).
