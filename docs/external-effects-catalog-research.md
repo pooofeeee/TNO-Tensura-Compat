@@ -1022,3 +1022,7 @@ Separated target admission from scalable heal: causing-owner range, rollback buc
 ## R2k2b — Cataclysm STUN admission and control
 
 Verified native STUN restrictions, two-overload Skull rejection, nonlethal Post removal, holder-identity filters and eleven distinct application paths. Three packages/eighteen future paths; no Stage or runtime change. [Evidence and resume point](benchmarks/external-effects-catalog/cataclysm-r2k2b-stun-review.md).
+
+## R2k2c — Cataclysm Ghost, Fear and Blessing
+
+Separated fixed HP revival, Ghost immunity/expiry, empty Sickness cure set versus ineffective removal listener, Fear healing veto, and native Blessing cleanse. Six packages/thirteen future paths; no repair. [Evidence and resume point](benchmarks/external-effects-catalog/cataclysm-r2k2c-ghost-fear-review.md).
