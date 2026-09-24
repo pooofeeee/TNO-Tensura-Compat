@@ -1002,3 +1002,7 @@ Genuine eye-part delivery, native melee laser, unconditional punch motion, anony
 ## R2j6 — Bosses of Mass Destruction Void Blossom
 
 Separate thorns, thrown, shield-piercing and anonymous Poison paths; native heal cap and delayed callbacks preserved. [Evidence and resume point](benchmarks/external-effects-catalog/bomd-r2j6-void-blossom-review.md).
+
+## R2j7 — Bosses of Mass Destruction equipment and block hooks
+
+Zero-hit pearl, registered food HP effects, native wall traversal, Monolith radius and flight permission conflict mapped; utility excluded. [Evidence and resume point](benchmarks/external-effects-catalog/bomd-r2j7-equipment-review.md).
