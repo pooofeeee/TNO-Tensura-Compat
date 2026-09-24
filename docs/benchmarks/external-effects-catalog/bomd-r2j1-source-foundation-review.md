@@ -1,0 +1,54 @@
+# R2j1 — Bosses of Mass Destruction source foundation
+
+BOMD installed source/tag/config/entrypoint and shared-hook foundation; boss and equipment families remain PARTIAL.
+
+Static review only. Future runtime fixtures remain unexecuted; whole Bosses of Mass Destruction review is PARTIAL.
+
+## Authority
+
+Installed BOMD-NeoForge-1.21-1.3.3.jar SHA93da8753a00229e41c5ed399e6cf849737e7bd9b4109d5d8e4ad3a20136deb82; modid bosses_of_mass_destruction, version1.3.3. All287 classes parsed. Existing decompiled Java is navigation only; exact installed bytecode, resources and annotations are pinned. Completed Eternal Starlight and Bosses Rise owner records remain unchanged at starting checkpoint0d53681feca19379ce8047d0cdc2db7b18806516.
+
+## Registry
+
+Neo entrypoint calls BossesOfMassDestruction.init and registers attachments on the mod event bus. Common init loads and postprocesses AutoConfig BMDConfig, saves it and registers native content. Native common mixin config is required and lists LivingEntityMixin and ExplosionMixin. This records declarations, not proof that a particular running pack applied them successfully. Four classes are contributed to c:bosses: lich, obsidilith, gauntlet, void_blossom.
+
+## Config
+
+Installed bosses_of_mass_destruction.json5 is pinned as text/hash/parsed values separately from TOML evidence. Health/armor/attack snapshots: Lich300 and missile9; Obsidilith300/14/16; Gauntlet250/8/16; VoidBlossom350/4/12. Lich missile effect minecraft:slowness duration100 amplifier2, comet strength4; Obsidilith anvil explosion4; Gauntlet energized punch4.5, normal multiplier1.5. Idle heal per tick Lich0.20000000298023224, other bosses0.5. These are installed file values, not runtime measurements. Entity attribute creation reads these native config fields; multiplying both attributes and damage would double-scale.
+
+## Source identity
+
+One custom DamageType: bosses_of_mass_destruction:shield_piercing, exhaustion0.1, message_id mob, native difficulty scaling when_caused_by_living_non_player. BMDUtils.shieldPiercing delegates VanillaCopiesServer.create, which resolves the exact DamageType registry holder and calls DamageSource(holder,attacker). That native constructor uses the supplied attacker as BOTH direct and causing entity; no fallback owner or synthesized projectile identity. Reference constructor evidence is retained from the pinned patched Minecraft source.
+
+## Source callers
+
+Whole-artifact census finds five native factory callers: Obsidilith BurstAction.damageEntity, WaveAction.damageEntity and SpikeAction.damageEntity; VoidBlossom Spikes.damageEntity; SporeBallProjectile.lambda$doExplosion$2. The first four supply their boss entity. The spore area callback supplies getOwner after a nonnull check, requests the captured living owner ATTACK_DAMAGE value, then independently attempts native Poison140; it ignores hurt return. Its separate entityHit uses native thrown(this,livingOwner) and is a materially different delivery/source path. Exact geometry, damage formulas and scheduling for these families remain pending, not promoted.
+
+## Shield contract
+
+Scoped raw Minecraft1.21.1 + NeoForge21.1.244 + native BOMD tag closure gives shield_piercing NO DamageType tags; target JAR contributes none. Its shield bypass instead comes from required LivingEntityMixin: inject isDamageSourceBlocked(DamageSource) at HEAD, cancellable; exact source.is(SHIELD_PIERCING) returns false. No armor, Resistance, protection, cooldown or invulnerability bypass is established by this method. Preserve the exact native source key and normal remaining admission/mitigation. Other pack tags/mixins and runtime order remain untested.
+
+## Census
+
+37 watched combat/admission method candidates; one external SHIELD_PIERCING key reader is the shield mixin. Eight methods reference vanilla MobEffects. Four registry candidates are Lich Volley/VolleyRage lookup/wrapAsHolder methods, not custom MobEffect registrations. No MobEffect subclass exists in the287-class census. This is not a no-status/control conclusion; native effects, custom damage handlers, hitboxes, resources and states require bounded family review.
+
+## Shared hooks
+
+BaseEntity.hurt invokes server beforeDamage, then handler.shouldDamage && super.hurt, then server afterDamage even when false; it returns that result. BaseEntity.canBeAffected returns a configured effect handler directly instead of automatically also calling super. EffectsImmunity stores MobEffect values but passes effect.getEffect to List.contains; the Holder/value mismatch and actual constructor uses need explicit reference review next. No immunity claim is accepted from the class name. ExplosionMixin modifies the server explode strength argument through MonolithBlock.getExplosionPower; its combat equipment semantics remain pending.
+
+## Events
+
+NeoEvents LivingDeathEvent HIGH feeds native Lich summon kill-counter logic from causing entity; this body does not cancel death or edit damage. Server player tick maintains position history and calls LevitationBlockEntity.tickFlight; relevant movement/control must be reviewed with equipment. Client cache reset, tabs, rendering, acquisition, storage and noncombat worldgen are brief exclusions. A scheduling callback that actually delivers combat remains in scope.
+
+## Compatibility
+
+Six-archive explicit-name scan found zero direct-name hits: BOMD against Tensura/L2 names; installed Tensura plus four inventoried compatibility candidates against bosses_of_mass_destruction/bomd. Generic event/mixin/tag/skill interactions remain possible and untested; this does not certify compatibility.
+
+## Stage
+
+Source construction, keys/tags, config registration and binary admission have NO_STAGE_VALUE. Future numeric payloads need one final native damage/heal amount scaling point, after native formula selection, never attribute plus source plus callback plus amount. Native counts, durations, scheduling, ownership and admission remain native. No mechanic is promoted at this foundation checkpoint; all boss families remain PARTIAL.
+
+
+[Machine evidence, packages and native paths](bomd-r2j1-source-foundation.json).
+
+Exact next task: R2j2: Bosses of Mass Destruction shared BaseEntity admission, native damage-handler ordering and EffectsImmunity Holder/value comparison, with installed CerbonsAPI scheduler evidence where required. Then Night Lich, Obsidilith, Nether Gauntlet, Void Blossom and combat equipment. Static combat scope only; no runtime/L2/Stage/production/Phase6/Phase7 work. Continue automatically while quota is healthy.

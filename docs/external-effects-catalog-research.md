@@ -978,3 +978,7 @@ All157 watched methods across802 classes have native witnesses. Arena/guardian A
 ## R2i9b — Bosses Rise combat catalog COMPLETE
 
 82 deduplicated packages, 232 native paths and both custom DamageTypes mapped. Static semantics complete; future integration reviews remain explicit. [Owner table and next task](benchmarks/external-effects-catalog/bossesrise-final-owner-table.md).
+
+## R2j1 — Bosses of Mass Destruction source foundation
+
+One custom DamageType, five native source callers,287 classes and37 combat/admission candidates pinned; existing625 mechanics and1535 native paths preserved. [Evidence and resume point](benchmarks/external-effects-catalog/bomd-r2j1-source-foundation-review.md).

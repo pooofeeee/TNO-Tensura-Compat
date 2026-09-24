@@ -324,6 +324,9 @@ def validate():
         if (OUT/'bossesrise-final-promotion-map.json').exists():
             from validate_bossesrise_final import validate_final as validate_br_final
             assert validate_br_final()['status']=='PASS'
+        if (OUT/'bomd-r2j1-source-foundation.json').exists():
+            from validate_bomd_foundation import validate_foundation as validate_bomd_foundation
+            assert validate_bomd_foundation()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():
