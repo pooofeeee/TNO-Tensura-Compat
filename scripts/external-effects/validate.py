@@ -339,6 +339,9 @@ def validate():
         if (OUT/'bomd-r2j5-gauntlet.json').exists():
             from validate_bomd_gauntlet import validate_gauntlet
             assert validate_gauntlet()['status']=='PASS'
+        if (OUT/'bomd-r2j6-void-blossom.json').exists():
+            from validate_bomd_blossom import validate_blossom
+            assert validate_blossom()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():

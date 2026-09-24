@@ -1,0 +1,443 @@
+{
+  "schema": "tno.external_effects.bomd_blossom.v1",
+  "checkpoint": "R2j6-bomd-void-blossom-complete",
+  "previous_checkpoint": "R2j5-bomd-gauntlet-complete",
+  "starting_sha": "9af2f173b31848df9f369fd16ce4322f120d2150",
+  "status": "VOID_BLOSSOM_COMBAT_SEMANTICS_COMPLETE",
+  "scope": "Void Blossom multipart retaliation, proximity/spikes/projectiles, Poison and native healing/defenses complete; whole BOMD PARTIAL.",
+  "summary": "Separate thorns, thrown, shield-piercing and anonymous Poison paths; native heal cap and delayed callbacks preserved.",
+  "facts": {
+    "scope": "Void Blossom native combat complete from21 installed class witnesses plus protected shared/projectile/part/RiftBurst contracts. No boss runtime matrix, L2 test, Stage implementation, production change or Phase6/7 work.",
+    "admission_and_parts": "All seven VoidBlossomCompoundHitbox.shouldDamage handlers returntrue: body/flower are not an eye-only immunity gate. Native super.hurt, armor, Resistance and external events still apply. NetworkedHitboxManager writes the native incoming part marker ONLY into the currently selected hitbox; CompositeDamageHandler runs every hitbox afterDamage, each captures then clears its own marker before any retaliation. Idle/Spike spiked parts are neck and rootYaw; Petal, Spore and all SpikeWave forms use rootYaw only. Flower/flowerBottom are not spiked. Genuine CerbonsAPI projectile/client multipart ray delivery is already pinned R2j5; do not fake markers. Incoming IS_PROJECTILE suppresses part retaliation even if its part is spiked. Missing marker cannot independently trigger this retaliation.",
+    "retaliation": "After incoming hurt returns true, a spiked part plus source not IS_PROJECTILE plus nonnull source.getEntity triggers causingEntity.hurt(thorns(VoidBlossom), current boss ATTACK_DAMAGE). Target need not be Living. Resultfalse suppresses retaliation; source direct entity is not the recipient unless it is also causing. Requested native amount is installed attack12 before modifiers, direct=causing boss, minecraft:thorns. Retaliatory hurt result is discarded. Native amount is not multiplied by incoming amount and no HP threshold/owner/team shortcut is added.",
+    "proximity": "VoidBlossomSpikeTick independently runs in BaseEntity.serverTick: query Living in position-centered box inflated3xyz and movedY1.5, exclude exact boss, then strict target.position distanceSquared<9. It requests same thorns amount12/current attack every tick; no target/LOS/team/part or hurt-success gate, and no hit cache. Native victim cooldown/mitigation decides HP. This is not the same trigger as afterDamage retaliation. BaseEntity invokes serverTick before super.tick even while dying; this proximity callback has no alive guard, so it remains wired through native death animation until removal. Do not invent a safety cutoff.",
+    "defense_and_selection": "Installed maxHP350 and active armor4; getArmorValue returns20 when targetnull. Registry fireImmune, isInWall=false, move suppresses X/Z. No custom EffectsImmunity assigned, so normal canBeAffected remains. Alive+nonnull target runs attacks after initial80 cooldown; cancel supplier is deadOrDying OR current targetnull. Target switching reuses shared damage memory10. Spike always eligible; wave at target distance<=21; spore also requires strict HP ratio<.75; blade strict ratio<.5. Milestone-change BooleanFlag forces BlossomAction at next move and resets; multiple changes can coalesce, not a shield resource or immediate damage event.",
+    "spike_geometry": "SpikeAction requires ServerPlayer (otherwise80); prepares three predicted-player filled radius2 disks after30/60/90, each using Spikes delay20. SpikeWaveAction also requires ServerPlayer, prepares filled radius7 then rings(7,14] and(14,21] after20/45/70 using delay30. Spikes tests three starting heights0/6/12, findGroundBelow with replaceable-or-moss predicate, accepts ground.above when upY+5>=startY, then queues one callback per placement. Callback queries a 1x9x1 AABB (block inflatedY4), Living except exact boss, requests shield_piercing(current boss, current attack12), ignores return. No projectile entity, explosion, native knockback packet or status. No placement/per-target dedup; shared native cooldown governs overlaps. Scheduler is boss preTickEvents and supplied cancel condition; no final open-block recheck in Spikes. Hitbox EventSeries returns to Idle without cancellation. SpikeS2C only visuals, not another damage producer.",
+    "spore_direct": "SporeAction requires ServerPlayer, after45 throws one native SporeBall from boss eye toward captured target eye with speed.75, divergence0, gravity compensation.2. Constructor exempts ALL VoidBlossom entity types from entityHit through ExemptEntities. BaseThrownItemProjectile calls native superclass onHit then gated entityHit; Spore overrides outer collision predicate totrue on both sides. Entity contact on server requires current owner Living and victim!=owner, requests minecraft:thrown(direct ball, causing current owner), amount current owner ATTACK_DAMAGE, discards boolean. It does NOT latch impacted, call onImpact, discard, poison or start burst. Native projectile collision/deflection still applies; it can continue and encounter blocks later.",
+    "spore_block_and_area": "Only native onHitBlock calls onImpact. First call records pitch, sets impacted=true and getDeltaMovement becomesZERO; if current owner Living capture it for doExplosion, otherwise server discards. Despite method name this is NOT Level.explode. Creates radius7 filled disk of RiftBurst columns, ground finder startingY+2, accepts upY+8>=startY and replaceable-or-moss. World scheduler outerdelay30 cancels if blocked or CAPTURED owner not alive. Inner seven callbacks at offsetsY0/2/4/6/8/10/12 are uncanceled and exclude only captured owner, not every VoidBlossom type. Same-delay independent discard event is also queued; it does not cancel queued columns. Callback amount comes from CAPTURED owner current attack, but only when projectile.getOwner()!=null it selects CURRENT owner as both direct/causing shield_piercing source and effect-source argument. Preserve this split if another native mechanism changes owner; null current owner suppresses both area HP and Poison. Do not substitute the projectile as direct source or call native explosion hooks.",
+    "poison": "Area callback calls hurt(shield_piercing) then addEffect(Poison140,amp0,currentOwner) regardless hurtboolean. Native addEffect/effect immunity/NeoForge applicability still applies. Installed patched PoisonMobEffect requires HP>1 and requests1 at interval25>>amplifier (amp0 every25), using anonymous neoforge:poison with fallback minecraft:magic only if poison holder absent. Application source does not become tick DamageSource owner. neoforge:poison bypasses armor/shield, has no_knockback, is_magic/is_poison; does not bypass Resistance/invulnerability by these pinned tags. Stage duration/amplifier remain unchanged. Any future numeric tick scaling must preserve native nonlethality and prove origin attribution; an unconstrained multiplied1 could violate HP>1 guard intent. This remains an explicit future integration constraint, not a static source ambiguity.",
+    "petal": "BladeAction requires ServerPlayer; three callbacks after28/52/75 each aim11 native PetalBlade projectiles across a target-center line of halfwidth7 with random-sign20-degree rotation. Maximum33 creations if uncanceled, not33 hits. Speed.9, noGravitytrue, owner boss, exempts boss entity TYPE. Native entity hit with current owner Living requests minecraft:thrown(direct blade, causing currentowner), currentowner attack12; then supplied callback runs on Living victim regardless hurtboolean (this boss supplies EMPTY callback); discard always follows, including missing/nonliving owner. Block callback calls superclass then discards. No native hurt override that provides player reflection; retain engine deflection/ownership semantics without inventing one. Predicate/callback fields and spore impacted are not explicitly serialized by these classes; later native save/load fixture must compare reconstructed default constructor state with launched state.",
+    "blossoms": "Forced BlossomAction on ServerLevel returns120; schedules eight shuffled cardinal/diagonal radius15 positions relative to captured boss position, one after40+8i with native cancel supplier. It directly places moss base and healing blossom above, without a shown replacement/LOS/mobGriefing check. Strict HP<.25 protects6 positions with vine walls; else strict<.5 protects3; otherwise0. Each protected ring uses neighboringx/z in[-1,1] exceptcenter and y0..2. Vines are IronBarsBlock collision, no damage; native scheduled tick destroys them. Breaking blossom schedules neighboring vine removal delays(2-y)*20+random0..19. These are delivery/obstruction mechanics, not HP payloads, and must not receive Stage scaling.",
+    "heal": "VoidBlossomBlock.onPlace schedules blocktick1; each tick schedules next64 and queries ALL VoidBlossom in AABB(block).inflate(40,20,40), without owner link. For each captured boss, world scheduler delay16 invokes LichUtils.cappedHeal with strength10, alive guard and next-strict-quarter maxHP gap minus1. No targetnull condition and no callback-time block/range recheck. Removing the block after queueing does not cancel that heal. This extends shared bomd:capped_heal: one future point is strength10 BEFORE clamp, never multiply final capped amount. Separate targetless idle strength.5 uses the same capped helper. Native heal hooks/maxHP still apply. HealS2C is visual only.",
+    "death_and_exclusions": "Native death composite first increments deathTime in LightBlockRemover, removes at70, and schedules experience when deathTime1; there is no death explosion or new HP damage callback. Existing proximity tick and already-queued uncanceled world callbacks remain distinct. Light/particles/sounds/experience and rendering rotations are short exclusions; vines retained solely as combat obstruction and healing-block removal path.",
+    "source_and_stage": "Pinned source tags distinguish thorns (magic-tagged, armor/shield not bypassed here), thrown (projectile/physical), untagged shield_piercing with exact-key blocking mixin, and anonymous neoforge:poison. None certifies packwide Tensura/L2 outcomes. Single future amount boundaries: native thorns hurt requests, native Spikes/area shield_piercing requests, native thrown requests after owner attribute selection, origin-bound Poison terminal tick with native nonlethality retained, and capped-heal strength before clamp. Never scale attack attribute and terminal amount together; leave source identity, counts, geometry, phase threshold, effect duration/amplifier and eligibility unchanged."
+  },
+  "mechanic_packages": [
+    {
+      "id": "bomd:blossom_parts",
+      "name": "Native Void Blossom multipart retaliation predicates",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native admission/control/delivery/state only, no independent scalable numeric payload.",
+      "delivery_paths": [
+        "bomd:blossom:part_melee",
+        "bomd:blossom:part_projectile",
+        "bomd:blossom:part_phase"
+      ]
+    },
+    {
+      "id": "bomd:blossom_thorns",
+      "name": "Native Void Blossom retaliation and proximity thorns",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at native thorns victim.hurt amount after boss attack-attribute selection; preserve distinct delivery gates.",
+      "stage_reason": "Native admission/control/delivery/state only, no independent scalable numeric payload.",
+      "delivery_paths": [
+        "bomd:blossom:part_melee",
+        "bomd:blossom:proximity",
+        "bomd:blossom:dying_proximity"
+      ]
+    },
+    {
+      "id": "bomd:blossom_spikes_hp",
+      "name": "Native shield-piercing ground damage",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at native Spikes or spore-column hurt amount after captured-owner attribute selection; source remains its native supplied current entity.",
+      "stage_reason": "Native admission/control/delivery/state only, no independent scalable numeric payload.",
+      "delivery_paths": [
+        "bomd:blossom:targeted_spikes",
+        "bomd:blossom:wave_spikes",
+        "bomd:blossom:spore_area"
+      ]
+    },
+    {
+      "id": "bomd:blossom_thrown",
+      "name": "Native spore/petal thrown damage",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at native projectile entityHit hurt amount after current-owner attribute selection.",
+      "stage_reason": "Native admission/control/delivery/state only, no independent scalable numeric payload.",
+      "delivery_paths": [
+        "bomd:blossom:spore_direct",
+        "bomd:blossom:petal"
+      ]
+    },
+    {
+      "id": "bomd:blossom_poison",
+      "name": "Native Poison application",
+      "primary_classification": "VANILLA_DIRECT",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native admission/control/delivery/state only, no independent scalable numeric payload.",
+      "delivery_paths": [
+        "bomd:blossom:spore_poison"
+      ]
+    },
+    {
+      "id": "bomd:poison_tick",
+      "name": "Native anonymous Poison tick",
+      "primary_classification": "VANILLA_DIRECT",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at origin-proven native Poison hurt amount, preserving native nonlethality; do not scale duration/amplifier or application plus tick.",
+      "stage_reason": "Native admission/control/delivery/state only, no independent scalable numeric payload.",
+      "delivery_paths": [
+        "bomd:blossom:poison_tick"
+      ]
+    },
+    {
+      "id": "bomd:blossom_blocks",
+      "name": "Native healing-block and vine placement/control",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native admission/control/delivery/state only, no independent scalable numeric payload.",
+      "delivery_paths": [
+        "bomd:blossom:heal_blocks"
+      ]
+    },
+    {
+      "id": "bomd:capped_heal",
+      "name": "Native milestone-capped boss healing",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once at native cappedHeal healingStrength before clamp; preserve next-quarter maxHP minus1 gap.",
+      "stage_reason": "Native admission/control/delivery/state only, no independent scalable numeric payload.",
+      "delivery_paths": [
+        "bomd:blossom:block_heal",
+        "bomd:blossom:idle_heal"
+      ]
+    }
+  ],
+  "delivery_paths": [
+    {
+      "id": "bomd:blossom:part_melee",
+      "labels": [
+        "MELEE"
+      ],
+      "native_path": "Genuine native multipart spiked part -> admitted hurttrue -> thorns to causing entity",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native delivery, predicates and source identity",
+        "hurt return/HP/status/phase and queued callbacks observed separately"
+      ]
+    },
+    {
+      "id": "bomd:blossom:part_projectile",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "Genuine native projectile part -> IS_PROJECTILE vetoes retaliation",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native delivery, predicates and source identity",
+        "hurt return/HP/status/phase and queued callbacks observed separately"
+      ]
+    },
+    {
+      "id": "bomd:blossom:proximity",
+      "labels": [
+        "PASSIVE_AURA"
+      ],
+      "native_path": "Server tick box plus strict distance<3 -> thorns",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native delivery, predicates and source identity",
+        "hurt return/HP/status/phase and queued callbacks observed separately"
+      ]
+    },
+    {
+      "id": "bomd:blossom:dying_proximity",
+      "labels": [
+        "PASSIVE_AURA"
+      ],
+      "native_path": "Same proximity callback remains wired until native removal at70",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native delivery, predicates and source identity",
+        "hurt return/HP/status/phase and queued callbacks observed separately"
+      ]
+    },
+    {
+      "id": "bomd:blossom:targeted_spikes",
+      "labels": [
+        "BOSS_ATTACK"
+      ],
+      "native_path": "Three predicted-player disks -> boss-scheduled ground spike hurt",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native delivery, predicates and source identity",
+        "hurt return/HP/status/phase and queued callbacks observed separately"
+      ]
+    },
+    {
+      "id": "bomd:blossom:wave_spikes",
+      "labels": [
+        "BOSS_ATTACK"
+      ],
+      "native_path": "Three boss-centered rings -> boss-scheduled ground spike hurt",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native delivery, predicates and source identity",
+        "hurt return/HP/status/phase and queued callbacks observed separately"
+      ]
+    },
+    {
+      "id": "bomd:blossom:spore_direct",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "Native spore entity contact -> thrown only, continues",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native delivery, predicates and source identity",
+        "hurt return/HP/status/phase and queued callbacks observed separately"
+      ]
+    },
+    {
+      "id": "bomd:blossom:spore_area",
+      "labels": [
+        "BOSS_ATTACK"
+      ],
+      "native_path": "Native spore block latch -> world-scheduled shield_piercing columns",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native delivery, predicates and source identity",
+        "hurt return/HP/status/phase and queued callbacks observed separately"
+      ]
+    },
+    {
+      "id": "bomd:blossom:spore_poison",
+      "labels": [
+        "STATUS"
+      ],
+      "native_path": "Area hurt then independent Poison application",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native delivery, predicates and source identity",
+        "hurt return/HP/status/phase and queued callbacks observed separately"
+      ]
+    },
+    {
+      "id": "bomd:blossom:poison_tick",
+      "labels": [
+        "STATUS"
+      ],
+      "native_path": "Admitted native Poison -> anonymous NeoForge Poison HP tick",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native delivery, predicates and source identity",
+        "hurt return/HP/status/phase and queued callbacks observed separately"
+      ]
+    },
+    {
+      "id": "bomd:blossom:petal",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "native_path": "Native33 potential blades -> owner-attribute thrown",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native delivery, predicates and source identity",
+        "hurt return/HP/status/phase and queued callbacks observed separately"
+      ]
+    },
+    {
+      "id": "bomd:blossom:heal_blocks",
+      "labels": [
+        "BLOCK_CONTACT"
+      ],
+      "native_path": "Native milestone flag -> eight healing blocks, optional vine cover",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native delivery, predicates and source identity",
+        "hurt return/HP/status/phase and queued callbacks observed separately"
+      ]
+    },
+    {
+      "id": "bomd:blossom:block_heal",
+      "labels": [
+        "PASSIVE_AURA"
+      ],
+      "native_path": "Block query -> delayed strength10 capped healing",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native delivery, predicates and source identity",
+        "hurt return/HP/status/phase and queued callbacks observed separately"
+      ]
+    },
+    {
+      "id": "bomd:blossom:idle_heal",
+      "labels": [
+        "PASSIVE_AURA"
+      ],
+      "native_path": "Targetless server tick -> strength.5 capped healing",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native delivery, predicates and source identity",
+        "hurt return/HP/status/phase and queued callbacks observed separately"
+      ]
+    },
+    {
+      "id": "bomd:blossom:part_phase",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native attack phase -> current hitbox geometry and spiked-part selection",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "genuine native delivery, predicates and source identity",
+        "hurt return/HP/status/phase and queued callbacks observed separately"
+      ]
+    }
+  ],
+  "unexecuted_future_fixtures": [
+    "genuine multipart spiked_vs_flower_missing_part_projectile_hurtfalse_cause_null",
+    "proximity_strict_3D_distance_and_box_hurt_cooldown_dying_until70",
+    "native_armor20_idle4_active_fire_and_normal_effect_admission",
+    "strict_HP_selection_and_flag_coalescence_native_cancel_and_idle_cleanup",
+    "targeted_spikes_vs_three_rings_multilevel_ground_and_repeated_overlap",
+    "spore_entity_contact_continues_no_Poison_vs_block_latch_delayed_area",
+    "spore_captured_amount_owner_vs_current_source_null_owner_and_type_exclusions",
+    "world_columns_boss_death_outer_cancel_vs_inner_continuation_projectile_discard",
+    "Poison_applies_hurtfalse_native_effect_rejection_then_NeoForge_poison_no_owner_nonlethal",
+    "petal33_potential_creations_owner_missing_block_discard_and_empty_callback",
+    "native_projectile_save_load_constructor_predicates_impacted_state_and_owner",
+    "eight_heal_blocks_vine_counts_strict_quarters_multi_boss_query",
+    "block_removal_or_range_change_after_queue_native_capped_heal_strength10_vs_idle.5"
+  ],
+  "review_required": [
+    {
+      "id": "bomd-poison-origin-and-nonlethality",
+      "reason": "Future Stage must prove narrow native-origin context for anonymous Poison and preserve nonlethality. Never replace the source/owner or broadly multiply all Poison."
+    }
+  ],
+  "remaining_subsection_native_ambiguities": [],
+  "exact_next_task": "R2j7: BOMD remaining combat equipment/block hooks and whole-artifact source coverage, then deduplicate/promote/finalize BOMD with runtime fixtures and source dispositions. Continue the next target automatically while quota remains healthy; static only.",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "bosses_of_mass_destruction",
+  "runtime_tests": 0,
+  "whole_mod_complete": false,
+  "promoted_mechanics": 0,
+  "promoted_paths": 0,
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false,
+  "reference_files": [
+    {
+      "file": "native-evidence/bomd-blossom.json",
+      "sha256": "cdf5f3ba64e31b83be9869667d43131f8fb15c017cd3482d3d83da2bc5b6e6a4"
+    },
+    {
+      "file": "reference-evidence/bomd-blossom-244.json",
+      "sha256": "d81d394346ac7512cb879f6632c25db5722bceaff77db38c05f468df65de548d"
+    },
+    {
+      "file": "vanilla-evidence/bomd-blossom.json",
+      "sha256": "ec7d66b573ba9ead2a384d6faa9777f2eed7441c2ae1e581f81234db8fcbc48e"
+    },
+    {
+      "file": "bomd-blossom-source-tags.json",
+      "sha256": "8bf0272458898276c91243321c41af8be822b1becb37c51b8a5938fb443c5fe2"
+    },
+    {
+      "file": "bomd-r2j2-shared-admission.json",
+      "sha256": "52ff1f0a54fb6d004afb33d4c4de38e2afb304c0c55ccb87abfd769b392ce0bf"
+    },
+    {
+      "file": "bomd-r2j3-night-lich.json",
+      "sha256": "3df8a853b7e785397677676a01b287e3899c608187d09fbe68d060115008461b"
+    },
+    {
+      "file": "bomd-r2j4-obsidilith.json",
+      "sha256": "2864850dd42c869c482f4df48c5bb22f981b480d9b27691880244a825d5fc8b1"
+    },
+    {
+      "file": "bomd-r2j5-gauntlet.json",
+      "sha256": "8d9061d52487d3de128b49c8fadfefc1f8d4ef4e36ad7eee01d84bdf4cb81773"
+    },
+    {
+      "file": "native-evidence/bomd-lich.json",
+      "sha256": "03a75b19ebe7947564e47af28f877ed878680e163e702616295d58951c2c6b00"
+    },
+    {
+      "file": "reference-evidence/bomd-lich-244.json",
+      "sha256": "bdf2fbefa2d64606454a6655b418bb76f98f32514d2ee02bdf2742c960de3bc8"
+    },
+    {
+      "file": "native-evidence/bomd-obsidilith.json",
+      "sha256": "bdeb484da32ce6ccbb5b0872e75765aa63141e117c82af5aeb88cf2ccef47c20"
+    },
+    {
+      "file": "reference-evidence/bomd-obsidilith-244.json",
+      "sha256": "51c19f05295bc64ae44a5fa8bd066a21319a9a15bcb9306997ffbcb7e3bdcb16"
+    },
+    {
+      "file": "reference-evidence/bomd-gauntlet-244.json",
+      "sha256": "2b8512e9e489fa5ecb8859201e74a64050cd60a2d1e4700326c9312307f333b7"
+    },
+    {
+      "file": "bomd-damage-tags.json",
+      "sha256": "1b387df0fb543e27293e8aafb2fe78390203d48531d0bb6f68b441fde8c2e95d"
+    },
+    {
+      "file": "bomd-installed-config.json",
+      "sha256": "fabb58fba8de27539889466841d365bb4dc5331db2a0914ad8db34e0f7a304ba"
+    }
+  ]
+}
