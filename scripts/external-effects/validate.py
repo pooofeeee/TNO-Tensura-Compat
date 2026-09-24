@@ -354,6 +354,9 @@ def validate():
         if (OUT/'cataclysm-r2k2a-shared-admission.json').exists():
             from validate_cataclysm_shared import validate_shared as validate_cataclysm_shared
             assert validate_cataclysm_shared()['status']=='PASS'
+        if (OUT/'cataclysm-r2k2b-stun.json').exists():
+            from validate_cataclysm_stun import validate_stun
+            assert validate_stun()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():
