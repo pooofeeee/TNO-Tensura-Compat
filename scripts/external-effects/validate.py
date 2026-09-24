@@ -348,6 +348,9 @@ def validate():
         if (OUT/'bomd-final-promotion-map.json').exists():
             from validate_bomd_final import validate_final as validate_bomd_final
             assert validate_bomd_final()['status']=='PASS'
+        if (OUT/'cataclysm-r2k1-source-foundation.json').exists():
+            from validate_cataclysm_foundation import validate_foundation as validate_cataclysm_foundation
+            assert validate_cataclysm_foundation()['status']=='PASS'
     # All pre-existing files, including Phase 6 and the readiness assessment, are immutable here.
     allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
     for line in git('diff','--name-status',BASELINE).splitlines():

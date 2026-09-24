@@ -1010,3 +1010,7 @@ Zero-hit pearl, registered food HP effects, native wall traversal, Monolith radi
 ## R2j8 — Bosses of Mass Destruction combat catalog COMPLETE
 
 44 deduplicated mechanics, 85 native paths; sole custom DamageType USED at five callers. Static semantics complete, future runtime/integration decisions explicit. [Owner table and next task](benchmarks/external-effects-catalog/bomd-final-owner-table.md).
+
+## R2k1 — Cataclysm source foundation
+
+Pinned12 effects,15 bundled DamageTypes/20 code keys, native source identity and shared event/mixin/boss admission foundations. [Evidence and resume point](benchmarks/external-effects-catalog/cataclysm-r2k1-source-foundation-review.md).
