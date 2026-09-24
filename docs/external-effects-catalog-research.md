@@ -982,3 +982,7 @@ All157 watched methods across802 classes have native witnesses. Arena/guardian A
 ## R2j1 — Bosses of Mass Destruction source foundation
 
 One custom DamageType, five native source callers,287 classes and37 combat/admission candidates pinned; existing625 mechanics and1535 native paths preserved. [Evidence and resume point](benchmarks/external-effects-catalog/bomd-r2j1-source-foundation-review.md).
+
+## R2j2 — Bosses of Mass Destruction shared admission
+
+Confirmed native Holder/value filter mismatch without repairing it; preserved rejected-hit callbacks, requested-damage memory, strict HP milestones and cap-safe single healing point. [Evidence and resume point](benchmarks/external-effects-catalog/bomd-r2j2-shared-admission-review.md).
