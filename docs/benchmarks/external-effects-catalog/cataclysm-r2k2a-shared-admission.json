@@ -1,0 +1,405 @@
+{
+  "schema": "tno.external_effects.cataclysm_shared.v1",
+  "checkpoint": "R2k2a-cataclysm-shared-admission-complete",
+  "previous_checkpoint": "R2k1-cataclysm-source-foundation",
+  "starting_sha": "4c8e24d9a493617cd9cf158e210877e15ef437ec",
+  "status": "SHARED_ADMISSION_AND_RESOURCE_CONTRACTS_COMPLETE",
+  "scope": "Shared Cataclysm native boss hurt/effect admission, damage bucket, self-heal, home/life and death contracts; concrete overrides remain pending.",
+  "summary": "Separated target admission from scalable heal: causing-owner range, rollback bucket with0.1 minimum request, real Holder whitelist and successful-tagged-hit regen timer. Seven packages and sixteen future paths; no production edits.",
+  "facts": {
+    "authority_and_scope": "Six installed Cataclysm class witnesses and patched Minecraft1.21.1/NeoForge21.1.244 pin the shared contracts below. The inheritance index records thirteen classes, including two bases and eleven concrete subclasses. Concrete hurt/cap/phase/immunity overrides remain family work; these contracts apply only when that actual call chain reaches the shared implementation. No boss runtime tests or generic compatibility guarantee.",
+    "hurt_order": "Both LLibrary_Boss_Monster.hurt and IABoss_monster.hurt first call virtual isInvulnerableTo(source), rejecting when true. Next, BYPASSES_INVULNERABILITY directly returns super.hurt(source,original amount), skipping the shared cap/range/bucket and self-regen timer bookkeeping. Otherwise clamp amount to min(DamageCap(),incoming), apply causing-entity distance admission/falloff, save the prior bucket, update the bucket unless cataclysm:bypasses_hurt_time, then call super.hurt with the SAME source and selected amount. Successful hurt resets self_regen only for cataclysm:block_self_regen; failed hurt rolls back the bucket. Standard native cooldown, armor, shield, Resistance and event processing remain downstream. A true hurt return is not proof of final HP loss.",
+    "range": "Animation_Monsters.calculateRange reads source.getEntity(), the causing entity, and its CURRENT distanceSquared from the boss. Null causing entity returns -1 and skips this distance gate; direct projectile distance, launch position, source position and LOS are not tested here. Let L=RangeLimit(): distance>=1.5L rejects, distance>L multiplies amount by (1.5L-distance)/(0.5L) and rejects a nonpositive result. Exact L admits without attenuation; exact1.5L rejects. Anonymous environmental damage and projectiles with/without causing owners are distinct native fixtures. Do not invent an owner to change this admission.",
+    "bucket": "Bucket capacity is DamageCap(), NOT DpsCap(). After per-hit cap/falloff, projected=bucket+amount. If projected exceeds capacity: positive remaining room becomes the selected amount and bucket becomes capacity; with no room the code STILL attempts 0.1F damage, leaving bucket unchanged. Otherwise it adds the requested amount to the bucket. It tracks pre-mitigation requests, not measured HP loss. On failed super.hurt it restores the saved bucket. Each server tick with AI enabled drains positive bucket by DpsCap()/20 and clamps negative to0. NoAI prevents decay. cataclysm:bypasses_hurt_time skips only this bucket logic, retaining per-hit cap/range and ordinary native hurt cooldown unless another native tag bypasses that cooldown. No extra Stage multiplier belongs on caps, bucket capacity/drain, distance or the0.1 fallback: preserve this target admission after scaling a real outgoing payload at its producer.",
+    "defaults_and_tags": "Base DamageCap and DpsCap are Float.MAX_VALUE, RangeLimit Double.MAX_VALUE, NatureRegen0 and HealCooldown200; concrete overrides remain pending and must not be replaced with these defaults. Pinned MC/NeoForge/Cataclysm tag closure: bypasses_hurt_time={abyssal_burn,maledictio_sagitta,shredder,generic_kill,out_of_world,wither,neoforge:poison}; block_self_regen={generic_kill,mob_attack,out_of_world,player_attack}, with unqualified names in their natural Cataclysm or Minecraft namespace as enumerated in evidence. Ordinary arrow/thrown/explosion sources do not reset this shared timer under these shipped tags. Even tag membership does not reset on the early BYPASSES_INVULNERABILITY return. Other pack/datapack tag contributions remain unmeasured.",
+    "native_regen": "super.tick runs first. Positive self_regen decrements on both sides, even NoAI. On the server with AI enabled, self_regen<=0 AND NatureRegen()>0 AND target==null AND tickCount%20==0 call heal(NatureRegen()). No extra alive check here; native LivingEntity.heal and NeoForge healing hooks remain authoritative. Future Stage point: ONCE on the positive NatureRegen() amount entering this shared heal call; preserve cadence, target/no-AI/timer gates and native heal admission/max-HP clamp. Never also multiply config or global healing callbacks. Attack-triggered timer reset requires actual hurt=true plus the shipped tag; effect applications do not reset it by this layer.",
+    "effect_whitelist": "Both bases require effect.getEffect().getDelegate().is(cataclysm:effective_for_bosses) AND super.canBeAffected(effect). This is a real Holder tag check. The shipped replace=false whitelist has31 values:27 vanilla plus monstrous,abyssal_burn,blazing_brand,ghost_sickness. Poison,STUN,Levitation,SlowFalling and the other eight Cataclysm effects are not included by this resource. Patched addEffect posts NeoForge Applicable: DEFAULT calls the virtual filter, APPLY can admit without that filter, DO_NOT_APPLY rejects. Cataclysm mixin HEAD admission and concrete boss overrides may add gates; these are not resolved by whitelist membership. Preserve native external effect admission, including Tensura/L2 listeners. No scalable value exists in the whitelist.",
+    "home_control": "HOME_COOLDOWN is captured at instance construction as CMCommonConfig.ETC.ReturnHome*20 (installed common-file value20 seconds ->400 ticks, not proof of runtime-loaded config). finalizeSpawn initializes homeTicks; the shared base does not establish the actual home position. On server AI ticks, positive homeTicks decrements, any non-null target resets it, and <=0 invokes ReturnToHome when HOME_COOLDOWN>0. With saved home and ServerLevel: cross-dimension home with an existing server level uses native changeDimension and resets timer; otherwise a position not closer than16 to the block center uses moveTo(x+.5,y,z+.5) and resets timer. If destination level lookup fails it can fall through to that same-coordinate move in the current dimension. No additional LOS/collision/ground gate or direct heal is present in this helper. Portal prohibition does not cancel the explicit native dimension call shown. Native hooks downstream remain intact. Home GlobalPos persists; legacy Home doubles load in OVERWORLD. homeTicks,self_regen and bucket are not serialized here; loading begins with their zero defaults unless concrete code changes them. Test restored home/target state separately from fresh finalizeSpawn.",
+    "life_retry": "IABoss alone defines synced LIFE default0 and persists LifeRemain. PlayerCounter counts alive, noncreative, nonspectator Players in box.inflate64 with strict distanceSquared<4096, then sets LIFE. awardKillScore for a killed ServerPlayer decrements LIFE when >0, otherwise calls Retry BEFORE super.awardKillScore. Transition1->0 does not itself call Retry; the next credited ServerPlayer kill while0 does. Base Retry is empty. Actual callers and concrete Retry behavior remain boss-family review. This is native retry bookkeeping, not HP/SHP and not a Stage-scalable payload.",
+    "death_and_collision": "Animation_Monsters.die first allows CommonHooks.onLivingDeath cancellation, then processes only not removed/not already dead. It resolves native kill credit, awards score, marks dead and records combat; server death side effects (including AfterDefeatBoss) additionally require causing entity null OR causingEntity.killedEntity(server,this) true. Server death broadcast follows regardless of that callback result. onDeathUpdate calls onDeathAIUpdate before incrementing deathTime and server removal at the chosen duration. IA defaults20; LLibrary uses death animation duration-20 or20, with concrete combat death callbacks deferred. Ordinary IA collision pushes contain no damage/effect, use horizontal native motion and canBePushedByEntity; IABoss returns true. Both bases prohibit riding/portals and ordinary far/peaceful despawn. These lifecycle/ordinary collision facts add no Stage value; special attack knockback remains at its concrete producer.",
+    "configuration_and_boundaries": "setConfigattribute applies native transient ADD_VALUE modifiers baseHP*hpConfig-baseHP and baseAttack*damageConfig-baseAttack, then initializes health to max. This is construction/configuration, not an independent heal delivery; concrete constructor use remains pending. Keep native configured attack damage as the input to any future one-time payload scaling. Rendering/animation-only/loot/progression utility is excluded; actual death combat callbacks remain in scope. Research changes no production, source identities, HP/SHP, Stage or eligibility."
+  },
+  "mechanic_packages": [
+    {
+      "id": "cataclysm:shared_hurt",
+      "name": "Shared boss cap, causing-distance and request bucket",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native target admission, bookkeeping or lifecycle; no separate payload for Stage.",
+      "delivery_paths": [
+        "cataclysm:shared:llibrary_hurt",
+        "cataclysm:shared:ia_hurt",
+        "cataclysm:shared:range_owner",
+        "cataclysm:shared:tag_bypasses",
+        "cataclysm:shared:bucket_tick"
+      ]
+    },
+    {
+      "id": "cataclysm:shared_regen_timer",
+      "name": "Successful tagged-hit native regen cooldown",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native target admission, bookkeeping or lifecycle; no separate payload for Stage.",
+      "delivery_paths": [
+        "cataclysm:shared:regen_timer"
+      ]
+    },
+    {
+      "id": "cataclysm:shared_heal",
+      "name": "Targetless native boss regeneration",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NUMERIC_SCALABLE"
+      ],
+      "stage_scaling_needed": true,
+      "single_scaling_point": "Once on positive NatureRegen() heal argument in the shared tick call; retain native cadence, gates and heal hooks.",
+      "stage_reason": "Native target admission, bookkeeping or lifecycle; no separate payload for Stage.",
+      "delivery_paths": [
+        "cataclysm:shared:llibrary_heal",
+        "cataclysm:shared:ia_heal"
+      ]
+    },
+    {
+      "id": "cataclysm:shared_effect_admission",
+      "name": "Shared boss whitelist and native effect admission",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native target admission, bookkeeping or lifecycle; no separate payload for Stage.",
+      "delivery_paths": [
+        "cataclysm:shared:llibrary_effect",
+        "cataclysm:shared:ia_effect"
+      ]
+    },
+    {
+      "id": "cataclysm:shared_home",
+      "name": "Native boss home timer and teleport",
+      "primary_classification": "CUSTOM_CONTROL",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native target admission, bookkeeping or lifecycle; no separate payload for Stage.",
+      "delivery_paths": [
+        "cataclysm:shared:home_same_level",
+        "cataclysm:shared:home_dimension",
+        "cataclysm:shared:home_reload"
+      ]
+    },
+    {
+      "id": "cataclysm:shared_life",
+      "name": "Native IA player-count and retry resource",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native target admission, bookkeeping or lifecycle; no separate payload for Stage.",
+      "delivery_paths": [
+        "cataclysm:shared:ia_life"
+      ]
+    },
+    {
+      "id": "cataclysm:shared_death",
+      "name": "Native boss death admission and delayed removal",
+      "primary_classification": "BINARY_MECHANIC",
+      "tno_categories": [
+        "COMPOSITE",
+        "ADMISSION_GATED",
+        "NO_STAGE_VALUE"
+      ],
+      "stage_scaling_needed": false,
+      "single_scaling_point": null,
+      "stage_reason": "Native target admission, bookkeeping or lifecycle; no separate payload for Stage.",
+      "delivery_paths": [
+        "cataclysm:shared:llibrary_death",
+        "cataclysm:shared:ia_death"
+      ]
+    }
+  ],
+  "delivery_paths": [
+    {
+      "id": "cataclysm:shared:llibrary_hurt",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Concrete boss -> LLibrary_Boss_Monster.hurt -> native parent hurt",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "per-hit cap and bucket room/full0.1",
+        "true/false rollback and actual HP",
+        "concrete pre/post gates"
+      ]
+    },
+    {
+      "id": "cataclysm:shared:ia_hurt",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Concrete boss -> IABoss_monster.hurt -> native parent hurt",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "per-hit cap and bucket room/full0.1",
+        "true/false rollback and actual HP",
+        "concrete pre/post gates"
+      ]
+    },
+    {
+      "id": "cataclysm:shared:range_owner",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Source causing entity -> calculateRange -> falloff/rejection",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "current causing owner vs nearby direct projectile",
+        "L and1.5L boundaries",
+        "null causing source"
+      ]
+    },
+    {
+      "id": "cataclysm:shared:tag_bypasses",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native source tags -> early bypass OR bucket-only bypass",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "bypasses_invulnerability initial isInvulnerableTo",
+        "cataclysm hurt-time vs vanilla cooldown bypass",
+        "source tags/direct/causing unchanged"
+      ]
+    },
+    {
+      "id": "cataclysm:shared:bucket_tick",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "AI-enabled server tick -> DpsCap()/20 bucket decay",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "NoAI freeze then resume",
+        "requested amount vs mitigated HP",
+        "full bucket minimum0.1 still native hurt"
+      ]
+    },
+    {
+      "id": "cataclysm:shared:regen_timer",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Successful tagged native hit -> HealCooldown -> tick countdown",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "melee/player tagged true/false",
+        "arrow/thrown/explosion shipped untagged",
+        "early bypass skips reset"
+      ]
+    },
+    {
+      "id": "cataclysm:shared:llibrary_heal",
+      "labels": [
+        "PASSIVE_AURA"
+      ],
+      "native_path": "LLibrary_Boss_Monster.tick -> positive NatureRegen -> heal",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "target/noAI/timer/20tick boundaries",
+        "native heal hooks and max HP"
+      ]
+    },
+    {
+      "id": "cataclysm:shared:ia_heal",
+      "labels": [
+        "PASSIVE_AURA"
+      ],
+      "native_path": "IABoss_monster.tick -> positive NatureRegen -> heal",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "target/noAI/timer/20tick boundaries",
+        "native heal hooks and max HP"
+      ]
+    },
+    {
+      "id": "cataclysm:shared:llibrary_effect",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native addEffect -> mixin/Applicable -> LLibrary whitelist -> super",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "whitelisted/unlisted effect",
+        "DEFAULT/APPLY/DO_NOT_APPLY",
+        "concrete whitelist override"
+      ]
+    },
+    {
+      "id": "cataclysm:shared:ia_effect",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native addEffect -> mixin/Applicable -> IA whitelist -> super",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "whitelisted/unlisted effect",
+        "DEFAULT/APPLY/DO_NOT_APPLY",
+        "concrete whitelist override"
+      ]
+    },
+    {
+      "id": "cataclysm:shared:home_same_level",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native targetless home timer -> ReturnToHome -> moveTo",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "each base/noAI/non-null target",
+        "home null/near/exact16/far",
+        "no direct heal"
+      ]
+    },
+    {
+      "id": "cataclysm:shared:home_dimension",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native saved home -> server lookup -> changeDimension or coordinate fallback",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "destination exists/missing",
+        "native dimension hooks",
+        "source state persisted on transfer"
+      ]
+    },
+    {
+      "id": "cataclysm:shared:home_reload",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native NBT HomePos/legacy Home load -> zero-default timers -> tick",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "finalizeSpawn vs load",
+        "legacy Overworld home",
+        "bucket and regen timer reset at shared layer"
+      ]
+    },
+    {
+      "id": "cataclysm:shared:ia_life",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Concrete caller -> PlayerCounter -> LIFE -> credited ServerPlayer kill -> Retry",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "native caller still family-dependent",
+        "strict64 boundary/noncreative/alive",
+        "1->0 vs next kill at0",
+        "LifeRemain reload"
+      ]
+    },
+    {
+      "id": "cataclysm:shared:llibrary_death",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native death hook -> die -> animation duration -> onDeathAIUpdate/removal",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "death cancellation",
+        "causing killedEntity result",
+        "concrete death action deferred"
+      ]
+    },
+    {
+      "id": "cataclysm:shared:ia_death",
+      "labels": [
+        "OTHER"
+      ],
+      "native_path": "Native death hook -> die -> deathtimer -> onDeathAIUpdate/removal",
+      "runtime_status": "NOT_RUN",
+      "runtime_variants": [
+        "death cancellation",
+        "causing killedEntity result",
+        "concrete death action deferred"
+      ]
+    }
+  ],
+  "review_required": [
+    {
+      "id": "cataclysm-shared-integration",
+      "reason": "Runtime fixtures must observe native source/return/HP/effect distinctions and external event/tag contributions. No runtime compatibility certification or repair."
+    }
+  ],
+  "remaining_subsection_native_ambiguities": [],
+  "exact_next_task": "R2k2b: Cataclysm status/control and global event admission. Begin STUN and both LivingEntityMixin addEffect overloads, Unbreakable Skull cooldown, attack/use/jump/target hooks; then the other eleven registered effects and real native producers. Concrete boss overrides/attacks and equipment remain pending. Continue automatically while quota is healthy; static only.",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "cataclysm",
+  "runtime_tests": 0,
+  "whole_mod_complete": false,
+  "promoted_mechanics": 0,
+  "promoted_paths": 0,
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false,
+  "reference_files": [
+    {
+      "file": "native-evidence/cataclysm-shared.json",
+      "sha256": "cef8d95ad4a9b87973651802b4d794bf34594a7a21be5b2dd853150d49852f83"
+    },
+    {
+      "file": "reference-evidence/cataclysm-shared-244.json",
+      "sha256": "b518bffcd7bdc71ccc1fdf1e8f0a941e143458a5c1bfd58b8fbe931dce1025ae"
+    },
+    {
+      "file": "reference-evidence/bomd-shared-244.json",
+      "sha256": "e414210a3e350720dc75d2690968923ec576f51da25f69f1f523dbef5ee20b99"
+    },
+    {
+      "file": "cataclysm-boss-inheritance.json",
+      "sha256": "3ec6378c7d92d4a912dcde63c15a6ff86cf340ea180449d85e81702c0303082f"
+    },
+    {
+      "file": "cataclysm-shared-tags.json",
+      "sha256": "223c1c5b923e1201e51fc16651d0e2dca4b18fa5d0b40c089dc1af838d7c03ae"
+    },
+    {
+      "file": "native-evidence/cataclysm-foundation.json",
+      "sha256": "1647913e4a701c270f01a3fce98b7e15d6d2e5560c7e677a9c39fe09e7f1e78e"
+    },
+    {
+      "file": "cataclysm-installed-common-config.json",
+      "sha256": "4f2c9c7c9837b796f8d3b8af8117a6b1f2ad7c54001597ac9b3ac30ab52f80ec"
+    }
+  ]
+}

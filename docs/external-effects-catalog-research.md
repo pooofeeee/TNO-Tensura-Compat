@@ -1014,3 +1014,7 @@ Zero-hit pearl, registered food HP effects, native wall traversal, Monolith radi
 ## R2k1 — Cataclysm source foundation
 
 Pinned12 effects,15 bundled DamageTypes/20 code keys, native source identity and shared event/mixin/boss admission foundations. [Evidence and resume point](benchmarks/external-effects-catalog/cataclysm-r2k1-source-foundation-review.md).
+
+## R2k2a — Cataclysm shared boss admission
+
+Separated target admission from scalable heal: causing-owner range, rollback bucket with0.1 minimum request, real Holder whitelist and successful-tagged-hit regen timer. Seven packages and sixteen future paths; no production edits. [Evidence and resume point](benchmarks/external-effects-catalog/cataclysm-r2k2a-shared-admission-review.md).
