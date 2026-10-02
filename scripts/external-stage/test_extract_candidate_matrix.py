@@ -14,8 +14,9 @@ class CandidateMatrixTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.manifest = json.loads(extractor.INPUT.read_bytes())
-        cls.payload = extractor.OUTPUT.read_bytes()
-        cls.matrix = json.loads(cls.payload)
+        # Exercise initial manifest extraction independently of the recovery pass.
+        cls.matrix = extractor.compile_matrix(cls.manifest)
+        cls.payload = extractor.serialize_matrix(cls.matrix)
         cls.records = cls.matrix["mechanics"]
         cls.by_identity = {(record["mod_key"], record["mechanic_id"]): record for record in cls.records}
 

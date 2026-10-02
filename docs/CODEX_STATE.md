@@ -123,6 +123,8 @@ The compact `docs/external-stage/integration-manifest.json` now exists, generate
 
 `docs/external-stage/stage-candidate-matrix.json`, generated only from that manifest, is now the preferred source for deciding future external Stage integrations; legacy unscoped names still require mapping review.
 
+Exact component numerical-parameter key recovery now resolves 156 legacy matrix candidates; 33 mechanics still need mapping review. This recovery chooses no Stage eligibility or policy.
+
 ## Example external candidates already identified
 
 Royal Variations contains verified Stage-candidate parameters such as:
