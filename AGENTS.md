@@ -1,0 +1,21 @@
+# Codex project instructions
+
+- Read `docs/CODEX_STATE.md` before changing code.
+- Work from the current production-continuation branch. Do not modify `main` or `external-effects-catalog-research` unless explicitly requested.
+- Phase 6 production behavior is the accepted baseline. Do not redesign or rebalance it unless the task explicitly authorizes that.
+- The six accepted native Stage families are: Magic Weapon, Holy Weapon, Soul Eater, Elemental/Slotting, Energy Steal, and Severance.
+- Tensura native Gear EP is authoritative. Do not add a second EP counter, Stage store, Stage XP system, or duplicate progression state.
+- Preserve native source identity, events, eligibility, immunity, cancellation, lifecycle, ownership, and delivery paths unless the task explicitly targets one of those behaviors.
+- For external mechanics, TNO should scale only an explicitly selected numeric parameter at one proven boundary. Do not recreate the native mechanic, emit duplicate damage/effects/events, or apply Stage twice.
+- For delayed mechanics, snapshot attack/activation-time Stage only when required to preserve ownership of the original source.
+- Binary behavior is not Stage-scaled by default. Examples: whether an effect applies, immunity, nullification, teleport permission, cancellation, team checks, death gates, or native lifecycle rules.
+- `external-effects-catalog-research` is a cold reference archive. Do not recursively read or summarize it by default.
+- If external research is needed, query only the exact mechanic/class/method/evidence file needed to unblock the current task. Reuse existing conclusions before doing new research.
+- Do not start broad boss, L2, balance, whole-JAR, or compatibility research unless explicitly requested.
+- Keep tasks small. Prefer one mechanic or one shared scaling primitive per task.
+- Prefer existing production patterns over new abstractions unless the current task truly needs a reusable primitive.
+- Run targeted tests first. Run a full clean build once at a meaningful closure point, not after every small edit.
+- Keep command output concise. Save long logs to files and inspect only relevant failures/tails.
+- Do not create large benchmark/evidence trees for ordinary implementation work.
+- Historical research files are evidence, not required context for every task.
+- Do not start the proposed Royal Variations pilot until explicitly asked. The initial pilot candidates are Dazed, Marked, and Time Bomb.
