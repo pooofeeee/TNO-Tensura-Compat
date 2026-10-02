@@ -129,6 +129,10 @@ Royal Variations contains verified Stage-candidate parameters such as:
 
 These are candidates only. No generic production formula has been approved yet.
 
+## Generic External Stage Contract core
+
+The reusable contract/policy core exists under `core/stage/external/`. No external mechanic is integrated yet.
+
 ## Next implementation milestone
 
 Design and implement the Generic External Stage Integration Contract.
