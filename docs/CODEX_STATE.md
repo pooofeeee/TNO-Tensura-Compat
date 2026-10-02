@@ -121,6 +121,8 @@ Reuse this archive only when the current implementation task needs a specific fa
 
 The compact `docs/external-stage/integration-manifest.json` now exists, generated only from the nine completed static reviews. It is the preferred first source for future external Stage tasks; the large research branch remains cold evidence for exact follow-up only.
 
+`docs/external-stage/stage-candidate-matrix.json`, generated only from that manifest, is now the preferred source for deciding future external Stage integrations; legacy unscoped names still require mapping review.
+
 ## Example external candidates already identified
 
 Royal Variations contains verified Stage-candidate parameters such as:
