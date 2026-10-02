@@ -1,0 +1,312 @@
+{
+  "mechanics": [
+    {
+      "decisions": [
+        {
+          "candidate_name": "amplifier",
+          "candidate_parameter": "amplifier",
+          "confidence": "HIGH",
+          "disposition": "MECHANIC_LEVEL_PARAMETER",
+          "integration_shape": "PRIMITIVE_COMPOSITION",
+          "packet_evidence": [
+            "/components/0/formula",
+            "/components/1/formula",
+            "/components/2/formula",
+            "/components/3/formula"
+          ],
+          "reason": "The status amplifier feeds movement, frozen-gauge growth and the freeze-damage bonus, and FIRE_DOWNRANK changes it. It is shared status state, not one component's parameter."
+        },
+        {
+          "candidate_name": "duration",
+          "candidate_parameter": "duration",
+          "confidence": "HIGH",
+          "disposition": "MECHANIC_LEVEL_PARAMETER",
+          "integration_shape": "PRIMITIVE_COMPOSITION",
+          "packet_evidence": [
+            "/numerical_parameters/twilightforest:frosted_package/helper_sword_arrow_duration_ticks",
+            "/actual_behavior/5"
+          ],
+          "reason": "The helper supplies a 200-tick Frosted duration; fire downrank retains the effect's remaining duration and hidden chain. Duration belongs to the composite effect's lifetime."
+        },
+        {
+          "candidate_name": "freeze damage increment",
+          "candidate_parameter": "freeze damage increment",
+          "confidence": "HIGH",
+          "disposition": "MAP_EXISTING_COMPONENT",
+          "integration_shape": "CUSTOM_SPECIAL",
+          "packet_evidence": [
+            "/components/2/formula",
+            "/components/2/vanilla_relation"
+          ],
+          "reason": "NATIVE_FREEZE_DAMAGE explicitly adds floor(amp/2) for the exact freeze source. This custom incoming bonus is distinct from the base request, gauge growth and movement modifier.",
+          "target_primitive": "NATIVE_FREEZE_DAMAGE"
+        },
+        {
+          "candidate_name": "movement coefficient",
+          "candidate_parameter": "movement coefficient",
+          "confidence": "HIGH",
+          "disposition": "MAP_EXISTING_COMPONENT",
+          "integration_shape": "VANILLA_REUSE",
+          "packet_evidence": [
+            "/components/0/numerical_parameters/coefficient",
+            "/components/0/formula",
+            "/components/0/vanilla_relation",
+            "/actual_behavior/2"
+          ],
+          "reason": "MOVEMENT_ATTRIBUTE lists coefficient -0.15 and the Slowness-style multiplied-total modifier with a distinct id. The native frozen-ground flat penalty remains a separate contribution.",
+          "target_primitive": "MOVEMENT_ATTRIBUTE"
+        }
+      ],
+      "mechanic_id": "twilightforest:frosted_package",
+      "mod_key": "twilightforest",
+      "packet_component_primitives": [
+        "MOVEMENT_ATTRIBUTE",
+        "POWDER_SNOW_AND_FROZEN_GAUGE",
+        "NATIVE_FREEZE_DAMAGE",
+        "FIRE_DOWNRANK"
+      ],
+      "primary_classification": "CUSTOM_STATUS"
+    },
+    {
+      "decisions": [
+        {
+          "candidate_name": "damage request",
+          "candidate_parameter": "damage request",
+          "confidence": "HIGH",
+          "disposition": "MAP_EXISTING_COMPONENT",
+          "integration_shape": "CUSTOM_SPECIAL",
+          "packet_evidence": [
+            "/components/0/formula",
+            "/components/0/vanilla_relation",
+            "/actual_behavior/0"
+          ],
+          "reason": "CUSTOM_DAMAGE_REQUEST owns the contact/zone multiplier and heat-sensitive factor through a custom frozen DamageType. Frosted admission and Yeti replacement are separate operations.",
+          "target_primitive": "CUSTOM_DAMAGE_REQUEST"
+        },
+        {
+          "candidate_name": "status duration",
+          "candidate_parameter": "status duration",
+          "confidence": "HIGH",
+          "disposition": "MAP_EXISTING_COMPONENT",
+          "integration_shape": "PRIMITIVE_COMPOSITION",
+          "packet_evidence": [
+            "/components/1/formula",
+            "/components/1/vanilla_relation",
+            "/components/2/formula"
+          ],
+          "reason": "FROSTED explicitly supplies duration100*m independently of hurt. It references the separate composite Frosted package; this duration is not the lingering zone's timer.",
+          "target_primitive": "FROSTED"
+        },
+        {
+          "candidate_name": "zone bounds",
+          "candidate_parameter": "zone bounds",
+          "confidence": "HIGH",
+          "disposition": "MAP_EXISTING_COMPONENT",
+          "integration_shape": "CUSTOM_SPECIAL",
+          "packet_evidence": [
+            "/components/2/formula",
+            "/numerical_parameters/twilightforest:ice_bomb_package/zone_inflate",
+            "/components/4/formula"
+          ],
+          "reason": "REPEATED_ZONE gives the victim-query AABB inflate3,2,3, also recorded as zone_inflate. TERRAIN_FREEZE's block-change ranges are a different operation.",
+          "target_primitive": "REPEATED_ZONE"
+        },
+        {
+          "candidate_name": "zone interval",
+          "candidate_parameter": "zone interval",
+          "confidence": "HIGH",
+          "disposition": "MAP_EXISTING_COMPONENT",
+          "integration_shape": "CUSTOM_SPECIAL",
+          "packet_evidence": [
+            "/components/2/formula",
+            "/numerical_parameters/twilightforest:ice_bomb_package/zone_interval"
+          ],
+          "reason": "REPEATED_ZONE's callbacks at 100,80,60,40,20,0 agree with zone_interval20. This is the custom zone callback cadence, distinct from Frosted duration and terrain timing.",
+          "target_primitive": "REPEATED_ZONE"
+        },
+        {
+          "candidate_name": "zone lifetime",
+          "candidate_parameter": "zone lifetime",
+          "confidence": "HIGH",
+          "disposition": "MAP_EXISTING_COMPONENT",
+          "integration_shape": "CUSTOM_SPECIAL",
+          "packet_evidence": [
+            "/components/2/formula",
+            "/numerical_parameters/twilightforest:ice_bomb_package/zone_initial_timer"
+          ],
+          "reason": "REPEATED_ZONE owns timer101 and its callback schedule through zero; zone_initial_timer101 supplies the same lifetime state. The status duration and terrain changes stay separate.",
+          "target_primitive": "REPEATED_ZONE"
+        }
+      ],
+      "mechanic_id": "twilightforest:ice_bomb_package",
+      "mod_key": "twilightforest",
+      "packet_component_primitives": [
+        "CUSTOM_DAMAGE_REQUEST",
+        "FROSTED",
+        "REPEATED_ZONE",
+        "YETI_REPLACEMENT",
+        "TERRAIN_FREEZE"
+      ],
+      "primary_classification": "CUSTOM_DAMAGE"
+    },
+    {
+      "decisions": [
+        {
+          "candidate_name": "assigned frozen ticks",
+          "candidate_parameter": "assigned frozen ticks",
+          "confidence": "HIGH",
+          "disposition": "MAP_EXISTING_COMPONENT",
+          "integration_shape": "VANILLA_REUSE",
+          "packet_evidence": [
+            "/components/0/formula",
+            "/components/0/numerical_parameters/assignment",
+            "/numerical_parameters/absolute_frozen_ticks"
+          ],
+          "reason": "FREEZE explicitly assigns frozen ticks with assignment240, matching absolute_frozen_ticks240. This timer write is distinct from native movement reduction and freeze DOT.",
+          "target_primitive": "FREEZE"
+        },
+        {
+          "candidate_name": "snowball requested damage",
+          "candidate_parameter": "snowball requested damage",
+          "confidence": "HIGH",
+          "disposition": "MAP_EXISTING_COMPONENT",
+          "integration_shape": "VANILLA_REUSE",
+          "packet_evidence": [
+            "/components/3/formula",
+            "/components/3/numerical_parameters/mod_request",
+            "/numerical_parameters/snowball_requested_damage"
+          ],
+          "reason": "DIRECT_DAMAGE owns mod_request4 before the timer write. The later native snowball Blaze/other requests and the freeze DOT are separately described contributions.",
+          "target_primitive": "DIRECT_DAMAGE"
+        }
+      ],
+      "mechanic_id": "variantsandventures:frozen_ticks_set",
+      "mod_key": "variantsandventures",
+      "packet_component_primitives": [
+        "FREEZE",
+        "MOVEMENT_REDUCTION",
+        "DOT",
+        "DIRECT_DAMAGE"
+      ],
+      "primary_classification": "VANILLA_DIRECT"
+    },
+    {
+      "decisions": [
+        {
+          "candidate_name": "MobEffectInstance amplifier",
+          "candidate_parameter": "MobEffectInstance amplifier",
+          "confidence": "HIGH",
+          "disposition": "MAP_EXISTING_COMPONENT",
+          "integration_shape": "VANILLA_REUSE",
+          "packet_evidence": [
+            "/components/0/numerical_parameters/amplifier",
+            "/components/0/formula",
+            "/numerical_parameters/constructed_payload_amplifier",
+            "/closest_vanilla_equivalent"
+          ],
+          "reason": "The vanilla Poison DOT component lists amplifier0 and its amplifier-dependent tick cadence, matching constructed_payload_amplifier0. Native effect admission and the HP gate remain native.",
+          "target_primitive": "DOT"
+        },
+        {
+          "candidate_name": "payload duration",
+          "candidate_parameter": "payload duration",
+          "confidence": "HIGH",
+          "disposition": "MAP_EXISTING_COMPONENT",
+          "integration_shape": "VANILLA_REUSE",
+          "packet_evidence": [
+            "/components/0/numerical_parameters/payload_ticks",
+            "/numerical_parameters/constructed_payload_duration_ticks",
+            "/closest_vanilla_equivalent",
+            "/vanilla_differences"
+          ],
+          "reason": "DOT explicitly lists payload_ticks100, matching constructed_payload_duration_ticks100 for the vanilla Poison payload. The external delivery paths do not create another status primitive.",
+          "target_primitive": "DOT"
+        }
+      ],
+      "mechanic_id": "variantsandventures:poison_payload",
+      "mod_key": "variantsandventures",
+      "packet_component_primitives": [
+        "DOT"
+      ],
+      "primary_classification": "VANILLA_DIRECT"
+    },
+    {
+      "decisions": [
+        {
+          "candidate_name": "water velocity retention coefficient",
+          "candidate_parameter": "water velocity retention coefficient",
+          "confidence": "HIGH",
+          "disposition": "MAP_EXISTING_COMPONENT",
+          "integration_shape": "VANILLA_REUSE",
+          "packet_evidence": [
+            "/components/0/formula",
+            "/components/0/numerical_parameters/water_retention",
+            "/components/0/binary_parameters",
+            "/closest_vanilla_equivalent"
+          ],
+          "reason": "PROJECTILE_MOTION multiplies native arrow water velocity by water_retention0.99 under Murk-owner/in-water gates. It remains a delivery-motion parameter, not damage or a target status.",
+          "target_primitive": "PROJECTILE_MOTION"
+        }
+      ],
+      "mechanic_id": "variantsandventures:underwater_arrow_inertia",
+      "mod_key": "variantsandventures",
+      "packet_component_primitives": [
+        "PROJECTILE_MOTION"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED"
+    },
+    {
+      "decisions": [
+        {
+          "candidate_name": "conversion countdown",
+          "candidate_parameter": "conversion countdown",
+          "confidence": "HIGH",
+          "disposition": "MAP_EXISTING_COMPONENT",
+          "integration_shape": "CUSTOM_SPECIAL",
+          "packet_evidence": [
+            "/components/0/formula",
+            "/components/0/numerical_parameters/countdown",
+            "/numerical_parameters/initial_countdown",
+            "/vanilla_differences"
+          ],
+          "reason": "TIMED_TRANSFORMATION explicitly owns countdown300 and conversion at <0. Zombie-to-Gelid replacement and its different persistence/event behavior require special native handling.",
+          "target_primitive": "TIMED_TRANSFORMATION"
+        },
+        {
+          "candidate_name": "exposure threshold",
+          "candidate_parameter": "exposure threshold",
+          "confidence": "HIGH",
+          "disposition": "MAP_EXISTING_COMPONENT",
+          "integration_shape": "CUSTOM_SPECIAL",
+          "packet_evidence": [
+            "/components/0/formula",
+            "/components/0/numerical_parameters/exposure",
+            "/numerical_parameters/exposure_start_threshold",
+            "/components/0/binary_parameters"
+          ],
+          "reason": "TIMED_TRANSFORMATION lists numeric exposure140 before countdown start, matching exposure_start_threshold140. Server/alive/AI/powder-snow admission remains separate from this numeric threshold.",
+          "target_primitive": "TIMED_TRANSFORMATION"
+        }
+      ],
+      "mechanic_id": "variantsandventures:zombie_powder_snow_conversion",
+      "mod_key": "variantsandventures",
+      "packet_component_primitives": [
+        "TIMED_TRANSFORMATION"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED"
+    }
+  ],
+  "review_scope": "Candidate meaning only; Stage eligibility and numeric policies remain undecided. Integration shape describes each candidate in its existing native context.",
+  "reviewed_mechanic_ids": [
+    "twilightforest:frosted_package",
+    "twilightforest:ice_bomb_package",
+    "variantsandventures:frozen_ticks_set",
+    "variantsandventures:poison_payload",
+    "variantsandventures:underwater_arrow_inertia",
+    "variantsandventures:zombie_powder_snow_conversion"
+  ],
+  "schema_version": 1,
+  "source_commit": "22b6844b0d854b005e32dc2f1b32f4435855e54a",
+  "source_packet": "docs/external-stage/mapping-review-packets.json",
+  "source_ref": "external-effects-catalog-research"
+}
