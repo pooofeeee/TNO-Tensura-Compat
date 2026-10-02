@@ -43,3 +43,14 @@ This pass uses the existing matrix and reads only `cultofazazel.json`, `twilight
 One matching component yields `RECOVERED_EXACT`, the original name in `parameters`, and recovery provenance naming the exact key container. Zero/multiple matches remain `LEGACY_UNSCOPED` with `NO_EXACT_COMPONENT_MATCH` / `AMBIGUOUS_COMPONENT_MATCH`; ambiguous primitive names are retained. Original `STRUCTURED` objects and component context remain unchanged. The summary adds original-structured, recovered-exact, unresolved-no-match, unresolved-ambiguous, and mechanics-needing-review counts; the existing structured-pair statistics continue to describe original structured candidates. Recovery proves a mapping only, not Stage eligibility or a policy.
 
 Re-running recovery is byte-identical. `--ref <source-commit>` replays the pinned checkpoint; existing recovered mappings cannot be mixed with another commit. If rebuilding the matrix from the integration manifest, run initial extraction followed by recovery before using the matrix. The recovery script never checks out or merges a branch and reads no other mod reviews.
+
+## Unresolved mapping review packets
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 python3 scripts/external-stage/extract_mapping_review_packets.py
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts/external-stage -p test_extract_mapping_review_packets.py -v
+```
+
+The packet generator selects only matrix mechanics containing `needs_mapping_review: true`. It reads their exact source IDs from the same three allowlisted completed reviews at the matrix's recovery checkpoint, using Git object reads. It copies unresolved names, reasons and ambiguous primitive lists unchanged; it does not attempt another mapping. Packet fields and component fields use explicit allowlists. Native numerical keys and non-text values remain unchanged; missing fields stay absent/null. Component order is retained.
+
+All source-prose string leaves have whitespace normalized and are limited to 240 characters. Longer leaves become word-boundary source prefixes marked `…`, without synthesized summaries. Implementation/audit fields and delivery evidence are omitted. The source ref, commit, three review paths and byte counts provide compact provenance and size validation. Packets sort by `(mod_key, mechanic_id)` and unresolved candidate name; repeated generation is byte-identical. `--ref <source-commit>` and `--output <path>` support reproducible comparisons. Open exact cold evidence only when these excerpts and native parameter fields are insufficient.

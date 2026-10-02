@@ -125,6 +125,8 @@ The compact `docs/external-stage/integration-manifest.json` now exists, generate
 
 Exact component numerical-parameter key recovery now resolves 156 legacy matrix candidates; 33 mechanics still need mapping review. This recovery chooses no Stage eligibility or policy.
 
+Future unresolved mapping review should use `docs/external-stage/mapping-review-packets.json` first and open exact cold evidence only when the packet is genuinely insufficient.
+
 ## Example external candidates already identified
 
 Royal Variations contains verified Stage-candidate parameters such as:
