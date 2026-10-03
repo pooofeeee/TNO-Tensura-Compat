@@ -1,0 +1,1599 @@
+{
+  "schema": "tno.external_effects.cataclysm_harbinger_offense.v1",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "cataclysm",
+  "checkpoint": "R2k6b-cataclysm-harbinger-offense-complete",
+  "previous_checkpoint": "R2k6a-cataclysm-harbinger-admission-complete",
+  "starting_sha": "1e428ed3649fbb6142c8abe24f930c253053da07",
+  "status": "PARTIAL",
+  "scope": "Harbinger offense selection/head targeting/goals, pursuit/charge, ranged/howitzer/homing launches, six directly owned payloads, typed sources/status/kill healing, native lifetime/NBT/terrain/EMP response and death/respawner closed. R2k6a/shared/status/Guardian/Monstrosity/Ignis protected; Harbinger family closed; Cataclysm PARTIAL.",
+  "summary": {
+    "new_mechanics": 27,
+    "delivery_paths": 27,
+    "classifications": {
+      "BINARY_MECHANIC": 6,
+      "CUSTOM_CONTROL": 3,
+      "CUSTOM_DAMAGE": 2,
+      "VANILLA_COMPOSITE": 7,
+      "VANILLA_LIKE_EXTENDED": 9
+    },
+    "candidate_numeric_parameters": 88,
+    "unresolved_subsection_ambiguities": 0,
+    "new_owned_payload_classes": 6,
+    "reused_non_damage_debris_classes": 1
+  },
+  "payload_entities": [
+    {
+      "entity_id": "cataclysm:wither_missile",
+      "entry": "com/github/L_Ender/cataclysm/entity/projectile/Wither_Missile_Entity.class",
+      "role": "OWNED_PROJECTILE",
+      "source_mechanic_ids": [
+        "cataclysm:harbinger_ranged_dispatch"
+      ],
+      "payload_mechanic_ids": [
+        "cataclysm:harbinger_missile_contact",
+        "cataclysm:harbinger_missile_motion"
+      ],
+      "source_actor": "Original native owner/caster identity and native persistence; see payload records for ownerless/source alternatives.",
+      "native_lifecycle": "Projectile constructor normalizes direction*.1; tick native owner/loaded-chunk admission runs Projectile.tick, movement ray (COLLIDER), native impact hook and hitTargetOrDeflectSelf, inside-block check; save v then position+=v, rotate.2F, next velocity=(v+normalize(v)*accelerationPower)*inertia (air1/water.8F). Server removed owner or unloaded current chunk discards; client bypasses that check. No lifetime timer. Inherited owner persists; own NBT saves acceleration_power only, not DAMAGE, so native reload damage resets synced0. Unpickable and hurt alwaysfalse. Native deflection super then player sets acceleration.1, otherwise halves it."
+    },
+    {
+      "entity_id": "cataclysm:wither_homing_missile",
+      "entry": "com/github/L_Ender/cataclysm/entity/projectile/Wither_Homing_Missile_Entity.class",
+      "role": "OWNED_HOMING_PROJECTILE",
+      "source_mechanic_ids": [
+        "cataclysm:harbinger_missile_volley"
+      ],
+      "payload_mechanic_ids": [
+        "cataclysm:harbinger_homing_contact",
+        "cataclysm:harbinger_homing_motion"
+      ],
+      "source_actor": "Original native owner/caster identity and native persistence; see payload records for ownerless/source alternatives.",
+      "native_lifecycle": "Uses native Projectile trace/impact admission and old-velocity movement; acceleration/inertia air.6F/water.8F. Fuse decrements on both sides after movement, even after a discard statement. Server lazily resolves loaded target UUID once; failed lookup clears targetId. Alive finalTarget and non-spectator Player target: when distance>.1, strength=clamp((distance-1)/10,.1,1), blend normalized current velocity/target direction, normalize, then assignDirectionalMovement(newDirection,getInertia()). That helper normalizes again and fixes speed to air inertia.6F even in water. Invalid/dead/spectator target creates radius1 NONE explosion+discard, then independent fuse<=0 branch can create another radius1 explosion+discard. Native onHitEntity/onHitBlock may already have exploded earlier the same tick. No added callback suppression."
+    },
+    {
+      "entity_id": "cataclysm:wither_howitzer",
+      "entry": "com/github/L_Ender/cataclysm/entity/projectile/Wither_Howitzer_Entity.class",
+      "role": "OWNED_THROWABLE_PROJECTILE",
+      "source_mechanic_ids": [
+        "cataclysm:harbinger_launch_chain"
+      ],
+      "payload_mechanic_ids": [
+        "cataclysm:harbinger_howitzer_contact",
+        "cataclysm:harbinger_howitzer_burst"
+      ],
+      "source_actor": "Original native owner/caster identity and native persistence; see payload records for ownerless/source alternatives.",
+      "native_lifecycle": "Original native hit/parent movement and spawn/discard paths captured in payload records."
+    },
+    {
+      "entity_id": "cataclysm:wither_smoke_effect",
+      "entry": "com/github/L_Ender/cataclysm/entity/effect/Wither_Smoke_Effect_Entity.class",
+      "role": "OWNED_CUSTOM_HAZARD",
+      "source_mechanic_ids": [
+        "cataclysm:harbinger_howitzer_burst"
+      ],
+      "payload_mechanic_ids": [
+        "cataclysm:harbinger_smoke_payload",
+        "cataclysm:harbinger_smoke_lifecycle"
+      ],
+      "source_actor": "Original native owner/caster identity and native persistence; see payload records for ownerless/source alternatives.",
+      "native_lifecycle": "Native smoke constructor duration600/wait20, overridden by howitzer to300/5; radius clamp0..32 and dimensions(width2radius,height.5). Server age>=wait+duration discards and returns. Before wait only updates waiting flag then returns. Each active tick adds radiusPerTick; if result<.5 discards and returns, otherwise clamps/stores radius. Every5 ticks attempts payload. radiusOnUse and durationOnUse are stored/save/load but never consumed in tick/damage. Native getOwner lazily resolves UUID on ServerLevel; setOwner stores object+UUID. read NBT accepts Owner UUID, but addAdditionalSaveData DOES NOT WRITE Owner, so freshly saved/reloaded smoke loses caster and uses anonymous wither behavior. Saves Age,Duration,WaitTime,DurationOnUse,RadiusOnUse,RadiusPerTick,Radius."
+    },
+    {
+      "entity_id": "cataclysm:laser_beam",
+      "entry": "com/github/L_Ender/cataclysm/entity/projectile/Laser_Beam_Entity.class",
+      "role": "OWNED_CUSTOM_DAMAGE_PROJECTILE",
+      "source_mechanic_ids": [
+        "cataclysm:harbinger_ranged_dispatch"
+      ],
+      "payload_mechanic_ids": [
+        "cataclysm:harbinger_laser_contact",
+        "cataclysm:harbinger_laser_motion",
+        "cataclysm:harbinger_laser_terrain"
+      ],
+      "source_actor": "Original native owner/caster identity and native persistence; see payload records for ownerless/source alternatives.",
+      "native_lifecycle": "Native laser constructors normalize direction*.1, set native owner and synced damage. tick uses native owner/chunk admission, parent Projectile.tick, COLLIDER move trace, impact hook/deflection, inside blocks; position+=oldV then velocity=(oldV+normalize(oldV)*accelerationPower)*1. No water override or age limit. Own NBT only acceleration_power, with native parent owner; reload DAMAGE0. Unpickable and hurtfalse. onDeflection parent first, player acceleration=.1 else *=.5. No extra per-victim cache."
+    },
+    {
+      "entity_id": "cataclysm:death_laser_beam",
+      "entry": "com/github/L_Ender/cataclysm/entity/projectile/Death_Laser_Beam_Entity.class",
+      "role": "OWNED_CUSTOM_BEAM_ENTITY",
+      "source_mechanic_ids": [
+        "cataclysm:harbinger_death_laser_chain"
+      ],
+      "payload_mechanic_ids": [
+        "cataclysm:harbinger_death_laser_payload",
+        "cataclysm:harbinger_death_laser_lifecycle",
+        "cataclysm:harbinger_death_laser_terrain"
+      ],
+      "source_actor": "Original native owner/caster identity and native persistence; see payload records for ownerless/source alternatives.",
+      "native_lifecycle": "Stored Harbinger caster drives server yaw/pitch and anchorY+2.7 each tick, after initial spawnY+2.9. Native endpoint30 uses synced angles on server; block COLLIDER/Fluid.NONE trace normalizes only BLOCK result via helper. Candidate LivingEntity query bbox spans origin to block collision/end inflated1, but each victim padded bbox (native pickRadius+.5) is clipped using FULL from/to endpoint, not collision endpoint. Thus do not infer strict wall occlusion beyond this native query/clip combination. No victim-alive/noPhysics admission added here. After warmup20, repeated ray dispatch continues while native on/fade state ages: turn onfalse when tickCount-20>duration, decay appear timer3, discard on later onfalse/timer0 but no return. Caster-dead discard also lacks return. With normal duration60 and continued ticks, attempted dispatch ages21..85 inclusive (65 possible calls per continuously selected victim); native hurt may reject them. NBT read/save are empty, no caster UUID/angles/damage/duration/fire serialization. Client resolves casterID only at age1; server never resolves a loaded caster from ID."
+    },
+    {
+      "entity_id": "cataclysm:cm_falling_block",
+      "entry": "com/github/L_Ender/cataclysm/entity/effect/Cm_Falling_Block_Entity.class",
+      "role": "NON_DAMAGE_DEBRIS_VERIFIED",
+      "source_mechanic_ids": [
+        "cataclysm:harbinger_terrain_control"
+      ],
+      "payload_mechanic_ids": [],
+      "source_actor": "Original native owner/caster identity and native persistence; see payload records for ownerless/source alternatives.",
+      "native_lifecycle": "Locked R2k4b native decorative motion/NBT/discard; no damage or placement; reused unchanged."
+    }
+  ],
+  "offense_paths_closed": [
+    "aiStep ordered offensive selection/pursuit and native goals",
+    "side/main head targeting and ranged native dispatch",
+    "charge motion/overload/repeats and overlap damage/hurt-ground push",
+    "ballistic and normal/fast homing volleys",
+    "straight/homing missile contact/status/two-call kill healing/motion/expiry/NBT",
+    "howitzer contact/one-call kill healing and native explosion/smoke",
+    "smoke repeated damage/Wither/lifecycle/unused fields/native owner-save omission",
+    "projectile laser source/burn rollback/native motion/deflection/terrain",
+    "death laser source/extra percent factor/ray/lifetime/fade/terrain/EMP property response",
+    "native team/target/status filters and death/home respawner linkage"
+  ],
+  "mechanic_packages": [
+    {
+      "id": "cataclysm:harbinger_alliance",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:harbinger-offense:alliance"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Native actor/team/selector predicates remain at their original call sites."
+      ],
+      "hurt_return_dependency": "No victim hurt dependency on team predicates."
+    },
+    {
+      "id": "cataclysm:harbinger_attack_selection",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:harbinger-offense:attack_selection"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Native active/progress/alive/target/AI/idle/cooldown and ordered chance admission."
+      ],
+      "hurt_return_dependency": "Animation selection does not require victim hurt."
+    },
+    {
+      "id": "cataclysm:harbinger_charge_chain",
+      "primary_classification": "CUSTOM_CONTROL",
+      "delivery_paths": [
+        "cataclysm:harbinger-offense:charge_chain"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "target_y_offset"
+          ],
+          "native_value": 2.0,
+          "units": "target offset blocks / native velocity factor as named",
+          "native_boundary": "ChargeGoal.tick24"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "xz_vector_factor"
+          ],
+          "native_value": 4.0,
+          "units": "target offset blocks / native velocity factor as named",
+          "native_boundary": "ChargeGoal.tick24"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "y_vector_factor"
+          ],
+          "native_value": 5.0,
+          "units": "target offset blocks / native velocity factor as named",
+          "native_boundary": "ChargeGoal.tick24"
+        }
+      ],
+      "binary_gates": [
+        "Native animation goal, current target, overload/powered stop gates."
+      ],
+      "hurt_return_dependency": "No victim hurt dependency for boss charge/repeat."
+    },
+    {
+      "id": "cataclysm:harbinger_charge_contact",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "delivery_paths": [
+        "cataclysm:harbinger-offense:charge_contact"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "AREA_DELIVERY",
+          "parameters": [
+            "bbox_inflate"
+          ],
+          "native_value": 1.5,
+          "units": "native numeric units as named",
+          "native_boundary": "Harbinger.blockbreak contact query"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "horizontal_factor"
+          ],
+          "native_value": 1.5,
+          "units": "native impulse coefficient or denominator floor as named",
+          "native_boundary": "Harbinger.blockbreak after native hurt"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "y_push"
+          ],
+          "native_value": 0.5,
+          "units": "native impulse coefficient or denominator floor as named",
+          "native_boundary": "Harbinger.blockbreak after native hurt"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "hp_damage"
+          ],
+          "native_value": 0.06,
+          "units": "installed native target-maxHP coefficient",
+          "native_boundary": "Harbinger.blockbreak native mobAttack hurt"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "random_damage_bound"
+          ],
+          "native_value": 5,
+          "units": "exclusive integer additive damage bound",
+          "native_boundary": "Harbinger.blockbreak native mobAttack hurt"
+        }
+      ],
+      "binary_gates": [
+        "Native charge flag, native allies/class/self filter, true-hurt and ground push gate."
+      ],
+      "hurt_return_dependency": "Push requires hurttrue and onGround; damage independent of terrain/grief result."
+    },
+    {
+      "id": "cataclysm:harbinger_death_laser_chain",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "delivery_paths": [
+        "cataclysm:harbinger-offense:death_laser_chain"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "HAZARD_DELIVERY",
+          "parameters": [
+            "duration"
+          ],
+          "native_value": 60,
+          "units": "native beam duration ticks after warmup",
+          "native_boundary": "DeathLaserGoal.tick18"
+        },
+        {
+          "primitive": "HAZARD_DELIVERY",
+          "parameters": [
+            "spawn_y"
+          ],
+          "native_value": 2.9,
+          "units": "native spawn offset blocks",
+          "native_boundary": "DeathLaserGoal.tick18"
+        }
+      ],
+      "binary_gates": [
+        "Native animation/server spawn, stored caster/fire and native goal controls."
+      ],
+      "hurt_return_dependency": "Spawn and overload reset do not depend on victim hurt."
+    },
+    {
+      "id": "cataclysm:harbinger_death_laser_lifecycle",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "delivery_paths": [
+        "cataclysm:harbinger-offense:death_laser_lifecycle"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "BEAM_GEOMETRY",
+          "parameters": [
+            "entity_pick_pad"
+          ],
+          "native_value": 0.5,
+          "units": "native blocks",
+          "native_boundary": "Death_Laser calculateEndPos/raytraceEntities/updateWithHarbinger"
+        },
+        {
+          "primitive": "BEAM_GEOMETRY",
+          "parameters": [
+            "query_pad"
+          ],
+          "native_value": 1.0,
+          "units": "native blocks",
+          "native_boundary": "Death_Laser calculateEndPos/raytraceEntities/updateWithHarbinger"
+        },
+        {
+          "primitive": "BEAM_GEOMETRY",
+          "parameters": [
+            "range"
+          ],
+          "native_value": 30.0,
+          "units": "native blocks",
+          "native_boundary": "Death_Laser calculateEndPos/raytraceEntities/updateWithHarbinger"
+        },
+        {
+          "primitive": "HAZARD_LIFECYCLE",
+          "parameters": [
+            "duration_ticks"
+          ],
+          "native_value": 60,
+          "units": "native ticks/timer state as named",
+          "native_boundary": "Death_Laser.tick + native ControlledAnimation"
+        }
+      ],
+      "binary_gates": [
+        "Native stored caster, ray geometry, side guards, duration/on/fade and native Entity removal."
+      ],
+      "hurt_return_dependency": "No victim hurt dependency for lifetime; native discarded/caster-dead branches do not return before dispatch."
+    },
+    {
+      "id": "cataclysm:harbinger_death_laser_payload",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "delivery_paths": [
+        "cataclysm:harbinger-offense:death_laser_payload"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "seconds"
+          ],
+          "native_value": 5.0,
+          "units": "native burn seconds",
+          "native_boundary": "Death_Laser.tick after hurt"
+        },
+        {
+          "primitive": "CUSTOM_DAMAGE_REQUEST",
+          "parameters": [
+            "base_damage"
+          ],
+          "native_value": 5.0,
+          "units": "native request units / native HP coefficient as named",
+          "native_boundary": "Death_Laser.tick hurt"
+        },
+        {
+          "primitive": "CUSTOM_DAMAGE_REQUEST",
+          "parameters": [
+            "hp_damage"
+          ],
+          "native_value": 0.05,
+          "units": "native request units / native HP coefficient as named",
+          "native_boundary": "Death_Laser.tick hurt"
+        }
+      ],
+      "binary_gates": [
+        "Native server/ray/caster/one-way alliance and hurt-return fire gate."
+      ],
+      "hurt_return_dependency": "Burn requires fire flag and hurttrue; damage attempts run through native cooldown and defenses."
+    },
+    {
+      "id": "cataclysm:harbinger_death_laser_terrain",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:harbinger-offense:death_laser_terrain"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Native collision, separate block identities/properties and original terrain hooks."
+      ],
+      "hurt_return_dependency": "All terrain branches independent of victim hurt."
+    },
+    {
+      "id": "cataclysm:harbinger_defeat_lifecycle",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "delivery_paths": [
+        "cataclysm:harbinger-offense:defeat_lifecycle"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "y_step"
+          ],
+          "native_value": 0.15000000596046448,
+          "units": "native blocks per death-AI update",
+          "native_boundary": "Harbinger.onDeathAIUpdate"
+        },
+        {
+          "primitive": "NATIVE_EXPLOSION",
+          "parameters": [
+            "radius"
+          ],
+          "native_value": 7.0,
+          "units": "native explosion radius",
+          "native_boundary": "Harbinger.onDeathAIUpdate"
+        }
+      ],
+      "binary_gates": [
+        "Locked native death event/credit gate; server/home/dimension/config and existing respawner behavior."
+      ],
+      "hurt_return_dependency": "Death blast independent of a victim hurt; respawner requires locked death callback admission, not explosion hurt."
+    },
+    {
+      "id": "cataclysm:harbinger_flight_control",
+      "primary_classification": "CUSTOM_CONTROL",
+      "delivery_paths": [
+        "cataclysm:harbinger-offense:flight_control"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "horizontal_acceleration"
+          ],
+          "native_value": 0.3,
+          "units": "native velocity coefficient or target-relative height as named",
+          "native_boundary": "Harbinger.aiStep pursuit"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "horizontal_feedback"
+          ],
+          "native_value": 0.6,
+          "units": "native velocity coefficient or target-relative height as named",
+          "native_boundary": "Harbinger.aiStep pursuit"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "launch_target_height"
+          ],
+          "native_value": 1.0,
+          "units": "native velocity coefficient or target-relative height as named",
+          "native_boundary": "Harbinger.aiStep pursuit"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "normal_target_height"
+          ],
+          "native_value": 2.25,
+          "units": "native velocity coefficient or target-relative height as named",
+          "native_boundary": "Harbinger.aiStep pursuit"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "target_lift"
+          ],
+          "native_value": 0.3,
+          "units": "native velocity coefficient or target-relative height as named",
+          "native_boundary": "Harbinger.aiStep pursuit"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "vertical_damping"
+          ],
+          "native_value": 0.6,
+          "units": "native velocity coefficient or target-relative height as named",
+          "native_boundary": "Harbinger.aiStep pursuit"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "vertical_feedback"
+          ],
+          "native_value": 0.6000000238418579,
+          "units": "native velocity coefficient or target-relative height as named",
+          "native_boundary": "Harbinger.aiStep pursuit"
+        }
+      ],
+      "binary_gates": [
+        "Native head/charge/STUN/server gates; native own motion/collision."
+      ],
+      "hurt_return_dependency": "No victim hurt dependency."
+    },
+    {
+      "id": "cataclysm:harbinger_head_targeting",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:harbinger-offense:head_targeting"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Locked active/progress gate; native targeting and native head ID lifecycle."
+      ],
+      "hurt_return_dependency": "Head scheduling/acquisition is independent of victim hurt."
+    },
+    {
+      "id": "cataclysm:harbinger_homing_contact",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "delivery_paths": [
+        "cataclysm:harbinger-offense:homing_contact"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "MOB_EFFECT_WITHER",
+          "parameters": [
+            "amplifier"
+          ],
+          "native_value": 1,
+          "units": "native amplifier",
+          "native_boundary": "entity/projectile/Wither_Homing_Missile_Entity.onHitEntity after damage"
+        },
+        {
+          "primitive": "MOB_EFFECT_WITHER",
+          "parameters": [
+            "hard_duration"
+          ],
+          "native_value": 300,
+          "units": "native effect ticks",
+          "native_boundary": "entity/projectile/Wither_Homing_Missile_Entity.onHitEntity after damage"
+        },
+        {
+          "primitive": "MOB_EFFECT_WITHER",
+          "parameters": [
+            "normal_duration"
+          ],
+          "native_value": 200,
+          "units": "native effect ticks",
+          "native_boundary": "entity/projectile/Wither_Homing_Missile_Entity.onHitEntity after damage"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "fallback_magic"
+          ],
+          "native_value": 3.0,
+          "units": "native hurt request units",
+          "native_boundary": "entity/projectile/Wither_Homing_Missile_Entity.onHitEntity"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "owner_damage"
+          ],
+          "native_value": 8.0,
+          "units": "native hurt request units",
+          "native_boundary": "entity/projectile/Wither_Homing_Missile_Entity.onHitEntity"
+        },
+        {
+          "primitive": "NATIVE_EXPLOSION",
+          "parameters": [
+            "radius"
+          ],
+          "native_value": 1.0,
+          "units": "native explosion radius",
+          "native_boundary": "entity/projectile/Wither_Homing_Missile_Entity.onHitEntity/onHitBlock"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "first_heal"
+          ],
+          "native_value": 5.0,
+          "units": "native heal arguments HP units; separate calls",
+          "native_boundary": "entity/projectile/Wither_Homing_Missile_Entity.onHitEntity kill branch"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "harbinger_second_heal"
+          ],
+          "native_value": 5.0,
+          "units": "native heal arguments HP units; separate calls",
+          "native_boundary": "entity/projectile/Wither_Homing_Missile_Entity.onHitEntity kill branch"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "other_second_heal"
+          ],
+          "native_value": 5.0,
+          "units": "native heal arguments HP units; separate calls",
+          "native_boundary": "entity/projectile/Wither_Homing_Missile_Entity.onHitEntity kill branch"
+        }
+      ],
+      "binary_gates": [
+        "Native projectile collision/owner/impact hooks; native difficulty and hurt-return gates."
+      ],
+      "hurt_return_dependency": "Enchantment requires hurttrue + alive victim; two owner heals hurttrue + notAlive; Wither hurttrue + Living; explosion independent."
+    },
+    {
+      "id": "cataclysm:harbinger_homing_motion",
+      "primary_classification": "CUSTOM_CONTROL",
+      "delivery_paths": [
+        "cataclysm:harbinger-offense:homing_motion"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "NATIVE_EXPLOSION",
+          "parameters": [
+            "radius"
+          ],
+          "native_value": 1.0,
+          "units": "native explosion radius",
+          "native_boundary": "Wither_Homing_Missile.tick terminal branches"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "fuse"
+          ],
+          "native_value": 80,
+          "units": "native acceleration/inertia/distance coefficients or fuse ticks as named",
+          "native_boundary": "Wither_Homing_Missile constructors/tick"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "homing_distance_divisor"
+          ],
+          "native_value": 10.0,
+          "units": "native acceleration/inertia/distance coefficients or fuse ticks as named",
+          "native_boundary": "Wither_Homing_Missile constructors/tick"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "homing_distance_offset"
+          ],
+          "native_value": 1.0,
+          "units": "native acceleration/inertia/distance coefficients or fuse ticks as named",
+          "native_boundary": "Wither_Homing_Missile constructors/tick"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "initial_acceleration"
+          ],
+          "native_value": 0.1,
+          "units": "native acceleration/inertia/distance coefficients or fuse ticks as named",
+          "native_boundary": "Wither_Homing_Missile constructors/tick"
+        }
+      ],
+      "binary_gates": [
+        "Native owner/chunk/impact; native target life/spectator and fuse branches remain separate."
+      ],
+      "hurt_return_dependency": "Homing/expiry explosions do not require hurttrue; original branches can each run in one tick."
+    },
+    {
+      "id": "cataclysm:harbinger_howitzer_burst",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "delivery_paths": [
+        "cataclysm:harbinger-offense:howitzer_burst"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "HAZARD_DELIVERY",
+          "parameters": [
+            "duration"
+          ],
+          "native_value": 300,
+          "units": "native cloud blocks/ticks/blocks per tick as named",
+          "native_boundary": "Wither_Howitzer.onHit -> native smoke setup"
+        },
+        {
+          "primitive": "HAZARD_DELIVERY",
+          "parameters": [
+            "radius"
+          ],
+          "native_value": 3.0,
+          "units": "native cloud blocks/ticks/blocks per tick as named",
+          "native_boundary": "Wither_Howitzer.onHit -> native smoke setup"
+        },
+        {
+          "primitive": "HAZARD_DELIVERY",
+          "parameters": [
+            "wait"
+          ],
+          "native_value": 5,
+          "units": "native cloud blocks/ticks/blocks per tick as named",
+          "native_boundary": "Wither_Howitzer.onHit -> native smoke setup"
+        },
+        {
+          "primitive": "NATIVE_EXPLOSION",
+          "parameters": [
+            "radius"
+          ],
+          "native_value": 2.0,
+          "units": "native explosion radius",
+          "native_boundary": "Wither_Howitzer.onHit after parent"
+        }
+      ],
+      "binary_gates": [
+        "Native server impact dispatch; native owner cast/add/discard and radius clamp."
+      ],
+      "hurt_return_dependency": "Explosion and smoke spawn independent of direct hurttrue."
+    },
+    {
+      "id": "cataclysm:harbinger_howitzer_contact",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "delivery_paths": [
+        "cataclysm:harbinger-offense:howitzer_contact"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "MOB_EFFECT_WITHER",
+          "parameters": [
+            "amplifier"
+          ],
+          "native_value": 1,
+          "units": "native effect ticks / amplifier as named",
+          "native_boundary": "Wither_Howitzer.onHitEntity"
+        },
+        {
+          "primitive": "MOB_EFFECT_WITHER",
+          "parameters": [
+            "hard_duration"
+          ],
+          "native_value": 600,
+          "units": "native effect ticks / amplifier as named",
+          "native_boundary": "Wither_Howitzer.onHitEntity"
+        },
+        {
+          "primitive": "MOB_EFFECT_WITHER",
+          "parameters": [
+            "normal_duration"
+          ],
+          "native_value": 400,
+          "units": "native effect ticks / amplifier as named",
+          "native_boundary": "Wither_Howitzer.onHitEntity"
+        },
+        {
+          "primitive": "MOB_EFFECT_WITHER",
+          "parameters": [
+            "other_duration"
+          ],
+          "native_value": 200,
+          "units": "native effect ticks / amplifier as named",
+          "native_boundary": "Wither_Howitzer.onHitEntity"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "fallback_magic"
+          ],
+          "native_value": 5.0,
+          "units": "native hurt units",
+          "native_boundary": "Wither_Howitzer.onHitEntity"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "owner_damage"
+          ],
+          "native_value": 11.0,
+          "units": "native hurt units",
+          "native_boundary": "Wither_Howitzer.onHitEntity"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "harbinger_heal"
+          ],
+          "native_value": 5.0,
+          "units": "native heal HP units",
+          "native_boundary": "Wither_Howitzer.onHitEntity kill"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "other_heal"
+          ],
+          "native_value": 5.0,
+          "units": "native heal HP units",
+          "native_boundary": "Wither_Howitzer.onHitEntity kill"
+        }
+      ],
+      "binary_gates": [
+        "Native server/owner/hurt/difficulty branches."
+      ],
+      "hurt_return_dependency": "Enchant hurttrue+alive, one heal hurttrue+notAlive, Wither hurttrue+Living."
+    },
+    {
+      "id": "cataclysm:harbinger_laser_contact",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "delivery_paths": [
+        "cataclysm:harbinger-offense:laser_contact"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "seconds"
+          ],
+          "native_value": 5.0,
+          "units": "native ignite seconds",
+          "native_boundary": "Laser_Beam.onHitEntity around hurt"
+        },
+        {
+          "primitive": "CUSTOM_DAMAGE_REQUEST",
+          "parameters": [
+            "amount"
+          ],
+          "native_value": 5.0,
+          "units": "native requested damage units",
+          "native_boundary": "Laser_Beam.onHitEntity"
+        }
+      ],
+      "binary_gates": [
+        "Native server/collision/owner and true/false burn rollback."
+      ],
+      "hurt_return_dependency": "Burn prewrite restored on hurtfalse; enchant hurttrue; no alive guard."
+    },
+    {
+      "id": "cataclysm:harbinger_laser_motion",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "delivery_paths": [
+        "cataclysm:harbinger-offense:laser_motion"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "initial_acceleration"
+          ],
+          "native_value": 0.1,
+          "units": "native acceleration/inertia coefficient",
+          "native_boundary": "Laser_Beam constructors/tick/deflection"
+        }
+      ],
+      "binary_gates": [
+        "Native owner/chunk/impact/deflection/noPhysics gates."
+      ],
+      "hurt_return_dependency": "Motion does not require victim hurt."
+    },
+    {
+      "id": "cataclysm:harbinger_laser_terrain",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:harbinger-offense:laser_terrain"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Native terrain policy and block callback lifecycle."
+      ],
+      "hurt_return_dependency": "Terrain fire is independent of any victim hurt."
+    },
+    {
+      "id": "cataclysm:harbinger_launch_chain",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "delivery_paths": [
+        "cataclysm:harbinger-offense:launch_chain"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "arc_horizontal_distance_factor"
+          ],
+          "native_value": 6.0,
+          "units": "native count, blocks, velocity or arc/eye coefficient as named",
+          "native_boundary": "LaunchGoal.launch -> Wither_Howitzer constructor/shoot"
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "inaccuracy"
+          ],
+          "native_value": 60.0,
+          "units": "native count, blocks, velocity or arc/eye coefficient as named",
+          "native_boundary": "LaunchGoal.launch -> Wither_Howitzer constructor/shoot"
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "normal_count"
+          ],
+          "native_value": 5,
+          "units": "native count, blocks, velocity or arc/eye coefficient as named",
+          "native_boundary": "LaunchGoal.launch -> Wither_Howitzer constructor/shoot"
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "powered_count"
+          ],
+          "native_value": 7,
+          "units": "native count, blocks, velocity or arc/eye coefficient as named",
+          "native_boundary": "LaunchGoal.launch -> Wither_Howitzer constructor/shoot"
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "radius"
+          ],
+          "native_value": 3.0,
+          "units": "native count, blocks, velocity or arc/eye coefficient as named",
+          "native_boundary": "LaunchGoal.launch -> Wither_Howitzer constructor/shoot"
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "speed"
+          ],
+          "native_value": 0.6000000238418579,
+          "units": "native count, blocks, velocity or arc/eye coefficient as named",
+          "native_boundary": "LaunchGoal.launch -> Wither_Howitzer constructor/shoot"
+        }
+      ],
+      "binary_gates": [
+        "Native animation goal and current target; projectile ownership/impact remains native."
+      ],
+      "hurt_return_dependency": "No victim hurt dependency on launch."
+    },
+    {
+      "id": "cataclysm:harbinger_missile_contact",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "delivery_paths": [
+        "cataclysm:harbinger-offense:missile_contact"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "MOB_EFFECT_WITHER",
+          "parameters": [
+            "amplifier"
+          ],
+          "native_value": 1,
+          "units": "native amplifier",
+          "native_boundary": "entity/projectile/Wither_Missile_Entity.onHitEntity after damage"
+        },
+        {
+          "primitive": "MOB_EFFECT_WITHER",
+          "parameters": [
+            "hard_duration"
+          ],
+          "native_value": 300,
+          "units": "native effect ticks",
+          "native_boundary": "entity/projectile/Wither_Missile_Entity.onHitEntity after damage"
+        },
+        {
+          "primitive": "MOB_EFFECT_WITHER",
+          "parameters": [
+            "normal_duration"
+          ],
+          "native_value": 200,
+          "units": "native effect ticks",
+          "native_boundary": "entity/projectile/Wither_Missile_Entity.onHitEntity after damage"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "fallback_magic"
+          ],
+          "native_value": 5.0,
+          "units": "native hurt request units",
+          "native_boundary": "entity/projectile/Wither_Missile_Entity.onHitEntity"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "owner_damage"
+          ],
+          "native_value": 8.0,
+          "units": "native hurt request units",
+          "native_boundary": "entity/projectile/Wither_Missile_Entity.onHitEntity"
+        },
+        {
+          "primitive": "NATIVE_EXPLOSION",
+          "parameters": [
+            "radius"
+          ],
+          "native_value": 1.0,
+          "units": "native explosion radius",
+          "native_boundary": "entity/projectile/Wither_Missile_Entity.onHit after parent dispatch"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "first_heal"
+          ],
+          "native_value": 5.0,
+          "units": "native heal arguments HP units; separate calls",
+          "native_boundary": "entity/projectile/Wither_Missile_Entity.onHitEntity kill branch"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "harbinger_second_heal"
+          ],
+          "native_value": 5.0,
+          "units": "native heal arguments HP units; separate calls",
+          "native_boundary": "entity/projectile/Wither_Missile_Entity.onHitEntity kill branch"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "other_second_heal"
+          ],
+          "native_value": 5.0,
+          "units": "native heal arguments HP units; separate calls",
+          "native_boundary": "entity/projectile/Wither_Missile_Entity.onHitEntity kill branch"
+        }
+      ],
+      "binary_gates": [
+        "Native projectile collision/owner/impact hooks; native difficulty and hurt-return gates."
+      ],
+      "hurt_return_dependency": "Enchantment requires hurttrue + alive victim; two owner heals hurttrue + notAlive; Wither hurttrue + Living; explosion independent."
+    },
+    {
+      "id": "cataclysm:harbinger_missile_motion",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "delivery_paths": [
+        "cataclysm:harbinger-offense:missile_motion"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "initial_acceleration"
+          ],
+          "native_value": 0.1,
+          "units": "native acceleration/inertia coefficients",
+          "native_boundary": "Wither_Missile constructors/tick/onDeflection"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "water_inertia"
+          ],
+          "native_value": 0.800000011920929,
+          "units": "native acceleration/inertia coefficients",
+          "native_boundary": "Wither_Missile constructors/tick/onDeflection"
+        }
+      ],
+      "binary_gates": [
+        "Native owner/chunk/impact/deflection and noPhysics victim gates."
+      ],
+      "hurt_return_dependency": "Motion/outer explosion do not depend on direct victim hurt."
+    },
+    {
+      "id": "cataclysm:harbinger_missile_volley",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "delivery_paths": [
+        "cataclysm:harbinger-offense:missile_volley"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "forward_offset"
+          ],
+          "native_value": 1.35,
+          "units": "native launcher offsets in blocks",
+          "native_boundary": "MissileLaunchGoal[2].mlaunch/getLauncher"
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "side_offset"
+          ],
+          "native_value": 1.25,
+          "units": "native launcher offsets in blocks",
+          "native_boundary": "MissileLaunchGoal[2].mlaunch/getLauncher"
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "side_y"
+          ],
+          "native_value": 3.8,
+          "units": "native launcher offsets in blocks",
+          "native_boundary": "MissileLaunchGoal[2].mlaunch/getLauncher"
+        }
+      ],
+      "binary_gates": [
+        "Native current target and animation goal; ownership/target carrier remains native."
+      ],
+      "hurt_return_dependency": "No victim hurt dependency."
+    },
+    {
+      "id": "cataclysm:harbinger_ranged_dispatch",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "delivery_paths": [
+        "cataclysm:harbinger-offense:ranged_dispatch"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "center_y"
+          ],
+          "native_value": 3.0,
+          "units": "native head origin blocks / eye coefficient",
+          "native_boundary": "Harbinger.performRangedAttack/getHeadXYZ"
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "side_laser_offset"
+          ],
+          "native_value": 1.65,
+          "units": "native head origin blocks / eye coefficient",
+          "native_boundary": "Harbinger.performRangedAttack/getHeadXYZ"
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "side_missile_offset"
+          ],
+          "native_value": 1.5,
+          "units": "native head origin blocks / eye coefficient",
+          "native_boundary": "Harbinger.performRangedAttack/getHeadXYZ"
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "side_y"
+          ],
+          "native_value": 2.6,
+          "units": "native head origin blocks / eye coefficient",
+          "native_boundary": "Harbinger.performRangedAttack/getHeadXYZ"
+        }
+      ],
+      "binary_gates": [
+        "Native caller admission, current mode branch and native owner identity."
+      ],
+      "hurt_return_dependency": "No victim hurt dependency."
+    },
+    {
+      "id": "cataclysm:harbinger_smoke_lifecycle",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "delivery_paths": [
+        "cataclysm:harbinger-offense:smoke_lifecycle"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "HAZARD_LIFECYCLE",
+          "parameters": [
+            "bbox_height"
+          ],
+          "native_value": 0.5,
+          "units": "native ticks / blocks / blocks per tick as named",
+          "native_boundary": "Wither_Smoke.tick/NBT/dimensions"
+        },
+        {
+          "primitive": "HAZARD_LIFECYCLE",
+          "parameters": [
+            "duration_ticks"
+          ],
+          "native_value": 300,
+          "units": "native ticks / blocks / blocks per tick as named",
+          "native_boundary": "Wither_Smoke.tick/NBT/dimensions"
+        },
+        {
+          "primitive": "HAZARD_LIFECYCLE",
+          "parameters": [
+            "initial_radius"
+          ],
+          "native_value": 3.0,
+          "units": "native ticks / blocks / blocks per tick as named",
+          "native_boundary": "Wither_Smoke.tick/NBT/dimensions"
+        },
+        {
+          "primitive": "HAZARD_LIFECYCLE",
+          "parameters": [
+            "radius_per_tick"
+          ],
+          "native_value": -0.01,
+          "units": "native ticks / blocks / blocks per tick as named",
+          "native_boundary": "Wither_Smoke.tick/NBT/dimensions"
+        },
+        {
+          "primitive": "HAZARD_LIFECYCLE",
+          "parameters": [
+            "wait_ticks"
+          ],
+          "native_value": 5,
+          "units": "native ticks / blocks / blocks per tick as named",
+          "native_boundary": "Wither_Smoke.tick/NBT/dimensions"
+        }
+      ],
+      "binary_gates": [
+        "Native server/wait/shrink/end lifecycle; native owner resolution."
+      ],
+      "hurt_return_dependency": "Lifetime/radius changes independent of victim hurt."
+    },
+    {
+      "id": "cataclysm:harbinger_smoke_payload",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "delivery_paths": [
+        "cataclysm:harbinger-offense:smoke_payload"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "MOB_EFFECT_WITHER",
+          "parameters": [
+            "amplifier"
+          ],
+          "native_value": 0,
+          "units": "native amplifier",
+          "native_boundary": "Wither_Smoke.damage after native hurt"
+        },
+        {
+          "primitive": "MOB_EFFECT_WITHER",
+          "parameters": [
+            "duration"
+          ],
+          "native_value": 160,
+          "units": "native ticks",
+          "native_boundary": "Wither_Smoke.damage after native hurt"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "amount"
+          ],
+          "native_value": 3.0,
+          "units": "native hurt units",
+          "native_boundary": "Wither_Smoke.damage"
+        }
+      ],
+      "binary_gates": [
+        "Native cloud lifecycle plus alive/invulnerability/bilateral team gates and hurttrue for status."
+      ],
+      "hurt_return_dependency": "Wither requires hurttrue; effect-add return ignored; no heal."
+    },
+    {
+      "id": "cataclysm:harbinger_status_admission",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:harbinger-offense:status_admission"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Native effect identities/whitelist/cancellation remain native."
+      ],
+      "hurt_return_dependency": "Admission only; no new hurt or status callback."
+    },
+    {
+      "id": "cataclysm:harbinger_terrain_control",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "delivery_paths": [
+        "cataclysm:harbinger-offense:terrain_control"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "xz_damping"
+          ],
+          "native_value": 0.6000000238418579,
+          "units": "native velocity multiplier",
+          "native_boundary": "Harbinger.destoryblock2 nondebris branch"
+        }
+      ],
+      "binary_gates": [
+        "Native server/grief/block destruction/tag/animation/counter gates."
+      ],
+      "hurt_return_dependency": "Terrain independent of victim hurt; charge damage not gated by block-break success."
+    }
+  ],
+  "facts": {
+    "native_return_boundaries": "Missile two-call kill heal versus howitzer one; native Wither requires hurttrue; smoke bilateral team gates; laser burn prewrite false rollback; deathlaser fire hurttrue. Original independent explosions/after-discard statements preserved.",
+    "native_persistence": "Missile/homing/laser own damage not saved; smoke Owner UUID read but not written; deathbeam NBT empty. No persistence fix or transport added.",
+    "death_beam_math": "Keep targetMaxHP*hpDamage*.01 and min(base,...), full endpoint victim clip versus collision-bounded query and fade-driven21..85 possible dispatch.",
+    "terrain": "Native grief actors and hook differences preserved; directly reached EMP OVERLOADfalse reset only; no unrelated EMP/device/equipment research."
+  },
+  "reused_contracts": [
+    {
+      "file": "cataclysm-r2k6a-harbinger-admission.json",
+      "bindings": [
+        "all admission/power/activation/mode/regen/NBT/encounter facts unchanged; only missing offense fragments captured"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k2a-shared-admission.json",
+      "bindings": [
+        "native hurt/defense/home/death/animation admission unchanged"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k2b-stun.json",
+      "bindings": [
+        "native MobEffect STUN contract unchanged; EMP native animation response distinct"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k3b-guardian-offense.json",
+      "bindings": [
+        "native nearby/repel/death configured respawner/source contracts"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k4b-monstrosity-offense.json",
+      "bindings": [
+        "native non-damage decorative debris and projectile/explosion comparisons"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k5b-ignis-offense.json",
+      "bindings": [
+        "native STUN goal; completed Ignis contracts unchanged"
+      ]
+    },
+    {
+      "file": "cataclysm-damage-tags.json",
+      "bindings": [
+        "locked laser/deathlaser source declarations/tag distinctions"
+      ]
+    },
+    {
+      "file": "reference-evidence/twilight-frosted-244.json",
+      "bindings": [
+        "native ThrowableProjectile motion/hooks reused"
+      ]
+    },
+    {
+      "file": "reference-evidence/twilight-ominous-progression-244.json",
+      "bindings": [
+        "existing native WitherBoss powered arrow relation"
+      ]
+    },
+    {
+      "file": "reference-evidence/iceandfire-dragon-elements-244.json",
+      "bindings": [
+        "native explosion amount/exposure/impulse reused"
+      ]
+    }
+  ],
+  "protected_r2k6a": {
+    "file": "cataclysm-r2k6a-harbinger-admission.json",
+    "sha256": "3b1311d8e9f8a77e721e54609c51d956d5ed2fa5a8d6f3e12097e6d1237a3f96"
+  },
+  "remaining_subsection_native_ambiguities": [],
+  "harbinger_family_closed": true,
+  "remaining_harbinger_work": [],
+  "remaining_cataclysm_research": [
+    "Ancient Remnant bounded admission/phase/encounter then offense/payload family",
+    "Other unreviewed concrete bosses/mobs/equipment/global hooks remain partial"
+  ],
+  "excluded_from_this_scope": [
+    "Unrelated Prowler beam update body; only common beam behavior reached by Harbinger reviewed.",
+    "Ordinary rendering/particles/sound/loot/acquisition/structures/recipes excluded; ControlledAnimation four methods captured solely for native discard/damage lifetime."
+  ],
+  "exact_next_task": "R2k7a: Ancient Remnant incoming admission and phase/encounter prerequisites. Start Ancient_Remnant_Entity hurt/isInvulnerableTo and concrete DamageCap/DpsCap/RangeLimit/NatureRegen bindings into locked inherited shared contracts; close native phase/state setters, combat persistence and material spawn/home/encounter prerequisites. Defer ALL Ancient Remnant offense/payloads to the following bounded batch. Reuse locked shared/status, Guardian, Monstrosity, Ignis and fully closed Harbinger contracts. Static only; no runtime, Stage, production or unrelated boss/equipment research.",
+  "whole_mod_complete": false,
+  "runtime_tests": 0,
+  "stage_eligibility_decided": false,
+  "tooling": {
+    "jar_sha256": "fa4e8abd15aa86333d6a5fe20b05c4fe423ac865da7319be7808d321bcb3930c",
+    "jar_size_bytes": 73346519,
+    "new_native_witnesses": 18,
+    "reused_evidence_regenerated": false,
+    "recursive_jar_scan": false,
+    "reading_aid": "Reused Harbinger aid; pinned Vineflower1.10.1 SHA256 b9b208e50793b64657a6b6292067526613f549de7405f9243624b02f4276e409 on explicit owned goals/payloads/target-goal/beam-timer only. New bounded bytecode authoritative; completed methods/fragments not regenerated."
+  },
+  "reference_files": [
+    {
+      "file": "cataclysm-boss-inheritance.json",
+      "sha256": "4cf3e43f452a3b12d437588b5e9d01a14a47e6575be1353a6186fdaf61eaa7b0",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-damage-tags.json",
+      "sha256": "63acef0f45d8d8b871e97e2a26fa0695b7d03313938f3e2788c48407e6da15a6",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-installed-common-config.json",
+      "sha256": "e49736bbfea8976a8df3f0d2f28e948e5c1e0535cb1254b28e7eefca77b923cf",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k2a-shared-admission.json",
+      "sha256": "3852d7f0950abe786cd9769ea4d64fb02f2cfa4ee1f4e99c06464645218ee9e2",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k2b-stun.json",
+      "sha256": "c81fed2de650739f580e106fa4cd9ac907cb7b5a3e7e8161879a0f2a795a4cd9",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k2c-ghost-fear.json",
+      "sha256": "77c977c09003cd0b0be9f0a6261985958610c6847e712cffdc2c17143bb0e75f",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k2d-abyssal-status.json",
+      "sha256": "4f6b1b56e028c1e7c1f5dee6209f9264a3d456a26d0edbafc0f3689ca70fa35c",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k2e-remaining-status.json",
+      "sha256": "736c5033f74b821f14794a0dcd988056bcf98b12a5222fe5b70ab83d0c77c455",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k3a-guardian-admission.json",
+      "sha256": "8a920972afe714d3e69278351e6a84672d9bb6a590d0cc0f6a20f66f8ae2ca7e",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k3b-guardian-offense.json",
+      "sha256": "274e56f41b2dc3cd1ee3196a41e6edc050f700ae36ed602eed054ecfd53b104e",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k4a-monstrosity-admission.json",
+      "sha256": "5349c1f74363e063d01e25ca8eba9890c20656604f7adcc8e962215447aba432",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k4b-monstrosity-offense.json",
+      "sha256": "1f3c3c1134cfc3cdc518758c3dfc95a4407556cc4caac8187142b412989ca321",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k5a-ignis-admission.json",
+      "sha256": "7ac79ea34be27f44c3c8d2d6b8f3d9634ef3547120860c3ae70fae5ab149fdb0",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k5b-ignis-offense.json",
+      "sha256": "e9e71745affaa02fa1cdecd519ed5aeefa501475b4b9949e79ebfd2116cfb83d",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k6a-harbinger-admission.json",
+      "sha256": "3b1311d8e9f8a77e721e54609c51d956d5ed2fa5a8d6f3e12097e6d1237a3f96",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-source-census.json",
+      "sha256": "fee3dbcc15b068eddb6c53271146d2f04dcb72a5f183dc9a17be2d794ed68ead",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "jar-inventory.json",
+      "sha256": "e9d91482fac44a764468ddb75e2bf10ee7c0aef74f392a90b5d5dfe908ba3974",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-foundation.json",
+      "sha256": "bb75018a6d3a72048251f24fae60edffaa4b0dcb678b3cdc3db6f2b5af99c55b",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-guardian-admission.json",
+      "sha256": "d652ad2ea9cd6d7ebf7f6d5424122199b74d6c4b355248affeae9e673dcdf067",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-guardian-offense.json",
+      "sha256": "4b086ab084546fc3b87bdc058458f297f1677a37975a8c6c75610d8ee9d0faab",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-harbinger-admission.json",
+      "sha256": "2d8f69d52c3e02afd1e95de01bb23e5f147767dcc03f49fc85c5617c5087419b",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-harbinger-offense.json",
+      "sha256": "871182fba5f0fb26b1264c55fa4a7229f886cec1937436654871610696626690",
+      "usage": "NEW_SCOPED_WITNESS"
+    },
+    {
+      "file": "native-evidence/cataclysm-ignis-admission.json",
+      "sha256": "fd912858bcb07d62fd46feabe3a178e3e3db229ec8ac1d4d101b6d735384230f",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-ignis-offense.json",
+      "sha256": "9cb83c5ae62c617c2b51b0bff205ae0f9d0d818d3f34262402d620ae7857e780",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-monstrosity-admission.json",
+      "sha256": "c5ac14eb0106a949e81922941fe12c2590fa3eb3687b69638c96fbfdf4afea9f",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-monstrosity-offense.json",
+      "sha256": "3de3c6430a599ba9de4dfd165ef27e6fb645cc491020bd1e1bc02ff053d85568",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-remaining-status.json",
+      "sha256": "b47482396e64fc0e4d4f10b61ac45ba6e42fe588d0117cc250ff03afc5ac422f",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-shared.json",
+      "sha256": "ba6abb73e3e33fab4cbead14196a1112f769189f873abc4fcbb5262eb2289a29",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-stun.json",
+      "sha256": "fa0ca10b9822f40d703be35748c9cf2eaf6a8ad404b942eea289a7313dae1177",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-specifications/cataclysm-harbinger-admission.json",
+      "sha256": "3409aefa5861d629df042d9bfe332ca1c9b3ddcbfa5295b5aec2b99bee39684d",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-specifications/cataclysm-harbinger-offense.json",
+      "sha256": "9cfaf40cc71ecd49d0f0671ad923108b0816ea7a73be5be1cc37531b3ce60c26",
+      "usage": "NEW_SCOPED_WITNESS"
+    },
+    {
+      "file": "native-specifications/cataclysm-ignis-admission.json",
+      "sha256": "35abf2bfd960a16bf181ff99b103ff3812e9a950ac478c9298fa40d51758b6a6",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-specifications/cataclysm-ignis-offense.json",
+      "sha256": "ee93afdbc908acbc9ce142c04c5664de616d801e3d0b4329277e0dc134b68ced",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-specifications/cataclysm-monstrosity-offense.json",
+      "sha256": "5ffcf3eaf1b230ffd034335b9f59bee00acb2f334372ffea3653ac268100fada",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/bossesrise-knight-defense-244.json",
+      "sha256": "837cad018f153c3b1c4ce5db6429ae0c0f10214c72daac55ceb864e5d4ac66e8",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/bossesrise-knight-offense-244.json",
+      "sha256": "ed906fd31cd492fd157e4c9ba6f4e3271359ae4b2c650cd440c3fff1cc788002",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/eternalstarlight-soul-hunger-244.json",
+      "sha256": "e7ac2ed7688d7fd123b10e9e09bac71954f8110b856edb6affc7da8a2ea2ade7",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/eternalstarlight-status-control-244.json",
+      "sha256": "e8b8f470bf9a5d896de48e1baa8bbfcc5e01c9985ca9dcf4dae2e8e325c34205",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/iceandfire-dragon-elements-244.json",
+      "sha256": "27b53602dcbf08bde0c888e01f2ba01dc77761dd9c637f524aaf9dc4f954bcf7",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/iceandfire-worm-cyclops-244.json",
+      "sha256": "5c43fe513bd1696b3787b29160628719b7a04544cfa55ac3fb18cbbc22cc2640",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/twilight-frosted-244.json",
+      "sha256": "ed516f1889db7ce4cbb811b1f7468d060c879d2eb6bb12bb933aba146a94d954",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/twilight-hydra-urghast-244.json",
+      "sha256": "5de22807fdb64617e2318367903cb3a54aa4c6714ef53fca915827d5df1bde12",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/twilight-minoshroom-knight-244.json",
+      "sha256": "c80393a79949951d3eb82b8ff72a52e2473abf769d7df18ef644f0d1ea62f804",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/twilight-ominous-progression-244.json",
+      "sha256": "eee551bcb17aad7d8f3ada687ae4a16948b707efd844829a4ba3e1d6105348db",
+      "usage": "LOCKED_REUSED"
+    }
+  ],
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false
+}
