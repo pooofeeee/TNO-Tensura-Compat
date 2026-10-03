@@ -2980,6 +2980,1181 @@
       ]
     },
     {
+      "id": "cataclysm:harbinger_activation_state",
+      "mod_key": "cataclysm",
+      "display_name": "Harbinger activation progress and native AI hold",
+      "registry_ids": [
+        "cataclysm:the_harbinger"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "IS_ACT synced default is true; setIsAct only stores the flag and boss-event visibility. aiStep on both sides snapshots old progress; inactive with progress<40 writes40 immediately, active with progress>0 subtracts1. Flag setter does not write progress, health or home. Positive progress alone gates ordinary incoming hurt. Priority0 AwakenGoal canUse iff progress>0, owns MOVE/JUMP/LOOK, updates every tick, and writes velocity(0,currentY,0). canBeSeenAsEnemy requires getIsAct and native superclass predicate. Concrete customServerAiStep skips superclass and the active body while inactive or positive awakening progress.",
+      "human_summary": "IS_ACT synced default is true; setIsAct only stores the flag and boss-event visibility. aiStep on both sides snapshots old progress; inactive with progress<40 writes40 immediately, active with progress>0 subtracts1. Flag setter does not write progress, health or home. Positive progress alone gates ordinary incoming hurt. Priority0 AwakenGoal canUse iff progress>0, owns MOVE/JUMP/LOOK, updates every tick, and writes velocity(0,currentY,0). canBeSeenAsEnemy requires getIsAct and native superclass predicate. Concrete customServerAiStep skips superclass and the active body while inactive or positive awakening progress.",
+      "closest_vanilla_equivalent": "Native Goal controls and synced activation state; no direct vanilla scalar effect",
+      "vanilla_similarities": "Retains named native APIs and locked shared contracts where applicable.",
+      "vanilla_differences": "Inactive flag and positive progress are distinct: immediately after setter/load before aiStep, progress may still be0. Activation leaves existing progress to count down rather than clearing immunity instantly. This is a native velocity write, not knockback. AwakenGoal does not directly disable INPUT_CONTROL or apply a status. Shared inherited tick housekeeping/regen is outside this concrete server-AI gate.",
+      "components": [
+        {
+          "primitive": "ACTIVATION_STATE",
+          "formula": "inactive aiStep: progress<40 ->40; active aiStep: progress>0 ->progress-1",
+          "numerical_parameters": {
+            "inactive_progress": 40.0,
+            "activation_step": 1.0
+          },
+          "parameter_units": {
+            "inactive_progress": "native progress/tick countdown state",
+            "activation_step": "progress units per aiStep"
+          },
+          "binary_parameters": [
+            "native IS_ACT",
+            "native progress"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "Harbinger.aiStep bounded activation fragment"
+        },
+        {
+          "primitive": "AI_STATE",
+          "formula": "customServerAiStep active && progress<=0 runs superclass/active body; AwakenGoal progress>0 owns native MOVE/JUMP/LOOK",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "native active flag",
+            "native progress",
+            "native Goal scheduler"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "Harbinger.customServerAiStep entry / AwakenGoal"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "formula": "AwakenGoal.tick -> setDeltaMovement(0.0,current velocity Y,0.0)",
+          "numerical_parameters": {
+            "horizontal_write": 0.0
+          },
+          "parameter_units": {
+            "horizontal_write": "native X/Z velocity"
+          },
+          "binary_parameters": [
+            "AwakenGoal admitted"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "AwakenGoal.tick"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Flag, progress, native AI controls and velocity hold remain separate from HP power and offensive state."
+      ],
+      "custom_state": "Native synced entity/animation state and native NBT only.",
+      "eligibility": "Flag, progress, native AI controls and velocity hold remain separate from HP power and offensive state.",
+      "source_actor": "Original native source/direct/causing actors retained; no source replacement.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-harbinger-admission.json",
+          "witness_id": "cataclysm:harbinger-admission:entity/AnimationMonster/BossMonsters/The_Harbinger_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Harbinger_Entity.class",
+          "methods": [
+            "setIsAct",
+            "getIsAct",
+            "canBeSeenAsEnemy",
+            "defineSynchedData",
+            "aiStep",
+            "customServerAiStep",
+            "registerGoals"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-harbinger-admission.json",
+          "witness_id": "cataclysm:harbinger-admission:entity/AnimationMonster/BossMonsters/The_Harbinger_Entity$AwakenGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Harbinger_Entity$AwakenGoal.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:harbinger-admission:activation_state"
+      ],
+      "primary_test_source": "cataclysm:the_harbinger",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k6a-cataclysm-harbinger-admission-complete",
+      "scalability_note": "Static observations only; no Stage policy, eligibility, balance or hook selected. Defensive admission/phase/setup constants are not scalar candidates merely because numeric. Distinct original native healing calls remain distinct; no new heal or duplicate effect.",
+      "scalable_parameter_candidates": [],
+      "setter_writes_progress": false,
+      "setter_writes_health": false,
+      "setter_writes_home": false,
+      "progress_local_server_guard": false,
+      "awaken_goal_priority": 0,
+      "numeric_observations": [
+        {
+          "primitive": "ACTIVATION_STATE",
+          "parameter": "inactive_progress",
+          "native_value": 40.0,
+          "native_formula": "inactive aiStep: progress<40 ->40; active aiStep: progress>0 ->progress-1",
+          "units": "native progress/tick countdown state",
+          "boundary": "Harbinger.aiStep bounded activation fragment"
+        },
+        {
+          "primitive": "ACTIVATION_STATE",
+          "parameter": "activation_step",
+          "native_value": 1.0,
+          "native_formula": "inactive aiStep: progress<40 ->40; active aiStep: progress>0 ->progress-1",
+          "units": "progress units per aiStep",
+          "boundary": "Harbinger.aiStep bounded activation fragment"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameter": "horizontal_write",
+          "native_value": 0.0,
+          "native_formula": "AwakenGoal.tick -> setDeltaMovement(0.0,current velocity Y,0.0)",
+          "units": "native X/Z velocity",
+          "boundary": "AwakenGoal.tick"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:harbinger_encounter_state",
+      "mod_key": "cataclysm",
+      "display_name": "Harbinger native persistence and encounter activation/home",
+      "registry_ids": [
+        "cataclysm:the_harbinger"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Concrete save calls super then saves Is_Act only; load calls super then setIsAct(getBoolean(Is_Act)). Missing key therefore loads false despite synced constructor default true. Power remains derived; mode/charge/overload/head targets/progress/timers are not serialized by this concrete class. Exact Ancient Factory mob pool points to the_harbinger template, whose sole Harbinger literal NBT has Is_Act0, Health390 and no selected home keys; legacy attribute entries are literal evidence, not effective-loader-value claims. While inactive, native Nether Star mobInteract shrinks one unless creative, sets active, sets home to current dimension/blockPosition, heal(getMaxHealth()) and returns SUCCESS in that order.",
+      "human_summary": "Concrete save calls super then saves Is_Act only; load calls super then setIsAct(getBoolean(Is_Act)). Missing key therefore loads false despite synced constructor default true. Power remains derived; mode/charge/overload/head targets/progress/timers are not serialized by this concrete class. Exact Ancient Factory mob pool points to the_harbinger template, whose sole Harbinger literal NBT has Is_Act0, Health390 and no selected home keys; legacy attribute entries are literal evidence, not effective-loader-value claims. While inactive, native Nether Star mobInteract shrinks one unless creative, sets active, sets home to current dimension/blockPosition, heal(getMaxHealth()) and returns SUCCESS in that order.",
+      "closest_vanilla_equivalent": "Native entity NBT/Goal setup, native item interaction and shared Home GlobalPos",
+      "vanilla_similarities": "Retains named native APIs and locked shared contracts where applicable.",
+      "vanilla_differences": "No altar or additional player/phase requirement is introduced. Interaction has no local server/alive/no-AI/difficulty check; native caller lifecycle remains native. Consumption does not depend on actual healing and setter does not clear awakening progress. Home set and maxHP heal are interaction-specific, not setIsAct side effects. Inherited finalizeSpawn only initializes home timer. Generic configured respawner proof is reused without reviewing death/offensive callbacks; ordinary construction and template load have distinct activation state.",
+      "components": [
+        {
+          "primitive": "ENCOUNTER_ACTIVATION",
+          "formula": "inactive && held item==NETHER_STAR -> shrink1 unless creative; active true; current GlobalPos home; heal(maxHP); SUCCESS",
+          "numerical_parameters": {
+            "consumed_count": 1
+          },
+          "parameter_units": {
+            "consumed_count": "held item count"
+          },
+          "binary_parameters": [
+            "native inactive flag",
+            "exact vanilla item identity",
+            "creative consumption exemption"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "Harbinger.mobInteract"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "formula": "activation branch heal(getMaxHealth()); no independent literal amount",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "native item/activation branch",
+            "native heal hooks/maxHP clamp"
+          ],
+          "vanilla_relation": "VANILLA_DIRECT",
+          "native_boundary": "Harbinger.mobInteract after home write"
+        },
+        {
+          "primitive": "NATIVE_PERSISTENCE",
+          "formula": "super save/load then Is_Act boolean; missing loadsfalse; power derived and other concrete state resets",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "native NBT and shared home contract"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "Harbinger concrete save/load"
+        },
+        {
+          "primitive": "HOME_PREREQUISITE",
+          "formula": "interaction establishes current home; shared finalizeSpawn timer and generic configured respawner home reused",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "native interaction or configured respawn path",
+            "native shared home controls"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "mobInteract / inherited finalizeSpawn / locked generic spawnMyBoss"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native inactive item admission, item consumption, save/load/default and home boundaries remain native."
+      ],
+      "custom_state": "Native synced entity/animation state and native NBT only.",
+      "eligibility": "Native inactive item admission, item consumption, save/load/default and home boundaries remain native.",
+      "source_actor": "Original native source/direct/causing actors retained; no source replacement.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-harbinger-admission.json",
+          "witness_id": "cataclysm:harbinger-admission:entity/AnimationMonster/BossMonsters/The_Harbinger_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Harbinger_Entity.class",
+          "methods": [
+            "defineSynchedData",
+            "readAdditionalSaveData",
+            "addAdditionalSaveData",
+            "mobInteract",
+            "setIsAct",
+            "canChangeDimensions"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-harbinger-admission.json",
+          "witness_id": "cataclysm:harbinger-admission:encounter-pool",
+          "entry": "data/cataclysm/worldgen/template_pool/ancient_factory/mob/the_harbinger.json",
+          "methods": []
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-harbinger-admission.json",
+          "witness_id": "cataclysm:harbinger-admission:encounter-template",
+          "entry": "data/cataclysm/structure/the_harbinger.nbt",
+          "methods": []
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "finalizeSpawn",
+            "setHomePos",
+            "getHomePos",
+            "ReturnToHome",
+            "readAdditionalSaveData",
+            "addAdditionalSaveData"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:blockentities/Boss_Respawn_Spawner_Block_Entity",
+          "entry": "com/github/L_Ender/cataclysm/blockentities/Boss_Respawn_Spawner_Block_Entity.class",
+          "methods": [
+            "spawnMyBoss"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:harbinger-admission:encounter_state"
+      ],
+      "primary_test_source": "cataclysm:the_harbinger",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k6a-cataclysm-harbinger-admission-complete",
+      "scalability_note": "Static observations only; no Stage policy, eligibility, balance or hook selected. Defensive admission/phase/setup constants are not scalar candidates merely because numeric. Distinct original native healing calls remain distinct; no new heal or duplicate effect.",
+      "scalable_parameter_candidates": [],
+      "persistence": {
+        "saved_keys": [
+          "Is_Act"
+        ],
+        "load_order": [
+          "SUPER",
+          "Is_Act"
+        ],
+        "missing_is_act_loads": false,
+        "not_saved_here": [
+          "LASER_MODE",
+          "ISCHARGE",
+          "OVERLOAD",
+          "FIRST_HEAD_TARGET",
+          "SECOND_HEAD_TARGET",
+          "THIRD_HEAD_TARGET",
+          "Laser_Mode_Progress",
+          "deactivateProgress",
+          "mode_change_cooldown",
+          "skill_cooldown",
+          "idleHeadUpdates",
+          "nextHeadUpdate",
+          "destroyBlocksTick",
+          "blockBreakCounter",
+          "animation",
+          "animationTick",
+          "damageBucket",
+          "self_regen",
+          "homeTicks"
+        ],
+        "shared_home_persistence": "Locked LLibrary Home GlobalPos/legacy OVERWORLD load; concrete save/load call super first",
+        "progress_reconstructed_by_ai_step": true
+      },
+      "encounter": {
+        "item": "minecraft:nether_star",
+        "requires_inactive": true,
+        "requires_hurt_success": false,
+        "local_server_guard": false,
+        "local_alive_guard": false,
+        "local_no_ai_guard": false,
+        "local_difficulty_guard": false,
+        "creative_exempt": true,
+        "consumption_before_activation": true,
+        "consumption_requires_heal_success": false,
+        "activation_order": [
+          "SHRINK_ONE_UNLESS_CREATIVE",
+          "SET_IS_ACT_TRUE",
+          "SET_HOME_CURRENT_DIMENSION_AND_BLOCKPOS",
+          "HEAL_MAX_HEALTH",
+          "RETURN_SUCCESS"
+        ],
+        "directly_clears_progress": false,
+        "template_entry": "data/cataclysm/structure/the_harbinger.nbt",
+        "template_is_act": 0,
+        "template_health": 390.0,
+        "template_home_present": false,
+        "default_constructed_is_act": true,
+        "concrete_finalize_spawn_override": false,
+        "shared_spawn": "Inherited finalizeSpawn initializes home timer only; constructor/default spawn does not set home.",
+        "configured_respawner": "Locked generic spawnMyBoss creates configured entity type, finalizeSpawn(SPAWNER), sets IHomeEntity current home and addFreshEntity; it does not set IS_ACT. Fresh Harbinger therefore retains default true. No new defeat/respawner creation callback reviewed here."
+      },
+      "synced_defaults": {
+        "IS_ACT": true,
+        "LASER_MODE": false,
+        "ISCHARGE": false,
+        "OVERLOAD": 0,
+        "FIRST_HEAD_TARGET": 0,
+        "SECOND_HEAD_TARGET": 0,
+        "THIRD_HEAD_TARGET": 0
+      },
+      "numeric_observations": [
+        {
+          "primitive": "ENCOUNTER_ACTIVATION",
+          "parameter": "consumed_count",
+          "native_value": 1,
+          "native_formula": "inactive && held item==NETHER_STAR -> shrink1 unless creative; active true; current GlobalPos home; heal(maxHP); SUCCESS",
+          "units": "held item count",
+          "boundary": "Harbinger.mobInteract"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:harbinger_incoming_admission",
+      "mod_key": "cataclysm",
+      "display_name": "Harbinger ordered incoming admission",
+      "registry_ids": [
+        "cataclysm:the_harbinger"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Read DamageSource.getEntity() first: ANY Harbinger causing actor rejects immediately, including self or another instance. Otherwise each idleHeadUpdates entry increments by3 and destroyBlocksTick becomes20 only if nonpositive. If animation is neither STUN_ANIAMATION nor DEATHLASER_ANIMATION and source.is(CMDamageTypes.EMP) (exact damage-type key, not tag), send native STUN_ANIAMATION message. Then isPowered() rejects a DIRECT AbstractArrow. Positive deactivateProgress rejects unless BYPASSES_INVULNERABILITY. Remaining attempts pass the SAME source and unchanged amount to locked LLibrary shared hurt and directly return its boolean.",
+      "human_summary": "Read DamageSource.getEntity() first: ANY Harbinger causing actor rejects immediately, including self or another instance. Otherwise each idleHeadUpdates entry increments by3 and destroyBlocksTick becomes20 only if nonpositive. If animation is neither STUN_ANIAMATION nor DEATHLASER_ANIMATION and source.is(CMDamageTypes.EMP) (exact damage-type key, not tag), send native STUN_ANIAMATION message. Then isPowered() rejects a DIRECT AbstractArrow. Positive deactivateProgress rejects unless BYPASSES_INVULNERABILITY. Remaining attempts pass the SAME source and unchanged amount to locked LLibrary shared hurt and directly return its boolean.",
+      "closest_vanilla_equivalent": "Native hurt with locked LLibrary admission; Wither-like powered arrow exclusion",
+      "vanilla_similarities": "Retains named native APIs and locked shared contracts where applicable.",
+      "vanilla_differences": "Concrete prewrites/EMP message precede powered and inactive rejection and virtual native invulnerability/cap/range/bucket. BYPASSES_INVULNERABILITY does not skip causing-Harbinger rejection or powered arrow exclusion. EMP animation is not a MobEffect STUN application. No shared-hurt-success dependency or local side/no-AI guard exists for these prewrites; terrain/offensive response payloads remain deferred.",
+      "components": [
+        {
+          "primitive": "CAUSING_CLASS_ADMISSION",
+          "formula": "causing instanceof The_Harbinger_Entity -> false",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "causing class, not only self identity"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "Harbinger.hurt first branch"
+        },
+        {
+          "primitive": "INCOMING_STATE_PREWRITE",
+          "formula": "idleHeadUpdates[i]+=3; destroyBlocksTick<=0 ->20",
+          "numerical_parameters": {
+            "head_counter_increment": 3,
+            "terrain_timer_ticks": 20
+          },
+          "parameter_units": {
+            "head_counter_increment": "native counter units per incoming attempt",
+            "terrain_timer_ticks": "native countdown ticks"
+          },
+          "binary_parameters": [],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "Harbinger.hurt before remaining admission"
+        },
+        {
+          "primitive": "EMP_ANIMATION_ADMISSION",
+          "formula": "source.is(CMDamageTypes.EMP) && animation!=STUN && animation!=DEATHLASER -> sendAnimationMessage(STUN)",
+          "numerical_parameters": {
+            "stun_animation_ticks": 105
+          },
+          "parameter_units": {
+            "stun_animation_ticks": "Animation.create argument ticks"
+          },
+          "binary_parameters": [
+            "exact damage-type identity",
+            "native animation exclusions"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "Harbinger.hurt before powered/inactive/shared gates"
+        },
+        {
+          "primitive": "POWERED_ARROW_ADMISSION",
+          "formula": "isPowered && direct instanceof AbstractArrow -> false",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "live HP predicate",
+            "direct arrow class"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "Harbinger.hurt after EMP response"
+        },
+        {
+          "primitive": "INACTIVE_ADMISSION",
+          "formula": "deactivateProgress>0 && !BYPASSES_INVULNERABILITY -> false",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "native float progress, not getIsAct directly",
+            "native bypass tag"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "Harbinger.hurt before shared entry"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native causing class, direct projectile class, exact EMP identity, animation and native tags retain order."
+      ],
+      "custom_state": "Native synced entity/animation state and native NBT only.",
+      "eligibility": "Native causing class, direct projectile class, exact EMP identity, animation and native tags retain order.",
+      "source_actor": "Original native source/direct/causing actors retained; no source replacement.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-harbinger-admission.json",
+          "witness_id": "cataclysm:harbinger-admission:entity/AnimationMonster/BossMonsters/The_Harbinger_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Harbinger_Entity.class",
+          "methods": [
+            "hurt",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "hurt"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:harbinger-admission:incoming_admission"
+      ],
+      "primary_test_source": "cataclysm:the_harbinger",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k6a-cataclysm-harbinger-admission-complete",
+      "scalability_note": "Static observations only; no Stage policy, eligibility, balance or hook selected. Defensive admission/phase/setup constants are not scalar candidates merely because numeric. Distinct original native healing calls remain distinct; no new heal or duplicate effect.",
+      "scalable_parameter_candidates": [],
+      "admission_order": [
+        "CAUSING_HARBINGER_CLASS_REJECT",
+        "IDLE_HEAD_COUNTERS_INCREMENT",
+        "ARM_TERRAIN_TIMER",
+        "EMP_ANIMATION_RESPONSE",
+        "POWERED_DIRECT_ABSTRACT_ARROW_REJECT",
+        "DEACTIVATION_PROGRESS_REJECT_UNLESS_INVULNERABILITY_BYPASS",
+        "SHARED_HURT_SAME_SOURCE_AND_AMOUNT",
+        "RETURN_SHARED_HURT_RESULT"
+      ],
+      "source_actor_distinctions": {
+        "first_rejection": "getEntity()",
+        "powered_arrow": "getDirectEntity()",
+        "shared_range": "current getEntity() causing actor",
+        "source_rewritten": false
+      },
+      "invulnerability_bypass_skips_all_prefilters": false,
+      "prewrites_require_hurt_true": false,
+      "emp_requires_hurt_true": false,
+      "local_server_guard": false,
+      "shared_return_forwarded": true,
+      "request_multiplier_added": false,
+      "numeric_observations": [
+        {
+          "primitive": "INCOMING_STATE_PREWRITE",
+          "parameter": "head_counter_increment",
+          "native_value": 3,
+          "native_formula": "idleHeadUpdates[i]+=3; destroyBlocksTick<=0 ->20",
+          "units": "native counter units per incoming attempt",
+          "boundary": "Harbinger.hurt before remaining admission"
+        },
+        {
+          "primitive": "INCOMING_STATE_PREWRITE",
+          "parameter": "terrain_timer_ticks",
+          "native_value": 20,
+          "native_formula": "idleHeadUpdates[i]+=3; destroyBlocksTick<=0 ->20",
+          "units": "native countdown ticks",
+          "boundary": "Harbinger.hurt before remaining admission"
+        },
+        {
+          "primitive": "EMP_ANIMATION_ADMISSION",
+          "parameter": "stun_animation_ticks",
+          "native_value": 105,
+          "native_formula": "source.is(CMDamageTypes.EMP) && animation!=STUN && animation!=DEATHLASER -> sendAnimationMessage(STUN)",
+          "units": "Animation.create argument ticks",
+          "boundary": "Harbinger.hurt before powered/inactive/shared gates"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:harbinger_mode_state",
+      "mod_key": "cataclysm",
+      "display_name": "Harbinger native mode/charge/overload state boundary",
+      "registry_ids": [
+        "cataclysm:the_harbinger"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Native synced defaults are laserMode=false, charge=false, overload=0 and all three head-target IDs0. Their setters store raw supplied boolean/integer values with no clamp or HP/attribute/activation mutations. Laser mode progress in aiStep increments/decrements by1 toward30/0. In the active, fully awakened customServerAiStep branch, mode_change_cooldown<300 increments; otherwise only NO_ANIMATION toggles mode and resets cooldown to nextInt(50), independently of target and HP power. Constructor initializes cooldown0. This records prerequisite state only; all attack-selection, overload producers/thresholds and charge/head-target payload readers remain R2k6b.",
+      "human_summary": "Native synced defaults are laserMode=false, charge=false, overload=0 and all three head-target IDs0. Their setters store raw supplied boolean/integer values with no clamp or HP/attribute/activation mutations. Laser mode progress in aiStep increments/decrements by1 toward30/0. In the active, fully awakened customServerAiStep branch, mode_change_cooldown<300 increments; otherwise only NO_ANIMATION toggles mode and resets cooldown to nextInt(50), independently of target and HP power. Constructor initializes cooldown0. This records prerequisite state only; all attack-selection, overload producers/thresholds and charge/head-target payload readers remain R2k6b.",
+      "closest_vanilla_equivalent": "Native synced mode state; no vanilla MobEffect or scalar phase",
+      "vanilla_similarities": "Retains named native APIs and locked shared contracts where applicable.",
+      "vanilla_differences": "Laser mode, transition progress, charge, overload and live HP power remain distinct. Raw overload is not interpreted as a Stage or health tier; getter/setter semantics alone do not establish payload behavior. Cooldown/progress constants here are setup state, not Stage candidates.",
+      "components": [
+        {
+          "primitive": "MODE_STATE",
+          "formula": "raw native setters; mode toggle in active progress<=0 server-AI branch when cooldown>=300 && NO_ANIMATION, reset random nextInt(50)",
+          "numerical_parameters": {
+            "toggle_threshold_ticks": 300,
+            "reset_random_bound": 50,
+            "transition_progress_max": 30.0,
+            "transition_step": 1.0
+          },
+          "parameter_units": {
+            "toggle_threshold_ticks": "native server-AI calls",
+            "reset_random_bound": "exclusive integer random bound",
+            "transition_progress_max": "native mode progress",
+            "transition_step": "progress per aiStep"
+          },
+          "binary_parameters": [
+            "active",
+            "awakening complete",
+            "NO_ANIMATION for toggle"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "Harbinger synced setters / aiStep / customServerAiStep state fragments"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native mode/charge/overload/head IDs remain native; offensive writers/readers deferred."
+      ],
+      "custom_state": "Native synced entity/animation state and native NBT only.",
+      "eligibility": "Native mode/charge/overload/head IDs remain native; offensive writers/readers deferred.",
+      "source_actor": "Original native source/direct/causing actors retained; no source replacement.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-harbinger-admission.json",
+          "witness_id": "cataclysm:harbinger-admission:entity/AnimationMonster/BossMonsters/The_Harbinger_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Harbinger_Entity.class",
+          "methods": [
+            "<init>",
+            "defineSynchedData",
+            "setIsLaserMode",
+            "getIsLaserMode",
+            "setIsCharge",
+            "getIsCharge",
+            "setOverload",
+            "getOverload",
+            "getAlternativeTarget",
+            "setAlternativeTarget",
+            "aiStep",
+            "customServerAiStep"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:harbinger-admission:mode_state"
+      ],
+      "primary_test_source": "cataclysm:the_harbinger",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k6a-cataclysm-harbinger-admission-complete",
+      "scalability_note": "Static observations only; no Stage policy, eligibility, balance or hook selected. Defensive admission/phase/setup constants are not scalar candidates merely because numeric. Distinct original native healing calls remain distinct; no new heal or duplicate effect.",
+      "scalable_parameter_candidates": [],
+      "setters_clamp": false,
+      "payload_semantics_deferred": true,
+      "mode_cycle_requires_target": false,
+      "mode_cycle_requires_powered": false,
+      "numeric_observations": [
+        {
+          "primitive": "MODE_STATE",
+          "parameter": "toggle_threshold_ticks",
+          "native_value": 300,
+          "native_formula": "raw native setters; mode toggle in active progress<=0 server-AI branch when cooldown>=300 && NO_ANIMATION, reset random nextInt(50)",
+          "units": "native server-AI calls",
+          "boundary": "Harbinger synced setters / aiStep / customServerAiStep state fragments"
+        },
+        {
+          "primitive": "MODE_STATE",
+          "parameter": "reset_random_bound",
+          "native_value": 50,
+          "native_formula": "raw native setters; mode toggle in active progress<=0 server-AI branch when cooldown>=300 && NO_ANIMATION, reset random nextInt(50)",
+          "units": "exclusive integer random bound",
+          "boundary": "Harbinger synced setters / aiStep / customServerAiStep state fragments"
+        },
+        {
+          "primitive": "MODE_STATE",
+          "parameter": "transition_progress_max",
+          "native_value": 30.0,
+          "native_formula": "raw native setters; mode toggle in active progress<=0 server-AI branch when cooldown>=300 && NO_ANIMATION, reset random nextInt(50)",
+          "units": "native mode progress",
+          "boundary": "Harbinger synced setters / aiStep / customServerAiStep state fragments"
+        },
+        {
+          "primitive": "MODE_STATE",
+          "parameter": "transition_step",
+          "native_value": 1.0,
+          "native_formula": "raw native setters; mode toggle in active progress<=0 server-AI branch when cooldown>=300 && NO_ANIMATION, reset random nextInt(50)",
+          "units": "progress per aiStep",
+          "boundary": "Harbinger synced setters / aiStep / customServerAiStep state fragments"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:harbinger_native_state_healing",
+      "mod_key": "cataclysm",
+      "display_name": "Harbinger distinct active and dormant native healing",
+      "registry_ids": [
+        "cataclysm:the_harbinger"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "At tickCount%20==0 concrete customServerAiStep heals (float)Harbinger.AutoHeal (installed2) in the active progress<=0 branch; active positive progress has neither this call nor dormant heal. Inactive branch instead heals50.0F*(float)Harbinger.healthMultiplier (installed1). Neither branch locally requires targetless state, self_regen expiry, positive amount or successful prior hurt. Native server-AI scheduler and LivingEntity.heal remain authoritative. These calls coexist with, and must not replace or duplicate, inherited NatureRegen25.",
+      "human_summary": "At tickCount%20==0 concrete customServerAiStep heals (float)Harbinger.AutoHeal (installed2) in the active progress<=0 branch; active positive progress has neither this call nor dormant heal. Inactive branch instead heals50.0F*(float)Harbinger.healthMultiplier (installed1). Neither branch locally requires targetless state, self_regen expiry, positive amount or successful prior hurt. Native server-AI scheduler and LivingEntity.heal remain authoritative. These calls coexist with, and must not replace or duplicate, inherited NatureRegen25.",
+      "closest_vanilla_equivalent": "Native heal with custom activation-dependent argument/cadence",
+      "vanilla_similarities": "Retains named native APIs and locked shared contracts where applicable.",
+      "vanilla_differences": "Two original call sites, not a shared regen alias. Dormant base50 is multiplied only by native health config in the original formula; no new multiplier chosen. Concrete customServerAiStep contains no local isNoAi or alive predicate; scheduler controls remain native. Target presence does not gate these heals, and shared block_self_regen timer does not gate them.",
+      "components": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "formula": "getIsAct && deactivateProgress<=0 && tickCount%20==0 -> heal((float)Harbinger.AutoHeal)",
+          "numerical_parameters": {
+            "active_amount": 2.0
+          },
+          "parameter_units": {
+            "active_amount": "native heal argument HP units"
+          },
+          "binary_parameters": [
+            "native server-AI dispatch",
+            "active and fully awakened",
+            "tick modulo20"
+          ],
+          "vanilla_relation": "VANILLA_DIRECT",
+          "native_boundary": "Harbinger.customServerAiStep active branch heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "formula": "!getIsAct && tickCount%20==0 -> heal(50.0F*(float)Harbinger.healthMultiplier)",
+          "numerical_parameters": {
+            "dormant_base_amount": 50.0
+          },
+          "parameter_units": {
+            "dormant_base_amount": "native base heal argument HP units before native healthMultiplier"
+          },
+          "binary_parameters": [
+            "native server-AI dispatch",
+            "inactive",
+            "tick modulo20"
+          ],
+          "vanilla_relation": "VANILLA_DIRECT",
+          "native_boundary": "Harbinger.customServerAiStep inactive branch heal"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native server-AI scheduling, flag/progress branch and native healing hooks/maxHP retained."
+      ],
+      "custom_state": "Native synced entity/animation state and native NBT only.",
+      "eligibility": "Native server-AI scheduling, flag/progress branch and native healing hooks/maxHP retained.",
+      "source_actor": "Original native source/direct/causing actors retained; no source replacement.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-harbinger-admission.json",
+          "witness_id": "cataclysm:harbinger-admission:entity/AnimationMonster/BossMonsters/The_Harbinger_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Harbinger_Entity.class",
+          "methods": [
+            "customServerAiStep"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:harbinger-admission:native_state_healing"
+      ],
+      "primary_test_source": "cataclysm:the_harbinger",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k6a-cataclysm-harbinger-admission-complete",
+      "scalability_note": "Static observations only; no Stage policy, eligibility, balance or hook selected. Defensive admission/phase/setup constants are not scalar candidates merely because numeric. Distinct original native healing calls remain distinct; no new heal or duplicate effect.",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "active_amount"
+          ],
+          "native_value": 2.0,
+          "native_formula": "getIsAct && deactivateProgress<=0 && tickCount%20==0 -> heal((float)Harbinger.AutoHeal)",
+          "units": "native heal argument HP units",
+          "native_boundary": "Harbinger.customServerAiStep active branch heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "dormant_base_amount"
+          ],
+          "native_value": 50.0,
+          "native_formula": "!getIsAct && tickCount%20==0 -> heal(50.0F*(float)Harbinger.healthMultiplier)",
+          "units": "native base heal argument HP units before native healthMultiplier",
+          "native_boundary": "Harbinger.customServerAiStep inactive branch heal"
+        }
+      ],
+      "health_multiplier_installed": 1.0,
+      "requires_targetless": false,
+      "reads_shared_regen_timer": false,
+      "requires_hurt_success": false,
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameter": "active_amount",
+          "native_value": 2.0,
+          "native_formula": "getIsAct && deactivateProgress<=0 && tickCount%20==0 -> heal((float)Harbinger.AutoHeal)",
+          "units": "native heal argument HP units",
+          "boundary": "Harbinger.customServerAiStep active branch heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameter": "dormant_base_amount",
+          "native_value": 50.0,
+          "native_formula": "!getIsAct && tickCount%20==0 -> heal(50.0F*(float)Harbinger.healthMultiplier)",
+          "units": "native base heal argument HP units before native healthMultiplier",
+          "boundary": "Harbinger.customServerAiStep inactive branch heal"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:harbinger_nature_regen_binding",
+      "mod_key": "cataclysm",
+      "display_name": "Harbinger concrete shared NatureRegen binding",
+      "registry_ids": [
+        "cataclysm:the_harbinger"
+      ],
+      "primary_classification": "VANILLA_DIRECT",
+      "actual_behavior": "NatureRegen returns (float)Harbinger.natureHeal, installed25, into the already-closed shared positive heal path. Shared native targetless/timer/no-AI/server/20-tick gates and successful tagged hurt timer reset remain unchanged. Harbinger does not override tick; shared tick does not read IS_ACT or deactivateProgress. This is separate from concrete active/dormant AutoHeal and Nether Star interaction heal.",
+      "human_summary": "NatureRegen returns (float)Harbinger.natureHeal, installed25, into the already-closed shared positive heal path. Shared native targetless/timer/no-AI/server/20-tick gates and successful tagged hurt timer reset remain unchanged. Harbinger does not override tick; shared tick does not read IS_ACT or deactivateProgress. This is separate from concrete active/dormant AutoHeal and Nether Star interaction heal.",
+      "closest_vanilla_equivalent": "Vanilla LivingEntity.heal via locked shared boss regen",
+      "vanilla_similarities": "Retains named native APIs and locked shared contracts where applicable.",
+      "vanilla_differences": "Binding only, no second shared mechanism. Active/dormant customServerAiStep gating does not suppress this inherited tick call. Native heal return is void; healing hooks/maxHP remain native and candidate amount is not guaranteed HP gain.",
+      "components": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "formula": "locked shared tick heal((float)Harbinger.natureHeal) when self_regen<=0 && !NoAI && NatureRegen>0 && target==null && tickCount%20==0 on server",
+          "numerical_parameters": {
+            "amount": 25.0
+          },
+          "parameter_units": {
+            "amount": "native heal argument HP units"
+          },
+          "binary_parameters": [
+            "locked native healing hooks/maxHP admission",
+            "shared targetless/no-AI/timer/server/cadence gates"
+          ],
+          "vanilla_relation": "VANILLA_DIRECT",
+          "native_boundary": "shared tick heal(NatureRegen())"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Locked shared positive-heal lifecycle retained."
+      ],
+      "custom_state": "Native synced entity/animation state and native NBT only.",
+      "eligibility": "Locked shared positive-heal lifecycle retained.",
+      "source_actor": "Original native source/direct/causing actors retained; no source replacement.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-harbinger-admission.json",
+          "witness_id": "cataclysm:harbinger-admission:entity/AnimationMonster/BossMonsters/The_Harbinger_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Harbinger_Entity.class",
+          "methods": [
+            "NatureRegen"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "tick",
+            "hurt",
+            "HealCooldown"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:harbinger-admission:nature_regen_binding"
+      ],
+      "primary_test_source": "cataclysm:the_harbinger",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k6a-cataclysm-harbinger-admission-complete",
+      "scalability_note": "Static observations only; no Stage policy, eligibility, balance or hook selected. Defensive admission/phase/setup constants are not scalar candidates merely because numeric. Distinct original native healing calls remain distinct; no new heal or duplicate effect.",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "amount"
+          ],
+          "native_value": 25.0,
+          "native_formula": "locked shared tick heal((float)Harbinger.natureHeal) when self_regen<=0 && !NoAI && NatureRegen>0 && target==null && tickCount%20==0 on server",
+          "units": "native heal argument HP units",
+          "native_boundary": "shared tick heal(NatureRegen())"
+        }
+      ],
+      "record_kind": "SHARED_BINDING",
+      "binding_of": "cataclysm:shared_heal",
+      "reads_activation": false,
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameter": "amount",
+          "native_value": 25.0,
+          "native_formula": "locked shared tick heal((float)Harbinger.natureHeal) when self_regen<=0 && !NoAI && NatureRegen>0 && target==null && tickCount%20==0 on server",
+          "units": "native heal argument HP units",
+          "boundary": "shared tick heal(NatureRegen())"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:harbinger_power_prerequisites",
+      "mod_key": "cataclysm",
+      "display_name": "Harbinger live-HP power prerequisite",
+      "registry_ids": [
+        "cataclysm:the_harbinger"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "isPowered returns current getHealth()<=getMaxHealth()/2.0F. Exact half is powered; healing above half clears power without any phase setter. It is a live PowerableMob predicate, not saved/latched phase state and not OVERLOAD, laser mode, charge or activation. Powered direct-AbstractArrow admission reads this predicate on each attempted hurt.",
+      "human_summary": "isPowered returns current getHealth()<=getMaxHealth()/2.0F. Exact half is powered; healing above half clears power without any phase setter. It is a live PowerableMob predicate, not saved/latched phase state and not OVERLOAD, laser mode, charge or activation. Powered direct-AbstractArrow admission reads this predicate on each attempted hurt.",
+      "closest_vanilla_equivalent": "Vanilla Wither-style PowerableMob half-health predicate",
+      "vanilla_similarities": "Retains named native APIs and locked shared contracts where applicable.",
+      "vanilla_differences": "No concrete setPowered/setBossPhase or dedicated persisted power field. The same predicate may be consumed by deferred offense; no future reader is reinterpreted here. It does not mutate HP, attributes, mode, home, charge, activation or animation.",
+      "components": [
+        {
+          "primitive": "POWER_PREREQUISITE",
+          "formula": "current health <= current maxHealth / 2.0F",
+          "numerical_parameters": {
+            "health_divisor": 2.0
+          },
+          "parameter_units": {
+            "health_divisor": "dimensionless live HP threshold divisor"
+          },
+          "binary_parameters": [
+            "native current HP and maxHP"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "Harbinger.isPowered"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Power is derived on each call; no latched phase transition."
+      ],
+      "custom_state": "Native synced entity/animation state and native NBT only.",
+      "eligibility": "Power is derived on each call; no latched phase transition.",
+      "source_actor": "Original native source/direct/causing actors retained; no source replacement.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-harbinger-admission.json",
+          "witness_id": "cataclysm:harbinger-admission:entity/AnimationMonster/BossMonsters/The_Harbinger_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Harbinger_Entity.class",
+          "methods": [
+            "isPowered",
+            "defineSynchedData",
+            "readAdditionalSaveData",
+            "addAdditionalSaveData"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:harbinger-admission:power_prerequisites"
+      ],
+      "primary_test_source": "cataclysm:the_harbinger",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k6a-cataclysm-harbinger-admission-complete",
+      "scalability_note": "Static observations only; no Stage policy, eligibility, balance or hook selected. Defensive admission/phase/setup constants are not scalar candidates merely because numeric. Distinct original native healing calls remain distinct; no new heal or duplicate effect.",
+      "scalable_parameter_candidates": [],
+      "derived_not_latched": true,
+      "power_saved": false,
+      "power_setter_present": false,
+      "numeric_observations": [
+        {
+          "primitive": "POWER_PREREQUISITE",
+          "parameter": "health_divisor",
+          "native_value": 2.0,
+          "native_formula": "current health <= current maxHealth / 2.0F",
+          "units": "dimensionless live HP threshold divisor",
+          "boundary": "Harbinger.isPowered"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:harbinger_shared_defense_bindings",
+      "mod_key": "cataclysm",
+      "display_name": "Harbinger concrete shared defense bindings",
+      "registry_ids": [
+        "cataclysm:the_harbinger"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Concrete getters bind installed DamageCap22, DpsCap14 and RangeLimit35 to locked LLibrary shared admission. Cap22 is also requested-damage bucket capacity; drain is DpsCap()/20 on eligible AI server ticks. Shared causing-distance is full through35, linear falloff35<d<52.5, reject>=52.5; causing-null skips distance. No isInvulnerableTo override is declared in Harbinger or its Cataclysm ancestors, so shared virtual native invulnerability stays authoritative. Entity registration is fireImmune and immuneTo WITHER_ROSE. Base attributes armor12 and knockback resistance0.5 remain separate native defenses; base health390 and attack9 are configured by installed multipliers1.",
+      "human_summary": "Concrete getters bind installed DamageCap22, DpsCap14 and RangeLimit35 to locked LLibrary shared admission. Cap22 is also requested-damage bucket capacity; drain is DpsCap()/20 on eligible AI server ticks. Shared causing-distance is full through35, linear falloff35<d<52.5, reject>=52.5; causing-null skips distance. No isInvulnerableTo override is declared in Harbinger or its Cataclysm ancestors, so shared virtual native invulnerability stays authoritative. Entity registration is fireImmune and immuneTo WITHER_ROSE. Base attributes armor12 and knockback resistance0.5 remain separate native defenses; base health390 and attack9 are configured by installed multipliers1.",
+      "closest_vanilla_equivalent": "Locked LLibrary cap/range/bucket plus native Entity/LivingEntity defenses",
+      "vanilla_similarities": "Retains named native APIs and locked shared contracts where applicable.",
+      "vanilla_differences": "Virtual native invulnerability occurs after concrete incoming prewrites/admission. BYPASSES_INVULNERABILITY only early-returns native hurt once shared entry is reached. Registered fire immunity and wither-rose block immunity are distinct from phase/direct-arrow rejection and effect whitelist; no claim of general damage/status immunity follows. Installed dps_limit_time20 is not a new getter binding; shared drain divisor remains fixed20.",
+      "components": [
+        {
+          "primitive": "DAMAGE_CAP",
+          "formula": "min(Harbinger.damageCap,incoming); same getter supplies bucket capacity",
+          "numerical_parameters": {
+            "per_hit_cap": 22.0
+          },
+          "parameter_units": {
+            "per_hit_cap": "pre-mitigation request units"
+          },
+          "binary_parameters": [],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "shared hurt after virtual invulnerability"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "formula": "capacity=DamageCap(); drain=DpsCap()/20; overflow remaining room else0.1F; failed native hurt restores bucket",
+          "numerical_parameters": {
+            "capacity": 22.0,
+            "dps_cap": 14.0,
+            "drain_divisor": 20,
+            "full_bucket_request": 0.10000000149011612
+          },
+          "parameter_units": {
+            "capacity": "pre-mitigation request units",
+            "dps_cap": "request units/20 ticks",
+            "drain_divisor": "ticks",
+            "full_bucket_request": "request units (0.1F)"
+          },
+          "binary_parameters": [],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "locked shared hurt/tick"
+        },
+        {
+          "primitive": "RANGE_ADMISSION",
+          "formula": "L=35; causing-null skips; d>=1.5L rejects; L<d<1.5L attenuates (1.5L-d)/(0.5L)",
+          "numerical_parameters": {
+            "range_limit": 35.0
+          },
+          "parameter_units": {
+            "range_limit": "blocks"
+          },
+          "binary_parameters": [],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "shared hurt after cap / before bucket"
+        },
+        {
+          "primitive": "NATIVE_INVULNERABILITY",
+          "formula": "inherited virtual native isInvulnerableTo + native/NeoForge admission; registration fireImmune / immuneTo(WITHER_ROSE)",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "native tags/defenses/hooks",
+            "native registered type/block immunity"
+          ],
+          "vanilla_relation": "VANILLA_DIRECT",
+          "native_boundary": "shared hurt entry and native damage source generation"
+        },
+        {
+          "primitive": "NATIVE_DEFENSE_ATTRIBUTES",
+          "formula": "native base armor12 / knockback resistance0.5; HP390/attack9 config binding separate",
+          "numerical_parameters": {
+            "armor": 12.0,
+            "knockback_resistance": 0.5,
+            "base_health": 390.0,
+            "base_attack_damage": 9.0,
+            "health_multiplier": 1.0,
+            "attack_multiplier": 1.0
+          },
+          "parameter_units": {
+            "armor": "native attribute units",
+            "knockback_resistance": "native attribute units",
+            "base_health": "HP attribute units",
+            "base_attack_damage": "native attack attribute units",
+            "health_multiplier": "installed dimensionless config",
+            "attack_multiplier": "installed dimensionless config"
+          },
+          "binary_parameters": [],
+          "vanilla_relation": "VANILLA_DIRECT",
+          "native_boundary": "Harbinger.harbinger / constructor setConfigattribute"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Concrete incoming gates must pass before inherited defenses; native armor/hooks retained."
+      ],
+      "custom_state": "Native synced entity/animation state and native NBT only.",
+      "eligibility": "Concrete incoming gates must pass before inherited defenses; native armor/hooks retained.",
+      "source_actor": "Original native source/direct/causing actors retained; no source replacement.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-harbinger-admission.json",
+          "witness_id": "cataclysm:harbinger-admission:entity/AnimationMonster/BossMonsters/The_Harbinger_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Harbinger_Entity.class",
+          "methods": [
+            "harbinger",
+            "<init>",
+            "DamageCap",
+            "DpsCap",
+            "RangeLimit"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-harbinger-admission.json",
+          "witness_id": "cataclysm:harbinger-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$24",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "hurt",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "calculateRange",
+            "setConfigattribute"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:harbinger-admission:shared_defense_bindings"
+      ],
+      "primary_test_source": "cataclysm:the_harbinger",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k6a-cataclysm-harbinger-admission-complete",
+      "scalability_note": "Static observations only; no Stage policy, eligibility, balance or hook selected. Defensive admission/phase/setup constants are not scalar candidates merely because numeric. Distinct original native healing calls remain distinct; no new heal or duplicate effect.",
+      "scalable_parameter_candidates": [],
+      "has_concrete_invulnerability_override": false,
+      "registered_fire_immune": true,
+      "registered_immune_blocks": [
+        "minecraft:wither_rose"
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "DAMAGE_CAP",
+          "parameter": "per_hit_cap",
+          "native_value": 22.0,
+          "native_formula": "min(Harbinger.damageCap,incoming); same getter supplies bucket capacity",
+          "units": "pre-mitigation request units",
+          "boundary": "shared hurt after virtual invulnerability"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "parameter": "capacity",
+          "native_value": 22.0,
+          "native_formula": "capacity=DamageCap(); drain=DpsCap()/20; overflow remaining room else0.1F; failed native hurt restores bucket",
+          "units": "pre-mitigation request units",
+          "boundary": "locked shared hurt/tick"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "parameter": "dps_cap",
+          "native_value": 14.0,
+          "native_formula": "capacity=DamageCap(); drain=DpsCap()/20; overflow remaining room else0.1F; failed native hurt restores bucket",
+          "units": "request units/20 ticks",
+          "boundary": "locked shared hurt/tick"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "parameter": "drain_divisor",
+          "native_value": 20,
+          "native_formula": "capacity=DamageCap(); drain=DpsCap()/20; overflow remaining room else0.1F; failed native hurt restores bucket",
+          "units": "ticks",
+          "boundary": "locked shared hurt/tick"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "parameter": "full_bucket_request",
+          "native_value": 0.10000000149011612,
+          "native_formula": "capacity=DamageCap(); drain=DpsCap()/20; overflow remaining room else0.1F; failed native hurt restores bucket",
+          "units": "request units (0.1F)",
+          "boundary": "locked shared hurt/tick"
+        },
+        {
+          "primitive": "RANGE_ADMISSION",
+          "parameter": "range_limit",
+          "native_value": 35.0,
+          "native_formula": "L=35; causing-null skips; d>=1.5L rejects; L<d<1.5L attenuates (1.5L-d)/(0.5L)",
+          "units": "blocks",
+          "boundary": "shared hurt after cap / before bucket"
+        },
+        {
+          "primitive": "NATIVE_DEFENSE_ATTRIBUTES",
+          "parameter": "armor",
+          "native_value": 12.0,
+          "native_formula": "native base armor12 / knockback resistance0.5; HP390/attack9 config binding separate",
+          "units": "native attribute units",
+          "boundary": "Harbinger.harbinger / constructor setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_DEFENSE_ATTRIBUTES",
+          "parameter": "knockback_resistance",
+          "native_value": 0.5,
+          "native_formula": "native base armor12 / knockback resistance0.5; HP390/attack9 config binding separate",
+          "units": "native attribute units",
+          "boundary": "Harbinger.harbinger / constructor setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_DEFENSE_ATTRIBUTES",
+          "parameter": "base_health",
+          "native_value": 390.0,
+          "native_formula": "native base armor12 / knockback resistance0.5; HP390/attack9 config binding separate",
+          "units": "HP attribute units",
+          "boundary": "Harbinger.harbinger / constructor setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_DEFENSE_ATTRIBUTES",
+          "parameter": "base_attack_damage",
+          "native_value": 9.0,
+          "native_formula": "native base armor12 / knockback resistance0.5; HP390/attack9 config binding separate",
+          "units": "native attack attribute units",
+          "boundary": "Harbinger.harbinger / constructor setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_DEFENSE_ATTRIBUTES",
+          "parameter": "health_multiplier",
+          "native_value": 1.0,
+          "native_formula": "native base armor12 / knockback resistance0.5; HP390/attack9 config binding separate",
+          "units": "installed dimensionless config",
+          "boundary": "Harbinger.harbinger / constructor setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_DEFENSE_ATTRIBUTES",
+          "parameter": "attack_multiplier",
+          "native_value": 1.0,
+          "native_formula": "native base armor12 / knockback resistance0.5; HP390/attack9 config binding separate",
+          "units": "installed dimensionless config",
+          "boundary": "Harbinger.harbinger / constructor setConfigattribute"
+        }
+      ]
+    },
+    {
       "id": "cataclysm:ignis_abyss_fireball_contact",
       "mod_key": "cataclysm",
       "display_name": "Ignis Abyss fireball contact package",
@@ -24285,6 +25460,325 @@
       "runtime_status": "NOT_RUN"
     },
     {
+      "id": "cataclysm:harbinger-admission:activation_state",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:harbinger_activation_state"
+      ],
+      "primary_source": "cataclysm:the_harbinger",
+      "native_path": "setIsAct -> aiStep progress -> hurt/AwakenGoal/server-AI gating",
+      "setup": "Flag/progress mismatch, dormant-to-active40 countdown, native no-AI scheduler and unchanged Y velocity.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-harbinger-admission.json",
+          "witness_id": "cataclysm:harbinger-admission:entity/AnimationMonster/BossMonsters/The_Harbinger_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Harbinger_Entity.class",
+          "methods": [
+            "setIsAct",
+            "getIsAct",
+            "canBeSeenAsEnemy",
+            "defineSynchedData",
+            "aiStep",
+            "customServerAiStep",
+            "registerGoals"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-harbinger-admission.json",
+          "witness_id": "cataclysm:harbinger-admission:entity/AnimationMonster/BossMonsters/The_Harbinger_Entity$AwakenGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Harbinger_Entity$AwakenGoal.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "tick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:harbinger-admission:encounter_state",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:harbinger_encounter_state"
+      ],
+      "primary_source": "cataclysm:the_harbinger",
+      "native_path": "Ancient Factory template load -> native inactive progress; Nether Star interaction -> active/home/heal; generic configured respawn -> shared finalize/home",
+      "setup": "Literal template inactive, missing key load, fresh defaultactive, reload/no-home, creative/survival and interaction before first aiStep.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-harbinger-admission.json",
+          "witness_id": "cataclysm:harbinger-admission:entity/AnimationMonster/BossMonsters/The_Harbinger_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Harbinger_Entity.class",
+          "methods": [
+            "defineSynchedData",
+            "readAdditionalSaveData",
+            "addAdditionalSaveData",
+            "mobInteract",
+            "setIsAct",
+            "canChangeDimensions"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-harbinger-admission.json",
+          "witness_id": "cataclysm:harbinger-admission:encounter-pool",
+          "entry": "data/cataclysm/worldgen/template_pool/ancient_factory/mob/the_harbinger.json",
+          "methods": []
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-harbinger-admission.json",
+          "witness_id": "cataclysm:harbinger-admission:encounter-template",
+          "entry": "data/cataclysm/structure/the_harbinger.nbt",
+          "methods": []
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "finalizeSpawn",
+            "setHomePos",
+            "getHomePos",
+            "ReturnToHome",
+            "readAdditionalSaveData",
+            "addAdditionalSaveData"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:blockentities/Boss_Respawn_Spawner_Block_Entity",
+          "entry": "com/github/L_Ender/cataclysm/blockentities/Boss_Respawn_Spawner_Block_Entity.class",
+          "methods": [
+            "spawnMyBoss"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:harbinger-admission:incoming_admission",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:harbinger_incoming_admission"
+      ],
+      "primary_source": "cataclysm:the_harbinger",
+      "native_path": "Harbinger.hurt -> ordered concrete state/admission -> shared hurt -> native hurt",
+      "setup": "Distinct causing/direct/null actors, EMP animation identity, powered HP threshold, positive/zero progress and bypass-tag attempts.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-harbinger-admission.json",
+          "witness_id": "cataclysm:harbinger-admission:entity/AnimationMonster/BossMonsters/The_Harbinger_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Harbinger_Entity.class",
+          "methods": [
+            "hurt",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "hurt"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:harbinger-admission:mode_state",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:harbinger_mode_state"
+      ],
+      "primary_source": "cataclysm:the_harbinger",
+      "native_path": "Native state initialization/setters -> active server-AI mode cycle; payload consumers deferred",
+      "setup": "Raw integer round-trip, bool setters, targetless mode cycling and animation-blocked toggle.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-harbinger-admission.json",
+          "witness_id": "cataclysm:harbinger-admission:entity/AnimationMonster/BossMonsters/The_Harbinger_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Harbinger_Entity.class",
+          "methods": [
+            "<init>",
+            "defineSynchedData",
+            "setIsLaserMode",
+            "getIsLaserMode",
+            "setIsCharge",
+            "getIsCharge",
+            "setOverload",
+            "getOverload",
+            "getAlternativeTarget",
+            "setAlternativeTarget",
+            "aiStep",
+            "customServerAiStep"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:harbinger-admission:native_state_healing",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:harbinger_native_state_healing"
+      ],
+      "primary_source": "cataclysm:the_harbinger",
+      "native_path": "Native server-AI -> active/dormant branch -> native heal; inherited tick heal separate",
+      "setup": "Active settled/awakening/inactive at20-tick boundary and native denied/capped healing.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-harbinger-admission.json",
+          "witness_id": "cataclysm:harbinger-admission:entity/AnimationMonster/BossMonsters/The_Harbinger_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Harbinger_Entity.class",
+          "methods": [
+            "customServerAiStep"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:harbinger-admission:nature_regen_binding",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:harbinger_nature_regen_binding"
+      ],
+      "primary_source": "cataclysm:the_harbinger",
+      "native_path": "Inherited Harbinger tick -> shared heal(NatureRegen())",
+      "setup": "Separate inherited25 from active2/dormant50 and activation maxHP heal, native heal admission and tagged hurt timer.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-harbinger-admission.json",
+          "witness_id": "cataclysm:harbinger-admission:entity/AnimationMonster/BossMonsters/The_Harbinger_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Harbinger_Entity.class",
+          "methods": [
+            "NatureRegen"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "tick",
+            "hurt",
+            "HealCooldown"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:harbinger-admission:power_prerequisites",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:harbinger_power_prerequisites"
+      ],
+      "primary_source": "cataclysm:the_harbinger",
+      "native_path": "Native current health -> isPowered -> direct-arrow incoming admission; offense consumers deferred",
+      "setup": "HP above/equal/below half, changing maxHP and healing across threshold.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-harbinger-admission.json",
+          "witness_id": "cataclysm:harbinger-admission:entity/AnimationMonster/BossMonsters/The_Harbinger_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Harbinger_Entity.class",
+          "methods": [
+            "isPowered",
+            "defineSynchedData",
+            "readAdditionalSaveData",
+            "addAdditionalSaveData"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:harbinger-admission:shared_defense_bindings",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:harbinger_shared_defense_bindings"
+      ],
+      "primary_source": "cataclysm:the_harbinger",
+      "native_path": "Harbinger concrete admission -> inherited shared defenses -> native hurt; concrete type/base attributes",
+      "setup": "Normal/bypass-tagged attempts after local class/progress gates; causing-null/range-boundary and bucket false-return rollback.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-harbinger-admission.json",
+          "witness_id": "cataclysm:harbinger-admission:entity/AnimationMonster/BossMonsters/The_Harbinger_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Harbinger_Entity.class",
+          "methods": [
+            "harbinger",
+            "<init>",
+            "DamageCap",
+            "DpsCap",
+            "RangeLimit"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-harbinger-admission.json",
+          "witness_id": "cataclysm:harbinger-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$24",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "hurt",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "calculateRange",
+            "setConfigattribute"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
       "id": "cataclysm:ignis-admission:counter",
       "mod_key": "cataclysm",
       "status": "VERIFIED",
@@ -27028,10 +28522,10 @@
   ],
   "unresolved_native_ambiguities": null,
   "remaining_native_ambiguities": null,
-  "checkpoint": "R2k5b-cataclysm-ignis-offense-complete",
-  "scope": "Ignis offense selection/goals, melee/body-check/poke/held-victim and phase/shield-break payloads, ground waves/ultimate lanes, owned fireball/flame-strike chains, explosion, source/team/return rules and native lifecycle closed. R2k5a/shared/status/Guardian/Monstrosity locked; Ignis family closed; Cataclysm PARTIAL.",
-  "notes_file": "cataclysm-r2k5b-ignis-offense.json",
-  "exact_next_task": "R2k6a: The Harbinger incoming admission and power/phase/encounter prerequisites. Start The_Harbinger_Entity hurt/isInvulnerableTo and concrete DamageCap/DpsCap/RangeLimit/NatureRegen bindings into the locked LLibrary shared contract; close native power/phase setters, combat persistence and material spawn/home/encounter prerequisites. Defer all Harbinger offense/payloads to the following bounded batch. Reuse locked shared/status, Guardian, Monstrosity and completed Ignis contracts. Static only; no runtime, Stage, production or unrelated boss/equipment research.",
+  "checkpoint": "R2k6a-cataclysm-harbinger-admission-complete",
+  "scope": "Bounded Harbinger incoming admission, live-HP power prerequisite, activation/mode state setters, concrete shared defense/regen bindings, native state-dependent healing, persistence and encounter/home setup closed. Shared/status/Guardian/Monstrosity/Ignis locked; all Harbinger offense/payloads deferred; Cataclysm PARTIAL.",
+  "notes_file": "cataclysm-r2k6a-harbinger-admission.json",
+  "exact_next_task": "R2k6b: The Harbinger offense/payload family. Start The_Harbinger_Entity aiStep/customServerAiStep attack-selection and directly used offensive goals; close charge/launch/missile/laser/death-laser chains, directly owned payload entities, overload/charge and head-target readers/writers, native source/owner/team predicates, hurt-return status/healing and payload lifecycle. Include directly reached terrain/EMP response and death/respawner combat callbacks. Reuse locked R2k6a admission/power/activation/mode/persistence/encounter, shared/status, Guardian, Monstrosity and Ignis contracts. Static only; no runtime, Stage, production or unrelated boss/equipment research.",
   "protected_checkpoint": "R2k3a-cataclysm-guardian-admission-complete",
   "protected_notes_file": "cataclysm-r2k3a-guardian-admission.json",
   "protected_checkpoints": [
@@ -27054,6 +28548,10 @@
     {
       "checkpoint": "R2k5a-cataclysm-ignis-admission-complete",
       "notes_file": "cataclysm-r2k5a-ignis-admission.json"
+    },
+    {
+      "checkpoint": "R2k5b-cataclysm-ignis-offense-complete",
+      "notes_file": "cataclysm-r2k5b-ignis-offense.json"
     }
   ]
 }

@@ -1,0 +1,512 @@
+{
+  "schema": "tno.external_effects.cataclysm_harbinger_admission.v1",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "cataclysm",
+  "checkpoint": "R2k6a-cataclysm-harbinger-admission-complete",
+  "previous_checkpoint": "R2k5b-cataclysm-ignis-offense-complete",
+  "starting_sha": "934ad8a97d9e9208cde27e7c87550ef57e1f560b",
+  "status": "PARTIAL",
+  "scope": "Bounded Harbinger incoming admission, live-HP power prerequisite, activation/mode state setters, concrete shared defense/regen bindings, native state-dependent healing, persistence and encounter/home setup closed. Shared/status/Guardian/Monstrosity/Ignis locked; all Harbinger offense/payloads deferred; Cataclysm PARTIAL.",
+  "summary": {
+    "new_mechanics": 8,
+    "delivery_paths": 8,
+    "classifications": {
+      "BINARY_MECHANIC": 6,
+      "VANILLA_DIRECT": 1,
+      "VANILLA_LIKE_EXTENDED": 1
+    },
+    "candidate_numeric_parameters": 3,
+    "shared_binding_records": 1,
+    "unresolved_subsection_ambiguities": 0
+  },
+  "hierarchy": [
+    "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Harbinger_Entity",
+    "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+    "com/github/L_Ender/cataclysm/entity/AnimationMonster/LLibrary_Monster",
+    "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters"
+  ],
+  "admission_order": {
+    "concrete": [
+      "CAUSING_HARBINGER_CLASS_REJECT",
+      "IDLE_HEAD_COUNTERS_INCREMENT",
+      "ARM_TERRAIN_TIMER",
+      "EMP_ANIMATION_RESPONSE",
+      "POWERED_DIRECT_ABSTRACT_ARROW_REJECT",
+      "DEACTIVATION_PROGRESS_REJECT_UNLESS_INVULNERABILITY_BYPASS",
+      "SHARED_HURT_SAME_SOURCE_AND_AMOUNT",
+      "RETURN_SHARED_HURT_RESULT"
+    ],
+    "shared": "Reuse locked R2k2a virtual invulnerability -> bypass early return -> per-hit cap -> causing range -> bucket -> native hurt -> true tagged reset/false rollback"
+  },
+  "concrete_bindings": {
+    "DamageCap": {
+      "config_field": "Harbinger.damageCap",
+      "installed_value": 22.0,
+      "shared_boundary": "per-hit cap AND bucket capacity"
+    },
+    "DpsCap": {
+      "config_field": "Harbinger.dpsCap",
+      "installed_value": 14.0,
+      "shared_boundary": "eligible AI server tick bucket drain float(DpsCap()/20)"
+    },
+    "RangeLimit": {
+      "config_field": "Harbinger.rangeCap",
+      "installed_value": 35.0,
+      "shared_boundary": "causing full<=35, falloff35<d<52.5, reject>=52.5; causing-null skips"
+    },
+    "NatureRegen": {
+      "config_field": "Harbinger.natureHeal",
+      "installed_value": 25.0,
+      "shared_boundary": "locked shared positive heal argument with targetless/timer/cadence/server/AI gates"
+    },
+    "HealCooldown": {
+      "inherited": true,
+      "native_value": 200,
+      "shared_boundary": "successful tagged shared hurt resets self_regen; bypass/rejected entry skips"
+    }
+  },
+  "mechanic_packages": [
+    {
+      "id": "cataclysm:harbinger_activation_state",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:harbinger-admission:activation_state"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Flag, progress, native AI controls and velocity hold remain separate from HP power and offensive state."
+      ]
+    },
+    {
+      "id": "cataclysm:harbinger_encounter_state",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:harbinger-admission:encounter_state"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Native inactive item admission, item consumption, save/load/default and home boundaries remain native."
+      ]
+    },
+    {
+      "id": "cataclysm:harbinger_incoming_admission",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:harbinger-admission:incoming_admission"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Native causing class, direct projectile class, exact EMP identity, animation and native tags retain order."
+      ]
+    },
+    {
+      "id": "cataclysm:harbinger_mode_state",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:harbinger-admission:mode_state"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Native mode/charge/overload/head IDs remain native; offensive writers/readers deferred."
+      ]
+    },
+    {
+      "id": "cataclysm:harbinger_native_state_healing",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "delivery_paths": [
+        "cataclysm:harbinger-admission:native_state_healing"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "active_amount"
+          ],
+          "native_value": 2.0,
+          "units": "native heal argument HP units",
+          "native_boundary": "Harbinger.customServerAiStep active branch heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "dormant_base_amount"
+          ],
+          "native_value": 50.0,
+          "units": "native base heal argument HP units before native healthMultiplier",
+          "native_boundary": "Harbinger.customServerAiStep inactive branch heal"
+        }
+      ],
+      "binary_gates": [
+        "Native server-AI scheduling, flag/progress branch and native healing hooks/maxHP retained."
+      ]
+    },
+    {
+      "id": "cataclysm:harbinger_nature_regen_binding",
+      "primary_classification": "VANILLA_DIRECT",
+      "delivery_paths": [
+        "cataclysm:harbinger-admission:nature_regen_binding"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "amount"
+          ],
+          "native_value": 25.0,
+          "units": "native heal argument HP units",
+          "native_boundary": "shared tick heal(NatureRegen())"
+        }
+      ],
+      "binary_gates": [
+        "Locked shared positive-heal lifecycle retained."
+      ]
+    },
+    {
+      "id": "cataclysm:harbinger_power_prerequisites",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:harbinger-admission:power_prerequisites"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Power is derived on each call; no latched phase transition."
+      ]
+    },
+    {
+      "id": "cataclysm:harbinger_shared_defense_bindings",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:harbinger-admission:shared_defense_bindings"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Concrete incoming gates must pass before inherited defenses; native armor/hooks retained."
+      ]
+    }
+  ],
+  "facts": {
+    "incoming": "Concrete source/class/EMP/progress prewrites and rejects precede shared admission; no local prewrite success guard.",
+    "power": "Live HP<=maxHP/2F, reversible and not saved; no scalar/latched phase.",
+    "activation": "Native flag and progress are distinct; setters do not mutate progress/HP/home; aiStep reconstructs dormant40 and subtracts1 when active.",
+    "mode": "Raw synced setters and bounded mode-cycle prerequisite only; all offense selection/readers/writers deferred.",
+    "healing": "Inherited25, concrete active2/dormant50*healthMultiplier, and activation maxHP are separate original native calls with distinct gates.",
+    "persistence": {
+      "saved_keys": [
+        "Is_Act"
+      ],
+      "load_order": [
+        "SUPER",
+        "Is_Act"
+      ],
+      "missing_is_act_loads": false,
+      "not_saved_here": [
+        "LASER_MODE",
+        "ISCHARGE",
+        "OVERLOAD",
+        "FIRST_HEAD_TARGET",
+        "SECOND_HEAD_TARGET",
+        "THIRD_HEAD_TARGET",
+        "Laser_Mode_Progress",
+        "deactivateProgress",
+        "mode_change_cooldown",
+        "skill_cooldown",
+        "idleHeadUpdates",
+        "nextHeadUpdate",
+        "destroyBlocksTick",
+        "blockBreakCounter",
+        "animation",
+        "animationTick",
+        "damageBucket",
+        "self_regen",
+        "homeTicks"
+      ],
+      "shared_home_persistence": "Locked LLibrary Home GlobalPos/legacy OVERWORLD load; concrete save/load call super first",
+      "progress_reconstructed_by_ai_step": true
+    },
+    "encounter": {
+      "item": "minecraft:nether_star",
+      "requires_inactive": true,
+      "requires_hurt_success": false,
+      "local_server_guard": false,
+      "local_alive_guard": false,
+      "local_no_ai_guard": false,
+      "local_difficulty_guard": false,
+      "creative_exempt": true,
+      "consumption_before_activation": true,
+      "consumption_requires_heal_success": false,
+      "activation_order": [
+        "SHRINK_ONE_UNLESS_CREATIVE",
+        "SET_IS_ACT_TRUE",
+        "SET_HOME_CURRENT_DIMENSION_AND_BLOCKPOS",
+        "HEAL_MAX_HEALTH",
+        "RETURN_SUCCESS"
+      ],
+      "directly_clears_progress": false,
+      "template_entry": "data/cataclysm/structure/the_harbinger.nbt",
+      "template_is_act": 0,
+      "template_health": 390.0,
+      "template_home_present": false,
+      "default_constructed_is_act": true,
+      "concrete_finalize_spawn_override": false,
+      "shared_spawn": "Inherited finalizeSpawn initializes home timer only; constructor/default spawn does not set home.",
+      "configured_respawner": "Locked generic spawnMyBoss creates configured entity type, finalizeSpawn(SPAWNER), sets IHomeEntity current home and addFreshEntity; it does not set IS_ACT. Fresh Harbinger therefore retains default true. No new defeat/respawner creation callback reviewed here."
+    }
+  },
+  "reused_contracts": [
+    {
+      "file": "cataclysm-r2k2a-shared-admission.json",
+      "bindings": [
+        "locked shared hurt/range/cap/bucket/regen/home/NBT/native defense contracts"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k2b-stun.json",
+      "bindings": [
+        "locked MobEffect STUN differs from native Harbinger EMP animation; status contract unchanged"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k3b-guardian-offense.json",
+      "bindings": [
+        "locked generic configured respawner spawnMyBoss only; no Guardian re-review"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k4a-monstrosity-admission.json",
+      "bindings": [
+        "locked admission pattern; Monstrosity facts unchanged"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k5a-ignis-admission.json",
+      "bindings": [
+        "locked Ignis admission/shield/phase/encounter unchanged"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k5b-ignis-offense.json",
+      "bindings": [
+        "completed Ignis family unchanged"
+      ]
+    }
+  ],
+  "remaining_subsection_native_ambiguities": [],
+  "remaining_harbinger_work": [
+    "ALL offensive selection/goals/payloads, source/team/return-dependent attack effects, terrain callbacks and death/respawner linkage in R2k6b"
+  ],
+  "remaining_cataclysm_research": [
+    "Harbinger bounded offense/payload family",
+    "Other unreviewed concrete boss/mob families and equipment/global hooks remain partial"
+  ],
+  "exact_next_task": "R2k6b: The Harbinger offense/payload family. Start The_Harbinger_Entity aiStep/customServerAiStep attack-selection and directly used offensive goals; close charge/launch/missile/laser/death-laser chains, directly owned payload entities, overload/charge and head-target readers/writers, native source/owner/team predicates, hurt-return status/healing and payload lifecycle. Include directly reached terrain/EMP response and death/respawner combat callbacks. Reuse locked R2k6a admission/power/activation/mode/persistence/encounter, shared/status, Guardian, Monstrosity and Ignis contracts. Static only; no runtime, Stage, production or unrelated boss/equipment research.",
+  "whole_mod_complete": false,
+  "runtime_tests": 0,
+  "stage_eligibility_decided": false,
+  "tooling": {
+    "jar_sha256": "fa4e8abd15aa86333d6a5fe20b05c4fe423ac865da7319be7808d321bcb3930c",
+    "jar_size_bytes": 73346519,
+    "new_native_witnesses": 8,
+    "reused_evidence_regenerated": false,
+    "recursive_jar_scan": false,
+    "reading_aid": "Pinned Vineflower1.10.1 SHA256 b9b208e50793b64657a6b6292067526613f549de7405f9243624b02f4276e409 on explicit Harbinger/AwakenGoal only; bounded bytecode and exact native template/pool authoritative."
+  },
+  "reference_files": [
+    {
+      "file": "cataclysm-boss-inheritance.json",
+      "sha256": "4cf3e43f452a3b12d437588b5e9d01a14a47e6575be1353a6186fdaf61eaa7b0",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-installed-common-config.json",
+      "sha256": "e49736bbfea8976a8df3f0d2f28e948e5c1e0535cb1254b28e7eefca77b923cf",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k2a-shared-admission.json",
+      "sha256": "3852d7f0950abe786cd9769ea4d64fb02f2cfa4ee1f4e99c06464645218ee9e2",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k2b-stun.json",
+      "sha256": "c81fed2de650739f580e106fa4cd9ac907cb7b5a3e7e8161879a0f2a795a4cd9",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k2c-ghost-fear.json",
+      "sha256": "77c977c09003cd0b0be9f0a6261985958610c6847e712cffdc2c17143bb0e75f",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k2d-abyssal-status.json",
+      "sha256": "4f6b1b56e028c1e7c1f5dee6209f9264a3d456a26d0edbafc0f3689ca70fa35c",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k2e-remaining-status.json",
+      "sha256": "736c5033f74b821f14794a0dcd988056bcf98b12a5222fe5b70ab83d0c77c455",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k3a-guardian-admission.json",
+      "sha256": "8a920972afe714d3e69278351e6a84672d9bb6a590d0cc0f6a20f66f8ae2ca7e",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k3b-guardian-offense.json",
+      "sha256": "274e56f41b2dc3cd1ee3196a41e6edc050f700ae36ed602eed054ecfd53b104e",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k4a-monstrosity-admission.json",
+      "sha256": "5349c1f74363e063d01e25ca8eba9890c20656604f7adcc8e962215447aba432",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k4b-monstrosity-offense.json",
+      "sha256": "1f3c3c1134cfc3cdc518758c3dfc95a4407556cc4caac8187142b412989ca321",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k5a-ignis-admission.json",
+      "sha256": "7ac79ea34be27f44c3c8d2d6b8f3d9634ef3547120860c3ae70fae5ab149fdb0",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k5b-ignis-offense.json",
+      "sha256": "e9e71745affaa02fa1cdecd519ed5aeefa501475b4b9949e79ebfd2116cfb83d",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-source-census.json",
+      "sha256": "fee3dbcc15b068eddb6c53271146d2f04dcb72a5f183dc9a17be2d794ed68ead",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "jar-inventory.json",
+      "sha256": "e9d91482fac44a764468ddb75e2bf10ee7c0aef74f392a90b5d5dfe908ba3974",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-foundation.json",
+      "sha256": "bb75018a6d3a72048251f24fae60edffaa4b0dcb678b3cdc3db6f2b5af99c55b",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-guardian-admission.json",
+      "sha256": "d652ad2ea9cd6d7ebf7f6d5424122199b74d6c4b355248affeae9e673dcdf067",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-guardian-offense.json",
+      "sha256": "4b086ab084546fc3b87bdc058458f297f1677a37975a8c6c75610d8ee9d0faab",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-harbinger-admission.json",
+      "sha256": "2d8f69d52c3e02afd1e95de01bb23e5f147767dcc03f49fc85c5617c5087419b",
+      "usage": "NEW_SCOPED_WITNESS"
+    },
+    {
+      "file": "native-evidence/cataclysm-ignis-admission.json",
+      "sha256": "fd912858bcb07d62fd46feabe3a178e3e3db229ec8ac1d4d101b6d735384230f",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-ignis-offense.json",
+      "sha256": "9cb83c5ae62c617c2b51b0bff205ae0f9d0d818d3f34262402d620ae7857e780",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-monstrosity-admission.json",
+      "sha256": "c5ac14eb0106a949e81922941fe12c2590fa3eb3687b69638c96fbfdf4afea9f",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-monstrosity-offense.json",
+      "sha256": "3de3c6430a599ba9de4dfd165ef27e6fb645cc491020bd1e1bc02ff053d85568",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-remaining-status.json",
+      "sha256": "b47482396e64fc0e4d4f10b61ac45ba6e42fe588d0117cc250ff03afc5ac422f",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-shared.json",
+      "sha256": "ba6abb73e3e33fab4cbead14196a1112f769189f873abc4fcbb5262eb2289a29",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-stun.json",
+      "sha256": "fa0ca10b9822f40d703be35748c9cf2eaf6a8ad404b942eea289a7313dae1177",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-specifications/cataclysm-harbinger-admission.json",
+      "sha256": "3409aefa5861d629df042d9bfe332ca1c9b3ddcbfa5295b5aec2b99bee39684d",
+      "usage": "NEW_SCOPED_WITNESS"
+    },
+    {
+      "file": "native-specifications/cataclysm-ignis-admission.json",
+      "sha256": "35abf2bfd960a16bf181ff99b103ff3812e9a950ac478c9298fa40d51758b6a6",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-specifications/cataclysm-ignis-offense.json",
+      "sha256": "ee93afdbc908acbc9ce142c04c5664de616d801e3d0b4329277e0dc134b68ced",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-specifications/cataclysm-monstrosity-offense.json",
+      "sha256": "5ffcf3eaf1b230ffd034335b9f59bee00acb2f334372ffea3653ac268100fada",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/bossesrise-knight-defense-244.json",
+      "sha256": "837cad018f153c3b1c4ce5db6429ae0c0f10214c72daac55ceb864e5d4ac66e8",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/bossesrise-knight-offense-244.json",
+      "sha256": "ed906fd31cd492fd157e4c9ba6f4e3271359ae4b2c650cd440c3fff1cc788002",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/eternalstarlight-soul-hunger-244.json",
+      "sha256": "e7ac2ed7688d7fd123b10e9e09bac71954f8110b856edb6affc7da8a2ea2ade7",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/eternalstarlight-status-control-244.json",
+      "sha256": "e8b8f470bf9a5d896de48e1baa8bbfcc5e01c9985ca9dcf4dae2e8e325c34205",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/iceandfire-dragon-elements-244.json",
+      "sha256": "27b53602dcbf08bde0c888e01f2ba01dc77761dd9c637f524aaf9dc4f954bcf7",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/iceandfire-worm-cyclops-244.json",
+      "sha256": "5c43fe513bd1696b3787b29160628719b7a04544cfa55ac3fb18cbbc22cc2640",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/twilight-hydra-urghast-244.json",
+      "sha256": "5de22807fdb64617e2318367903cb3a54aa4c6714ef53fca915827d5df1bde12",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/twilight-minoshroom-knight-244.json",
+      "sha256": "c80393a79949951d3eb82b8ff72a52e2473abf769d7df18ef644f0d1ea62f804",
+      "usage": "LOCKED_REUSED"
+    }
+  ],
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false
+}
