@@ -1,0 +1,3770 @@
+{
+  "schema": "tno.external_effects.cataclysm_ignis_offense.v1",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "cataclysm",
+  "checkpoint": "R2k5b-cataclysm-ignis-offense-complete",
+  "previous_checkpoint": "R2k5a-cataclysm-ignis-admission-complete",
+  "starting_sha": "d3f6f7b555cac77db3efb5b51abbb82c9f202425",
+  "status": "PARTIAL",
+  "scope": "Ignis offense selection/goals, melee/body-check/poke/held-victim and phase/shield-break payloads, ground waves/ultimate lanes, owned fireball/flame-strike chains, explosion, source/team/return rules and native lifecycle closed. R2k5a/shared/status/Guardian/Monstrosity locked; Ignis family closed; Cataclysm PARTIAL.",
+  "summary": {
+    "new_mechanics": 22,
+    "delivery_paths": 22,
+    "classifications": {
+      "BINARY_MECHANIC": 4,
+      "CUSTOM_CONTROL": 2,
+      "CUSTOM_DAMAGE": 2,
+      "VANILLA_COMPOSITE": 10,
+      "VANILLA_LIKE_EXTENDED": 4
+    },
+    "candidate_numeric_parameters": 344,
+    "unresolved_subsection_ambiguities": 0,
+    "new_owned_payload_classes": 3,
+    "reused_non_damage_debris_classes": 1
+  },
+  "mechanic_packages": [
+    {
+      "id": "cataclysm:ignis_abyss_fireball_contact",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "delivery_paths": [
+        "cataclysm:ignis-offense:abyss_fireball_contact"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "BLAZING_BRAND",
+          "parameters": [
+            "duration"
+          ],
+          "native_value": 200,
+          "units": "ticks",
+          "native_boundary": "onHitEntity after native explosion/discard; locked Brand producer"
+        },
+        {
+          "primitive": "EXPLOSION_DELIVERY",
+          "parameters": [
+            "radius"
+          ],
+          "native_value": 2.0,
+          "units": "native explosion radius argument",
+          "native_boundary": "onHitEntity -> separate IgnisExplosion"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "anonymous_damage"
+          ],
+          "native_value": 5.0,
+          "units": "requested health units",
+          "native_boundary": "fired ServerLevel onHitEntity contact hurt"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "base_damage"
+          ],
+          "native_value": 10.0,
+          "units": "requested health units",
+          "native_boundary": "fired ServerLevel onHitEntity contact hurt"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "hp_fraction"
+          ],
+          "native_value": 0.2,
+          "units": "fraction of maxHP",
+          "native_boundary": "fired ServerLevel onHitEntity contact hurt"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "coefficient"
+          ],
+          "native_value": 5.0,
+          "units": "requested health units",
+          "native_boundary": "onHitEntity original contact true branch -> current Living owner"
+        }
+      ],
+      "binary_gates": [
+        "Native fired/server/class and owner-source gates, native hurt/status/heal/enchantment/explosion hooks."
+      ],
+      "hurt_return_dependency": "Owner healing and later Brand require original contact hurttrue; enchantment additionally alive; blast/discard independent; Brand ignores explosion and effect-add returns."
+    },
+    {
+      "id": "cataclysm:ignis_abyss_fireball_motion",
+      "primary_classification": "CUSTOM_CONTROL",
+      "delivery_paths": [
+        "cataclysm:ignis-offense:abyss_fireball_motion"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "air_inertia"
+          ],
+          "native_value": 0.95,
+          "units": "dimensionless per-tick inertia",
+          "native_boundary": "CMAbstractHurtingProjectile.tick"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "water_inertia"
+          ],
+          "native_value": 0.8,
+          "units": "dimensionless per-tick inertia",
+          "native_boundary": "CMAbstractHurtingProjectile.tick"
+        },
+        {
+          "primitive": "PROJECTILE_REFLECTION",
+          "parameters": [
+            "power_factor"
+          ],
+          "native_value": 0.1,
+          "units": "native look-vector acceleration coefficient",
+          "native_boundary": "Ignis_Abyss_Fireball.hurt"
+        },
+        {
+          "primitive": "PROJECTILE_RETARGET",
+          "parameters": [
+            "acceleration"
+          ],
+          "native_value": 0.2,
+          "units": "native acceleration magnitude",
+          "native_boundary": "Ignis_Abyss_Fireball.tick"
+        },
+        {
+          "primitive": "PROJECTILE_RICOCHET",
+          "parameters": [
+            "power_factor"
+          ],
+          "native_value": 0.05,
+          "units": "dimensionless power/velocity coefficient",
+          "native_boundary": "Ignis_Abyss_Fireball.onHitBlock"
+        }
+      ],
+      "binary_gates": [
+        "Native invulnerability, fired/causing/side predicates, blockshape/face/bounce/age gates and impact hooks."
+      ],
+      "hurt_return_dependency": "Reflection native true means successful redirection branch, not HP damage. Bounce/expiry/explosion on terminal block contact independent of any victim hurt."
+    },
+    {
+      "id": "cataclysm:ignis_alliance",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:ignis-offense:alliance"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Native team/tag/self and per-helper same-class predicates."
+      ],
+      "hurt_return_dependency": "Eligibility predicate independent of damage/status return; no additional filtering event."
+    },
+    {
+      "id": "cataclysm:ignis_area_melee",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "delivery_paths": [
+        "cataclysm:ignis-offense:area_melee"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "combo1_t19_arc"
+          ],
+          "native_value": 90.0,
+          "units": "degrees",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "combo1_t19_height"
+          ],
+          "native_value": 6.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "combo1_t19_range"
+          ],
+          "native_value": 6.5,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "combo1_t38_arc"
+          ],
+          "native_value": 120.0,
+          "units": "degrees",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "combo1_t38_height"
+          ],
+          "native_value": 6.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "combo1_t38_range"
+          ],
+          "native_value": 6.5,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "combo1_t61_arc"
+          ],
+          "native_value": 70.0,
+          "units": "degrees",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "combo1_t61_height"
+          ],
+          "native_value": 6.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "combo1_t61_range"
+          ],
+          "native_value": 6.5,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "combo1_t76_arc"
+          ],
+          "native_value": 310.0,
+          "units": "degrees",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "combo1_t76_height"
+          ],
+          "native_value": 6.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "combo1_t76_range"
+          ],
+          "native_value": 6.5,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "combo2_t108_arc"
+          ],
+          "native_value": 225.0,
+          "units": "degrees",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "combo2_t108_height"
+          ],
+          "native_value": 6.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "combo2_t108_range"
+          ],
+          "native_value": 5.25,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "combo2_t59_arc"
+          ],
+          "native_value": 120.0,
+          "units": "degrees",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "combo2_t59_height"
+          ],
+          "native_value": 6.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "combo2_t59_range"
+          ],
+          "native_value": 5.25,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "combo2_t74_arc"
+          ],
+          "native_value": 120.0,
+          "units": "degrees",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "combo2_t74_height"
+          ],
+          "native_value": 6.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "combo2_t74_range"
+          ],
+          "native_value": 5.25,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "earth_shudders_attack_t117_arc"
+          ],
+          "native_value": 80.0,
+          "units": "degrees",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "earth_shudders_attack_t117_height"
+          ],
+          "native_value": 6.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "earth_shudders_attack_t117_range"
+          ],
+          "native_value": 4.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "earth_shudders_attack_t32_arc"
+          ],
+          "native_value": 80.0,
+          "units": "degrees",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "earth_shudders_attack_t32_height"
+          ],
+          "native_value": 6.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "earth_shudders_attack_t32_range"
+          ],
+          "native_value": 4.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "earth_shudders_attack_t73_arc"
+          ],
+          "native_value": 80.0,
+          "units": "degrees",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "earth_shudders_attack_t73_height"
+          ],
+          "native_value": 6.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "earth_shudders_attack_t73_range"
+          ],
+          "native_value": 4.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "horizontal_small_swing_alt_attack2_t13_arc"
+          ],
+          "native_value": 120.0,
+          "units": "degrees",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "horizontal_small_swing_alt_attack2_t13_height"
+          ],
+          "native_value": 6.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "horizontal_small_swing_alt_attack2_t13_range"
+          ],
+          "native_value": 5.25,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "horizontal_small_swing_attack_t19_arc"
+          ],
+          "native_value": 120.0,
+          "units": "degrees",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "horizontal_small_swing_attack_t19_height"
+          ],
+          "native_value": 6.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "horizontal_small_swing_attack_t19_range"
+          ],
+          "native_value": 5.25,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "horizontal_swing_attack_soul_t27_arc"
+          ],
+          "native_value": 210.0,
+          "units": "degrees",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "horizontal_swing_attack_soul_t27_height"
+          ],
+          "native_value": 6.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "horizontal_swing_attack_soul_t27_range"
+          ],
+          "native_value": 5.25,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "horizontal_swing_attack_t31_arc"
+          ],
+          "native_value": 210.0,
+          "units": "degrees",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "horizontal_swing_attack_t31_height"
+          ],
+          "native_value": 6.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "horizontal_swing_attack_t31_range"
+          ],
+          "native_value": 5.25,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "reinforced_smash_in_air_soul_t23_arc"
+          ],
+          "native_value": 100.0,
+          "units": "degrees",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "reinforced_smash_in_air_soul_t23_height"
+          ],
+          "native_value": 8.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "reinforced_smash_in_air_soul_t23_range"
+          ],
+          "native_value": 4.5,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "reinforced_smash_in_air_soul_t53_arc"
+          ],
+          "native_value": 70.0,
+          "units": "degrees",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "reinforced_smash_in_air_soul_t53_height"
+          ],
+          "native_value": 6.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "reinforced_smash_in_air_soul_t53_range"
+          ],
+          "native_value": 6.5,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "reinforced_smash_in_air_t23_arc"
+          ],
+          "native_value": 100.0,
+          "units": "degrees",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "reinforced_smash_in_air_t23_height"
+          ],
+          "native_value": 8.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "reinforced_smash_in_air_t23_range"
+          ],
+          "native_value": 4.5,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "reinforced_smash_in_air_t53_arc"
+          ],
+          "native_value": 70.0,
+          "units": "degrees",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "reinforced_smash_in_air_t53_height"
+          ],
+          "native_value": 6.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "reinforced_smash_in_air_t53_range"
+          ],
+          "native_value": 6.5,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "reinforced_smash_soul_t46_arc"
+          ],
+          "native_value": 45.0,
+          "units": "degrees",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "reinforced_smash_soul_t46_height"
+          ],
+          "native_value": 2.5,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "reinforced_smash_soul_t46_range"
+          ],
+          "native_value": 4.85,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "reinforced_smash_t46_arc"
+          ],
+          "native_value": 45.0,
+          "units": "degrees",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "reinforced_smash_t46_height"
+          ],
+          "native_value": 2.5,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "reinforced_smash_t46_range"
+          ],
+          "native_value": 4.85,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "shield_break_strike_t44_arc"
+          ],
+          "native_value": 310.0,
+          "units": "degrees",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "shield_break_strike_t44_height"
+          ],
+          "native_value": 6.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "shield_break_strike_t44_range"
+          ],
+          "native_value": 6.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "shield_smash_attack_t34_arc"
+          ],
+          "native_value": 45.0,
+          "units": "degrees",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "shield_smash_attack_t34_height"
+          ],
+          "native_value": 2.5,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "shield_smash_attack_t34_range"
+          ],
+          "native_value": 4.85,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "smash_t5_arc"
+          ],
+          "native_value": 45.0,
+          "units": "degrees",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "smash_t5_height"
+          ],
+          "native_value": 2.5,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "smash_t5_range"
+          ],
+          "native_value": 4.85,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "spin_attack_t14_arc"
+          ],
+          "native_value": 310.0,
+          "units": "degrees",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "spin_attack_t14_height"
+          ],
+          "native_value": 6.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "spin_attack_t14_range"
+          ],
+          "native_value": 6.5,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "strike_t31_arc"
+          ],
+          "native_value": 120.0,
+          "units": "degrees",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "strike_t31_height"
+          ],
+          "native_value": 6.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "strike_t31_range"
+          ],
+          "native_value": 5.25,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "swing_attack_berserk_t17_arc"
+          ],
+          "native_value": 70.0,
+          "units": "degrees",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "swing_attack_berserk_t17_height"
+          ],
+          "native_value": 6.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "swing_attack_berserk_t17_range"
+          ],
+          "native_value": 6.5,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "swing_attack_soul_t18_arc"
+          ],
+          "native_value": 70.0,
+          "units": "degrees",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "swing_attack_soul_t18_height"
+          ],
+          "native_value": 6.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "swing_attack_soul_t18_range"
+          ],
+          "native_value": 6.5,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "swing_attack_t24_arc"
+          ],
+          "native_value": 70.0,
+          "units": "degrees",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "swing_attack_t24_height"
+          ],
+          "native_value": 6.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "swing_attack_t24_range"
+          ],
+          "native_value": 6.5,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "swing_upperslash_t24_arc"
+          ],
+          "native_value": 100.0,
+          "units": "degrees",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "swing_upperslash_t24_height"
+          ],
+          "native_value": 8.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "swing_upperslash_t24_range"
+          ],
+          "native_value": 4.5,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "ultimate_attack_t74_arc"
+          ],
+          "native_value": 45.0,
+          "units": "degrees",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "ultimate_attack_t74_height"
+          ],
+          "native_value": 6.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "ultimate_attack_t74_range"
+          ],
+          "native_value": 6.0,
+          "units": "blocks",
+          "native_boundary": "AreaAttack target selection"
+        },
+        {
+          "primitive": "BLAZING_BRAND",
+          "parameters": [
+            "base_duration"
+          ],
+          "native_value": 200,
+          "units": "ticks",
+          "native_boundary": "AreaAttack -> native effect addition; locked Brand core"
+        },
+        {
+          "primitive": "BLAZING_BRAND",
+          "parameters": [
+            "phase_duration"
+          ],
+          "native_value": 240,
+          "units": "ticks",
+          "native_boundary": "AreaAttack -> native effect addition; locked Brand core"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "combo1_t19_fire_seconds"
+          ],
+          "native_value": 2,
+          "units": "seconds",
+          "native_boundary": "AreaAttack hurttrue branch"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "combo1_t38_fire_seconds"
+          ],
+          "native_value": 2,
+          "units": "seconds",
+          "native_boundary": "AreaAttack hurttrue branch"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "combo1_t61_fire_seconds"
+          ],
+          "native_value": 2,
+          "units": "seconds",
+          "native_boundary": "AreaAttack hurttrue branch"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "combo1_t76_fire_seconds"
+          ],
+          "native_value": 3,
+          "units": "seconds",
+          "native_boundary": "AreaAttack hurttrue branch"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "combo2_t108_fire_seconds"
+          ],
+          "native_value": 5,
+          "units": "seconds",
+          "native_boundary": "AreaAttack hurttrue branch"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "combo2_t59_fire_seconds"
+          ],
+          "native_value": 2,
+          "units": "seconds",
+          "native_boundary": "AreaAttack hurttrue branch"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "combo2_t74_fire_seconds"
+          ],
+          "native_value": 2,
+          "units": "seconds",
+          "native_boundary": "AreaAttack hurttrue branch"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "earth_shudders_attack_t117_fire_seconds"
+          ],
+          "native_value": 5,
+          "units": "seconds",
+          "native_boundary": "AreaAttack hurttrue branch"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "earth_shudders_attack_t32_fire_seconds"
+          ],
+          "native_value": 5,
+          "units": "seconds",
+          "native_boundary": "AreaAttack hurttrue branch"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "earth_shudders_attack_t73_fire_seconds"
+          ],
+          "native_value": 5,
+          "units": "seconds",
+          "native_boundary": "AreaAttack hurttrue branch"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "horizontal_small_swing_alt_attack2_t13_fire_seconds"
+          ],
+          "native_value": 2,
+          "units": "seconds",
+          "native_boundary": "AreaAttack hurttrue branch"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "horizontal_small_swing_attack_t19_fire_seconds"
+          ],
+          "native_value": 2,
+          "units": "seconds",
+          "native_boundary": "AreaAttack hurttrue branch"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "horizontal_swing_attack_soul_t27_fire_seconds"
+          ],
+          "native_value": 3,
+          "units": "seconds",
+          "native_boundary": "AreaAttack hurttrue branch"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "horizontal_swing_attack_t31_fire_seconds"
+          ],
+          "native_value": 3,
+          "units": "seconds",
+          "native_boundary": "AreaAttack hurttrue branch"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "reinforced_smash_in_air_soul_t23_fire_seconds"
+          ],
+          "native_value": 3,
+          "units": "seconds",
+          "native_boundary": "AreaAttack hurttrue branch"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "reinforced_smash_in_air_soul_t53_fire_seconds"
+          ],
+          "native_value": 2,
+          "units": "seconds",
+          "native_boundary": "AreaAttack hurttrue branch"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "reinforced_smash_in_air_t23_fire_seconds"
+          ],
+          "native_value": 3,
+          "units": "seconds",
+          "native_boundary": "AreaAttack hurttrue branch"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "reinforced_smash_in_air_t53_fire_seconds"
+          ],
+          "native_value": 2,
+          "units": "seconds",
+          "native_boundary": "AreaAttack hurttrue branch"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "reinforced_smash_soul_t46_fire_seconds"
+          ],
+          "native_value": 0,
+          "units": "seconds",
+          "native_boundary": "AreaAttack hurttrue branch"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "reinforced_smash_t46_fire_seconds"
+          ],
+          "native_value": 0,
+          "units": "seconds",
+          "native_boundary": "AreaAttack hurttrue branch"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "shield_break_strike_t44_fire_seconds"
+          ],
+          "native_value": 5,
+          "units": "seconds",
+          "native_boundary": "AreaAttack hurttrue branch"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "shield_smash_attack_t34_fire_seconds"
+          ],
+          "native_value": 0,
+          "units": "seconds",
+          "native_boundary": "AreaAttack hurttrue branch"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "smash_t5_fire_seconds"
+          ],
+          "native_value": 0,
+          "units": "seconds",
+          "native_boundary": "AreaAttack hurttrue branch"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "spin_attack_t14_fire_seconds"
+          ],
+          "native_value": 3,
+          "units": "seconds",
+          "native_boundary": "AreaAttack hurttrue branch"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "strike_t31_fire_seconds"
+          ],
+          "native_value": 5,
+          "units": "seconds",
+          "native_boundary": "AreaAttack hurttrue branch"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "swing_attack_berserk_t17_fire_seconds"
+          ],
+          "native_value": 2,
+          "units": "seconds",
+          "native_boundary": "AreaAttack hurttrue branch"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "swing_attack_soul_t18_fire_seconds"
+          ],
+          "native_value": 2,
+          "units": "seconds",
+          "native_boundary": "AreaAttack hurttrue branch"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "swing_attack_t24_fire_seconds"
+          ],
+          "native_value": 2,
+          "units": "seconds",
+          "native_boundary": "AreaAttack hurttrue branch"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "swing_upperslash_t24_fire_seconds"
+          ],
+          "native_value": 3,
+          "units": "seconds",
+          "native_boundary": "AreaAttack hurttrue branch"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "ultimate_attack_t74_fire_seconds"
+          ],
+          "native_value": 5,
+          "units": "seconds",
+          "native_boundary": "AreaAttack hurttrue branch"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "combo1_t76_airborne"
+          ],
+          "native_value": 0.3,
+          "units": "blocks/tick added to Y velocity",
+          "native_boundary": "AreaAttack true branch"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "reinforced_smash_in_air_soul_t23_airborne"
+          ],
+          "native_value": 0.65,
+          "units": "blocks/tick added to Y velocity",
+          "native_boundary": "AreaAttack true branch"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "reinforced_smash_in_air_t23_airborne"
+          ],
+          "native_value": 0.65,
+          "units": "blocks/tick added to Y velocity",
+          "native_boundary": "AreaAttack true branch"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "shield_break_strike_t44_airborne"
+          ],
+          "native_value": 0.3,
+          "units": "blocks/tick added to Y velocity",
+          "native_boundary": "AreaAttack true branch"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "spin_attack_t14_airborne"
+          ],
+          "native_value": 0.3,
+          "units": "blocks/tick added to Y velocity",
+          "native_boundary": "AreaAttack true branch"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "swing_upperslash_t24_airborne"
+          ],
+          "native_value": 0.65,
+          "units": "blocks/tick added to Y velocity",
+          "native_boundary": "AreaAttack true branch"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "combo1_t19_damage_multiplier"
+          ],
+          "native_value": 0.75,
+          "units": "dimensionless attack-attribute multiplier",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "combo1_t19_hp_fraction"
+          ],
+          "native_value": 0.05,
+          "units": "fraction of victim maxHP (uncapped)",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "combo1_t38_damage_multiplier"
+          ],
+          "native_value": 0.75,
+          "units": "dimensionless attack-attribute multiplier",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "combo1_t38_hp_fraction"
+          ],
+          "native_value": 0.05,
+          "units": "fraction of victim maxHP (uncapped)",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "combo1_t61_damage_multiplier"
+          ],
+          "native_value": 0.75,
+          "units": "dimensionless attack-attribute multiplier",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "combo1_t61_hp_fraction"
+          ],
+          "native_value": 0.05,
+          "units": "fraction of victim maxHP (uncapped)",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "combo1_t76_damage_multiplier"
+          ],
+          "native_value": 0.75,
+          "units": "dimensionless attack-attribute multiplier",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "combo1_t76_hp_fraction"
+          ],
+          "native_value": 0.05,
+          "units": "fraction of victim maxHP (uncapped)",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "combo2_t108_damage_multiplier"
+          ],
+          "native_value": 1.25,
+          "units": "dimensionless attack-attribute multiplier",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "combo2_t108_hp_fraction"
+          ],
+          "native_value": 0.1,
+          "units": "fraction of victim maxHP (uncapped)",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "combo2_t59_damage_multiplier"
+          ],
+          "native_value": 0.4,
+          "units": "dimensionless attack-attribute multiplier",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "combo2_t59_hp_fraction"
+          ],
+          "native_value": 0.03,
+          "units": "fraction of victim maxHP (uncapped)",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "combo2_t74_damage_multiplier"
+          ],
+          "native_value": 0.4,
+          "units": "dimensionless attack-attribute multiplier",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "combo2_t74_hp_fraction"
+          ],
+          "native_value": 0.03,
+          "units": "fraction of victim maxHP (uncapped)",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "earth_shudders_attack_t117_damage_multiplier"
+          ],
+          "native_value": 1.2,
+          "units": "dimensionless attack-attribute multiplier",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "earth_shudders_attack_t117_hp_fraction"
+          ],
+          "native_value": 0.08,
+          "units": "fraction of victim maxHP (uncapped)",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "earth_shudders_attack_t32_damage_multiplier"
+          ],
+          "native_value": 1.2,
+          "units": "dimensionless attack-attribute multiplier",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "earth_shudders_attack_t32_hp_fraction"
+          ],
+          "native_value": 0.08,
+          "units": "fraction of victim maxHP (uncapped)",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "earth_shudders_attack_t73_damage_multiplier"
+          ],
+          "native_value": 1.2,
+          "units": "dimensionless attack-attribute multiplier",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "earth_shudders_attack_t73_hp_fraction"
+          ],
+          "native_value": 0.08,
+          "units": "fraction of victim maxHP (uncapped)",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "horizontal_small_swing_alt_attack2_t13_damage_multiplier"
+          ],
+          "native_value": 0.4,
+          "units": "dimensionless attack-attribute multiplier",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "horizontal_small_swing_alt_attack2_t13_hp_fraction"
+          ],
+          "native_value": 0.03,
+          "units": "fraction of victim maxHP (uncapped)",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "horizontal_small_swing_attack_t19_damage_multiplier"
+          ],
+          "native_value": 0.4,
+          "units": "dimensionless attack-attribute multiplier",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "horizontal_small_swing_attack_t19_hp_fraction"
+          ],
+          "native_value": 0.03,
+          "units": "fraction of victim maxHP (uncapped)",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "horizontal_swing_attack_soul_t27_damage_multiplier"
+          ],
+          "native_value": 1.0,
+          "units": "dimensionless attack-attribute multiplier",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "horizontal_swing_attack_soul_t27_hp_fraction"
+          ],
+          "native_value": 0.06,
+          "units": "fraction of victim maxHP (uncapped)",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "horizontal_swing_attack_t31_damage_multiplier"
+          ],
+          "native_value": 1.0,
+          "units": "dimensionless attack-attribute multiplier",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "horizontal_swing_attack_t31_hp_fraction"
+          ],
+          "native_value": 0.06,
+          "units": "fraction of victim maxHP (uncapped)",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "reinforced_smash_in_air_soul_t23_damage_multiplier"
+          ],
+          "native_value": 1.0,
+          "units": "dimensionless attack-attribute multiplier",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "reinforced_smash_in_air_soul_t23_hp_fraction"
+          ],
+          "native_value": 0.1,
+          "units": "fraction of victim maxHP (uncapped)",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "reinforced_smash_in_air_soul_t53_damage_multiplier"
+          ],
+          "native_value": 1.1,
+          "units": "dimensionless attack-attribute multiplier",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "reinforced_smash_in_air_soul_t53_hp_fraction"
+          ],
+          "native_value": 0.1,
+          "units": "fraction of victim maxHP (uncapped)",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "reinforced_smash_in_air_t23_damage_multiplier"
+          ],
+          "native_value": 1.0,
+          "units": "dimensionless attack-attribute multiplier",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "reinforced_smash_in_air_t23_hp_fraction"
+          ],
+          "native_value": 0.1,
+          "units": "fraction of victim maxHP (uncapped)",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "reinforced_smash_in_air_t53_damage_multiplier"
+          ],
+          "native_value": 1.1,
+          "units": "dimensionless attack-attribute multiplier",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "reinforced_smash_in_air_t53_hp_fraction"
+          ],
+          "native_value": 0.1,
+          "units": "fraction of victim maxHP (uncapped)",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "reinforced_smash_soul_t46_damage_multiplier"
+          ],
+          "native_value": 1.5,
+          "units": "dimensionless attack-attribute multiplier",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "reinforced_smash_soul_t46_hp_fraction"
+          ],
+          "native_value": 0.15,
+          "units": "fraction of victim maxHP (uncapped)",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "reinforced_smash_t46_damage_multiplier"
+          ],
+          "native_value": 1.5,
+          "units": "dimensionless attack-attribute multiplier",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "reinforced_smash_t46_hp_fraction"
+          ],
+          "native_value": 0.15,
+          "units": "fraction of victim maxHP (uncapped)",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "shield_break_strike_t44_damage_multiplier"
+          ],
+          "native_value": 1.25,
+          "units": "dimensionless attack-attribute multiplier",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "shield_break_strike_t44_hp_fraction"
+          ],
+          "native_value": 0.1,
+          "units": "fraction of victim maxHP (uncapped)",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "shield_smash_attack_t34_damage_multiplier"
+          ],
+          "native_value": 1.5,
+          "units": "dimensionless attack-attribute multiplier",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "shield_smash_attack_t34_hp_fraction"
+          ],
+          "native_value": 0.15,
+          "units": "fraction of victim maxHP (uncapped)",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "smash_t5_damage_multiplier"
+          ],
+          "native_value": 1.5,
+          "units": "dimensionless attack-attribute multiplier",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "smash_t5_hp_fraction"
+          ],
+          "native_value": 0.15,
+          "units": "fraction of victim maxHP (uncapped)",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "spin_attack_t14_damage_multiplier"
+          ],
+          "native_value": 1.0,
+          "units": "dimensionless attack-attribute multiplier",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "spin_attack_t14_hp_fraction"
+          ],
+          "native_value": 0.06,
+          "units": "fraction of victim maxHP (uncapped)",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "strike_t31_damage_multiplier"
+          ],
+          "native_value": 1.25,
+          "units": "dimensionless attack-attribute multiplier",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "strike_t31_hp_fraction"
+          ],
+          "native_value": 0.1,
+          "units": "fraction of victim maxHP (uncapped)",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "swing_attack_berserk_t17_damage_multiplier"
+          ],
+          "native_value": 1.0,
+          "units": "dimensionless attack-attribute multiplier",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "swing_attack_berserk_t17_hp_fraction"
+          ],
+          "native_value": 0.05,
+          "units": "fraction of victim maxHP (uncapped)",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "swing_attack_soul_t18_damage_multiplier"
+          ],
+          "native_value": 1.0,
+          "units": "dimensionless attack-attribute multiplier",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "swing_attack_soul_t18_hp_fraction"
+          ],
+          "native_value": 0.05,
+          "units": "fraction of victim maxHP (uncapped)",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "swing_attack_t24_damage_multiplier"
+          ],
+          "native_value": 1.0,
+          "units": "dimensionless attack-attribute multiplier",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "swing_attack_t24_hp_fraction"
+          ],
+          "native_value": 0.05,
+          "units": "fraction of victim maxHP (uncapped)",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "swing_upperslash_t24_damage_multiplier"
+          ],
+          "native_value": 1.0,
+          "units": "dimensionless attack-attribute multiplier",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "swing_upperslash_t24_hp_fraction"
+          ],
+          "native_value": 0.05,
+          "units": "fraction of victim maxHP (uncapped)",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "ultimate_attack_t74_damage_multiplier"
+          ],
+          "native_value": 2.0,
+          "units": "dimensionless attack-attribute multiplier",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "ultimate_attack_t74_hp_fraction"
+          ],
+          "native_value": 0.25,
+          "units": "fraction of victim maxHP (uncapped)",
+          "native_boundary": "AreaAttack -> victim.hurt(mobAttack(Ignis),native amount)"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "combo1_t19_heal_coefficient"
+          ],
+          "native_value": 5,
+          "units": "requested health-unit coefficient",
+          "native_boundary": "AreaAttack after Brand attempt -> Ignis.heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "combo1_t38_heal_coefficient"
+          ],
+          "native_value": 5,
+          "units": "requested health-unit coefficient",
+          "native_boundary": "AreaAttack after Brand attempt -> Ignis.heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "combo1_t61_heal_coefficient"
+          ],
+          "native_value": 5,
+          "units": "requested health-unit coefficient",
+          "native_boundary": "AreaAttack after Brand attempt -> Ignis.heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "combo1_t76_heal_coefficient"
+          ],
+          "native_value": 5,
+          "units": "requested health-unit coefficient",
+          "native_boundary": "AreaAttack after Brand attempt -> Ignis.heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "combo2_t108_heal_coefficient"
+          ],
+          "native_value": 7,
+          "units": "requested health-unit coefficient",
+          "native_boundary": "AreaAttack after Brand attempt -> Ignis.heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "combo2_t59_heal_coefficient"
+          ],
+          "native_value": 3,
+          "units": "requested health-unit coefficient",
+          "native_boundary": "AreaAttack after Brand attempt -> Ignis.heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "combo2_t74_heal_coefficient"
+          ],
+          "native_value": 3,
+          "units": "requested health-unit coefficient",
+          "native_boundary": "AreaAttack after Brand attempt -> Ignis.heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "earth_shudders_attack_t117_heal_coefficient"
+          ],
+          "native_value": 5,
+          "units": "requested health-unit coefficient",
+          "native_boundary": "AreaAttack after Brand attempt -> Ignis.heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "earth_shudders_attack_t32_heal_coefficient"
+          ],
+          "native_value": 5,
+          "units": "requested health-unit coefficient",
+          "native_boundary": "AreaAttack after Brand attempt -> Ignis.heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "earth_shudders_attack_t73_heal_coefficient"
+          ],
+          "native_value": 5,
+          "units": "requested health-unit coefficient",
+          "native_boundary": "AreaAttack after Brand attempt -> Ignis.heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "horizontal_small_swing_alt_attack2_t13_heal_coefficient"
+          ],
+          "native_value": 3,
+          "units": "requested health-unit coefficient",
+          "native_boundary": "AreaAttack after Brand attempt -> Ignis.heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "horizontal_small_swing_attack_t19_heal_coefficient"
+          ],
+          "native_value": 3,
+          "units": "requested health-unit coefficient",
+          "native_boundary": "AreaAttack after Brand attempt -> Ignis.heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "horizontal_swing_attack_soul_t27_heal_coefficient"
+          ],
+          "native_value": 5,
+          "units": "requested health-unit coefficient",
+          "native_boundary": "AreaAttack after Brand attempt -> Ignis.heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "horizontal_swing_attack_t31_heal_coefficient"
+          ],
+          "native_value": 5,
+          "units": "requested health-unit coefficient",
+          "native_boundary": "AreaAttack after Brand attempt -> Ignis.heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "reinforced_smash_in_air_soul_t23_heal_coefficient"
+          ],
+          "native_value": 5,
+          "units": "requested health-unit coefficient",
+          "native_boundary": "AreaAttack after Brand attempt -> Ignis.heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "reinforced_smash_in_air_soul_t53_heal_coefficient"
+          ],
+          "native_value": 5,
+          "units": "requested health-unit coefficient",
+          "native_boundary": "AreaAttack after Brand attempt -> Ignis.heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "reinforced_smash_in_air_t23_heal_coefficient"
+          ],
+          "native_value": 5,
+          "units": "requested health-unit coefficient",
+          "native_boundary": "AreaAttack after Brand attempt -> Ignis.heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "reinforced_smash_in_air_t53_heal_coefficient"
+          ],
+          "native_value": 5,
+          "units": "requested health-unit coefficient",
+          "native_boundary": "AreaAttack after Brand attempt -> Ignis.heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "reinforced_smash_soul_t46_heal_coefficient"
+          ],
+          "native_value": 5,
+          "units": "requested health-unit coefficient",
+          "native_boundary": "AreaAttack after Brand attempt -> Ignis.heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "reinforced_smash_t46_heal_coefficient"
+          ],
+          "native_value": 5,
+          "units": "requested health-unit coefficient",
+          "native_boundary": "AreaAttack after Brand attempt -> Ignis.heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "shield_break_strike_t44_heal_coefficient"
+          ],
+          "native_value": 7,
+          "units": "requested health-unit coefficient",
+          "native_boundary": "AreaAttack after Brand attempt -> Ignis.heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "shield_smash_attack_t34_heal_coefficient"
+          ],
+          "native_value": 5,
+          "units": "requested health-unit coefficient",
+          "native_boundary": "AreaAttack after Brand attempt -> Ignis.heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "smash_t5_heal_coefficient"
+          ],
+          "native_value": 5,
+          "units": "requested health-unit coefficient",
+          "native_boundary": "AreaAttack after Brand attempt -> Ignis.heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "spin_attack_t14_heal_coefficient"
+          ],
+          "native_value": 5,
+          "units": "requested health-unit coefficient",
+          "native_boundary": "AreaAttack after Brand attempt -> Ignis.heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "strike_t31_heal_coefficient"
+          ],
+          "native_value": 7,
+          "units": "requested health-unit coefficient",
+          "native_boundary": "AreaAttack after Brand attempt -> Ignis.heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "swing_attack_berserk_t17_heal_coefficient"
+          ],
+          "native_value": 7,
+          "units": "requested health-unit coefficient",
+          "native_boundary": "AreaAttack after Brand attempt -> Ignis.heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "swing_attack_soul_t18_heal_coefficient"
+          ],
+          "native_value": 5,
+          "units": "requested health-unit coefficient",
+          "native_boundary": "AreaAttack after Brand attempt -> Ignis.heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "swing_attack_t24_heal_coefficient"
+          ],
+          "native_value": 5,
+          "units": "requested health-unit coefficient",
+          "native_boundary": "AreaAttack after Brand attempt -> Ignis.heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "swing_upperslash_t24_heal_coefficient"
+          ],
+          "native_value": 5,
+          "units": "requested health-unit coefficient",
+          "native_boundary": "AreaAttack after Brand attempt -> Ignis.heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "ultimate_attack_t74_heal_coefficient"
+          ],
+          "native_value": 7,
+          "units": "requested health-unit coefficient",
+          "native_boundary": "AreaAttack after Brand attempt -> Ignis.heal"
+        }
+      ],
+      "binary_gates": [
+        "Server/native nearby and same-Ignis class gates; native hurt and status/heal admission remain native."
+      ],
+      "hurt_return_dependency": "burn/Brand/heal/Combo/motion require the original hurttrue; shield disable does not; heal ignores effect-add return; no alive-after-hurt gate."
+    },
+    {
+      "id": "cataclysm:ignis_attack_selection",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:ignis-offense:attack_selection"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Native AI/alive/idle/phase/stance and chance admission remains native."
+      ],
+      "hurt_return_dependency": "Selection and boss-motion follow-ups do not depend on victim hurt unless explicitly supplied by the small-swing Combo flag."
+    },
+    {
+      "id": "cataclysm:ignis_body_check",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "delivery_paths": [
+        "cataclysm:ignis-offense:body_check"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "arc"
+          ],
+          "native_value": 120.0,
+          "units": "degrees",
+          "native_boundary": "BodyCheckAttack native selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "body_height"
+          ],
+          "native_value": 6.0,
+          "units": "blocks",
+          "native_boundary": "BodyCheckAttack native selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "body_range"
+          ],
+          "native_value": 3.0,
+          "units": "blocks",
+          "native_boundary": "BodyCheckAttack native selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "upper_height"
+          ],
+          "native_value": 8.0,
+          "units": "blocks",
+          "native_boundary": "BodyCheckAttack native selection"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "upper_range"
+          ],
+          "native_value": 4.5,
+          "units": "blocks",
+          "native_boundary": "BodyCheckAttack native selection"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "horizontal_factor"
+          ],
+          "native_value": 2.5,
+          "units": "native inverse-square impulse coefficient",
+          "native_boundary": "BodyCheckAttack hurttrue"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "normal_soul_y"
+          ],
+          "native_value": 0.2,
+          "units": "blocks/tick additive Y",
+          "native_boundary": "BodyCheckAttack hurttrue"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "uppercut_combo_y"
+          ],
+          "native_value": 0.8,
+          "units": "blocks/tick additive Y",
+          "native_boundary": "BodyCheckAttack hurttrue"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "hp_fraction"
+          ],
+          "native_value": 0.03,
+          "units": "dimensionless coefficients",
+          "native_boundary": "BodyCheckAttack -> mobAttack(Ignis)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "normal_multiplier"
+          ],
+          "native_value": 0.8,
+          "units": "dimensionless coefficients",
+          "native_boundary": "BodyCheckAttack -> mobAttack(Ignis)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "soul_multiplier"
+          ],
+          "native_value": 0.9,
+          "units": "dimensionless coefficients",
+          "native_boundary": "BodyCheckAttack -> mobAttack(Ignis)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "uppercut_multiplier"
+          ],
+          "native_value": 1.0,
+          "units": "dimensionless coefficients",
+          "native_boundary": "BodyCheckAttack -> mobAttack(Ignis)"
+        },
+        {
+          "primitive": "STUN",
+          "parameters": [
+            "combo_duration"
+          ],
+          "native_value": 40,
+          "units": "ticks",
+          "native_boundary": "BodyCheckAttack hurttrue; locked STUN effect"
+        },
+        {
+          "primitive": "STUN",
+          "parameters": [
+            "normal_duration"
+          ],
+          "native_value": 80,
+          "units": "ticks",
+          "native_boundary": "BodyCheckAttack hurttrue; locked STUN effect"
+        },
+        {
+          "primitive": "STUN",
+          "parameters": [
+            "soul_duration"
+          ],
+          "native_value": 100,
+          "units": "ticks",
+          "native_boundary": "BodyCheckAttack hurttrue; locked STUN effect"
+        },
+        {
+          "primitive": "STUN",
+          "parameters": [
+            "uppercut_duration"
+          ],
+          "native_value": 70,
+          "units": "ticks",
+          "native_boundary": "BodyCheckAttack hurttrue; locked STUN effect"
+        }
+      ],
+      "binary_gates": [
+        "Server/native nearby, ally and same-Ignis predicates; native damage/status immunity/cancellation."
+      ],
+      "hurt_return_dependency": "Victim push and positive-duration STUN require hurttrue; shield disable does not; no effect-result dependency."
+    },
+    {
+      "id": "cataclysm:ignis_defeat_lifecycle",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:ignis-offense:defeat_lifecycle"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Locked native death/credit/side and saved-data first-defeat gates."
+      ],
+      "hurt_return_dependency": "Native death-credit lifecycle, not a delivered attack scalar or additional hurt request."
+    },
+    {
+      "id": "cataclysm:ignis_fireball_contact",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "delivery_paths": [
+        "cataclysm:ignis-offense:fireball_contact"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "BLAZING_BRAND",
+          "parameters": [
+            "duration"
+          ],
+          "native_value": 200,
+          "units": "ticks",
+          "native_boundary": "onHitEntity after native explosion/discard; locked Brand producer"
+        },
+        {
+          "primitive": "EXPLOSION_DELIVERY",
+          "parameters": [
+            "radius"
+          ],
+          "native_value": 1.0,
+          "units": "native explosion radius argument",
+          "native_boundary": "onHitEntity -> separate IgnisExplosion"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "anonymous_damage"
+          ],
+          "native_value": 5.0,
+          "units": "requested health units",
+          "native_boundary": "fired ServerLevel onHitEntity contact hurt"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "base_damage"
+          ],
+          "native_value": 6.0,
+          "units": "requested health units",
+          "native_boundary": "fired ServerLevel onHitEntity contact hurt"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "hp_fraction"
+          ],
+          "native_value": 0.07,
+          "units": "fraction of maxHP",
+          "native_boundary": "fired ServerLevel onHitEntity contact hurt"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "soul_damage"
+          ],
+          "native_value": 8.0,
+          "units": "requested health units",
+          "native_boundary": "fired ServerLevel onHitEntity contact hurt"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "coefficient"
+          ],
+          "native_value": 5.0,
+          "units": "requested health units",
+          "native_boundary": "onHitEntity original contact true branch -> current Living owner"
+        }
+      ],
+      "binary_gates": [
+        "Native fired/server/class and owner-source gates, native hurt/status/heal/enchantment/explosion hooks."
+      ],
+      "hurt_return_dependency": "Owner healing and later Brand require original contact hurttrue; enchantment additionally alive; blast/discard independent; Brand ignores explosion and effect-add returns."
+    },
+    {
+      "id": "cataclysm:ignis_fireball_motion",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "delivery_paths": [
+        "cataclysm:ignis-offense:fireball_motion"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "air_inertia"
+          ],
+          "native_value": 0.95,
+          "units": "dimensionless per-tick inertia",
+          "native_boundary": "CMAbstractHurtingProjectile.tick"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "water_inertia"
+          ],
+          "native_value": 0.8,
+          "units": "dimensionless per-tick inertia",
+          "native_boundary": "CMAbstractHurtingProjectile.tick"
+        },
+        {
+          "primitive": "PROJECTILE_RETARGET",
+          "parameters": [
+            "normal_acceleration"
+          ],
+          "native_value": 0.2,
+          "units": "native acceleration component magnitude",
+          "native_boundary": "Ignis_Fireball.tick after parent motion"
+        },
+        {
+          "primitive": "PROJECTILE_RETARGET",
+          "parameters": [
+            "soul_acceleration"
+          ],
+          "native_value": 0.25,
+          "units": "native acceleration component magnitude",
+          "native_boundary": "Ignis_Fireball.tick after parent motion"
+        }
+      ],
+      "binary_gates": [
+        "Native owner/chunk/impact/deflection/noPhysics, fired equality and server timer; no generic transport."
+      ],
+      "hurt_return_dependency": "Motion/timer/collision/block callbacks independent of contact hurt; fired contact return rules preserved separately."
+    },
+    {
+      "id": "cataclysm:ignis_fireball_volley",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "delivery_paths": [
+        "cataclysm:ignis-offense:fireball_volley"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "DELAYED_PROJECTILE_DELIVERY",
+          "parameters": [
+            "blade1"
+          ],
+          "native_value": 30,
+          "units": "native projectile timer ticks",
+          "native_boundary": "aiStep -> setUp(delay)"
+        },
+        {
+          "primitive": "DELAYED_PROJECTILE_DELIVERY",
+          "parameters": [
+            "blade2"
+          ],
+          "native_value": 28,
+          "units": "native projectile timer ticks",
+          "native_boundary": "aiStep -> setUp(delay)"
+        },
+        {
+          "primitive": "DELAYED_PROJECTILE_DELIVERY",
+          "parameters": [
+            "blade3"
+          ],
+          "native_value": 26,
+          "units": "native projectile timer ticks",
+          "native_boundary": "aiStep -> setUp(delay)"
+        },
+        {
+          "primitive": "DELAYED_PROJECTILE_DELIVERY",
+          "parameters": [
+            "magic_abyss"
+          ],
+          "native_value": 109,
+          "units": "native projectile timer ticks",
+          "native_boundary": "aiStep -> setUp(delay)"
+        },
+        {
+          "primitive": "DELAYED_PROJECTILE_DELIVERY",
+          "parameters": [
+            "magic_ordinary_1"
+          ],
+          "native_value": 45,
+          "units": "native projectile timer ticks",
+          "native_boundary": "aiStep -> setUp(delay)"
+        },
+        {
+          "primitive": "DELAYED_PROJECTILE_DELIVERY",
+          "parameters": [
+            "magic_ordinary_2"
+          ],
+          "native_value": 61,
+          "units": "native projectile timer ticks",
+          "native_boundary": "aiStep -> setUp(delay)"
+        },
+        {
+          "primitive": "DELAYED_PROJECTILE_DELIVERY",
+          "parameters": [
+            "magic_ordinary_3"
+          ],
+          "native_value": 77,
+          "units": "native projectile timer ticks",
+          "native_boundary": "aiStep -> setUp(delay)"
+        },
+        {
+          "primitive": "DELAYED_PROJECTILE_DELIVERY",
+          "parameters": [
+            "magic_ordinary_4"
+          ],
+          "native_value": 93,
+          "units": "native projectile timer ticks",
+          "native_boundary": "aiStep -> setUp(delay)"
+        },
+        {
+          "primitive": "DELAYED_PROJECTILE_DELIVERY",
+          "parameters": [
+            "reinforced_abyss"
+          ],
+          "native_value": 54,
+          "units": "native projectile timer ticks",
+          "native_boundary": "aiStep -> setUp(delay)"
+        },
+        {
+          "primitive": "DELAYED_PROJECTILE_DELIVERY",
+          "parameters": [
+            "reinforced_ordinary_1"
+          ],
+          "native_value": 28,
+          "units": "native projectile timer ticks",
+          "native_boundary": "aiStep -> setUp(delay)"
+        },
+        {
+          "primitive": "DELAYED_PROJECTILE_DELIVERY",
+          "parameters": [
+            "reinforced_ordinary_2"
+          ],
+          "native_value": 41,
+          "units": "native projectile timer ticks",
+          "native_boundary": "aiStep -> setUp(delay)"
+        },
+        {
+          "primitive": "PROJECTILE_LAUNCH",
+          "parameters": [
+            "lift_coefficient"
+          ],
+          "native_value": 0.35,
+          "units": "vertical aim coefficient",
+          "native_boundary": "shootFireball / shootAbyssFireball"
+        },
+        {
+          "primitive": "PROJECTILE_LAUNCH",
+          "parameters": [
+            "shoot_inaccuracy"
+          ],
+          "native_value": 3.0,
+          "units": "native shoot inaccuracy argument",
+          "native_boundary": "shootFireball / shootAbyssFireball"
+        },
+        {
+          "primitive": "PROJECTILE_LAUNCH",
+          "parameters": [
+            "shoot_speed"
+          ],
+          "native_value": 0.25,
+          "units": "native projectile shoot velocity",
+          "native_boundary": "shootFireball / shootAbyssFireball"
+        }
+      ],
+      "binary_gates": [
+        "Native attack identity/tick/random choice, native entity-add/owner and child lifecycle."
+      ],
+      "hurt_return_dependency": "Spawns/initial motion/delays do not require victim hurt; addFreshEntity result is ignored; child contact return rules remain separate."
+    },
+    {
+      "id": "cataclysm:ignis_flame_strike_chain",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "delivery_paths": [
+        "cataclysm:ignis-offense:flame_strike_chain"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "FLAME_STRIKE_DAMAGE",
+          "parameters": [
+            "hp_percent"
+          ],
+          "native_value": 6.0,
+          "units": "percent of victim maxHP",
+          "native_boundary": "Ignis.spawnFlameStrike -> owned native Flame_Strike constructor"
+        },
+        {
+          "primitive": "FLAME_STRIKE_DAMAGE",
+          "parameters": [
+            "ordinary_base"
+          ],
+          "native_value": 6.0,
+          "units": "requested health units",
+          "native_boundary": "Ignis.spawnFlameStrike -> owned native Flame_Strike constructor"
+        },
+        {
+          "primitive": "FLAME_STRIKE_DAMAGE",
+          "parameters": [
+            "soul_base"
+          ],
+          "native_value": 8.0,
+          "units": "requested health units",
+          "native_boundary": "Ignis.spawnFlameStrike -> owned native Flame_Strike constructor"
+        },
+        {
+          "primitive": "HAZARD_DELIVERY",
+          "parameters": [
+            "chain_delay_factor"
+          ],
+          "native_value": 1.5,
+          "units": "native timer ticks per index",
+          "native_boundary": "Ignis ultimate start/aiStep -> spawnFlameStrike"
+        },
+        {
+          "primitive": "HAZARD_DELIVERY",
+          "parameters": [
+            "chain_duration"
+          ],
+          "native_value": 60,
+          "units": "ticks",
+          "native_boundary": "Ignis ultimate start/aiStep -> spawnFlameStrike"
+        },
+        {
+          "primitive": "HAZARD_DELIVERY",
+          "parameters": [
+            "chain_radius"
+          ],
+          "native_value": 2.0,
+          "units": "blocks native radius argument",
+          "native_boundary": "Ignis ultimate start/aiStep -> spawnFlameStrike"
+        },
+        {
+          "primitive": "HAZARD_DELIVERY",
+          "parameters": [
+            "chain_spacing"
+          ],
+          "native_value": 4.25,
+          "units": "blocks",
+          "native_boundary": "Ignis ultimate start/aiStep -> spawnFlameStrike"
+        },
+        {
+          "primitive": "HAZARD_DELIVERY",
+          "parameters": [
+            "soul_delay"
+          ],
+          "native_value": 0,
+          "units": "ticks",
+          "native_boundary": "Ignis ultimate start/aiStep -> spawnFlameStrike"
+        },
+        {
+          "primitive": "HAZARD_DELIVERY",
+          "parameters": [
+            "soul_duration"
+          ],
+          "native_value": 30,
+          "units": "ticks",
+          "native_boundary": "Ignis ultimate start/aiStep -> spawnFlameStrike"
+        },
+        {
+          "primitive": "HAZARD_DELIVERY",
+          "parameters": [
+            "soul_radius"
+          ],
+          "native_value": 5.0,
+          "units": "blocks native radius argument",
+          "native_boundary": "Ignis ultimate start/aiStep -> spawnFlameStrike"
+        },
+        {
+          "primitive": "HAZARD_DELIVERY",
+          "parameters": [
+            "soul_wait"
+          ],
+          "native_value": 68,
+          "units": "ticks",
+          "native_boundary": "Ignis ultimate start/aiStep -> spawnFlameStrike"
+        }
+      ],
+      "binary_gates": [
+        "Native goal/animation/tick/target/support/collision/entity-add and child owner/status/damage lifecycle."
+      ],
+      "hurt_return_dependency": "No victim hurt prerequisite for hazard spawn; support-found gate only; entity-add boolean ignored. Child damage/Brand/terminal blast have their own native returns."
+    },
+    {
+      "id": "cataclysm:ignis_flame_strike_payload",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "delivery_paths": [
+        "cataclysm:ignis-offense:flame_strike_payload"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "BLAZING_BRAND",
+          "parameters": [
+            "duration"
+          ],
+          "native_value": 200,
+          "units": "ticks",
+          "native_boundary": "Flame_Strike.damage true branch"
+        },
+        {
+          "primitive": "HAZARD_GEOMETRY",
+          "parameters": [
+            "height_factor"
+          ],
+          "native_value": 3.0,
+          "units": "native dimensions/radius multipliers/bounds",
+          "native_boundary": "Flame_Strike.setRadius/getDimensions"
+        },
+        {
+          "primitive": "HAZARD_GEOMETRY",
+          "parameters": [
+            "width_factor"
+          ],
+          "native_value": 1.8,
+          "units": "native dimensions/radius multipliers/bounds",
+          "native_boundary": "Flame_Strike.setRadius/getDimensions"
+        },
+        {
+          "primitive": "HAZARD_LIFECYCLE",
+          "parameters": [
+            "shrink_per_tick"
+          ],
+          "native_value": 0.1,
+          "units": "native radius units/tick",
+          "native_boundary": "Flame_Strike.tick server cleanup and native damage dispatch"
+        }
+      ],
+      "binary_gates": [
+        "Native waiting/age, alive/invulnerable/owner/mutual-alliance, native hurt/status and lazy native owner resolution."
+      ],
+      "hurt_return_dependency": "Brand requires original hazard hurttrue; no healing/burn or post-attack callback. Shrink, terminal explosion and discard independent of hazard hurt; terminal blast has its own native damage/motion."
+    },
+    {
+      "id": "cataclysm:ignis_goal_motion",
+      "primary_classification": "CUSTOM_CONTROL",
+      "delivery_paths": [
+        "cataclysm:ignis-offense:goal_motion"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "air_no_target_y"
+          ],
+          "native_value": 1.4,
+          "units": "native velocity coefficient or blocks/tick as named",
+          "native_boundary": "registered Ignis offensive goals -> own setDeltaMovement/push"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "air_xz"
+          ],
+          "native_value": 0.15,
+          "units": "native velocity coefficient or blocks/tick as named",
+          "native_boundary": "registered Ignis offensive goals -> own setDeltaMovement/push"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "air_y"
+          ],
+          "native_value": 1.3,
+          "units": "native velocity coefficient or blocks/tick as named",
+          "native_boundary": "registered Ignis offensive goals -> own setDeltaMovement/push"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "body_normal_xz"
+          ],
+          "native_value": 0.25,
+          "units": "native velocity coefficient or blocks/tick as named",
+          "native_boundary": "registered Ignis offensive goals -> own setDeltaMovement/push"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "body_soul_xz"
+          ],
+          "native_value": 0.4,
+          "units": "native velocity coefficient or blocks/tick as named",
+          "native_boundary": "registered Ignis offensive goals -> own setDeltaMovement/push"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "combo_push_factor"
+          ],
+          "native_value": 0.35,
+          "units": "native velocity coefficient or blocks/tick as named",
+          "native_boundary": "registered Ignis offensive goals -> own setDeltaMovement/push"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "horizontal_push_factor"
+          ],
+          "native_value": 0.3,
+          "units": "native velocity coefficient or blocks/tick as named",
+          "native_boundary": "registered Ignis offensive goals -> own setDeltaMovement/push"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "poke_push_factor"
+          ],
+          "native_value": 0.3,
+          "units": "native velocity coefficient or blocks/tick as named",
+          "native_boundary": "registered Ignis offensive goals -> own setDeltaMovement/push"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "predictive_motion_x"
+          ],
+          "native_value": 0.3,
+          "units": "native velocity coefficient or blocks/tick as named",
+          "native_boundary": "registered Ignis offensive goals -> own setDeltaMovement/push"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "predictive_motion_z"
+          ],
+          "native_value": 0.3,
+          "units": "native velocity coefficient or blocks/tick as named",
+          "native_boundary": "registered Ignis offensive goals -> own setDeltaMovement/push"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "reinforced_no_target_y"
+          ],
+          "native_value": 1.8,
+          "units": "native velocity coefficient or blocks/tick as named",
+          "native_boundary": "registered Ignis offensive goals -> own setDeltaMovement/push"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "small_combo_push"
+          ],
+          "native_value": 1.5,
+          "units": "native velocity coefficient or blocks/tick as named",
+          "native_boundary": "registered Ignis offensive goals -> own setDeltaMovement/push"
+        },
+        {
+          "primitive": "PREDICTIVE_TARGET_POSITION",
+          "parameters": [
+            "sensing"
+          ],
+          "native_value": 12.0,
+          "units": "native look-ahead coefficient",
+          "native_boundary": "Combo2 / PredictiveChargeAttackAnimationGoal target position"
+        }
+      ],
+      "binary_gates": [
+        "Registered native animation test/goal flags and target/facing/ground gates stay native."
+      ],
+      "hurt_return_dependency": "Only Combo/CanSpin inputs are supplied by an AreaAttack true return; goal movement/follow-up rolls otherwise have their own native admission."
+    },
+    {
+      "id": "cataclysm:ignis_ground_wave",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "delivery_paths": [
+        "cataclysm:ignis-offense:ground_wave"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "base_airborne_factor"
+          ],
+          "native_value": 0.1,
+          "units": "Y velocity per radial block",
+          "native_boundary": "ShieldSmashDamage hurttrue additive velocity"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "earth_airborne_factor"
+          ],
+          "native_value": 0.05,
+          "units": "Y velocity per radial block",
+          "native_boundary": "ShieldSmashDamage hurttrue additive velocity"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "grab_factor"
+          ],
+          "native_value": -4.0,
+          "units": "signed inward velocity factor",
+          "native_boundary": "ShieldSmashDamage hurttrue additive velocity"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "grounded_y"
+          ],
+          "native_value": 0.15,
+          "units": "blocks/tick",
+          "native_boundary": "ShieldSmashDamage hurttrue additive velocity"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "random_y_factor"
+          ],
+          "native_value": 0.15,
+          "units": "blocks/tick",
+          "native_boundary": "ShieldSmashDamage hurttrue additive velocity"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "reinforced_airborne_factor"
+          ],
+          "native_value": 0.075,
+          "units": "Y velocity per radial block",
+          "native_boundary": "ShieldSmashDamage hurttrue additive velocity"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "base_damage_multiplier"
+          ],
+          "native_value": 1.0,
+          "units": "dimensionless coefficients",
+          "native_boundary": "ShieldSmashDamage per-cell -> mobAttack(Ignis)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "base_hp_fraction"
+          ],
+          "native_value": 0.02,
+          "units": "dimensionless coefficients",
+          "native_boundary": "ShieldSmashDamage per-cell -> mobAttack(Ignis)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "earth_first_hp_fraction"
+          ],
+          "native_value": 0.05,
+          "units": "dimensionless coefficients",
+          "native_boundary": "ShieldSmashDamage per-cell -> mobAttack(Ignis)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "earth_return_hp_fraction"
+          ],
+          "native_value": 0.08,
+          "units": "dimensionless coefficients",
+          "native_boundary": "ShieldSmashDamage per-cell -> mobAttack(Ignis)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "reinforced_hp_fraction"
+          ],
+          "native_value": 0.06,
+          "units": "dimensionless coefficients",
+          "native_boundary": "ShieldSmashDamage per-cell -> mobAttack(Ignis)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "reinforced_multiplier"
+          ],
+          "native_value": 1.1,
+          "units": "dimensionless coefficients",
+          "native_boundary": "ShieldSmashDamage per-cell -> mobAttack(Ignis)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "strike_hp_fraction"
+          ],
+          "native_value": 0.12,
+          "units": "dimensionless coefficients",
+          "native_boundary": "ShieldSmashDamage per-cell -> mobAttack(Ignis)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "upperslash_hp_fraction"
+          ],
+          "native_value": 0.03,
+          "units": "dimensionless coefficients",
+          "native_boundary": "ShieldSmashDamage per-cell -> mobAttack(Ignis)"
+        },
+        {
+          "primitive": "SAMPLED_GROUND_TARGETING",
+          "parameters": [
+            "combo_spread"
+          ],
+          "native_value": 1.25,
+          "units": "PI radians factor",
+          "native_boundary": "ShieldSmashDamage native geometry"
+        },
+        {
+          "primitive": "SAMPLED_GROUND_TARGETING",
+          "parameters": [
+            "full_spread"
+          ],
+          "native_value": 2.0,
+          "units": "PI radians factor",
+          "native_boundary": "ShieldSmashDamage native geometry"
+        },
+        {
+          "primitive": "SAMPLED_GROUND_TARGETING",
+          "parameters": [
+            "strike_spread"
+          ],
+          "native_value": 0.75,
+          "units": "PI radians factor",
+          "native_boundary": "ShieldSmashDamage native geometry"
+        },
+        {
+          "primitive": "SAMPLED_GROUND_TARGETING",
+          "parameters": [
+            "upper_spread"
+          ],
+          "native_value": 0.4,
+          "units": "PI radians factor",
+          "native_boundary": "ShieldSmashDamage native geometry"
+        }
+      ],
+      "binary_gates": [
+        "Server/native per-cell query, allies/self/same-Ignis gates; native block/griefing and hurt admission remain separate."
+      ],
+      "hurt_return_dependency": "Victim motion requires that cell hurttrue; shield disable and terrain/debris do not. Repeated native queries are not replaced by extra or deduplicated requests."
+    },
+    {
+      "id": "cataclysm:ignis_held_victim",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "delivery_paths": [
+        "cataclysm:ignis-offense:held_victim"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "BLAZING_BRAND",
+          "parameters": [
+            "duration"
+          ],
+          "native_value": 240,
+          "units": "ticks",
+          "native_boundary": "positionRider native effect addition"
+        },
+        {
+          "primitive": "HELD_POSITION",
+          "parameters": [
+            "radius"
+          ],
+          "native_value": 4.0,
+          "units": "blocks",
+          "native_boundary": "positionRider native MoveFunction"
+        },
+        {
+          "primitive": "HELD_POSITION",
+          "parameters": [
+            "rise_per_tick"
+          ],
+          "native_value": 0.2,
+          "units": "blocks/animation tick",
+          "native_boundary": "positionRider native MoveFunction"
+        },
+        {
+          "primitive": "HELD_POSITION",
+          "parameters": [
+            "y_offset"
+          ],
+          "native_value": 1.2,
+          "units": "blocks",
+          "native_boundary": "positionRider native MoveFunction"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "base_damage"
+          ],
+          "native_value": 4.0,
+          "units": "requested health units",
+          "native_boundary": "positionRider server cadence -> mobAttack(Ignis)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "hp_fraction"
+          ],
+          "native_value": 0.02,
+          "units": "victim maxHP fraction",
+          "native_boundary": "positionRider server cadence -> mobAttack(Ignis)"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "coefficient"
+          ],
+          "native_value": 2.0,
+          "units": "health-unit coefficient",
+          "native_boundary": "positionRider after Brand attempt -> heal"
+        }
+      ],
+      "binary_gates": [
+        "Native existing passenger, server Living damage and native mount lifecycle; no new ownership/cache."
+      ],
+      "hurt_return_dependency": "Damage requires native cadence/passenger; Brand/heal require hurttrue; heal ignores effect-add return; release/position/input do not require hurt."
+    },
+    {
+      "id": "cataclysm:ignis_native_explosion",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "delivery_paths": [
+        "cataclysm:ignis-offense:native_explosion"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Native source exclusion, ignoreExplosion, range/exposure/calculator/NeoForge predicates; KEEP/fire native lifecycle."
+      ],
+      "hurt_return_dependency": "Explosion motion/fire do not depend on explosion hurttrue. Saved fireball contact booleans govern that separate contact Brand/heal only."
+    },
+    {
+      "id": "cataclysm:ignis_phase_wave",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "delivery_paths": [
+        "cataclysm:ignis-offense:phase_wave"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "BLAZING_BRAND",
+          "parameters": [
+            "duration"
+          ],
+          "native_value": 240,
+          "units": "ticks",
+          "native_boundary": "Phase_Transition native status addition"
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "seconds"
+          ],
+          "native_value": 5,
+          "units": "seconds",
+          "native_boundary": "Phase_Transition hurttrue"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "phase2_hp_fraction"
+          ],
+          "native_value": 0.03,
+          "units": "dimensionless damage coefficients",
+          "native_boundary": "Phase_Transition -> indirectMagic(this,this)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "phase2_multiplier"
+          ],
+          "native_value": 0.4,
+          "units": "dimensionless damage coefficients",
+          "native_boundary": "Phase_Transition -> indirectMagic(this,this)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "phase3_hp_fraction"
+          ],
+          "native_value": 0.05,
+          "units": "dimensionless damage coefficients",
+          "native_boundary": "Phase_Transition -> indirectMagic(this,this)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "phase3_multiplier"
+          ],
+          "native_value": 0.6,
+          "units": "dimensionless damage coefficients",
+          "native_boundary": "Phase_Transition -> indirectMagic(this,this)"
+        }
+      ],
+      "binary_gates": [
+        "Even animation tick, server native selection, allies/self/same-Ignis and native hurt/status gates."
+      ],
+      "hurt_return_dependency": "Burn and Brand require helper hurttrue; no healing; phase/state commits remain independent locked native writes."
+    },
+    {
+      "id": "cataclysm:ignis_poke_capture",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "delivery_paths": [
+        "cataclysm:ignis-offense:poke_capture"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "arc1"
+          ],
+          "native_value": 70.0,
+          "units": "degrees",
+          "native_boundary": "Poke target scan"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "arc2"
+          ],
+          "native_value": 65.0,
+          "units": "degrees",
+          "native_boundary": "Poke target scan"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "arc3"
+          ],
+          "native_value": 60.0,
+          "units": "degrees",
+          "native_boundary": "Poke target scan"
+        },
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "range"
+          ],
+          "native_value": 7.0,
+          "units": "blocks",
+          "native_boundary": "Poke target scan"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "hp_fraction"
+          ],
+          "native_value": 0.1,
+          "units": "fraction of victim maxHP",
+          "native_boundary": "Poke -> mobAttack(Ignis)"
+        }
+      ],
+      "binary_gates": [
+        "Native tag/alive/passenger and mount admission remain distinct from damage selection."
+      ],
+      "hurt_return_dependency": "Capture requires hurttrue and alive; resulting animation does not require startRiding true; shield disable independent."
+    },
+    {
+      "id": "cataclysm:ignis_reinforced_contact",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "delivery_paths": [
+        "cataclysm:ignis-offense:reinforced_contact"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "inflation"
+          ],
+          "native_value": 1.25,
+          "units": "blocks",
+          "native_boundary": "aiStep reinforced local contact"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "attack_multiplier"
+          ],
+          "native_value": 1.5,
+          "units": "dimensionless attribute multiplier",
+          "native_boundary": "aiStep reinforced normal/soul tick5 -> mobAttack(Ignis)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "hp_fraction"
+          ],
+          "native_value": 0.15,
+          "units": "fraction of victim maxHP",
+          "native_boundary": "aiStep reinforced normal/soul tick5 -> mobAttack(Ignis)"
+        }
+      ],
+      "binary_gates": [
+        "Server, native bbox, ally/self/same-Ignis and native hurt/shield gates."
+      ],
+      "hurt_return_dependency": "Native hurt return is not used; shield disable independent; no hurt-dependent additional payload."
+    },
+    {
+      "id": "cataclysm:ignis_shield_break_burst",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "delivery_paths": [
+        "cataclysm:ignis-offense:shield_break_burst"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "AREA_TARGETING",
+          "parameters": [
+            "range"
+          ],
+          "native_value": 12.0,
+          "units": "blocks",
+          "native_boundary": "aiStep shield-break status burst"
+        },
+        {
+          "primitive": "EXPLOSION_DELIVERY",
+          "parameters": [
+            "radius"
+          ],
+          "native_value": 2.0,
+          "units": "native explosion radius argument",
+          "native_boundary": "ShieldExplode native explosion construction"
+        },
+        {
+          "primitive": "STUN",
+          "parameters": [
+            "duration"
+          ],
+          "native_value": 60,
+          "units": "ticks",
+          "native_boundary": "aiStep BREAK tick55 / SHIELD_BREAK_STRIKE tick17"
+        }
+      ],
+      "binary_gates": [
+        "Native animation/state, server, ally and Player ability immunity/effect admission."
+      ],
+      "hurt_return_dependency": "Explosion/status spawning do not require hurttrue; STUN has no damage request; explosion native damage returns do not gate explosion motion/fire."
+    },
+    {
+      "id": "cataclysm:ignis_terrain_control",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:ignis-offense:terrain_control"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Native NoAI/server/timer/grief/block/tag/destroy hook admission."
+      ],
+      "hurt_return_dependency": "Timer and terrain/debris do not require native hurttrue; terrain success does not gate victim damage."
+    },
+    {
+      "id": "cataclysm:ignis_ultimate_lane",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "delivery_paths": [
+        "cataclysm:ignis-offense:ultimate_lane"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "random_y"
+          ],
+          "native_value": 0.15,
+          "units": "blocks/tick additive Y",
+          "native_boundary": "UltimateAttack true branch"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "y"
+          ],
+          "native_value": 1.0,
+          "units": "blocks/tick additive Y",
+          "native_boundary": "UltimateAttack true branch"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "attack_multiplier"
+          ],
+          "native_value": 1.5,
+          "units": "dimensionless coefficients",
+          "native_boundary": "UltimateAttack cell -> mobAttack(Ignis)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "hp_fraction"
+          ],
+          "native_value": 0.15,
+          "units": "dimensionless coefficients",
+          "native_boundary": "UltimateAttack cell -> mobAttack(Ignis)"
+        }
+      ],
+      "binary_gates": [
+        "Native animation/server/cell/allies/self/same-Ignis and damage/shield admission."
+      ],
+      "hurt_return_dependency": "Cell motion requires hurttrue; shield/terrain/debris do not; independent native attack/hazard branches are not conditioned on lane hurt."
+    }
+  ],
+  "payload_entities": [
+    {
+      "entity_id": "cataclysm:ignis_fireball",
+      "entry": "com/github/L_Ender/cataclysm/entity/projectile/Ignis_Fireball_Entity.class",
+      "role": "OWNED_DAMAGE_PROJECTILE",
+      "source_mechanic_ids": [
+        "cataclysm:ignis_fireball_volley"
+      ],
+      "payload_mechanic_ids": [
+        "cataclysm:ignis_fireball_contact",
+        "cataclysm:ignis_fireball_motion"
+      ],
+      "source_actor": "Native current projectile owner, Ignis at spawn; ordinary soul flag snapshots phase>0.",
+      "native_lifecycle": "Parent native-like hurting-projectile tick runs first: trace/impact hook/deflection and move using current velocity, then concrete server timer-- and setFired true when timer<=0. Concrete timer<-160 discards. At exact timer0/-40, current Mob owner with nonnull target retargets power to target-center normalized vector times ordinary.2F/soul.25F; this branch has no local server guard and no zero-length normalization guard. Before fired, contact/block payload gates suppress explosions/damage but inherited trace/block callbacks still run. Ordinary onHit also aim-deflects a redirectable Projectile victim with current owner before onHitEntity; it is unpickable and hurt alwaysfalse. NBT retains timer,fired,soul plus parent power and native projectile owner."
+    },
+    {
+      "entity_id": "cataclysm:ignis_abyss_fireball",
+      "entry": "com/github/L_Ender/cataclysm/entity/projectile/Ignis_Abyss_Fireball_Entity.class",
+      "role": "OWNED_REFLECTABLE_PROJECTILE",
+      "source_mechanic_ids": [
+        "cataclysm:ignis_fireball_volley"
+      ],
+      "payload_mechanic_ids": [
+        "cataclysm:ignis_abyss_fireball_contact",
+        "cataclysm:ignis_abyss_fireball_motion"
+      ],
+      "source_actor": "Native current owner changes to DamageSource causing entity on server reflection; direct/causing explosion/contact sources follow the native source object.",
+      "native_lifecycle": "Uses the same native parent motion/trace and server timer/fired/expiry as ordinary. Retarget power.2F at0/-40 only with totalBounces==0. Fired block contact with nonempty collisionshape calls inherited native onHitBlock, then explicitly calls block.onProjectileHit again, reflects only struck-face velocity component and sets power=reflectedVelocity*.05D. tickCount<=500 and bounces<=5 increments bounces, so0..5 allows six increments; a later eligible collision (or age>500) creates radius2 firetrue KEEP explosion/discards on server. It does not explode solely at age500 without collision. Pickable radius1; hurt rejects virtual native invulnerability, then markHurt; causing entity nonnull+fired returns true and server sets velocity to causing look vector,power*.1D,owner=causing entity. Damage amount is not used; reflected owner need not be original boss or Living. Bounce count is not reset on reflection. NBT preserves totalBounces,timer,fired,power and native owner."
+    },
+    {
+      "entity_id": "cataclysm:flame_strike",
+      "entry": "com/github/L_Ender/cataclysm/entity/effect/Flame_Strike_Entity.class",
+      "role": "OWNED_CUSTOM_HAZARD",
+      "source_mechanic_ids": [
+        "cataclysm:ignis_flame_strike_chain"
+      ],
+      "payload_mechanic_ids": [
+        "cataclysm:ignis_flame_strike_payload"
+      ],
+      "source_actor": "Custom owned source: direct Flame_Strike,causing native resolved caster. Null caster magic. Terminal explosion source uses raw cached owner, not hazard/UUID resolution.",
+      "native_lifecycle": "Terminal server age>=wait+duration+delay shrinks radius by.1F per tick (native clamp) until0; next zero-radius branch discards, first exploding if !soul using RAW cached owner as explosion source (radius1 if cached Player else2,firefalse,KEEP). Soul has no terminal blast. No explicit early-return after discard; waiting and dispatch statements continue. Native NBT saves Age,Duration,WaitTime,Delay,Radius,Owner,is_soul,damage,Hpdamage; native lazy getOwner resolves UUID on ServerLevel, but terminal branch does not call getOwner. No custom receipt/snapshot transport added."
+    },
+    {
+      "entity_id": "cataclysm:cm_falling_block",
+      "entry": "com/github/L_Ender/cataclysm/entity/effect/Cm_Falling_Block_Entity.class",
+      "role": "NON_DAMAGE_DEBRIS_VERIFIED",
+      "source_mechanic_ids": [
+        "cataclysm:ignis_ground_wave",
+        "cataclysm:ignis_ultimate_lane"
+      ],
+      "payload_mechanic_ids": [],
+      "source_actor": "Native decorative debris, no damage owner/payload.",
+      "native_lifecycle": "Locked R2k4b constructor/tick/NBT: native falling motion/discard, no hurt or block placement. Reused, not recaptured."
+    }
+  ],
+  "offense_paths_closed": [
+    "tick ordered attack selection and STUN presence readers",
+    "all registered offensive goals/start/tick/stop/follow-up controls",
+    "aiStep all damage/status/wave/hazard/fireball call profiles",
+    "tick lava support/onGround and fluid buoyancy prerequisites for air-smash landing; native collision repulsion binding",
+    "AreaAttack and inline reinforced local contact",
+    "BodyCheckAttack and separate victim motion/STUN",
+    "Poke forced passenger and positionRider held damage/release/input",
+    "phase-transition magic and shield-break STUN/explosions",
+    "sampled ShieldSmashDamage and UltimateAttack lane geometry",
+    "magic/reinforced/blade ordinary/soul/Abyss launch chains",
+    "native projectile motion/impact/owner/reflection/bounce/persistence",
+    "ultimate goal-start soul and tick74 ordinary Flame Strike chains",
+    "custom Flame Strike damage/Brand/wait/shrink/terminal raw-owner explosion",
+    "native IgnisExplosion calculator/impulse/fire/KEEP and source attribution",
+    "native alliance/terrain/debris/death/first-defeat callbacks"
+  ],
+  "facts": {
+    "selection": "Concrete tick decrements positive native cooldowns once, then unconditionally draws nextInt(3) for the poke choice. Locked phase/shield transition priority precedes offense. Alive AI idle actor with an alive target enters the ordered selection table; full stance means blockingProgress==10 OR swordProgress==10 except the second high-target MAGIC alternative. Native random draws short-circuit in order, not independent global proc rates. Normal/soul reinforced choice is nextInt(2), independent of phase. Horizontal swing writes cooldown160 but does not read it for entry. Goal follow-ups use existing animation state and target/motion predicates; STUN is only the locked effect-presence reader here.",
+    "goal_chains": "Priority1 offensive goals claim MOVE/JUMP/LOOK; idle AttackMoveGoal priority2 pursues but has no melee/damage call. Body-check normal writes target displacement*.25 at20, soul*.4F at16, Y0. Air smash writes target XZ displacement*.15,Y1.3 at19 (no target Y1.4) then onGround after19 ->SMASH. Reinforced variants do the same at84 (no target Y1.8), land after84 -> matching normal/soul smash. Horizontal/poke goals add forward*.3*clamped distance (clamps10/15; poke no-target adds unit forward); combo1 adds forward*.35*clamp(distance,0,5) at15/36/71, then target-nonnull at84 ->COMBO2. Predictive uppercut/combo2 snapshot initial targetXZ; before charge27 compute floor(currentXZ+(currentXZ-initialXZ)/27*12), then at27 write displacement*.3F,Y0 and clear target vector; stop also clears it. Uppercut retains target captured at goal start; combo2 rereads current target. Small swings/combo2 add forward1.5 at native ticks, subject to target-distance>3.5 where specified. Forced facing/zeroXZ preserve native windows. Before selection, floatStrider native lava support may setOnGround(true), feeding the air-smash landing gate; otherwise velocity is halved plus randomFloat*.5Y. Native canStandOnFluid accepts lava, with fluid affected/push overrides false. tick also calls the locked native repelEntities(1.4F,4F,1.4F,1.4F); its helper and native target pushes are reused, not new damage.",
+    "melee_return": "burn/Brand/heal/Combo/motion require the original hurttrue; shield disable does not; heal ignores effect-add return; no alive-after-hurt gate.",
+    "body_vs_self_motion": "Inverse squared horizontal-distance push is not native knockback and does not read native knockback-resistance here. Own body-check charge belongs to goal_motion, not this victim impulse. Status application and movement use hurt boolean, not measured HP loss; no post-hit alive gate.",
+    "poke_mount_result": "POKE_ATTACK1 tick39 arc70; second34 arc65; third29 arc60. Native tag gates mount only, not prior damage. Animation changes even if native riding is rejected. Do not flatten into knockback or synthesize a second effect.",
+    "held_release": "Cadence is native animation ticks, not an added periodic event. No separate victim team test in rider callback. Tick46 release does not early-return and still matches damage cadence in that callback. Native passenger state/source remain authoritative; no carrier transport invented.",
+    "phase_wave": "Only the locked phase animation offense windows call Phase_Transition: phase2 ticks>29<39, phase3>58<68. Helper even-tick gate derives radius=tick/2-dist; phase2 dist14 produces ticks30/32/34/36/38 radii1..5; phase3 dist27 produces60/62/64/66 radii3..6. Server native nearby Living cube/radial helper excludes allies,self and all Ignis. indirectMagic(Ignis,Ignis) amount float(A*double(dm)+double(maxHP*hpFraction(float))). True hurt ignites5 seconds and raw-stacks Brand+1 cap4,duration240; no heal.",
+    "shield_break": "BREAK_THE_SHIELD tick25 hides shield then ShieldExplode; its tick55 native Living selection range12 adds STUN60amp0 on server to nonallies, excluding invulnerable-abilities Players. SHIELD_BREAK_STRIKE tick17 repeats that STUN burst (later melee/waves are separate profiles). Neither status burst invokes hurt or uses a damage return. ShieldExplode creates native IgnisExplosion with direct boss, radius2, firetrue, KEEP and native body-yaw offset: break(-2.75,1.5,Y2), phase3tick58 if not already broken(2,.575,Y2). Phase3 state/show commits remain locked5a.",
+    "sampled_wave": "ShieldSmashDamage server builds a full/partial arc of ceil(distance*PI*spreadarc) samples at boss yaw plus native forward offset. Each sample independently queries a1x1 cell, Y[bossY-1,bossY+max_y], excluding self/allies/all Ignis. Native mob_attack amount float(A*double(dm))+maxHP*hpFraction(float). Blocked Player shield disable when positive independent of hurt. Hurttrue grab adds radial vector*(distance/12)*-4, Y=.15 when grounded else0; non-grab adds Y=airborne_per_distance*distance+randomDouble*.15. No new hitset/deduplication: overlapping native cells/rings may attempt damage repeatedly. Native hurt/cooldowns/cancellation control outcomes.",
+    "ultimate": "ULTIMATE_ATTACK tick74 independently calls AreaAttack profile, spawns its flame-strike chain and invokes UltimateAttack for distances4..37inclusive, lateral offsets +/-1.5,+/-2.5,...,+/-9.5 (18 lanes per distance). Each server sample queries1x1 cell Y[bossY-2,bossY+3], excludes allies,self,all Ignis. mob_attack amount float(A)*1.5F+maxHP*.15F. Blocked Players shield disable150 independent of hurt. Hurttrue adds Y1F+randomDouble*.15. No hitset across lane cells; no Brand or burn inside this helper.",
+    "launch": "MAGIC_ATTACK tick5 nextInt(5) chooses exactly one Abyss among five launch slots X=-5,-2,0,2,5,Y3,Z0; other four are ordinary with native ordered delays45/61/77/93, Abyss109. Both reinforced ground tick46 nextInt(3) choose one Abyss among X=2,-2,0,Y3,Z0; two ordinary delays28/41 and Abyss54. Reinforced air normal/soul bladeFireball at ticks21/23/25 spawns three ordinary stationary-initial projectiles (radii2/3/2, lateral-1.5/0/1.5,Y5/4/3,delays30/28/26). All set native owner Ignis; ordinary soul flag snapshots phase>0 at construction, not animation name. shoot helpers rotate local aim by -bossYRot and native shoot .25F,inaccuracy3F, lift sqrtFloat(dx²+dz²)*.35F; blade helper has no shoot call. Native addFreshEntity result is not used.",
+    "ordinary_motion": "Parent native-like hurting-projectile tick runs first: trace/impact hook/deflection and move using current velocity, then concrete server timer-- and setFired true when timer<=0. Concrete timer<-160 discards. At exact timer0/-40, current Mob owner with nonnull target retargets power to target-center normalized vector times ordinary.2F/soul.25F; this branch has no local server guard and no zero-length normalization guard. Before fired, contact/block payload gates suppress explosions/damage but inherited trace/block callbacks still run. Ordinary onHit also aim-deflects a redirectable Projectile victim with current owner before onHitEntity; it is unpickable and hurt alwaysfalse. NBT retains timer,fired,soul plus parent power and native projectile owner.",
+    "abyss_reflection": "Uses the same native parent motion/trace and server timer/fired/expiry as ordinary. Retarget power.2F at0/-40 only with totalBounces==0. Fired block contact with nonempty collisionshape calls inherited native onHitBlock, then explicitly calls block.onProjectileHit again, reflects only struck-face velocity component and sets power=reflectedVelocity*.05D. tickCount<=500 and bounces<=5 increments bounces, so0..5 allows six increments; a later eligible collision (or age>500) creates radius2 firetrue KEEP explosion/discards on server. It does not explode solely at age500 without collision. Pickable radius1; hurt rejects virtual native invulnerability, then markHurt; causing entity nonnull+fired returns true and server sets velocity to causing look vector,power*.1D,owner=causing entity. Damage amount is not used; reflected owner need not be original boss or Living. Bounce count is not reset on reflection. NBT preserves totalBounces,timer,fired,power and native owner.",
+    "flame_chain": "Ultimate offensive goal start (Ignis$1.start) calls spawnFlameStrike at boss position with duration30,wait68,delay0,radius5,soultrue, giving constructordamage8 and Hpdamage6. Separately ULTIMATE tick74 spawns eight ordinary strikes forward at4.25*(l+2),l0..7, duration60,wait=delay=int(1.5F*l),radius2,soulfalse,damage6,Hpdamage6. With target, ground search spans min(bossY,targetY)..max+1; without target both min/max bossY. Helper descends to floor(minY)-1 seeking sturdy UP support and adjusts placement to current collision-shape top. Only a found support spawns with native owner Ignis; native addFreshEntity result ignored.",
+    "flame_native_lifecycle": "Terminal server age>=wait+duration+delay shrinks radius by.1F per tick (native clamp) until0; next zero-radius branch discards, first exploding if !soul using RAW cached owner as explosion source (radius1 if cached Player else2,firefalse,KEEP). Soul has no terminal blast. No explicit early-return after discard; waiting and dispatch statements continue. Native NBT saves Age,Duration,WaitTime,Delay,Radius,Owner,is_soul,damage,Hpdamage; native lazy getOwner resolves UUID on ServerLevel, but terminal branch does not call getOwner. No custom receipt/snapshot transport added.",
+    "native_explosion": "IgnisExplosion preserves native Explosion subclass construction, native DamageSources.explosion(this), default EntityBasedExplosionDamageCalculator for nonnull source (else default calculator). explode performs native ray/block resistance collection, query excluding the supplied direct source, mutable NeoForge onExplosionDetonate list, ignoreExplosion and distance<=2*radius/nonzero eye-direction gates. Native calculator determines requested amount and shouldDamageEntity; hurt return is discarded. Exposure/distance impulse includes native calculator knockback multiplier and Living EXPLOSION_KNOCKBACK_RESISTANCE, then NeoForge getExplosionKnockback, additive motion and native onExplosionHit. Neither hurttrue nor shouldDamageEntity gates the motion callback. All reviewed callers pass KEEP, so finalize skips block destruction; firetrue still independently places native BaseFireBlock at eligible air-over-solid collected blocks with nextInt(3)==0, with no extra griefing check. Terminal Flame Strike firefalse skips fire placement.",
+    "terrain": "Locked hurt arms destroyBlocksTick20 before shared hurt, regardless of eventual rejection. Concrete blockbreak only AI/server with positive countdown decrements; at zero native canEntityGrief admits scan bbox.inflate.2 fromfloor(bossY) throughbboxmaxY. Nonair,canEntityDestroy,!IGNIS_IMMUNE and native onEntityDestroyBlock ->destroyBlock(withdrops,boss). This path does NOT read ignoreMobGriefing. Wave/ultimate cracked-tag removal has its separate ignoreMobGriefing OR native grief gate. Their spawned custom debris is locked non-damage/nonplacement; no spawned extra damage payload.",
+    "alliance": "isAlliedTo returns true for self, then native super team alliance, then TEAM_IGNIS tagged type only when both teams null. This is reused by body-check/poke/waves/local contact/phase/STUN/owned Flame Strike; AreaAttack sword helper deliberately has no ally reader. Several helpers separately exclude every Ignis irrespective of teams; fireball contact excludes Ignis only when current shooter is Ignis. Native explosion has no ally predicate. Flame Strike checks mutual nonalliance with its resolved caster.",
+    "death": "getDeathAnimation returns IGNIS_DEATH duration124; locked shared death progression uses duration-20 removal threshold104. Concrete AfterDefeatBoss requires supplied credited Living nonnull; asks native CMWorldData(level,NETHER); native get resolves that server dimension (overworld fallback if missing), computeIfAbsent native saved-data and setDirty when nonnull. Only a nonnull world record and prior false Ignis flag sets true and sends native first-defeat message; no respawner creation in this callback. Native getter/setter preserve flag; scoped save/load key IgnisDefeatedOnce. R2k5a altar does not read this flag, so no new spawn gate is inferred."
+  },
+  "reused_contracts": [
+    {
+      "file": "cataclysm-r2k5a-ignis-admission.json",
+      "bindings": [
+        "locked Ignis hurt/shield/phase/concrete shared cap/range/bucket/regen/encounter/NBT; no facts rewritten"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k2a-shared-admission.json",
+      "bindings": [
+        "native boss admission/home/regen/death/animation baseline"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k2b-stun.json",
+      "bindings": [
+        "locked STUN control and shield helper; native Ignis tick/aiStep/BodyCheckAttack witnesses reused"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k2e-remaining-status.json",
+      "bindings": [
+        "Brand core/raw stack semantics; existing AreaAttack/Phase_Transition/positionRider and child contact/status witnesses reused"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k3a-guardian-admission.json",
+      "bindings": [
+        "native animation goal admission and AttackAnimationGoal2; Guardian locked"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k3b-guardian-offense.json",
+      "bindings": [
+        "shared native nearby/repel/animation/projectile/source helpers; Guardian locked"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k4b-monstrosity-offense.json",
+      "bindings": [
+        "existing custom falling debris non-damage/nonplacement and native projectile/explosion contracts; Monstrosity locked"
+      ]
+    },
+    {
+      "file": "reference-evidence/eternalstarlight-soul-hunger-244.json",
+      "bindings": [
+        "existing Projectile.onHitBlock -> BlockState.onProjectileHit, proving inherited+explicit Abyss callback count"
+      ]
+    },
+    {
+      "file": "reference-evidence/iceandfire-dragon-elements-244.json",
+      "bindings": [
+        "native ExplosionDamageCalculator float amount/impulse and native exposure"
+      ]
+    },
+    {
+      "file": "reference-evidence/bossesrise-knight-offense-244.json",
+      "bindings": [
+        "native projectile owner/persistence/collision/deflection"
+      ]
+    }
+  ],
+  "protected_r2k5a": {
+    "file": "cataclysm-r2k5a-ignis-admission.json",
+    "sha256": "7ac79ea34be27f44c3c8d2d6b8f3d9634ef3547120860c3ae70fae5ab149fdb0"
+  },
+  "remaining_subsection_native_ambiguities": [],
+  "ignis_family_closed": true,
+  "remaining_ignis_work": [],
+  "remaining_cataclysm_research": [
+    "The Harbinger bounded admission/power/phase/encounter then offense/payload family",
+    "Other unreviewed concrete boss/mob families, equipment/launch chains and remaining global event/attribute/attachment hooks"
+  ],
+  "excluded_from_this_scope": [
+    "Ignited_Sword_Entity is not instantiated/referenced by scoped Ignis offense paths; sword animation melee is covered here. The already-closed sword Brand producer stays locked; equipment/minion launches remain their future family scope.",
+    "All rendering/particle/sound/loot/acquisition/structure and unrelated boss/equipment semantics"
+  ],
+  "exact_next_task": "R2k6a: The Harbinger incoming admission and power/phase/encounter prerequisites. Start The_Harbinger_Entity hurt/isInvulnerableTo and concrete DamageCap/DpsCap/RangeLimit/NatureRegen bindings into the locked LLibrary shared contract; close native power/phase setters, combat persistence and material spawn/home/encounter prerequisites. Defer all Harbinger offense/payloads to the following bounded batch. Reuse locked shared/status, Guardian, Monstrosity and completed Ignis contracts. Static only; no runtime, Stage, production or unrelated boss/equipment research.",
+  "whole_mod_complete": false,
+  "runtime_tests": 0,
+  "stage_eligibility_decided": false,
+  "tooling": {
+    "jar_sha256": "fa4e8abd15aa86333d6a5fe20b05c4fe423ac865da7319be7808d321bcb3930c",
+    "jar_size_bytes": 73346519,
+    "new_native_witnesses": 28,
+    "reused_evidence_regenerated": false,
+    "recursive_jar_scan": false,
+    "reading_aid": "Reused exact Ignis source aid; pinned Vineflower1.10.1 SHA256 b9b208e50793b64657a6b6292067526613f549de7405f9243624b02f4276e409 for explicitly reached goals/payload/helpers only. Missing scoped bytecode is authoritative; locked tick/aiStep/status/admission/native comparisons not regenerated."
+  },
+  "reference_files": [
+    {
+      "file": "cataclysm-boss-inheritance.json",
+      "sha256": "4cf3e43f452a3b12d437588b5e9d01a14a47e6575be1353a6186fdaf61eaa7b0",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-installed-common-config.json",
+      "sha256": "e49736bbfea8976a8df3f0d2f28e948e5c1e0535cb1254b28e7eefca77b923cf",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k2a-shared-admission.json",
+      "sha256": "3852d7f0950abe786cd9769ea4d64fb02f2cfa4ee1f4e99c06464645218ee9e2",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k2b-stun.json",
+      "sha256": "c81fed2de650739f580e106fa4cd9ac907cb7b5a3e7e8161879a0f2a795a4cd9",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k2c-ghost-fear.json",
+      "sha256": "77c977c09003cd0b0be9f0a6261985958610c6847e712cffdc2c17143bb0e75f",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k2d-abyssal-status.json",
+      "sha256": "4f6b1b56e028c1e7c1f5dee6209f9264a3d456a26d0edbafc0f3689ca70fa35c",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k2e-remaining-status.json",
+      "sha256": "736c5033f74b821f14794a0dcd988056bcf98b12a5222fe5b70ab83d0c77c455",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k3a-guardian-admission.json",
+      "sha256": "8a920972afe714d3e69278351e6a84672d9bb6a590d0cc0f6a20f66f8ae2ca7e",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k3b-guardian-offense.json",
+      "sha256": "274e56f41b2dc3cd1ee3196a41e6edc050f700ae36ed602eed054ecfd53b104e",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k4a-monstrosity-admission.json",
+      "sha256": "5349c1f74363e063d01e25ca8eba9890c20656604f7adcc8e962215447aba432",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k4b-monstrosity-offense.json",
+      "sha256": "1f3c3c1134cfc3cdc518758c3dfc95a4407556cc4caac8187142b412989ca321",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k5a-ignis-admission.json",
+      "sha256": "7ac79ea34be27f44c3c8d2d6b8f3d9634ef3547120860c3ae70fae5ab149fdb0",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-source-census.json",
+      "sha256": "fee3dbcc15b068eddb6c53271146d2f04dcb72a5f183dc9a17be2d794ed68ead",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "jar-inventory.json",
+      "sha256": "e9d91482fac44a764468ddb75e2bf10ee7c0aef74f392a90b5d5dfe908ba3974",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-foundation.json",
+      "sha256": "bb75018a6d3a72048251f24fae60edffaa4b0dcb678b3cdc3db6f2b5af99c55b",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-guardian-admission.json",
+      "sha256": "d652ad2ea9cd6d7ebf7f6d5424122199b74d6c4b355248affeae9e673dcdf067",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-guardian-offense.json",
+      "sha256": "4b086ab084546fc3b87bdc058458f297f1677a37975a8c6c75610d8ee9d0faab",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-ignis-admission.json",
+      "sha256": "fd912858bcb07d62fd46feabe3a178e3e3db229ec8ac1d4d101b6d735384230f",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-monstrosity-admission.json",
+      "sha256": "c5ac14eb0106a949e81922941fe12c2590fa3eb3687b69638c96fbfdf4afea9f",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-monstrosity-offense.json",
+      "sha256": "3de3c6430a599ba9de4dfd165ef27e6fb645cc491020bd1e1bc02ff053d85568",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-remaining-status.json",
+      "sha256": "b47482396e64fc0e4d4f10b61ac45ba6e42fe588d0117cc250ff03afc5ac422f",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-shared.json",
+      "sha256": "ba6abb73e3e33fab4cbead14196a1112f769189f873abc4fcbb5262eb2289a29",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-stun.json",
+      "sha256": "fa0ca10b9822f40d703be35748c9cf2eaf6a8ad404b942eea289a7313dae1177",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-specifications/cataclysm-ignis-admission.json",
+      "sha256": "35abf2bfd960a16bf181ff99b103ff3812e9a950ac478c9298fa40d51758b6a6",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-specifications/cataclysm-monstrosity-offense.json",
+      "sha256": "5ffcf3eaf1b230ffd034335b9f59bee00acb2f334372ffea3653ac268100fada",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/bossesrise-knight-defense-244.json",
+      "sha256": "837cad018f153c3b1c4ce5db6429ae0c0f10214c72daac55ceb864e5d4ac66e8",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/bossesrise-knight-offense-244.json",
+      "sha256": "ed906fd31cd492fd157e4c9ba6f4e3271359ae4b2c650cd440c3fff1cc788002",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/eternalstarlight-soul-hunger-244.json",
+      "sha256": "e7ac2ed7688d7fd123b10e9e09bac71954f8110b856edb6affc7da8a2ea2ade7",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/eternalstarlight-status-control-244.json",
+      "sha256": "e8b8f470bf9a5d896de48e1baa8bbfcc5e01c9985ca9dcf4dae2e8e325c34205",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/iceandfire-dragon-elements-244.json",
+      "sha256": "27b53602dcbf08bde0c888e01f2ba01dc77761dd9c637f524aaf9dc4f954bcf7",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/iceandfire-worm-cyclops-244.json",
+      "sha256": "5c43fe513bd1696b3787b29160628719b7a04544cfa55ac3fb18cbbc22cc2640",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/twilight-hydra-urghast-244.json",
+      "sha256": "5de22807fdb64617e2318367903cb3a54aa4c6714ef53fca915827d5df1bde12",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/twilight-minoshroom-knight-244.json",
+      "sha256": "c80393a79949951d3eb82b8ff72a52e2473abf769d7df18ef644f0d1ea62f804",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-specifications/cataclysm-ignis-offense.json",
+      "sha256": "ee93afdbc908acbc9ce142c04c5664de616d801e3d0b4329277e0dc134b68ced",
+      "usage": "NEW_SCOPED_WITNESS"
+    },
+    {
+      "file": "native-evidence/cataclysm-ignis-offense.json",
+      "sha256": "9cb83c5ae62c617c2b51b0bff205ae0f9d0d818d3f34262402d620ae7857e780",
+      "usage": "NEW_SCOPED_WITNESS"
+    }
+  ],
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false
+}
