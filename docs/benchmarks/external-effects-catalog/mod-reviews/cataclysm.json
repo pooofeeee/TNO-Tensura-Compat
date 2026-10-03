@@ -7,12 +7,4056 @@
   "special_damage_discovery_complete": false,
   "source_mapping_complete": false,
   "delivery_mapping_complete": false,
-  "effects": [],
-  "paths": [],
+  "effects": [
+    {
+      "id": "cataclysm:guardian_airstrike_landing",
+      "mod_key": "cataclysm",
+      "display_name": "Guardian air-strike landing AoE",
+      "registry_ids": [
+        "cataclysm:ender_guardian"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "AIR_STRIKE2 tick3 calls MassDestruction(grow3,multiplier1.5,shield200) and independently chooses one of three radial StrikeRune layouts. The protected air teleport/landing state transition is reused, not redefined.",
+      "human_summary": "AIR_STRIKE2 tick3 calls MassDestruction(grow3,multiplier1.5,shield200) and independently chooses one of three radial StrikeRune layouts. The protected air teleport/landing state transition is reused, not redefined.",
+      "closest_vanilla_equivalent": "Native mobAttack plus item shield cooldown and custom launch",
+      "vanilla_similarities": "Uses the named native API/holder where present.",
+      "vanilla_differences": "Box scan, not native Explosion; no max-HP addition or STUN. Launch and shield branch ignore hurt return.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "formula": "float(A)*damage_multiplier; A=current native ATTACK_DAMAGE",
+          "numerical_parameters": {
+            "damage_multiplier": 1.5
+          },
+          "parameter_units": {
+            "damage_multiplier": "dimensionless"
+          },
+          "binary_parameters": [],
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "SHIELD_DISABLE",
+          "formula": "native used-item cooldown(duration_ticks), stopUsingItem",
+          "numerical_parameters": {
+            "duration_ticks": 200
+          },
+          "parameter_units": {
+            "duration_ticks": "ticks"
+          },
+          "binary_parameters": [
+            "blocking Player; positive duration"
+          ],
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "formula": "push(4*dx/max(dx²+dz²,0.001),0.2,4*dz/max(dx²+dz²,0.001))",
+          "numerical_parameters": {
+            "launch_horizontal_factor": 4.0,
+            "launch_y": 0.2
+          },
+          "parameter_units": {
+            "launch_horizontal_factor": "native horizontal dx/distanceSquared coefficient",
+            "launch_y": "blocks/tick added velocity"
+          },
+          "binary_parameters": [],
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "AREA_DELIVERY",
+          "formula": "Guardian bounding box inflated(grow)",
+          "numerical_parameters": {
+            "grow": 3.0
+          },
+          "parameter_units": {
+            "grow": "blocks"
+          },
+          "binary_parameters": [],
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {
+        "native_attack_base": 16.0,
+        "installed_attack_config_multiplier": 1.0
+      },
+      "binary_parameters": [
+        "Server only; LivingEntity box scan; reject Guardian allies, any Guardian instance and self. No additional radial, arc, hurt-success or creative predicate."
+      ],
+      "custom_state": "Native entity/animation state only.",
+      "eligibility": "Server only; LivingEntity box scan; reject Guardian allies, any Guardian instance and self. No additional radial, arc, hurt-success or creative predicate.",
+      "damage_path": {
+        "source_mod_custom_damage_type": false,
+        "types": [
+          "minecraft:mob_attack"
+        ],
+        "native_defenses": "Native hurt pipeline retains immunity, armor, shields, cooldown, resistance, enchantments and events; requested amount is not measured HP loss."
+      },
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "aiStep",
+            "MassDestruction",
+            "launch",
+            "isAlliedTo"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "entry": "com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "methods": [
+            "disableShield"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:guardian-offense:airstrike_payload"
+      ],
+      "primary_test_source": "cataclysm:ender_guardian",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k3b-cataclysm-guardian-offense-complete",
+      "scalability_note": "Numerical observations only. Stage eligibility, policy, balance, ownership integration and runtime hooks are not decided.",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "AREA_DELIVERY",
+          "parameters": [
+            "grow"
+          ],
+          "native_value": 3.0,
+          "native_formula": "Guardian bounding box inflated(grow)",
+          "units": "blocks"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "launch_horizontal_factor"
+          ],
+          "native_value": 4.0,
+          "native_formula": "push(4*dx/max(dx²+dz²,0.001),0.2,4*dz/max(dx²+dz²,0.001))",
+          "units": "native horizontal dx/distanceSquared coefficient"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "launch_y"
+          ],
+          "native_value": 0.2,
+          "native_formula": "push(4*dx/max(dx²+dz²,0.001),0.2,4*dz/max(dx²+dz²,0.001))",
+          "units": "blocks/tick added velocity"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "damage_multiplier"
+          ],
+          "native_value": 1.5,
+          "native_formula": "float(A)*damage_multiplier; A=current native ATTACK_DAMAGE",
+          "units": "dimensionless"
+        },
+        {
+          "primitive": "SHIELD_DISABLE",
+          "parameters": [
+            "duration_ticks"
+          ],
+          "native_value": 200,
+          "native_formula": "native used-item cooldown(duration_ticks), stopUsingItem",
+          "units": "ticks"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:guardian_alliance",
+      "mod_key": "cataclysm",
+      "display_name": "Guardian native allied-recipient predicate",
+      "registry_ids": [
+        "cataclysm:ender_guardian"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Guardian.isAlliedTo accepts self or superclass team ally; otherwise accepts TEAM_ENDER_GUARDIAN recipient only when both scoreboard teams are null. Shipped tag: shulker, ender_golem, endermaptera, ender_guardian. GravityPull/MassDestruction use Guardian ally check; Rune uses both caster->recipient and recipient->caster; vortex pull checks cached owner ally (and its own inherited ally). AreaAttack has only explicit Guardian-instance exclusion; bullet local payload has no additional ally check; terminal vortex explosion keeps native explosion recipient admission.",
+      "human_summary": "Guardian.isAlliedTo accepts self or superclass team ally; otherwise accepts TEAM_ENDER_GUARDIAN recipient only when both scoreboard teams are null. Shipped tag: shulker, ender_golem, endermaptera, ender_guardian. GravityPull/MassDestruction use Guardian ally check; Rune uses both caster->recipient and recipient->caster; vortex pull checks cached owner ally (and its own inherited ally). AreaAttack has only explicit Guardian-instance exclusion; bullet local payload has no additional ally check; terminal vortex explosion keeps native explosion recipient admission.",
+      "closest_vanilla_equivalent": "Native team/alliance and entity-type tag admission",
+      "vanilla_similarities": "Uses the named native API/holder where present.",
+      "vanilla_differences": "Tag extension applies only at callers that invoke it.",
+      "components": [
+        {
+          "primitive": "ALLY_ADMISSION",
+          "formula": "self OR superclassAlly OR (taggedRecipient AND bossTeam==null AND recipientTeam==null)",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "native scoreboard teams",
+            "TEAM_ENDER_GUARDIAN tag",
+            "per-caller predicates"
+          ],
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Pure native admission; no numerical contribution."
+      ],
+      "custom_state": "Native entity/animation state only.",
+      "eligibility": "Pure native admission; no numerical contribution.",
+      "damage_path": {
+        "source_mod_custom_damage_type": false,
+        "types": [],
+        "native_defenses": null
+      },
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "isAlliedTo",
+            "GravityPull",
+            "MassDestruction"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/projectile/Void_Rune_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Void_Rune_Entity.class",
+          "methods": [
+            "damage"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/effect/Void_Vortex_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/effect/Void_Vortex_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "AreaAttack"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:data:data/cataclysm/tags/entity_type/team_ender_guardian.json",
+          "entry": "data/cataclysm/tags/entity_type/team_ender_guardian.json",
+          "methods": []
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:guardian-offense:alliance"
+      ],
+      "primary_test_source": "cataclysm:ender_guardian",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k3b-cataclysm-guardian-offense-complete",
+      "scalability_note": "Numerical observations only. Stage eligibility, policy, balance, ownership integration and runtime hooks are not decided.",
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "cataclysm:guardian_attack_selection",
+      "mod_key": "cataclysm",
+      "display_name": "Guardian remaining attack selection and native followups",
+      "registry_ids": [
+        "cataclysm:ender_guardian"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "tick chooses a random one of four punches every invocation before branch admission. Reuses locked mass/airstrike/vortex/Hug selection priority. Remaining idle/live-target/AI branches: distance<2.75 selects burst with nextInt(6)==0, otherwise random punch; at strict 2.75<distance<4.3, actual LEVITATION OR STUN selects the phase-specific uppercut before stomp/random selection. Otherwise stomp requires cooldown<=0 and grounded target, with strict 6<distance<13 and random<10%, or 2.75<distance<4.3 and random<2%; writes cooldown400. Remaining middle-distance random branch selects uppercut on nextInt(4)==0. Uppercut writes200 and decrements it but never reads it for admission. Punch goals at left tick24/right26 may change to matching swing on random nextInt(2)==0 and distance<=4. Vortex goal tick37 changes to rocket punch if target distanceSquared>=25, regardless of successful vortex creation. Native animation identity is the binary gate.",
+      "human_summary": "tick chooses a random one of four punches every invocation before branch admission. Reuses locked mass/airstrike/vortex/Hug selection priority. Remaining idle/live-target/AI branches: distance<2.75 selects burst with nextInt(6)==0, otherwise random punch; at strict 2.75<distance<4.3, actual LEVITATION OR STUN selects the phase-specific uppercut before stomp/random selection. Otherwise stomp requires cooldown<=0 and grounded target, with strict 6<distance<13 and random<10%, or 2.75<distance<4.3 and random<2%; writes cooldown400. Remaining middle-distance random branch selects uppercut on nextInt(4)==0. Uppercut writes200 and decrements it but never reads it for admission. Punch goals at left tick24/right26 may change to matching swing on random nextInt(2)==0 and distance<=4. Vortex goal tick37 changes to rocket punch if target distanceSquared>=25, regardless of successful vortex creation. Native animation identity is the binary gate.",
+      "closest_vanilla_equivalent": "Native AI/animation selection and literal MobEffect presence tests",
+      "vanilla_similarities": "Uses the named native API/holder where present.",
+      "vanilla_differences": "Has-effect selection tests presence, not amplifier/duration. No invented uppercut cooldown gate.",
+      "components": [
+        {
+          "primitive": "ATTACK_SELECTION",
+          "formula": "native ordered animation/state/target predicates",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "AI enabled and idle for base selection",
+            "actual STUN or LEVITATION presence",
+            "locked R2k3a selector priority"
+          ],
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {
+        "close_distance": 2.75,
+        "middle_upper_exclusive": 4.3,
+        "stomp_distance_exclusive": [
+          6.0,
+          13.0
+        ],
+        "stomp_chance_percent": [
+          10.0,
+          2.0
+        ],
+        "stomp_cooldown_ticks": 400,
+        "uppercut_bookkeeping_ticks_not_admission": 200,
+        "punch_followup_chance": "nextInt(2)==0",
+        "vortex_followup_tick": 37,
+        "vortex_followup_distance_squared": 25.0
+      },
+      "binary_parameters": [
+        "Binary/native admission and animation transitions; random call order stays native."
+      ],
+      "custom_state": "Native entity/animation state only.",
+      "eligibility": "Binary/native admission and animation transitions; random call order stays native.",
+      "damage_path": {
+        "source_mod_custom_damage_type": false,
+        "types": [],
+        "native_defenses": null
+      },
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-admission.json",
+          "witness_id": "cataclysm:guardian-admission:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "tick",
+            "registerGoals"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "getRandomAttack"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$PunchAttackGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$PunchAttackGoal.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$VoidVortexGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$VoidVortexGoal.class",
+          "methods": [
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:guardian-offense:selection"
+      ],
+      "primary_test_source": "cataclysm:ender_guardian",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k3b-cataclysm-guardian-offense-complete",
+      "scalability_note": "Numerical observations only. Stage eligibility, policy, balance, ownership integration and runtime hooks are not decided.",
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "cataclysm:guardian_body_repulsion",
+      "mod_key": "cataclysm",
+      "display_name": "Guardian continuous native body repulsion",
+      "registry_ids": [
+        "cataclysm:ender_guardian"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Guardian.tick after superclass calls inherited repelEntities(1.8,4,1.8,1.8). Nearby helper excludes self and applies 3D distance<=1.8+recipientWidth/2 and recipientY<=bossY+4 in the inflated box. Pickable non-noPhysics LivingEntity gets absolute horizontal outward velocity0.1, retaining previous Y. No damage, ally, target, hurt-success, alive, AI or local side guard. Guardian.canBePushedByEntity=false is distinct from this outgoing write and does not prohibit direct velocity writes.",
+      "human_summary": "Guardian.tick after superclass calls inherited repelEntities(1.8,4,1.8,1.8). Nearby helper excludes self and applies 3D distance<=1.8+recipientWidth/2 and recipientY<=bossY+4 in the inflated box. Pickable non-noPhysics LivingEntity gets absolute horizontal outward velocity0.1, retaining previous Y. No damage, ally, target, hurt-success, alive, AI or local side guard. Guardian.canBePushedByEntity=false is distinct from this outgoing write and does not prohibit direct velocity writes.",
+      "closest_vanilla_equivalent": "Native velocity/collision control",
+      "vanilla_similarities": "Uses the named native API/holder where present.",
+      "vanilla_differences": "Absolute horizontal overwrite, not ordinary knockback or a damage payload.",
+      "components": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "formula": "setDeltaMovement(coefficient*cos(angle),oldY,coefficient*sin(angle)); angle=(getAngleBetweenEntities+90)*pi/180; not push/knockback",
+          "numerical_parameters": {
+            "horizontal_coefficient": -0.1
+          },
+          "parameter_units": {
+            "horizontal_coefficient": "blocks/tick signed absolute velocity coefficient"
+          },
+          "binary_parameters": [
+            "pickable; !noPhysics; native nearby helper"
+          ],
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {
+        "box_extents": [
+          1.8,
+          4.0,
+          1.8
+        ],
+        "nearby_range": 1.8,
+        "guardian_can_be_pushed_by_entity": false
+      },
+      "binary_parameters": [
+        "Recipient/collision flags stay native; no local AI or damage admission gate."
+      ],
+      "custom_state": "Native entity/animation state only.",
+      "eligibility": "Recipient/collision flags stay native; no local AI or damage admission gate.",
+      "damage_path": {
+        "source_mod_custom_damage_type": false,
+        "types": [],
+        "native_defenses": null
+      },
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-admission.json",
+          "witness_id": "cataclysm:guardian-admission:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "getAngleBetweenEntities",
+            "repelEntities"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "getEntityLivingBaseNearby",
+            "getEntitiesNearby",
+            "lambda$getEntitiesNearby$0"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "canBePushedByEntity"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:guardian-offense:body_repel"
+      ],
+      "primary_test_source": "cataclysm:ender_guardian",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k3b-cataclysm-guardian-offense-complete",
+      "scalability_note": "Numerical observations only. Stage eligibility, policy, balance, ownership integration and runtime hooks are not decided.",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "horizontal_coefficient"
+          ],
+          "native_value": -0.1,
+          "native_formula": "setDeltaMovement(coefficient*cos(angle),oldY,coefficient*sin(angle)); angle=(getAngleBetweenEntities+90)*pi/180; not push/knockback",
+          "units": "blocks/tick signed absolute velocity coefficient"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:guardian_bullet_family",
+      "mod_key": "cataclysm",
+      "display_name": "Guardian staged bullet motion, damage and Levitation",
+      "registry_ids": [
+        "cataclysm:ender_guardian",
+        "cataclysm:ender_guardian_bullet",
+        "minecraft:levitation"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "Both uppercut goals call Bulletpattern; with target at animationTick54 it creates9 owned bullets (i=-4..4), staging near floored target X/Z at targetY+0.1 (minus1 only if airborne, not in water and unsupported). Cardinal direction comes from boss/target block X/Z. Native delay30 stages velocity=(start-current)/remainingTimer; when timer<=0 first sets fired=true, velocity0 and timer30. Fired server ticks add dir*0.1 only while velocity²<=16; later timeout discards. It overrides tick without super.tick and uses move-vector collision, inherited canHitEntity and posted/cancellable projectile impact. Unfired impacts do not deliver payload/discard. Fired server entity hit requests mobProjectile6; hurt=true alone invokes enchantment post-attack effects then adds literal LEVITATION100/0 to LivingEntity with no explicit effect source. Fired impact discards regardless of hurt/effect success. Fired hurt callback server-discard returns true; unfired hurt returns true without discard; canBeCollidedWith=false.",
+      "human_summary": "Both uppercut goals call Bulletpattern; with target at animationTick54 it creates9 owned bullets (i=-4..4), staging near floored target X/Z at targetY+0.1 (minus1 only if airborne, not in water and unsupported). Cardinal direction comes from boss/target block X/Z. Native delay30 stages velocity=(start-current)/remainingTimer; when timer<=0 first sets fired=true, velocity0 and timer30. Fired server ticks add dir*0.1 only while velocity²<=16; later timeout discards. It overrides tick without super.tick and uses move-vector collision, inherited canHitEntity and posted/cancellable projectile impact. Unfired impacts do not deliver payload/discard. Fired server entity hit requests mobProjectile6; hurt=true alone invokes enchantment post-attack effects then adds literal LEVITATION100/0 to LivingEntity with no explicit effect source. Fired impact discards regardless of hurt/effect success. Fired hurt callback server-discard returns true; unfired hurt returns true without discard; canBeCollidedWith=false.",
+      "closest_vanilla_equivalent": "Native mob projectile + minecraft:levitation (Shulker-bullet-like payload)",
+      "vanilla_similarities": "Uses the named native API/holder where present.",
+      "vanilla_differences": "Custom staged/cardinal accelerating motion, no homing path; separate projectile and payload predicates, fixed native amount6.",
+      "components": [
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "formula": "staging v=(start-pos)/timer; fired v+=dir*acceleration when v²<=16",
+          "numerical_parameters": {
+            "staging_ticks": 30,
+            "fired_lifetime_ticks": 30,
+            "acceleration": 0.1,
+            "staging_distance": 7.0,
+            "lateral_step": 1.0
+          },
+          "parameter_units": {
+            "staging_ticks": "server ticks",
+            "fired_lifetime_ticks": "server ticks",
+            "acceleration": "blocks/tick² per direction component",
+            "staging_distance": "blocks",
+            "lateral_step": "blocks"
+          },
+          "binary_parameters": [
+            "fired state",
+            "velocity²<=16 is an acceleration predicate, not a hard clamp",
+            "owner removed/unloaded chunk discards server-side",
+            "impact cancellation suppresses native callback"
+          ],
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "formula": "mobProjectile(bullet,livingOwner).hurt(amount)",
+          "numerical_parameters": {
+            "amount": 6.0
+          },
+          "parameter_units": {
+            "amount": "HP request"
+          },
+          "binary_parameters": [
+            "fired; server entity hit"
+          ],
+          "vanilla_relation": "VANILLA_DIRECT"
+        },
+        {
+          "primitive": "LEVITATION",
+          "formula": "addEffect(minecraft:levitation,duration_ticks,amplifier0)",
+          "numerical_parameters": {
+            "duration_ticks": 100
+          },
+          "parameter_units": {
+            "duration_ticks": "ticks"
+          },
+          "binary_parameters": [
+            "hurt=true; LivingEntity; native effect admission/lifecycle"
+          ],
+          "vanilla_relation": "VANILLA_DIRECT"
+        }
+      ],
+      "numerical_parameters": {
+        "bullet_count": 9,
+        "spawn_tick": 54,
+        "spawn_y": "bossY-2+nextDouble()*4",
+        "initial_accel_vector": "normalize(x,bossY+2,z), angle=(i-2)*radians(6)",
+        "native_acceleration_predicate_speed_squared": 16.0
+      },
+      "binary_parameters": [
+        "Guardian-owned creation with current target; native collision eligibility, impact hook and fired gate. No additional alliance check in local onHitEntity."
+      ],
+      "custom_state": "Bullet saves DX/DY/DZ, SX/SY/SZ, Timer/Fired and delegates native projectile owner persistence; native owner resolution stays authoritative.",
+      "eligibility": "Guardian-owned creation with current target; native collision eligibility, impact hook and fired gate. No additional alliance check in local onHitEntity.",
+      "damage_path": {
+        "source_mod_custom_damage_type": false,
+        "types": [
+          "minecraft:mob_projectile"
+        ],
+        "native_defenses": "Native hurt pipeline retains immunity, armor, shields, cooldown, resistance, enchantments and events; requested amount is not measured HP loss."
+      },
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "Bulletpattern"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$UppercutAndBulletGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$UppercutAndBulletGoal.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$RageUppercut",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$RageUppercut.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/projectile/Ender_Guardian_Bullet_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Ender_Guardian_Bullet_Entity.class",
+          "methods": [
+            "<init>",
+            "setUp",
+            "tick",
+            "lambda$tick$0",
+            "onHit",
+            "onHitEntity",
+            "onHitBlock",
+            "hurt",
+            "canBeCollidedWith",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:guardian-offense:uppercut_bullets"
+      ],
+      "primary_test_source": "cataclysm:ender_guardian -> cataclysm:ender_guardian_bullet",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k3b-cataclysm-guardian-offense-complete",
+      "scalability_note": "Numerical observations only. Stage eligibility, policy, balance, ownership integration and runtime hooks are not decided.",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "LEVITATION",
+          "parameters": [
+            "duration_ticks"
+          ],
+          "native_value": 100,
+          "native_formula": "addEffect(minecraft:levitation,duration_ticks,amplifier0)",
+          "units": "ticks"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "amount"
+          ],
+          "native_value": 6.0,
+          "native_formula": "mobProjectile(bullet,livingOwner).hurt(amount)",
+          "units": "HP request"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "acceleration"
+          ],
+          "native_value": 0.1,
+          "native_formula": "staging v=(start-pos)/timer; fired v+=dir*acceleration when v²<=16",
+          "units": "blocks/tick² per direction component"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "fired_lifetime_ticks"
+          ],
+          "native_value": 30,
+          "native_formula": "staging v=(start-pos)/timer; fired v+=dir*acceleration when v²<=16",
+          "units": "server ticks"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "lateral_step"
+          ],
+          "native_value": 1.0,
+          "native_formula": "staging v=(start-pos)/timer; fired v+=dir*acceleration when v²<=16",
+          "units": "blocks"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "staging_distance"
+          ],
+          "native_value": 7.0,
+          "native_formula": "staging v=(start-pos)/timer; fired v+=dir*acceleration when v²<=16",
+          "units": "blocks"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "staging_ticks"
+          ],
+          "native_value": 30,
+          "native_formula": "staging v=(start-pos)/timer; fired v+=dir*acceleration when v²<=16",
+          "units": "server ticks"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:guardian_burst",
+      "mod_key": "cataclysm",
+      "display_name": "Guardian burst strike and launch",
+      "registry_ids": [
+        "cataclysm:ender_guardian"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "BURST_ATTACK tick27 calls AreaAttack(range7.5,height6,arc100,multiplier1,KnockbackHpdamage,launch=true). Explosion presentation makes no Level.explode call in this branch.",
+      "human_summary": "BURST_ATTACK tick27 calls AreaAttack(range7.5,height6,arc100,multiplier1,KnockbackHpdamage,launch=true). Explosion presentation makes no Level.explode call in this branch.",
+      "closest_vanilla_equivalent": "Native mobAttack; used-item shield cooldown where supplied",
+      "vanilla_similarities": "Uses the named native API/holder where present.",
+      "vanilla_differences": "Directional parameterized attack, capped max-HP addition where nonzero; control contributions retain their own predicates. After hurt: a blocking Player with positive shield ticks receives native use-item cooldown/stop-use; positive lift adds Y independently of hurt; STUN requires hurt=true and positive duration; requested launch ignores hurt and status success. One-argument addEffect has no explicit effect source. Reuses R2k2b STUN/admission/removal rather than defining a new status.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "formula": "A*damage_multiplier + min(A*damage_multiplier, victimMaxHP*max_health_fraction); A=current native configured ATTACK_DAMAGE",
+          "numerical_parameters": {
+            "damage_multiplier": 1.0,
+            "max_health_fraction": 0.06
+          },
+          "parameter_units": {
+            "damage_multiplier": "dimensionless",
+            "max_health_fraction": "fraction of recipient max HP"
+          },
+          "binary_parameters": [
+            "Native mobAttack source: direct=causing=Guardian."
+          ],
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "formula": "push(4*dx/max(dx²+dz²,0.001),0.2,4*dz/max(dx²+dz²,0.001)); no LivingEntity.knockback call",
+          "numerical_parameters": {
+            "launch_horizontal_factor": 4.0,
+            "launch_y": 0.2
+          },
+          "parameter_units": {
+            "launch_horizontal_factor": "native horizontal dx/distanceSquared coefficient",
+            "launch_y": "blocks/tick added velocity"
+          },
+          "binary_parameters": [
+            "Native push/setDeltaMovement; no local knockback-resistance factor"
+          ],
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {
+        "native_attack_base": 16.0,
+        "installed_attack_config_multiplier": 1.0,
+        "range": 7.5,
+        "height": 6.0,
+        "arc_degrees": 100.0,
+        "hit_tick": 27,
+        "hp_config_field": "EnderGuardian.KnockbackHpdamage"
+      },
+      "binary_parameters": [
+        "Native nearby helper excludes self, requires 3D distance <= range+recipientWidth/2 and recipientY <= bossY+height within the inflated box. AreaAttack uses (horizontalDistance<=range AND relativeAngle in [-arc/2,arc/2]) OR the two wrap-angle clauses, then excludes all Ender_Guardian_Entity instances. The wrap clauses do not repeat the horizontal-distance condition; nearby admission still applies. No additional alliance, alive, creative or spectator predicate is added by AreaAttack. Gameplay branches are server-only."
+      ],
+      "custom_state": "Native entity/animation state only.",
+      "eligibility": "Native nearby helper excludes self, requires 3D distance <= range+recipientWidth/2 and recipientY <= bossY+height within the inflated box. AreaAttack uses (horizontalDistance<=range AND relativeAngle in [-arc/2,arc/2]) OR the two wrap-angle clauses, then excludes all Ender_Guardian_Entity instances. The wrap clauses do not repeat the horizontal-distance condition; nearby admission still applies. No additional alliance, alive, creative or spectator predicate is added by AreaAttack. Gameplay branches are server-only.",
+      "damage_path": {
+        "source_mod_custom_damage_type": false,
+        "types": [
+          "minecraft:mob_attack"
+        ],
+        "native_defenses": "Native hurt pipeline retains immunity, armor, shields, cooldown, resistance, enchantments and events; requested amount is not measured HP loss."
+      },
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "aiStep"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "AreaAttack"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "getEntityLivingBaseNearby",
+            "getEntitiesNearby",
+            "lambda$getEntitiesNearby$0"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "entry": "com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "methods": [
+            "disableShield"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "launch"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:guardian-offense:burst"
+      ],
+      "primary_test_source": "cataclysm:ender_guardian",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k3b-cataclysm-guardian-offense-complete",
+      "scalability_note": "Numerical observations only. Stage eligibility, policy, balance, ownership integration and runtime hooks are not decided.",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "launch_horizontal_factor"
+          ],
+          "native_value": 4.0,
+          "native_formula": "push(4*dx/max(dx²+dz²,0.001),0.2,4*dz/max(dx²+dz²,0.001)); no LivingEntity.knockback call",
+          "units": "native horizontal dx/distanceSquared coefficient"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "launch_y"
+          ],
+          "native_value": 0.2,
+          "native_formula": "push(4*dx/max(dx²+dz²,0.001),0.2,4*dz/max(dx²+dz²,0.001)); no LivingEntity.knockback call",
+          "units": "blocks/tick added velocity"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "damage_multiplier"
+          ],
+          "native_value": 1.0,
+          "native_formula": "A*damage_multiplier + min(A*damage_multiplier, victimMaxHP*max_health_fraction); A=current native configured ATTACK_DAMAGE",
+          "units": "dimensionless"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "max_health_fraction"
+          ],
+          "native_value": 0.06,
+          "native_formula": "A*damage_multiplier + min(A*damage_multiplier, victimMaxHP*max_health_fraction); A=current native configured ATTACK_DAMAGE",
+          "units": "fraction of recipient max HP"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:guardian_defeat_respawner",
+      "mod_key": "cataclysm",
+      "display_name": "Guardian death callback and native respawner linkage",
+      "registry_ids": [
+        "cataclysm:ender_guardian"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Reuses shared cancelled/credited death callback admission. Guardian getDeathAnimation returns FALLEN196; shared LLibrary duration is196-20=176. onDeathAIUpdate calls super then zeroes horizontal motion retaining Y. AfterDefeatBoss with configured respawner=true, server, existing home and resolvable home dimension invokes Respawner at home X/Z with searchY homeY..homeY-10. Native code reads support/collision from current boss level but writes target home level; places BOSS_RESPAWNER with update flag2 even if no support (fallback maxY). Stores ENDER_GUARDIAN type and VOID_EYE requirement. Matching native item use lights block/consumes1; nearby alive player radius9, LIT, nonpeaceful server and animation counter>=19 attempt spawn. Native spawn finalizes SPAWNER and sets home; destroys respawner only on successful addFreshEntity. It does not call setUsedMassDestruction(false), so fresh Guardian retains the locked used=true default unlike altar spawn.",
+      "human_summary": "Reuses shared cancelled/credited death callback admission. Guardian getDeathAnimation returns FALLEN196; shared LLibrary duration is196-20=176. onDeathAIUpdate calls super then zeroes horizontal motion retaining Y. AfterDefeatBoss with configured respawner=true, server, existing home and resolvable home dimension invokes Respawner at home X/Z with searchY homeY..homeY-10. Native code reads support/collision from current boss level but writes target home level; places BOSS_RESPAWNER with update flag2 even if no support (fallback maxY). Stores ENDER_GUARDIAN type and VOID_EYE requirement. Matching native item use lights block/consumes1; nearby alive player radius9, LIT, nonpeaceful server and animation counter>=19 attempt spawn. Native spawn finalizes SPAWNER and sets home; destroys respawner only on successful addFreshEntity. It does not call setUsedMassDestruction(false), so fresh Guardian retains the locked used=true default unlike altar spawn.",
+      "closest_vanilla_equivalent": "Native death/respawn and home-dimension block lifecycle",
+      "vanilla_similarities": "Uses the named native API/holder where present.",
+      "vanilla_differences": "Custom return-linked respawner prerequisite; fresh respawn mass flag follows constructor, not original altar initializer.",
+      "components": [
+        {
+          "primitive": "DEATH_RESPAWN",
+          "formula": "native admitted death -> home respawner; item/LIT/player/difficulty/spawn-success gates",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "shared death cancellation/credit return gate",
+            "config/server/home dimension",
+            "exact required item/LIT",
+            "no used-mass reset"
+          ],
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {
+        "death_animation_ticks": 196,
+        "shared_removal_duration_ticks": 176,
+        "respawner_player_range": 9,
+        "respawner_animation_threshold": 19,
+        "home_search_depth": 10,
+        "required_item_count": 1
+      },
+      "binary_parameters": [
+        "Native lifecycle/admission/cleanup only; no resurrection of same entity or numeric Stage scalar inferred."
+      ],
+      "custom_state": "Native entity/animation state only.",
+      "eligibility": "Native lifecycle/admission/cleanup only; no resurrection of same entity or numeric Stage scalar inferred.",
+      "damage_path": {
+        "source_mod_custom_damage_type": false,
+        "types": [],
+        "native_defenses": null
+      },
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "onDeathAIUpdate",
+            "getDeathAnimation",
+            "<clinit>",
+            "AfterDefeatBoss",
+            "Respawner"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "die",
+            "onDeathUpdate"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "onDeathAIUpdate"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:blockentities/Boss_Respawn_Spawner_Block_Entity",
+          "entry": "com/github/L_Ender/cataclysm/blockentities/Boss_Respawn_Spawner_Block_Entity.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "anyPlayerInRange",
+            "spawnMyBoss",
+            "getRange",
+            "setEntityId",
+            "setTheItem",
+            "onHit",
+            "loadAdditional",
+            "saveAdditional"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:blocks/Boss_Respawn_Spawner_Block",
+          "entry": "com/github/L_Ender/cataclysm/blocks/Boss_Respawn_Spawner_Block.class",
+          "methods": [
+            "<init>",
+            "getTicker",
+            "useItemOn"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:guardian-offense:death_respawner"
+      ],
+      "primary_test_source": "cataclysm:ender_guardian",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k3b-cataclysm-guardian-offense-complete",
+      "scalability_note": "Numerical observations only. Stage eligibility, policy, balance, ownership integration and runtime hooks are not decided.",
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "cataclysm:guardian_gravity_punch",
+      "mod_key": "cataclysm",
+      "display_name": "Guardian strong gravity punches",
+      "registry_ids": [
+        "cataclysm:ender_guardian"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Left strong: pull while animationTick<29, hit34; right strong: pull<24, hit29. AreaAttack(range5.15,height5,arc70,multiplier1,GravityPunchHpdamage,shield100). Pull is full-vector custom motion toward an offset point, not a damage-triggered knockback.",
+      "human_summary": "Left strong: pull while animationTick<29, hit34; right strong: pull<24, hit29. AreaAttack(range5.15,height5,arc70,multiplier1,GravityPunchHpdamage,shield100). Pull is full-vector custom motion toward an offset point, not a damage-triggered knockback.",
+      "closest_vanilla_equivalent": "Native mobAttack; used-item shield cooldown where supplied",
+      "vanilla_similarities": "Uses the named native API/holder where present.",
+      "vanilla_differences": "Directional parameterized attack, capped max-HP addition where nonzero; control contributions retain their own predicates. After hurt: a blocking Player with positive shield ticks receives native use-item cooldown/stop-use; positive lift adds Y independently of hurt; STUN requires hurt=true and positive duration; requested launch ignores hurt and status success. One-argument addEffect has no explicit effect source. Reuses R2k2b STUN/admission/removal rather than defining a new status.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "formula": "A*damage_multiplier + min(A*damage_multiplier, victimMaxHP*max_health_fraction); A=current native configured ATTACK_DAMAGE",
+          "numerical_parameters": {
+            "damage_multiplier": 1.0,
+            "max_health_fraction": 0.05
+          },
+          "parameter_units": {
+            "damage_multiplier": "dimensionless",
+            "max_health_fraction": "fraction of recipient max HP"
+          },
+          "binary_parameters": [
+            "Native mobAttack source: direct=causing=Guardian."
+          ],
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "SHIELD_DISABLE",
+          "formula": "native used-item cooldown(duration_ticks), stopUsingItem",
+          "numerical_parameters": {
+            "duration_ticks": 100
+          },
+          "parameter_units": {
+            "duration_ticks": "ticks"
+          },
+          "binary_parameters": [
+            "isDamageSourceBlocked, Player, positive duration; disableShield also requires isBlocking"
+          ],
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "formula": "each pre-hit invocation: v -= normalize(recipientPos-pullPoint)*0.085; pullPoint=bossPos+(2*cos(theta+1)+sin(pi+bodyAngle)*0.25,0,2*sin(theta+1)+cos(bodyAngle)*0.25), theta=bodyYawRadians",
+          "numerical_parameters": {
+            "pull_factor": 0.085,
+            "pull_point_radius": 2.0,
+            "pull_point_offset": 0.25
+          },
+          "parameter_units": {
+            "pull_factor": "blocks/tick velocity increment per invocation",
+            "pull_point_radius": "blocks",
+            "pull_point_offset": "blocks"
+          },
+          "binary_parameters": [
+            "nearby helper12 in each extent/range; exclude invulnerable-ability Player and Guardian allies",
+            "no local side/hurt-success guard; full normalized vector"
+          ],
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {
+        "native_attack_base": 16.0,
+        "installed_attack_config_multiplier": 1.0,
+        "range": 5.15,
+        "height": 5.0,
+        "arc_degrees": 70.0,
+        "hp_config_field": "EnderGuardian.GravityPunchHpdamage",
+        "pull_range": 12.0,
+        "hit_ticks": {
+          "left": 34,
+          "right": 29
+        },
+        "pull_tick_upper_exclusive": {
+          "left": 29,
+          "right": 24
+        }
+      },
+      "binary_parameters": [
+        "Native nearby helper excludes self, requires 3D distance <= range+recipientWidth/2 and recipientY <= bossY+height within the inflated box. AreaAttack uses (horizontalDistance<=range AND relativeAngle in [-arc/2,arc/2]) OR the two wrap-angle clauses, then excludes all Ender_Guardian_Entity instances. The wrap clauses do not repeat the horizontal-distance condition; nearby admission still applies. No additional alliance, alive, creative or spectator predicate is added by AreaAttack. Gameplay branches are server-only."
+      ],
+      "custom_state": "Native entity/animation state only.",
+      "eligibility": "Native nearby helper excludes self, requires 3D distance <= range+recipientWidth/2 and recipientY <= bossY+height within the inflated box. AreaAttack uses (horizontalDistance<=range AND relativeAngle in [-arc/2,arc/2]) OR the two wrap-angle clauses, then excludes all Ender_Guardian_Entity instances. The wrap clauses do not repeat the horizontal-distance condition; nearby admission still applies. No additional alliance, alive, creative or spectator predicate is added by AreaAttack. Gameplay branches are server-only.",
+      "damage_path": {
+        "source_mod_custom_damage_type": false,
+        "types": [
+          "minecraft:mob_attack"
+        ],
+        "native_defenses": "Native hurt pipeline retains immunity, armor, shields, cooldown, resistance, enchantments and events; requested amount is not measured HP loss."
+      },
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "aiStep"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "AreaAttack"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "getEntityLivingBaseNearby",
+            "getEntitiesNearby",
+            "lambda$getEntitiesNearby$0"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "entry": "com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "methods": [
+            "disableShield"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "GravityPull"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:guardian-offense:gravity_punch"
+      ],
+      "primary_test_source": "cataclysm:ender_guardian",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k3b-cataclysm-guardian-offense-complete",
+      "scalability_note": "Numerical observations only. Stage eligibility, policy, balance, ownership integration and runtime hooks are not decided.",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "pull_factor"
+          ],
+          "native_value": 0.085,
+          "native_formula": "each pre-hit invocation: v -= normalize(recipientPos-pullPoint)*0.085; pullPoint=bossPos+(2*cos(theta+1)+sin(pi+bodyAngle)*0.25,0,2*sin(theta+1)+cos(bodyAngle)*0.25), theta=bodyYawRadians",
+          "units": "blocks/tick velocity increment per invocation"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "pull_point_offset"
+          ],
+          "native_value": 0.25,
+          "native_formula": "each pre-hit invocation: v -= normalize(recipientPos-pullPoint)*0.085; pullPoint=bossPos+(2*cos(theta+1)+sin(pi+bodyAngle)*0.25,0,2*sin(theta+1)+cos(bodyAngle)*0.25), theta=bodyYawRadians",
+          "units": "blocks"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "pull_point_radius"
+          ],
+          "native_value": 2.0,
+          "native_formula": "each pre-hit invocation: v -= normalize(recipientPos-pullPoint)*0.085; pullPoint=bossPos+(2*cos(theta+1)+sin(pi+bodyAngle)*0.25,0,2*sin(theta+1)+cos(bodyAngle)*0.25), theta=bodyYawRadians",
+          "units": "blocks"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "damage_multiplier"
+          ],
+          "native_value": 1.0,
+          "native_formula": "A*damage_multiplier + min(A*damage_multiplier, victimMaxHP*max_health_fraction); A=current native configured ATTACK_DAMAGE",
+          "units": "dimensionless"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "max_health_fraction"
+          ],
+          "native_value": 0.05,
+          "native_formula": "A*damage_multiplier + min(A*damage_multiplier, victimMaxHP*max_health_fraction); A=current native configured ATTACK_DAMAGE",
+          "units": "fraction of recipient max HP"
+        },
+        {
+          "primitive": "SHIELD_DISABLE",
+          "parameters": [
+            "duration_ticks"
+          ],
+          "native_value": 100,
+          "native_formula": "native used-item cooldown(duration_ticks), stopUsingItem",
+          "units": "ticks"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:guardian_hug_impact",
+      "mod_key": "cataclysm",
+      "display_name": "Guardian Hug impact lift and STUN",
+      "registry_ids": [
+        "cataclysm:ender_guardian"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "HUG_ME tick38 calls AreaAttack(range6,height6,arc120,multiplier1,TeleportAttackHpdamage,shield80,STUN60,lift0.6). This remaining offense payload does not change the protected R2k3a teleport gates/return behavior.",
+      "human_summary": "HUG_ME tick38 calls AreaAttack(range6,height6,arc120,multiplier1,TeleportAttackHpdamage,shield80,STUN60,lift0.6). This remaining offense payload does not change the protected R2k3a teleport gates/return behavior.",
+      "closest_vanilla_equivalent": "Native mobAttack; used-item shield cooldown where supplied",
+      "vanilla_similarities": "Uses the named native API/holder where present.",
+      "vanilla_differences": "Directional parameterized attack, capped max-HP addition where nonzero; control contributions retain their own predicates. After hurt: a blocking Player with positive shield ticks receives native use-item cooldown/stop-use; positive lift adds Y independently of hurt; STUN requires hurt=true and positive duration; requested launch ignores hurt and status success. One-argument addEffect has no explicit effect source. Reuses R2k2b STUN/admission/removal rather than defining a new status.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "formula": "A*damage_multiplier + min(A*damage_multiplier, victimMaxHP*max_health_fraction); A=current native configured ATTACK_DAMAGE",
+          "numerical_parameters": {
+            "damage_multiplier": 1.0,
+            "max_health_fraction": 0.05
+          },
+          "parameter_units": {
+            "damage_multiplier": "dimensionless",
+            "max_health_fraction": "fraction of recipient max HP"
+          },
+          "binary_parameters": [
+            "Native mobAttack source: direct=causing=Guardian."
+          ],
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "SHIELD_DISABLE",
+          "formula": "native used-item cooldown(duration_ticks), stopUsingItem",
+          "numerical_parameters": {
+            "duration_ticks": 80
+          },
+          "parameter_units": {
+            "duration_ticks": "ticks"
+          },
+          "binary_parameters": [
+            "isDamageSourceBlocked, Player, positive duration; disableShield also requires isBlocking"
+          ],
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED"
+        },
+        {
+          "primitive": "STUN",
+          "formula": "addEffect(cataclysm:stun, duration_ticks, amplifier=0)",
+          "numerical_parameters": {
+            "duration_ticks": 60
+          },
+          "parameter_units": {
+            "duration_ticks": "ticks"
+          },
+          "binary_parameters": [
+            "hurt=true; native addEffect admission/stacking/lifecycle",
+            "no explicit effect source"
+          ],
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "formula": "recipient velocity += (0,recipient_lift_y,0), independent of hurt",
+          "numerical_parameters": {
+            "recipient_lift_y": 0.6
+          },
+          "parameter_units": {
+            "recipient_lift_y": "blocks/tick added velocity"
+          },
+          "binary_parameters": [
+            "Native push/setDeltaMovement; no local knockback-resistance factor"
+          ],
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {
+        "native_attack_base": 16.0,
+        "installed_attack_config_multiplier": 1.0,
+        "range": 6.0,
+        "height": 6.0,
+        "arc_degrees": 120.0,
+        "hit_tick": 38,
+        "hp_config_field": "EnderGuardian.TeleportAttackHpdamage"
+      },
+      "binary_parameters": [
+        "Native nearby helper excludes self, requires 3D distance <= range+recipientWidth/2 and recipientY <= bossY+height within the inflated box. AreaAttack uses (horizontalDistance<=range AND relativeAngle in [-arc/2,arc/2]) OR the two wrap-angle clauses, then excludes all Ender_Guardian_Entity instances. The wrap clauses do not repeat the horizontal-distance condition; nearby admission still applies. No additional alliance, alive, creative or spectator predicate is added by AreaAttack. Gameplay branches are server-only."
+      ],
+      "custom_state": "Native entity/animation state only.",
+      "eligibility": "Native nearby helper excludes self, requires 3D distance <= range+recipientWidth/2 and recipientY <= bossY+height within the inflated box. AreaAttack uses (horizontalDistance<=range AND relativeAngle in [-arc/2,arc/2]) OR the two wrap-angle clauses, then excludes all Ender_Guardian_Entity instances. The wrap clauses do not repeat the horizontal-distance condition; nearby admission still applies. No additional alliance, alive, creative or spectator predicate is added by AreaAttack. Gameplay branches are server-only.",
+      "damage_path": {
+        "source_mod_custom_damage_type": false,
+        "types": [
+          "minecraft:mob_attack"
+        ],
+        "native_defenses": "Native hurt pipeline retains immunity, armor, shields, cooldown, resistance, enchantments and events; requested amount is not measured HP loss."
+      },
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "aiStep"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "AreaAttack"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "getEntityLivingBaseNearby",
+            "getEntitiesNearby",
+            "lambda$getEntitiesNearby$0"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "entry": "com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "methods": [
+            "disableShield"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:guardian-offense:hug_impact"
+      ],
+      "primary_test_source": "cataclysm:ender_guardian",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k3b-cataclysm-guardian-offense-complete",
+      "scalability_note": "Numerical observations only. Stage eligibility, policy, balance, ownership integration and runtime hooks are not decided.",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "recipient_lift_y"
+          ],
+          "native_value": 0.6,
+          "native_formula": "recipient velocity += (0,recipient_lift_y,0), independent of hurt",
+          "units": "blocks/tick added velocity"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "damage_multiplier"
+          ],
+          "native_value": 1.0,
+          "native_formula": "A*damage_multiplier + min(A*damage_multiplier, victimMaxHP*max_health_fraction); A=current native configured ATTACK_DAMAGE",
+          "units": "dimensionless"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "max_health_fraction"
+          ],
+          "native_value": 0.05,
+          "native_formula": "A*damage_multiplier + min(A*damage_multiplier, victimMaxHP*max_health_fraction); A=current native configured ATTACK_DAMAGE",
+          "units": "fraction of recipient max HP"
+        },
+        {
+          "primitive": "SHIELD_DISABLE",
+          "parameters": [
+            "duration_ticks"
+          ],
+          "native_value": 80,
+          "native_formula": "native used-item cooldown(duration_ticks), stopUsingItem",
+          "units": "ticks"
+        },
+        {
+          "primitive": "STUN",
+          "parameters": [
+            "duration_ticks"
+          ],
+          "native_value": 60,
+          "native_formula": "addEffect(cataclysm:stun, duration_ticks, amplifier=0)",
+          "units": "ticks"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:guardian_mass_destruction",
+      "mod_key": "cataclysm",
+      "display_name": "Guardian mass-phase AoE strike",
+      "registry_ids": [
+        "cataclysm:ender_guardian"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "MASS_DESTRUCTION tick39 calls MassDestruction(grow5,multiplier1.1,shield150); separately enters configured terrain destruction. Locked R2k3a altar/used-phase/incoming admission remains unchanged. The attack is not an explosion despite presentation.",
+      "human_summary": "MASS_DESTRUCTION tick39 calls MassDestruction(grow5,multiplier1.1,shield150); separately enters configured terrain destruction. Locked R2k3a altar/used-phase/incoming admission remains unchanged. The attack is not an explosion despite presentation.",
+      "closest_vanilla_equivalent": "Native mobAttack plus item shield cooldown and custom launch",
+      "vanilla_similarities": "Uses the named native API/holder where present.",
+      "vanilla_differences": "Box scan, not native Explosion; no max-HP addition or STUN. Launch and shield branch ignore hurt return.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "formula": "float(A)*damage_multiplier; A=current native ATTACK_DAMAGE",
+          "numerical_parameters": {
+            "damage_multiplier": 1.1
+          },
+          "parameter_units": {
+            "damage_multiplier": "dimensionless"
+          },
+          "binary_parameters": [],
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "SHIELD_DISABLE",
+          "formula": "native used-item cooldown(duration_ticks), stopUsingItem",
+          "numerical_parameters": {
+            "duration_ticks": 150
+          },
+          "parameter_units": {
+            "duration_ticks": "ticks"
+          },
+          "binary_parameters": [
+            "blocking Player; positive duration"
+          ],
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "formula": "push(4*dx/max(dx²+dz²,0.001),0.2,4*dz/max(dx²+dz²,0.001))",
+          "numerical_parameters": {
+            "launch_horizontal_factor": 4.0,
+            "launch_y": 0.2
+          },
+          "parameter_units": {
+            "launch_horizontal_factor": "native horizontal dx/distanceSquared coefficient",
+            "launch_y": "blocks/tick added velocity"
+          },
+          "binary_parameters": [],
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "AREA_DELIVERY",
+          "formula": "Guardian bounding box inflated(grow)",
+          "numerical_parameters": {
+            "grow": 5.0
+          },
+          "parameter_units": {
+            "grow": "blocks"
+          },
+          "binary_parameters": [],
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {
+        "native_attack_base": 16.0,
+        "installed_attack_config_multiplier": 1.0
+      },
+      "binary_parameters": [
+        "Server only; LivingEntity box scan; reject Guardian allies, any Guardian instance and self. No additional radial, arc, hurt-success or creative predicate."
+      ],
+      "custom_state": "Native entity/animation state only.",
+      "eligibility": "Server only; LivingEntity box scan; reject Guardian allies, any Guardian instance and self. No additional radial, arc, hurt-success or creative predicate.",
+      "damage_path": {
+        "source_mod_custom_damage_type": false,
+        "types": [
+          "minecraft:mob_attack"
+        ],
+        "native_defenses": "Native hurt pipeline retains immunity, armor, shields, cooldown, resistance, enchantments and events; requested amount is not measured HP loss."
+      },
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "aiStep",
+            "MassDestruction",
+            "launch",
+            "isAlliedTo"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "entry": "com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "methods": [
+            "disableShield"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:guardian-offense:mass_phase_payload"
+      ],
+      "primary_test_source": "cataclysm:ender_guardian",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k3b-cataclysm-guardian-offense-complete",
+      "scalability_note": "Numerical observations only. Stage eligibility, policy, balance, ownership integration and runtime hooks are not decided.",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "AREA_DELIVERY",
+          "parameters": [
+            "grow"
+          ],
+          "native_value": 5.0,
+          "native_formula": "Guardian bounding box inflated(grow)",
+          "units": "blocks"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "launch_horizontal_factor"
+          ],
+          "native_value": 4.0,
+          "native_formula": "push(4*dx/max(dx²+dz²,0.001),0.2,4*dz/max(dx²+dz²,0.001))",
+          "units": "native horizontal dx/distanceSquared coefficient"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "launch_y"
+          ],
+          "native_value": 0.2,
+          "native_formula": "push(4*dx/max(dx²+dz²,0.001),0.2,4*dz/max(dx²+dz²,0.001))",
+          "units": "blocks/tick added velocity"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "damage_multiplier"
+          ],
+          "native_value": 1.1,
+          "native_formula": "float(A)*damage_multiplier; A=current native ATTACK_DAMAGE",
+          "units": "dimensionless"
+        },
+        {
+          "primitive": "SHIELD_DISABLE",
+          "parameters": [
+            "duration_ticks"
+          ],
+          "native_value": 150,
+          "native_formula": "native used-item cooldown(duration_ticks), stopUsingItem",
+          "units": "ticks"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:guardian_mass_terrain",
+      "mod_key": "cataclysm",
+      "display_name": "Guardian mass-phase tagged terrain destruction",
+      "registry_ids": [
+        "cataclysm:ender_guardian"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Mass animation tick39 server-side invokes BlockBreaking when configured ignoreMobGriefing is true, otherwise only if EventHooks.canEntityGrief admits. Installed dimensions15/2/15 scan X/Z inclusive [-15,15], Y[-2,-1] below floored boss origin. Each non-AIR tagged ENDER_GUARDIAN_CAN_DESTROY block must admit canEntityDestroy and onEntityDestroyBlock; destroyBlock(false,Guardian) requests no block drops. Independent of recipient damage and not an explosion.",
+      "human_summary": "Mass animation tick39 server-side invokes BlockBreaking when configured ignoreMobGriefing is true, otherwise only if EventHooks.canEntityGrief admits. Installed dimensions15/2/15 scan X/Z inclusive [-15,15], Y[-2,-1] below floored boss origin. Each non-AIR tagged ENDER_GUARDIAN_CAN_DESTROY block must admit canEntityDestroy and onEntityDestroyBlock; destroyBlock(false,Guardian) requests no block drops. Independent of recipient damage and not an explosion.",
+      "closest_vanilla_equivalent": "Native block destroy callback",
+      "vanilla_similarities": "Uses the named native API/holder where present.",
+      "vanilla_differences": "Tag-bound rectangular below-boss destruction with native grief/destroy hooks.",
+      "components": [
+        {
+          "primitive": "TERRAIN_DESTRUCTION",
+          "formula": "for x[-extent_x,extent_x], z[-extent_z,extent_z], y[-depth,-1]: native destroyBlock(pos,false,Guardian)",
+          "numerical_parameters": {
+            "extent_x": 15,
+            "depth": 2,
+            "extent_z": 15
+          },
+          "parameter_units": {
+            "extent_x": "blocks",
+            "depth": "blocks",
+            "extent_z": "blocks"
+          },
+          "binary_parameters": [
+            "native block tag",
+            "config ignoreMobGriefing OR canEntityGrief; per-block canEntityDestroy/onEntityDestroyBlock",
+            "server; exact mass hit tick39"
+          ],
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {
+        "ignore_mobgriefing_installed": true,
+        "config_fields": [
+          "EnderGuardian.BlockBreakingX",
+          "EnderGuardian.BlockBreakingY",
+          "EnderGuardian.BlockBreakingZ"
+        ]
+      },
+      "binary_parameters": [
+        "Binary grief/config/tag/block callback gates remain separate from scan extents."
+      ],
+      "custom_state": "Native entity/animation state only.",
+      "eligibility": "Binary grief/config/tag/block callback gates remain separate from scan extents.",
+      "damage_path": {
+        "source_mod_custom_damage_type": false,
+        "types": [],
+        "native_defenses": null
+      },
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "aiStep",
+            "BlockBreaking"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:destroy-tag",
+          "entry": "data/cataclysm/tags/block/ender_guardian_can_destroy.json",
+          "methods": []
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:guardian-offense:mass_terrain"
+      ],
+      "primary_test_source": "cataclysm:ender_guardian",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k3b-cataclysm-guardian-offense-complete",
+      "scalability_note": "Numerical observations only. Stage eligibility, policy, balance, ownership integration and runtime hooks are not decided.",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "TERRAIN_DESTRUCTION",
+          "parameters": [
+            "depth"
+          ],
+          "native_value": 2,
+          "native_formula": "for x[-extent_x,extent_x], z[-extent_z,extent_z], y[-depth,-1]: native destroyBlock(pos,false,Guardian)",
+          "units": "blocks"
+        },
+        {
+          "primitive": "TERRAIN_DESTRUCTION",
+          "parameters": [
+            "extent_x"
+          ],
+          "native_value": 15,
+          "native_formula": "for x[-extent_x,extent_x], z[-extent_z,extent_z], y[-depth,-1]: native destroyBlock(pos,false,Guardian)",
+          "units": "blocks"
+        },
+        {
+          "primitive": "TERRAIN_DESTRUCTION",
+          "parameters": [
+            "extent_z"
+          ],
+          "native_value": 15,
+          "native_formula": "for x[-extent_x,extent_x], z[-extent_z,extent_z], y[-depth,-1]: native destroyBlock(pos,false,Guardian)",
+          "units": "blocks"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:guardian_punches",
+      "mod_key": "cataclysm",
+      "display_name": "Guardian ordinary left/right punches",
+      "registry_ids": [
+        "cataclysm:ender_guardian"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "Right animation tick22 and left tick19 call AreaAttack(range5.85,height5,arc80,multiplier1,hpFraction0,shield80); no STUN/lift/launch. Goal controls facing/movement; optional followup is separately mapped swing.",
+      "human_summary": "Right animation tick22 and left tick19 call AreaAttack(range5.85,height5,arc80,multiplier1,hpFraction0,shield80); no STUN/lift/launch. Goal controls facing/movement; optional followup is separately mapped swing.",
+      "closest_vanilla_equivalent": "Native mobAttack; used-item shield cooldown where supplied",
+      "vanilla_similarities": "Uses the named native API/holder where present.",
+      "vanilla_differences": "Directional parameterized attack, capped max-HP addition where nonzero; control contributions retain their own predicates. After hurt: a blocking Player with positive shield ticks receives native use-item cooldown/stop-use; positive lift adds Y independently of hurt; STUN requires hurt=true and positive duration; requested launch ignores hurt and status success. One-argument addEffect has no explicit effect source. Reuses R2k2b STUN/admission/removal rather than defining a new status.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "formula": "A*damage_multiplier + min(A*damage_multiplier, victimMaxHP*max_health_fraction); A=current native configured ATTACK_DAMAGE",
+          "numerical_parameters": {
+            "damage_multiplier": 1.0,
+            "max_health_fraction": 0.0
+          },
+          "parameter_units": {
+            "damage_multiplier": "dimensionless",
+            "max_health_fraction": "fraction of recipient max HP"
+          },
+          "binary_parameters": [
+            "Native mobAttack source: direct=causing=Guardian."
+          ],
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "SHIELD_DISABLE",
+          "formula": "native used-item cooldown(duration_ticks), stopUsingItem",
+          "numerical_parameters": {
+            "duration_ticks": 80
+          },
+          "parameter_units": {
+            "duration_ticks": "ticks"
+          },
+          "binary_parameters": [
+            "isDamageSourceBlocked, Player, positive duration; disableShield also requires isBlocking"
+          ],
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED"
+        }
+      ],
+      "numerical_parameters": {
+        "native_attack_base": 16.0,
+        "installed_attack_config_multiplier": 1.0,
+        "range": 5.85,
+        "height": 5.0,
+        "arc_degrees": 80.0,
+        "hit_ticks": {
+          "right": 22,
+          "left": 19
+        }
+      },
+      "binary_parameters": [
+        "Native nearby helper excludes self, requires 3D distance <= range+recipientWidth/2 and recipientY <= bossY+height within the inflated box. AreaAttack uses (horizontalDistance<=range AND relativeAngle in [-arc/2,arc/2]) OR the two wrap-angle clauses, then excludes all Ender_Guardian_Entity instances. The wrap clauses do not repeat the horizontal-distance condition; nearby admission still applies. No additional alliance, alive, creative or spectator predicate is added by AreaAttack. Gameplay branches are server-only."
+      ],
+      "custom_state": "Native entity/animation state only.",
+      "eligibility": "Native nearby helper excludes self, requires 3D distance <= range+recipientWidth/2 and recipientY <= bossY+height within the inflated box. AreaAttack uses (horizontalDistance<=range AND relativeAngle in [-arc/2,arc/2]) OR the two wrap-angle clauses, then excludes all Ender_Guardian_Entity instances. The wrap clauses do not repeat the horizontal-distance condition; nearby admission still applies. No additional alliance, alive, creative or spectator predicate is added by AreaAttack. Gameplay branches are server-only.",
+      "damage_path": {
+        "source_mod_custom_damage_type": false,
+        "types": [
+          "minecraft:mob_attack"
+        ],
+        "native_defenses": "Native hurt pipeline retains immunity, armor, shields, cooldown, resistance, enchantments and events; requested amount is not measured HP loss."
+      },
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "aiStep"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "AreaAttack"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "getEntityLivingBaseNearby",
+            "getEntitiesNearby",
+            "lambda$getEntitiesNearby$0"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "entry": "com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "methods": [
+            "disableShield"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:guardian-offense:ordinary_punch"
+      ],
+      "primary_test_source": "cataclysm:ender_guardian",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k3b-cataclysm-guardian-offense-complete",
+      "scalability_note": "Numerical observations only. Stage eligibility, policy, balance, ownership integration and runtime hooks are not decided.",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "damage_multiplier"
+          ],
+          "native_value": 1.0,
+          "native_formula": "A*damage_multiplier + min(A*damage_multiplier, victimMaxHP*max_health_fraction); A=current native configured ATTACK_DAMAGE",
+          "units": "dimensionless"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "max_health_fraction"
+          ],
+          "native_value": 0.0,
+          "native_formula": "A*damage_multiplier + min(A*damage_multiplier, victimMaxHP*max_health_fraction); A=current native configured ATTACK_DAMAGE",
+          "units": "fraction of recipient max HP"
+        },
+        {
+          "primitive": "SHIELD_DISABLE",
+          "parameters": [
+            "duration_ticks"
+          ],
+          "native_value": 80,
+          "native_formula": "native used-item cooldown(duration_ticks), stopUsingItem",
+          "units": "ticks"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:guardian_rage_finisher",
+      "mod_key": "cataclysm",
+      "display_name": "Guardian rage uppercut finishing strike",
+      "registry_ids": [
+        "cataclysm:ender_guardian"
+      ],
+      "primary_classification": "CUSTOM_DAMAGE",
+      "actual_behavior": "RAGE_UPPERCUT tick84 calls RageAttack for its separate rune payload and AreaAttack(range5.5,height5,arc120,multiplier1.2,AreaAttackHpdamage,shield100). Rune delivery is not conditioned on AreaAttack hurt success.",
+      "human_summary": "RAGE_UPPERCUT tick84 calls RageAttack for its separate rune payload and AreaAttack(range5.5,height5,arc120,multiplier1.2,AreaAttackHpdamage,shield100). Rune delivery is not conditioned on AreaAttack hurt success.",
+      "closest_vanilla_equivalent": "Native mobAttack; used-item shield cooldown where supplied",
+      "vanilla_similarities": "Uses the named native API/holder where present.",
+      "vanilla_differences": "Directional parameterized attack, capped max-HP addition where nonzero; control contributions retain their own predicates. After hurt: a blocking Player with positive shield ticks receives native use-item cooldown/stop-use; positive lift adds Y independently of hurt; STUN requires hurt=true and positive duration; requested launch ignores hurt and status success. One-argument addEffect has no explicit effect source. Reuses R2k2b STUN/admission/removal rather than defining a new status.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "formula": "A*damage_multiplier + min(A*damage_multiplier, victimMaxHP*max_health_fraction); A=current native configured ATTACK_DAMAGE",
+          "numerical_parameters": {
+            "damage_multiplier": 1.2,
+            "max_health_fraction": 0.08
+          },
+          "parameter_units": {
+            "damage_multiplier": "dimensionless",
+            "max_health_fraction": "fraction of recipient max HP"
+          },
+          "binary_parameters": [
+            "Native mobAttack source: direct=causing=Guardian."
+          ],
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "SHIELD_DISABLE",
+          "formula": "native used-item cooldown(duration_ticks), stopUsingItem",
+          "numerical_parameters": {
+            "duration_ticks": 100
+          },
+          "parameter_units": {
+            "duration_ticks": "ticks"
+          },
+          "binary_parameters": [
+            "isDamageSourceBlocked, Player, positive duration; disableShield also requires isBlocking"
+          ],
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED"
+        }
+      ],
+      "numerical_parameters": {
+        "native_attack_base": 16.0,
+        "installed_attack_config_multiplier": 1.0,
+        "range": 5.5,
+        "height": 5.0,
+        "arc_degrees": 120.0,
+        "hit_tick": 84,
+        "hp_config_field": "EnderGuardian.AreaAttackHpdamage"
+      },
+      "binary_parameters": [
+        "Native nearby helper excludes self, requires 3D distance <= range+recipientWidth/2 and recipientY <= bossY+height within the inflated box. AreaAttack uses (horizontalDistance<=range AND relativeAngle in [-arc/2,arc/2]) OR the two wrap-angle clauses, then excludes all Ender_Guardian_Entity instances. The wrap clauses do not repeat the horizontal-distance condition; nearby admission still applies. No additional alliance, alive, creative or spectator predicate is added by AreaAttack. Gameplay branches are server-only."
+      ],
+      "custom_state": "Native entity/animation state only.",
+      "eligibility": "Native nearby helper excludes self, requires 3D distance <= range+recipientWidth/2 and recipientY <= bossY+height within the inflated box. AreaAttack uses (horizontalDistance<=range AND relativeAngle in [-arc/2,arc/2]) OR the two wrap-angle clauses, then excludes all Ender_Guardian_Entity instances. The wrap clauses do not repeat the horizontal-distance condition; nearby admission still applies. No additional alliance, alive, creative or spectator predicate is added by AreaAttack. Gameplay branches are server-only.",
+      "damage_path": {
+        "source_mod_custom_damage_type": false,
+        "types": [
+          "minecraft:mob_attack"
+        ],
+        "native_defenses": "Native hurt pipeline retains immunity, armor, shields, cooldown, resistance, enchantments and events; requested amount is not measured HP loss."
+      },
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "aiStep"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "AreaAttack"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "getEntityLivingBaseNearby",
+            "getEntitiesNearby",
+            "lambda$getEntitiesNearby$0"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "entry": "com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "methods": [
+            "disableShield"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:guardian-offense:rage_finisher"
+      ],
+      "primary_test_source": "cataclysm:ender_guardian",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k3b-cataclysm-guardian-offense-complete",
+      "scalability_note": "Numerical observations only. Stage eligibility, policy, balance, ownership integration and runtime hooks are not decided.",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "damage_multiplier"
+          ],
+          "native_value": 1.2,
+          "native_formula": "A*damage_multiplier + min(A*damage_multiplier, victimMaxHP*max_health_fraction); A=current native configured ATTACK_DAMAGE",
+          "units": "dimensionless"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "max_health_fraction"
+          ],
+          "native_value": 0.08,
+          "native_formula": "A*damage_multiplier + min(A*damage_multiplier, victimMaxHP*max_health_fraction); A=current native configured ATTACK_DAMAGE",
+          "units": "fraction of recipient max HP"
+        },
+        {
+          "primitive": "SHIELD_DISABLE",
+          "parameters": [
+            "duration_ticks"
+          ],
+          "native_value": 100,
+          "native_formula": "native used-item cooldown(duration_ticks), stopUsingItem",
+          "units": "ticks"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:guardian_rocket_punch",
+      "mod_key": "cataclysm",
+      "display_name": "Guardian rocket dash and launch strike",
+      "registry_ids": [
+        "cataclysm:ender_guardian"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "ROCKETPUNCH goal writes boss dash at tick24; aiStep tick28 calls AreaAttack(range7,height7,arc120,multiplier1.25,RocketPunchHpdamage,shield200,launch=true). Native vortex followup admission is separate from payload success.",
+      "human_summary": "ROCKETPUNCH goal writes boss dash at tick24; aiStep tick28 calls AreaAttack(range7,height7,arc120,multiplier1.25,RocketPunchHpdamage,shield200,launch=true). Native vortex followup admission is separate from payload success.",
+      "closest_vanilla_equivalent": "Native mobAttack; used-item shield cooldown where supplied",
+      "vanilla_similarities": "Uses the named native API/holder where present.",
+      "vanilla_differences": "Directional parameterized attack, capped max-HP addition where nonzero; control contributions retain their own predicates. After hurt: a blocking Player with positive shield ticks receives native use-item cooldown/stop-use; positive lift adds Y independently of hurt; STUN requires hurt=true and positive duration; requested launch ignores hurt and status success. One-argument addEffect has no explicit effect source. Reuses R2k2b STUN/admission/removal rather than defining a new status.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "formula": "A*damage_multiplier + min(A*damage_multiplier, victimMaxHP*max_health_fraction); A=current native configured ATTACK_DAMAGE",
+          "numerical_parameters": {
+            "damage_multiplier": 1.25,
+            "max_health_fraction": 0.1
+          },
+          "parameter_units": {
+            "damage_multiplier": "dimensionless",
+            "max_health_fraction": "fraction of recipient max HP"
+          },
+          "binary_parameters": [
+            "Native mobAttack source: direct=causing=Guardian."
+          ],
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "SHIELD_DISABLE",
+          "formula": "native used-item cooldown(duration_ticks), stopUsingItem",
+          "numerical_parameters": {
+            "duration_ticks": 200
+          },
+          "parameter_units": {
+            "duration_ticks": "ticks"
+          },
+          "binary_parameters": [
+            "isDamageSourceBlocked, Player, positive duration; disableShield also requires isBlocking"
+          ],
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "formula": "push(4*dx/max(dx²+dz²,0.001),0.2,4*dz/max(dx²+dz²,0.001)); no LivingEntity.knockback call",
+          "numerical_parameters": {
+            "launch_horizontal_factor": 4.0,
+            "launch_y": 0.2
+          },
+          "parameter_units": {
+            "launch_horizontal_factor": "native horizontal dx/distanceSquared coefficient",
+            "launch_y": "blocks/tick added velocity"
+          },
+          "binary_parameters": [
+            "Native push/setDeltaMovement; no local knockback-resistance factor"
+          ],
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "formula": "boss velocity=((targetX-bossX)*0.3,0,(targetZ-bossZ)*0.3) at animationTick24",
+          "numerical_parameters": {
+            "self_dash_factor": 0.3
+          },
+          "parameter_units": {
+            "self_dash_factor": "native displacement-to-velocity coefficient"
+          },
+          "binary_parameters": [
+            "target exists at tick24",
+            "absolute velocity write; not native knockback"
+          ],
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {
+        "native_attack_base": 16.0,
+        "installed_attack_config_multiplier": 1.0,
+        "range": 7.0,
+        "height": 7.0,
+        "arc_degrees": 120.0,
+        "hit_tick": 28,
+        "hp_config_field": "EnderGuardian.RocketPunchHpdamage"
+      },
+      "binary_parameters": [
+        "Native nearby helper excludes self, requires 3D distance <= range+recipientWidth/2 and recipientY <= bossY+height within the inflated box. AreaAttack uses (horizontalDistance<=range AND relativeAngle in [-arc/2,arc/2]) OR the two wrap-angle clauses, then excludes all Ender_Guardian_Entity instances. The wrap clauses do not repeat the horizontal-distance condition; nearby admission still applies. No additional alliance, alive, creative or spectator predicate is added by AreaAttack. Gameplay branches are server-only."
+      ],
+      "custom_state": "Native entity/animation state only.",
+      "eligibility": "Native nearby helper excludes self, requires 3D distance <= range+recipientWidth/2 and recipientY <= bossY+height within the inflated box. AreaAttack uses (horizontalDistance<=range AND relativeAngle in [-arc/2,arc/2]) OR the two wrap-angle clauses, then excludes all Ender_Guardian_Entity instances. The wrap clauses do not repeat the horizontal-distance condition; nearby admission still applies. No additional alliance, alive, creative or spectator predicate is added by AreaAttack. Gameplay branches are server-only.",
+      "damage_path": {
+        "source_mod_custom_damage_type": false,
+        "types": [
+          "minecraft:mob_attack"
+        ],
+        "native_defenses": "Native hurt pipeline retains immunity, armor, shields, cooldown, resistance, enchantments and events; requested amount is not measured HP loss."
+      },
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "aiStep"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "AreaAttack"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "getEntityLivingBaseNearby",
+            "getEntitiesNearby",
+            "lambda$getEntitiesNearby$0"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "entry": "com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "methods": [
+            "disableShield"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "launch"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$RocketPunchGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$RocketPunchGoal.class",
+          "methods": [
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:guardian-offense:rocket"
+      ],
+      "primary_test_source": "cataclysm:ender_guardian",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k3b-cataclysm-guardian-offense-complete",
+      "scalability_note": "Numerical observations only. Stage eligibility, policy, balance, ownership integration and runtime hooks are not decided.",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "launch_horizontal_factor"
+          ],
+          "native_value": 4.0,
+          "native_formula": "push(4*dx/max(dx²+dz²,0.001),0.2,4*dz/max(dx²+dz²,0.001)); no LivingEntity.knockback call",
+          "units": "native horizontal dx/distanceSquared coefficient"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "launch_y"
+          ],
+          "native_value": 0.2,
+          "native_formula": "push(4*dx/max(dx²+dz²,0.001),0.2,4*dz/max(dx²+dz²,0.001)); no LivingEntity.knockback call",
+          "units": "blocks/tick added velocity"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "self_dash_factor"
+          ],
+          "native_value": 0.3,
+          "native_formula": "boss velocity=((targetX-bossX)*0.3,0,(targetZ-bossZ)*0.3) at animationTick24",
+          "units": "native displacement-to-velocity coefficient"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "damage_multiplier"
+          ],
+          "native_value": 1.25,
+          "native_formula": "A*damage_multiplier + min(A*damage_multiplier, victimMaxHP*max_health_fraction); A=current native configured ATTACK_DAMAGE",
+          "units": "dimensionless"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "max_health_fraction"
+          ],
+          "native_value": 0.1,
+          "native_formula": "A*damage_multiplier + min(A*damage_multiplier, victimMaxHP*max_health_fraction); A=current native configured ATTACK_DAMAGE",
+          "units": "fraction of recipient max HP"
+        },
+        {
+          "primitive": "SHIELD_DISABLE",
+          "parameters": [
+            "duration_ticks"
+          ],
+          "native_value": 200,
+          "native_formula": "native used-item cooldown(duration_ticks), stopUsingItem",
+          "units": "ticks"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:guardian_swings",
+      "mod_key": "cataclysm",
+      "display_name": "Guardian punch-followup swings",
+      "registry_ids": [
+        "cataclysm:ender_guardian"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "LEFT/RIGHT_SWING tick24 calls AreaAttack(range4.25,height4.25,arc80,multiplier1,hpFraction0,shield40,STUN40,launch=true). Swing is an actual followup animation, not every ordinary punch duplicated.",
+      "human_summary": "LEFT/RIGHT_SWING tick24 calls AreaAttack(range4.25,height4.25,arc80,multiplier1,hpFraction0,shield40,STUN40,launch=true). Swing is an actual followup animation, not every ordinary punch duplicated.",
+      "closest_vanilla_equivalent": "Native mobAttack; used-item shield cooldown where supplied",
+      "vanilla_similarities": "Uses the named native API/holder where present.",
+      "vanilla_differences": "Directional parameterized attack, capped max-HP addition where nonzero; control contributions retain their own predicates. After hurt: a blocking Player with positive shield ticks receives native use-item cooldown/stop-use; positive lift adds Y independently of hurt; STUN requires hurt=true and positive duration; requested launch ignores hurt and status success. One-argument addEffect has no explicit effect source. Reuses R2k2b STUN/admission/removal rather than defining a new status.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "formula": "A*damage_multiplier + min(A*damage_multiplier, victimMaxHP*max_health_fraction); A=current native configured ATTACK_DAMAGE",
+          "numerical_parameters": {
+            "damage_multiplier": 1.0,
+            "max_health_fraction": 0.0
+          },
+          "parameter_units": {
+            "damage_multiplier": "dimensionless",
+            "max_health_fraction": "fraction of recipient max HP"
+          },
+          "binary_parameters": [
+            "Native mobAttack source: direct=causing=Guardian."
+          ],
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "SHIELD_DISABLE",
+          "formula": "native used-item cooldown(duration_ticks), stopUsingItem",
+          "numerical_parameters": {
+            "duration_ticks": 40
+          },
+          "parameter_units": {
+            "duration_ticks": "ticks"
+          },
+          "binary_parameters": [
+            "isDamageSourceBlocked, Player, positive duration; disableShield also requires isBlocking"
+          ],
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED"
+        },
+        {
+          "primitive": "STUN",
+          "formula": "addEffect(cataclysm:stun, duration_ticks, amplifier=0)",
+          "numerical_parameters": {
+            "duration_ticks": 40
+          },
+          "parameter_units": {
+            "duration_ticks": "ticks"
+          },
+          "binary_parameters": [
+            "hurt=true; native addEffect admission/stacking/lifecycle",
+            "no explicit effect source"
+          ],
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "formula": "push(4*dx/max(dx²+dz²,0.001),0.2,4*dz/max(dx²+dz²,0.001)); no LivingEntity.knockback call",
+          "numerical_parameters": {
+            "launch_horizontal_factor": 4.0,
+            "launch_y": 0.2
+          },
+          "parameter_units": {
+            "launch_horizontal_factor": "native horizontal dx/distanceSquared coefficient",
+            "launch_y": "blocks/tick added velocity"
+          },
+          "binary_parameters": [
+            "Native push/setDeltaMovement; no local knockback-resistance factor"
+          ],
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {
+        "native_attack_base": 16.0,
+        "installed_attack_config_multiplier": 1.0,
+        "range": 4.25,
+        "height": 4.25,
+        "arc_degrees": 80.0,
+        "hit_tick": 24
+      },
+      "binary_parameters": [
+        "Native nearby helper excludes self, requires 3D distance <= range+recipientWidth/2 and recipientY <= bossY+height within the inflated box. AreaAttack uses (horizontalDistance<=range AND relativeAngle in [-arc/2,arc/2]) OR the two wrap-angle clauses, then excludes all Ender_Guardian_Entity instances. The wrap clauses do not repeat the horizontal-distance condition; nearby admission still applies. No additional alliance, alive, creative or spectator predicate is added by AreaAttack. Gameplay branches are server-only."
+      ],
+      "custom_state": "Native entity/animation state only.",
+      "eligibility": "Native nearby helper excludes self, requires 3D distance <= range+recipientWidth/2 and recipientY <= bossY+height within the inflated box. AreaAttack uses (horizontalDistance<=range AND relativeAngle in [-arc/2,arc/2]) OR the two wrap-angle clauses, then excludes all Ender_Guardian_Entity instances. The wrap clauses do not repeat the horizontal-distance condition; nearby admission still applies. No additional alliance, alive, creative or spectator predicate is added by AreaAttack. Gameplay branches are server-only.",
+      "damage_path": {
+        "source_mod_custom_damage_type": false,
+        "types": [
+          "minecraft:mob_attack"
+        ],
+        "native_defenses": "Native hurt pipeline retains immunity, armor, shields, cooldown, resistance, enchantments and events; requested amount is not measured HP loss."
+      },
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "aiStep"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "AreaAttack"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "getEntityLivingBaseNearby",
+            "getEntitiesNearby",
+            "lambda$getEntitiesNearby$0"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "entry": "com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "methods": [
+            "disableShield"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "launch"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:guardian-offense:swing"
+      ],
+      "primary_test_source": "cataclysm:ender_guardian",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k3b-cataclysm-guardian-offense-complete",
+      "scalability_note": "Numerical observations only. Stage eligibility, policy, balance, ownership integration and runtime hooks are not decided.",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "launch_horizontal_factor"
+          ],
+          "native_value": 4.0,
+          "native_formula": "push(4*dx/max(dx²+dz²,0.001),0.2,4*dz/max(dx²+dz²,0.001)); no LivingEntity.knockback call",
+          "units": "native horizontal dx/distanceSquared coefficient"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "launch_y"
+          ],
+          "native_value": 0.2,
+          "native_formula": "push(4*dx/max(dx²+dz²,0.001),0.2,4*dz/max(dx²+dz²,0.001)); no LivingEntity.knockback call",
+          "units": "blocks/tick added velocity"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "damage_multiplier"
+          ],
+          "native_value": 1.0,
+          "native_formula": "A*damage_multiplier + min(A*damage_multiplier, victimMaxHP*max_health_fraction); A=current native configured ATTACK_DAMAGE",
+          "units": "dimensionless"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "max_health_fraction"
+          ],
+          "native_value": 0.0,
+          "native_formula": "A*damage_multiplier + min(A*damage_multiplier, victimMaxHP*max_health_fraction); A=current native configured ATTACK_DAMAGE",
+          "units": "fraction of recipient max HP"
+        },
+        {
+          "primitive": "SHIELD_DISABLE",
+          "parameters": [
+            "duration_ticks"
+          ],
+          "native_value": 40,
+          "native_formula": "native used-item cooldown(duration_ticks), stopUsingItem",
+          "units": "ticks"
+        },
+        {
+          "primitive": "STUN",
+          "parameters": [
+            "duration_ticks"
+          ],
+          "native_value": 40,
+          "native_formula": "addEffect(cataclysm:stun, duration_ticks, amplifier=0)",
+          "units": "ticks"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:guardian_uppercut",
+      "mod_key": "cataclysm",
+      "display_name": "Guardian uppercut lift/STUN and self lunge",
+      "registry_ids": [
+        "cataclysm:ender_guardian"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Normal/rage uppercut tick27 calls AreaAttack(range6.25,height7,arc60,multiplier1.4,UppercutHpdamage,shield150,STUN60,lift0.5). Goal tick26 lunges the boss separately. Both goals also deliver the separately recorded bullet pattern at tick54.",
+      "human_summary": "Normal/rage uppercut tick27 calls AreaAttack(range6.25,height7,arc60,multiplier1.4,UppercutHpdamage,shield150,STUN60,lift0.5). Goal tick26 lunges the boss separately. Both goals also deliver the separately recorded bullet pattern at tick54.",
+      "closest_vanilla_equivalent": "Native mobAttack; used-item shield cooldown where supplied",
+      "vanilla_similarities": "Uses the named native API/holder where present.",
+      "vanilla_differences": "Directional parameterized attack, capped max-HP addition where nonzero; control contributions retain their own predicates. After hurt: a blocking Player with positive shield ticks receives native use-item cooldown/stop-use; positive lift adds Y independently of hurt; STUN requires hurt=true and positive duration; requested launch ignores hurt and status success. One-argument addEffect has no explicit effect source. Reuses R2k2b STUN/admission/removal rather than defining a new status.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "formula": "A*damage_multiplier + min(A*damage_multiplier, victimMaxHP*max_health_fraction); A=current native configured ATTACK_DAMAGE",
+          "numerical_parameters": {
+            "damage_multiplier": 1.4,
+            "max_health_fraction": 0.1
+          },
+          "parameter_units": {
+            "damage_multiplier": "dimensionless",
+            "max_health_fraction": "fraction of recipient max HP"
+          },
+          "binary_parameters": [
+            "Native mobAttack source: direct=causing=Guardian."
+          ],
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "SHIELD_DISABLE",
+          "formula": "native used-item cooldown(duration_ticks), stopUsingItem",
+          "numerical_parameters": {
+            "duration_ticks": 150
+          },
+          "parameter_units": {
+            "duration_ticks": "ticks"
+          },
+          "binary_parameters": [
+            "isDamageSourceBlocked, Player, positive duration; disableShield also requires isBlocking"
+          ],
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED"
+        },
+        {
+          "primitive": "STUN",
+          "formula": "addEffect(cataclysm:stun, duration_ticks, amplifier=0)",
+          "numerical_parameters": {
+            "duration_ticks": 60
+          },
+          "parameter_units": {
+            "duration_ticks": "ticks"
+          },
+          "binary_parameters": [
+            "hurt=true; native addEffect admission/stacking/lifecycle",
+            "no explicit effect source"
+          ],
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "formula": "recipient velocity += (0,recipient_lift_y,0), independent of hurt",
+          "numerical_parameters": {
+            "recipient_lift_y": 0.5
+          },
+          "parameter_units": {
+            "recipient_lift_y": "blocks/tick added velocity"
+          },
+          "binary_parameters": [
+            "Native push/setDeltaMovement; no local knockback-resistance factor"
+          ],
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "formula": "boss push along yaw at tick26: 0.3*clamp(targetDistance,0,7); targetless branch push2; outside animation ticks26..32 boss horizontal velocity is zeroed",
+          "numerical_parameters": {
+            "self_lunge_distance_factor": 0.3,
+            "self_lunge_targetless_speed": 2.0
+          },
+          "parameter_units": {
+            "self_lunge_distance_factor": "native distance-to-velocity coefficient",
+            "self_lunge_targetless_speed": "blocks/tick added horizontal velocity"
+          },
+          "binary_parameters": [
+            "self movement is separate from recipient lift",
+            "native target-distance clamp0..7 and exact tick26"
+          ],
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {
+        "native_attack_base": 16.0,
+        "installed_attack_config_multiplier": 1.0,
+        "range": 6.25,
+        "height": 7.0,
+        "arc_degrees": 60.0,
+        "hit_tick": 27,
+        "hp_config_field": "EnderGuardian.UppercutHpdamage"
+      },
+      "binary_parameters": [
+        "Native nearby helper excludes self, requires 3D distance <= range+recipientWidth/2 and recipientY <= bossY+height within the inflated box. AreaAttack uses (horizontalDistance<=range AND relativeAngle in [-arc/2,arc/2]) OR the two wrap-angle clauses, then excludes all Ender_Guardian_Entity instances. The wrap clauses do not repeat the horizontal-distance condition; nearby admission still applies. No additional alliance, alive, creative or spectator predicate is added by AreaAttack. Gameplay branches are server-only."
+      ],
+      "custom_state": "Native entity/animation state only.",
+      "eligibility": "Native nearby helper excludes self, requires 3D distance <= range+recipientWidth/2 and recipientY <= bossY+height within the inflated box. AreaAttack uses (horizontalDistance<=range AND relativeAngle in [-arc/2,arc/2]) OR the two wrap-angle clauses, then excludes all Ender_Guardian_Entity instances. The wrap clauses do not repeat the horizontal-distance condition; nearby admission still applies. No additional alliance, alive, creative or spectator predicate is added by AreaAttack. Gameplay branches are server-only.",
+      "damage_path": {
+        "source_mod_custom_damage_type": false,
+        "types": [
+          "minecraft:mob_attack"
+        ],
+        "native_defenses": "Native hurt pipeline retains immunity, armor, shields, cooldown, resistance, enchantments and events; requested amount is not measured HP loss."
+      },
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "aiStep"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "AreaAttack"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "getEntityLivingBaseNearby",
+            "getEntitiesNearby",
+            "lambda$getEntitiesNearby$0"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "entry": "com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "methods": [
+            "disableShield"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$UppercutAndBulletGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$UppercutAndBulletGoal.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$RageUppercut",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$RageUppercut.class",
+          "methods": [
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:guardian-offense:uppercut"
+      ],
+      "primary_test_source": "cataclysm:ender_guardian",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k3b-cataclysm-guardian-offense-complete",
+      "scalability_note": "Numerical observations only. Stage eligibility, policy, balance, ownership integration and runtime hooks are not decided.",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "recipient_lift_y"
+          ],
+          "native_value": 0.5,
+          "native_formula": "recipient velocity += (0,recipient_lift_y,0), independent of hurt",
+          "units": "blocks/tick added velocity"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "self_lunge_distance_factor"
+          ],
+          "native_value": 0.3,
+          "native_formula": "boss push along yaw at tick26: 0.3*clamp(targetDistance,0,7); targetless branch push2; outside animation ticks26..32 boss horizontal velocity is zeroed",
+          "units": "native distance-to-velocity coefficient"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "self_lunge_targetless_speed"
+          ],
+          "native_value": 2.0,
+          "native_formula": "boss push along yaw at tick26: 0.3*clamp(targetDistance,0,7); targetless branch push2; outside animation ticks26..32 boss horizontal velocity is zeroed",
+          "units": "blocks/tick added horizontal velocity"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "damage_multiplier"
+          ],
+          "native_value": 1.4,
+          "native_formula": "A*damage_multiplier + min(A*damage_multiplier, victimMaxHP*max_health_fraction); A=current native configured ATTACK_DAMAGE",
+          "units": "dimensionless"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "max_health_fraction"
+          ],
+          "native_value": 0.1,
+          "native_formula": "A*damage_multiplier + min(A*damage_multiplier, victimMaxHP*max_health_fraction); A=current native configured ATTACK_DAMAGE",
+          "units": "fraction of recipient max HP"
+        },
+        {
+          "primitive": "SHIELD_DISABLE",
+          "parameters": [
+            "duration_ticks"
+          ],
+          "native_value": 150,
+          "native_formula": "native used-item cooldown(duration_ticks), stopUsingItem",
+          "units": "ticks"
+        },
+        {
+          "primitive": "STUN",
+          "parameters": [
+            "duration_ticks"
+          ],
+          "native_value": 60,
+          "native_formula": "addEffect(cataclysm:stun, duration_ticks, amplifier=0)",
+          "units": "ticks"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:guardian_void_runes",
+      "mod_key": "cataclysm",
+      "display_name": "Guardian owned delayed/repeating Void Rune damage",
+      "registry_ids": [
+        "cataclysm:ender_guardian",
+        "cataclysm:void_rune"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "spawnFangs creates Void_Rune_Entity, not EvokerFangs, only after finding sturdy UP support in its downward search; collision-top offset determines Y. Configured damage9 and casterGuardian are stored at creation. Server warmup predecrements; at -11..-29 inclusive it scans rune box inflated(0.2,0,0.2), and damage additionally requires absolute entity tickCount%5==0, alive/non-invulnerable recipient and recipient!=caster. With caster require both ally checks false and request indirectMagic(rune,caster); without resolvable caster request magic instead. Hurt return ignored, no invulnerableTime reset/enchantment callback. Native hurt cooldown still applies. lifeTicks starts34 and predecrements only once warmup<0, discarding below0. Stomp/rage/landing have distinct native patterns.",
+      "human_summary": "spawnFangs creates Void_Rune_Entity, not EvokerFangs, only after finding sturdy UP support in its downward search; collision-top offset determines Y. Configured damage9 and casterGuardian are stored at creation. Server warmup predecrements; at -11..-29 inclusive it scans rune box inflated(0.2,0,0.2), and damage additionally requires absolute entity tickCount%5==0, alive/non-invulnerable recipient and recipient!=caster. With caster require both ally checks false and request indirectMagic(rune,caster); without resolvable caster request magic instead. Hurt return ignored, no invulnerableTime reset/enchantment callback. Native hurt cooldown still applies. lifeTicks starts34 and predecrements only once warmup<0, discarding below0. Stomp/rage/landing have distinct native patterns.",
+      "closest_vanilla_equivalent": "Native Evoker Fangs delayed magic/indirect_magic damage",
+      "vanilla_similarities": "Uses the named native API/holder where present.",
+      "vanilla_differences": "Repeated scan and tick-modulo opportunities, config amount9, bidirectional ally exclusion, different warmup/lifetime; not vanilla fangs or a new custom DamageType.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "formula": "stored config damage -> indirectMagic(rune,caster), or magic if caster unresolved",
+          "numerical_parameters": {
+            "amount": 9.0
+          },
+          "parameter_units": {
+            "amount": "HP request"
+          },
+          "binary_parameters": [
+            "native hurt admission; no cooldown reset"
+          ],
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED"
+        },
+        {
+          "primitive": "RUNE_DELIVERY",
+          "formula": "native layout warmup; window -30<warmup<-10; damage opportunities tickCount%5==0",
+          "numerical_parameters": {
+            "cadence_ticks": 5,
+            "initial_life_ticks": 34,
+            "horizontal_box_inflate": 0.2
+          },
+          "parameter_units": {
+            "cadence_ticks": "absolute entity tick modulo",
+            "initial_life_ticks": "native counter, remove when decremented below0",
+            "horizontal_box_inflate": "blocks"
+          },
+          "binary_parameters": [
+            "downward sturdy-support admission; native collision top",
+            "native numerical window gates -30<warmup<-10 (19 counter values), not an independent duration field",
+            "separate source/target ally predicates",
+            "cadence is opportunities, not guaranteed damage/DPS"
+          ],
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {
+        "damage_config_field": "EnderGuardian.VoidRuneDamage",
+        "stomp_hit_ticks": {
+          "normal": [
+            32
+          ],
+          "rage": [
+            32,
+            53,
+            62
+          ]
+        },
+        "stomp_rings": [
+          {
+            "count": 6,
+            "radius": 2.5,
+            "warmup": 3
+          },
+          {
+            "count": 11,
+            "radius": 3.5,
+            "warmup": 10
+          },
+          {
+            "count": 14,
+            "radius": 4.5,
+            "warmup": 15
+          }
+        ],
+        "stomp_random_lines": [
+          {
+            "angles_from_target": [
+              -0.4,
+              0.0,
+              0.4
+            ],
+            "length": 13,
+            "step": 1.25,
+            "warmup": "int(0.75*l)"
+          },
+          {
+            "angles_from_target": [
+              -0.1,
+              0.1
+            ],
+            "length": 13,
+            "step": 1.25,
+            "warmup": "int(0.25*l)"
+          },
+          {
+            "angles_from_target": [
+              0.0
+            ],
+            "length": 13,
+            "step": 1.25,
+            "warmup": "int(0.5*l)"
+          }
+        ],
+        "rage_finisher_lines": {
+          "angles_from_target": [
+            -0.9,
+            -0.6,
+            -0.3,
+            0.0,
+            0.3,
+            0.6,
+            0.9
+          ],
+          "length": 10,
+          "step": 1.25,
+          "warmup": "int(0.75*l)"
+        },
+        "landing_random_radials": [
+          {
+            "rays": 8,
+            "per_ray": 8,
+            "radius": "1.25*1.15*(k+1)",
+            "warmup": "int(0.5*(k+1))"
+          },
+          {
+            "rays": 10,
+            "per_ray": 8,
+            "radius": "1.25*1.15*(k+1)",
+            "warmup": "int(0.75*(k+1))"
+          },
+          {
+            "rays": 12,
+            "per_ray": 8,
+            "radius": "1.25*1.15*(k+1)",
+            "warmup": "int(1.0*(k+1))"
+          }
+        ]
+      },
+      "binary_parameters": [
+        "Server payload; target needed by StompAttack/RageAttack, not StrikeRune. Caster resolve/recipient gates stay native."
+      ],
+      "custom_state": "Synced damage/activate; saved Warmup, Owner UUID, damage. Caster lazily resolves UUID in server level; lifeTicks/sentSpikeEvent are not saved.",
+      "eligibility": "Server payload; target needed by StompAttack/RageAttack, not StrikeRune. Caster resolve/recipient gates stay native.",
+      "damage_path": {
+        "source_mod_custom_damage_type": false,
+        "types": [
+          "minecraft:indirect_magic",
+          "minecraft:magic"
+        ],
+        "native_defenses": "Native hurt pipeline retains immunity, armor, shields, cooldown, resistance, enchantments and events; requested amount is not measured HP loss."
+      },
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "aiStep",
+            "StompAttack",
+            "RageAttack",
+            "StrikeRune",
+            "spawnFangs",
+            "isAlliedTo"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/projectile/Void_Rune_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Void_Rune_Entity.class",
+          "methods": [
+            "<init>",
+            "getDamage",
+            "setDamage",
+            "setCaster",
+            "getCaster",
+            "tick",
+            "damage",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:guardian-offense:landing_runes",
+        "cataclysm:guardian-offense:rage_runes",
+        "cataclysm:guardian-offense:stomp_runes"
+      ],
+      "primary_test_source": "cataclysm:ender_guardian -> cataclysm:void_rune",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k3b-cataclysm-guardian-offense-complete",
+      "scalability_note": "Numerical observations only. Stage eligibility, policy, balance, ownership integration and runtime hooks are not decided.",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "amount"
+          ],
+          "native_value": 9.0,
+          "native_formula": "stored config damage -> indirectMagic(rune,caster), or magic if caster unresolved",
+          "units": "HP request"
+        },
+        {
+          "primitive": "RUNE_DELIVERY",
+          "parameters": [
+            "cadence_ticks"
+          ],
+          "native_value": 5,
+          "native_formula": "native layout warmup; window -30<warmup<-10; damage opportunities tickCount%5==0",
+          "units": "absolute entity tick modulo"
+        },
+        {
+          "primitive": "RUNE_DELIVERY",
+          "parameters": [
+            "horizontal_box_inflate"
+          ],
+          "native_value": 0.2,
+          "native_formula": "native layout warmup; window -30<warmup<-10; damage opportunities tickCount%5==0",
+          "units": "blocks"
+        },
+        {
+          "primitive": "RUNE_DELIVERY",
+          "parameters": [
+            "initial_life_ticks"
+          ],
+          "native_value": 34,
+          "native_formula": "native layout warmup; window -30<warmup<-10; damage opportunities tickCount%5==0",
+          "units": "native counter, remove when decremented below0"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:guardian_void_vortex",
+      "mod_key": "cataclysm",
+      "display_name": "Guardian vortex pull and terminal native explosion",
+      "registry_ids": [
+        "cataclysm:ender_guardian",
+        "cataclysm:void_vortex"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "BLACKHOLE goal tick26 with target searches sturdy support under target X/Z between min(targetY,bossY) and max+1; on support creates Guardian-owned Void_Vortex lifespan300. Native tick, without local side guard, pulls while min(tickCount,currentLifespan)>=16 in AABB X/Z ±3,Y[0,15]. Exclude vortex allies, current cached owner/owner allies and Player invulnerable ability; velocity += (0,-2,0)-normalize(recipientPos-vortexPos)*0.075. Lifespan decrements each tick; <=0 invokes Level.explode(owner,power2,fire=false,NONE) then discards. No ally predicate surrounds the terminal native explosion. Fresh owner is Guardian: native direct/causing explosion actors are Guardian, not vortex; literal player_explosion is selected despite nonplayer owner. Saved CasterId is runtime integer, not UUID. Server tick directly reads owner and does not call getOwner; after ordinary load it may remain null, changing pull exclusions and explosion actors/type to ownerless explosion.",
+      "human_summary": "BLACKHOLE goal tick26 with target searches sturdy support under target X/Z between min(targetY,bossY) and max+1; on support creates Guardian-owned Void_Vortex lifespan300. Native tick, without local side guard, pulls while min(tickCount,currentLifespan)>=16 in AABB X/Z ±3,Y[0,15]. Exclude vortex allies, current cached owner/owner allies and Player invulnerable ability; velocity += (0,-2,0)-normalize(recipientPos-vortexPos)*0.075. Lifespan decrements each tick; <=0 invokes Level.explode(owner,power2,fire=false,NONE) then discards. No ally predicate surrounds the terminal native explosion. Fresh owner is Guardian: native direct/causing explosion actors are Guardian, not vortex; literal player_explosion is selected despite nonplayer owner. Saved CasterId is runtime integer, not UUID. Server tick directly reads owner and does not call getOwner; after ordinary load it may remain null, changing pull exclusions and explosion actors/type to ownerless explosion.",
+      "closest_vanilla_equivalent": "Custom full-vector pull plus ordinary native explosion",
+      "vanilla_similarities": "Uses the named native API/holder where present.",
+      "vanilla_differences": "Direct downward velocity contribution and independent native explosion; native reload owner absence is preserved, not repaired.",
+      "components": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "formula": "v+=(0,downward_y,0)-normalize(recipientPos-vortexPos)*pull_factor",
+          "numerical_parameters": {
+            "downward_y": -2.0,
+            "pull_factor": 0.075
+          },
+          "parameter_units": {
+            "downward_y": "blocks/tick velocity increment",
+            "pull_factor": "blocks/tick velocity increment"
+          },
+          "binary_parameters": [
+            "cached owner/ally/player filters; min(tickCount,lifespan)>=16"
+          ],
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "AREA_DELIVERY",
+          "formula": "AABB from vortex(-horizontal_extent,0,-horizontal_extent) to (+horizontal_extent,height,+horizontal_extent)",
+          "numerical_parameters": {
+            "horizontal_extent": 3.0,
+            "height": 15.0,
+            "lifespan_ticks": 300
+          },
+          "parameter_units": {
+            "horizontal_extent": "blocks",
+            "height": "blocks",
+            "lifespan_ticks": "entity ticks"
+          },
+          "binary_parameters": [
+            "native support admission; no local side guard"
+          ],
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "NATIVE_EXPLOSION",
+          "formula": "Level.explode(cachedOwner,power,false,NONE); native radius2 damage: ((I²+I)/2)*28+1, I=(1-distance/4)*exposure",
+          "numerical_parameters": {
+            "power": 2.0
+          },
+          "parameter_units": {
+            "power": "native explosion radius"
+          },
+          "binary_parameters": [
+            "native Start cancellation/Detonate target list/exposure/hurt",
+            "NONE block interaction and no fire",
+            "pull ally filters are not explosion filters"
+          ],
+          "vanilla_relation": "VANILLA_DIRECT"
+        }
+      ],
+      "numerical_parameters": {
+        "spawn_tick": 26,
+        "active_threshold": 16,
+        "zero_lifespan_first_tick_fallback": 60,
+        "synced_default_lifespan": 300
+      },
+      "binary_parameters": [
+        "Native support placement, pull recipient filters and separate explosion admission. Followup rocket goal does not require successful vortex creation."
+      ],
+      "custom_state": "Synced Lifespan/CasterId; saved only those fields. Fresh owner cached, server getOwner resolves runtime ID only if explicitly invoked; tick does not invoke it.",
+      "eligibility": "Native support placement, pull recipient filters and separate explosion admission. Followup rocket goal does not require successful vortex creation.",
+      "damage_path": {
+        "source_mod_custom_damage_type": false,
+        "types": [
+          "minecraft:player_explosion",
+          "minecraft:explosion"
+        ],
+        "native_defenses": "Native hurt pipeline retains immunity, armor, shields, cooldown, resistance, enchantments and events; requested amount is not measured HP loss."
+      },
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "spawnVortex"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$VoidVortexGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$VoidVortexGoal.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/effect/Void_Vortex_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/effect/Void_Vortex_Entity.class",
+          "methods": [
+            "<init>",
+            "defineSynchedData",
+            "tick",
+            "getLifespan",
+            "setLifespan",
+            "getCasterID",
+            "setCasterID",
+            "getOwner",
+            "setOwner",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:guardian-offense:vortex"
+      ],
+      "primary_test_source": "cataclysm:ender_guardian -> cataclysm:void_vortex",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k3b-cataclysm-guardian-offense-complete",
+      "scalability_note": "Numerical observations only. Stage eligibility, policy, balance, ownership integration and runtime hooks are not decided.",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "AREA_DELIVERY",
+          "parameters": [
+            "height"
+          ],
+          "native_value": 15.0,
+          "native_formula": "AABB from vortex(-horizontal_extent,0,-horizontal_extent) to (+horizontal_extent,height,+horizontal_extent)",
+          "units": "blocks"
+        },
+        {
+          "primitive": "AREA_DELIVERY",
+          "parameters": [
+            "horizontal_extent"
+          ],
+          "native_value": 3.0,
+          "native_formula": "AABB from vortex(-horizontal_extent,0,-horizontal_extent) to (+horizontal_extent,height,+horizontal_extent)",
+          "units": "blocks"
+        },
+        {
+          "primitive": "AREA_DELIVERY",
+          "parameters": [
+            "lifespan_ticks"
+          ],
+          "native_value": 300,
+          "native_formula": "AABB from vortex(-horizontal_extent,0,-horizontal_extent) to (+horizontal_extent,height,+horizontal_extent)",
+          "units": "entity ticks"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "downward_y"
+          ],
+          "native_value": -2.0,
+          "native_formula": "v+=(0,downward_y,0)-normalize(recipientPos-vortexPos)*pull_factor",
+          "units": "blocks/tick velocity increment"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "pull_factor"
+          ],
+          "native_value": 0.075,
+          "native_formula": "v+=(0,downward_y,0)-normalize(recipientPos-vortexPos)*pull_factor",
+          "units": "blocks/tick velocity increment"
+        },
+        {
+          "primitive": "NATIVE_EXPLOSION",
+          "parameters": [
+            "power"
+          ],
+          "native_value": 2.0,
+          "native_formula": "Level.explode(cachedOwner,power,false,NONE); native radius2 damage: ((I²+I)/2)*28+1, I=(1-distance/4)*exposure",
+          "units": "native explosion radius"
+        }
+      ]
+    }
+  ],
+  "paths": [
+    {
+      "id": "cataclysm:guardian-offense:airstrike_payload",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "BOSS_ATTACK",
+        "AOE"
+      ],
+      "effect_ids": [
+        "cataclysm:guardian_airstrike_landing"
+      ],
+      "primary_source": "cataclysm:ender_guardian",
+      "native_path": "Guardian.aiStep landing tick3 -> MassDestruction and StrikeRune",
+      "setup": "Native landing animation; rune creation does not depend on target hurt.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "aiStep",
+            "MassDestruction",
+            "launch",
+            "isAlliedTo"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "entry": "com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "methods": [
+            "disableShield"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:guardian-offense:alliance",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:guardian_alliance"
+      ],
+      "primary_source": "cataclysm:ender_guardian",
+      "native_path": "Concrete Guardian.isAlliedTo and distinct offense readers",
+      "setup": "Self/superclass team and null-team tag cases; do not impose a new universal ally filter.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "isAlliedTo",
+            "GravityPull",
+            "MassDestruction"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/projectile/Void_Rune_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Void_Rune_Entity.class",
+          "methods": [
+            "damage"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/effect/Void_Vortex_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/effect/Void_Vortex_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "AreaAttack"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:data:data/cataclysm/tags/entity_type/team_ender_guardian.json",
+          "entry": "data/cataclysm/tags/entity_type/team_ender_guardian.json",
+          "methods": []
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:guardian-offense:body_repel",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:guardian_body_repulsion"
+      ],
+      "primary_source": "cataclysm:ender_guardian",
+      "native_path": "Guardian.tick -> inherited Animation_Monsters.repelEntities",
+      "setup": "Continuous native nearby pickable recipient, including allied case.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-admission.json",
+          "witness_id": "cataclysm:guardian-admission:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "getAngleBetweenEntities",
+            "repelEntities"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "getEntityLivingBaseNearby",
+            "getEntitiesNearby",
+            "lambda$getEntitiesNearby$0"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "canBePushedByEntity"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:guardian-offense:burst",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "BOSS_ATTACK",
+        "AOE"
+      ],
+      "effect_ids": [
+        "cataclysm:guardian_burst"
+      ],
+      "primary_source": "cataclysm:ender_guardian",
+      "native_path": "Guardian.aiStep -> AreaAttack -> launch",
+      "setup": "Native burst animation; presentation is not a second damage source.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "aiStep"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "AreaAttack"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "getEntityLivingBaseNearby",
+            "getEntitiesNearby",
+            "lambda$getEntitiesNearby$0"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "entry": "com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "methods": [
+            "disableShield"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "launch"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:guardian-offense:death_respawner",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:guardian_defeat_respawner"
+      ],
+      "primary_source": "cataclysm:ender_guardian",
+      "native_path": "Admitted shared death -> Guardian.AfterDefeatBoss/Respawner -> native block use/tick/spawnMyBoss",
+      "setup": "Native home-equipped death and required VOID_EYE interaction; preserve successful spawn/cleanup and fresh used=true.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "onDeathAIUpdate",
+            "getDeathAnimation",
+            "<clinit>",
+            "AfterDefeatBoss",
+            "Respawner"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "die",
+            "onDeathUpdate"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "onDeathAIUpdate"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:blockentities/Boss_Respawn_Spawner_Block_Entity",
+          "entry": "com/github/L_Ender/cataclysm/blockentities/Boss_Respawn_Spawner_Block_Entity.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "anyPlayerInRange",
+            "spawnMyBoss",
+            "getRange",
+            "setEntityId",
+            "setTheItem",
+            "onHit",
+            "loadAdditional",
+            "saveAdditional"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:blocks/Boss_Respawn_Spawner_Block",
+          "entry": "com/github/L_Ender/cataclysm/blocks/Boss_Respawn_Spawner_Block.class",
+          "methods": [
+            "<init>",
+            "getTicker",
+            "useItemOn"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:guardian-offense:gravity_punch",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "BOSS_ATTACK",
+        "AOE"
+      ],
+      "effect_ids": [
+        "cataclysm:guardian_gravity_punch"
+      ],
+      "primary_source": "cataclysm:ender_guardian",
+      "native_path": "Guardian.aiStep -> GravityPull before AreaAttack",
+      "setup": "Native strong left/right animation; motion retains independent ally/player predicates.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "aiStep"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "AreaAttack"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "getEntityLivingBaseNearby",
+            "getEntitiesNearby",
+            "lambda$getEntitiesNearby$0"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "entry": "com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "methods": [
+            "disableShield"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "GravityPull"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:guardian-offense:hug_impact",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "BOSS_ATTACK",
+        "AOE"
+      ],
+      "effect_ids": [
+        "cataclysm:guardian_hug_impact"
+      ],
+      "primary_source": "cataclysm:ender_guardian",
+      "native_path": "Guardian.aiStep -> AreaAttack after native Hug teleport sequence",
+      "setup": "Reuses locked Hug prediction/teleport; impact follows animation even if teleport failed.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "aiStep"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "AreaAttack"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "getEntityLivingBaseNearby",
+            "getEntitiesNearby",
+            "lambda$getEntitiesNearby$0"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "entry": "com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "methods": [
+            "disableShield"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:guardian-offense:landing_runes",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "BOSS_ATTACK",
+        "SUMMONED_ATTACK",
+        "AOE"
+      ],
+      "effect_ids": [
+        "cataclysm:guardian_void_runes"
+      ],
+      "primary_source": "cataclysm:ender_guardian -> cataclysm:void_rune",
+      "native_path": "Guardian.aiStep -> StrikeRune -> spawnFangs -> Void_Rune_Entity.tick/damage",
+      "setup": "Airstrike landing3;random8/10/12 rays x8 gives64/80/96 attempts, supported positions only.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "aiStep",
+            "StompAttack",
+            "RageAttack",
+            "StrikeRune",
+            "spawnFangs",
+            "isAlliedTo"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/projectile/Void_Rune_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Void_Rune_Entity.class",
+          "methods": [
+            "<init>",
+            "getDamage",
+            "setDamage",
+            "setCaster",
+            "getCaster",
+            "tick",
+            "damage",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:guardian-offense:mass_phase_payload",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "BOSS_ATTACK",
+        "AOE"
+      ],
+      "effect_ids": [
+        "cataclysm:guardian_mass_destruction"
+      ],
+      "primary_source": "cataclysm:ender_guardian",
+      "native_path": "Guardian.aiStep tick39 -> MassDestruction",
+      "setup": "Reuses protected phase admission; native hurt and launch once per scanned recipient.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "aiStep",
+            "MassDestruction",
+            "launch",
+            "isAlliedTo"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "entry": "com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "methods": [
+            "disableShield"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:guardian-offense:mass_terrain",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "BOSS_ATTACK",
+        "ENVIRONMENT"
+      ],
+      "effect_ids": [
+        "cataclysm:guardian_mass_terrain"
+      ],
+      "primary_source": "cataclysm:ender_guardian",
+      "native_path": "Guardian.aiStep mass tick39 -> grief admission -> BlockBreaking -> native destroy hooks",
+      "setup": "Reuse mass-phase prerequisite; only native eligible tagged blocks.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "aiStep",
+            "BlockBreaking"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:destroy-tag",
+          "entry": "data/cataclysm/tags/block/ender_guardian_can_destroy.json",
+          "methods": []
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:guardian-offense:ordinary_punch",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "BOSS_ATTACK",
+        "AOE"
+      ],
+      "effect_ids": [
+        "cataclysm:guardian_punches"
+      ],
+      "primary_source": "cataclysm:ender_guardian",
+      "native_path": "Guardian.aiStep -> AreaAttack",
+      "setup": "Native LEFT_ATTACK/RIGHT_ATTACK; one exact hit tick.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "aiStep"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "AreaAttack"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "getEntityLivingBaseNearby",
+            "getEntitiesNearby",
+            "lambda$getEntitiesNearby$0"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "entry": "com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "methods": [
+            "disableShield"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:guardian-offense:rage_finisher",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "BOSS_ATTACK",
+        "AOE"
+      ],
+      "effect_ids": [
+        "cataclysm:guardian_rage_finisher"
+      ],
+      "primary_source": "cataclysm:ender_guardian",
+      "native_path": "Guardian.aiStep -> independent RageAttack and AreaAttack",
+      "setup": "Native rage animation tick84; keep separate rune and strike requests.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "aiStep"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "AreaAttack"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "getEntityLivingBaseNearby",
+            "getEntitiesNearby",
+            "lambda$getEntitiesNearby$0"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "entry": "com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "methods": [
+            "disableShield"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:guardian-offense:rage_runes",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "BOSS_ATTACK",
+        "SUMMONED_ATTACK",
+        "AOE"
+      ],
+      "effect_ids": [
+        "cataclysm:guardian_void_runes"
+      ],
+      "primary_source": "cataclysm:ender_guardian -> cataclysm:void_rune",
+      "native_path": "Guardian.aiStep -> RageAttack -> spawnFangs -> Void_Rune_Entity.tick/damage",
+      "setup": "Rage uppercut84;70 native line attempts, supported positions only.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "aiStep",
+            "StompAttack",
+            "RageAttack",
+            "StrikeRune",
+            "spawnFangs",
+            "isAlliedTo"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/projectile/Void_Rune_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Void_Rune_Entity.class",
+          "methods": [
+            "<init>",
+            "getDamage",
+            "setDamage",
+            "setCaster",
+            "getCaster",
+            "tick",
+            "damage",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:guardian-offense:rocket",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "BOSS_ATTACK",
+        "AOE"
+      ],
+      "effect_ids": [
+        "cataclysm:guardian_rocket_punch"
+      ],
+      "primary_source": "cataclysm:ender_guardian",
+      "native_path": "Vortex native followup -> RocketPunchGoal -> Guardian.aiStep -> AreaAttack",
+      "setup": "Native rocket animation; self dash and recipient launch are distinct.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "aiStep"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "AreaAttack"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "getEntityLivingBaseNearby",
+            "getEntitiesNearby",
+            "lambda$getEntitiesNearby$0"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "entry": "com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "methods": [
+            "disableShield"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "launch"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$RocketPunchGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$RocketPunchGoal.class",
+          "methods": [
+            "tick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:guardian-offense:selection",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "BOSS_ATTACK",
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:guardian_attack_selection"
+      ],
+      "primary_source": "cataclysm:ender_guardian",
+      "native_path": "Guardian.tick/getRandomAttack -> native goals and animation transitions",
+      "setup": "Reuse protected admission and selector branches; retain exact random draws and effect presence.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-admission.json",
+          "witness_id": "cataclysm:guardian-admission:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "tick",
+            "registerGoals"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "getRandomAttack"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$PunchAttackGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$PunchAttackGoal.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$VoidVortexGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$VoidVortexGoal.class",
+          "methods": [
+            "tick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:guardian-offense:stomp_runes",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "BOSS_ATTACK",
+        "SUMMONED_ATTACK",
+        "AOE"
+      ],
+      "effect_ids": [
+        "cataclysm:guardian_void_runes"
+      ],
+      "primary_source": "cataclysm:ender_guardian -> cataclysm:void_rune",
+      "native_path": "Guardian.aiStep -> StompAttack -> spawnFangs -> Void_Rune_Entity.tick/damage",
+      "setup": "Normal stomp32 or rage stomp32/53/62;31 ring attempts plus13/26/39 line attempts, only supported positions create.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "aiStep",
+            "StompAttack",
+            "RageAttack",
+            "StrikeRune",
+            "spawnFangs",
+            "isAlliedTo"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/projectile/Void_Rune_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Void_Rune_Entity.class",
+          "methods": [
+            "<init>",
+            "getDamage",
+            "setDamage",
+            "setCaster",
+            "getCaster",
+            "tick",
+            "damage",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:guardian-offense:swing",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "BOSS_ATTACK",
+        "AOE"
+      ],
+      "effect_ids": [
+        "cataclysm:guardian_swings"
+      ],
+      "primary_source": "cataclysm:ender_guardian",
+      "native_path": "PunchAttackGoal native followup -> Guardian.aiStep -> AreaAttack",
+      "setup": "Native successful animation transition; retain STUN/launch independence.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "aiStep"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "AreaAttack"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "getEntityLivingBaseNearby",
+            "getEntitiesNearby",
+            "lambda$getEntitiesNearby$0"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "entry": "com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "methods": [
+            "disableShield"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "launch"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:guardian-offense:uppercut",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "BOSS_ATTACK",
+        "AOE"
+      ],
+      "effect_ids": [
+        "cataclysm:guardian_uppercut"
+      ],
+      "primary_source": "cataclysm:ender_guardian",
+      "native_path": "Uppercut/Rage goals self lunge; Guardian.aiStep -> AreaAttack",
+      "setup": "Phase-specific uppercut animation, existing STUN contract.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "aiStep"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "AreaAttack"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "getEntityLivingBaseNearby",
+            "getEntitiesNearby",
+            "lambda$getEntitiesNearby$0"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "entry": "com/github/L_Ender/cataclysm/util/EntityUtil.class",
+          "methods": [
+            "disableShield"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$UppercutAndBulletGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$UppercutAndBulletGoal.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$RageUppercut",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$RageUppercut.class",
+          "methods": [
+            "tick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:guardian-offense:uppercut_bullets",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "BOSS_ATTACK",
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "cataclysm:guardian_bullet_family"
+      ],
+      "primary_source": "cataclysm:ender_guardian -> cataclysm:ender_guardian_bullet",
+      "native_path": "Uppercut/Rage goal.tick -> Bulletpattern -> Ender_Guardian_Bullet_Entity.tick/onHitEntity",
+      "setup": "Native uppercut animation tick54, actual target, legitimate move-vector impact.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "Bulletpattern"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$UppercutAndBulletGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$UppercutAndBulletGoal.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$RageUppercut",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$RageUppercut.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/projectile/Ender_Guardian_Bullet_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Ender_Guardian_Bullet_Entity.class",
+          "methods": [
+            "<init>",
+            "setUp",
+            "tick",
+            "lambda$tick$0",
+            "onHit",
+            "onHitEntity",
+            "onHitBlock",
+            "hurt",
+            "canBeCollidedWith",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:guardian-offense:vortex",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "BOSS_ATTACK",
+        "AOE",
+        "EXPLOSION"
+      ],
+      "effect_ids": [
+        "cataclysm:guardian_void_vortex"
+      ],
+      "primary_source": "cataclysm:ender_guardian -> cataclysm:void_vortex",
+      "native_path": "VoidVortexGoal -> spawnVortex -> Void_Vortex_Entity.tick -> native explosion",
+      "setup": "Actual blackhole target/support, fresh owner versus native saved/load branch kept distinct.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity.class",
+          "methods": [
+            "spawnVortex"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$VoidVortexGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Guardian_Entity$VoidVortexGoal.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/effect/Void_Vortex_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/effect/Void_Vortex_Entity.class",
+          "methods": [
+            "<init>",
+            "defineSynchedData",
+            "tick",
+            "getLifespan",
+            "setLifespan",
+            "getCasterID",
+            "setCasterID",
+            "getOwner",
+            "setOwner",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    }
+  ],
   "unresolved_native_ambiguities": null,
   "remaining_native_ambiguities": null,
-  "checkpoint": "R2k3a-cataclysm-guardian-admission-complete",
-  "scope": "Bounded Ender Guardian incoming admission, helmet/altar phase and attack teleports; full Guardian and Cataclysm remain PARTIAL.",
-  "notes_file": "cataclysm-r2k3a-guardian-admission.json",
-  "exact_next_task": "R2k3b: Ender Guardian offense/remaining family. Start aiStep -> AreaAttack and MassDestruction, attack-selection STUN/Levitation reader, Bulletpattern -> Ender_Guardian_Bullet_Entity, spawnFangs -> Void_Rune_Entity, spawnVortex -> Void_Vortex_Entity; close native payloads/source actors, return-dependent status/control, team predicates, death/respawner and remaining combat callbacks. Reuse protected R2k3a admission/helmet/teleports and R2k2 shared/status contracts. No runtime, L2, Stage or production work."
+  "checkpoint": "R2k3b-cataclysm-guardian-offense-complete",
+  "scope": "Bounded Guardian offense/owned payloads, alliance, continuous repulsion and defeat/respawner closed; protected R2k3a and R2k2 contracts reused. Whole Cataclysm remains PARTIAL.",
+  "notes_file": "cataclysm-r2k3b-guardian-offense.json",
+  "exact_next_task": "R2k4a: Netherite Monstrosity incoming admission and phase prerequisites. Start entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity hurt/isInvulnerableTo and concrete DamageCap/DpsCap/RangeLimit/NatureRegen bindings, then combat state/phase setters and native spawn/home prerequisites. Reuse R2k2 shared/status contracts and locked R2k3a/R2k3b Guardian facts. Keep offense/payloads for the following bounded batch; static only, no runtime, Stage or production work.",
+  "protected_checkpoint": "R2k3a-cataclysm-guardian-admission-complete",
+  "protected_notes_file": "cataclysm-r2k3a-guardian-admission.json"
 }
