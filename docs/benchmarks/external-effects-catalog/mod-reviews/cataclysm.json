@@ -22694,6 +22694,1520 @@
       ]
     },
     {
+      "id": "cataclysm:leviathan_altar_encounter",
+      "mod_key": "cataclysm",
+      "display_name": "Abyss altar sacrifice, clearance, native spawn/home and inventory persistence",
+      "registry_ids": [
+        "cataclysm:the_leviathan"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Altar useItemOn, without local server guard, accepts a non-shifting Player held item other than the altar block item; empty slot receives a copy count1 and noncreative inventory shrinks1. Occupied slot ejects its copy and clears instead; placement itself is not restricted to a sacrifice. Native block tick has no side gate. tick tests nonempty slot0 exact ABYSSAL_SACRIFICE, then summoningticks>121 first calls BlockBreaking(3,6,3) and EntityType.create(level), both before ServerLevel/non-null spawn guard. Clearance scans floor(float(blockPos)) + XZ[-3,3], Y[0,6]; skips the exact default AIR state reference and ALTAR_DESTROY_IMMUNE, then native destroyBlock(pos,false) with no explicit actor/grief/destroy hook/side gate here. The pinned tag protects the altar itself. Server spawn sets XZ float(pos)+.5/Y+3 and current-dimension altar GlobalPos home, then addFreshEntity. Only true add empties sacrifice, marks changed and notifies; no explicit finalizeSpawn, persistence flag, phase setter, water test or altar removal. Failed add keeps item/counter and retries on later eligible ticks. Counter updates after this branch: !summoning resets0, otherwise increments; cleared item is noticed next tick. Native inventory NBT load/save only; countdown/summoning/chomp state unsaved. Waterlogged block defaultfalse/placement tests vanilla WATER, not a summoning prerequisite; altar water state is distinct from Leviathan eye-fluid admission.",
+      "human_summary": "Altar useItemOn, without local server guard, accepts a non-shifting Player held item other than the altar block item; empty slot receives a copy count1 and noncreative inventory shrinks1. Occupied slot ejects its copy and clears instead; placement itself is not restricted to a sacrifice. Native block tick has no side gate. tick tests nonempty slot0 exact ABYSSAL_SACRIFICE, then summoningticks>121 first calls BlockBreaking(3,6,3) and EntityType.create(level), both before ServerLevel/non-null spawn guard. Clearance scans floor(float(blockPos)) + XZ[-3,3], Y[0,6]; skips the exact default AIR state reference and ALTAR_DESTROY_IMMUNE, then native destroyBlock(pos,false) with no explicit actor/grief/destroy hook/side gate here. The pinned tag protects the altar itself. Server spawn sets XZ float(pos)+.5/Y+3 and current-dimension altar GlobalPos home, then addFreshEntity. Only true add empties sacrifice, marks changed and notifies; no explicit finalizeSpawn, persistence flag, phase setter, water test or altar removal. Failed add keeps item/counter and retries on later eligible ticks. Counter updates after this branch: !summoning resets0, otherwise increments; cleared item is noticed next tick. Native inventory NBT load/save only; countdown/summoning/chomp state unsaved. Waterlogged block defaultfalse/placement tests vanilla WATER, not a summoning prerequisite; altar water state is distinct from Leviathan eye-fluid admission.",
+      "closest_vanilla_equivalent": "Native one-slot block inventory/EntityType.create/addFreshEntity/home with custom encounter gate",
+      "vanilla_similarities": "Named native admission/attribute/animation/NBT/spawn APIs and locked shared/status contracts retain their original behavior.",
+      "vanilla_differences": "Item-gated native encounter, pre-server clearance and add-success consumption; no implicit finalization or repair invented.",
+      "components": [
+        {
+          "primitive": "ENCOUNTER_GATE",
+          "formula": "slot0 exact sacrifice && summoningticks>121 -> clearance/create -> server spawn/home/add -> consume only on true",
+          "numerical_parameters": {
+            "slot": 0,
+            "max_stack_size": 1,
+            "summon_threshold_exclusive": 121,
+            "spawn_y_offset": 3,
+            "spawn_xz_offset": 0.5
+          },
+          "parameter_units": {
+            "slot": "native slot/count/ticks/blocks",
+            "max_stack_size": "native slot/count/ticks/blocks",
+            "summon_threshold_exclusive": "native slot/count/ticks/blocks",
+            "spawn_y_offset": "native slot/count/ticks/blocks",
+            "spawn_xz_offset": "native slot/count/ticks/blocks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Altar_Of_Abyss_Block.useItemOn -> AltarOfAbyss_Block_Entity.tick",
+          "vanilla_relation": "BINARY_MECHANIC"
+        },
+        {
+          "primitive": "ENCOUNTER_CLEARANCE",
+          "formula": "floor(float(pos)) plus inclusive XZ[-3,3]/Y[0,6]; exact default AIR reference/tag -> native destroyBlock(false)",
+          "numerical_parameters": {
+            "x_extent": 3,
+            "y_extent": 6,
+            "z_extent": 3
+          },
+          "parameter_units": {
+            "x_extent": "blocks",
+            "y_extent": "blocks",
+            "z_extent": "blocks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "AltarOfAbyss_Block_Entity.BlockBreaking before creation/server guard",
+          "vanilla_relation": "BINARY_MECHANIC"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native player/shift/block-item/inventory admission; slot0 exact sacrifice and original counter",
+        "Pre-server clearance exact AIR/tag and native destroy semantics",
+        "Server/non-null/add-result; no extra water/collision/finalize/grief gate invented"
+      ],
+      "custom_state": "Native Leviathan animation, MeltDown latch, raw chance integers, multipart and encounter state only.",
+      "eligibility": "Native player/shift/block-item/inventory admission; slot0 exact sacrifice and original counter; Pre-server clearance exact AIR/tag and native destroy semantics; Server/non-null/add-result; no extra water/collision/finalize/grief gate invented",
+      "source_actor": "Native Leviathan recipient/self; original incoming direct/causing entities and native altar actor remain distinct.",
+      "hurt_return_dependency": "Preserve the documented incoming hurt return/state or gated shared heal; no new outgoing callback.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+          "witness_id": "cataclysm:leviathan-admission:blockentities/AltarOfAbyss_Block_Entity",
+          "entry": "com/github/L_Ender/cataclysm/blockentities/AltarOfAbyss_Block_Entity.class",
+          "methods": [
+            "<init>",
+            "commonTick",
+            "tick",
+            "BlockBreaking",
+            "getItem",
+            "getItems",
+            "placeItem",
+            "getMaxStackSize",
+            "markUpdated",
+            "loadAdditional",
+            "saveAdditional"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+          "witness_id": "cataclysm:leviathan-admission:blocks/Altar_Of_Abyss_Block",
+          "entry": "com/github/L_Ender/cataclysm/blocks/Altar_Of_Abyss_Block.class",
+          "methods": [
+            "<init>",
+            "useItemOn",
+            "newBlockEntity",
+            "getTicker",
+            "getStateForPlacement",
+            "getFluidState",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "setHomePos",
+            "finalizeSpawn",
+            "tick",
+            "ReturnToHome"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:leviathan-admission:altar_encounter"
+      ],
+      "primary_test_source": "cataclysm:the_leviathan",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k9a-cataclysm-leviathan-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "ENCOUNTER_GATE",
+          "parameter": "slot",
+          "native_value": 0,
+          "native_formula": "slot0 exact sacrifice && summoningticks>121 -> clearance/create -> server spawn/home/add -> consume only on true",
+          "units": "native slot/count/ticks/blocks",
+          "boundary": "Altar_Of_Abyss_Block.useItemOn -> AltarOfAbyss_Block_Entity.tick"
+        },
+        {
+          "primitive": "ENCOUNTER_GATE",
+          "parameter": "max_stack_size",
+          "native_value": 1,
+          "native_formula": "slot0 exact sacrifice && summoningticks>121 -> clearance/create -> server spawn/home/add -> consume only on true",
+          "units": "native slot/count/ticks/blocks",
+          "boundary": "Altar_Of_Abyss_Block.useItemOn -> AltarOfAbyss_Block_Entity.tick"
+        },
+        {
+          "primitive": "ENCOUNTER_GATE",
+          "parameter": "summon_threshold_exclusive",
+          "native_value": 121,
+          "native_formula": "slot0 exact sacrifice && summoningticks>121 -> clearance/create -> server spawn/home/add -> consume only on true",
+          "units": "native slot/count/ticks/blocks",
+          "boundary": "Altar_Of_Abyss_Block.useItemOn -> AltarOfAbyss_Block_Entity.tick"
+        },
+        {
+          "primitive": "ENCOUNTER_GATE",
+          "parameter": "spawn_y_offset",
+          "native_value": 3,
+          "native_formula": "slot0 exact sacrifice && summoningticks>121 -> clearance/create -> server spawn/home/add -> consume only on true",
+          "units": "native slot/count/ticks/blocks",
+          "boundary": "Altar_Of_Abyss_Block.useItemOn -> AltarOfAbyss_Block_Entity.tick"
+        },
+        {
+          "primitive": "ENCOUNTER_GATE",
+          "parameter": "spawn_xz_offset",
+          "native_value": 0.5,
+          "native_formula": "slot0 exact sacrifice && summoningticks>121 -> clearance/create -> server spawn/home/add -> consume only on true",
+          "units": "native slot/count/ticks/blocks",
+          "boundary": "Altar_Of_Abyss_Block.useItemOn -> AltarOfAbyss_Block_Entity.tick"
+        },
+        {
+          "primitive": "ENCOUNTER_CLEARANCE",
+          "parameter": "x_extent",
+          "native_value": 3,
+          "native_formula": "floor(float(pos)) plus inclusive XZ[-3,3]/Y[0,6]; exact default AIR reference/tag -> native destroyBlock(false)",
+          "units": "blocks",
+          "boundary": "AltarOfAbyss_Block_Entity.BlockBreaking before creation/server guard"
+        },
+        {
+          "primitive": "ENCOUNTER_CLEARANCE",
+          "parameter": "y_extent",
+          "native_value": 6,
+          "native_formula": "floor(float(pos)) plus inclusive XZ[-3,3]/Y[0,6]; exact default AIR reference/tag -> native destroyBlock(false)",
+          "units": "blocks",
+          "boundary": "AltarOfAbyss_Block_Entity.BlockBreaking before creation/server guard"
+        },
+        {
+          "primitive": "ENCOUNTER_CLEARANCE",
+          "parameter": "z_extent",
+          "native_value": 3,
+          "native_formula": "floor(float(pos)) plus inclusive XZ[-3,3]/Y[0,6]; exact default AIR reference/tag -> native destroyBlock(false)",
+          "units": "blocks",
+          "boundary": "AltarOfAbyss_Block_Entity.BlockBreaking before creation/server guard"
+        }
+      ],
+      "scalability_note": "Research observations only. Admission/cap/bucket/range/invulnerability/environment/armor/state/encounter constants do not become outgoing Stage candidates. Shared native heal amount is an observation, not an eligibility/policy decision. No Stage direction/multiplier/cap/floor/balance/ownership/hook chosen. All offense/payloads deferred to R2k9b.",
+      "spawn_order": [
+        "SACRIFICE_SLOT0_AND_COUNTER_GT121",
+        "CLEAR_ENCOUNTER_VOLUME_BEFORE_SERVER_CHECK",
+        "CREATE_BEFORE_SERVER_CHECK",
+        "SERVER_LEVEL_AND_NON_NULL",
+        "SET_POS",
+        "SET_HOME",
+        "ADD_FRESH_ENTITY",
+        "ON_SUCCESS_CLEAR_ITEM_AND_NOTIFY",
+        "ORIGINAL_COUNTDOWN_UPDATE_OR_RESET"
+      ],
+      "spawn_sets_home": true,
+      "spawn_calls_finalize_spawn": false,
+      "spawn_sets_persistence_required": false,
+      "spawn_sets_phase_latch": false,
+      "spawn_requires_water": false,
+      "clearance_has_local_server_guard": false,
+      "clearance_requires_mobgriefing": false,
+      "clearance_has_explicit_destroy_hook": false,
+      "clearance_precedes_create": true,
+      "cleanup_requires_add_success": true,
+      "altar_removed_on_add_success": false,
+      "retry_counter_reset_on_failed_add": false,
+      "countdown_saved": false,
+      "summoning_flag_saved": false,
+      "inventory_saved": true,
+      "ticker_has_side_gate": false,
+      "activation_local_server_guard": false,
+      "placement_requires_sacrifice": false,
+      "default_block_state": {
+        "facing": "NORTH",
+        "waterlogged": false
+      },
+      "clearance_tag_evidence": {
+        "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+        "witness_id": "cataclysm:leviathan-admission:altar-clearance-tag",
+        "entry": "data/cataclysm/tags/block/altar_destroy_immune.json"
+      },
+      "alternate_encounter_source": "cataclysm:altar_of_abyss"
+    },
+    {
+      "id": "cataclysm:leviathan_combat_persistence",
+      "mod_key": "cataclysm",
+      "display_name": "The Leviathan concrete combat NBT and native home persistence",
+      "registry_ids": [
+        "cataclysm:the_leviathan"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Concrete save calls parent, then BlastChance int/MeltDown boolean/ModeChance int. Read calls parent then raw BlastChance, ModeChance, MeltDown setters unconditionally; missing keys supply0/0/false. Saved latch may differ from live half-health. Inherited GlobalPos Home persists; shared homeTicks/self_regen/request bucket remain unsaved. Concrete native animation/tick, AttackMode enum, hunting/portal/bite/melee/water-still timers, terrain arming, Can* flags, tongue UUID/ID and portal target/position are not serialized here. Fresh construction defaults plus later native tick/goals apply; no synthetic resume state or counter clamp. Read custom-name bossbar update is presentation only and adds no combat state.",
+      "human_summary": "Concrete save calls parent, then BlastChance int/MeltDown boolean/ModeChance int. Read calls parent then raw BlastChance, ModeChance, MeltDown setters unconditionally; missing keys supply0/0/false. Saved latch may differ from live half-health. Inherited GlobalPos Home persists; shared homeTicks/self_regen/request bucket remain unsaved. Concrete native animation/tick, AttackMode enum, hunting/portal/bite/melee/water-still timers, terrain arming, Can* flags, tongue UUID/ID and portal target/position are not serialized here. Fresh construction defaults plus later native tick/goals apply; no synthetic resume state or counter clamp. Read custom-name bossbar update is presentation only and adds no combat state.",
+      "closest_vanilla_equivalent": "Native CompoundTag through locked LLibrary Home contract",
+      "vanilla_similarities": "Named native admission/attribute/animation/NBT/spawn APIs and locked shared/status contracts retain their original behavior.",
+      "vanilla_differences": "Raw saved counters and phase latch; transient execution/portal/tongue state is not saved by these methods.",
+      "components": [
+        {
+          "primitive": "COMBAT_STATE_PERSISTENCE",
+          "formula": "parent Home NBT; BlastChance/ModeChance ints and MeltDown bool; original missing defaults/raw setter order",
+          "numerical_parameters": {
+            "missing_blast_chance": 0,
+            "missing_mode_chance": 0
+          },
+          "parameter_units": {
+            "missing_blast_chance": "native integer defaults",
+            "missing_mode_chance": "native integer defaults"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Leviathan.addAdditionalSaveData/readAdditionalSaveData",
+          "vanilla_relation": "BINARY_MECHANIC"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native NBT types/defaults/raw setters and inherited Home",
+        "Native execution state not promoted to persistent progression"
+      ],
+      "custom_state": "Native Leviathan animation, MeltDown latch, raw chance integers, multipart and encounter state only.",
+      "eligibility": "Native NBT types/defaults/raw setters and inherited Home; Native execution state not promoted to persistent progression",
+      "source_actor": "Native Leviathan recipient/self; original incoming direct/causing entities and native altar actor remain distinct.",
+      "hurt_return_dependency": "Preserve the documented incoming hurt return/state or gated shared heal; no new outgoing callback.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+          "witness_id": "cataclysm:leviathan-admission:entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity.class",
+          "methods": [
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "<init>",
+            "defineSynchedData"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:leviathan-admission:combat_persistence"
+      ],
+      "primary_test_source": "cataclysm:the_leviathan",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k9a-cataclysm-leviathan-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "COMBAT_STATE_PERSISTENCE",
+          "parameter": "missing_blast_chance",
+          "native_value": 0,
+          "native_formula": "parent Home NBT; BlastChance/ModeChance ints and MeltDown bool; original missing defaults/raw setter order",
+          "units": "native integer defaults",
+          "boundary": "Leviathan.addAdditionalSaveData/readAdditionalSaveData"
+        },
+        {
+          "primitive": "COMBAT_STATE_PERSISTENCE",
+          "parameter": "missing_mode_chance",
+          "native_value": 0,
+          "native_formula": "parent Home NBT; BlastChance/ModeChance ints and MeltDown bool; original missing defaults/raw setter order",
+          "units": "native integer defaults",
+          "boundary": "Leviathan.addAdditionalSaveData/readAdditionalSaveData"
+        }
+      ],
+      "scalability_note": "Research observations only. Admission/cap/bucket/range/invulnerability/environment/armor/state/encounter constants do not become outgoing Stage candidates. Shared native heal amount is an observation, not an eligibility/policy decision. No Stage direction/multiplier/cap/floor/balance/ownership/hook chosen. All offense/payloads deferred to R2k9b.",
+      "saved_concrete_keys": [
+        "BlastChance",
+        "MeltDown",
+        "ModeChance"
+      ],
+      "missing_key_defaults": {
+        "BlastChance": 0,
+        "ModeChance": 0,
+        "MeltDown": false
+      },
+      "saved_animation": false,
+      "saved_attack_mode": false,
+      "saved_tongue_uuid": false,
+      "saved_tongue_id": false,
+      "saved_portal_target": false,
+      "saved_terrain_timer": false,
+      "saved_native_attack_timers": false,
+      "generic_persistence_added": false
+    },
+    {
+      "id": "cataclysm:leviathan_encounter_setup",
+      "mod_key": "cataclysm",
+      "display_name": "The Leviathan native construction, multipart size and registration",
+      "registry_ids": [
+        "cataclysm:the_leviathan"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Entity registration binds The_Leviathan_Entity to cataclysm:the_leviathan, MONSTER dimensions4.5×3, fireImmune and eyeHeight1.35F. Native attribute builder health400/attack15/armor10/resistance1/follow64/moveSpeed.15; no explicit armor-toughness addition. Constructor invokes locked LLibrary parent, native WATER path malus0, three parts (head2.8F×2.8F, tail1.5F×2.4F, tail1.3F×2.4F), switchNavigator(false), then locked setConfigattribute with installed health/attack multipliers1/1. Transient AttackMode initialCIRCLE/hunting160/portal-bite-melee-water-still counters0 remain construction state. Config attribute initialization is not an independent heal delivery. No concrete finalizeSpawn override or constructor home/phase assignment exists; inherited spawn/home semantics retained.",
+      "human_summary": "Entity registration binds The_Leviathan_Entity to cataclysm:the_leviathan, MONSTER dimensions4.5×3, fireImmune and eyeHeight1.35F. Native attribute builder health400/attack15/armor10/resistance1/follow64/moveSpeed.15; no explicit armor-toughness addition. Constructor invokes locked LLibrary parent, native WATER path malus0, three parts (head2.8F×2.8F, tail1.5F×2.4F, tail1.3F×2.4F), switchNavigator(false), then locked setConfigattribute with installed health/attack multipliers1/1. Transient AttackMode initialCIRCLE/hunting160/portal-bite-melee-water-still counters0 remain construction state. Config attribute initialization is not an independent heal delivery. No concrete finalizeSpawn override or constructor home/phase assignment exists; inherited spawn/home semantics retained.",
+      "closest_vanilla_equivalent": "Native entity/attribute registration and locked configured construction",
+      "vanilla_similarities": "Named native admission/attribute/animation/NBT/spawn APIs and locked shared/status contracts retain their original behavior.",
+      "vanilla_differences": "Concrete attributes, eye-height and multipart setup; no separate progression/defense multiplier.",
+      "components": [
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "formula": "native base attribute supplier -> constructor configured health/attack modifiers; native armor/resistance",
+          "numerical_parameters": {
+            "base_health": 400.0,
+            "base_attack_damage": 15.0,
+            "armor": 10.0,
+            "knockback_resistance": 1.0,
+            "health_multiplier": 1.0,
+            "attack_multiplier": 1.0
+          },
+          "parameter_units": {
+            "base_health": "native attribute values/multipliers",
+            "base_attack_damage": "native attribute values/multipliers",
+            "armor": "native attribute values/multipliers",
+            "knockback_resistance": "native attribute values/multipliers",
+            "health_multiplier": "native attribute values/multipliers",
+            "attack_multiplier": "native attribute values/multipliers"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Leviathan.leviathan/constructor -> locked setConfigattribute",
+          "vanilla_relation": "BINARY_MECHANIC"
+        },
+        {
+          "primitive": "ENCOUNTER_REGISTRATION",
+          "formula": "native root dimensions/eye-height and three constructor part dimensions",
+          "numerical_parameters": {
+            "width": 4.5,
+            "height": 3.0,
+            "eye_height": 1.350000023841858,
+            "head_width": 2.799999952316284,
+            "head_height": 2.799999952316284,
+            "tail1_width": 1.5,
+            "tail2_width": 1.2999999523162842,
+            "tail_height": 2.4000000953674316
+          },
+          "parameter_units": {
+            "width": "blocks",
+            "height": "blocks",
+            "eye_height": "blocks",
+            "head_width": "blocks",
+            "head_height": "blocks",
+            "tail1_width": "blocks",
+            "tail2_width": "blocks",
+            "tail_height": "blocks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "ModEntities factory/Leviathan constructor -> native parts",
+          "vanilla_relation": "BINARY_MECHANIC"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native registration/config/attribute construction and parent initialization",
+        "No new heal/armor formula/phase/home assignment; offense movement/goals deferred"
+      ],
+      "custom_state": "Native Leviathan animation, MeltDown latch, raw chance integers, multipart and encounter state only.",
+      "eligibility": "Native registration/config/attribute construction and parent initialization; No new heal/armor formula/phase/home assignment; offense movement/goals deferred",
+      "source_actor": "Native Leviathan recipient/self; original incoming direct/causing entities and native altar actor remain distinct.",
+      "hurt_return_dependency": "Preserve the documented incoming hurt return/state or gated shared heal; no new outgoing callback.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+          "witness_id": "cataclysm:leviathan-admission:entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity.class",
+          "methods": [
+            "leviathan",
+            "<init>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+          "witness_id": "cataclysm:leviathan-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$27",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "setConfigattribute"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "<init>",
+            "finalizeSpawn",
+            "setHomePos"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:leviathan-admission:encounter_setup"
+      ],
+      "primary_test_source": "cataclysm:the_leviathan",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k9a-cataclysm-leviathan-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "base_health",
+          "native_value": 400.0,
+          "native_formula": "native base attribute supplier -> constructor configured health/attack modifiers; native armor/resistance",
+          "units": "native attribute values/multipliers",
+          "boundary": "Leviathan.leviathan/constructor -> locked setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "base_attack_damage",
+          "native_value": 15.0,
+          "native_formula": "native base attribute supplier -> constructor configured health/attack modifiers; native armor/resistance",
+          "units": "native attribute values/multipliers",
+          "boundary": "Leviathan.leviathan/constructor -> locked setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "armor",
+          "native_value": 10.0,
+          "native_formula": "native base attribute supplier -> constructor configured health/attack modifiers; native armor/resistance",
+          "units": "native attribute values/multipliers",
+          "boundary": "Leviathan.leviathan/constructor -> locked setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "knockback_resistance",
+          "native_value": 1.0,
+          "native_formula": "native base attribute supplier -> constructor configured health/attack modifiers; native armor/resistance",
+          "units": "native attribute values/multipliers",
+          "boundary": "Leviathan.leviathan/constructor -> locked setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "health_multiplier",
+          "native_value": 1.0,
+          "native_formula": "native base attribute supplier -> constructor configured health/attack modifiers; native armor/resistance",
+          "units": "native attribute values/multipliers",
+          "boundary": "Leviathan.leviathan/constructor -> locked setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "attack_multiplier",
+          "native_value": 1.0,
+          "native_formula": "native base attribute supplier -> constructor configured health/attack modifiers; native armor/resistance",
+          "units": "native attribute values/multipliers",
+          "boundary": "Leviathan.leviathan/constructor -> locked setConfigattribute"
+        },
+        {
+          "primitive": "ENCOUNTER_REGISTRATION",
+          "parameter": "width",
+          "native_value": 4.5,
+          "native_formula": "native root dimensions/eye-height and three constructor part dimensions",
+          "units": "blocks",
+          "boundary": "ModEntities factory/Leviathan constructor -> native parts"
+        },
+        {
+          "primitive": "ENCOUNTER_REGISTRATION",
+          "parameter": "height",
+          "native_value": 3.0,
+          "native_formula": "native root dimensions/eye-height and three constructor part dimensions",
+          "units": "blocks",
+          "boundary": "ModEntities factory/Leviathan constructor -> native parts"
+        },
+        {
+          "primitive": "ENCOUNTER_REGISTRATION",
+          "parameter": "eye_height",
+          "native_value": 1.350000023841858,
+          "native_formula": "native root dimensions/eye-height and three constructor part dimensions",
+          "units": "blocks",
+          "boundary": "ModEntities factory/Leviathan constructor -> native parts"
+        },
+        {
+          "primitive": "ENCOUNTER_REGISTRATION",
+          "parameter": "head_width",
+          "native_value": 2.799999952316284,
+          "native_formula": "native root dimensions/eye-height and three constructor part dimensions",
+          "units": "blocks",
+          "boundary": "ModEntities factory/Leviathan constructor -> native parts"
+        },
+        {
+          "primitive": "ENCOUNTER_REGISTRATION",
+          "parameter": "head_height",
+          "native_value": 2.799999952316284,
+          "native_formula": "native root dimensions/eye-height and three constructor part dimensions",
+          "units": "blocks",
+          "boundary": "ModEntities factory/Leviathan constructor -> native parts"
+        },
+        {
+          "primitive": "ENCOUNTER_REGISTRATION",
+          "parameter": "tail1_width",
+          "native_value": 1.5,
+          "native_formula": "native root dimensions/eye-height and three constructor part dimensions",
+          "units": "blocks",
+          "boundary": "ModEntities factory/Leviathan constructor -> native parts"
+        },
+        {
+          "primitive": "ENCOUNTER_REGISTRATION",
+          "parameter": "tail2_width",
+          "native_value": 1.2999999523162842,
+          "native_formula": "native root dimensions/eye-height and three constructor part dimensions",
+          "units": "blocks",
+          "boundary": "ModEntities factory/Leviathan constructor -> native parts"
+        },
+        {
+          "primitive": "ENCOUNTER_REGISTRATION",
+          "parameter": "tail_height",
+          "native_value": 2.4000000953674316,
+          "native_formula": "native root dimensions/eye-height and three constructor part dimensions",
+          "units": "blocks",
+          "boundary": "ModEntities factory/Leviathan constructor -> native parts"
+        }
+      ],
+      "scalability_note": "Research observations only. Admission/cap/bucket/range/invulnerability/environment/armor/state/encounter constants do not become outgoing Stage candidates. Shared native heal amount is an observation, not an eligibility/policy decision. No Stage direction/multiplier/cap/floor/balance/ownership/hook chosen. All offense/payloads deferred to R2k9b.",
+      "attributes_apply_to": "cataclysm:the_leviathan",
+      "registered_dimensions": {
+        "width": 4.5,
+        "height": 3.0
+      },
+      "registered_eye_height": 1.350000023841858,
+      "concrete_finalize_spawn_override": false,
+      "constructor_sets_home": false,
+      "constructor_sets_phase_latch": false,
+      "configured_health_is_heal_delivery": false,
+      "explicit_armor_toughness_added": false,
+      "constructor_calls_switch_navigator_false": true,
+      "transient_attack_mode_initial": "CIRCLE",
+      "hunting_cooldown_initial": 160
+    },
+    {
+      "id": "cataclysm:leviathan_environment_admission",
+      "mod_key": "cataclysm",
+      "display_name": "The Leviathan exact-type and native environment admission",
+      "registry_ids": [
+        "cataclysm:the_leviathan"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "isInvulnerableTo unconditionally returns true for source.is(DamageTypes.IN_WALL) or source.is(DamageTypes.FALLING_BLOCK), then otherwise delegates the native parent chain. These are exact damage-type keys, not all fall/suffocation/projectile tags. Shared hurt invokes this virtual check before BYPASSES_INVULNERABILITY, so that tag does not skip these concrete true results. Entity registration is fireImmune. increaseAirSupply returns getMaxAirSupply; isPushedByFluid=false and both bubble callbacks are empty without parent calls. The eye-fluid canSwim incoming gate stays a separate contract; these overrides do not prove blanket drowning or all-fluid immunity. No concrete causeFallDamage override is declared.",
+      "human_summary": "isInvulnerableTo unconditionally returns true for source.is(DamageTypes.IN_WALL) or source.is(DamageTypes.FALLING_BLOCK), then otherwise delegates the native parent chain. These are exact damage-type keys, not all fall/suffocation/projectile tags. Shared hurt invokes this virtual check before BYPASSES_INVULNERABILITY, so that tag does not skip these concrete true results. Entity registration is fireImmune. increaseAirSupply returns getMaxAirSupply; isPushedByFluid=false and both bubble callbacks are empty without parent calls. The eye-fluid canSwim incoming gate stays a separate contract; these overrides do not prove blanket drowning or all-fluid immunity. No concrete causeFallDamage override is declared.",
+      "closest_vanilla_equivalent": "Native exact DamageType and inherited Entity/NeoForge invulnerability/environment",
+      "vanilla_similarities": "Named native admission/attribute/animation/NBT/spawn APIs and locked shared/status contracts retain their original behavior.",
+      "vanilla_differences": "Exact in_wall/falling_block filters plus native registration/air/fluid/bubble overrides; not generalized damage-family immunity.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_ADMISSION",
+          "formula": "exact in_wall OR falling_block -> true; else native parent",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "Leviathan.isInvulnerableTo invoked before shared bypass",
+          "vanilla_relation": "BINARY_MECHANIC"
+        },
+        {
+          "primitive": "NATIVE_FIRE_ADMISSION",
+          "formula": "entity type fireImmune registration; native environmental defense remains native",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "ModEntities Leviathan registration",
+          "vanilla_relation": "BINARY_MECHANIC"
+        },
+        {
+          "primitive": "AIR_SUPPLY_GATE",
+          "formula": "increaseAirSupply ignores input and returns native getMaxAirSupply()",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "Leviathan.increaseAirSupply",
+          "vanilla_relation": "BINARY_MECHANIC"
+        },
+        {
+          "primitive": "FLUID_RESPONSE_GATE",
+          "formula": "isPushedByFluid=false; empty bubble callbacks do not call parent",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "Leviathan.isPushedByFluid/onInsideBubbleColumn/onAboveBubbleCol",
+          "vanilla_relation": "BINARY_MECHANIC"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native exact keys, inherited Entity/NeoForge admission and registered fire flag",
+        "Separate eye-fluid/config/bypass gate; no universal environmental immunity inferred"
+      ],
+      "custom_state": "Native Leviathan animation, MeltDown latch, raw chance integers, multipart and encounter state only.",
+      "eligibility": "Native exact keys, inherited Entity/NeoForge admission and registered fire flag; Separate eye-fluid/config/bypass gate; no universal environmental immunity inferred",
+      "source_actor": "Native Leviathan recipient/self; original incoming direct/causing entities and native altar actor remain distinct.",
+      "hurt_return_dependency": "Preserve the documented incoming hurt return/state or gated shared heal; no new outgoing callback.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+          "witness_id": "cataclysm:leviathan-admission:entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity.class",
+          "methods": [
+            "isInvulnerableTo",
+            "increaseAirSupply",
+            "isPushedByFluid",
+            "onInsideBubbleColumn",
+            "onAboveBubbleCol"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+          "witness_id": "cataclysm:leviathan-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$27"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "hurt"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:leviathan-admission:environment_admission"
+      ],
+      "primary_test_source": "cataclysm:the_leviathan",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k9a-cataclysm-leviathan-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [],
+      "scalability_note": "Research observations only. Admission/cap/bucket/range/invulnerability/environment/armor/state/encounter constants do not become outgoing Stage candidates. Shared native heal amount is an observation, not an eligibility/policy decision. No Stage direction/multiplier/cap/floor/balance/ownership/hook chosen. All offense/payloads deferred to R2k9b.",
+      "blocked_exact_damage_type_keys": [
+        "minecraft:in_wall",
+        "minecraft:falling_block"
+      ],
+      "exact_type_filter_precedes_shared_bypass": true,
+      "registered_fire_immune": true,
+      "air_supply_returns_native_max": true,
+      "fluid_push": false,
+      "bubble_callbacks_call_parent": false,
+      "blanket_drowning_damage_immunity_claimed": false,
+      "concrete_fall_damage_override": false
+    },
+    {
+      "id": "cataclysm:leviathan_incoming_admission",
+      "mod_key": "cataclysm",
+      "display_name": "The Leviathan incoming direct-source/fluid/phase admission",
+      "registry_ids": [
+        "cataclysm:the_leviathan"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "hurt first reads source.getDirectEntity and rejects instanceof Abyss_Blast_Entity or Portal_Abyss_Blast_Entity, regardless of owner, exact DamageType or BYPASSES_INVULNERABILITY. Other calls arm destroyBlocksTick20 when nonpositive, before any later rejection/hurt result. It reads calculateRange(source) into an unused local; this is not a local range gate. Then canInFluidType(getEyeInFluidType()) delegates FluidType.canSwim(self()); the discarded WATER_TYPE.value() call is not a WATER equality test. !canSwim && !BYPASSES_INVULNERABILITY && installed ImmuneOutofWater=true rejects; only a direct Player receives the native feedback message. Next active LEVIATHAN_PHASE2 rejects unless bypass-tagged. Surviving calls enter locked LLibrary_Boss_Monster.hurt with unchanged source/amount. Concrete isInvulnerableTo runs through its virtual shared precheck; native cap/range/bucket and downstream defense rules are preserved. True-result rush interruption is separate; return is the same boolean.",
+      "human_summary": "hurt first reads source.getDirectEntity and rejects instanceof Abyss_Blast_Entity or Portal_Abyss_Blast_Entity, regardless of owner, exact DamageType or BYPASSES_INVULNERABILITY. Other calls arm destroyBlocksTick20 when nonpositive, before any later rejection/hurt result. It reads calculateRange(source) into an unused local; this is not a local range gate. Then canInFluidType(getEyeInFluidType()) delegates FluidType.canSwim(self()); the discarded WATER_TYPE.value() call is not a WATER equality test. !canSwim && !BYPASSES_INVULNERABILITY && installed ImmuneOutofWater=true rejects; only a direct Player receives the native feedback message. Next active LEVIATHAN_PHASE2 rejects unless bypass-tagged. Surviving calls enter locked LLibrary_Boss_Monster.hurt with unchanged source/amount. Concrete isInvulnerableTo runs through its virtual shared precheck; native cap/range/bucket and downstream defense rules are preserved. True-result rush interruption is separate; return is the same boolean.",
+      "closest_vanilla_equivalent": "Locked native LLibrary shared hurt plus concrete native admission",
+      "vanilla_similarities": "Named native admission/attribute/animation/NBT/spawn APIs and locked shared/status contracts retain their original behavior.",
+      "vanilla_differences": "Direct class exclusions precede tag exceptions; eye-fluid canSwim differs from a body-water or WATER-type test. Terrain timer arming and unused causing-range read precede rejection; no incoming amount rewrite.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_ADMISSION",
+          "formula": "direct-class rejection -> eye FluidType.canSwim/self + config/tag gate -> phase animation/tag gate -> same source/amount shared hurt",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "The_Leviathan_Entity.hurt -> LLibrary_Boss_Monster.hurt",
+          "vanilla_relation": "BINARY_MECHANIC"
+        },
+        {
+          "primitive": "TERRAIN_RESPONSE_ARMING",
+          "formula": "for surviving direct-class filter, nonpositive timer=20 before later admission/native result",
+          "numerical_parameters": {
+            "arming_ticks": 20
+          },
+          "parameter_units": {
+            "arming_ticks": "native ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "The_Leviathan_Entity.hurt before fluid/phase/shared checks",
+          "vanilla_relation": "BINARY_MECHANIC"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Direct native entity instanceof filters are unconditional, not team/owner/amount decisions",
+        "Eye fluid canSwim, installed native config and source bypass tag; active phase animation remains native",
+        "Shared virtual invulnerability/cap/causing range/bucket/native defense and hook order"
+      ],
+      "custom_state": "Native Leviathan animation, MeltDown latch, raw chance integers, multipart and encounter state only.",
+      "eligibility": "Direct native entity instanceof filters are unconditional, not team/owner/amount decisions; Eye fluid canSwim, installed native config and source bypass tag; active phase animation remains native; Shared virtual invulnerability/cap/causing range/bucket/native defense and hook order",
+      "source_actor": "Native Leviathan recipient/self; original incoming direct/causing entities and native altar actor remain distinct.",
+      "hurt_return_dependency": "Preserve the documented incoming hurt return/state or gated shared heal; no new outgoing callback.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+          "witness_id": "cataclysm:leviathan-admission:entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity.class",
+          "methods": [
+            "hurt",
+            "canInFluidType"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "hurt"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "calculateRange"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:leviathan-admission:incoming_admission"
+      ],
+      "primary_test_source": "cataclysm:the_leviathan",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k9a-cataclysm-leviathan-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "TERRAIN_RESPONSE_ARMING",
+          "parameter": "arming_ticks",
+          "native_value": 20,
+          "native_formula": "for surviving direct-class filter, nonpositive timer=20 before later admission/native result",
+          "units": "native ticks",
+          "boundary": "The_Leviathan_Entity.hurt before fluid/phase/shared checks"
+        }
+      ],
+      "scalability_note": "Research observations only. Admission/cap/bucket/range/invulnerability/environment/armor/state/encounter constants do not become outgoing Stage candidates. Shared native heal amount is an observation, not an eligibility/policy decision. No Stage direction/multiplier/cap/floor/balance/ownership/hook chosen. All offense/payloads deferred to R2k9b.",
+      "admission_order": [
+        "EXCLUDE_DIRECT_ABYSS_BLAST_OR_PORTAL_ABYSS_BLAST",
+        "ARM_DESTROY_BLOCKS20_IF_NONPOSITIVE",
+        "READ_CAUSING_RANGE_WITHOUT_USING_RESULT",
+        "EYE_FLUID_CAN_SWIM_GATE_UNLESS_INVULNERABILITY_BYPASS_OR_CONFIG_OFF",
+        "PHASE2_ANIMATION_GATE_UNLESS_INVULNERABILITY_BYPASS",
+        "SHARED_HURT_SAME_SOURCE_AND_AMOUNT",
+        "TRUE_HURT_RUSH38_TO54_REQUESTS_STUN_ANIMATION",
+        "RETURN_SHARED_HURT_RESULT"
+      ],
+      "incoming_amount_rewritten": false,
+      "source_object_preserved": true,
+      "excluded_direct_classes": [
+        "Abyss_Blast_Entity",
+        "Portal_Abyss_Blast_Entity"
+      ],
+      "direct_exclusion_bypassable": false,
+      "timer_armed_before_shared_hurt": true,
+      "timer_requires_hurt_success": false,
+      "local_range_read_result_used": false,
+      "fluid_gate_uses_eye_fluid": true,
+      "fluid_gate_is_water_type_equality": false,
+      "immune_out_of_water_installed": true,
+      "feedback_uses_direct_player": true,
+      "phase_gate_uses_animation_not_saved_latch": true
+    },
+    {
+      "id": "cataclysm:leviathan_multipart_admission",
+      "mod_key": "cataclysm",
+      "display_name": "The Leviathan native multipart incoming forwarding",
+      "registry_ids": [
+        "cataclysm:the_leviathan"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Constructor owns head and two tail The_Leviathan_Part objects. Cm_Part_Entity constructor passes parent to native NeoForge PartEntity; root isMultipartEntity=true/getParts exposes its array. Part hurt requires nonnull parent, forwards original source/amount through attackEntityFromPart -> root.hurt, then emits ENTITY_DAMAGE game event only on true return. No part-specific multiplier, scale use, isInvulnerableTo precheck or call to super.hurt here. The native parent admission including direct/fluid/phase/caps remains authoritative. isPickable is parent.isAlive; canBeCollidedWith=false; is(entity) matches self or parent. Part NBT methods are empty; dimension getter returns constructor size. scale field default1 is not a damage scalar.",
+      "human_summary": "Constructor owns head and two tail The_Leviathan_Part objects. Cm_Part_Entity constructor passes parent to native NeoForge PartEntity; root isMultipartEntity=true/getParts exposes its array. Part hurt requires nonnull parent, forwards original source/amount through attackEntityFromPart -> root.hurt, then emits ENTITY_DAMAGE game event only on true return. No part-specific multiplier, scale use, isInvulnerableTo precheck or call to super.hurt here. The native parent admission including direct/fluid/phase/caps remains authoritative. isPickable is parent.isAlive; canBeCollidedWith=false; is(entity) matches self or parent. Part NBT methods are empty; dimension getter returns constructor size. scale field default1 is not a damage scalar.",
+      "closest_vanilla_equivalent": "Native NeoForge PartEntity recipient forwarding",
+      "vanilla_similarities": "Named native admission/attribute/animation/NBT/spawn APIs and locked shared/status contracts retain their original behavior.",
+      "vanilla_differences": "Same boss admission reached through three parts; native game event is true-return dependent and adds no damage request.",
+      "components": [
+        {
+          "primitive": "MULTIPART_ADMISSION",
+          "formula": "nonnull parent -> attackEntityFromPart(original source,amount) -> root.hurt; true -> ENTITY_DAMAGE",
+          "numerical_parameters": {
+            "part_count": 3,
+            "unused_scale_default": 1.0
+          },
+          "parameter_units": {
+            "part_count": "native count/default",
+            "unused_scale_default": "native count/default"
+          },
+          "binary_parameters": [],
+          "native_boundary": "The_Leviathan_Part.hurt -> root.attackEntityFromPart/hurt",
+          "vanilla_relation": "BINARY_MECHANIC"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native parent linkage/pickability/part recipient; root admission remains native",
+        "No duplicate part/boss effects or invented scale multiplier"
+      ],
+      "custom_state": "Native Leviathan animation, MeltDown latch, raw chance integers, multipart and encounter state only.",
+      "eligibility": "Native parent linkage/pickability/part recipient; root admission remains native; No duplicate part/boss effects or invented scale multiplier",
+      "source_actor": "Native Leviathan recipient/self; original incoming direct/causing entities and native altar actor remain distinct.",
+      "hurt_return_dependency": "Preserve the documented incoming hurt return/state or gated shared heal; no new outgoing callback.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+          "witness_id": "cataclysm:leviathan-admission:entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity.class",
+          "methods": [
+            "<init>",
+            "attackEntityFromPart",
+            "isMultipartEntity",
+            "getParts"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+          "witness_id": "cataclysm:leviathan-admission:entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Part",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Part.class",
+          "methods": [
+            "<init>",
+            "hurt",
+            "isPickable",
+            "canBeCollidedWith",
+            "is",
+            "getDimensions",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+          "witness_id": "cataclysm:leviathan-admission:entity/partentity/Cm_Part_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/partentity/Cm_Part_Entity.class",
+          "methods": [
+            "<init>"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:leviathan-admission:multipart_admission"
+      ],
+      "primary_test_source": "cataclysm:the_leviathan",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k9a-cataclysm-leviathan-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "MULTIPART_ADMISSION",
+          "parameter": "part_count",
+          "native_value": 3,
+          "native_formula": "nonnull parent -> attackEntityFromPart(original source,amount) -> root.hurt; true -> ENTITY_DAMAGE",
+          "units": "native count/default",
+          "boundary": "The_Leviathan_Part.hurt -> root.attackEntityFromPart/hurt"
+        },
+        {
+          "primitive": "MULTIPART_ADMISSION",
+          "parameter": "unused_scale_default",
+          "native_value": 1.0,
+          "native_formula": "nonnull parent -> attackEntityFromPart(original source,amount) -> root.hurt; true -> ENTITY_DAMAGE",
+          "units": "native count/default",
+          "boundary": "The_Leviathan_Part.hurt -> root.attackEntityFromPart/hurt"
+        }
+      ],
+      "scalability_note": "Research observations only. Admission/cap/bucket/range/invulnerability/environment/armor/state/encounter constants do not become outgoing Stage candidates. Shared native heal amount is an observation, not an eligibility/policy decision. No Stage direction/multiplier/cap/floor/balance/ownership/hook chosen. All offense/payloads deferred to R2k9b.",
+      "part_count": 3,
+      "part_damage_multiplier_added": false,
+      "part_scale_used_in_hurt": false,
+      "part_hurt_calls_super": false,
+      "part_hurt_checks_own_invulnerability": false,
+      "game_event_requires_hurt_true": true,
+      "part_nbt_methods_empty": true
+    },
+    {
+      "id": "cataclysm:leviathan_nature_regen_binding",
+      "mod_key": "cataclysm",
+      "display_name": "The Leviathan shared native regeneration amount binding",
+      "registry_ids": [
+        "cataclysm:the_leviathan"
+      ],
+      "primary_classification": "VANILLA_DIRECT",
+      "actual_behavior": "NatureRegen returns float(Leviathan.natureHeal), installed25. This binds the already-closed shared native heal call, not an additional effect. Shared tick preserves server/AI/self_regen<=0/positive amount/target-null/tickCount%20 gates and native LivingEntity.heal/admission/hooks/max-health clamp. Construction max-health initialization remains separate. Positive amount is a possible numeric observation only; concrete600 cooldown is native admission, not another heal.",
+      "human_summary": "NatureRegen returns float(Leviathan.natureHeal), installed25. This binds the already-closed shared native heal call, not an additional effect. Shared tick preserves server/AI/self_regen<=0/positive amount/target-null/tickCount%20 gates and native LivingEntity.heal/admission/hooks/max-health clamp. Construction max-health initialization remains separate. Positive amount is a possible numeric observation only; concrete600 cooldown is native admission, not another heal.",
+      "closest_vanilla_equivalent": "Native LivingEntity.heal through locked shared contract",
+      "vanilla_similarities": "Named native admission/attribute/animation/NBT/spawn APIs and locked shared/status contracts retain their original behavior.",
+      "vanilla_differences": "Only concrete amount binding; cadence/target/timer/native heal lifecycle is reused.",
+      "components": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "formula": "shared eligible tick -> heal(float(Leviathan.natureHeal))",
+          "numerical_parameters": {
+            "amount": 25.0
+          },
+          "parameter_units": {
+            "amount": "native HP amount"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Leviathan.NatureRegen -> LLibrary_Boss_Monster.tick -> LivingEntity.heal",
+          "vanilla_relation": "VANILLA_DIRECT"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Locked shared server/AI/timer/positive amount/target/cadence predicates",
+        "Original native heal hook and max-HP clamp"
+      ],
+      "custom_state": "Native Leviathan animation, MeltDown latch, raw chance integers, multipart and encounter state only.",
+      "eligibility": "Locked shared server/AI/timer/positive amount/target/cadence predicates; Original native heal hook and max-HP clamp",
+      "source_actor": "Native Leviathan recipient/self; original incoming direct/causing entities and native altar actor remain distinct.",
+      "hurt_return_dependency": "Preserve the documented incoming hurt return/state or gated shared heal; no new outgoing callback.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+          "witness_id": "cataclysm:leviathan-admission:entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity.class",
+          "methods": [
+            "NatureRegen"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:leviathan-admission:nature_regen_binding"
+      ],
+      "primary_test_source": "cataclysm:the_leviathan",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k9a-cataclysm-leviathan-admission-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "amount"
+          ],
+          "native_value": 25.0,
+          "native_formula": "shared eligible tick -> heal(float(Leviathan.natureHeal))",
+          "units": "native HP amount",
+          "native_boundary": "Leviathan.NatureRegen -> LLibrary_Boss_Monster.tick -> LivingEntity.heal"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameter": "amount",
+          "native_value": 25.0,
+          "native_formula": "shared eligible tick -> heal(float(Leviathan.natureHeal))",
+          "units": "native HP amount",
+          "boundary": "Leviathan.NatureRegen -> LLibrary_Boss_Monster.tick -> LivingEntity.heal"
+        }
+      ],
+      "scalability_note": "Research observations only. Admission/cap/bucket/range/invulnerability/environment/armor/state/encounter constants do not become outgoing Stage candidates. Shared native heal amount is an observation, not an eligibility/policy decision. No Stage direction/multiplier/cap/floor/balance/ownership/hook chosen. All offense/payloads deferred to R2k9b.",
+      "record_kind": "SHARED_BINDING",
+      "binding_of": "cataclysm:shared_heal",
+      "binding_contract_file": "cataclysm-r2k2a-shared-admission.json",
+      "adds_second_heal": false
+    },
+    {
+      "id": "cataclysm:leviathan_phase_state_prerequisites",
+      "mod_key": "cataclysm",
+      "display_name": "The Leviathan live half-health predicate and saved MeltDown latch",
+      "registry_ids": [
+        "cataclysm:the_leviathan"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Synced defaults BlastChance0/ModeChance0/MeltDownfalse/TongueUUIDempty/TongueID-1. Raw integer/bool setters only update their matching EntityData field; no clamp/heal/animation/mode/other counter write. isMeltDown is live health<=maxHealth/2F; getMeltDown is the separate saved boolean latch. Concrete tick after parent, under !NoAI, requires NO_ANIMATION, latchfalse, live half-health and alive to set LEVIATHAN_PHASE2 (declared200 ticks). No extra local server/target/fluid/hurt-success gate. aiStep during PHASE2 at exactly90 sets latchtrue only if false, without a local server/NoAI gate; outgoing phase payloads deferred. Healing above half does not clear the saved latch. Raw ModeChance is not the separate transient AttackMode enum; native counter meanings/readers, attack selection and tongue behavior remain R2k9b work.",
+      "human_summary": "Synced defaults BlastChance0/ModeChance0/MeltDownfalse/TongueUUIDempty/TongueID-1. Raw integer/bool setters only update their matching EntityData field; no clamp/heal/animation/mode/other counter write. isMeltDown is live health<=maxHealth/2F; getMeltDown is the separate saved boolean latch. Concrete tick after parent, under !NoAI, requires NO_ANIMATION, latchfalse, live half-health and alive to set LEVIATHAN_PHASE2 (declared200 ticks). No extra local server/target/fluid/hurt-success gate. aiStep during PHASE2 at exactly90 sets latchtrue only if false, without a local server/NoAI gate; outgoing phase payloads deferred. Healing above half does not clear the saved latch. Raw ModeChance is not the separate transient AttackMode enum; native counter meanings/readers, attack selection and tongue behavior remain R2k9b work.",
+      "closest_vanilla_equivalent": "Native health predicate, synced raw state and LLibrary animation",
+      "vanilla_similarities": "Named native admission/attribute/animation/NBT/spawn APIs and locked shared/status contracts retain their original behavior.",
+      "vanilla_differences": "Saved phase latch differs from current HP test; phase immunity tests active animation, not the latch.",
+      "components": [
+        {
+          "primitive": "PHASE_STATE",
+          "formula": "!NoAI && NO_ANIMATION && !saved latch && health<=maxHealth/2F && alive -> PHASE2; phase tick90 sets latch",
+          "numerical_parameters": {
+            "health_divisor": 2.0,
+            "phase_animation_duration": 200,
+            "latch_tick": 90
+          },
+          "parameter_units": {
+            "health_divisor": "native divisor/animation ticks",
+            "phase_animation_duration": "native divisor/animation ticks",
+            "latch_tick": "native divisor/animation ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Leviathan.tick/aiStep/state setters",
+          "vanilla_relation": "BINARY_MECHANIC"
+        },
+        {
+          "primitive": "RAW_COMBAT_STATE",
+          "formula": "matching native synced field raw set/get only; chance names are not inferred as probabilities",
+          "numerical_parameters": {
+            "default_blast_chance": 0,
+            "default_mode_chance": 0,
+            "default_tongue_id": -1
+          },
+          "parameter_units": {
+            "default_blast_chance": "native raw integer defaults",
+            "default_mode_chance": "native raw integer defaults",
+            "default_tongue_id": "native raw integer defaults"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Leviathan.defineSynchedData/raw getters/setters",
+          "vanilla_relation": "BINARY_MECHANIC"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Original alive/NoAI/no-animation/half-health/latch predicates",
+        "Native raw setters and exact phase timeline; offensive consequences deferred"
+      ],
+      "custom_state": "Native Leviathan animation, MeltDown latch, raw chance integers, multipart and encounter state only.",
+      "eligibility": "Original alive/NoAI/no-animation/half-health/latch predicates; Native raw setters and exact phase timeline; offensive consequences deferred",
+      "source_actor": "Native Leviathan recipient/self; original incoming direct/causing entities and native altar actor remain distinct.",
+      "hurt_return_dependency": "Preserve the documented incoming hurt return/state or gated shared heal; no new outgoing callback.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+          "witness_id": "cataclysm:leviathan-admission:entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity.class",
+          "methods": [
+            "defineSynchedData",
+            "getMeltDown",
+            "setMeltDown",
+            "isMeltDown",
+            "getBlastChance",
+            "setBlastChance",
+            "getModeChance",
+            "setModeChance",
+            "tick",
+            "aiStep",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/LLibrary_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/LLibrary_Monster.class",
+          "methods": [
+            "setAnimation",
+            "setAnimationTick",
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:leviathan-admission:phase_state_prerequisites"
+      ],
+      "primary_test_source": "cataclysm:the_leviathan",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k9a-cataclysm-leviathan-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "PHASE_STATE",
+          "parameter": "health_divisor",
+          "native_value": 2.0,
+          "native_formula": "!NoAI && NO_ANIMATION && !saved latch && health<=maxHealth/2F && alive -> PHASE2; phase tick90 sets latch",
+          "units": "native divisor/animation ticks",
+          "boundary": "Leviathan.tick/aiStep/state setters"
+        },
+        {
+          "primitive": "PHASE_STATE",
+          "parameter": "phase_animation_duration",
+          "native_value": 200,
+          "native_formula": "!NoAI && NO_ANIMATION && !saved latch && health<=maxHealth/2F && alive -> PHASE2; phase tick90 sets latch",
+          "units": "native divisor/animation ticks",
+          "boundary": "Leviathan.tick/aiStep/state setters"
+        },
+        {
+          "primitive": "PHASE_STATE",
+          "parameter": "latch_tick",
+          "native_value": 90,
+          "native_formula": "!NoAI && NO_ANIMATION && !saved latch && health<=maxHealth/2F && alive -> PHASE2; phase tick90 sets latch",
+          "units": "native divisor/animation ticks",
+          "boundary": "Leviathan.tick/aiStep/state setters"
+        },
+        {
+          "primitive": "RAW_COMBAT_STATE",
+          "parameter": "default_blast_chance",
+          "native_value": 0,
+          "native_formula": "matching native synced field raw set/get only; chance names are not inferred as probabilities",
+          "units": "native raw integer defaults",
+          "boundary": "Leviathan.defineSynchedData/raw getters/setters"
+        },
+        {
+          "primitive": "RAW_COMBAT_STATE",
+          "parameter": "default_mode_chance",
+          "native_value": 0,
+          "native_formula": "matching native synced field raw set/get only; chance names are not inferred as probabilities",
+          "units": "native raw integer defaults",
+          "boundary": "Leviathan.defineSynchedData/raw getters/setters"
+        },
+        {
+          "primitive": "RAW_COMBAT_STATE",
+          "parameter": "default_tongue_id",
+          "native_value": -1,
+          "native_formula": "matching native synced field raw set/get only; chance names are not inferred as probabilities",
+          "units": "native raw integer defaults",
+          "boundary": "Leviathan.defineSynchedData/raw getters/setters"
+        }
+      ],
+      "scalability_note": "Research observations only. Admission/cap/bucket/range/invulnerability/environment/armor/state/encounter constants do not become outgoing Stage candidates. Shared native heal amount is an observation, not an eligibility/policy decision. No Stage direction/multiplier/cap/floor/balance/ownership/hook chosen. All offense/payloads deferred to R2k9b.",
+      "default_state": {
+        "blast_chance": 0,
+        "mode_chance": 0,
+        "melt_down": false,
+        "tongue_uuid": null,
+        "tongue_id": -1
+      },
+      "live_health_predicate_is_saved_latch": false,
+      "raw_integer_setters_clamp": false,
+      "raw_setters_heal": false,
+      "raw_setters_change_animation": false,
+      "phase_start_has_no_ai_gate": true,
+      "phase_start_local_server_guard": false,
+      "phase_start_requires_target": false,
+      "phase_start_requires_fluid": false,
+      "latch_write_local_server_guard": false,
+      "latch_write_local_no_ai_gate": false,
+      "healing_clears_saved_latch": false,
+      "mode_chance_is_attack_mode_enum": false
+    },
+    {
+      "id": "cataclysm:leviathan_rush_hurt_interruption",
+      "mod_key": "cataclysm",
+      "display_name": "The Leviathan true-hurt rush interruption animation",
+      "registry_ids": [
+        "cataclysm:the_leviathan"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "After shared hurt returns, current animation must still be LEVIATHAN_RUSH, animationTick>=38 && <=54, and returned attack=true to request LEVIATHAN_STUN through AnimationHandler.sendAnimationMessage. Native animation declared duration90; this is an animation identity change, not applying the Cataclysm STUN MobEffect. No positive amount/observed HP loss/causing actor test or extra local server guard is added. Rejected/false hurt does not interrupt; the original hurt boolean still returns. Offensive goal movement/payload consequences of the animation are deferred.",
+      "human_summary": "After shared hurt returns, current animation must still be LEVIATHAN_RUSH, animationTick>=38 && <=54, and returned attack=true to request LEVIATHAN_STUN through AnimationHandler.sendAnimationMessage. Native animation declared duration90; this is an animation identity change, not applying the Cataclysm STUN MobEffect. No positive amount/observed HP loss/causing actor test or extra local server guard is added. Rejected/false hurt does not interrupt; the original hurt boolean still returns. Offensive goal movement/payload consequences of the animation are deferred.",
+      "closest_vanilla_equivalent": "Native LLibrary animation message/state lifecycle",
+      "vanilla_similarities": "Named native admission/attribute/animation/NBT/spawn APIs and locked shared/status contracts retain their original behavior.",
+      "vanilla_differences": "Return-dependent incoming state change, not a second hurt call or generic scalable debuff.",
+      "components": [
+        {
+          "primitive": "NATIVE_ANIMATION_STATE",
+          "formula": "shared hurt=true && current RUSH && 38<=animationTick<=54 -> request STUN animation",
+          "numerical_parameters": {
+            "window_first_tick": 38,
+            "window_last_tick": 54,
+            "stun_animation_duration": 90
+          },
+          "parameter_units": {
+            "window_first_tick": "native animation ticks",
+            "window_last_tick": "native animation ticks",
+            "stun_animation_duration": "native animation ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "The_Leviathan_Entity.hurt after parent result",
+          "vanilla_relation": "BINARY_MECHANIC"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "True native hurt return and original animation/tick window",
+        "Native animation message/timing; no MobEffect delivery or Stage scalar"
+      ],
+      "custom_state": "Native Leviathan animation, MeltDown latch, raw chance integers, multipart and encounter state only.",
+      "eligibility": "True native hurt return and original animation/tick window; Native animation message/timing; no MobEffect delivery or Stage scalar",
+      "source_actor": "Native Leviathan recipient/self; original incoming direct/causing entities and native altar actor remain distinct.",
+      "hurt_return_dependency": "Preserve the documented incoming hurt return/state or gated shared heal; no new outgoing callback.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+          "witness_id": "cataclysm:leviathan-admission:entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity.class",
+          "methods": [
+            "hurt",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/LLibrary_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/LLibrary_Monster.class",
+          "methods": [
+            "setAnimation",
+            "setAnimationTick",
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:leviathan-admission:rush_hurt_interruption"
+      ],
+      "primary_test_source": "cataclysm:the_leviathan",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k9a-cataclysm-leviathan-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_ANIMATION_STATE",
+          "parameter": "window_first_tick",
+          "native_value": 38,
+          "native_formula": "shared hurt=true && current RUSH && 38<=animationTick<=54 -> request STUN animation",
+          "units": "native animation ticks",
+          "boundary": "The_Leviathan_Entity.hurt after parent result"
+        },
+        {
+          "primitive": "NATIVE_ANIMATION_STATE",
+          "parameter": "window_last_tick",
+          "native_value": 54,
+          "native_formula": "shared hurt=true && current RUSH && 38<=animationTick<=54 -> request STUN animation",
+          "units": "native animation ticks",
+          "boundary": "The_Leviathan_Entity.hurt after parent result"
+        },
+        {
+          "primitive": "NATIVE_ANIMATION_STATE",
+          "parameter": "stun_animation_duration",
+          "native_value": 90,
+          "native_formula": "shared hurt=true && current RUSH && 38<=animationTick<=54 -> request STUN animation",
+          "units": "native animation ticks",
+          "boundary": "The_Leviathan_Entity.hurt after parent result"
+        }
+      ],
+      "scalability_note": "Research observations only. Admission/cap/bucket/range/invulnerability/environment/armor/state/encounter constants do not become outgoing Stage candidates. Shared native heal amount is an observation, not an eligibility/policy decision. No Stage direction/multiplier/cap/floor/balance/ownership/hook chosen. All offense/payloads deferred to R2k9b.",
+      "interruption_requires_hurt_true": true,
+      "interruption_requires_measured_hp_loss": false,
+      "interruption_is_mob_effect": false,
+      "local_interruption_server_guard": false,
+      "adds_outgoing_damage": false
+    },
+    {
+      "id": "cataclysm:leviathan_shared_defense_bindings",
+      "mod_key": "cataclysm",
+      "display_name": "The Leviathan concrete shared caps, range and regen timer",
+      "registry_ids": [
+        "cataclysm:the_leviathan"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Reuse locked LLibrary shared admission exactly. DamageCap=float(Leviathan.damageCap)=20 supplies both per-hit cap and request bucket capacity; DpsCap=float(dpsCap)=15 supplies positive bucket drain/20 on eligible server-AI ticks, not capacity. RangeLimit returns double rangeCap38 directly; causing entity current distance<=38 full, 38<d<57 native falloff, >=57 reject, causing-null skips. Direct payload position/part hit point is not this shared distance. HealCooldown concrete600 replaces the inherited200 for successful block_self_regen tagged hits; early invulnerability bypass skips shared timer bookkeeping. DpsMulti returns installed20 but shared hurt/tick do not read it. False native hurt rolls bucket back; original0.1F full-bucket attempt/native defenses/cooldowns/hooks unchanged. No shield latch or extra armor mitigation formula added.",
+      "human_summary": "Reuse locked LLibrary shared admission exactly. DamageCap=float(Leviathan.damageCap)=20 supplies both per-hit cap and request bucket capacity; DpsCap=float(dpsCap)=15 supplies positive bucket drain/20 on eligible server-AI ticks, not capacity. RangeLimit returns double rangeCap38 directly; causing entity current distance<=38 full, 38<d<57 native falloff, >=57 reject, causing-null skips. Direct payload position/part hit point is not this shared distance. HealCooldown concrete600 replaces the inherited200 for successful block_self_regen tagged hits; early invulnerability bypass skips shared timer bookkeeping. DpsMulti returns installed20 but shared hurt/tick do not read it. False native hurt rolls bucket back; original0.1F full-bucket attempt/native defenses/cooldowns/hooks unchanged. No shield latch or extra armor mitigation formula added.",
+      "closest_vanilla_equivalent": "Locked shared LLibrary cap/request bucket/range/native regen timer",
+      "vanilla_similarities": "Named native admission/attribute/animation/NBT/spawn APIs and locked shared/status contracts retain their original behavior.",
+      "vanilla_differences": "Concrete20/15/38 and600 bindings only; no second cap or native defense scaling layer.",
+      "components": [
+        {
+          "primitive": "DAMAGE_CAP",
+          "formula": "min(DamageCap(),incoming) at locked shared boundary",
+          "numerical_parameters": {
+            "per_hit_cap": 20.0
+          },
+          "parameter_units": {
+            "per_hit_cap": "native requested damage"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Leviathan.DamageCap -> shared hurt",
+          "vanilla_relation": "BINARY_MECHANIC"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "formula": "capacity=DamageCap20; eligible server-AI positive drain=DpsCap15/20; rollback on false hurt",
+          "numerical_parameters": {
+            "capacity": 20.0,
+            "dps_cap": 15.0,
+            "drain_divisor": 20
+          },
+          "parameter_units": {
+            "capacity": "native request budget/second-to-tick divisor",
+            "dps_cap": "native request budget/second-to-tick divisor",
+            "drain_divisor": "native request budget/second-to-tick divisor"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Leviathan.DamageCap/DpsCap -> shared hurt/tick",
+          "vanilla_relation": "BINARY_MECHANIC"
+        },
+        {
+          "primitive": "RANGE_ADMISSION",
+          "formula": "causing distance gate/falloff; exact38 full and exact57 rejected; no causing source skips",
+          "numerical_parameters": {
+            "range_limit": 38.0
+          },
+          "parameter_units": {
+            "range_limit": "blocks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Leviathan.RangeLimit -> shared hurt/calculateRange",
+          "vanilla_relation": "BINARY_MECHANIC"
+        },
+        {
+          "primitive": "REGEN_ADMISSION_TIMER",
+          "formula": "successful block_self_regen tagged shared hurt resets native self_regen=HealCooldown600",
+          "numerical_parameters": {
+            "heal_cooldown": 600
+          },
+          "parameter_units": {
+            "heal_cooldown": "native ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Leviathan.HealCooldown -> shared hurt",
+          "vanilla_relation": "BINARY_MECHANIC"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Locked virtual invulnerability then native bypass early return/cap/range/bucket order",
+        "Native NoAI drain and successful tagged timer reset gates"
+      ],
+      "custom_state": "Native Leviathan animation, MeltDown latch, raw chance integers, multipart and encounter state only.",
+      "eligibility": "Locked virtual invulnerability then native bypass early return/cap/range/bucket order; Native NoAI drain and successful tagged timer reset gates",
+      "source_actor": "Native Leviathan recipient/self; original incoming direct/causing entities and native altar actor remain distinct.",
+      "hurt_return_dependency": "Preserve the documented incoming hurt return/state or gated shared heal; no new outgoing callback.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+          "witness_id": "cataclysm:leviathan-admission:entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity.class",
+          "methods": [
+            "DamageCap",
+            "DpsCap",
+            "DpsMulti",
+            "RangeLimit",
+            "HealCooldown"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "hurt",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "calculateRange"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:leviathan-admission:shared_defense_bindings"
+      ],
+      "primary_test_source": "cataclysm:the_leviathan",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k9a-cataclysm-leviathan-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "DAMAGE_CAP",
+          "parameter": "per_hit_cap",
+          "native_value": 20.0,
+          "native_formula": "min(DamageCap(),incoming) at locked shared boundary",
+          "units": "native requested damage",
+          "boundary": "Leviathan.DamageCap -> shared hurt"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "parameter": "capacity",
+          "native_value": 20.0,
+          "native_formula": "capacity=DamageCap20; eligible server-AI positive drain=DpsCap15/20; rollback on false hurt",
+          "units": "native request budget/second-to-tick divisor",
+          "boundary": "Leviathan.DamageCap/DpsCap -> shared hurt/tick"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "parameter": "dps_cap",
+          "native_value": 15.0,
+          "native_formula": "capacity=DamageCap20; eligible server-AI positive drain=DpsCap15/20; rollback on false hurt",
+          "units": "native request budget/second-to-tick divisor",
+          "boundary": "Leviathan.DamageCap/DpsCap -> shared hurt/tick"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "parameter": "drain_divisor",
+          "native_value": 20,
+          "native_formula": "capacity=DamageCap20; eligible server-AI positive drain=DpsCap15/20; rollback on false hurt",
+          "units": "native request budget/second-to-tick divisor",
+          "boundary": "Leviathan.DamageCap/DpsCap -> shared hurt/tick"
+        },
+        {
+          "primitive": "RANGE_ADMISSION",
+          "parameter": "range_limit",
+          "native_value": 38.0,
+          "native_formula": "causing distance gate/falloff; exact38 full and exact57 rejected; no causing source skips",
+          "units": "blocks",
+          "boundary": "Leviathan.RangeLimit -> shared hurt/calculateRange"
+        },
+        {
+          "primitive": "REGEN_ADMISSION_TIMER",
+          "parameter": "heal_cooldown",
+          "native_value": 600,
+          "native_formula": "successful block_self_regen tagged shared hurt resets native self_regen=HealCooldown600",
+          "units": "native ticks",
+          "boundary": "Leviathan.HealCooldown -> shared hurt"
+        }
+      ],
+      "scalability_note": "Research observations only. Admission/cap/bucket/range/invulnerability/environment/armor/state/encounter constants do not become outgoing Stage candidates. Shared native heal amount is an observation, not an eligibility/policy decision. No Stage direction/multiplier/cap/floor/balance/ownership/hook chosen. All offense/payloads deferred to R2k9b.",
+      "concrete_bindings": {
+        "DamageCap": {
+          "config_field": "Leviathan.damageCap",
+          "installed_value": 20.0,
+          "native_cast": "float(double(config))",
+          "shared_boundary": "per-hit cap AND bucket capacity",
+          "candidate_observation_added": false
+        },
+        "DpsCap": {
+          "config_field": "Leviathan.dpsCap",
+          "installed_value": 15.0,
+          "native_cast": "float(double(config))",
+          "shared_boundary": "eligible server-AI bucket drain=float(DpsCap()/20)",
+          "candidate_observation_added": false
+        },
+        "RangeLimit": {
+          "config_field": "Leviathan.rangeCap",
+          "installed_value": 38.0,
+          "native_cast": "double(config), no float narrowing",
+          "shared_boundary": "causing full<=38; falloff38<d<57; reject>=57; causing-null skips",
+          "candidate_observation_added": false
+        },
+        "NatureRegen": {
+          "config_field": "Leviathan.natureHeal",
+          "installed_value": 25.0,
+          "native_cast": "float(double(config))",
+          "shared_boundary": "locked shared gated native heal amount",
+          "shared_candidate_binding": "cataclysm:shared_heal",
+          "observation_only": true
+        },
+        "DpsMulti": {
+          "config_field": "Leviathan.dpsLimitTime",
+          "installed_value": 20,
+          "shared_boundary": "not read by locked shared hurt/tick; does not redefine request bucket"
+        },
+        "HealCooldown": {
+          "inherited": false,
+          "native_value": 600,
+          "shared_boundary": "successful tagged shared hurt resets self_regen to concrete600"
+        }
+      },
+      "damage_cap_is_bucket_capacity": true,
+      "dps_is_bucket_capacity": false,
+      "range_narrows_float_before_double": false,
+      "dps_multi_read_by_shared_hurt_or_tick": false,
+      "installed_config_values": {
+        "damage_cap": 20.0,
+        "dps_cap": 15.0,
+        "range_limit": 38.0,
+        "heal_cooldown": 600,
+        "dps_limit_time": 20
+      }
+    },
+    {
       "id": "cataclysm:maledictus_alliance",
       "mod_key": "cataclysm",
       "display_name": "Maledictus native team/tag alliance",
@@ -47181,6 +48695,454 @@
       "runtime_status": "NOT_RUN"
     },
     {
+      "id": "cataclysm:leviathan-admission:altar_encounter",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:leviathan_altar_encounter"
+      ],
+      "primary_source": "cataclysm:the_leviathan",
+      "native_path": "native altar inventory -> sacrifice/timer -> clearance/create -> server position/home/add -> conditional consume -> native reload/retry",
+      "setup": "Static native source/tag/state/return and encounter fixtures at the named boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+          "witness_id": "cataclysm:leviathan-admission:blockentities/AltarOfAbyss_Block_Entity",
+          "entry": "com/github/L_Ender/cataclysm/blockentities/AltarOfAbyss_Block_Entity.class",
+          "methods": [
+            "<init>",
+            "commonTick",
+            "tick",
+            "BlockBreaking",
+            "getItem",
+            "getItems",
+            "placeItem",
+            "getMaxStackSize",
+            "markUpdated",
+            "loadAdditional",
+            "saveAdditional"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+          "witness_id": "cataclysm:leviathan-admission:blocks/Altar_Of_Abyss_Block",
+          "entry": "com/github/L_Ender/cataclysm/blocks/Altar_Of_Abyss_Block.class",
+          "methods": [
+            "<init>",
+            "useItemOn",
+            "newBlockEntity",
+            "getTicker",
+            "getStateForPlacement",
+            "getFluidState",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "setHomePos",
+            "finalizeSpawn",
+            "tick",
+            "ReturnToHome"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:leviathan-admission:combat_persistence",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:leviathan_combat_persistence"
+      ],
+      "primary_source": "cataclysm:the_leviathan",
+      "native_path": "native parent Home save/load -> concrete raw counters/latch -> original transient defaults/native continuation",
+      "setup": "Static native source/tag/state/return and encounter fixtures at the named boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+          "witness_id": "cataclysm:leviathan-admission:entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity.class",
+          "methods": [
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "<init>",
+            "defineSynchedData"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:leviathan-admission:encounter_setup",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:leviathan_encounter_setup"
+      ],
+      "primary_source": "cataclysm:the_leviathan",
+      "native_path": "exact registry factory/attribute binding -> native constructor/default parts/config attrs -> independent native encounter/home setup",
+      "setup": "Static native source/tag/state/return and encounter fixtures at the named boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+          "witness_id": "cataclysm:leviathan-admission:entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity.class",
+          "methods": [
+            "leviathan",
+            "<init>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+          "witness_id": "cataclysm:leviathan-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$27",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "setConfigattribute"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "<init>",
+            "finalizeSpawn",
+            "setHomePos"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:leviathan-admission:environment_admission",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:leviathan_environment_admission"
+      ],
+      "primary_source": "cataclysm:the_leviathan",
+      "native_path": "shared virtual invulnerability -> concrete exact keys -> native parent; independent native environment callbacks",
+      "setup": "Static native source/tag/state/return and encounter fixtures at the named boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+          "witness_id": "cataclysm:leviathan-admission:entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity.class",
+          "methods": [
+            "isInvulnerableTo",
+            "increaseAirSupply",
+            "isPushedByFluid",
+            "onInsideBubbleColumn",
+            "onAboveBubbleCol"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+          "witness_id": "cataclysm:leviathan-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$27"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "hurt"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:leviathan-admission:incoming_admission",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:leviathan_incoming_admission"
+      ],
+      "primary_source": "cataclysm:the_leviathan",
+      "native_path": "direct source filter -> terrain arming/unused causing range -> eye fluid gate -> phase gate -> locked shared admission/return",
+      "setup": "Static native source/tag/state/return and encounter fixtures at the named boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+          "witness_id": "cataclysm:leviathan-admission:entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity.class",
+          "methods": [
+            "hurt",
+            "canInFluidType"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "hurt"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "calculateRange"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:leviathan-admission:multipart_admission",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:leviathan_multipart_admission"
+      ],
+      "primary_source": "cataclysm:the_leviathan",
+      "native_path": "native picked part -> unchanged forwarding -> root admission -> true-return native game event",
+      "setup": "Static native source/tag/state/return and encounter fixtures at the named boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+          "witness_id": "cataclysm:leviathan-admission:entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity.class",
+          "methods": [
+            "<init>",
+            "attackEntityFromPart",
+            "isMultipartEntity",
+            "getParts"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+          "witness_id": "cataclysm:leviathan-admission:entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Part",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Part.class",
+          "methods": [
+            "<init>",
+            "hurt",
+            "isPickable",
+            "canBeCollidedWith",
+            "is",
+            "getDimensions",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+          "witness_id": "cataclysm:leviathan-admission:entity/partentity/Cm_Part_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/partentity/Cm_Part_Entity.class",
+          "methods": [
+            "<init>"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:leviathan-admission:nature_regen_binding",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:leviathan_nature_regen_binding"
+      ],
+      "primary_source": "cataclysm:the_leviathan",
+      "native_path": "concrete NatureRegen amount -> existing targetless gated shared native heal",
+      "setup": "Static native source/tag/state/return and encounter fixtures at the named boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+          "witness_id": "cataclysm:leviathan-admission:entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity.class",
+          "methods": [
+            "NatureRegen"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "tick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:leviathan-admission:phase_state_prerequisites",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:leviathan_phase_state_prerequisites"
+      ],
+      "primary_source": "cataclysm:the_leviathan",
+      "native_path": "native live health/raw saved latch -> idle/NoAI/alive phase prerequisite -> exact phase tick90 latch; native animation lifecycle",
+      "setup": "Static native source/tag/state/return and encounter fixtures at the named boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+          "witness_id": "cataclysm:leviathan-admission:entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity.class",
+          "methods": [
+            "defineSynchedData",
+            "getMeltDown",
+            "setMeltDown",
+            "isMeltDown",
+            "getBlastChance",
+            "setBlastChance",
+            "getModeChance",
+            "setModeChance",
+            "tick",
+            "aiStep",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/LLibrary_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/LLibrary_Monster.class",
+          "methods": [
+            "setAnimation",
+            "setAnimationTick",
+            "tick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:leviathan-admission:rush_hurt_interruption",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:leviathan_rush_hurt_interruption"
+      ],
+      "primary_source": "cataclysm:the_leviathan",
+      "native_path": "shared hurt boolean -> original rush/tick predicates -> native STUN animation request -> return same boolean",
+      "setup": "Static native source/tag/state/return and encounter fixtures at the named boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+          "witness_id": "cataclysm:leviathan-admission:entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity.class",
+          "methods": [
+            "hurt",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/LLibrary_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/LLibrary_Monster.class",
+          "methods": [
+            "setAnimation",
+            "setAnimationTick",
+            "tick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:leviathan-admission:shared_defense_bindings",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:leviathan_shared_defense_bindings"
+      ],
+      "primary_source": "cataclysm:the_leviathan",
+      "native_path": "concrete virtual getters -> existing shared cap/causing range/request bucket/hurt-return/timer contracts",
+      "setup": "Static native source/tag/state/return and encounter fixtures at the named boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-leviathan-admission.json",
+          "witness_id": "cataclysm:leviathan-admission:entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity.class",
+          "methods": [
+            "DamageCap",
+            "DpsCap",
+            "DpsMulti",
+            "RangeLimit",
+            "HealCooldown"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "hurt",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "calculateRange"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
       "id": "cataclysm:maledictus-admission:combat_persistence",
       "mod_key": "cataclysm",
       "status": "VERIFIED",
@@ -52016,10 +53978,10 @@
   ],
   "unresolved_native_ambiguities": null,
   "remaining_native_ambiguities": null,
-  "checkpoint": "R2k8b-cataclysm-maledictus-offense-complete",
-  "scope": "Bounded Maledictus offense goal selection, live rage/contact gain/reset, direct/area/combo/rush/uppercut, grab/held control, two owned phantom payloads and launch/placement/source/team/return/lifecycle contracts, native terrain/death/tombstone callbacks closed. R2k8a and prior contracts locked; Maledictus family closed; Cataclysm PARTIAL.",
-  "notes_file": "cataclysm-r2k8b-maledictus-offense.json",
-  "exact_next_task": "R2k9a: The Leviathan incoming admission and phase/encounter prerequisites. Start The_Leviathan_Entity.hurt/isInvulnerableTo and relevant inherited hierarchy; record concrete DamageCap/DpsCap/RangeLimit/NatureRegen bindings, native admission order, source/tag bypasses, phase/state setters and combat persistence, material spawn/home/encounter prerequisites. Reuse locked shared/status, Guardian, Monstrosity, Ignis, Harbinger, Ancient Remnant and fully closed Maledictus. Defer all Leviathan offense/payloads to R2k9b. Static only; no runtime, Stage, production or unrelated family research.",
+  "checkpoint": "R2k9a-cataclysm-leviathan-admission-complete",
+  "scope": "Bounded Leviathan direct-source/eye-fluid/phase incoming order and true-hurt rush interruption, exact type/native environment and multipart forwarding, concrete shared cap/DPS/range/regen bindings, raw/live/saved phase prerequisites, combat NBT, configured construction and abyss altar sacrifice/clearance/spawn/home/retry/persistence closed. All offense/payloads, terrain-response execution, portal/tongue and defeat callbacks deferred to R2k9b; prior contracts locked; Cataclysm PARTIAL.",
+  "notes_file": "cataclysm-r2k9a-leviathan-admission.json",
+  "exact_next_task": "R2k9b: The Leviathan offense/payload family. Start The_Leviathan_Entity.tick/aiStep and directly used offensive goals; close attack selection/mode/blast-chance readers and writers, bite/rush/tail/tentacle/grab/held control, blast/orb/mine/portal/rift/tongue and directly owned payload chains, source/owner/team predicates, hurt-return status/control/healing, payload lifecycle and directly reached terrain/death/respawner callbacks. Reuse locked R2k9a incoming/shared bindings/native environment/literal effect gate/multipart/raw state/NBT/phase latch/altar encounter, including the incoming rush interruption and phase-tick90 latch; shared/status and all prior boss families. Static only; no runtime, Stage, production or unrelated research.",
   "protected_checkpoint": "R2k3a-cataclysm-guardian-admission-complete",
   "protected_notes_file": "cataclysm-r2k3a-guardian-admission.json",
   "protected_checkpoints": [
@@ -52066,6 +54028,10 @@
     {
       "checkpoint": "R2k8a-cataclysm-maledictus-admission-complete",
       "notes_file": "cataclysm-r2k8a-maledictus-admission.json"
+    },
+    {
+      "checkpoint": "R2k8b-cataclysm-maledictus-offense-complete",
+      "notes_file": "cataclysm-r2k8b-maledictus-offense.json"
     }
   ]
 }
