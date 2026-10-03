@@ -2978,6 +2978,1106 @@
           "units": "native explosion radius"
         }
       ]
+    },
+    {
+      "id": "cataclysm:monstrosity_awakening",
+      "mod_key": "cataclysm",
+      "display_name": "Monstrosity awakening and native home setup",
+      "registry_ids": [
+        "cataclysm:netherite_monstrosity"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Synced IsAwaken starts false. Priority0 NMDoNothingGoal continues unawakened while target is absent, dead, not strictly distanceSquared<255 or not visible; tick zeroes X/Z retaining Y. Its native stop sets IsAwaken true then attackState2. Priority1 awakening InternalStateGoal binds2->2->0, final40: start sets home to current dimension/block and calls setIsAwaken(true); tick zeroes X/Z retaining Y; continue requires state2 AND attackTicks<=40; stop sets0. isSleep means state1 OR2, not !IsAwaken.",
+      "human_summary": "Synced IsAwaken starts false. Priority0 NMDoNothingGoal continues unawakened while target is absent, dead, not strictly distanceSquared<255 or not visible; tick zeroes X/Z retaining Y. Its native stop sets IsAwaken true then attackState2. Priority1 awakening InternalStateGoal binds2->2->0, final40: start sets home to current dimension/block and calls setIsAwaken(true); tick zeroes X/Z retaining Y; continue requires state2 AND attackTicks<=40; stop sets0. isSleep means state1 OR2, not !IsAwaken.",
+      "closest_vanilla_equivalent": "Native AI goal lifecycle plus reused Cataclysm attack state/home/Life bookkeeping",
+      "vanilla_similarities": "Retains the named native API and reused shared contract where present.",
+      "vanilla_differences": "The idle goal does not assign state1. A successful body hit or awake finalizeSpawn only sets the flag; neither directly starts state2 or sets home. Every setIsAwaken(true) invokes reused PlayerCounter, even if already true, with no local server guard; Life bookkeeping is not HP/progression. Do not add target/awake gates to state2 canUse beyond its native attack-state reader.",
+      "components": [
+        {
+          "primitive": "AWAKEN_STATE",
+          "formula": "native flag and idle goal lifecycle; strict distanceSquared <255 and LOS allow idle goal exit; setter true invokes PlayerCounter(level)",
+          "numerical_parameters": {
+            "target_distance_squared": 255.0
+          },
+          "parameter_units": {
+            "target_distance_squared": "blocks squared"
+          },
+          "binary_parameters": [
+            "alive target",
+            "native LOS",
+            "native goal flags/scheduler",
+            "unawakened flag"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "NMDoNothingGoal.canUse/stop and setIsAwaken"
+        },
+        {
+          "primitive": "ATTACK_STATE",
+          "formula": "awakening bound2->2->0; continue state2 && attackTicks<=40; shared setAttackState resets ticks and syncs state",
+          "numerical_parameters": {
+            "awakening_final_tick": 40
+          },
+          "parameter_units": {
+            "awakening_final_tick": "native attack ticks, inclusive"
+          },
+          "binary_parameters": [
+            "isSleep state1 OR2",
+            "state2 goal noninterruptible and requiresUpdateEveryTick"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "registered awakening InternalStateGoal"
+        },
+        {
+          "primitive": "HOME_CONTROL",
+          "formula": "awakening start sets GlobalPos(current dimension,current blockPosition); shared home timer/return/save behavior reused unchanged",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "native waking goal start, not flag setter"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "Netherite_Monstrosity_Entity$3.start"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Goal flags MOVE/JUMP/LOOK and native AI scheduling remain authoritative; no generic sleep invulnerability added."
+      ],
+      "custom_state": "Native entity/synced AI state and native NBT only.",
+      "eligibility": "Goal flags MOVE/JUMP/LOOK and native AI scheduling remain authoritative; no generic sleep invulnerability added.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity.class",
+          "methods": [
+            "registerGoals",
+            "defineSynchedData",
+            "isSleep",
+            "setIsAwaken",
+            "getIsAwaken"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity$NMDoNothingGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity$NMDoNothingGoal.class",
+          "methods": [
+            "canUse",
+            "tick",
+            "stop",
+            "isInterruptable",
+            "requiresUpdateEveryTick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity$3",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity$3.class",
+          "methods": [
+            "<init>",
+            "start",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/AI/InternalStateGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AI/InternalStateGoal.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "canContinueToUse",
+            "isInterruptable",
+            "requiresUpdateEveryTick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "PlayerCounter",
+            "lambda$PlayerCounter$1",
+            "setLife",
+            "setHomePos"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": [
+            "setAttackState",
+            "getAttackState"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:monstrosity-admission:awakening_home"
+      ],
+      "primary_test_source": "cataclysm:netherite_monstrosity",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k4a-cataclysm-monstrosity-admission-complete",
+      "scalability_note": "Concrete static observations only; no new Stage eligibility, policy, balance or hook decision. Defense/admission constants and native phase/spawn gates are not promoted to Stage candidates. Shared mechanisms are bindings, not duplicate payloads.",
+      "scalable_parameter_candidates": [],
+      "state_binding": {
+        "idle_goal_priority": 0,
+        "awakening_goal_priority": 1,
+        "start_state": 2,
+        "active_state": 2,
+        "end_state": 0,
+        "final_tick_inclusive": 40,
+        "sleep_states": [
+          1,
+          2
+        ],
+        "awake_setter_sets_attack_state": false,
+        "awake_setter_sets_home": false,
+        "true_setter_recounts_native_life": true
+      },
+      "numeric_observations": [
+        {
+          "primitive": "AWAKEN_STATE",
+          "parameter": "target_distance_squared",
+          "native_value": 255.0,
+          "native_formula": "native flag and idle goal lifecycle; strict distanceSquared <255 and LOS allow idle goal exit; setter true invokes PlayerCounter(level)",
+          "units": "blocks squared",
+          "boundary": "NMDoNothingGoal.canUse/stop and setIsAwaken"
+        },
+        {
+          "primitive": "ATTACK_STATE",
+          "parameter": "awakening_final_tick",
+          "native_value": 40,
+          "native_formula": "awakening bound2->2->0; continue state2 && attackTicks<=40; shared setAttackState resets ticks and syncs state",
+          "units": "native attack ticks, inclusive",
+          "boundary": "registered awakening InternalStateGoal"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:monstrosity_berserk_phase",
+      "mod_key": "cataclysm",
+      "display_name": "Monstrosity latched berserk prerequisite and body immunity",
+      "registry_ids": [
+        "cataclysm:netherite_monstrosity"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Live isBerserk checks HP<=maxHP*0.4F; the separate synced getIsBerserk flag starts false. Priority0 phase goal canUse iff flag false, attackState0 and live threshold true; start latches flag true then sets state4. Its positive-max continuation checks attackTicks<=54 ONLY, not state/HP/awake/target. Stop sets state0, leaving flag latched. The body hurt state4 gate is limited to that state, not the whole flag lifetime.",
+      "human_summary": "Live isBerserk checks HP<=maxHP*0.4F; the separate synced getIsBerserk flag starts false. Priority0 phase goal canUse iff flag false, attackState0 and live threshold true; start latches flag true then sets state4. Its positive-max continuation checks attackTicks<=54 ONLY, not state/HP/awake/target. Stop sets state0, leaving flag latched. The body hurt state4 gate is limited to that state, not the whole flag lifetime.",
+      "closest_vanilla_equivalent": "Custom native boss phase flag/AI prerequisite",
+      "vanilla_similarities": "Retains the named native API and reused shared contract where present.",
+      "vanilla_differences": "setIsBerserk writes only synced boolean; no health or attribute modification. No awake/target condition is added inside phase canUse. Native scheduler remains in charge. State4 offensive callbacks are deferred, and the head route retains its separate admission entry.",
+      "components": [
+        {
+          "primitive": "BERSERK_STATE",
+          "formula": "HP <= maxHP * 0.4F with independent persisted latched flag",
+          "numerical_parameters": {
+            "health_fraction": 0.4000000059604645
+          },
+          "parameter_units": {
+            "health_fraction": "max-HP fraction (0.4F)"
+          },
+          "binary_parameters": [
+            "!getIsBerserk",
+            "attackState0",
+            "isBerserk live threshold"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "phase goal canUse"
+        },
+        {
+          "primitive": "ATTACK_STATE",
+          "formula": "start0->4; continuation attackTicks<=54 only; stop->0",
+          "numerical_parameters": {
+            "phase_final_tick": 54
+          },
+          "parameter_units": {
+            "phase_final_tick": "native attack ticks, inclusive"
+          },
+          "binary_parameters": [
+            "native AI scheduling/goal flags",
+            "flag remains latched after stop or HP recovery"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "MonstrosityPhaseChangeGoal lifecycle"
+        },
+        {
+          "primitive": "PHASE_ADMISSION",
+          "formula": "body hurt rejects state4 unless BYPASSES_INVULNERABILITY",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "body route only; shared/native head admission remains independent"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "body hurt"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Phase flags/state/timing are native prerequisites, not numeric payload candidates."
+      ],
+      "custom_state": "Native entity/synced AI state and native NBT only.",
+      "eligibility": "Phase flags/state/timing are native prerequisites, not numeric payload candidates.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity.class",
+          "methods": [
+            "registerGoals",
+            "isBerserk",
+            "getIsBerserk",
+            "setIsBerserk",
+            "hurt"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity$MonstrosityPhaseChangeGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity$MonstrosityPhaseChangeGoal.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "canContinueToUse"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": [
+            "setAttackState"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:monstrosity-admission:berserk_phase"
+      ],
+      "primary_test_source": "cataclysm:netherite_monstrosity",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k4a-cataclysm-monstrosity-admission-complete",
+      "scalability_note": "Concrete static observations only; no new Stage eligibility, policy, balance or hook decision. Defense/admission constants and native phase/spawn gates are not promoted to Stage candidates. Shared mechanisms are bindings, not duplicate payloads.",
+      "scalable_parameter_candidates": [],
+      "state_binding": {
+        "goal_priority": 0,
+        "start_state": 0,
+        "active_state": 4,
+        "end_state": 0,
+        "final_tick_inclusive": 54,
+        "continuation_rechecks_active_state": false,
+        "flag_latched": true,
+        "setter_changes_health_or_attributes": false
+      },
+      "numeric_observations": [
+        {
+          "primitive": "BERSERK_STATE",
+          "parameter": "health_fraction",
+          "native_value": 0.4000000059604645,
+          "native_formula": "HP <= maxHP * 0.4F with independent persisted latched flag",
+          "units": "max-HP fraction (0.4F)",
+          "boundary": "phase goal canUse"
+        },
+        {
+          "primitive": "ATTACK_STATE",
+          "parameter": "phase_final_tick",
+          "native_value": 54,
+          "native_formula": "start0->4; continuation attackTicks<=54 only; stop->0",
+          "units": "native attack ticks, inclusive",
+          "boundary": "MonstrosityPhaseChangeGoal lifecycle"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:monstrosity_encounter_state",
+      "mod_key": "cataclysm",
+      "display_name": "Monstrosity native encounter/spawn and persistent prerequisites",
+      "registry_ids": [
+        "cataclysm:netherite_monstrosity"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "finalizeSpawn calls setIsAwaken(true) for COMMAND, SPAWN_EGG, isSpawner(type) or DISPENSER before shared finalizeSpawn initializes homeTicks; the concrete call alone sets neither home nor state2. The exact Soul Black Smith mob pool references cataclysm:monstrosity NBT containing one Monstrosity with Health600, is_Awaken0, is_Berserk0, Magazine0, Invulnerable0 and no saved home/attack state. Native NBT load/save adds is_Berserk/is_Awaken/Magazine after shared persistence. When admitted defeat invokes AfterDefeatBoss, installed respawner=true, server context and a resolvable saved home are required to place a Boss Respawner at that exact home and set Monstrosity/Monstrous Eye. Concrete die calls shared die then unconditionally sets attackState5 when that call returns, with no extra local cancellation check; deathtimer binds the shared delayed-death contract to60 ticks. Shared cancellation/Life/native death admission remains unchanged.",
+      "human_summary": "finalizeSpawn calls setIsAwaken(true) for COMMAND, SPAWN_EGG, isSpawner(type) or DISPENSER before shared finalizeSpawn initializes homeTicks; the concrete call alone sets neither home nor state2. The exact Soul Black Smith mob pool references cataclysm:monstrosity NBT containing one Monstrosity with Health600, is_Awaken0, is_Berserk0, Magazine0, Invulnerable0 and no saved home/attack state. Native NBT load/save adds is_Berserk/is_Awaken/Magazine after shared persistence. When admitted defeat invokes AfterDefeatBoss, installed respawner=true, server context and a resolvable saved home are required to place a Boss Respawner at that exact home and set Monstrosity/Monstrous Eye. Concrete die calls shared die then unconditionally sets attackState5 when that call returns, with no extra local cancellation check; deathtimer binds the shared delayed-death contract to60 ticks. Shared cancellation/Life/native death admission remains unchanged.",
+      "closest_vanilla_equivalent": "Native spawn/NBT and reused Cataclysm home/death/respawner lifecycle",
+      "vanilla_similarities": "Retains the named native API and reused shared contract where present.",
+      "vanilla_differences": "Ordinary/STRUCTURE spawn does not match the concrete awake-spawn list. Serialized flags are literal producer values, not a whole structure-placement simulation or guarantee of runtime config. The true awake setter during load recounts native Life after shared Life load. Native attackState/ticks and shared bucket/regen/home timers are not saved by this hierarchy; magazine is saved but offense meaning remains deferred. Respawner entity admission, player9/peaceful/item/LIT/spawn timing reuse the protected R2k3b generic contract, without duplicating it.",
+      "components": [
+        {
+          "primitive": "NATIVE_SPAWN",
+          "formula": "COMMAND|SPAWN_EGG|isSpawner(type)|DISPENSER -> flag true; other spawn types retain existing/default flag",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "native finalizeSpawn type",
+            "exact native template flags"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "finalizeSpawn/template NBT"
+        },
+        {
+          "primitive": "PERSISTENT_STATE",
+          "formula": "super load/save then is_Berserk, is_Awaken, Magazine setters/getters; awake true recounts native Life even on reload",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "native boolean/int keys",
+            "shared Home/Life persistence unchanged",
+            "no attack state/timer persistence; magazine payload semantics deferred"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "native NBT load/save"
+        },
+        {
+          "primitive": "BOSS_RESPAWN",
+          "formula": "respawner config && server && saved home && destination level -> setBlock(home,BOSS_RESPAWNER,2); correct blockentity -> setEntityId(Monstrosity), setTheItem(Monstrous Eye)",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "installed respawner true",
+            "saved home",
+            "server level resolved",
+            "native shared defeat admission"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "AfterDefeatBoss -> reused generic Boss Respawner"
+        },
+        {
+          "primitive": "DEATH_STATE",
+          "formula": "super.die(source); setAttackState(5); deathtimer()=60",
+          "numerical_parameters": {
+            "death_timer": 60
+          },
+          "parameter_units": {
+            "death_timer": "native delayed-death ticks"
+          },
+          "binary_parameters": [
+            "shared death admission/cancellation and Life bookkeeping unchanged",
+            "concrete state write has no local return/cancellation guard"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "concrete die/deathtimer bindings to shared death lifecycle"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Encounter prerequisites, native Life/home and spawn/callback admission remain native; no progression state created."
+      ],
+      "custom_state": "Native entity/synced AI state and native NBT only.",
+      "eligibility": "Encounter prerequisites, native Life/home and spawn/callback admission remain native; no progression state created.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity.class",
+          "methods": [
+            "defineSynchedData",
+            "finalizeSpawn",
+            "setIsAwaken",
+            "setIsBerserk",
+            "setMagazine",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "AfterDefeatBoss",
+            "die",
+            "deathtimer"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "finalizeSpawn",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "getHomePos"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "die",
+            "onDeathUpdate"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:blockentities/Boss_Respawn_Spawner_Block_Entity",
+          "entry": "com/github/L_Ender/cataclysm/blockentities/Boss_Respawn_Spawner_Block_Entity.class",
+          "methods": [
+            "spawnMyBoss",
+            "tick",
+            "onHit"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:encounter-pool",
+          "entry": "data/cataclysm/worldgen/template_pool/soul_black_smith/mob/monstrosity.json",
+          "methods": []
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:encounter-template",
+          "entry": "data/cataclysm/structure/monstrosity.nbt",
+          "methods": []
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:monstrosity-admission:encounter_state"
+      ],
+      "primary_test_source": "cataclysm:netherite_monstrosity",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k4a-cataclysm-monstrosity-admission-complete",
+      "scalability_note": "Concrete static observations only; no new Stage eligibility, policy, balance or hook decision. Defense/admission constants and native phase/spawn gates are not promoted to Stage candidates. Shared mechanisms are bindings, not duplicate payloads.",
+      "scalable_parameter_candidates": [],
+      "persistence": {
+        "saved_keys": [
+          "is_Berserk",
+          "is_Awaken",
+          "Magazine"
+        ],
+        "inherited_saved_state": [
+          "Home GlobalPos (legacy Home also accepted)",
+          "LifeRemain"
+        ],
+        "not_saved_here": [
+          "attackState",
+          "attackTicks",
+          "homeTicks",
+          "self_regen",
+          "bucket"
+        ],
+        "native_template_flags": {
+          "is_Awaken": 0,
+          "is_Berserk": 0,
+          "Magazine": 0,
+          "Invulnerable": 0
+        },
+        "template_contains_home": false,
+        "template_contains_attack_state": false,
+        "awake_spawn_types": [
+          "COMMAND",
+          "SPAWN_EGG",
+          "MobSpawnType.isSpawner(type)",
+          "DISPENSER"
+        ],
+        "concrete_death_state": 5,
+        "native_deathtimer": 60
+      },
+      "numeric_observations": [
+        {
+          "primitive": "DEATH_STATE",
+          "parameter": "death_timer",
+          "native_value": 60,
+          "native_formula": "super.die(source); setAttackState(5); deathtimer()=60",
+          "units": "native delayed-death ticks",
+          "boundary": "concrete die/deathtimer bindings to shared death lifecycle"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:monstrosity_head_admission",
+      "mod_key": "cataclysm",
+      "display_name": "Monstrosity head-part incoming route",
+      "registry_ids": [
+        "cataclysm:netherite_monstrosity"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "The one constructed head part first checks its virtual isInvulnerableTo, then calls parent.hurtParts. For headPart identity, amount=min(Float.MAX_VALUE,amount*1.5F); hurtParts invokes IABoss_monster.hurt DIRECTLY. The parent shared invulnerability/cap/range/bucket/native defenses remain, but this path does not run the body state4 gate, direct-golem half or hurt-return awakening branch.",
+      "human_summary": "The one constructed head part first checks its virtual isInvulnerableTo, then calls parent.hurtParts. For headPart identity, amount=min(Float.MAX_VALUE,amount*1.5F); hurtParts invokes IABoss_monster.hurt DIRECTLY. The parent shared invulnerability/cap/range/bucket/native defenses remain, but this path does not run the body state4 gate, direct-golem half or hurt-return awakening branch.",
+      "closest_vanilla_equivalent": "NeoForge native part targeting plus native parent hurt",
+      "vanilla_similarities": "Retains the named native API and reused shared contract where present.",
+      "vanilla_differences": "attackEntityFromPart instead calls this.hurt but is not the route called by concrete Part.hurt. Do not describe all part damage as body damage or as bypassing all invulnerability. No source replacement, duplicate damage request or synthetic callback.",
+      "components": [
+        {
+          "primitive": "MULTIPART_ROUTING",
+          "formula": "part.isInvulnerableTo ? false : parent.hurtParts(part,source,amount)",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "part native virtual invulnerability",
+            "head identity",
+            "parent shared/native admission"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "Netherite_Monstrosity_Part.hurt"
+        },
+        {
+          "primitive": "INCOMING_DAMAGE_MULTIPLIER",
+          "formula": "min(Float.MAX_VALUE,amount*head_multiplier)",
+          "numerical_parameters": {
+            "head_multiplier": 1.5
+          },
+          "parameter_units": {
+            "head_multiplier": "dimensionless"
+          },
+          "binary_parameters": [
+            "part == headPart"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "hurtParts before direct shared hurt entry"
+        },
+        {
+          "primitive": "PART_TARGETING",
+          "formula": "one headPart; part pickable iff parent alive; part collision false",
+          "numerical_parameters": {
+            "head_width": 1.600000023841858,
+            "head_height": 2.5
+          },
+          "parameter_units": {
+            "head_width": "blocks (1.6F)",
+            "head_height": "blocks"
+          },
+          "binary_parameters": [
+            "body collision is separate: alive && bodyCollided && state!=8"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "constructor/getParts/part targeting, not damage amplification"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Part admission and parent admission both apply in their native order."
+      ],
+      "custom_state": "Native entity/synced AI state and native NBT only.",
+      "eligibility": "Part admission and parent admission both apply in their native order.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity.class",
+          "methods": [
+            "<init>",
+            "hurtParts",
+            "attackEntityFromPart",
+            "isMultipartEntity",
+            "getParts",
+            "canBeCollidedWith"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Part",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Part.class",
+          "methods": [
+            "<init>",
+            "hurt",
+            "isPickable",
+            "canBeCollidedWith",
+            "is"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "hurt"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:monstrosity-admission:head_hurt"
+      ],
+      "primary_test_source": "cataclysm:netherite_monstrosity",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k4a-cataclysm-monstrosity-admission-complete",
+      "scalability_note": "Concrete static observations only; no new Stage eligibility, policy, balance or hook decision. Defense/admission constants and native phase/spawn gates are not promoted to Stage candidates. Shared mechanisms are bindings, not duplicate payloads.",
+      "scalable_parameter_candidates": [],
+      "routing": {
+        "part_entry": "hurtParts",
+        "alternative_entry": "attackEntityFromPart -> body hurt",
+        "part_skips_body_gate": true,
+        "part_skips_direct_golem_half": true,
+        "part_skips_body_awakening": true,
+        "part_skips_shared_admission": false
+      },
+      "numeric_observations": [
+        {
+          "primitive": "INCOMING_DAMAGE_MULTIPLIER",
+          "parameter": "head_multiplier",
+          "native_value": 1.5,
+          "native_formula": "min(Float.MAX_VALUE,amount*head_multiplier)",
+          "units": "dimensionless",
+          "boundary": "hurtParts before direct shared hurt entry"
+        },
+        {
+          "primitive": "PART_TARGETING",
+          "parameter": "head_width",
+          "native_value": 1.600000023841858,
+          "native_formula": "one headPart; part pickable iff parent alive; part collision false",
+          "units": "blocks (1.6F)",
+          "boundary": "constructor/getParts/part targeting, not damage amplification"
+        },
+        {
+          "primitive": "PART_TARGETING",
+          "parameter": "head_height",
+          "native_value": 2.5,
+          "native_formula": "one headPart; part pickable iff parent alive; part collision false",
+          "units": "blocks",
+          "boundary": "constructor/getParts/part targeting, not damage amplification"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:monstrosity_incoming_admission",
+      "mod_key": "cataclysm",
+      "display_name": "Monstrosity body incoming admission",
+      "registry_ids": [
+        "cataclysm:netherite_monstrosity"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Body hurt first rejects attackState4 unless BYPASSES_INVULNERABILITY; then halves the requested amount only when the DIRECT entity is AbstractGolem. It enters IABoss_monster.hurt with the SAME DamageSource. A true returned hurt, still alive and previously unawakened, sets IsAwaken true; this does not itself set attackState2 or home. Native armor/events and actual HP loss remain downstream.",
+      "human_summary": "Body hurt first rejects attackState4 unless BYPASSES_INVULNERABILITY; then halves the requested amount only when the DIRECT entity is AbstractGolem. It enters IABoss_monster.hurt with the SAME DamageSource. A true returned hurt, still alive and previously unawakened, sets IsAwaken true; this does not itself set attackState2 or home. Native armor/events and actual HP loss remain downstream.",
+      "closest_vanilla_equivalent": "Native hurt plus reused Cataclysm shared boss admission",
+      "vanilla_similarities": "Retains the named native API and reused shared contract where present.",
+      "vanilla_differences": "Concrete phase gate precedes shared processing. Bypass permits the body gate but does not skip direct-golem reduction. Causing-owner range is a different shared reader; no direct-projectile or attack-family rejection is added here. Failed/lethal hurt does not take the awakening branch.",
+      "components": [
+        {
+          "primitive": "PHASE_ADMISSION",
+          "formula": "state4 && !source.is(BYPASSES_INVULNERABILITY) -> false",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "attackState4",
+            "native BYPASSES_INVULNERABILITY tag"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "body hurt entry"
+        },
+        {
+          "primitive": "INCOMING_DAMAGE_MULTIPLIER",
+          "formula": "requested amount *= direct_golem_multiplier",
+          "numerical_parameters": {
+            "direct_golem_multiplier": 0.5
+          },
+          "parameter_units": {
+            "direct_golem_multiplier": "dimensionless"
+          },
+          "binary_parameters": [
+            "source.getDirectEntity() instanceof AbstractGolem"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "body hurt before shared cap"
+        },
+        {
+          "primitive": "AWAKEN_STATE",
+          "formula": "hurttrue && alive && !getIsAwaken -> setIsAwaken(true)",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "native hurt return",
+            "alive",
+            "unawakened"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "body hurt after shared return"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native state-4 gate, source identity and hurt-return branch remain native."
+      ],
+      "custom_state": "Native entity/synced AI state and native NBT only.",
+      "eligibility": "Native state-4 gate, source identity and hurt-return branch remain native.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity.class",
+          "methods": [
+            "hurt",
+            "setIsAwaken"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "hurt"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:monstrosity-admission:body_hurt"
+      ],
+      "primary_test_source": "cataclysm:netherite_monstrosity",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k4a-cataclysm-monstrosity-admission-complete",
+      "scalability_note": "Concrete static observations only; no new Stage eligibility, policy, balance or hook decision. Defense/admission constants and native phase/spawn gates are not promoted to Stage candidates. Shared mechanisms are bindings, not duplicate payloads.",
+      "scalable_parameter_candidates": [],
+      "source_actor_distinctions": {
+        "local_reduction": "DamageSource.getDirectEntity()",
+        "inherited_range": "DamageSource.getEntity() current causing actor",
+        "source_rewritten": false
+      },
+      "numeric_observations": [
+        {
+          "primitive": "INCOMING_DAMAGE_MULTIPLIER",
+          "parameter": "direct_golem_multiplier",
+          "native_value": 0.5,
+          "native_formula": "requested amount *= direct_golem_multiplier",
+          "units": "dimensionless",
+          "boundary": "body hurt before shared cap"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:monstrosity_nature_regen_binding",
+      "mod_key": "cataclysm",
+      "display_name": "Monstrosity concrete shared native regeneration binding",
+      "registry_ids": [
+        "cataclysm:netherite_monstrosity"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "NatureRegen returns NetheriteMonstrosity.natureHeal, installed25. This only binds the existing cataclysm:shared_heal contract: inherited targetless server AI cadence20 and native heal admission remain unchanged. HealCooldown remains inherited200; tagged successful non-bypass hurt resets the reused shared timer. No new healing event/callback/defense family is introduced.",
+      "human_summary": "NatureRegen returns NetheriteMonstrosity.natureHeal, installed25. This only binds the existing cataclysm:shared_heal contract: inherited targetless server AI cadence20 and native heal admission remain unchanged. HealCooldown remains inherited200; tagged successful non-bypass hurt resets the reused shared timer. No new healing event/callback/defense family is introduced.",
+      "closest_vanilla_equivalent": "Native LivingEntity.heal in the existing shared boss regeneration contract",
+      "vanilla_similarities": "Retains the named native API and reused shared contract where present.",
+      "vanilla_differences": "Only the concrete amount binding is new research. Target/no-AI/timer/tag/cadence and native healing events, cancellation and max-HP clamp are reused, not rediscovered. Offense-triggered lava healing is deferred and must not be conflated with this idle heal.",
+      "components": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "formula": "NatureRegen() -> NetheriteMonstrosity.natureHeal; inherited eligible shared tick calls native heal(NatureRegen())",
+          "numerical_parameters": {
+            "amount": 25.0
+          },
+          "parameter_units": {
+            "amount": "HP requested per eligible shared heal call"
+          },
+          "binary_parameters": [
+            "server, AI enabled",
+            "self_regen<=0",
+            "target==null",
+            "tickCount%20==0",
+            "positive NatureRegen",
+            "native heal hooks/alive/max-HP admission"
+          ],
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED",
+          "native_boundary": "existing shared IABoss_monster.tick heal argument"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Concrete binding only; native admission and shared timer remain independent."
+      ],
+      "custom_state": "Native entity/synced AI state and native NBT only.",
+      "eligibility": "Concrete binding only; native admission and shared timer remain independent.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity.class",
+          "methods": [
+            "NatureRegen",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "NatureRegen",
+            "HealCooldown",
+            "hurt",
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:monstrosity-admission:shared_regen_binding"
+      ],
+      "primary_test_source": "cataclysm:netherite_monstrosity",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k4a-cataclysm-monstrosity-admission-complete",
+      "scalability_note": "Concrete static observations only; no new Stage eligibility, policy, balance or hook decision. Defense/admission constants and native phase/spawn gates are not promoted to Stage candidates. Shared mechanisms are bindings, not duplicate payloads.",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "amount"
+          ],
+          "native_value": 25.0,
+          "native_formula": "NatureRegen() -> NetheriteMonstrosity.natureHeal; inherited eligible shared tick calls native heal(NatureRegen())",
+          "units": "HP requested per eligible shared heal call",
+          "native_boundary": "existing shared IABoss_monster.tick heal argument",
+          "observation": "Concrete binding of an existing shared candidate only; Stage decisions unchanged."
+        }
+      ],
+      "record_kind": "SHARED_BINDING",
+      "binding_of": "cataclysm:shared_heal",
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameter": "amount",
+          "native_value": 25.0,
+          "native_formula": "NatureRegen() -> NetheriteMonstrosity.natureHeal; inherited eligible shared tick calls native heal(NatureRegen())",
+          "units": "HP requested per eligible shared heal call",
+          "boundary": "existing shared IABoss_monster.tick heal argument"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:monstrosity_shared_defense_bindings",
+      "mod_key": "cataclysm",
+      "display_name": "Monstrosity concrete shared defense bindings",
+      "registry_ids": [
+        "cataclysm:netherite_monstrosity"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Concrete getters bind shared DamageCap=25, DpsCap=20, RangeLimit=18 from installed common-file values. DamageCap is both per-hit ceiling and bucket capacity; DpsCap drains the bucket at20/20=1 per eligible server AI tick. Range uses the CURRENT causing actor: full through18 blocks, linear falloff after18, rejection at27; null causing actor skips range. These remain separate from armor 12/toughness5, registered fire immunity, native virtual invulnerability and the concrete body phase gate.",
+      "human_summary": "Concrete getters bind shared DamageCap=25, DpsCap=20, RangeLimit=18 from installed common-file values. DamageCap is both per-hit ceiling and bucket capacity; DpsCap drains the bucket at20/20=1 per eligible server AI tick. Range uses the CURRENT causing actor: full through18 blocks, linear falloff after18, rejection at27; null causing actor skips range. These remain separate from armor 12/toughness5, registered fire immunity, native virtual invulnerability and the concrete body phase gate.",
+      "closest_vanilla_equivalent": "Reused shared admission; native Entity invulnerability and LivingEntity defenses",
+      "vanilla_similarities": "Retains the named native API and reused shared contract where present.",
+      "vanilla_differences": "No concrete isInvulnerableTo override exists in the reviewed Cataclysm hierarchy. The shared virtual predicate runs before its BYPASSES_INVULNERABILITY early native return; native/NeoForge invulnerability and incoming-damage hook outcomes remain authoritative. Installed config is not proof of dynamically loaded values. dps_limit_time=20 is not read by the inherited fixed-/20 drain.",
+      "components": [
+        {
+          "primitive": "DAMAGE_CAP",
+          "formula": "min(DamageCap(),incoming); DamageCap -> NetheriteMonstrosity.damageCap",
+          "numerical_parameters": {
+            "per_hit_cap": 25.0
+          },
+          "parameter_units": {
+            "per_hit_cap": "requested damage units"
+          },
+          "binary_parameters": [
+            "shared BYPASSES_INVULNERABILITY early return skips cap"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "shared hurt after native invulnerability"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "formula": "capacity=DamageCap(); drain=DpsCap()/20 per eligible AI server tick; overflow uses positive remaining room, else0.1F; failed native hurt restores saved bucket",
+          "numerical_parameters": {
+            "capacity": 25.0,
+            "dps_cap": 20.0,
+            "drain_divisor": 20,
+            "full_bucket_request": 0.10000000149011612
+          },
+          "parameter_units": {
+            "capacity": "pre-mitigation requested damage units",
+            "dps_cap": "requested damage units/20 ticks",
+            "drain_divisor": "ticks",
+            "full_bucket_request": "requested damage units (0.1F)"
+          },
+          "binary_parameters": [
+            "server AI decay only",
+            "bypasses_hurt_time skips bucket only",
+            "native hurt false rolls back"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "inherited IABoss_monster.hurt/tick"
+        },
+        {
+          "primitive": "RANGE_ADMISSION",
+          "formula": "L=RangeLimit(); null causer skips; d>=1.5L rejects; L<d<1.5L: amount *= (1.5L-d)/(0.5L)",
+          "numerical_parameters": {
+            "range_limit": 18.0
+          },
+          "parameter_units": {
+            "range_limit": "blocks"
+          },
+          "binary_parameters": [
+            "reads DamageSource.getEntity(), not direct entity, launch position or LOS"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "shared hurt after per-hit cap and before bucket"
+        },
+        {
+          "primitive": "NATIVE_INVULNERABILITY",
+          "formula": "virtual native isInvulnerableTo; registered fireImmune type; removed/backing invulnerability/creative-bypass/fire/fall and CommonHooks remain native",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "native damage tags",
+            "native/NeoForge invulnerability hook",
+            "EntityType.fireImmune"
+          ],
+          "vanilla_relation": "VANILLA_DIRECT",
+          "native_boundary": "part/native parent predicate before shared bypass"
+        },
+        {
+          "primitive": "NATIVE_ARMOR",
+          "formula": "native armor/toughness defenses after selected hurt request",
+          "numerical_parameters": {
+            "armor_base": 12.0,
+            "armor_toughness_base": 5.0
+          },
+          "parameter_units": {
+            "armor_base": "attribute points",
+            "armor_toughness_base": "attribute points"
+          },
+          "binary_parameters": [
+            "native armor-bypass tags and incoming-damage events remain downstream"
+          ],
+          "vanilla_relation": "VANILLA_DIRECT",
+          "native_boundary": "native LivingEntity hurt"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Defense/admission bindings are not outgoing scalable payloads."
+      ],
+      "custom_state": "Native entity/synced AI state and native NBT only.",
+      "eligibility": "Defense/admission bindings are not outgoing scalable payloads.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity.class",
+          "methods": [
+            "DamageCap",
+            "DpsCap",
+            "RangeLimit",
+            "netherite_monstrosity"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$2",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "hurt",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "calculateRange"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:monstrosity-admission:shared_defense"
+      ],
+      "primary_test_source": "cataclysm:netherite_monstrosity",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k4a-cataclysm-monstrosity-admission-complete",
+      "scalability_note": "Concrete static observations only; no new Stage eligibility, policy, balance or hook decision. Defense/admission constants and native phase/spawn gates are not promoted to Stage candidates. Shared mechanisms are bindings, not duplicate payloads.",
+      "scalable_parameter_candidates": [],
+      "reused_contracts": [
+        "cataclysm:shared_hurt"
+      ],
+      "reference_evidence": [
+        {
+          "evidence_file": "reference-evidence/bossesrise-knight-defense-244.json",
+          "entry": "net/minecraft/world/entity/Entity.class",
+          "methods": [
+            "isInvulnerableTo",
+            "isInvulnerable"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/bossesrise-knight-defense-244.json",
+          "entry": "net/minecraft/world/entity/LivingEntity.class",
+          "methods": [
+            "hurt"
+          ]
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "DAMAGE_CAP",
+          "parameter": "per_hit_cap",
+          "native_value": 25.0,
+          "native_formula": "min(DamageCap(),incoming); DamageCap -> NetheriteMonstrosity.damageCap",
+          "units": "requested damage units",
+          "boundary": "shared hurt after native invulnerability"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "parameter": "capacity",
+          "native_value": 25.0,
+          "native_formula": "capacity=DamageCap(); drain=DpsCap()/20 per eligible AI server tick; overflow uses positive remaining room, else0.1F; failed native hurt restores saved bucket",
+          "units": "pre-mitigation requested damage units",
+          "boundary": "inherited IABoss_monster.hurt/tick"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "parameter": "dps_cap",
+          "native_value": 20.0,
+          "native_formula": "capacity=DamageCap(); drain=DpsCap()/20 per eligible AI server tick; overflow uses positive remaining room, else0.1F; failed native hurt restores saved bucket",
+          "units": "requested damage units/20 ticks",
+          "boundary": "inherited IABoss_monster.hurt/tick"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "parameter": "drain_divisor",
+          "native_value": 20,
+          "native_formula": "capacity=DamageCap(); drain=DpsCap()/20 per eligible AI server tick; overflow uses positive remaining room, else0.1F; failed native hurt restores saved bucket",
+          "units": "ticks",
+          "boundary": "inherited IABoss_monster.hurt/tick"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "parameter": "full_bucket_request",
+          "native_value": 0.10000000149011612,
+          "native_formula": "capacity=DamageCap(); drain=DpsCap()/20 per eligible AI server tick; overflow uses positive remaining room, else0.1F; failed native hurt restores saved bucket",
+          "units": "requested damage units (0.1F)",
+          "boundary": "inherited IABoss_monster.hurt/tick"
+        },
+        {
+          "primitive": "RANGE_ADMISSION",
+          "parameter": "range_limit",
+          "native_value": 18.0,
+          "native_formula": "L=RangeLimit(); null causer skips; d>=1.5L rejects; L<d<1.5L: amount *= (1.5L-d)/(0.5L)",
+          "units": "blocks",
+          "boundary": "shared hurt after per-hit cap and before bucket"
+        },
+        {
+          "primitive": "NATIVE_ARMOR",
+          "parameter": "armor_base",
+          "native_value": 12.0,
+          "native_formula": "native armor/toughness defenses after selected hurt request",
+          "units": "attribute points",
+          "boundary": "native LivingEntity hurt"
+        },
+        {
+          "primitive": "NATIVE_ARMOR",
+          "parameter": "armor_toughness_base",
+          "native_value": 5.0,
+          "native_formula": "native armor/toughness defenses after selected hurt request",
+          "units": "attribute points",
+          "boundary": "native LivingEntity hurt"
+        }
+      ]
     }
   ],
   "paths": [
@@ -4049,14 +5149,409 @@
         }
       ],
       "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:monstrosity-admission:awakening_home",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:monstrosity_awakening"
+      ],
+      "primary_source": "cataclysm:netherite_monstrosity",
+      "native_path": "native idle goal stop -> flag/state2 -> awakening goal -> home/flag -> state0",
+      "setup": "Fresh unawakened encounter versus awake direct spawn or restored NBT; keep actual goal lifecycle native.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity.class",
+          "methods": [
+            "registerGoals",
+            "defineSynchedData",
+            "isSleep",
+            "setIsAwaken",
+            "getIsAwaken"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity$NMDoNothingGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity$NMDoNothingGoal.class",
+          "methods": [
+            "canUse",
+            "tick",
+            "stop",
+            "isInterruptable",
+            "requiresUpdateEveryTick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity$3",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity$3.class",
+          "methods": [
+            "<init>",
+            "start",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/AI/InternalStateGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AI/InternalStateGoal.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "canContinueToUse",
+            "isInterruptable",
+            "requiresUpdateEveryTick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "PlayerCounter",
+            "lambda$PlayerCounter$1",
+            "setLife",
+            "setHomePos"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": [
+            "setAttackState",
+            "getAttackState"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:monstrosity-admission:berserk_phase",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:monstrosity_berserk_phase"
+      ],
+      "primary_source": "cataclysm:netherite_monstrosity",
+      "native_path": "live HP threshold + native phase goal -> latched flag/state4 -> native goal stop/state0",
+      "setup": "AI-enabled native phase lifecycle at state0; do not force a transition from another attack state.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity.class",
+          "methods": [
+            "registerGoals",
+            "isBerserk",
+            "getIsBerserk",
+            "setIsBerserk",
+            "hurt"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity$MonstrosityPhaseChangeGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity$MonstrosityPhaseChangeGoal.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "canContinueToUse"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": [
+            "setAttackState"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:monstrosity-admission:body_hurt",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:monstrosity_incoming_admission"
+      ],
+      "primary_source": "cataclysm:netherite_monstrosity",
+      "native_path": "Netherite_Monstrosity_Entity.hurt -> IABoss_monster.hurt -> native hurt",
+      "setup": "Ordinary body incoming source; distinguish direct golem from causing golem behind another direct entity.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity.class",
+          "methods": [
+            "hurt",
+            "setIsAwaken"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "hurt"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:monstrosity-admission:encounter_state",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:monstrosity_encounter_state"
+      ],
+      "primary_source": "cataclysm:netherite_monstrosity",
+      "native_path": "native template/spawn/NBT -> entity state/home -> shared admitted defeat -> concrete respawner setup",
+      "setup": "Distinguish template encounter, awake direct spawn, restored NBT and the protected generic respawner route.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity.class",
+          "methods": [
+            "defineSynchedData",
+            "finalizeSpawn",
+            "setIsAwaken",
+            "setIsBerserk",
+            "setMagazine",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "AfterDefeatBoss",
+            "die",
+            "deathtimer"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "finalizeSpawn",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "getHomePos"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "die",
+            "onDeathUpdate"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:blockentities/Boss_Respawn_Spawner_Block_Entity",
+          "entry": "com/github/L_Ender/cataclysm/blockentities/Boss_Respawn_Spawner_Block_Entity.class",
+          "methods": [
+            "spawnMyBoss",
+            "tick",
+            "onHit"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:encounter-pool",
+          "entry": "data/cataclysm/worldgen/template_pool/soul_black_smith/mob/monstrosity.json",
+          "methods": []
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:encounter-template",
+          "entry": "data/cataclysm/structure/monstrosity.nbt",
+          "methods": []
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:monstrosity-admission:head_hurt",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:monstrosity_head_admission"
+      ],
+      "primary_source": "cataclysm:netherite_monstrosity",
+      "native_path": "Netherite_Monstrosity_Part.hurt -> parent.hurtParts -> IABoss_monster.hurt",
+      "setup": "Native head part targeting while parent alive; preserve route-specific differences.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity.class",
+          "methods": [
+            "<init>",
+            "hurtParts",
+            "attackEntityFromPart",
+            "isMultipartEntity",
+            "getParts",
+            "canBeCollidedWith"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Part",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Part.class",
+          "methods": [
+            "<init>",
+            "hurt",
+            "isPickable",
+            "canBeCollidedWith",
+            "is"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "hurt"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:monstrosity-admission:shared_defense",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:monstrosity_shared_defense_bindings"
+      ],
+      "primary_source": "cataclysm:netherite_monstrosity",
+      "native_path": "concrete getters -> inherited IABoss_monster hurt/tick and native defenses",
+      "setup": "Use the exact installed config and native tags; retain independent actor/range/cap/bucket/predicate boundaries.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity.class",
+          "methods": [
+            "DamageCap",
+            "DpsCap",
+            "RangeLimit",
+            "netherite_monstrosity"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$2",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "hurt",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "calculateRange"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:monstrosity-admission:shared_regen_binding",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:monstrosity_nature_regen_binding"
+      ],
+      "primary_source": "cataclysm:netherite_monstrosity",
+      "native_path": "concrete NatureRegen getter -> existing IABoss_monster.tick -> native heal",
+      "setup": "Existing positive eligible shared healing callback; no standalone replacement callback.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity.class",
+          "methods": [
+            "NatureRegen",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "NatureRegen",
+            "HealCooldown",
+            "hurt",
+            "tick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
     }
   ],
   "unresolved_native_ambiguities": null,
   "remaining_native_ambiguities": null,
-  "checkpoint": "R2k3b-cataclysm-guardian-offense-complete",
-  "scope": "Bounded Guardian offense/owned payloads, alliance, continuous repulsion and defeat/respawner closed; protected R2k3a and R2k2 contracts reused. Whole Cataclysm remains PARTIAL.",
-  "notes_file": "cataclysm-r2k3b-guardian-offense.json",
-  "exact_next_task": "R2k4a: Netherite Monstrosity incoming admission and phase prerequisites. Start entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity hurt/isInvulnerableTo and concrete DamageCap/DpsCap/RangeLimit/NatureRegen bindings, then combat state/phase setters and native spawn/home prerequisites. Reuse R2k2 shared/status contracts and locked R2k3a/R2k3b Guardian facts. Keep offense/payloads for the following bounded batch; static only, no runtime, Stage or production work.",
+  "checkpoint": "R2k4a-cataclysm-monstrosity-admission-complete",
+  "scope": "Bounded Netherite Monstrosity body/head incoming admission, concrete shared defense/regen bindings, awakening/berserk state and spawn/home/encounter prerequisites closed. Guardian and shared/status facts remain locked; offense/payloads remain pending. Cataclysm PARTIAL.",
+  "notes_file": "cataclysm-r2k4a-monstrosity-admission.json",
+  "exact_next_task": "R2k4b: Netherite Monstrosity offense/payload family. Start Netherite_Monstrosity_Entity aiStep/tick and attack-goal readers; close direct attack damage/forced movement, lava absorption healing, lava/barrage/charge delivery and directly owned attack entities. Preserve source/owner, native hurt-return status/control, team predicates and lifecycle; reuse locked R2k4a body/head admission, shared/status and Guardian contracts. Static only; no runtime, Stage, production or unrelated boss/equipment research.",
   "protected_checkpoint": "R2k3a-cataclysm-guardian-admission-complete",
-  "protected_notes_file": "cataclysm-r2k3a-guardian-admission.json"
+  "protected_notes_file": "cataclysm-r2k3a-guardian-admission.json",
+  "protected_checkpoints": [
+    {
+      "checkpoint": "R2k3a-cataclysm-guardian-admission-complete",
+      "notes_file": "cataclysm-r2k3a-guardian-admission.json"
+    },
+    {
+      "checkpoint": "R2k3b-cataclysm-guardian-offense-complete",
+      "notes_file": "cataclysm-r2k3b-guardian-offense.json"
+    }
+  ]
 }

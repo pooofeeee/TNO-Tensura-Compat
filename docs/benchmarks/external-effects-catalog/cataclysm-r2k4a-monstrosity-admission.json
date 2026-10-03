@@ -1,0 +1,358 @@
+{
+  "schema": "tno.external_effects.cataclysm_monstrosity_admission.v1",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "cataclysm",
+  "checkpoint": "R2k4a-cataclysm-monstrosity-admission-complete",
+  "previous_checkpoint": "R2k3b-cataclysm-guardian-offense-complete",
+  "starting_sha": "ede50693160cf2b0a37da8d82b17f042e625baf6",
+  "status": "PARTIAL",
+  "scope": "Bounded Netherite Monstrosity body/head incoming admission, concrete shared defense/regen bindings, awakening/berserk state and spawn/home/encounter prerequisites closed. Guardian and shared/status facts remain locked; offense/payloads remain pending. Cataclysm PARTIAL.",
+  "summary": {
+    "new_mechanics": 7,
+    "delivery_paths": 7,
+    "classifications": {
+      "BINARY_MECHANIC": 6,
+      "VANILLA_LIKE_EXTENDED": 1
+    },
+    "candidate_numeric_parameters": 1,
+    "shared_binding_records": 1,
+    "unresolved_subsection_ambiguities": 0
+  },
+  "protected_guardian": [
+    {
+      "file": "cataclysm-r2k3a-guardian-admission.json",
+      "sha256": "8a920972afe714d3e69278351e6a84672d9bb6a590d0cc0f6a20f66f8ae2ca7e",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k3b-guardian-offense.json",
+      "sha256": "274e56f41b2dc3cd1ee3196a41e6edc050f700ae36ed602eed054ecfd53b104e",
+      "usage": "LOCKED_REUSED"
+    }
+  ],
+  "hierarchy": [
+    "entity/InternalAnimationMonster/IABossMonsters/NewNetherite_Monstrosity/Netherite_Monstrosity_Entity",
+    "entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+    "entity/InternalAnimationMonster/Internal_Animation_Monster",
+    "entity/etc/Animation_Monsters",
+    "net/minecraft/world/entity/monster/Monster"
+  ],
+  "admission_order": {
+    "body": [
+      "BODY_STATE4_UNLESS_INVULNERABILITY_BYPASS",
+      "DIRECT_GOLEM_HALF",
+      "SHARED_HURT",
+      "AWAKEN_IF_RETURN_TRUE_ALIVE_AND_UNAWAKENED"
+    ],
+    "head": [
+      "PART_NATIVE_INVULNERABILITY",
+      "HEAD_X1_5_FLOAT_MAX_CLAMP",
+      "SHARED_HURT"
+    ],
+    "shared": [
+      "VIRTUAL_NATIVE_INVULNERABILITY",
+      "INVULNERABILITY_BYPASS_EARLY_NATIVE_RETURN",
+      "PER_HIT_DAMAGE_CAP",
+      "CAUSING_ENTITY_RANGE",
+      "SAVE_BUCKET",
+      "BUCKET_UNLESS_HURT_TIME_BYPASS",
+      "NATIVE_HURT",
+      "REGEN_TIMER_IF_TRUE_AND_TAGGED",
+      "BUCKET_ROLLBACK_IF_FALSE"
+    ]
+  },
+  "concrete_bindings": {
+    "DamageCap": {
+      "config_field": "NetheriteMonstrosity.damageCap",
+      "installed_value": 25.0,
+      "shared_boundary": "per-hit min AND DPS bucket capacity; not DPS drain",
+      "candidate_observation_added": false
+    },
+    "DpsCap": {
+      "config_field": "NetheriteMonstrosity.dpsCap",
+      "installed_value": 20.0,
+      "shared_boundary": "eligible server AI drain=DpsCap()/20=1 request-unit/tick",
+      "candidate_observation_added": false
+    },
+    "RangeLimit": {
+      "config_field": "NetheriteMonstrosity.rangeCap",
+      "installed_value": 18.0,
+      "shared_boundary": "current causing-actor full through18; falloff18<d<27; reject d>=27",
+      "candidate_observation_added": false
+    },
+    "NatureRegen": {
+      "config_field": "NetheriteMonstrosity.natureHeal",
+      "installed_value": 25.0,
+      "shared_boundary": "existing shared positive heal argument, targetless cadence20",
+      "observation_only": true,
+      "shared_candidate_binding": "cataclysm:shared_heal"
+    },
+    "HealCooldown": {
+      "inherited": true,
+      "native_value": 200,
+      "shared_boundary": "successful tagged hurt regen reset",
+      "candidate_observation_added": false
+    }
+  },
+  "facts": {
+    "shared_reuse": "R2k2a cap/range/bucket/timer/heal/home/Life/death and shared status whitelist unchanged. No concrete effect-admission override; installed values are observations, not guaranteed runtime config.",
+    "invulnerability": "No concrete Cataclysm-hierarchy isInvulnerableTo override. Virtual native predicate and NeoForge hook remain before the shared bypass branch. Registration explicitly fireImmune. Part predicate and parent predicate remain separate; bypass tag is not a universal defense bypass.",
+    "routes": "Body hurt first rejects attackState4 unless BYPASSES_INVULNERABILITY; then halves the requested amount only when the DIRECT entity is AbstractGolem. It enters IABoss_monster.hurt with the SAME DamageSource. A true returned hurt, still alive and previously unawakened, sets IsAwaken true; this does not itself set attackState2 or home. Native armor/events and actual HP loss remain downstream. The one constructed head part first checks its virtual isInvulnerableTo, then calls parent.hurtParts. For headPart identity, amount=min(Float.MAX_VALUE,amount*1.5F); hurtParts invokes IABoss_monster.hurt DIRECTLY. The parent shared invulnerability/cap/range/bucket/native defenses remain, but this path does not run the body state4 gate, direct-golem half or hurt-return awakening branch.",
+    "phase": "Live isBerserk checks HP<=maxHP*0.4F; the separate synced getIsBerserk flag starts false. Priority0 phase goal canUse iff flag false, attackState0 and live threshold true; start latches flag true then sets state4. Its positive-max continuation checks attackTicks<=54 ONLY, not state/HP/awake/target. Stop sets state0, leaving flag latched. The body hurt state4 gate is limited to that state, not the whole flag lifetime.",
+    "awakening": "Synced IsAwaken starts false. Priority0 NMDoNothingGoal continues unawakened while target is absent, dead, not strictly distanceSquared<255 or not visible; tick zeroes X/Z retaining Y. Its native stop sets IsAwaken true then attackState2. Priority1 awakening InternalStateGoal binds2->2->0, final40: start sets home to current dimension/block and calls setIsAwaken(true); tick zeroes X/Z retaining Y; continue requires state2 AND attackTicks<=40; stop sets0. isSleep means state1 OR2, not !IsAwaken.",
+    "native_state_persistence": "finalizeSpawn calls setIsAwaken(true) for COMMAND, SPAWN_EGG, isSpawner(type) or DISPENSER before shared finalizeSpawn initializes homeTicks; the concrete call alone sets neither home nor state2. The exact Soul Black Smith mob pool references cataclysm:monstrosity NBT containing one Monstrosity with Health600, is_Awaken0, is_Berserk0, Magazine0, Invulnerable0 and no saved home/attack state. Native NBT load/save adds is_Berserk/is_Awaken/Magazine after shared persistence. When admitted defeat invokes AfterDefeatBoss, installed respawner=true, server context and a resolvable saved home are required to place a Boss Respawner at that exact home and set Monstrosity/Monstrous Eye. Ordinary/STRUCTURE spawn does not match the concrete awake-spawn list. Serialized flags are literal producer values, not a whole structure-placement simulation or guarantee of runtime config. The true awake setter during load recounts native Life after shared Life load. Native attackState/ticks and shared bucket/regen/home timers are not saved by this hierarchy; magazine is saved but offense meaning remains deferred. Respawner entity admission, player9/peaceful/item/LIT/spawn timing reuse the protected R2k3b generic contract, without duplicating it. Concrete die calls shared die then unconditionally sets attackState5 when that call returns, with no extra local cancellation check; deathtimer binds the shared delayed-death contract to60 ticks. Shared cancellation/Life/native death admission remains unchanged.",
+    "native_template": "Exact pool links cataclysm:monstrosity. NBT false awake/berserk/invulnerable and Magazine0/Health600 are literal serialized setup; no Home, AttackState or NoAI key. Legacy serialized attributes are retained literally in evidence, not treated as runtime alias-conversion proof.",
+    "respawner": "AfterDefeatBoss binds exact saved home, Monstrosity type and Monstrous Eye. Generic item/player9/nonpeaceful/server/LIT/tick>=19/spawn-finalize-SPAWNER/home/admitted-add contract remains the protected R2k3b witness. No full new death/offense review.",
+    "defense_candidate_rule": "No admission multiplier, cap, bucket, range, armor or phase/setup number is promoted to a candidate. Only NatureRegen25 records the already-existing shared heal binding.",
+    "deferred": "No offensive payload/attack timing/terrain/lava absorption family is closed here."
+  },
+  "mechanic_packages": [
+    {
+      "id": "cataclysm:monstrosity_awakening",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:monstrosity-admission:awakening_home"
+      ],
+      "record_kind": "MECHANIC",
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Goal flags MOVE/JUMP/LOOK and native AI scheduling remain authoritative; no generic sleep invulnerability added."
+      ]
+    },
+    {
+      "id": "cataclysm:monstrosity_berserk_phase",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:monstrosity-admission:berserk_phase"
+      ],
+      "record_kind": "MECHANIC",
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Phase flags/state/timing are native prerequisites, not numeric payload candidates."
+      ]
+    },
+    {
+      "id": "cataclysm:monstrosity_encounter_state",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:monstrosity-admission:encounter_state"
+      ],
+      "record_kind": "MECHANIC",
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Encounter prerequisites, native Life/home and spawn/callback admission remain native; no progression state created."
+      ]
+    },
+    {
+      "id": "cataclysm:monstrosity_head_admission",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:monstrosity-admission:head_hurt"
+      ],
+      "record_kind": "MECHANIC",
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Part admission and parent admission both apply in their native order."
+      ]
+    },
+    {
+      "id": "cataclysm:monstrosity_incoming_admission",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:monstrosity-admission:body_hurt"
+      ],
+      "record_kind": "MECHANIC",
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Native state-4 gate, source identity and hurt-return branch remain native."
+      ]
+    },
+    {
+      "id": "cataclysm:monstrosity_nature_regen_binding",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "delivery_paths": [
+        "cataclysm:monstrosity-admission:shared_regen_binding"
+      ],
+      "record_kind": "SHARED_BINDING",
+      "numerical_candidates": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "amount"
+          ],
+          "native_value": 25.0,
+          "units": "HP requested per eligible shared heal call",
+          "native_boundary": "existing shared IABoss_monster.tick heal argument"
+        }
+      ],
+      "binary_gates": [
+        "Concrete binding only; native admission and shared timer remain independent."
+      ]
+    },
+    {
+      "id": "cataclysm:monstrosity_shared_defense_bindings",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:monstrosity-admission:shared_defense"
+      ],
+      "record_kind": "MECHANIC",
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Defense/admission bindings are not outgoing scalable payloads."
+      ]
+    }
+  ],
+  "reused_contracts": [
+    {
+      "file": "cataclysm-r2k2a-shared-admission.json",
+      "bindings": [
+        "shared damage admission",
+        "causing range",
+        "rollback DPS bucket",
+        "regen timer",
+        "native heal",
+        "effect whitelist",
+        "Home/Life/death"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k3b-guardian-offense.json",
+      "bindings": [
+        "generic native Boss Respawner lifecycle"
+      ]
+    },
+    {
+      "file": "reference-evidence/bossesrise-knight-defense-244.json",
+      "bindings": [
+        "native Entity invulnerability/NeoForge hook",
+        "native LivingEntity hurt"
+      ]
+    }
+  ],
+  "remaining_subsection_native_ambiguities": [],
+  "remaining_monstrosity_work": [
+    "Full offense/attack selection and payload/timing families",
+    "Direct damage/control source and hurt-return dependencies",
+    "Lava absorption healing and lava/barrage/charge delivery with directly owned entities"
+  ],
+  "remaining_cataclysm_research": [
+    "Remaining Monstrosity offense/payload family",
+    "Other concrete boss families, full equipment/launch chains and remaining global event/attribute/attachment hooks"
+  ],
+  "exact_next_task": "R2k4b: Netherite Monstrosity offense/payload family. Start Netherite_Monstrosity_Entity aiStep/tick and attack-goal readers; close direct attack damage/forced movement, lava absorption healing, lava/barrage/charge delivery and directly owned attack entities. Preserve source/owner, native hurt-return status/control, team predicates and lifecycle; reuse locked R2k4a body/head admission, shared/status and Guardian contracts. Static only; no runtime, Stage, production or unrelated boss/equipment research.",
+  "whole_mod_complete": false,
+  "runtime_tests": 0,
+  "stage_eligibility_decided": false,
+  "tooling": {
+    "jar_sha256": "fa4e8abd15aa86333d6a5fe20b05c4fe423ac865da7319be7808d321bcb3930c",
+    "jar_size_bytes": 73346519,
+    "new_native_witnesses": 10,
+    "reading_aid": "Vineflower1.10.1 exact original tool SHA256 b9b208e50793b64657a6b6292067526613f549de7405f9243624b02f4276e409; only concrete Monstrosity/part, two phase/setup goals, awakening goal and InternalStateGoal plus declaration-only Cm_Part source aids. Ignored temporary aids; pinned bytecode authoritative.",
+    "reused_evidence_regenerated": false,
+    "recursive_jar_scan": false
+  },
+  "reference_files": [
+    {
+      "file": "cataclysm-r2k3a-guardian-admission.json",
+      "sha256": "8a920972afe714d3e69278351e6a84672d9bb6a590d0cc0f6a20f66f8ae2ca7e",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k3b-guardian-offense.json",
+      "sha256": "274e56f41b2dc3cd1ee3196a41e6edc050f700ae36ed602eed054ecfd53b104e",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k2a-shared-admission.json",
+      "sha256": "3852d7f0950abe786cd9769ea4d64fb02f2cfa4ee1f4e99c06464645218ee9e2",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k2b-stun.json",
+      "sha256": "c81fed2de650739f580e106fa4cd9ac907cb7b5a3e7e8161879a0f2a795a4cd9",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k2c-ghost-fear.json",
+      "sha256": "77c977c09003cd0b0be9f0a6261985958610c6847e712cffdc2c17143bb0e75f",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k2d-abyssal-status.json",
+      "sha256": "4f6b1b56e028c1e7c1f5dee6209f9264a3d456a26d0edbafc0f3689ca70fa35c",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k2e-remaining-status.json",
+      "sha256": "736c5033f74b821f14794a0dcd988056bcf98b12a5222fe5b70ab83d0c77c455",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-source-census.json",
+      "sha256": "fee3dbcc15b068eddb6c53271146d2f04dcb72a5f183dc9a17be2d794ed68ead",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-boss-inheritance.json",
+      "sha256": "4cf3e43f452a3b12d437588b5e9d01a14a47e6575be1353a6186fdaf61eaa7b0",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-installed-common-config.json",
+      "sha256": "e49736bbfea8976a8df3f0d2f28e948e5c1e0535cb1254b28e7eefca77b923cf",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "jar-inventory.json",
+      "sha256": "e9d91482fac44a764468ddb75e2bf10ee7c0aef74f392a90b5d5dfe908ba3974",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-shared.json",
+      "sha256": "ba6abb73e3e33fab4cbead14196a1112f769189f873abc4fcbb5262eb2289a29",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-foundation.json",
+      "sha256": "bb75018a6d3a72048251f24fae60edffaa4b0dcb678b3cdc3db6f2b5af99c55b",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-guardian-admission.json",
+      "sha256": "d652ad2ea9cd6d7ebf7f6d5424122199b74d6c4b355248affeae9e673dcdf067",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-guardian-offense.json",
+      "sha256": "4b086ab084546fc3b87bdc058458f297f1677a37975a8c6c75610d8ee9d0faab",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-remaining-status.json",
+      "sha256": "b47482396e64fc0e4d4f10b61ac45ba6e42fe588d0117cc250ff03afc5ac422f",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/bossesrise-knight-defense-244.json",
+      "sha256": "837cad018f153c3b1c4ce5db6429ae0c0f10214c72daac55ceb864e5d4ac66e8",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-specifications/cataclysm-monstrosity-admission.json",
+      "sha256": "d1c0c0cb96b74f97db150ef3550e591784c9f7ead150bdec179c71e589eb629e",
+      "usage": "NEW_SCOPED_WITNESS"
+    },
+    {
+      "file": "native-evidence/cataclysm-monstrosity-admission.json",
+      "sha256": "c5ac14eb0106a949e81922941fe12c2590fa3eb3687b69638c96fbfdf4afea9f",
+      "usage": "NEW_SCOPED_WITNESS"
+    }
+  ],
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false
+}
