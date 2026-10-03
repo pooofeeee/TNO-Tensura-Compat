@@ -2980,6 +2980,1370 @@
       ]
     },
     {
+      "id": "cataclysm:ignis_counter_admission",
+      "mod_key": "cataclysm",
+      "display_name": "Ignis hurt-reactive counter admission",
+      "registry_ids": [
+        "cataclysm:ignis"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Only nonnull direct entity, AI enabled and blockingProgress==10 OR swordProgress==10 enter the reactive block. With alive target, NO_ANIMATION, nextFloat*100<12, counter cooldown<=0 and causing squared range<225, set cooldown360 then animation COUNTER or SHIELD_BREAK_COUNTER according to break flag. Counter ticks>16<=46 send STRIKE; broken counter ticks>8<=38 send SHIELD_BREAK_STRIKE. Each transition occurs before returning false unless BYPASSES_INVULNERABILITY. No shared hurt success is required for selection or transitions; later offensive strike payloads are deferred.",
+      "human_summary": "Only nonnull direct entity, AI enabled and blockingProgress==10 OR swordProgress==10 enter the reactive block. With alive target, NO_ANIMATION, nextFloat*100<12, counter cooldown<=0 and causing squared range<225, set cooldown360 then animation COUNTER or SHIELD_BREAK_COUNTER according to break flag. Counter ticks>16<=46 send STRIKE; broken counter ticks>8<=38 send SHIELD_BREAK_STRIKE. Each transition occurs before returning false unless BYPASSES_INVULNERABILITY. No shared hurt success is required for selection or transitions; later offensive strike payloads are deferred.",
+      "closest_vanilla_equivalent": "No direct vanilla equivalent; native animation/admission state",
+      "vanilla_similarities": "Retains named native API and locked shared contracts where applicable.",
+      "vanilla_differences": "Squared range uses the causing actor, not direct projectile position or target range. Null causing actor yields native -1 and passes the numeric comparison when a direct entity exists. Selected setAnimation resets animation tick0. No local server guard here; native animation transport remains native. Broken strike identity is distinct from STRIKE immunity.",
+      "components": [
+        {
+          "primitive": "COUNTER_ADMISSION",
+          "formula": "direct!=null && !NoAI && full stance; targetAlive && idle && randomPercent<12 && cooldown<=0 && causingDistanceSquared<225 -> native counter state",
+          "numerical_parameters": {
+            "full_progress": 10.0,
+            "proc_percent": 12.0,
+            "range_squared": 225.0,
+            "cooldown_ticks": 360,
+            "normal_begin_exclusive": 16,
+            "normal_end_inclusive": 46,
+            "broken_begin_exclusive": 8,
+            "broken_end_inclusive": 38
+          },
+          "parameter_units": {
+            "full_progress": "native stance progress",
+            "proc_percent": "native percent threshold",
+            "range_squared": "blocks squared, strict upper test",
+            "cooldown_ticks": "native positive countdown ticks",
+            "normal_begin_exclusive": "animation ticks",
+            "normal_end_inclusive": "animation ticks",
+            "broken_begin_exclusive": "animation ticks",
+            "broken_end_inclusive": "animation ticks"
+          },
+          "binary_parameters": [
+            "direct entity exists",
+            "AI enabled",
+            "alive target for random selection",
+            "BYPASSES_INVULNERABILITY controls false return only"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "Ignis.hurt reactive prefilter"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Selection/transition do not depend on native hurt return; strike damage remains deferred."
+      ],
+      "custom_state": "Native synced entity/animation state and native NBT only.",
+      "eligibility": "Selection/transition do not depend on native hurt return; strike damage remains deferred.",
+      "source_actor": "Supplied native DamageSource direct/causing/position identities are preserved; no source replacement.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignis-admission.json",
+          "witness_id": "cataclysm:ignis-admission:entity/AnimationMonster/BossMonsters/Ignis_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "methods": [
+            "hurt"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/LLibrary_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/LLibrary_Monster.class",
+          "methods": [
+            "setAnimation"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "calculateRange"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ignis-admission:counter"
+      ],
+      "primary_test_source": "cataclysm:ignis",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k5a-cataclysm-ignis-admission-complete",
+      "scalability_note": "Static observations only. No Stage policy/eligibility/balance/hook decision. Defense/admission and phase/encounter constants are not promoted merely because numeric. The sole candidate is the already-locked shared positive-heal binding; no duplicate heal mechanism.",
+      "scalable_parameter_candidates": [],
+      "counter_range_reader": "CAUSING_DISTANCE_SQUARED",
+      "null_causing_range": -1,
+      "requires_hurt_success": false,
+      "local_server_guard": false,
+      "numeric_observations": [
+        {
+          "primitive": "COUNTER_ADMISSION",
+          "parameter": "full_progress",
+          "native_value": 10.0,
+          "native_formula": "direct!=null && !NoAI && full stance; targetAlive && idle && randomPercent<12 && cooldown<=0 && causingDistanceSquared<225 -> native counter state",
+          "units": "native stance progress",
+          "boundary": "Ignis.hurt reactive prefilter"
+        },
+        {
+          "primitive": "COUNTER_ADMISSION",
+          "parameter": "proc_percent",
+          "native_value": 12.0,
+          "native_formula": "direct!=null && !NoAI && full stance; targetAlive && idle && randomPercent<12 && cooldown<=0 && causingDistanceSquared<225 -> native counter state",
+          "units": "native percent threshold",
+          "boundary": "Ignis.hurt reactive prefilter"
+        },
+        {
+          "primitive": "COUNTER_ADMISSION",
+          "parameter": "range_squared",
+          "native_value": 225.0,
+          "native_formula": "direct!=null && !NoAI && full stance; targetAlive && idle && randomPercent<12 && cooldown<=0 && causingDistanceSquared<225 -> native counter state",
+          "units": "blocks squared, strict upper test",
+          "boundary": "Ignis.hurt reactive prefilter"
+        },
+        {
+          "primitive": "COUNTER_ADMISSION",
+          "parameter": "cooldown_ticks",
+          "native_value": 360,
+          "native_formula": "direct!=null && !NoAI && full stance; targetAlive && idle && randomPercent<12 && cooldown<=0 && causingDistanceSquared<225 -> native counter state",
+          "units": "native positive countdown ticks",
+          "boundary": "Ignis.hurt reactive prefilter"
+        },
+        {
+          "primitive": "COUNTER_ADMISSION",
+          "parameter": "normal_begin_exclusive",
+          "native_value": 16,
+          "native_formula": "direct!=null && !NoAI && full stance; targetAlive && idle && randomPercent<12 && cooldown<=0 && causingDistanceSquared<225 -> native counter state",
+          "units": "animation ticks",
+          "boundary": "Ignis.hurt reactive prefilter"
+        },
+        {
+          "primitive": "COUNTER_ADMISSION",
+          "parameter": "normal_end_inclusive",
+          "native_value": 46,
+          "native_formula": "direct!=null && !NoAI && full stance; targetAlive && idle && randomPercent<12 && cooldown<=0 && causingDistanceSquared<225 -> native counter state",
+          "units": "animation ticks",
+          "boundary": "Ignis.hurt reactive prefilter"
+        },
+        {
+          "primitive": "COUNTER_ADMISSION",
+          "parameter": "broken_begin_exclusive",
+          "native_value": 8,
+          "native_formula": "direct!=null && !NoAI && full stance; targetAlive && idle && randomPercent<12 && cooldown<=0 && causingDistanceSquared<225 -> native counter state",
+          "units": "animation ticks",
+          "boundary": "Ignis.hurt reactive prefilter"
+        },
+        {
+          "primitive": "COUNTER_ADMISSION",
+          "parameter": "broken_end_inclusive",
+          "native_value": 38,
+          "native_formula": "direct!=null && !NoAI && full stance; targetAlive && idle && randomPercent<12 && cooldown<=0 && causingDistanceSquared<225 -> native counter state",
+          "units": "animation ticks",
+          "boundary": "Ignis.hurt reactive prefilter"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:ignis_encounter_state",
+      "mod_key": "cataclysm",
+      "display_name": "Ignis native persistence and altar/home prerequisites",
+      "registry_ids": [
+        "cataclysm:ignis"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Synced defaults are BossPhase0, ShieldDurability0, blocking/shield/break/sword false, ShowShield true. Concrete NBT saves BossPhase, Is_Shield_Break, Shield_Durability after shared Home persistence. Load sets phase, then break setter, then raw durability; saved durability can overwrite the break setter3. No stance/admission flag/progress, target vector, animation/tick, targetless/counter/terrain timer or shared bucket/regen/home timer is saved here. finalizeSpawn only delegates to shared; it initializes native home timer but no actual home. Fire altar slot0 must contain Burning Ashes; maintained summoningticks>121 performs terrain-clear calls, creates Ignis, and only ServerLevel+nonnull instance enters add: spawn X/Z+.5,Y+3, home=current dimension/altar pos. Only successful native addFreshEntity empties item slot; failed attempts repeat while item stays, with no nearby boss/player/difficulty/defeat-state gate in this path. Altar inventory persists, summoning timer does not.",
+      "human_summary": "Synced defaults are BossPhase0, ShieldDurability0, blocking/shield/break/sword false, ShowShield true. Concrete NBT saves BossPhase, Is_Shield_Break, Shield_Durability after shared Home persistence. Load sets phase, then break setter, then raw durability; saved durability can overwrite the break setter3. No stance/admission flag/progress, target vector, animation/tick, targetless/counter/terrain timer or shared bucket/regen/home timer is saved here. finalizeSpawn only delegates to shared; it initializes native home timer but no actual home. Fire altar slot0 must contain Burning Ashes; maintained summoningticks>121 performs terrain-clear calls, creates Ignis, and only ServerLevel+nonnull instance enters add: spawn X/Z+.5,Y+3, home=current dimension/altar pos. Only successful native addFreshEntity empties item slot; failed attempts repeat while item stays, with no nearby boss/player/difficulty/defeat-state gate in this path. Altar inventory persists, summoning timer does not.",
+      "closest_vanilla_equivalent": "Native synced state/NBT, native EntityType creation/addition and locked shared GlobalPos home",
+      "vanilla_similarities": "Retains named native API and locked shared contracts where applicable.",
+      "vanilla_differences": "Altar spawn does not invoke finalizeSpawn and does not choose phase or shield overrides; no Boss Respawner linkage added here. Native clear calls do not supply a boolean spawn gate. No Stage progression or owner state created. Shared home return/regen/death admission stays locked; concrete outcome callback and altar terrain details not needed for admission remain deferred.",
+      "components": [
+        {
+          "primitive": "COMBAT_STATE_PERSISTENCE",
+          "formula": "shared NBT then BossPhase -> Is_Shield_Break setter -> raw Shield_Durability; defaults/native load semantics",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "raw enum/counter not clamped",
+            "transient stances and timers not saved"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "Ignis.defineSynchedData/load/save/finalizeSpawn"
+        },
+        {
+          "primitive": "ENCOUNTER_PREREQUISITE",
+          "formula": "slot0 Burning Ashes && maintained counter>121 -> native create; ServerLevel && instance!=null -> position/home/add; clear item iff add true",
+          "numerical_parameters": {
+            "summoning_begin_exclusive": 121,
+            "spawn_x_offset": 0.5,
+            "spawn_y_offset": 3,
+            "spawn_z_offset": 0.5
+          },
+          "parameter_units": {
+            "summoning_begin_exclusive": "native altar counter ticks",
+            "spawn_x_offset": "blocks (int position cast to float then+.5F)",
+            "spawn_y_offset": "blocks",
+            "spawn_z_offset": "blocks (int position cast to float then+.5F)"
+          },
+          "binary_parameters": [
+            "exact Burning Ashes item",
+            "native ServerLevel add boundary",
+            "native addFreshEntity true controls item consumption"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "AltarOfFire.tick -> native Ignis creation/add"
+        },
+        {
+          "primitive": "NATIVE_HOME_BINDING",
+          "formula": "GlobalPos(server dimension,altar position); locked shared Home return control and persistence, not a new effect",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "saved native home",
+            "locked target/NoAI/server/home return gates"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "altar setHomePos -> shared home control"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native raw combat state, inventory predicate and entity-add/home semantics remain native."
+      ],
+      "custom_state": "Native synced entity/animation state and native NBT only.",
+      "eligibility": "Native raw combat state, inventory predicate and entity-add/home semantics remain native.",
+      "source_actor": "Native altar entity creation has no combat owner; home is native dimension/altar position. Incoming native sources remain unmodified.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignis-admission.json",
+          "witness_id": "cataclysm:ignis-admission:entity/AnimationMonster/BossMonsters/Ignis_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "methods": [
+            "defineSynchedData",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "finalizeSpawn",
+            "<init>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignis-admission.json",
+          "witness_id": "cataclysm:ignis-admission:blockentities/AltarOfFire_Block_Entity",
+          "entry": "com/github/L_Ender/cataclysm/blockentities/AltarOfFire_Block_Entity.class",
+          "methods": [
+            "<init>",
+            "commonTick",
+            "getItem",
+            "tick",
+            "loadAdditional",
+            "saveAdditional"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignis-admission.json",
+          "witness_id": "cataclysm:ignis-admission:blocks/Altar_Of_Fire_Block",
+          "entry": "com/github/L_Ender/cataclysm/blocks/Altar_Of_Fire_Block.class",
+          "methods": [
+            "getTicker"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "finalizeSpawn",
+            "getHomePos",
+            "setHomePos",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ignis-admission:encounter"
+      ],
+      "primary_test_source": "cataclysm:ignis",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k5a-cataclysm-ignis-admission-complete",
+      "scalability_note": "Static observations only. No Stage policy/eligibility/balance/hook decision. Defense/admission and phase/encounter constants are not promoted merely because numeric. The sole candidate is the already-locked shared positive-heal binding; no duplicate heal mechanism.",
+      "scalable_parameter_candidates": [],
+      "persistence": {
+        "saved_keys": [
+          "BossPhase",
+          "Is_Shield_Break",
+          "Shield_Durability"
+        ],
+        "load_order": [
+          "BossPhase",
+          "Is_Shield_Break",
+          "Shield_Durability"
+        ],
+        "not_saved_here": [
+          "IS_BLOCKING",
+          "IS_SHIELD",
+          "IS_SWORD",
+          "SHOW_SHIELD",
+          "blockingProgress",
+          "swordProgress",
+          "TARGET_VEC",
+          "animation",
+          "animationTick",
+          "timeWithoutTarget",
+          "counter_strike_cooldown",
+          "destroyBlocksTick",
+          "bucket",
+          "self_regen",
+          "homeTicks"
+        ],
+        "raw_saved_durability_overwrites_break_setter": true
+      },
+      "encounter": {
+        "item": "cataclysm:burning_ashes",
+        "altar_calls_finalize_spawn": false,
+        "requires_player": false,
+        "requires_nonpeaceful": false,
+        "requires_no_existing_boss": false,
+        "reads_defeat_flag": false,
+        "item_consumption_requires_add_success": true,
+        "failed_add_retries": true,
+        "saves_summoning_timer": false
+      },
+      "synced_defaults": {
+        "BossPhase": 0,
+        "ShieldDurability": 0,
+        "IsBlocking": false,
+        "IsShield": false,
+        "IsShieldBreak": false,
+        "IsSword": false,
+        "ShowShield": true
+      },
+      "numeric_observations": [
+        {
+          "primitive": "ENCOUNTER_PREREQUISITE",
+          "parameter": "summoning_begin_exclusive",
+          "native_value": 121,
+          "native_formula": "slot0 Burning Ashes && maintained counter>121 -> native create; ServerLevel && instance!=null -> position/home/add; clear item iff add true",
+          "units": "native altar counter ticks",
+          "boundary": "AltarOfFire.tick -> native Ignis creation/add"
+        },
+        {
+          "primitive": "ENCOUNTER_PREREQUISITE",
+          "parameter": "spawn_x_offset",
+          "native_value": 0.5,
+          "native_formula": "slot0 Burning Ashes && maintained counter>121 -> native create; ServerLevel && instance!=null -> position/home/add; clear item iff add true",
+          "units": "blocks (int position cast to float then+.5F)",
+          "boundary": "AltarOfFire.tick -> native Ignis creation/add"
+        },
+        {
+          "primitive": "ENCOUNTER_PREREQUISITE",
+          "parameter": "spawn_y_offset",
+          "native_value": 3,
+          "native_formula": "slot0 Burning Ashes && maintained counter>121 -> native create; ServerLevel && instance!=null -> position/home/add; clear item iff add true",
+          "units": "blocks",
+          "boundary": "AltarOfFire.tick -> native Ignis creation/add"
+        },
+        {
+          "primitive": "ENCOUNTER_PREREQUISITE",
+          "parameter": "spawn_z_offset",
+          "native_value": 0.5,
+          "native_formula": "slot0 Burning Ashes && maintained counter>121 -> native create; ServerLevel && instance!=null -> position/home/add; clear item iff add true",
+          "units": "blocks (int position cast to float then+.5F)",
+          "boundary": "AltarOfFire.tick -> native Ignis creation/add"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:ignis_incoming_admission",
+      "mod_key": "cataclysm",
+      "display_name": "Ignis ordered incoming admission",
+      "registry_ids": [
+        "cataclysm:ignis"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "hurt first reads the DIRECT entity, current target and calculateRange(source) causing-actor squared distance. Reactive counter handling runs first. Direct Abyss Fireball with ANY Ignis causing entity rejects unconditionally; otherwise IS_PROJECTILE-tagged direct Abyss Fireball increments shield durability on server while below3, even if a later admission branch rejects. ULTIMATE_ATTACK or phase0 HP<=maxHP*2F/3F or phase1 HP<=maxHP*1F/3F halves damage via double0.5 then float unless BYPASSES_INVULNERABILITY. PHASE_2/PHASE_3/STRIKE reject unless that tag; direct ordinary Ignis Fireball always rejects. Positive directional shield blocking returns false. Remaining calls arm destroyBlocksTick20 if nonpositive BEFORE shared hurt, then return the unchanged shared boolean; crackiness-change sound is only a true-return cosmetic callback.",
+      "human_summary": "hurt first reads the DIRECT entity, current target and calculateRange(source) causing-actor squared distance. Reactive counter handling runs first. Direct Abyss Fireball with ANY Ignis causing entity rejects unconditionally; otherwise IS_PROJECTILE-tagged direct Abyss Fireball increments shield durability on server while below3, even if a later admission branch rejects. ULTIMATE_ATTACK or phase0 HP<=maxHP*2F/3F or phase1 HP<=maxHP*1F/3F halves damage via double0.5 then float unless BYPASSES_INVULNERABILITY. PHASE_2/PHASE_3/STRIKE reject unless that tag; direct ordinary Ignis Fireball always rejects. Positive directional shield blocking returns false. Remaining calls arm destroyBlocksTick20 if nonpositive BEFORE shared hurt, then return the unchanged shared boolean; crackiness-change sound is only a true-return cosmetic callback.",
+      "closest_vanilla_equivalent": "Native hurt plus locked Cataclysm LLibrary shared admission",
+      "vanilla_similarities": "Retains named native API and locked shared contracts where applicable.",
+      "vanilla_differences": "Concrete prefilters and state writes precede virtual native invulnerability/cap/range/bucket. Invulnerability bypass does not universally bypass class rejection or the custom shield. SHIELD_BREAK_STRIKE is not the STRIKE phase-immunity identity. No Source/owner rewrite; a true return is not measured HP loss.",
+      "components": [
+        {
+          "primitive": "PROJECTILE_CLASS_ADMISSION",
+          "formula": "direct Abyss && causing instanceof Ignis -> false; direct ordinary Ignis Fireball -> false",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "exact native direct classes",
+            "causing actor class; not only self-owner"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "Ignis.hurt before shared entry"
+        },
+        {
+          "primitive": "INCOMING_DAMAGE_MULTIPLIER",
+          "formula": "(float)((double)damage*0.5) before shared cap when ultimate or native HP/phase threshold matches",
+          "numerical_parameters": {
+            "phase_multiplier": 0.5
+          },
+          "parameter_units": {
+            "phase_multiplier": "dimensionless incoming request multiplier"
+          },
+          "binary_parameters": [
+            "!BYPASSES_INVULNERABILITY"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "Ignis.hurt before phase/shield/shared admission"
+        },
+        {
+          "primitive": "PHASE_ADMISSION",
+          "formula": "PHASE_2 || PHASE_3 || STRIKE, and !BYPASSES_INVULNERABILITY -> false",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "native animation identity",
+            "native bypass tag"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "Ignis.hurt before shared entry"
+        },
+        {
+          "primitive": "TERRAIN_TIMER_ADMISSION",
+          "formula": "if destroyBlocksTick<=0: set20 before shared hurt; terrain payload deferred",
+          "numerical_parameters": {
+            "reset_ticks": 20
+          },
+          "parameter_units": {
+            "reset_ticks": "native countdown ticks"
+          },
+          "binary_parameters": [],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "Ignis.hurt attempted shared entry"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native source, animation, tag and shield gates retain native order; no separate invulnerability override."
+      ],
+      "custom_state": "Native synced entity/animation state and native NBT only.",
+      "eligibility": "Native source, animation, tag and shield gates retain native order; no separate invulnerability override.",
+      "source_actor": "Supplied native DamageSource direct/causing/position identities are preserved; no source replacement.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignis-admission.json",
+          "witness_id": "cataclysm:ignis-admission:entity/AnimationMonster/BossMonsters/Ignis_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "methods": [
+            "hurt"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "hurt"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "calculateRange"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ignis-admission:incoming"
+      ],
+      "primary_test_source": "cataclysm:ignis",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k5a-cataclysm-ignis-admission-complete",
+      "scalability_note": "Static observations only. No Stage policy/eligibility/balance/hook decision. Defense/admission and phase/encounter constants are not promoted merely because numeric. The sole candidate is the already-locked shared positive-heal binding; no duplicate heal mechanism.",
+      "scalable_parameter_candidates": [],
+      "admission_order": [
+        "READ_DIRECT_TARGET_AND_CAUSING_RANGE_SQUARED",
+        "REACTIVE_COUNTER_STATE_AND_WINDOW_RETURN",
+        "ABYSS_DIRECT_CLASS_CAUSING_IGNIS_REJECT",
+        "ABYSS_PROJECTILE_TAG_SERVER_DURABILITY_INCREMENT",
+        "PHASE_OR_ULTIMATE_HALF_UNLESS_INVULNERABILITY_BYPASS",
+        "PHASE2_PHASE3_OR_STRIKE_REJECT_UNLESS_INVULNERABILITY_BYPASS",
+        "ORDINARY_IGNIS_FIREBALL_DIRECT_REJECT",
+        "POSITIVE_DIRECTIONAL_SHIELD_CALLBACKS_AND_FALSE",
+        "ARM_TERRAIN_TIMER_BEFORE_SHARED_HURT",
+        "SHARED_HURT_SAME_SOURCE",
+        "RETURN_NATIVE_HURT_RESULT"
+      ],
+      "source_actor_distinctions": {
+        "local_class_gates": "getDirectEntity()",
+        "abyss_rejection_and_range": "getEntity()",
+        "shield_geometry": "getSourcePosition()",
+        "source_rewritten": false
+      },
+      "invulnerability_bypass_skips_all_prefilters": false,
+      "terrain_timer_requires_hurt_true": false,
+      "shared_return_forwarded": true,
+      "numeric_observations": [
+        {
+          "primitive": "INCOMING_DAMAGE_MULTIPLIER",
+          "parameter": "phase_multiplier",
+          "native_value": 0.5,
+          "native_formula": "(float)((double)damage*0.5) before shared cap when ultimate or native HP/phase threshold matches",
+          "units": "dimensionless incoming request multiplier",
+          "boundary": "Ignis.hurt before phase/shield/shared admission"
+        },
+        {
+          "primitive": "TERRAIN_TIMER_ADMISSION",
+          "parameter": "reset_ticks",
+          "native_value": 20,
+          "native_formula": "if destroyBlocksTick<=0: set20 before shared hurt; terrain payload deferred",
+          "units": "native countdown ticks",
+          "boundary": "Ignis.hurt attempted shared entry"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:ignis_nature_regen_binding",
+      "mod_key": "cataclysm",
+      "display_name": "Ignis shared NatureRegen binding",
+      "registry_ids": [
+        "cataclysm:ignis"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "NatureRegen returns float(Ignis.natureHeal), installed25. Existing shared targetless AI server cadence20, self_regen timer, positive-value guard and native heal admission/max-HP hooks remain unchanged; HealCooldown inherited200. Successful shared tagged hurt resets timer; early bypass and concrete rejected hits do not reset it. This is a concrete binding of shared_heal, not another delivered heal.",
+      "human_summary": "NatureRegen returns float(Ignis.natureHeal), installed25. Existing shared targetless AI server cadence20, self_regen timer, positive-value guard and native heal admission/max-HP hooks remain unchanged; HealCooldown inherited200. Successful shared tagged hurt resets timer; early bypass and concrete rejected hits do not reset it. This is a concrete binding of shared_heal, not another delivered heal.",
+      "closest_vanilla_equivalent": "Native LivingEntity.heal under locked shared boss cadence/admission",
+      "vanilla_similarities": "Retains named native API and locked shared contracts where applicable.",
+      "vanilla_differences": "Separate from phase/shield state and any attack-triggered healing (deferred). No extra phase or shield condition added to the shared heal contract.",
+      "components": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "formula": "heal(NatureRegen()); NatureRegen returns float(Ignis.natureHeal), installed25",
+          "numerical_parameters": {
+            "amount": 25.0
+          },
+          "parameter_units": {
+            "amount": "requested health units"
+          },
+          "binary_parameters": [
+            "locked targetless/AI/server/timer/cadence/native heal admission"
+          ],
+          "vanilla_relation": "VANILLA_DIRECT",
+          "native_boundary": "locked LLibrary_Boss_Monster.tick -> heal"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Locked shared regeneration gates; positive native amount only."
+      ],
+      "custom_state": "Native synced entity/animation state and native NBT only.",
+      "eligibility": "Locked shared regeneration gates; positive native amount only.",
+      "source_actor": "Supplied native DamageSource direct/causing/position identities are preserved; no source replacement.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignis-admission.json",
+          "witness_id": "cataclysm:ignis-admission:entity/AnimationMonster/BossMonsters/Ignis_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "methods": [
+            "NatureRegen"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "tick",
+            "hurt",
+            "HealCooldown"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ignis-admission:regen"
+      ],
+      "primary_test_source": "cataclysm:ignis",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k5a-cataclysm-ignis-admission-complete",
+      "scalability_note": "Static observations only. No Stage policy/eligibility/balance/hook decision. Defense/admission and phase/encounter constants are not promoted merely because numeric. The sole candidate is the already-locked shared positive-heal binding; no duplicate heal mechanism.",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "amount"
+          ],
+          "native_value": 25.0,
+          "native_formula": "heal(NatureRegen()); NatureRegen returns float(Ignis.natureHeal), installed25",
+          "units": "requested health units",
+          "native_boundary": "locked LLibrary_Boss_Monster.tick -> heal"
+        }
+      ],
+      "record_kind": "SHARED_BINDING",
+      "binding_of": "cataclysm:shared_heal",
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameter": "amount",
+          "native_value": 25.0,
+          "native_formula": "heal(NatureRegen()); NatureRegen returns float(Ignis.natureHeal), installed25",
+          "units": "requested health units",
+          "boundary": "locked LLibrary_Boss_Monster.tick -> heal"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:ignis_phase_prerequisites",
+      "mod_key": "cataclysm",
+      "display_name": "Ignis native phase prerequisites and state commits",
+      "registry_ids": [
+        "cataclysm:ignis"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "After stance updates/cooldowns, concrete tick when alive prioritizes: AI-enabled idle durability>2 and unbroken -> BREAK_THE_SHIELD; else AI-enabled idle HP<=maxHP*2F/3F and phase<1 -> PHASE_2; else HP<=maxHP*1F/3F and phase<2 -> PHASE_3. Target/LOS are not prerequisites. Native phase2 aiStep commits BossPhase1 at animation tick34; phase3 commits2 at58 and hides shield. There is no local server guard on selection/these commits. Phase>1 server tick outside PHASE_3 sets shield broken. setBossPhase only stores the raw synced integer, with no HP, attribute, home or shield mutation.",
+      "human_summary": "After stance updates/cooldowns, concrete tick when alive prioritizes: AI-enabled idle durability>2 and unbroken -> BREAK_THE_SHIELD; else AI-enabled idle HP<=maxHP*2F/3F and phase<1 -> PHASE_2; else HP<=maxHP*1F/3F and phase<2 -> PHASE_3. Target/LOS are not prerequisites. Native phase2 aiStep commits BossPhase1 at animation tick34; phase3 commits2 at58 and hides shield. There is no local server guard on selection/these commits. Phase>1 server tick outside PHASE_3 sets shield broken. setBossPhase only stores the raw synced integer, with no HP, attribute, home or shield mutation.",
+      "closest_vanilla_equivalent": "Native boss animation/phase state; no vanilla scalar equivalent",
+      "vanilla_similarities": "Retains named native API and locked shared contracts where applicable.",
+      "vanilla_differences": "Phase thresholds are live current HP conditions with float multiply/divide order; saved phase is a separate latched integer. PHASE_2/3 are incoming immunity identities even before commit. Loaded phase2 does not itself start PHASE_3. Priority1 phase goals use native MOVE/JUMP/LOOK animation goals; phase3 and break goal hold X/Z while preserving Y. Phase2 reuses locked AttackAnimationGoal2. Phase damage, ShieldExplode, roar/control and offensive follow-ups are deferred.",
+      "components": [
+        {
+          "primitive": "PHASE_PREREQUISITE",
+          "formula": "native tick ordered shield-break/HP/phase/idle tests; aiStep commits; setter stores only integer",
+          "numerical_parameters": {
+            "phase2_hp_numerator": 2.0,
+            "phase3_hp_numerator": 1.0,
+            "hp_divisor": 3.0,
+            "phase2_commit_tick": 34,
+            "phase3_commit_tick": 58,
+            "phase2_animation_duration": 68,
+            "phase3_animation_duration": 120
+          },
+          "parameter_units": {
+            "phase2_hp_numerator": "native float HP fraction numerator",
+            "phase3_hp_numerator": "native float HP fraction numerator",
+            "hp_divisor": "native float HP fraction divisor",
+            "phase2_commit_tick": "animation ticks",
+            "phase3_commit_tick": "animation ticks",
+            "phase2_animation_duration": "native Animation.create argument ticks",
+            "phase3_animation_duration": "native Animation.create argument ticks"
+          },
+          "binary_parameters": [
+            "alive",
+            "AI enabled",
+            "NO_ANIMATION",
+            "native raw phase integer",
+            "shield-break precedence"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "Ignis.tick selection / aiStep state commits"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native phase flags and HP/admission thresholds remain native; no scalar phase enum."
+      ],
+      "custom_state": "Native synced entity/animation state and native NBT only.",
+      "eligibility": "Native phase flags and HP/admission thresholds remain native; no scalar phase enum.",
+      "source_actor": "Supplied native DamageSource direct/causing/position identities are preserved; no source replacement.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignis-admission.json",
+          "witness_id": "cataclysm:ignis-admission:entity/AnimationMonster/BossMonsters/Ignis_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "methods": [
+            "setBossPhase",
+            "getBossPhase",
+            "registerGoals",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "methods": [
+            "tick",
+            "aiStep"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignis-admission.json",
+          "witness_id": "cataclysm:ignis-admission:entity/AnimationMonster/AI/AttackAnimationGoal1",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/AI/AttackAnimationGoal1.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/LLibrary_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/LLibrary_Monster.class",
+          "methods": [
+            "setAnimation",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-admission.json",
+          "witness_id": "cataclysm:guardian-admission:entity/AnimationMonster/AI/AttackAnimationGoal2",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/AI/AttackAnimationGoal2.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ignis-admission:phase"
+      ],
+      "primary_test_source": "cataclysm:ignis",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k5a-cataclysm-ignis-admission-complete",
+      "scalability_note": "Static observations only. No Stage policy/eligibility/balance/hook decision. Defense/admission and phase/encounter constants are not promoted merely because numeric. The sole candidate is the already-locked shared positive-heal binding; no duplicate heal mechanism.",
+      "scalable_parameter_candidates": [],
+      "selection_order": [
+        "SHIELD_BREAK",
+        "PHASE_2",
+        "PHASE_3"
+      ],
+      "requires_target": false,
+      "requires_line_of_sight": false,
+      "local_server_guard": false,
+      "phase_setter_changes_health": false,
+      "phase_setter_changes_attributes": false,
+      "phase_setter_changes_shield": false,
+      "native_state_bindings": {
+        "default_phase": 0,
+        "phase2_committed_value": 1,
+        "phase3_committed_value": 2,
+        "phase2_goal_priority": 1,
+        "phase3_goal_priority": 1,
+        "break_goal_priority": 1
+      },
+      "numeric_observations": [
+        {
+          "primitive": "PHASE_PREREQUISITE",
+          "parameter": "phase2_hp_numerator",
+          "native_value": 2.0,
+          "native_formula": "native tick ordered shield-break/HP/phase/idle tests; aiStep commits; setter stores only integer",
+          "units": "native float HP fraction numerator",
+          "boundary": "Ignis.tick selection / aiStep state commits"
+        },
+        {
+          "primitive": "PHASE_PREREQUISITE",
+          "parameter": "phase3_hp_numerator",
+          "native_value": 1.0,
+          "native_formula": "native tick ordered shield-break/HP/phase/idle tests; aiStep commits; setter stores only integer",
+          "units": "native float HP fraction numerator",
+          "boundary": "Ignis.tick selection / aiStep state commits"
+        },
+        {
+          "primitive": "PHASE_PREREQUISITE",
+          "parameter": "hp_divisor",
+          "native_value": 3.0,
+          "native_formula": "native tick ordered shield-break/HP/phase/idle tests; aiStep commits; setter stores only integer",
+          "units": "native float HP fraction divisor",
+          "boundary": "Ignis.tick selection / aiStep state commits"
+        },
+        {
+          "primitive": "PHASE_PREREQUISITE",
+          "parameter": "phase2_commit_tick",
+          "native_value": 34,
+          "native_formula": "native tick ordered shield-break/HP/phase/idle tests; aiStep commits; setter stores only integer",
+          "units": "animation ticks",
+          "boundary": "Ignis.tick selection / aiStep state commits"
+        },
+        {
+          "primitive": "PHASE_PREREQUISITE",
+          "parameter": "phase3_commit_tick",
+          "native_value": 58,
+          "native_formula": "native tick ordered shield-break/HP/phase/idle tests; aiStep commits; setter stores only integer",
+          "units": "animation ticks",
+          "boundary": "Ignis.tick selection / aiStep state commits"
+        },
+        {
+          "primitive": "PHASE_PREREQUISITE",
+          "parameter": "phase2_animation_duration",
+          "native_value": 68,
+          "native_formula": "native tick ordered shield-break/HP/phase/idle tests; aiStep commits; setter stores only integer",
+          "units": "native Animation.create argument ticks",
+          "boundary": "Ignis.tick selection / aiStep state commits"
+        },
+        {
+          "primitive": "PHASE_PREREQUISITE",
+          "parameter": "phase3_animation_duration",
+          "native_value": 120,
+          "native_formula": "native tick ordered shield-break/HP/phase/idle tests; aiStep commits; setter stores only integer",
+          "units": "native Animation.create argument ticks",
+          "boundary": "Ignis.tick selection / aiStep state commits"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:ignis_shared_defense_bindings",
+      "mod_key": "cataclysm",
+      "display_name": "Ignis concrete shared defense bindings",
+      "registry_ids": [
+        "cataclysm:ignis"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Installed concrete getters bind DamageCap20, DpsCap14 and RangeLimit15 to locked LLibrary admission. DamageCap is per-hit ceiling AND requested-damage bucket capacity; DpsCap/20 drains that bucket per eligible AI server tick. Current causing actor receives full range through15, falloff15<d<22.5 and reject d>=22.5; anonymous causing-null skips range. No concrete or intermediate Cataclysm isInvulnerableTo override exists; registered type is fireImmune. Native armor10 and knockback resistance1 remain separate native defenses; constructor applies native health/attack config multipliers1 to base HP450/attack14.",
+      "human_summary": "Installed concrete getters bind DamageCap20, DpsCap14 and RangeLimit15 to locked LLibrary admission. DamageCap is per-hit ceiling AND requested-damage bucket capacity; DpsCap/20 drains that bucket per eligible AI server tick. Current causing actor receives full range through15, falloff15<d<22.5 and reject d>=22.5; anonymous causing-null skips range. No concrete or intermediate Cataclysm isInvulnerableTo override exists; registered type is fireImmune. Native armor10 and knockback resistance1 remain separate native defenses; constructor applies native health/attack config multipliers1 to base HP450/attack14.",
+      "closest_vanilla_equivalent": "Locked shared boss admission and native Entity/LivingEntity defense",
+      "vanilla_similarities": "Retains named native API and locked shared contracts where applicable.",
+      "vanilla_differences": "Virtual native/NeoForge invulnerability occurs at shared entry AFTER Ignis concrete prefilters. Shared BYPASSES_INVULNERABILITY then early-returns native hurt with the already-selected request and skips shared cap/range/bucket/regen bookkeeping. Incoming half is before cap. Installed dps_limit_time20 does not replace the locked fixed divisor20; concrete config observations are not runtime-load guarantees.",
+      "components": [
+        {
+          "primitive": "DAMAGE_CAP",
+          "formula": "min(Ignis.damageCap,incoming); same getter also bucket capacity",
+          "numerical_parameters": {
+            "per_hit_cap": 20.0
+          },
+          "parameter_units": {
+            "per_hit_cap": "requested damage units"
+          },
+          "binary_parameters": [],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "shared hurt after virtual invulnerability"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "formula": "capacity=DamageCap(); drain=DpsCap()/20; overflow remaining room else0.1F; failed native hurt rolls back",
+          "numerical_parameters": {
+            "capacity": 20.0,
+            "dps_cap": 14.0,
+            "drain_divisor": 20,
+            "full_bucket_request": 0.10000000149011612
+          },
+          "parameter_units": {
+            "capacity": "pre-mitigation request units",
+            "dps_cap": "request units/20 ticks",
+            "drain_divisor": "ticks",
+            "full_bucket_request": "request units (0.1F)"
+          },
+          "binary_parameters": [],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "shared hurt/tick"
+        },
+        {
+          "primitive": "RANGE_ADMISSION",
+          "formula": "L=Ignis.rangeCap; causing-null skips; d>=1.5L rejects; L<d<1.5L attenuates (1.5L-d)/(0.5L)",
+          "numerical_parameters": {
+            "range_limit": 15.0
+          },
+          "parameter_units": {
+            "range_limit": "blocks"
+          },
+          "binary_parameters": [],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "shared hurt after per-hit cap/before bucket"
+        },
+        {
+          "primitive": "NATIVE_INVULNERABILITY",
+          "formula": "inherited virtual Entity.isInvulnerableTo + native/NeoForge hook; registered fireImmune",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "native tags/removed/invulnerability/hook gates",
+            "registered native fire immunity"
+          ],
+          "vanilla_relation": "VANILLA_DIRECT",
+          "native_boundary": "shared hurt entry"
+        },
+        {
+          "primitive": "NATIVE_ARMOR",
+          "formula": "native attribute/event/source defenses after selected hurt request",
+          "numerical_parameters": {
+            "armor_base": 10.0,
+            "knockback_resistance_base": 1.0
+          },
+          "parameter_units": {
+            "armor_base": "attribute points",
+            "knockback_resistance_base": "native attribute value"
+          },
+          "binary_parameters": [],
+          "vanilla_relation": "VANILLA_DIRECT",
+          "native_boundary": "native LivingEntity defenses"
+        },
+        {
+          "primitive": "NATIVE_CONFIGURED_ATTRIBUTES",
+          "formula": "ignis attributes base HP450/attack14; constructor setConfigattribute(this,Ignis.healthMultiplier,Ignis.attackMultiplier) applies locked native transient modifiers and initializes max health",
+          "numerical_parameters": {
+            "base_max_health": 450.0,
+            "base_attack_damage": 14.0,
+            "installed_health_multiplier": 1.0,
+            "installed_attack_multiplier": 1.0
+          },
+          "parameter_units": {
+            "base_max_health": "health units",
+            "base_attack_damage": "native attribute damage units",
+            "installed_health_multiplier": "dimensionless installed config observation",
+            "installed_attack_multiplier": "dimensionless installed config observation"
+          },
+          "binary_parameters": [
+            "native constructor/configuration; not a separate heal or payload"
+          ],
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED",
+          "native_boundary": "Ignis constructor/ignis attributes -> locked setConfigattribute"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "No concrete Cataclysm invulnerability or shield-helper override; native source/tag/armor/event admission retained."
+      ],
+      "custom_state": "Native synced entity/animation state and native NBT only.",
+      "eligibility": "No concrete Cataclysm invulnerability or shield-helper override; native source/tag/armor/event admission retained.",
+      "source_actor": "Supplied native DamageSource direct/causing/position identities are preserved; no source replacement.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignis-admission.json",
+          "witness_id": "cataclysm:ignis-admission:entity/AnimationMonster/BossMonsters/Ignis_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "methods": [
+            "<init>",
+            "ignis",
+            "DamageCap",
+            "DpsCap",
+            "RangeLimit"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignis-admission.json",
+          "witness_id": "cataclysm:ignis-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$8",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "hurt",
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ignis-admission:defense"
+      ],
+      "primary_test_source": "cataclysm:ignis",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k5a-cataclysm-ignis-admission-complete",
+      "scalability_note": "Static observations only. No Stage policy/eligibility/balance/hook decision. Defense/admission and phase/encounter constants are not promoted merely because numeric. The sole candidate is the already-locked shared positive-heal binding; no duplicate heal mechanism.",
+      "scalable_parameter_candidates": [],
+      "concrete_bindings": {
+        "DamageCap": 20.0,
+        "DpsCap": 14.0,
+        "RangeLimit": 15.0
+      },
+      "has_concrete_invulnerability_override": false,
+      "registered_fire_immune": true,
+      "numeric_observations": [
+        {
+          "primitive": "DAMAGE_CAP",
+          "parameter": "per_hit_cap",
+          "native_value": 20.0,
+          "native_formula": "min(Ignis.damageCap,incoming); same getter also bucket capacity",
+          "units": "requested damage units",
+          "boundary": "shared hurt after virtual invulnerability"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "parameter": "capacity",
+          "native_value": 20.0,
+          "native_formula": "capacity=DamageCap(); drain=DpsCap()/20; overflow remaining room else0.1F; failed native hurt rolls back",
+          "units": "pre-mitigation request units",
+          "boundary": "shared hurt/tick"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "parameter": "dps_cap",
+          "native_value": 14.0,
+          "native_formula": "capacity=DamageCap(); drain=DpsCap()/20; overflow remaining room else0.1F; failed native hurt rolls back",
+          "units": "request units/20 ticks",
+          "boundary": "shared hurt/tick"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "parameter": "drain_divisor",
+          "native_value": 20,
+          "native_formula": "capacity=DamageCap(); drain=DpsCap()/20; overflow remaining room else0.1F; failed native hurt rolls back",
+          "units": "ticks",
+          "boundary": "shared hurt/tick"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "parameter": "full_bucket_request",
+          "native_value": 0.10000000149011612,
+          "native_formula": "capacity=DamageCap(); drain=DpsCap()/20; overflow remaining room else0.1F; failed native hurt rolls back",
+          "units": "request units (0.1F)",
+          "boundary": "shared hurt/tick"
+        },
+        {
+          "primitive": "RANGE_ADMISSION",
+          "parameter": "range_limit",
+          "native_value": 15.0,
+          "native_formula": "L=Ignis.rangeCap; causing-null skips; d>=1.5L rejects; L<d<1.5L attenuates (1.5L-d)/(0.5L)",
+          "units": "blocks",
+          "boundary": "shared hurt after per-hit cap/before bucket"
+        },
+        {
+          "primitive": "NATIVE_ARMOR",
+          "parameter": "armor_base",
+          "native_value": 10.0,
+          "native_formula": "native attribute/event/source defenses after selected hurt request",
+          "units": "attribute points",
+          "boundary": "native LivingEntity defenses"
+        },
+        {
+          "primitive": "NATIVE_ARMOR",
+          "parameter": "knockback_resistance_base",
+          "native_value": 1.0,
+          "native_formula": "native attribute/event/source defenses after selected hurt request",
+          "units": "native attribute value",
+          "boundary": "native LivingEntity defenses"
+        },
+        {
+          "primitive": "NATIVE_CONFIGURED_ATTRIBUTES",
+          "parameter": "base_max_health",
+          "native_value": 450.0,
+          "native_formula": "ignis attributes base HP450/attack14; constructor setConfigattribute(this,Ignis.healthMultiplier,Ignis.attackMultiplier) applies locked native transient modifiers and initializes max health",
+          "units": "health units",
+          "boundary": "Ignis constructor/ignis attributes -> locked setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_CONFIGURED_ATTRIBUTES",
+          "parameter": "base_attack_damage",
+          "native_value": 14.0,
+          "native_formula": "ignis attributes base HP450/attack14; constructor setConfigattribute(this,Ignis.healthMultiplier,Ignis.attackMultiplier) applies locked native transient modifiers and initializes max health",
+          "units": "native attribute damage units",
+          "boundary": "Ignis constructor/ignis attributes -> locked setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_CONFIGURED_ATTRIBUTES",
+          "parameter": "installed_health_multiplier",
+          "native_value": 1.0,
+          "native_formula": "ignis attributes base HP450/attack14; constructor setConfigattribute(this,Ignis.healthMultiplier,Ignis.attackMultiplier) applies locked native transient modifiers and initializes max health",
+          "units": "dimensionless installed config observation",
+          "boundary": "Ignis constructor/ignis attributes -> locked setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_CONFIGURED_ATTRIBUTES",
+          "parameter": "installed_attack_multiplier",
+          "native_value": 1.0,
+          "native_formula": "ignis attributes base HP450/attack14; constructor setConfigattribute(this,Ignis.healthMultiplier,Ignis.attackMultiplier) applies locked native transient modifiers and initializes max health",
+          "units": "dimensionless installed config observation",
+          "boundary": "Ignis constructor/ignis attributes -> locked setConfigattribute"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:ignis_shield_admission",
+      "mod_key": "cataclysm",
+      "display_name": "Ignis directional shield admission and native recoil",
+      "registry_ids": [
+        "cataclysm:ignis"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "For positive damage, canBlockDamageSource rejects shield-bypass tags, exempts direct Abyss Fireball when its causing actor is not Ignis, and requires getIsShield. A nonnull source position is normalized in3D toward boss, then Y set0; dot with native view vector(1F)<0 admits the shield block. hurt calls inherited hurtCurrentlyUsedShield (native LivingEntity no-op for this hierarchy), then for nonprojectile-tagged DIRECT LivingEntity calls blockUsingShield; finally returns false without shared hurt. The callback asks that direct attacker blockedByShield(Ignis); native default LivingEntity recoil requests knockback0.5 and retains virtual/native mitigation.",
+      "human_summary": "For positive damage, canBlockDamageSource rejects shield-bypass tags, exempts direct Abyss Fireball when its causing actor is not Ignis, and requires getIsShield. A nonnull source position is normalized in3D toward boss, then Y set0; dot with native view vector(1F)<0 admits the shield block. hurt calls inherited hurtCurrentlyUsedShield (native LivingEntity no-op for this hierarchy), then for nonprojectile-tagged DIRECT LivingEntity calls blockUsingShield; finally returns false without shared hurt. The callback asks that direct attacker blockedByShield(Ignis); native default LivingEntity recoil requests knockback0.5 and retains virtual/native mitigation.",
+      "closest_vanilla_equivalent": "Vanilla-like directional shield geometry plus native blockedByShield callback",
+      "vanilla_similarities": "Retains named native API and locked shared contracts where applicable.",
+      "vanilla_differences": "Custom synced getIsShield replaces active equipped-item admission; no local arrow-piercing check. BYPASSES_INVULNERABILITY alone is not checked here. ShowShield and Is_Shield_Break are not read by canBlockDamageSource. Native shield callback does not decrement the custom shield durability; reflected Abyss durability is a separate branch. Recoil is independent of shared hurt return and is not a new damage request.",
+      "components": [
+        {
+          "primitive": "DIRECTIONAL_SHIELD_ADMISSION",
+          "formula": "!BYPASSES_SHIELD && !reflectedAbyss && getIsShield && sourcePosition!=null && horizontalized(normalize(sourcePos.vectorTo(bossPos))).dot(viewVector(1F))<0",
+          "numerical_parameters": {
+            "dot_upper_exclusive": 0.0
+          },
+          "parameter_units": {
+            "dot_upper_exclusive": "native dot-product sign boundary"
+          },
+          "binary_parameters": [
+            "positive damage at caller",
+            "source position exists",
+            "getIsShield",
+            "native BYPASSES_SHIELD"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "Ignis.canBlockDamageSource -> hurt false"
+        },
+        {
+          "primitive": "NATIVE_SHIELD_RECOIL",
+          "formula": "directLiving.blockedByShield(Ignis); default LivingEntity knockback(0.5,IgnisX-attackerX,IgnisZ-attackerZ); native overrides/knockback defenses retained",
+          "numerical_parameters": {
+            "default_strength": 0.5
+          },
+          "parameter_units": {
+            "default_strength": "native knockback strength"
+          },
+          "binary_parameters": [
+            "!IS_PROJECTILE",
+            "DIRECT entity instanceof LivingEntity"
+          ],
+          "vanilla_relation": "VANILLA_DIRECT",
+          "native_boundary": "Ignis.hurt blocked branch before false"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native directional/tag predicate, positive-value guard and virtual attacker callback remain distinct from custom durability."
+      ],
+      "custom_state": "Native synced entity/animation state and native NBT only.",
+      "eligibility": "Native directional/tag predicate, positive-value guard and virtual attacker callback remain distinct from custom durability.",
+      "source_actor": "Supplied native DamageSource direct/causing/position identities are preserved; no source replacement.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignis-admission.json",
+          "witness_id": "cataclysm:ignis-admission:entity/AnimationMonster/BossMonsters/Ignis_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "methods": [
+            "hurt",
+            "canBlockDamageSource"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ignis-admission:shield"
+      ],
+      "primary_test_source": "cataclysm:ignis",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k5a-cataclysm-ignis-admission-complete",
+      "scalability_note": "Static observations only. No Stage policy/eligibility/balance/hook decision. Defense/admission and phase/encounter constants are not promoted merely because numeric. The sole candidate is the already-locked shared positive-heal binding; no duplicate heal mechanism.",
+      "scalable_parameter_candidates": [],
+      "shield_bypass_tag": "BYPASSES_SHIELD",
+      "native_shield_damage_noop": true,
+      "recoil_requires_shared_hurt": false,
+      "checks_arrow_piercing": false,
+      "reads_show_shield": false,
+      "reads_shield_break_flag": false,
+      "numeric_observations": [
+        {
+          "primitive": "DIRECTIONAL_SHIELD_ADMISSION",
+          "parameter": "dot_upper_exclusive",
+          "native_value": 0.0,
+          "native_formula": "!BYPASSES_SHIELD && !reflectedAbyss && getIsShield && sourcePosition!=null && horizontalized(normalize(sourcePos.vectorTo(bossPos))).dot(viewVector(1F))<0",
+          "units": "native dot-product sign boundary",
+          "boundary": "Ignis.canBlockDamageSource -> hurt false"
+        },
+        {
+          "primitive": "NATIVE_SHIELD_RECOIL",
+          "parameter": "default_strength",
+          "native_value": 0.5,
+          "native_formula": "directLiving.blockedByShield(Ignis); default LivingEntity knockback(0.5,IgnisX-attackerX,IgnisZ-attackerZ); native overrides/knockback defenses retained",
+          "units": "native knockback strength",
+          "boundary": "Ignis.hurt blocked branch before false"
+        }
+      ],
+      "shield_callback_changes_custom_durability": false
+    },
+    {
+      "id": "cataclysm:ignis_shield_state",
+      "mod_key": "cataclysm",
+      "display_name": "Ignis native shield stance and break state",
+      "registry_ids": [
+        "cataclysm:ignis"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Blocking and sword flags are mutually cleared only when their setter is given true. Per concrete tick on both sides, each stance progress moves by1 toward0/10; hurt counter admission reads exact10. Server target-nonnull sets targetless timer200 and blocking unless broken, else sword. Native idle expiry clears stances. Only full blocking enables the per-animation IS_SHIELD window table; outer failure writes false, unlisted inner animations retain previous IS_SHIELD. Direct reflected-Abyss tagged attempts increment durability while below3 before later hurt admission; idle alive AI tick chooses BREAK_THE_SHIELD for durability>2 and unbroken. Its aiStep sets ShowShield false at25 and break flag true at79. Phase>1 server tick outside PHASE_3 also sets break true.",
+      "human_summary": "Blocking and sword flags are mutually cleared only when their setter is given true. Per concrete tick on both sides, each stance progress moves by1 toward0/10; hurt counter admission reads exact10. Server target-nonnull sets targetless timer200 and blocking unless broken, else sword. Native idle expiry clears stances. Only full blocking enables the per-animation IS_SHIELD window table; outer failure writes false, unlisted inner animations retain previous IS_SHIELD. Direct reflected-Abyss tagged attempts increment durability while below3 before later hurt admission; idle alive AI tick chooses BREAK_THE_SHIELD for durability>2 and unbroken. Its aiStep sets ShowShield false at25 and break flag true at79. Phase>1 server tick outside PHASE_3 also sets break true.",
+      "closest_vanilla_equivalent": "No equipped vanilla shield durability; native synced stance/admission state",
+      "vanilla_similarities": "Retains named native API and locked shared contracts where applicable.",
+      "vanilla_differences": "setIsShieldBreak(true) changes blocking to sword only if currently blocking, sets durability3 and ShowShield false, then stores flag. It does not directly clear IS_SHIELD. false only stores flag and does not restore durability/display/stances. Raw durability setter is unclamped. These state gates are not scalable contributions; ShieldExplode and break-animation offensive payloads remain deferred.",
+      "components": [
+        {
+          "primitive": "SHIELD_STATE",
+          "formula": "native flag setters/progress; server stance; per-animation shield windows; tagged reflected Abyss increments; break sequence",
+          "numerical_parameters": {
+            "progress_max": 10.0,
+            "progress_step": 1.0,
+            "targetless_ticks": 200,
+            "durability_break_value": 3,
+            "break_show_tick": 25,
+            "break_commit_tick": 79,
+            "break_animation_duration": 87
+          },
+          "parameter_units": {
+            "progress_max": "native stance progress",
+            "progress_step": "progress/tick",
+            "targetless_ticks": "native ticks",
+            "durability_break_value": "native hit/state counter",
+            "break_show_tick": "animation ticks",
+            "break_commit_tick": "animation ticks",
+            "break_animation_duration": "native Animation.create argument ticks"
+          },
+          "binary_parameters": [
+            "native blocking/sword mutual exclusion",
+            "server stance/window update",
+            "alive AI idle break selection",
+            "per-animation windows"
+          ],
+          "vanilla_relation": "CUSTOM",
+          "native_boundary": "Ignis synced setters + tick/aiStep fragments"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Stance flags, progress, admission IS_SHIELD, display flag and break flag remain separate native state."
+      ],
+      "custom_state": "Native synced entity/animation state and native NBT only.",
+      "eligibility": "Stance flags, progress, admission IS_SHIELD, display flag and break flag remain separate native state.",
+      "source_actor": "Supplied native DamageSource direct/causing/position identities are preserved; no source replacement.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignis-admission.json",
+          "witness_id": "cataclysm:ignis-admission:entity/AnimationMonster/BossMonsters/Ignis_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "methods": [
+            "setIsBlocking",
+            "setIsSword",
+            "setIsShield",
+            "setIsShieldBreak",
+            "setShieldDurability",
+            "setShowShield",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "methods": [
+            "tick",
+            "aiStep"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ignis-admission:shield_state"
+      ],
+      "primary_test_source": "cataclysm:ignis",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k5a-cataclysm-ignis-admission-complete",
+      "scalability_note": "Static observations only. No Stage policy/eligibility/balance/hook decision. Defense/admission and phase/encounter constants are not promoted merely because numeric. The sole candidate is the already-locked shared positive-heal binding; no duplicate heal mechanism.",
+      "scalable_parameter_candidates": [],
+      "shield_windows": {
+        "NO_ANIMATION": true,
+        "COUNTER": true,
+        "STRIKE": false,
+        "POKED_ATTACK": false,
+        "BREAK_THE_SHIELD": false,
+        "HORIZONTAL_SWING_ATTACK": "tick>31",
+        "HORIZONTAL_SWING_ATTACK_SOUL": "tick>27",
+        "BODY_CHECK_ATTACK1..4": "tick<25",
+        "BODY_CHECK_ATTACK_SOUL1..4": "tick<21",
+        "POKE_ATTACK": "tick<39",
+        "POKE_ATTACK2": "tick<34",
+        "POKE_ATTACK3": "tick<29",
+        "SWING_ATTACK": "tick<24",
+        "SWING_ATTACK_SOUL": "tick<18",
+        "SWING_ATTACK_BERSERK": "tick<15",
+        "SWING_UPPERSLASH": "tick>27",
+        "MAGIC_ATTACK": "tick>34 && tick<46",
+        "HORIZONTAL_SMALL_SWING_ATTACK": false,
+        "HORIZONTAL_SMALL_SWING_ALT_ATTACK2": false,
+        "EARTH_SHUDDERS_ATTACK": false,
+        "REINFORCED_SMASH_SOUL": "tick>6 && tick<19",
+        "REINFORCED_SMASH": "tick>6 && tick<19",
+        "REINFORCED_SMASH_IN_AIR_SOUL": false,
+        "REINFORCED_SMASH_IN_AIR": false,
+        "OTHER_ANIMATION": "RETAIN_PREVIOUS_IS_SHIELD"
+      },
+      "shield_window_default": "RETAIN_PREVIOUS_IS_SHIELD",
+      "break_setter_clears_admission_flag": false,
+      "durability_increment_requires_hurt_true": false,
+      "durability_setter_clamps": false,
+      "break_false_restores_shield": false,
+      "numeric_observations": [
+        {
+          "primitive": "SHIELD_STATE",
+          "parameter": "progress_max",
+          "native_value": 10.0,
+          "native_formula": "native flag setters/progress; server stance; per-animation shield windows; tagged reflected Abyss increments; break sequence",
+          "units": "native stance progress",
+          "boundary": "Ignis synced setters + tick/aiStep fragments"
+        },
+        {
+          "primitive": "SHIELD_STATE",
+          "parameter": "progress_step",
+          "native_value": 1.0,
+          "native_formula": "native flag setters/progress; server stance; per-animation shield windows; tagged reflected Abyss increments; break sequence",
+          "units": "progress/tick",
+          "boundary": "Ignis synced setters + tick/aiStep fragments"
+        },
+        {
+          "primitive": "SHIELD_STATE",
+          "parameter": "targetless_ticks",
+          "native_value": 200,
+          "native_formula": "native flag setters/progress; server stance; per-animation shield windows; tagged reflected Abyss increments; break sequence",
+          "units": "native ticks",
+          "boundary": "Ignis synced setters + tick/aiStep fragments"
+        },
+        {
+          "primitive": "SHIELD_STATE",
+          "parameter": "durability_break_value",
+          "native_value": 3,
+          "native_formula": "native flag setters/progress; server stance; per-animation shield windows; tagged reflected Abyss increments; break sequence",
+          "units": "native hit/state counter",
+          "boundary": "Ignis synced setters + tick/aiStep fragments"
+        },
+        {
+          "primitive": "SHIELD_STATE",
+          "parameter": "break_show_tick",
+          "native_value": 25,
+          "native_formula": "native flag setters/progress; server stance; per-animation shield windows; tagged reflected Abyss increments; break sequence",
+          "units": "animation ticks",
+          "boundary": "Ignis synced setters + tick/aiStep fragments"
+        },
+        {
+          "primitive": "SHIELD_STATE",
+          "parameter": "break_commit_tick",
+          "native_value": 79,
+          "native_formula": "native flag setters/progress; server stance; per-animation shield windows; tagged reflected Abyss increments; break sequence",
+          "units": "animation ticks",
+          "boundary": "Ignis synced setters + tick/aiStep fragments"
+        },
+        {
+          "primitive": "SHIELD_STATE",
+          "parameter": "break_animation_duration",
+          "native_value": 87,
+          "native_formula": "native flag setters/progress; server stance; per-animation shield windows; tagged reflected Abyss increments; break sequence",
+          "units": "native Animation.create argument ticks",
+          "boundary": "Ignis synced setters + tick/aiStep fragments"
+        }
+      ]
+    },
+    {
       "id": "cataclysm:monstrosity_alliance",
       "mod_key": "cataclysm",
       "display_name": "Monstrosity native alliance and offensive exclusions",
@@ -10430,6 +11794,378 @@
       "runtime_status": "NOT_RUN"
     },
     {
+      "id": "cataclysm:ignis-admission:counter",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ignis_counter_admission"
+      ],
+      "primary_source": "cataclysm:ignis",
+      "native_path": "Incoming Ignis.hurt -> counter selection/window transition -> reject or continue",
+      "setup": "Incoming attempt at full blocking/sword progress; null/near/far causing actor and native counter tick boundaries.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignis-admission.json",
+          "witness_id": "cataclysm:ignis-admission:entity/AnimationMonster/BossMonsters/Ignis_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "methods": [
+            "hurt"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/LLibrary_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/LLibrary_Monster.class",
+          "methods": [
+            "setAnimation"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "calculateRange"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ignis-admission:defense",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ignis_shared_defense_bindings"
+      ],
+      "primary_source": "cataclysm:ignis",
+      "native_path": "Ignis concrete getters -> locked shared cap/range/bucket/native defenses",
+      "setup": "Native source/causing range/tag/cancellation/bucket fixtures using installed bindings, not shared defaults.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignis-admission.json",
+          "witness_id": "cataclysm:ignis-admission:entity/AnimationMonster/BossMonsters/Ignis_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "methods": [
+            "<init>",
+            "ignis",
+            "DamageCap",
+            "DpsCap",
+            "RangeLimit"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignis-admission.json",
+          "witness_id": "cataclysm:ignis-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$8",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "hurt",
+            "tick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ignis-admission:encounter",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ignis_encounter_state"
+      ],
+      "primary_source": "cataclysm:ignis",
+      "native_path": "Altar_of_Fire native ticker/item/counter -> Ignis creation/home/add; native combat NBT -> state; shared home",
+      "setup": "Native altar item/missing item, success/failure/reload and native spawn/load fixtures; no altar acquisition research.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignis-admission.json",
+          "witness_id": "cataclysm:ignis-admission:entity/AnimationMonster/BossMonsters/Ignis_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "methods": [
+            "defineSynchedData",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "finalizeSpawn",
+            "<init>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignis-admission.json",
+          "witness_id": "cataclysm:ignis-admission:blockentities/AltarOfFire_Block_Entity",
+          "entry": "com/github/L_Ender/cataclysm/blockentities/AltarOfFire_Block_Entity.class",
+          "methods": [
+            "<init>",
+            "commonTick",
+            "getItem",
+            "tick",
+            "loadAdditional",
+            "saveAdditional"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignis-admission.json",
+          "witness_id": "cataclysm:ignis-admission:blocks/Altar_Of_Fire_Block",
+          "entry": "com/github/L_Ender/cataclysm/blocks/Altar_Of_Fire_Block.class",
+          "methods": [
+            "getTicker"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "finalizeSpawn",
+            "getHomePos",
+            "setHomePos",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ignis-admission:incoming",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ignis_incoming_admission"
+      ],
+      "primary_source": "cataclysm:ignis",
+      "native_path": "Ignis.hurt -> concrete prefilters -> LLibrary_Boss_Monster.hurt -> native hurt",
+      "setup": "Distinguish direct fireball class, causing actor, source position, tagged bypass, counter/shield windows and shared true/false.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignis-admission.json",
+          "witness_id": "cataclysm:ignis-admission:entity/AnimationMonster/BossMonsters/Ignis_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "methods": [
+            "hurt"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "hurt"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "calculateRange"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ignis-admission:phase",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ignis_phase_prerequisites"
+      ],
+      "primary_source": "cataclysm:ignis",
+      "native_path": "Ignis.tick -> native phase animation -> aiStep setBossPhase -> incoming phase/threshold gates",
+      "setup": "Idle alive/no-AI/targetless threshold boundaries, shield-break precedence, phase commit ticks and native reload.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignis-admission.json",
+          "witness_id": "cataclysm:ignis-admission:entity/AnimationMonster/BossMonsters/Ignis_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "methods": [
+            "setBossPhase",
+            "getBossPhase",
+            "registerGoals",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "methods": [
+            "tick",
+            "aiStep"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignis-admission.json",
+          "witness_id": "cataclysm:ignis-admission:entity/AnimationMonster/AI/AttackAnimationGoal1",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/AI/AttackAnimationGoal1.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/LLibrary_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/LLibrary_Monster.class",
+          "methods": [
+            "setAnimation",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-admission.json",
+          "witness_id": "cataclysm:guardian-admission:entity/AnimationMonster/AI/AttackAnimationGoal2",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/AI/AttackAnimationGoal2.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ignis-admission:regen",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ignis_nature_regen_binding"
+      ],
+      "primary_source": "cataclysm:ignis",
+      "native_path": "Ignis.NatureRegen -> locked LLibrary_Boss_Monster.tick -> native heal",
+      "setup": "AI server targetless 20-tick cadence, positive amount, regen timer and native heal hook outcomes.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignis-admission.json",
+          "witness_id": "cataclysm:ignis-admission:entity/AnimationMonster/BossMonsters/Ignis_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "methods": [
+            "NatureRegen"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "tick",
+            "hurt",
+            "HealCooldown"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ignis-admission:shield",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ignis_shield_admission"
+      ],
+      "primary_source": "cataclysm:ignis",
+      "native_path": "Positive incoming Ignis.hurt -> canBlockDamageSource -> native shield helpers -> false",
+      "setup": "Source-position direction/null, shield-bypass tag, reflected Abyss exemption and direct LivingEntity versus causing projectile owner.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignis-admission.json",
+          "witness_id": "cataclysm:ignis-admission:entity/AnimationMonster/BossMonsters/Ignis_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "methods": [
+            "hurt",
+            "canBlockDamageSource"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ignis-admission:shield_state",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ignis_shield_state"
+      ],
+      "primary_source": "cataclysm:ignis",
+      "native_path": "Ignis native setters/tick -> IS_SHIELD/durability -> hurt admission; break animation -> native state commit",
+      "setup": "Full/partial stance, listed and unlisted animations, reflected source branches, true/false break setter and load.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignis-admission.json",
+          "witness_id": "cataclysm:ignis-admission:entity/AnimationMonster/BossMonsters/Ignis_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "methods": [
+            "setIsBlocking",
+            "setIsSword",
+            "setIsShield",
+            "setIsShieldBreak",
+            "setShieldDurability",
+            "setShowShield",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignis_Entity.class",
+          "methods": [
+            "tick",
+            "aiStep"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
       "id": "cataclysm:monstrosity-admission:awakening_home",
       "mod_key": "cataclysm",
       "status": "VERIFIED",
@@ -11754,10 +13490,10 @@
   ],
   "unresolved_native_ambiguities": null,
   "remaining_native_ambiguities": null,
-  "checkpoint": "R2k4b-cataclysm-monstrosity-offense-complete",
-  "scope": "Netherite Monstrosity offense/owned payloads closed with R2k4a admission/setup reused unchanged. Guardian and shared/status facts locked. Monstrosity combat-significant static family is closed; whole Cataclysm remains PARTIAL.",
-  "notes_file": "cataclysm-r2k4b-monstrosity-offense.json",
-  "exact_next_task": "R2k5a: Ignis incoming admission and phase/shield prerequisites. Start entity/AnimationMonster/BossMonsters/Ignis_Entity hurt/isInvulnerableTo and concrete DamageCap/DpsCap/RangeLimit/NatureRegen bindings, then shield/phase setters, persistence and native encounter prerequisites. Reuse locked shared/status, Guardian and Monstrosity contracts. Defer full Ignis offense/payloads to the following bounded batch. Static only; no runtime, Stage, production or unrelated equipment research.",
+  "checkpoint": "R2k5a-cataclysm-ignis-admission-complete",
+  "scope": "Bounded Ignis incoming admission, concrete shared defense/regen bindings, shield admission/state, phase prerequisites and native persistence/altar/home setup closed. Shared/status, Guardian and Monstrosity facts locked. Ignis offense/payloads deferred; Cataclysm PARTIAL.",
+  "notes_file": "cataclysm-r2k5a-ignis-admission.json",
+  "exact_next_task": "R2k5b: Ignis offense/payload family. Start Ignis_Entity tick/aiStep attack-selection and directly used offensive goals; close direct/area/body-check/poke/held-victim damage/control, phase and shield-break payloads, sword/flame-strike and fireball launch chains, directly owned payload entities, source/owner/team predicates, hurt-return status/healing and native lifecycle. Reuse locked R2k5a admission/shield/phase/encounter, shared/status, Guardian and Monstrosity contracts. Static only; no runtime, Stage, production or unrelated boss/equipment research.",
   "protected_checkpoint": "R2k3a-cataclysm-guardian-admission-complete",
   "protected_notes_file": "cataclysm-r2k3a-guardian-admission.json",
   "protected_checkpoints": [
@@ -11772,6 +13508,10 @@
     {
       "checkpoint": "R2k4a-cataclysm-monstrosity-admission-complete",
       "notes_file": "cataclysm-r2k4a-monstrosity-admission.json"
+    },
+    {
+      "checkpoint": "R2k4b-cataclysm-monstrosity-offense-complete",
+      "notes_file": "cataclysm-r2k4b-monstrosity-offense.json"
     }
   ]
 }

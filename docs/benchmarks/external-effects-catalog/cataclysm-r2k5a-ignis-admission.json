@@ -1,0 +1,434 @@
+{
+  "schema": "tno.external_effects.cataclysm_ignis_admission.v1",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "cataclysm",
+  "checkpoint": "R2k5a-cataclysm-ignis-admission-complete",
+  "previous_checkpoint": "R2k4b-cataclysm-monstrosity-offense-complete",
+  "starting_sha": "aa13dd0f69626f4e8491d2f397c90e80aebdc3ab",
+  "status": "PARTIAL",
+  "scope": "Bounded Ignis incoming admission, concrete shared defense/regen bindings, shield admission/state, phase prerequisites and native persistence/altar/home setup closed. Shared/status, Guardian and Monstrosity facts locked. Ignis offense/payloads deferred; Cataclysm PARTIAL.",
+  "summary": {
+    "new_mechanics": 8,
+    "delivery_paths": 8,
+    "classifications": {
+      "BINARY_MECHANIC": 6,
+      "VANILLA_LIKE_EXTENDED": 2
+    },
+    "candidate_numeric_parameters": 1,
+    "shared_binding_records": 1,
+    "unresolved_subsection_ambiguities": 0
+  },
+  "hierarchy": [
+    "entity/AnimationMonster/BossMonsters/Ignis_Entity",
+    "entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+    "entity/AnimationMonster/LLibrary_Monster",
+    "entity/etc/Animation_Monsters",
+    "net/minecraft/world/entity/monster/Monster"
+  ],
+  "admission_order": {
+    "concrete": [
+      "READ_DIRECT_TARGET_AND_CAUSING_RANGE_SQUARED",
+      "REACTIVE_COUNTER_STATE_AND_WINDOW_RETURN",
+      "ABYSS_DIRECT_CLASS_CAUSING_IGNIS_REJECT",
+      "ABYSS_PROJECTILE_TAG_SERVER_DURABILITY_INCREMENT",
+      "PHASE_OR_ULTIMATE_HALF_UNLESS_INVULNERABILITY_BYPASS",
+      "PHASE2_PHASE3_OR_STRIKE_REJECT_UNLESS_INVULNERABILITY_BYPASS",
+      "ORDINARY_IGNIS_FIREBALL_DIRECT_REJECT",
+      "POSITIVE_DIRECTIONAL_SHIELD_CALLBACKS_AND_FALSE",
+      "ARM_TERRAIN_TIMER_BEFORE_SHARED_HURT",
+      "SHARED_HURT_SAME_SOURCE",
+      "RETURN_NATIVE_HURT_RESULT"
+    ],
+    "shared": [
+      "VIRTUAL_NATIVE_INVULNERABILITY",
+      "INVULNERABILITY_BYPASS_EARLY_NATIVE_RETURN",
+      "PER_HIT_DAMAGE_CAP",
+      "CAUSING_ENTITY_RANGE",
+      "SAVE_BUCKET",
+      "BUCKET_UNLESS_HURT_TIME_BYPASS",
+      "NATIVE_HURT",
+      "REGEN_TIMER_IF_TRUE_AND_TAGGED",
+      "BUCKET_ROLLBACK_IF_FALSE"
+    ]
+  },
+  "concrete_bindings": {
+    "DamageCap": {
+      "config_field": "Ignis.damageCap",
+      "installed_value": 20.0,
+      "shared_boundary": "per-hit ceiling AND bucket capacity"
+    },
+    "DpsCap": {
+      "config_field": "Ignis.dpsCap",
+      "installed_value": 14.0,
+      "shared_boundary": "eligible AI server drain float(DpsCap()/20)"
+    },
+    "RangeLimit": {
+      "config_field": "Ignis.rangeCap",
+      "installed_value": 15.0,
+      "shared_boundary": "current causing actor full<=15, falloff15<d<22.5, reject>=22.5"
+    },
+    "NatureRegen": {
+      "config_field": "Ignis.natureHeal",
+      "installed_value": 25.0,
+      "shared_boundary": "existing shared positive heal argument with targetless/timer/cadence gates"
+    },
+    "HealCooldown": {
+      "inherited": true,
+      "native_value": 200,
+      "shared_boundary": "successful tagged shared hurt resets self_regen; bypass early return/rejected hits skip"
+    }
+  },
+  "mechanic_packages": [
+    {
+      "id": "cataclysm:ignis_counter_admission",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:ignis-admission:counter"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Selection/transition do not depend on native hurt return; strike damage remains deferred."
+      ]
+    },
+    {
+      "id": "cataclysm:ignis_encounter_state",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:ignis-admission:encounter"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Native raw combat state, inventory predicate and entity-add/home semantics remain native."
+      ]
+    },
+    {
+      "id": "cataclysm:ignis_incoming_admission",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:ignis-admission:incoming"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Native source, animation, tag and shield gates retain native order; no separate invulnerability override."
+      ]
+    },
+    {
+      "id": "cataclysm:ignis_nature_regen_binding",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "delivery_paths": [
+        "cataclysm:ignis-admission:regen"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "amount"
+          ],
+          "native_value": 25.0,
+          "units": "requested health units",
+          "native_boundary": "locked LLibrary_Boss_Monster.tick -> heal"
+        }
+      ],
+      "binary_gates": [
+        "Locked shared regeneration gates; positive native amount only."
+      ]
+    },
+    {
+      "id": "cataclysm:ignis_phase_prerequisites",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:ignis-admission:phase"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Native phase flags and HP/admission thresholds remain native; no scalar phase enum."
+      ]
+    },
+    {
+      "id": "cataclysm:ignis_shared_defense_bindings",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:ignis-admission:defense"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "No concrete Cataclysm invulnerability or shield-helper override; native source/tag/armor/event admission retained."
+      ]
+    },
+    {
+      "id": "cataclysm:ignis_shield_admission",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "delivery_paths": [
+        "cataclysm:ignis-admission:shield"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Native directional/tag predicate, positive-value guard and virtual attacker callback remain distinct from custom durability."
+      ]
+    },
+    {
+      "id": "cataclysm:ignis_shield_state",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:ignis-admission:shield_state"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Stance flags, progress, admission IS_SHIELD, display flag and break flag remain separate native state."
+      ]
+    }
+  ],
+  "facts": {
+    "incoming": "hurt first reads the DIRECT entity, current target and calculateRange(source) causing-actor squared distance. Reactive counter handling runs first. Direct Abyss Fireball with ANY Ignis causing entity rejects unconditionally; otherwise IS_PROJECTILE-tagged direct Abyss Fireball increments shield durability on server while below3, even if a later admission branch rejects. ULTIMATE_ATTACK or phase0 HP<=maxHP*2F/3F or phase1 HP<=maxHP*1F/3F halves damage via double0.5 then float unless BYPASSES_INVULNERABILITY. PHASE_2/PHASE_3/STRIKE reject unless that tag; direct ordinary Ignis Fireball always rejects. Positive directional shield blocking returns false. Remaining calls arm destroyBlocksTick20 if nonpositive BEFORE shared hurt, then return the unchanged shared boolean; crackiness-change sound is only a true-return cosmetic callback.",
+    "counter": "Only nonnull direct entity, AI enabled and blockingProgress==10 OR swordProgress==10 enter the reactive block. With alive target, NO_ANIMATION, nextFloat*100<12, counter cooldown<=0 and causing squared range<225, set cooldown360 then animation COUNTER or SHIELD_BREAK_COUNTER according to break flag. Counter ticks>16<=46 send STRIKE; broken counter ticks>8<=38 send SHIELD_BREAK_STRIKE. Each transition occurs before returning false unless BYPASSES_INVULNERABILITY. No shared hurt success is required for selection or transitions; later offensive strike payloads are deferred.",
+    "shield": "For positive damage, canBlockDamageSource rejects shield-bypass tags, exempts direct Abyss Fireball when its causing actor is not Ignis, and requires getIsShield. A nonnull source position is normalized in3D toward boss, then Y set0; dot with native view vector(1F)<0 admits the shield block. hurt calls inherited hurtCurrentlyUsedShield (native LivingEntity no-op for this hierarchy), then for nonprojectile-tagged DIRECT LivingEntity calls blockUsingShield; finally returns false without shared hurt. The callback asks that direct attacker blockedByShield(Ignis); native default LivingEntity recoil requests knockback0.5 and retains virtual/native mitigation.",
+    "shield_state": "Blocking and sword flags are mutually cleared only when their setter is given true. Per concrete tick on both sides, each stance progress moves by1 toward0/10; hurt counter admission reads exact10. Server target-nonnull sets targetless timer200 and blocking unless broken, else sword. Native idle expiry clears stances. Only full blocking enables the per-animation IS_SHIELD window table; outer failure writes false, unlisted inner animations retain previous IS_SHIELD. Direct reflected-Abyss tagged attempts increment durability while below3 before later hurt admission; idle alive AI tick chooses BREAK_THE_SHIELD for durability>2 and unbroken. Its aiStep sets ShowShield false at25 and break flag true at79. Phase>1 server tick outside PHASE_3 also sets break true.",
+    "shield_setters": "setIsShieldBreak(true) changes blocking to sword only if currently blocking, sets durability3 and ShowShield false, then stores flag. It does not directly clear IS_SHIELD. false only stores flag and does not restore durability/display/stances. Raw durability setter is unclamped. These state gates are not scalable contributions; ShieldExplode and break-animation offensive payloads remain deferred.",
+    "phase": "After stance updates/cooldowns, concrete tick when alive prioritizes: AI-enabled idle durability>2 and unbroken -> BREAK_THE_SHIELD; else AI-enabled idle HP<=maxHP*2F/3F and phase<1 -> PHASE_2; else HP<=maxHP*1F/3F and phase<2 -> PHASE_3. Target/LOS are not prerequisites. Native phase2 aiStep commits BossPhase1 at animation tick34; phase3 commits2 at58 and hides shield. There is no local server guard on selection/these commits. Phase>1 server tick outside PHASE_3 sets shield broken. setBossPhase only stores the raw synced integer, with no HP, attribute, home or shield mutation.",
+    "phase_setter": "Phase thresholds are live current HP conditions with float multiply/divide order; saved phase is a separate latched integer. PHASE_2/3 are incoming immunity identities even before commit. Loaded phase2 does not itself start PHASE_3. Priority1 phase goals use native MOVE/JUMP/LOOK animation goals; phase3 and break goal hold X/Z while preserving Y. Phase2 reuses locked AttackAnimationGoal2. Phase damage, ShieldExplode, roar/control and offensive follow-ups are deferred.",
+    "defense": "Installed concrete getters bind DamageCap20, DpsCap14 and RangeLimit15 to locked LLibrary admission. DamageCap is per-hit ceiling AND requested-damage bucket capacity; DpsCap/20 drains that bucket per eligible AI server tick. Current causing actor receives full range through15, falloff15<d<22.5 and reject d>=22.5; anonymous causing-null skips range. No concrete or intermediate Cataclysm isInvulnerableTo override exists; registered type is fireImmune. Native armor10 and knockback resistance1 remain separate native defenses; constructor applies native health/attack config multipliers1 to base HP450/attack14.",
+    "regen": "NatureRegen returns float(Ignis.natureHeal), installed25. Existing shared targetless AI server cadence20, self_regen timer, positive-value guard and native heal admission/max-HP hooks remain unchanged; HealCooldown inherited200. Successful shared tagged hurt resets timer; early bypass and concrete rejected hits do not reset it. This is a concrete binding of shared_heal, not another delivered heal.",
+    "persistence_encounter": "Synced defaults are BossPhase0, ShieldDurability0, blocking/shield/break/sword false, ShowShield true. Concrete NBT saves BossPhase, Is_Shield_Break, Shield_Durability after shared Home persistence. Load sets phase, then break setter, then raw durability; saved durability can overwrite the break setter3. No stance/admission flag/progress, target vector, animation/tick, targetless/counter/terrain timer or shared bucket/regen/home timer is saved here. finalizeSpawn only delegates to shared; it initializes native home timer but no actual home. Fire altar slot0 must contain Burning Ashes; maintained summoningticks>121 performs terrain-clear calls, creates Ignis, and only ServerLevel+nonnull instance enters add: spawn X/Z+.5,Y+3, home=current dimension/altar pos. Only successful native addFreshEntity empties item slot; failed attempts repeat while item stays, with no nearby boss/player/difficulty/defeat-state gate in this path. Altar inventory persists, summoning timer does not.",
+    "native_callbacks": "All hurt sources and native hooks/defenses remain unchanged. Counter/durability/terrain-timer prewrites do not depend on shared hurt success. Native shield rejection causes no second HP request. No invented shield durability, owner/receipt/cache, progression or Stage state.",
+    "deferred": "All offensive payloads, phase damage, shield explosions, status/healing attack producers, projectiles and concrete outcome callback are deferred to R2k5b."
+  },
+  "reused_contracts": [
+    {
+      "file": "cataclysm-r2k2a-shared-admission.json",
+      "bindings": [
+        "LLibrary hurt/cap/range/bucket/timer/regen/home/native lifecycle"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k2e-remaining-status.json",
+      "bindings": [
+        "locked shared/status contracts; previously captured Ignis status producers not rereviewed"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k3a-guardian-admission.json",
+      "bindings": [
+        "native AnimationGoal/SimpleAnimationGoal/AttackAnimationGoal2"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k4a-monstrosity-admission.json",
+      "bindings": [
+        "protected admission research pattern; no Monstrosity rediscovery"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k4b-monstrosity-offense.json",
+      "bindings": [
+        "protected complete Monstrosity family"
+      ]
+    },
+    {
+      "file": "reference-evidence/bossesrise-knight-defense-244.json",
+      "bindings": [
+        "native Entity/LivingEntity invulnerability and hurt"
+      ]
+    },
+    {
+      "file": "reference-evidence/twilight-minoshroom-knight-244.json",
+      "bindings": [
+        "native LivingEntity hurtCurrentlyUsedShield no-op",
+        "blockUsingShield direct-attacker callback",
+        "default blockedByShield native recoil"
+      ]
+    },
+    {
+      "file": "native-evidence/cataclysm-stun.json",
+      "bindings": [
+        "pre-existing complete Ignis tick/aiStep witnesses; only scoped admission/phase/shield regions read"
+      ]
+    }
+  ],
+  "remaining_subsection_native_ambiguities": [],
+  "remaining_ignis_work": [
+    "Full offense/attack selection and goals",
+    "Direct/area/body-check/poke/held-victim and phase/shield-break damage/control",
+    "Native source/team/hurt-return status/healing and direct owned fireball/flame-strike entities",
+    "Concrete defeat/outcome linkage reached from Ignis combat"
+  ],
+  "remaining_cataclysm_research": [
+    "Ignis bounded offense/payload batch",
+    "Other unreviewed Cataclysm combat families and remaining equipment/global hooks"
+  ],
+  "exact_next_task": "R2k5b: Ignis offense/payload family. Start Ignis_Entity tick/aiStep attack-selection and directly used offensive goals; close direct/area/body-check/poke/held-victim damage/control, phase and shield-break payloads, sword/flame-strike and fireball launch chains, directly owned payload entities, source/owner/team predicates, hurt-return status/healing and native lifecycle. Reuse locked R2k5a admission/shield/phase/encounter, shared/status, Guardian and Monstrosity contracts. Static only; no runtime, Stage, production or unrelated boss/equipment research.",
+  "whole_mod_complete": false,
+  "runtime_tests": 0,
+  "stage_eligibility_decided": false,
+  "tooling": {
+    "jar_sha256": "fa4e8abd15aa86333d6a5fe20b05c4fe423ac865da7319be7808d321bcb3930c",
+    "jar_size_bytes": 73346519,
+    "new_native_witnesses": 8,
+    "reused_evidence_regenerated": false,
+    "recursive_jar_scan": false,
+    "reading_aid": "Pinned Vineflower1.10.1 SHA256 b9b208e50793b64657a6b6292067526613f549de7405f9243624b02f4276e409; exact Ignis, directly required altar and animation helper aids. Only scoped admission/state/encounter methods inspected. Offense method bodies excluded; pinned selected bytecode is authoritative. Full Ignis tick/aiStep and LLibrary animation helpers come from locked STUN/shared archives and are not recaptured; only their admission/state regions used."
+  },
+  "reference_files": [
+    {
+      "file": "cataclysm-boss-inheritance.json",
+      "sha256": "4cf3e43f452a3b12d437588b5e9d01a14a47e6575be1353a6186fdaf61eaa7b0",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-installed-common-config.json",
+      "sha256": "e49736bbfea8976a8df3f0d2f28e948e5c1e0535cb1254b28e7eefca77b923cf",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k2a-shared-admission.json",
+      "sha256": "3852d7f0950abe786cd9769ea4d64fb02f2cfa4ee1f4e99c06464645218ee9e2",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k2b-stun.json",
+      "sha256": "c81fed2de650739f580e106fa4cd9ac907cb7b5a3e7e8161879a0f2a795a4cd9",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k2c-ghost-fear.json",
+      "sha256": "77c977c09003cd0b0be9f0a6261985958610c6847e712cffdc2c17143bb0e75f",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k2d-abyssal-status.json",
+      "sha256": "4f6b1b56e028c1e7c1f5dee6209f9264a3d456a26d0edbafc0f3689ca70fa35c",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k2e-remaining-status.json",
+      "sha256": "736c5033f74b821f14794a0dcd988056bcf98b12a5222fe5b70ab83d0c77c455",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k3a-guardian-admission.json",
+      "sha256": "8a920972afe714d3e69278351e6a84672d9bb6a590d0cc0f6a20f66f8ae2ca7e",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k3b-guardian-offense.json",
+      "sha256": "274e56f41b2dc3cd1ee3196a41e6edc050f700ae36ed602eed054ecfd53b104e",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k4a-monstrosity-admission.json",
+      "sha256": "5349c1f74363e063d01e25ca8eba9890c20656604f7adcc8e962215447aba432",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k4b-monstrosity-offense.json",
+      "sha256": "1f3c3c1134cfc3cdc518758c3dfc95a4407556cc4caac8187142b412989ca321",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-source-census.json",
+      "sha256": "fee3dbcc15b068eddb6c53271146d2f04dcb72a5f183dc9a17be2d794ed68ead",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "jar-inventory.json",
+      "sha256": "e9d91482fac44a764468ddb75e2bf10ee7c0aef74f392a90b5d5dfe908ba3974",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-foundation.json",
+      "sha256": "bb75018a6d3a72048251f24fae60edffaa4b0dcb678b3cdc3db6f2b5af99c55b",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-guardian-admission.json",
+      "sha256": "d652ad2ea9cd6d7ebf7f6d5424122199b74d6c4b355248affeae9e673dcdf067",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-guardian-offense.json",
+      "sha256": "4b086ab084546fc3b87bdc058458f297f1677a37975a8c6c75610d8ee9d0faab",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-monstrosity-admission.json",
+      "sha256": "c5ac14eb0106a949e81922941fe12c2590fa3eb3687b69638c96fbfdf4afea9f",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-monstrosity-offense.json",
+      "sha256": "3de3c6430a599ba9de4dfd165ef27e6fb645cc491020bd1e1bc02ff053d85568",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-remaining-status.json",
+      "sha256": "b47482396e64fc0e4d4f10b61ac45ba6e42fe588d0117cc250ff03afc5ac422f",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-shared.json",
+      "sha256": "ba6abb73e3e33fab4cbead14196a1112f769189f873abc4fcbb5262eb2289a29",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-stun.json",
+      "sha256": "fa0ca10b9822f40d703be35748c9cf2eaf6a8ad404b942eea289a7313dae1177",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-specifications/cataclysm-monstrosity-offense.json",
+      "sha256": "5ffcf3eaf1b230ffd034335b9f59bee00acb2f334372ffea3653ac268100fada",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/bossesrise-knight-defense-244.json",
+      "sha256": "837cad018f153c3b1c4ce5db6429ae0c0f10214c72daac55ceb864e5d4ac66e8",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/bossesrise-knight-offense-244.json",
+      "sha256": "ed906fd31cd492fd157e4c9ba6f4e3271359ae4b2c650cd440c3fff1cc788002",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/eternalstarlight-status-control-244.json",
+      "sha256": "e8b8f470bf9a5d896de48e1baa8bbfcc5e01c9985ca9dcf4dae2e8e325c34205",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/iceandfire-dragon-elements-244.json",
+      "sha256": "27b53602dcbf08bde0c888e01f2ba01dc77761dd9c637f524aaf9dc4f954bcf7",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/iceandfire-worm-cyclops-244.json",
+      "sha256": "5c43fe513bd1696b3787b29160628719b7a04544cfa55ac3fb18cbbc22cc2640",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/twilight-hydra-urghast-244.json",
+      "sha256": "5de22807fdb64617e2318367903cb3a54aa4c6714ef53fca915827d5df1bde12",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/twilight-minoshroom-knight-244.json",
+      "sha256": "c80393a79949951d3eb82b8ff72a52e2473abf769d7df18ef644f0d1ea62f804",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-specifications/cataclysm-ignis-admission.json",
+      "sha256": "35abf2bfd960a16bf181ff99b103ff3812e9a950ac478c9298fa40d51758b6a6",
+      "usage": "NEW_SCOPED_WITNESS"
+    },
+    {
+      "file": "native-evidence/cataclysm-ignis-admission.json",
+      "sha256": "fd912858bcb07d62fd46feabe3a178e3e3db229ec8ac1d4d101b6d735384230f",
+      "usage": "NEW_SCOPED_WITNESS"
+    }
+  ],
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false
+}
