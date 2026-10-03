@@ -29071,6 +29071,1166 @@
       "debris_adds_damage": false,
       "debris_places_blocks": false,
       "terrain_result_gates_victim_damage": false
+    },
+    {
+      "id": "cataclysm:remnant_activation_state",
+      "mod_key": "cataclysm",
+      "display_name": "Ancient Remnant necklace and native wake state",
+      "registry_ids": [
+        "cataclysm:ancient_remnant"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Synced NECKLACE defaults true; isSleep means attackState1 or2 or !NECKLACE. setNecklace writes that boolean and both boss-bar visibility flags, without changing attack state or health. canBeSeenAsEnemy requires !isSleep then native superclass result. Priority0 RemnantDoNothingGoal admits only !necklace, owns MOVE/JUMP/LOOK, cannot interrupt, updates every tick and sets own XZ0 while preserving Y. Priority0 RemnantAwakenGoal adds necklace to inherited state==2 admission; registered arguments(2,2,0,80,0) reuse locked InternalStateGoal: start does not rewrite equal state2, continue while state2 and attackTicks<=80, stop writes0. No true-hurt automatic wake exists in the concrete hurt method.",
+      "human_summary": "Synced NECKLACE defaults true; isSleep means attackState1 or2 or !NECKLACE. setNecklace writes that boolean and both boss-bar visibility flags, without changing attack state or health. canBeSeenAsEnemy requires !isSleep then native superclass result. Priority0 RemnantDoNothingGoal admits only !necklace, owns MOVE/JUMP/LOOK, cannot interrupt, updates every tick and sets own XZ0 while preserving Y. Priority0 RemnantAwakenGoal adds necklace to inherited state==2 admission; registered arguments(2,2,0,80,0) reuse locked InternalStateGoal: start does not rewrite equal state2, continue while state2 and attackTicks<=80, stop writes0. No true-hurt automatic wake exists in the concrete hurt method.",
+      "closest_vanilla_equivalent": "Native AI control flags and custom binary awakening admission",
+      "vanilla_similarities": "Original native damage/effect/attribute/healing/AI admission remains authoritative at the named boundaries.",
+      "vanilla_differences": "Necklace, sleep predicate and native attack-state timer remain independent. DoNothing velocity hold applies to absent necklace; the awakening subclass adds no velocity write. Neither sleep nor bar visibility is a numeric Stage effect.",
+      "components": [
+        {
+          "primitive": "ACTIVATION_STATE",
+          "formula": "sleep=state1||state2||!necklace; setter bool + bar visibility only; native awaken2->0",
+          "numerical_parameters": {
+            "sleep_state": 1,
+            "awaken_state": 2,
+            "awaken_max_ticks": 80
+          },
+          "parameter_units": {
+            "sleep_state": "native state identity",
+            "awaken_state": "native state identity",
+            "awaken_max_ticks": "native attackTicks admission bound"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Remnant state/priority0 goals",
+          "vanilla_relation": "BINARY_MECHANIC"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "formula": "absent-necklace DoNothingGoal.tick writes own(0,currentY,0); binary horizontal hold",
+          "numerical_parameters": {
+            "horizontal_write": 0.0
+          },
+          "parameter_units": {
+            "horizontal_write": "native velocity write"
+          },
+          "binary_parameters": [
+            "Native !necklace priority0 hold, not a positive movement contribution"
+          ],
+          "native_boundary": "RemnantDoNothingGoal.tick",
+          "vanilla_relation": "BINARY_MECHANIC"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native necklace/state predicates, controls and inherited goal lifecycle."
+      ],
+      "custom_state": "Existing native attack state, necklace, rage, POWER and CRASH only.",
+      "eligibility": "Native necklace/state predicates, controls and inherited goal lifecycle.",
+      "source_actor": "Native Ancient Remnant recipient/self actor; incoming source/direct/causing identities are preserved.",
+      "hurt_return_dependency": "No new victim hurt callback; original incoming return or state/native heal boundary only.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity.class",
+          "methods": [
+            "defineSynchedData",
+            "setNecklace",
+            "getNecklace",
+            "isSleep",
+            "canBeSeenAsEnemy",
+            "registerGoals"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity$RemnantDoNothingGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity$RemnantDoNothingGoal.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "tick",
+            "isInterruptable",
+            "requiresUpdateEveryTick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity$RemnantAwakenGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity$RemnantAwakenGoal.class",
+          "methods": [
+            "<init>",
+            "canUse"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/AI/InternalStateGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AI/InternalStateGoal.class",
+          "methods": [
+            "canUse",
+            "start",
+            "stop",
+            "canContinueToUse"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:remnant-admission:activation_state"
+      ],
+      "primary_test_source": "cataclysm:ancient_remnant",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k7a-cataclysm-remnant-admission-complete",
+      "scalability_note": "Admission/setup observations do not choose Stage eligibility or policy. Caps/bucket/range/invulnerability/phase/necklace/state/encounter constants remain native gates, not Stage candidates. Only named native heal amounts are numeric candidate observations; no multiplier/direction/cap/floor/balance/source progression/hook is selected.",
+      "scalable_parameter_candidates": [],
+      "default_necklace": true,
+      "necklace_setter_changes_attack_state": false,
+      "necklace_setter_heals": false,
+      "awakening_goal_has_velocity_write": false,
+      "sleep_states": [
+        1,
+        2
+      ],
+      "wake_goal_arguments": [
+        2,
+        2,
+        0,
+        80,
+        0
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "ACTIVATION_STATE",
+          "parameter": "sleep_state",
+          "native_value": 1,
+          "native_formula": "sleep=state1||state2||!necklace; setter bool + bar visibility only; native awaken2->0",
+          "units": "native state identity",
+          "boundary": "Remnant state/priority0 goals"
+        },
+        {
+          "primitive": "ACTIVATION_STATE",
+          "parameter": "awaken_state",
+          "native_value": 2,
+          "native_formula": "sleep=state1||state2||!necklace; setter bool + bar visibility only; native awaken2->0",
+          "units": "native state identity",
+          "boundary": "Remnant state/priority0 goals"
+        },
+        {
+          "primitive": "ACTIVATION_STATE",
+          "parameter": "awaken_max_ticks",
+          "native_value": 80,
+          "native_formula": "sleep=state1||state2||!necklace; setter bool + bar visibility only; native awaken2->0",
+          "units": "native attackTicks admission bound",
+          "boundary": "Remnant state/priority0 goals"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameter": "horizontal_write",
+          "native_value": 0.0,
+          "native_formula": "absent-necklace DoNothingGoal.tick writes own(0,currentY,0); binary horizontal hold",
+          "units": "native velocity write",
+          "boundary": "RemnantDoNothingGoal.tick"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:remnant_combat_persistence",
+      "mod_key": "cataclysm",
+      "display_name": "Ancient Remnant native combat persistence and raw state setters",
+      "registry_ids": [
+        "cataclysm:ancient_remnant"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "defineSynchedData defaults RAGE0, NECKLACEtrue, POWERfalse, CRASHfalse after superclass. Rage is a raw integer setter with no clamp; POWER and CRASH are raw booleans. Concrete save after super writes has_necklace boolean, Rage integer and Power boolean; read after super uses native getters without presence checks, so missing keys load false,0,false and setNecklace updates both bar visibilities. CRASH is not saved. Inherited attack state/attackTicks are not serialized and initialize0; shared Home GlobalPos and LifeRemain persist, while bucket/self_regen/homeTicks use locked unsaved defaults. Rage/CRASH offensive producers/readers remain deferred; no generic persistence, owner transport or progression state is added.",
+      "human_summary": "defineSynchedData defaults RAGE0, NECKLACEtrue, POWERfalse, CRASHfalse after superclass. Rage is a raw integer setter with no clamp; POWER and CRASH are raw booleans. Concrete save after super writes has_necklace boolean, Rage integer and Power boolean; read after super uses native getters without presence checks, so missing keys load false,0,false and setNecklace updates both bar visibilities. CRASH is not saved. Inherited attack state/attackTicks are not serialized and initialize0; shared Home GlobalPos and LifeRemain persist, while bucket/self_regen/homeTicks use locked unsaved defaults. Rage/CRASH offensive producers/readers remain deferred; no generic persistence, owner transport or progression state is added.",
+      "closest_vanilla_equivalent": "Native entity NBT and synced binary/state values",
+      "vanilla_similarities": "Original native damage/effect/attribute/healing/AI admission remains authoritative at the named boundaries.",
+      "vanilla_differences": "Fresh NECKLACEtrue differs from legacy/missing-NBT false. Stored Power reloads independently of current HP. Attack state is transient even when saved Power is true; no replay of awakening/phase payloads is inferred.",
+      "components": [
+        {
+          "primitive": "NATIVE_COMBAT_STATE",
+          "formula": "saved has_necklace/Rage/Power; unsaved CRASH/attack-state/timers; inherited Home/LifeRemain",
+          "numerical_parameters": {
+            "rage_default": 0,
+            "attack_state_default": 0
+          },
+          "parameter_units": {
+            "rage_default": "native integer state",
+            "attack_state_default": "native state identity"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Concrete sync/setters/save/read -> locked shared NBT",
+          "vanilla_relation": "BINARY_MECHANIC"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native serialization/default/raw setter boundaries, inherited home/life state and effect admission remain native."
+      ],
+      "custom_state": "Existing native attack state, necklace, rage, POWER and CRASH only.",
+      "eligibility": "Native serialization/default/raw setter boundaries, inherited home/life state and effect admission remain native.",
+      "source_actor": "Native Ancient Remnant recipient/self actor; incoming source/direct/causing identities are preserved.",
+      "hurt_return_dependency": "No new victim hurt callback; original incoming return or state/native heal boundary only.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity.class",
+          "methods": [
+            "defineSynchedData",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "setRage",
+            "getRage",
+            "setCrash",
+            "getCrash",
+            "setIsPower",
+            "getIsPower"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": [
+            "defineSynchedData",
+            "setAttackState"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:remnant-admission:combat_persistence"
+      ],
+      "primary_test_source": "cataclysm:ancient_remnant",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k7a-cataclysm-remnant-admission-complete",
+      "scalability_note": "Admission/setup observations do not choose Stage eligibility or policy. Caps/bucket/range/invulnerability/phase/necklace/state/encounter constants remain native gates, not Stage candidates. Only named native heal amounts are numeric candidate observations; no multiplier/direction/cap/floor/balance/source progression/hook is selected.",
+      "scalable_parameter_candidates": [],
+      "saved_concrete_keys": [
+        "has_necklace",
+        "Rage",
+        "Power"
+      ],
+      "missing_key_defaults": {
+        "has_necklace": false,
+        "Rage": 0,
+        "Power": false
+      },
+      "crash_saved": false,
+      "attack_state_saved": false,
+      "rage_setter_clamps": false,
+      "generic_persistence_added": false,
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_COMBAT_STATE",
+          "parameter": "rage_default",
+          "native_value": 0,
+          "native_formula": "saved has_necklace/Rage/Power; unsaved CRASH/attack-state/timers; inherited Home/LifeRemain",
+          "units": "native integer state",
+          "boundary": "Concrete sync/setters/save/read -> locked shared NBT"
+        },
+        {
+          "primitive": "NATIVE_COMBAT_STATE",
+          "parameter": "attack_state_default",
+          "native_value": 0,
+          "native_formula": "saved has_necklace/Rage/Power; unsaved CRASH/attack-state/timers; inherited Home/LifeRemain",
+          "units": "native state identity",
+          "boundary": "Concrete sync/setters/save/read -> locked shared NBT"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:remnant_encounter_prerequisites",
+      "mod_key": "cataclysm",
+      "display_name": "Ancient Remnant native construction, dormant encounter and necklace activation",
+      "registry_ids": [
+        "cataclysm:ancient_remnant"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "ANCIENT_REMNANT registry factory constructs this exact class (native size4.35Fx5F, fireImmune). Attribute event binds the historically named Ancient_Remnant_Entity.maledictus builder to THIS entity: native baseHP450, attack25, armor12, toughness4; constructor applies locked setConfigattribute with installed health/attack multipliers1 and initializes configured health to max. Fresh synced necklacetrue/state0 differs from encounter creation. Cursed_Pyramid_Structure$Piece remnant marker creates native type, then on nonnull result setNecklacefalse, setPersistenceRequired, moveTo(marker,0,0), finalizeSpawn(STRUCTURE), addFreshEntityWithPassengers, remove marker block with AIR/flag2. No home position or attack state write occurs in that marker branch. Concrete finalizeSpawn only delegates to locked superclass (homeTicks400 from ReturnHome20 seconds), not a home-position setter. mobInteract admits exact NECKLACE_OF_THE_DESERT only while necklacefalse; consume1 unless creative, setHomePos(current dimension/current block), setNecklacetrue, setAttackState2, SUCCESS. No local server guard, healing, target check or native hurt dependency; otherwise return superclass interaction. Shared native home return/life/no-despawn contracts remain unchanged. Defeat/respawner callbacks are R2k7b.",
+      "human_summary": "ANCIENT_REMNANT registry factory constructs this exact class (native size4.35Fx5F, fireImmune). Attribute event binds the historically named Ancient_Remnant_Entity.maledictus builder to THIS entity: native baseHP450, attack25, armor12, toughness4; constructor applies locked setConfigattribute with installed health/attack multipliers1 and initializes configured health to max. Fresh synced necklacetrue/state0 differs from encounter creation. Cursed_Pyramid_Structure$Piece remnant marker creates native type, then on nonnull result setNecklacefalse, setPersistenceRequired, moveTo(marker,0,0), finalizeSpawn(STRUCTURE), addFreshEntityWithPassengers, remove marker block with AIR/flag2. No home position or attack state write occurs in that marker branch. Concrete finalizeSpawn only delegates to locked superclass (homeTicks400 from ReturnHome20 seconds), not a home-position setter. mobInteract admits exact NECKLACE_OF_THE_DESERT only while necklacefalse; consume1 unless creative, setHomePos(current dimension/current block), setNecklacetrue, setAttackState2, SUCCESS. No local server guard, healing, target check or native hurt dependency; otherwise return superclass interaction. Shared native home return/life/no-despawn contracts remain unchanged. Defeat/respawner callbacks are R2k7b.",
+      "closest_vanilla_equivalent": "Native entity registration/configured attributes, structure spawn and item-gated activation",
+      "vanilla_similarities": "Original native damage/effect/attribute/healing/AI admission remains authoritative at the named boundaries.",
+      "vanilla_differences": "Builder method name does not imply Maledictus ownership: exact registry binding proves Ancient Remnant. Natural/world runtime generation is not exercised. Structure marker initializes dormant necklace state without home; home is set by the later admitted interaction. Configuration HP initialization is not another heal delivery.",
+      "components": [
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "formula": "native event builder -> constructor setConfigattribute(baseHP450,attack25,hpConfig1,attackConfig1)",
+          "numerical_parameters": {
+            "base_health": 450.0,
+            "base_attack_damage": 25.0,
+            "armor": 12.0,
+            "armor_toughness": 4.0,
+            "health_multiplier": 1.0,
+            "attack_multiplier": 1.0
+          },
+          "parameter_units": {
+            "base_health": "native attribute/configuration value as named",
+            "base_attack_damage": "native attribute/configuration value as named",
+            "armor": "native attribute/configuration value as named",
+            "armor_toughness": "native attribute/configuration value as named",
+            "health_multiplier": "native attribute/configuration value as named",
+            "attack_multiplier": "native attribute/configuration value as named"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Native attribute event and Ancient Remnant constructor",
+          "vanilla_relation": "BINARY_MECHANIC"
+        },
+        {
+          "primitive": "ENCOUNTER_GATE",
+          "formula": "remnant marker dormant spawn; absent-necklace exact item -> consume1,home,setNecklacetrue,state2",
+          "numerical_parameters": {
+            "item_count": 1,
+            "awaken_state": 2,
+            "inherited_home_cooldown": 400
+          },
+          "parameter_units": {
+            "item_count": "native item units consumed",
+            "awaken_state": "native state identity",
+            "inherited_home_cooldown": "native home ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Cursed Pyramid remnant marker / native mobInteract",
+          "vanilla_relation": "BINARY_MECHANIC"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native create/finalize/add/item/creative/necklace/home and scheduler prerequisites remain native."
+      ],
+      "custom_state": "Existing native attack state, necklace, rage, POWER and CRASH only.",
+      "eligibility": "Native create/finalize/add/item/creative/necklace/home and scheduler prerequisites remain native.",
+      "source_actor": "Native Ancient Remnant recipient/self actor; incoming source/direct/causing identities are preserved.",
+      "hurt_return_dependency": "No new victim hurt callback; original incoming return or state/native heal boundary only.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "<clinit>",
+            "lambda$static$78"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-admission.json",
+          "witness_id": "cataclysm:guardian-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "initializeAttributes"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity.class",
+          "methods": [
+            "<init>",
+            "maledictus",
+            "finalizeSpawn",
+            "mobInteract"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:structures/Cursed_Pyramid_Structure$Piece",
+          "entry": "com/github/L_Ender/cataclysm/structures/Cursed_Pyramid_Structure$Piece.class",
+          "methods": [
+            "handleDataMarker"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "finalizeSpawn",
+            "setHomePos",
+            "ReturnToHome"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "setConfigattribute"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:remnant-admission:encounter_prerequisites"
+      ],
+      "primary_test_source": "cataclysm:ancient_remnant",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k7a-cataclysm-remnant-admission-complete",
+      "scalability_note": "Admission/setup observations do not choose Stage eligibility or policy. Caps/bucket/range/invulnerability/phase/necklace/state/encounter constants remain native gates, not Stage candidates. Only named native heal amounts are numeric candidate observations; no multiplier/direction/cap/floor/balance/source progression/hook is selected.",
+      "scalable_parameter_candidates": [],
+      "marker_sets_home": false,
+      "marker_sets_attack_state": false,
+      "marker_necklace": false,
+      "marker_persistence_required": true,
+      "interaction_local_server_guard": false,
+      "interaction_heals": false,
+      "interaction_order": [
+        "EXACT_ITEM_AND_NO_NECKLACE",
+        "CONSUME_UNLESS_CREATIVE",
+        "SET_CURRENT_HOME",
+        "SET_NECKLACE_TRUE",
+        "SET_ATTACK_STATE2",
+        "SUCCESS"
+      ],
+      "attribute_builder_method": "maledictus",
+      "attributes_apply_to": "cataclysm:ancient_remnant",
+      "registered_dimensions": {
+        "width": 4.349999904632568,
+        "height": 5.0
+      },
+      "configured_health_is_heal_delivery": false,
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "base_health",
+          "native_value": 450.0,
+          "native_formula": "native event builder -> constructor setConfigattribute(baseHP450,attack25,hpConfig1,attackConfig1)",
+          "units": "native attribute/configuration value as named",
+          "boundary": "Native attribute event and Ancient Remnant constructor"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "base_attack_damage",
+          "native_value": 25.0,
+          "native_formula": "native event builder -> constructor setConfigattribute(baseHP450,attack25,hpConfig1,attackConfig1)",
+          "units": "native attribute/configuration value as named",
+          "boundary": "Native attribute event and Ancient Remnant constructor"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "armor",
+          "native_value": 12.0,
+          "native_formula": "native event builder -> constructor setConfigattribute(baseHP450,attack25,hpConfig1,attackConfig1)",
+          "units": "native attribute/configuration value as named",
+          "boundary": "Native attribute event and Ancient Remnant constructor"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "armor_toughness",
+          "native_value": 4.0,
+          "native_formula": "native event builder -> constructor setConfigattribute(baseHP450,attack25,hpConfig1,attackConfig1)",
+          "units": "native attribute/configuration value as named",
+          "boundary": "Native attribute event and Ancient Remnant constructor"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "health_multiplier",
+          "native_value": 1.0,
+          "native_formula": "native event builder -> constructor setConfigattribute(baseHP450,attack25,hpConfig1,attackConfig1)",
+          "units": "native attribute/configuration value as named",
+          "boundary": "Native attribute event and Ancient Remnant constructor"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "attack_multiplier",
+          "native_value": 1.0,
+          "native_formula": "native event builder -> constructor setConfigattribute(baseHP450,attack25,hpConfig1,attackConfig1)",
+          "units": "native attribute/configuration value as named",
+          "boundary": "Native attribute event and Ancient Remnant constructor"
+        },
+        {
+          "primitive": "ENCOUNTER_GATE",
+          "parameter": "item_count",
+          "native_value": 1,
+          "native_formula": "remnant marker dormant spawn; absent-necklace exact item -> consume1,home,setNecklacetrue,state2",
+          "units": "native item units consumed",
+          "boundary": "Cursed Pyramid remnant marker / native mobInteract"
+        },
+        {
+          "primitive": "ENCOUNTER_GATE",
+          "parameter": "awaken_state",
+          "native_value": 2,
+          "native_formula": "remnant marker dormant spawn; absent-necklace exact item -> consume1,home,setNecklacetrue,state2",
+          "units": "native state identity",
+          "boundary": "Cursed Pyramid remnant marker / native mobInteract"
+        },
+        {
+          "primitive": "ENCOUNTER_GATE",
+          "parameter": "inherited_home_cooldown",
+          "native_value": 400,
+          "native_formula": "remnant marker dormant spawn; absent-necklace exact item -> consume1,home,setNecklacetrue,state2",
+          "units": "native home ticks",
+          "boundary": "Cursed Pyramid remnant marker / native mobInteract"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:remnant_incoming_admission",
+      "mod_key": "cataclysm",
+      "display_name": "Ancient Remnant ordered incoming admission",
+      "registry_ids": [
+        "cataclysm:ancient_remnant"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "hurt first rejects attackState7 unless BYPASSES_INVULNERABILITY. Next reads source.getDirectEntity(): direct AbstractArrow rejects whenever attackState!=12, including invulnerability-bypass sources. Then isSleep() rejects unless that bypass tag; sleep means state1, state2 or no necklace. Accepted input calls locked IABoss_monster.hurt with identical source and original amount and returns it directly. No local causing-actor/class filter, amount rewrite, timer write, hurt-return awakening or phase transition. No isInvulnerableTo override exists in Remnant or its three Cataclysm ancestors; shared virtual invocation therefore retains the already-proven inherited native Entity/NeoForge admission.",
+      "human_summary": "hurt first rejects attackState7 unless BYPASSES_INVULNERABILITY. Next reads source.getDirectEntity(): direct AbstractArrow rejects whenever attackState!=12, including invulnerability-bypass sources. Then isSleep() rejects unless that bypass tag; sleep means state1, state2 or no necklace. Accepted input calls locked IABoss_monster.hurt with identical source and original amount and returns it directly. No local causing-actor/class filter, amount rewrite, timer write, hurt-return awakening or phase transition. No isInvulnerableTo override exists in Remnant or its three Cataclysm ancestors; shared virtual invocation therefore retains the already-proven inherited native Entity/NeoForge admission.",
+      "closest_vanilla_equivalent": "Native incoming damage admission extended by concrete state/direct-projectile gates",
+      "vanilla_similarities": "Original native damage/effect/attribute/healing/AI admission remains authoritative at the named boundaries.",
+      "vanilla_differences": "The direct arrow predicate has no bypass exemption. Current causing actor is used only by locked shared range; direct projectile, causing owner and anonymous source remain distinct. The shared bypass early return is reached only after these concrete gates.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_ADMISSION",
+          "formula": "state7 unless bypass -> direct arrow unless state12 -> sleep unless bypass -> shared hurt unchanged",
+          "numerical_parameters": {
+            "phase_state": 7,
+            "arrow_exception_state": 12
+          },
+          "parameter_units": {
+            "phase_state": "native state identity",
+            "arrow_exception_state": "native state identity"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Ancient_Remnant_Entity.hurt before inherited hurt",
+          "vanilla_relation": "BINARY_MECHANIC"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native state/direct class/tag and inherited virtual invulnerability gates retain their order."
+      ],
+      "custom_state": "Existing native attack state, necklace, rage, POWER and CRASH only.",
+      "eligibility": "Native state/direct class/tag and inherited virtual invulnerability gates retain their order.",
+      "source_actor": "Native Ancient Remnant recipient/self actor; incoming source/direct/causing identities are preserved.",
+      "hurt_return_dependency": "Return exactly the inherited hurt result; no return-dependent state change.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity.class",
+          "methods": [
+            "hurt",
+            "isSleep"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "hurt"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": []
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": []
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": []
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:remnant-admission:incoming_admission"
+      ],
+      "primary_test_source": "cataclysm:ancient_remnant",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k7a-cataclysm-remnant-admission-complete",
+      "scalability_note": "Admission/setup observations do not choose Stage eligibility or policy. Caps/bucket/range/invulnerability/phase/necklace/state/encounter constants remain native gates, not Stage candidates. Only named native heal amounts are numeric candidate observations; no multiplier/direction/cap/floor/balance/source progression/hook is selected.",
+      "scalable_parameter_candidates": [],
+      "admission_order": [
+        "PHASE7_UNLESS_INVULNERABILITY_BYPASS",
+        "DIRECT_ARROW_UNLESS_STATE12",
+        "SLEEP_UNLESS_INVULNERABILITY_BYPASS",
+        "SHARED_HURT_SAME_SOURCE_AND_AMOUNT",
+        "RETURN_SHARED_HURT_RESULT"
+      ],
+      "direct_arrow_bypass_exemption": false,
+      "post_hurt_state_write": false,
+      "incoming_amount_rewritten": false,
+      "concrete_is_invulnerable_override": false,
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_DAMAGE_ADMISSION",
+          "parameter": "phase_state",
+          "native_value": 7,
+          "native_formula": "state7 unless bypass -> direct arrow unless state12 -> sleep unless bypass -> shared hurt unchanged",
+          "units": "native state identity",
+          "boundary": "Ancient_Remnant_Entity.hurt before inherited hurt"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_ADMISSION",
+          "parameter": "arrow_exception_state",
+          "native_value": 12,
+          "native_formula": "state7 unless bypass -> direct arrow unless state12 -> sleep unless bypass -> shared hurt unchanged",
+          "units": "native state identity",
+          "boundary": "Ancient_Remnant_Entity.hurt before inherited hurt"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:remnant_nature_regen_binding",
+      "mod_key": "cataclysm",
+      "display_name": "Ancient Remnant shared native regeneration amount",
+      "registry_ids": [
+        "cataclysm:ancient_remnant"
+      ],
+      "primary_classification": "VANILLA_DIRECT",
+      "actual_behavior": "NatureRegen returns float(AncientRemnant.natureHeal), installed25. The locked shared tick calls heal(NatureRegen()) when server, AI enabled, self_regen<=0, targetnull, positive amount and tickCount%20==0. Shared positive timer decay/reset and native heal hooks/maxHP remain unchanged. Concrete POWER healing is a separate later tick call.",
+      "human_summary": "NatureRegen returns float(AncientRemnant.natureHeal), installed25. The locked shared tick calls heal(NatureRegen()) when server, AI enabled, self_regen<=0, targetnull, positive amount and tickCount%20==0. Shared positive timer decay/reset and native heal hooks/maxHP remain unchanged. Concrete POWER healing is a separate later tick call.",
+      "closest_vanilla_equivalent": "Native LivingEntity.heal under locked shared targetless/timer cadence",
+      "vanilla_similarities": "Original native damage/effect/attribute/healing/AI admission remains authoritative at the named boundaries.",
+      "vanilla_differences": "This is a concrete binding of the already-reviewed shared heal, not extra Regen status or a new cadence. Native heal return/admission remains authoritative.",
+      "components": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "formula": "float(AncientRemnant.natureHeal)=25 -> inherited gated heal(NatureRegen())",
+          "numerical_parameters": {
+            "amount": 25.0
+          },
+          "parameter_units": {
+            "amount": "native heal argument HP units"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Locked shared tick heal(NatureRegen())",
+          "vanilla_relation": "VANILLA_DIRECT"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Locked server/AI/target/timer/positive/cadence gates and native heal hooks/maxHP."
+      ],
+      "custom_state": "Existing native attack state, necklace, rage, POWER and CRASH only.",
+      "eligibility": "Locked server/AI/target/timer/positive/cadence gates and native heal hooks/maxHP.",
+      "source_actor": "Native Ancient Remnant recipient/self actor; incoming source/direct/causing identities are preserved.",
+      "hurt_return_dependency": "No new victim hurt callback; original incoming return or state/native heal boundary only.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity.class",
+          "methods": [
+            "NatureRegen"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "tick",
+            "hurt"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:remnant-admission:nature_regen_binding"
+      ],
+      "primary_test_source": "cataclysm:ancient_remnant",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k7a-cataclysm-remnant-admission-complete",
+      "scalability_note": "Admission/setup observations do not choose Stage eligibility or policy. Caps/bucket/range/invulnerability/phase/necklace/state/encounter constants remain native gates, not Stage candidates. Only named native heal amounts are numeric candidate observations; no multiplier/direction/cap/floor/balance/source progression/hook is selected.",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "amount"
+          ],
+          "native_value": 25.0,
+          "native_formula": "float(AncientRemnant.natureHeal)=25 -> inherited gated heal(NatureRegen())",
+          "units": "native heal argument HP units",
+          "native_boundary": "Locked shared tick heal(NatureRegen())"
+        }
+      ],
+      "record_kind": "SHARED_BINDING",
+      "binding_of": "cataclysm:shared_heal",
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameter": "amount",
+          "native_value": 25.0,
+          "native_formula": "float(AncientRemnant.natureHeal)=25 -> inherited gated heal(NatureRegen())",
+          "units": "native heal argument HP units",
+          "boundary": "Locked shared tick heal(NatureRegen())"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:remnant_phase_prerequisites",
+      "mod_key": "cataclysm",
+      "display_name": "Ancient Remnant live-HP prerequisite and saved POWER latch",
+      "registry_ids": [
+        "cataclysm:ancient_remnant"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "isPower() is a live health<=maxHealth/2F predicate. It is distinct from saved synced POWER, defaultfalse, whose raw setter only writes a boolean. Priority0 RemnantPhaseChangeGoal overrides canUse with !getIsPower && attackState==configured0 && isPower; no local target/necklace/chance/cooldown predicate. Native scheduling still respects other MOVE/LOOK/JUMP goals, including the noninterruptible absent-necklace hold. Registered(0,7,0,60,13) reuses locked InternalAttackGoal start/state7/navigation-stop, continue state7 and attackTicks<=60, EndState/stop0 and native target/aggro/navigation cleanup. Concrete aiStep state7 at attackTicks14 writes POWERtrue without a local server guard. The setter does not rewrite HP, Rage or CRASH; healing above half health does not clear the saved latch. All phase-roar offensive payloads and further state readers remain R2k7b.",
+      "human_summary": "isPower() is a live health<=maxHealth/2F predicate. It is distinct from saved synced POWER, defaultfalse, whose raw setter only writes a boolean. Priority0 RemnantPhaseChangeGoal overrides canUse with !getIsPower && attackState==configured0 && isPower; no local target/necklace/chance/cooldown predicate. Native scheduling still respects other MOVE/LOOK/JUMP goals, including the noninterruptible absent-necklace hold. Registered(0,7,0,60,13) reuses locked InternalAttackGoal start/state7/navigation-stop, continue state7 and attackTicks<=60, EndState/stop0 and native target/aggro/navigation cleanup. Concrete aiStep state7 at attackTicks14 writes POWERtrue without a local server guard. The setter does not rewrite HP, Rage or CRASH; healing above half health does not clear the saved latch. All phase-roar offensive payloads and further state readers remain R2k7b.",
+      "closest_vanilla_equivalent": "Native binary phase transition plus independently stored power state",
+      "vanilla_similarities": "Original native damage/effect/attribute/healing/AI admission remains authoritative at the named boundaries.",
+      "vanilla_differences": "Live threshold is not a persisted phase number, and POWER is not continuously recomputed from HP. State7 invulnerability remains the separate concrete incoming gate. Internal attack-state setter resets attackTicks and broadcasts -state as a byte, reused unchanged.",
+      "components": [
+        {
+          "primitive": "PHASE_STATE",
+          "formula": "liveHP<=maxHP/2; !storedPOWER && idle0 -> native goal7; state7 tick14 -> POWERtrue",
+          "numerical_parameters": {
+            "health_divisor": 2.0,
+            "phase_state": 7,
+            "phase_max_ticks": 60,
+            "phase_see_tick": 13,
+            "power_latch_tick": 14
+          },
+          "parameter_units": {
+            "health_divisor": "native HP threshold divisor",
+            "phase_state": "native state identity",
+            "phase_max_ticks": "native attackTicks bound",
+            "phase_see_tick": "native look admission tick",
+            "power_latch_tick": "native attackTicks equality"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Remnant phase goal/aiStep flag fragment",
+          "vanilla_relation": "BINARY_MECHANIC"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native live HP, stored POWER, idle state and scheduler controls; phase damage admission remains separate."
+      ],
+      "custom_state": "Existing native attack state, necklace, rage, POWER and CRASH only.",
+      "eligibility": "Native live HP, stored POWER, idle state and scheduler controls; phase damage admission remains separate.",
+      "source_actor": "Native Ancient Remnant recipient/self actor; incoming source/direct/causing identities are preserved.",
+      "hurt_return_dependency": "No new victim hurt callback; original incoming return or state/native heal boundary only.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity.class",
+          "methods": [
+            "defineSynchedData",
+            "isPower",
+            "setIsPower",
+            "getIsPower",
+            "registerGoals",
+            "aiStep"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity$RemnantPhaseChangeGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity$RemnantPhaseChangeGoal.class",
+          "methods": [
+            "<init>",
+            "canUse"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-offense.json",
+          "witness_id": "cataclysm:monstrosity-offense:entity/InternalAnimationMonster/AI/InternalAttackGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AI/InternalAttackGoal.class",
+          "methods": [
+            "start",
+            "canContinueToUse",
+            "stop",
+            "EndState",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": [
+            "setAttackState"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:remnant-admission:phase_prerequisites"
+      ],
+      "primary_test_source": "cataclysm:ancient_remnant",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k7a-cataclysm-remnant-admission-complete",
+      "scalability_note": "Admission/setup observations do not choose Stage eligibility or policy. Caps/bucket/range/invulnerability/phase/necklace/state/encounter constants remain native gates, not Stage candidates. Only named native heal amounts are numeric candidate observations; no multiplier/direction/cap/floor/balance/source progression/hook is selected.",
+      "scalable_parameter_candidates": [],
+      "live_power_is_saved": false,
+      "stored_power_is_saved": true,
+      "power_setter_rewrites_health": false,
+      "phase_can_use_requires_target": false,
+      "phase_can_use_requires_necklace": false,
+      "phase_can_use_requires_random": false,
+      "phase_goal_arguments": [
+        0,
+        7,
+        0,
+        60,
+        13
+      ],
+      "power_latch_tick": 14,
+      "power_latch_local_server_guard": false,
+      "numeric_observations": [
+        {
+          "primitive": "PHASE_STATE",
+          "parameter": "health_divisor",
+          "native_value": 2.0,
+          "native_formula": "liveHP<=maxHP/2; !storedPOWER && idle0 -> native goal7; state7 tick14 -> POWERtrue",
+          "units": "native HP threshold divisor",
+          "boundary": "Remnant phase goal/aiStep flag fragment"
+        },
+        {
+          "primitive": "PHASE_STATE",
+          "parameter": "phase_state",
+          "native_value": 7,
+          "native_formula": "liveHP<=maxHP/2; !storedPOWER && idle0 -> native goal7; state7 tick14 -> POWERtrue",
+          "units": "native state identity",
+          "boundary": "Remnant phase goal/aiStep flag fragment"
+        },
+        {
+          "primitive": "PHASE_STATE",
+          "parameter": "phase_max_ticks",
+          "native_value": 60,
+          "native_formula": "liveHP<=maxHP/2; !storedPOWER && idle0 -> native goal7; state7 tick14 -> POWERtrue",
+          "units": "native attackTicks bound",
+          "boundary": "Remnant phase goal/aiStep flag fragment"
+        },
+        {
+          "primitive": "PHASE_STATE",
+          "parameter": "phase_see_tick",
+          "native_value": 13,
+          "native_formula": "liveHP<=maxHP/2; !storedPOWER && idle0 -> native goal7; state7 tick14 -> POWERtrue",
+          "units": "native look admission tick",
+          "boundary": "Remnant phase goal/aiStep flag fragment"
+        },
+        {
+          "primitive": "PHASE_STATE",
+          "parameter": "power_latch_tick",
+          "native_value": 14,
+          "native_formula": "liveHP<=maxHP/2; !storedPOWER && idle0 -> native goal7; state7 tick14 -> POWERtrue",
+          "units": "native attackTicks equality",
+          "boundary": "Remnant phase goal/aiStep flag fragment"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:remnant_powered_regeneration",
+      "mod_key": "cataclysm",
+      "display_name": "Ancient Remnant native latched-POWER healing",
+      "registry_ids": [
+        "cataclysm:ancient_remnant"
+      ],
+      "primary_classification": "VANILLA_DIRECT",
+      "actual_behavior": "After super.tick (including locked shared regeneration), the concrete tick checks getIsPower and tickCount%20==0 and invokes native heal(1F). No local server, NoAI, alive, target, sleep/necklace or self_regen check occurs at this call. It reads persisted POWER rather than live isPower(): loaded dormant POWERtrue or healed-above-half POWERtrue still reaches this request when ticking. Native heal/event/maxHP/dead-entity admission remains native; a request is not proof of HP gain.",
+      "human_summary": "After super.tick (including locked shared regeneration), the concrete tick checks getIsPower and tickCount%20==0 and invokes native heal(1F). No local server, NoAI, alive, target, sleep/necklace or self_regen check occurs at this call. It reads persisted POWER rather than live isPower(): loaded dormant POWERtrue or healed-above-half POWERtrue still reaches this request when ticking. Native heal/event/maxHP/dead-entity admission remains native; a request is not proof of HP gain.",
+      "closest_vanilla_equivalent": "Direct native LivingEntity.heal request",
+      "vanilla_similarities": "Original native damage/effect/attribute/healing/AI admission remains authoritative at the named boundaries.",
+      "vanilla_differences": "This request is independent of targetless NatureRegen25 and its timer. Both native call sites can run on the same tick; they must retain separate original admission and healing hooks rather than be merged into a generic Regen effect.",
+      "components": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "formula": "stored POWER && tickCount%20==0 -> heal(1F), after super.tick",
+          "numerical_parameters": {
+            "amount": 1.0,
+            "cadence_ticks": 20
+          },
+          "parameter_units": {
+            "amount": "native heal argument HP units",
+            "cadence_ticks": "native modulo ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Ancient_Remnant_Entity.tick after inherited tick",
+          "vanilla_relation": "VANILLA_DIRECT"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native stored POWER/cadence and downstream healing hooks/maxHP; no added local gates."
+      ],
+      "custom_state": "Existing native attack state, necklace, rage, POWER and CRASH only.",
+      "eligibility": "Native stored POWER/cadence and downstream healing hooks/maxHP; no added local gates.",
+      "source_actor": "Native Ancient Remnant recipient/self actor; incoming source/direct/causing identities are preserved.",
+      "hurt_return_dependency": "No new victim hurt callback; original incoming return or state/native heal boundary only.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity.class",
+          "methods": [
+            "tick",
+            "getIsPower"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:remnant-admission:powered_regeneration"
+      ],
+      "primary_test_source": "cataclysm:ancient_remnant",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k7a-cataclysm-remnant-admission-complete",
+      "scalability_note": "Admission/setup observations do not choose Stage eligibility or policy. Caps/bucket/range/invulnerability/phase/necklace/state/encounter constants remain native gates, not Stage candidates. Only named native heal amounts are numeric candidate observations; no multiplier/direction/cap/floor/balance/source progression/hook is selected.",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "amount"
+          ],
+          "native_value": 1.0,
+          "native_formula": "stored POWER && tickCount%20==0 -> heal(1F), after super.tick",
+          "units": "native heal argument HP units",
+          "native_boundary": "Ancient_Remnant_Entity.tick after inherited tick"
+        }
+      ],
+      "local_server_guard": false,
+      "reads_live_hp_predicate": false,
+      "reads_self_regen": false,
+      "reads_target": false,
+      "reads_no_ai": false,
+      "reads_necklace": false,
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameter": "amount",
+          "native_value": 1.0,
+          "native_formula": "stored POWER && tickCount%20==0 -> heal(1F), after super.tick",
+          "units": "native heal argument HP units",
+          "boundary": "Ancient_Remnant_Entity.tick after inherited tick"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameter": "cadence_ticks",
+          "native_value": 20,
+          "native_formula": "stored POWER && tickCount%20==0 -> heal(1F), after super.tick",
+          "units": "native modulo ticks",
+          "boundary": "Ancient_Remnant_Entity.tick after inherited tick"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:remnant_shared_defense_bindings",
+      "mod_key": "cataclysm",
+      "display_name": "Ancient Remnant concrete shared defense bindings",
+      "registry_ids": [
+        "cataclysm:ancient_remnant"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "DamageCap=float(AncientRemnant.damageCap), installed21; DpsCap=float(dpsCap), installed14; RangeLimit=double(float(rangeCap)), installed14. These bind the locked shared per-hit min, DamageCap-based bucket capacity, eligible server-AI bucket drain DpsCap/20=.7, and current causing-actor range (full<=14, falloff14<d<21, reject>=21; causing-null skips). Inherited HealCooldown200 retains successful block_self_regen-tag reset and shared bypass/rejection/rollback order. Installed dps_limit_time20 is config data; none of these concrete overrides reads it. Registry fireImmune=true binds inherited native fire-tag admission; no immuneTo block list is registered. Ordinary armor/defenses remain downstream.",
+      "human_summary": "DamageCap=float(AncientRemnant.damageCap), installed21; DpsCap=float(dpsCap), installed14; RangeLimit=double(float(rangeCap)), installed14. These bind the locked shared per-hit min, DamageCap-based bucket capacity, eligible server-AI bucket drain DpsCap/20=.7, and current causing-actor range (full<=14, falloff14<d<21, reject>=21; causing-null skips). Inherited HealCooldown200 retains successful block_self_regen-tag reset and shared bypass/rejection/rollback order. Installed dps_limit_time20 is config data; none of these concrete overrides reads it. Registry fireImmune=true binds inherited native fire-tag admission; no immuneTo block list is registered. Ordinary armor/defenses remain downstream.",
+      "closest_vanilla_equivalent": "Locked Cataclysm target admission with native downstream defenses",
+      "vanilla_similarities": "Original native damage/effect/attribute/healing/AI admission remains authoritative at the named boundaries.",
+      "vanilla_differences": "DamageCap is bucket capacity, DpsCap is drain, RangeLimit is causing distance; none is an outgoing payload. The float narrowing inside the double RangeLimit override is preserved. No new defense scaling observation is added.",
+      "components": [
+        {
+          "primitive": "DAMAGE_CAP",
+          "formula": "min(float(AncientRemnant.damageCap)=21,incoming); same value is bucket capacity",
+          "numerical_parameters": {
+            "per_hit_cap": 21.0
+          },
+          "parameter_units": {
+            "per_hit_cap": "native pre-mitigation request units"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Concrete DamageCap -> shared per-hit min",
+          "vanilla_relation": "BINARY_MECHANIC"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "formula": "capacity=DamageCap21; eligible server-AI drain=float(DpsCap14/20); failed native hurt restores old bucket",
+          "numerical_parameters": {
+            "capacity": 21.0,
+            "dps_cap": 14.0,
+            "drain_divisor": 20
+          },
+          "parameter_units": {
+            "capacity": "native pre-mitigation request units",
+            "dps_cap": "native bucket drain numerator per second",
+            "drain_divisor": "native ticks per second"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Locked shared hurt/tick bucket",
+          "vanilla_relation": "BINARY_MECHANIC"
+        },
+        {
+          "primitive": "RANGE_ADMISSION",
+          "formula": "L=double(float(rangeCap14)); current causing full<=14,falloff14<d<21,reject>=21; causing-null skips",
+          "numerical_parameters": {
+            "range_limit": 14.0
+          },
+          "parameter_units": {
+            "range_limit": "native causing-actor distance in blocks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Concrete RangeLimit -> locked shared range",
+          "vanilla_relation": "BINARY_MECHANIC"
+        },
+        {
+          "primitive": "REGEN_ADMISSION_TIMER",
+          "formula": "inherited successful tagged shared hurt resets self_regen to HealCooldown200; bypass skips bookkeeping",
+          "numerical_parameters": {
+            "heal_cooldown": 200
+          },
+          "parameter_units": {
+            "heal_cooldown": "native ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Locked inherited HealCooldown/shared hurt",
+          "vanilla_relation": "BINARY_MECHANIC"
+        },
+        {
+          "primitive": "NATIVE_FIRE_ADMISSION",
+          "formula": "registry fireImmune=true -> inherited native fire-tag admission; no immuneTo list",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "Native fire immunity/tag/bypass/virtual invulnerability admission"
+          ],
+          "native_boundary": "Native entity registry -> inherited isInvulnerableTo",
+          "vanilla_relation": "BINARY_MECHANIC"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native cap/range/bucket/bypass/regen bookkeeping and downstream defenses remain native."
+      ],
+      "custom_state": "Existing native attack state, necklace, rage, POWER and CRASH only.",
+      "eligibility": "Native cap/range/bucket/bypass/regen bookkeeping and downstream defenses remain native.",
+      "source_actor": "Native Ancient Remnant recipient/self actor; incoming source/direct/causing identities are preserved.",
+      "hurt_return_dependency": "No new victim hurt callback; original incoming return or state/native heal boundary only.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity.class",
+          "methods": [
+            "DamageCap",
+            "DpsCap",
+            "RangeLimit"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$78"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "hurt",
+            "tick",
+            "HealCooldown"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:remnant-admission:shared_defense_bindings"
+      ],
+      "primary_test_source": "cataclysm:ancient_remnant",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k7a-cataclysm-remnant-admission-complete",
+      "scalability_note": "Admission/setup observations do not choose Stage eligibility or policy. Caps/bucket/range/invulnerability/phase/necklace/state/encounter constants remain native gates, not Stage candidates. Only named native heal amounts are numeric candidate observations; no multiplier/direction/cap/floor/balance/source progression/hook is selected.",
+      "scalable_parameter_candidates": [],
+      "installed_config_values": {
+        "damage_cap": 21.0,
+        "dps_cap": 14.0,
+        "range_limit": 14.0,
+        "heal_cooldown": 200
+      },
+      "damage_cap_is_bucket_capacity": true,
+      "dps_is_bucket_capacity": false,
+      "range_narrows_float_before_double": true,
+      "dps_limit_time_read_by_bindings": false,
+      "registered_fire_immune": true,
+      "registered_immune_blocks": [],
+      "numeric_observations": [
+        {
+          "primitive": "DAMAGE_CAP",
+          "parameter": "per_hit_cap",
+          "native_value": 21.0,
+          "native_formula": "min(float(AncientRemnant.damageCap)=21,incoming); same value is bucket capacity",
+          "units": "native pre-mitigation request units",
+          "boundary": "Concrete DamageCap -> shared per-hit min"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "parameter": "capacity",
+          "native_value": 21.0,
+          "native_formula": "capacity=DamageCap21; eligible server-AI drain=float(DpsCap14/20); failed native hurt restores old bucket",
+          "units": "native pre-mitigation request units",
+          "boundary": "Locked shared hurt/tick bucket"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "parameter": "dps_cap",
+          "native_value": 14.0,
+          "native_formula": "capacity=DamageCap21; eligible server-AI drain=float(DpsCap14/20); failed native hurt restores old bucket",
+          "units": "native bucket drain numerator per second",
+          "boundary": "Locked shared hurt/tick bucket"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "parameter": "drain_divisor",
+          "native_value": 20,
+          "native_formula": "capacity=DamageCap21; eligible server-AI drain=float(DpsCap14/20); failed native hurt restores old bucket",
+          "units": "native ticks per second",
+          "boundary": "Locked shared hurt/tick bucket"
+        },
+        {
+          "primitive": "RANGE_ADMISSION",
+          "parameter": "range_limit",
+          "native_value": 14.0,
+          "native_formula": "L=double(float(rangeCap14)); current causing full<=14,falloff14<d<21,reject>=21; causing-null skips",
+          "units": "native causing-actor distance in blocks",
+          "boundary": "Concrete RangeLimit -> locked shared range"
+        },
+        {
+          "primitive": "REGEN_ADMISSION_TIMER",
+          "parameter": "heal_cooldown",
+          "native_value": 200,
+          "native_formula": "inherited successful tagged shared hurt resets self_regen to HealCooldown200; bypass skips bookkeeping",
+          "units": "native ticks",
+          "boundary": "Locked inherited HealCooldown/shared hurt"
+        }
+      ]
     }
   ],
   "paths": [
@@ -34203,14 +35363,422 @@
         }
       ],
       "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:remnant-admission:activation_state",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:remnant_activation_state"
+      ],
+      "primary_source": "cataclysm:ancient_remnant",
+      "native_path": "Necklace/sleep predicate -> native controls/awaken goal -> inherited attack state",
+      "setup": "Static source/state/source-tag/native return fixtures at the documented boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity.class",
+          "methods": [
+            "defineSynchedData",
+            "setNecklace",
+            "getNecklace",
+            "isSleep",
+            "canBeSeenAsEnemy",
+            "registerGoals"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity$RemnantDoNothingGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity$RemnantDoNothingGoal.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "tick",
+            "isInterruptable",
+            "requiresUpdateEveryTick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity$RemnantAwakenGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity$RemnantAwakenGoal.class",
+          "methods": [
+            "<init>",
+            "canUse"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/AI/InternalStateGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AI/InternalStateGoal.class",
+          "methods": [
+            "canUse",
+            "start",
+            "stop",
+            "canContinueToUse"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:remnant-admission:combat_persistence",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:remnant_combat_persistence"
+      ],
+      "primary_source": "cataclysm:ancient_remnant",
+      "native_path": "Native save/load -> synced necklace/Rage/POWER -> later native state readers",
+      "setup": "Static source/state/source-tag/native return fixtures at the documented boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity.class",
+          "methods": [
+            "defineSynchedData",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "setRage",
+            "getRage",
+            "setCrash",
+            "getCrash",
+            "setIsPower",
+            "getIsPower"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": [
+            "defineSynchedData",
+            "setAttackState"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:remnant-admission:encounter_prerequisites",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:remnant_encounter_prerequisites"
+      ],
+      "primary_source": "cataclysm:ancient_remnant",
+      "native_path": "Native registry/attributes -> remnant structure marker -> dormant entity -> admitted necklace interaction -> home/state2",
+      "setup": "Static source/state/source-tag/native return fixtures at the documented boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "<clinit>",
+            "lambda$static$78"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-admission.json",
+          "witness_id": "cataclysm:guardian-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "initializeAttributes"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity.class",
+          "methods": [
+            "<init>",
+            "maledictus",
+            "finalizeSpawn",
+            "mobInteract"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:structures/Cursed_Pyramid_Structure$Piece",
+          "entry": "com/github/L_Ender/cataclysm/structures/Cursed_Pyramid_Structure$Piece.class",
+          "methods": [
+            "handleDataMarker"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "finalizeSpawn",
+            "setHomePos",
+            "ReturnToHome"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "setConfigattribute"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:remnant-admission:incoming_admission",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:remnant_incoming_admission"
+      ],
+      "primary_source": "cataclysm:ancient_remnant",
+      "native_path": "Incoming hurt -> concrete prefilters -> locked shared/native hurt -> identical result",
+      "setup": "Static source/state/source-tag/native return fixtures at the documented boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity.class",
+          "methods": [
+            "hurt",
+            "isSleep"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "hurt"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": []
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": []
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": []
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:remnant-admission:nature_regen_binding",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:remnant_nature_regen_binding"
+      ],
+      "primary_source": "cataclysm:ancient_remnant",
+      "native_path": "Shared tick gates -> concrete NatureRegen -> native heal",
+      "setup": "Static source/state/source-tag/native return fixtures at the documented boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity.class",
+          "methods": [
+            "NatureRegen"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "tick",
+            "hurt"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:remnant-admission:phase_prerequisites",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:remnant_phase_prerequisites"
+      ],
+      "primary_source": "cataclysm:ancient_remnant",
+      "native_path": "Live HP/POWER/idle -> native phase goal -> aiStep flag latch -> later native state readers",
+      "setup": "Static source/state/source-tag/native return fixtures at the documented boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity.class",
+          "methods": [
+            "defineSynchedData",
+            "isPower",
+            "setIsPower",
+            "getIsPower",
+            "registerGoals",
+            "aiStep"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity$RemnantPhaseChangeGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity$RemnantPhaseChangeGoal.class",
+          "methods": [
+            "<init>",
+            "canUse"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-offense.json",
+          "witness_id": "cataclysm:monstrosity-offense:entity/InternalAnimationMonster/AI/InternalAttackGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AI/InternalAttackGoal.class",
+          "methods": [
+            "start",
+            "canContinueToUse",
+            "stop",
+            "EndState",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": [
+            "setAttackState"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:remnant-admission:powered_regeneration",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:remnant_powered_regeneration"
+      ],
+      "primary_source": "cataclysm:ancient_remnant",
+      "native_path": "Concrete tick after shared tick -> saved POWER/cadence -> native heal",
+      "setup": "Static source/state/source-tag/native return fixtures at the documented boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity.class",
+          "methods": [
+            "tick",
+            "getIsPower"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "tick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:remnant-admission:shared_defense_bindings",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:remnant_shared_defense_bindings"
+      ],
+      "primary_source": "cataclysm:ancient_remnant",
+      "native_path": "Concrete getters -> locked shared cap/range/bucket/native hurt and server-AI drain",
+      "setup": "Static source/state/source-tag/native return fixtures at the documented boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Ancient_Remnant/Ancient_Remnant_Entity.class",
+          "methods": [
+            "DamageCap",
+            "DpsCap",
+            "RangeLimit"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$78"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "hurt",
+            "tick",
+            "HealCooldown"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
     }
   ],
   "unresolved_native_ambiguities": null,
   "remaining_native_ambiguities": null,
-  "checkpoint": "R2k6b-cataclysm-harbinger-offense-complete",
-  "scope": "Harbinger offense selection/head targeting/goals, pursuit/charge, ranged/howitzer/homing launches, six directly owned payloads, typed sources/status/kill healing, native lifetime/NBT/terrain/EMP response and death/respawner closed. R2k6a/shared/status/Guardian/Monstrosity/Ignis protected; Harbinger family closed; Cataclysm PARTIAL.",
-  "notes_file": "cataclysm-r2k6b-harbinger-offense.json",
-  "exact_next_task": "R2k7a: Ancient Remnant incoming admission and phase/encounter prerequisites. Start Ancient_Remnant_Entity hurt/isInvulnerableTo and concrete DamageCap/DpsCap/RangeLimit/NatureRegen bindings into locked inherited shared contracts; close native phase/state setters, combat persistence and material spawn/home/encounter prerequisites. Defer ALL Ancient Remnant offense/payloads to the following bounded batch. Reuse locked shared/status, Guardian, Monstrosity, Ignis and fully closed Harbinger contracts. Static only; no runtime, Stage, production or unrelated boss/equipment research.",
+  "checkpoint": "R2k7a-cataclysm-remnant-admission-complete",
+  "scope": "Bounded Ancient Remnant incoming admission and native inherited invulnerability, concrete shared cap/DPS/range/regen bindings, necklace/sleep/awakening and live-versus-saved POWER prerequisites, raw state/NBT, native POWER heal and construction/encounter/home activation closed. All offense/payloads/death callbacks deferred; prior contracts locked; Cataclysm PARTIAL.",
+  "notes_file": "cataclysm-r2k7a-remnant-admission.json",
+  "exact_next_task": "R2k7b: Ancient Remnant offense/payload family. Start Ancient_Remnant_Entity tick/aiStep and directly used offensive goals; close attack selection, Rage/CRASH and attack-mode readers/writers, charge/bite/tail/stomp/roar/monolith chains, directly owned Sandstorm/EarthQuake/stele and required debris payloads, native source/owner/team predicates, hurt-return status/control, payload lifecycle and directly reached terrain/death/respawner callbacks. Reuse locked R2k7a admission/necklace/phase/POWER/healing/persistence/encounter, shared/status, Guardian, Monstrosity, Ignis and fully closed Harbinger contracts. Static only; no runtime, Stage, production or unrelated boss/equipment research.",
   "protected_checkpoint": "R2k3a-cataclysm-guardian-admission-complete",
   "protected_notes_file": "cataclysm-r2k3a-guardian-admission.json",
   "protected_checkpoints": [
@@ -34241,6 +35809,10 @@
     {
       "checkpoint": "R2k6a-cataclysm-harbinger-admission-complete",
       "notes_file": "cataclysm-r2k6a-harbinger-admission.json"
+    },
+    {
+      "checkpoint": "R2k6b-cataclysm-harbinger-offense-complete",
+      "notes_file": "cataclysm-r2k6b-harbinger-offense.json"
     }
   ]
 }
