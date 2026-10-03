@@ -22694,6 +22694,1247 @@
       ]
     },
     {
+      "id": "cataclysm:maledictus_combat_persistence",
+      "mod_key": "cataclysm",
+      "display_name": "Maledictus native combat NBT and transient state boundaries",
+      "registry_ids": [
+        "cataclysm:maledictus"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Concrete addAdditionalSaveData calls parent then stores RageMeter via putInt and Tombstone_Direction via putByte((byte)get3DDataValue()). Read calls parent, then unconditional getByte -> Direction.from3DDataValue -> raw setTombstoneDirection, followed by getInt -> raw setRageMeter. Missing RageMeter defaults0; missing direction byte defaults0 and is passed to the native direction conversion rather than preserving the synced NORTH/finalized SOUTH. Weapon, flying, attack state, rageTicks, destroyBlocksTick, combo/grab and attack cooldowns are not serialized by these concrete methods. Fresh defaults and later tick/native goals apply on reload; no synthetic resume state or clamped rage is added. Inherited Home/LifeRemain and unsaved homeTicks/self_regen/request bucket retain their locked semantics.",
+      "human_summary": "Concrete addAdditionalSaveData calls parent then stores RageMeter via putInt and Tombstone_Direction via putByte((byte)get3DDataValue()). Read calls parent, then unconditional getByte -> Direction.from3DDataValue -> raw setTombstoneDirection, followed by getInt -> raw setRageMeter. Missing RageMeter defaults0; missing direction byte defaults0 and is passed to the native direction conversion rather than preserving the synced NORTH/finalized SOUTH. Weapon, flying, attack state, rageTicks, destroyBlocksTick, combo/grab and attack cooldowns are not serialized by these concrete methods. Fresh defaults and later tick/native goals apply on reload; no synthetic resume state or clamped rage is added. Inherited Home/LifeRemain and unsaved homeTicks/self_regen/request bucket retain their locked semantics.",
+      "closest_vanilla_equivalent": "Native CompoundTag persistence through locked shared Home/Life contracts",
+      "vanilla_similarities": "Original native damage/effect/attribute/healing/AI and encounter admission remains authoritative at the named boundaries.",
+      "vanilla_differences": "Raw saved rage differs from its transient decay timer; saved direction differs from finalizeSpawn initialization. No generic progression state is added.",
+      "components": [
+        {
+          "primitive": "COMBAT_STATE_PERSISTENCE",
+          "formula": "parent save/load; RageMeter int; Tombstone_Direction byte -> native direction conversion",
+          "numerical_parameters": {
+            "missing_rage": 0,
+            "missing_direction_byte": 0
+          },
+          "parameter_units": {
+            "missing_rage": "native NBT missing-value defaults",
+            "missing_direction_byte": "native NBT missing-value defaults"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Maledictus concrete save/read methods",
+          "vanilla_relation": "BINARY_MECHANIC"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native NBT defaults/conversion and raw setter order; unsaved combat execution state remains transient."
+      ],
+      "custom_state": "Existing native ATTACK_STATE, weapon/flying/rage/tombstone direction and transient timers only.",
+      "eligibility": "Native NBT defaults/conversion and raw setter order; unsaved combat execution state remains transient.",
+      "source_actor": "Native Maledictus recipient/self actor; incoming direct/causing/source identities and native tombstone encounter actor remain distinct.",
+      "hurt_return_dependency": "No new victim hurt callback; preserve the documented incoming return, state or native heal boundary.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-maledictus-admission.json",
+          "witness_id": "cataclysm:maledictus-admission:entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity.class",
+          "methods": [
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "setRageMeter",
+            "setTombstoneDirection"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:maledictus-admission:combat_persistence"
+      ],
+      "primary_test_source": "cataclysm:maledictus",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k8a-cataclysm-maledictus-admission-complete",
+      "scalability_note": "Research observations only; admission/cap/bucket/range/invulnerability/armor/state/encounter constants are not new Stage candidates. The shared native heal amount is an observation, not an eligibility/policy decision. No Stage direction/multiplier/cap/floor/balance/ownership/hook chosen. Offense including rage damage/gain and payloads deferred to R2k8b.",
+      "scalable_parameter_candidates": [],
+      "saved_concrete_keys": [
+        "RageMeter",
+        "Tombstone_Direction"
+      ],
+      "missing_key_defaults": {
+        "RageMeter": 0,
+        "Tombstone_Direction_byte": 0
+      },
+      "saved_weapon": false,
+      "saved_flying": false,
+      "saved_attack_state": false,
+      "saved_rage_ticks": false,
+      "saved_destroy_blocks_tick": false,
+      "generic_persistence_added": false,
+      "numeric_observations": [
+        {
+          "primitive": "COMBAT_STATE_PERSISTENCE",
+          "parameter": "missing_rage",
+          "native_value": 0,
+          "native_formula": "parent save/load; RageMeter int; Tombstone_Direction byte -> native direction conversion",
+          "units": "native NBT missing-value defaults",
+          "boundary": "Maledictus concrete save/read methods"
+        },
+        {
+          "primitive": "COMBAT_STATE_PERSISTENCE",
+          "parameter": "missing_direction_byte",
+          "native_value": 0,
+          "native_formula": "parent save/load; RageMeter int; Tombstone_Direction byte -> native direction conversion",
+          "units": "native NBT missing-value defaults",
+          "boundary": "Maledictus concrete save/read methods"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:maledictus_encounter_setup",
+      "mod_key": "cataclysm",
+      "display_name": "Maledictus native registration, configured attributes and spawn initialization",
+      "registry_ids": [
+        "cataclysm:maledictus"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "MALEDICTUS registry bootstrap constructs this exact class with size1.5Fx3F and fireImmune. The already-captured initializeAttributes event binds Maledictus_Entity.maledictus to MALEDICTUS (not the separately named Ancient Remnant builder). The concrete builder gives baseHP420, attack13, armor10, knockbackResistance1, followRange50, movement0.33F and stepHeight1.25. Constructor calls locked setConfigattribute with installed health/attack multipliers1, initializing configured native health to max; this is not another heal delivery. No explicit armor-toughness attribute is added by this builder. Concrete finalizeSpawn sets tombstone directionSOUTH before delegating to shared finalizeSpawn, which initializes homeTicks400 but does not establish a home position. No concrete mobInteract activation, sleep/necklace/prerequisite-item state or additional phase latch is declared; tombstone encounter creation supplies its own saved home.",
+      "human_summary": "MALEDICTUS registry bootstrap constructs this exact class with size1.5Fx3F and fireImmune. The already-captured initializeAttributes event binds Maledictus_Entity.maledictus to MALEDICTUS (not the separately named Ancient Remnant builder). The concrete builder gives baseHP420, attack13, armor10, knockbackResistance1, followRange50, movement0.33F and stepHeight1.25. Constructor calls locked setConfigattribute with installed health/attack multipliers1, initializing configured native health to max; this is not another heal delivery. No explicit armor-toughness attribute is added by this builder. Concrete finalizeSpawn sets tombstone directionSOUTH before delegating to shared finalizeSpawn, which initializes homeTicks400 but does not establish a home position. No concrete mobInteract activation, sleep/necklace/prerequisite-item state or additional phase latch is declared; tombstone encounter creation supplies its own saved home.",
+      "closest_vanilla_equivalent": "Native entity registration, configured attributes and native spawn finalization",
+      "vanilla_similarities": "Original native damage/effect/attribute/healing/AI and encounter admission remains authoritative at the named boundaries.",
+      "vanilla_differences": "Armor and knockback resistance remain ordinary native attribute defenses, not custom incoming multipliers. Configuration health initialization is distinct from native regeneration. Native tombstone facing assignment is overwritten by this concrete finalize call.",
+      "components": [
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "formula": "event binds builder -> constructor locked setConfigattribute(baseHP420,attack13,hpConfig1,attackConfig1)",
+          "numerical_parameters": {
+            "base_health": 420.0,
+            "base_attack_damage": 13.0,
+            "armor": 10.0,
+            "knockback_resistance": 1.0,
+            "health_multiplier": 1.0,
+            "attack_multiplier": 1.0
+          },
+          "parameter_units": {
+            "base_health": "native attribute/configuration values as named",
+            "base_attack_damage": "native attribute/configuration values as named",
+            "armor": "native attribute/configuration values as named",
+            "knockback_resistance": "native attribute/configuration values as named",
+            "health_multiplier": "native attribute/configuration values as named",
+            "attack_multiplier": "native attribute/configuration values as named"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Native Maledictus attribute event/constructor",
+          "vanilla_relation": "BINARY_MECHANIC"
+        },
+        {
+          "primitive": "ENCOUNTER_GATE",
+          "formula": "native constructor; finalize directionSOUTH -> inherited homeTicks400, home position supplied separately",
+          "numerical_parameters": {
+            "inherited_home_cooldown": 400
+          },
+          "parameter_units": {
+            "inherited_home_cooldown": "native home ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Maledictus finalizeSpawn and locked shared encounter/home lifecycle",
+          "vanilla_relation": "BINARY_MECHANIC"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native registration/configuration/spawn lifecycle and ordinary armor/shield/attribute defenses remain authoritative."
+      ],
+      "custom_state": "Existing native ATTACK_STATE, weapon/flying/rage/tombstone direction and transient timers only.",
+      "eligibility": "Native registration/configuration/spawn lifecycle and ordinary armor/shield/attribute defenses remain authoritative.",
+      "source_actor": "Native Maledictus recipient/self actor; incoming direct/causing/source identities and native tombstone encounter actor remain distinct.",
+      "hurt_return_dependency": "No new victim hurt callback; preserve the documented incoming return, state or native heal boundary.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-maledictus-admission.json",
+          "witness_id": "cataclysm:maledictus-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$87",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-admission.json",
+          "witness_id": "cataclysm:guardian-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "initializeAttributes"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-maledictus-admission.json",
+          "witness_id": "cataclysm:maledictus-admission:entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity.class",
+          "methods": [
+            "<init>",
+            "maledictus",
+            "finalizeSpawn"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "finalizeSpawn",
+            "setHomePos",
+            "ReturnToHome"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "setConfigattribute"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:maledictus-admission:encounter_setup"
+      ],
+      "primary_test_source": "cataclysm:maledictus",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k8a-cataclysm-maledictus-admission-complete",
+      "scalability_note": "Research observations only; admission/cap/bucket/range/invulnerability/armor/state/encounter constants are not new Stage candidates. The shared native heal amount is an observation, not an eligibility/policy decision. No Stage direction/multiplier/cap/floor/balance/ownership/hook chosen. Offense including rage damage/gain and payloads deferred to R2k8b.",
+      "scalable_parameter_candidates": [],
+      "attribute_builder_method": "maledictus",
+      "attributes_apply_to": "cataclysm:maledictus",
+      "registered_dimensions": {
+        "width": 1.5,
+        "height": 3.0
+      },
+      "explicit_armor_toughness_added": false,
+      "configured_health_is_heal_delivery": false,
+      "finalize_direction": "SOUTH",
+      "finalize_sets_home": false,
+      "concrete_item_activation_override": false,
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "base_health",
+          "native_value": 420.0,
+          "native_formula": "event binds builder -> constructor locked setConfigattribute(baseHP420,attack13,hpConfig1,attackConfig1)",
+          "units": "native attribute/configuration values as named",
+          "boundary": "Native Maledictus attribute event/constructor"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "base_attack_damage",
+          "native_value": 13.0,
+          "native_formula": "event binds builder -> constructor locked setConfigattribute(baseHP420,attack13,hpConfig1,attackConfig1)",
+          "units": "native attribute/configuration values as named",
+          "boundary": "Native Maledictus attribute event/constructor"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "armor",
+          "native_value": 10.0,
+          "native_formula": "event binds builder -> constructor locked setConfigattribute(baseHP420,attack13,hpConfig1,attackConfig1)",
+          "units": "native attribute/configuration values as named",
+          "boundary": "Native Maledictus attribute event/constructor"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "knockback_resistance",
+          "native_value": 1.0,
+          "native_formula": "event binds builder -> constructor locked setConfigattribute(baseHP420,attack13,hpConfig1,attackConfig1)",
+          "units": "native attribute/configuration values as named",
+          "boundary": "Native Maledictus attribute event/constructor"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "health_multiplier",
+          "native_value": 1.0,
+          "native_formula": "event binds builder -> constructor locked setConfigattribute(baseHP420,attack13,hpConfig1,attackConfig1)",
+          "units": "native attribute/configuration values as named",
+          "boundary": "Native Maledictus attribute event/constructor"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "attack_multiplier",
+          "native_value": 1.0,
+          "native_formula": "event binds builder -> constructor locked setConfigattribute(baseHP420,attack13,hpConfig1,attackConfig1)",
+          "units": "native attribute/configuration values as named",
+          "boundary": "Native Maledictus attribute event/constructor"
+        },
+        {
+          "primitive": "ENCOUNTER_GATE",
+          "parameter": "inherited_home_cooldown",
+          "native_value": 400,
+          "native_formula": "native constructor; finalize directionSOUTH -> inherited homeTicks400, home position supplied separately",
+          "units": "native home ticks",
+          "boundary": "Maledictus finalizeSpawn and locked shared encounter/home lifecycle"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:maledictus_environment_admission",
+      "mod_key": "cataclysm",
+      "display_name": "Maledictus native fire/fall/air and fluid predicates",
+      "registry_ids": [
+        "cataclysm:maledictus"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "The exact MALEDICTUS registration factory is fireImmune and has no immuneTo block list. Concrete causeFallDamage returnsfalse without invoking parent; decreaseAirSupply returns its input unchanged. isAffectedByFluids and isPushedByFluid both returnfalse. These are separate native fire registration, fall callback, air-supply and fluid predicates. No blanket bypass of every incoming environmental DamageSource is added: direct hurt still follows the documented concrete/shared/native contracts.",
+      "human_summary": "The exact MALEDICTUS registration factory is fireImmune and has no immuneTo block list. Concrete causeFallDamage returnsfalse without invoking parent; decreaseAirSupply returns its input unchanged. isAffectedByFluids and isPushedByFluid both returnfalse. These are separate native fire registration, fall callback, air-supply and fluid predicates. No blanket bypass of every incoming environmental DamageSource is added: direct hurt still follows the documented concrete/shared/native contracts.",
+      "closest_vanilla_equivalent": "Native entity-type fire immunity and ordinary environmental callback gates",
+      "vanilla_similarities": "Original native damage/effect/attribute/healing/AI and encounter admission remains authoritative at the named boundaries.",
+      "vanilla_differences": "Fall/air callback suppression and fluid response do not imply a custom damage cap or a universal drowning source immunity.",
+      "components": [
+        {
+          "primitive": "NATIVE_FIRE_ADMISSION",
+          "formula": "MALEDICTUS EntityType.Builder.fireImmune()",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "registered fireImmune; native source-tag handling"
+          ],
+          "native_boundary": "Native entity registration",
+          "vanilla_relation": "BINARY_MECHANIC"
+        },
+        {
+          "primitive": "NATIVE_FALL_ADMISSION",
+          "formula": "causeFallDamage(...)=false, no parent call",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "native callback returnsfalse"
+          ],
+          "native_boundary": "Maledictus_Entity.causeFallDamage",
+          "vanilla_relation": "BINARY_MECHANIC"
+        },
+        {
+          "primitive": "AIR_SUPPLY_GATE",
+          "formula": "decreaseAirSupply(air)=air",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "no ordinary air decrement at this callback"
+          ],
+          "native_boundary": "Maledictus_Entity.decreaseAirSupply",
+          "vanilla_relation": "BINARY_MECHANIC"
+        },
+        {
+          "primitive": "FLUID_RESPONSE_GATE",
+          "formula": "isAffectedByFluids=false; isPushedByFluid=false",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "native fluid response/push predicates"
+          ],
+          "native_boundary": "Maledictus fluid predicates",
+          "vanilla_relation": "BINARY_MECHANIC"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Original fire/fall/air/fluid predicates; no new immunity to arbitrary direct DamageSource requests."
+      ],
+      "custom_state": "Existing native ATTACK_STATE, weapon/flying/rage/tombstone direction and transient timers only.",
+      "eligibility": "Original fire/fall/air/fluid predicates; no new immunity to arbitrary direct DamageSource requests.",
+      "source_actor": "Native Maledictus recipient/self actor; incoming direct/causing/source identities and native tombstone encounter actor remain distinct.",
+      "hurt_return_dependency": "No new victim hurt callback; preserve the documented incoming return, state or native heal boundary.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-maledictus-admission.json",
+          "witness_id": "cataclysm:maledictus-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$87",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-maledictus-admission.json",
+          "witness_id": "cataclysm:maledictus-admission:entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity.class",
+          "methods": [
+            "causeFallDamage",
+            "decreaseAirSupply",
+            "isAffectedByFluids",
+            "isPushedByFluid"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:maledictus-admission:environment_admission"
+      ],
+      "primary_test_source": "cataclysm:maledictus",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k8a-cataclysm-maledictus-admission-complete",
+      "scalability_note": "Research observations only; admission/cap/bucket/range/invulnerability/armor/state/encounter constants are not new Stage candidates. The shared native heal amount is an observation, not an eligibility/policy decision. No Stage direction/multiplier/cap/floor/balance/ownership/hook chosen. Offense including rage damage/gain and payloads deferred to R2k8b.",
+      "scalable_parameter_candidates": [],
+      "registered_fire_immune": true,
+      "registered_immune_blocks": [],
+      "fall_callback_calls_parent": false,
+      "air_supply_returns_input": true,
+      "fluid_affected": false,
+      "fluid_push": false,
+      "blanket_drowning_damage_immunity_claimed": false,
+      "numeric_observations": []
+    },
+    {
+      "id": "cataclysm:maledictus_incoming_admission",
+      "mod_key": "cataclysm",
+      "display_name": "Maledictus ordered incoming admission and pre-hurt arming",
+      "registry_ids": [
+        "cataclysm:maledictus"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "hurt first rejects attackState31,32 or33 unless the source has BYPASSES_INVULNERABILITY. For all surviving calls, destroyBlocksTick<=0 writes20 BEFORE shared hurt. It then calls locked IABoss_monster.hurt with the same source and original damage and returns that boolean directly. Timer arming is not dependent on native hurt success and occurs before inherited virtual invulnerability, cap/range/bucket rejection or the shared bypass early return. State rejection occurs before arming. No local direct/causing entity filter, weapon/flying/rage/shield test, amount rewrite, phase transition or post-hurt write exists. No isInvulnerableTo or canBeAffected override is declared in Maledictus; reuse the locked parent declaration chain, native Entity/NeoForge admission and shared boss effect whitelist.",
+      "human_summary": "hurt first rejects attackState31,32 or33 unless the source has BYPASSES_INVULNERABILITY. For all surviving calls, destroyBlocksTick<=0 writes20 BEFORE shared hurt. It then calls locked IABoss_monster.hurt with the same source and original damage and returns that boolean directly. Timer arming is not dependent on native hurt success and occurs before inherited virtual invulnerability, cap/range/bucket rejection or the shared bypass early return. State rejection occurs before arming. No local direct/causing entity filter, weapon/flying/rage/shield test, amount rewrite, phase transition or post-hurt write exists. No isInvulnerableTo or canBeAffected override is declared in Maledictus; reuse the locked parent declaration chain, native Entity/NeoForge admission and shared boss effect whitelist.",
+      "closest_vanilla_equivalent": "Native incoming damage admission with concrete native state gates",
+      "vanilla_similarities": "Original native damage/effect/attribute/healing/AI and encounter admission remains authoritative at the named boundaries.",
+      "vanilla_differences": "Direct projectile and causing actor remain unchanged; causing distance is evaluated only by the locked shared range contract. Native armor/shield/cooldown/events remain downstream. Terrain-response execution is deferred, while its pre-hurt arming boundary is closed.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_ADMISSION",
+          "formula": "state in {31,32,33} AND !bypass -> false; otherwise shared hurt unchanged",
+          "numerical_parameters": {
+            "protected_state31": 31,
+            "protected_state32": 32,
+            "protected_state33": 33
+          },
+          "parameter_units": {
+            "protected_state31": "native state identity",
+            "protected_state32": "native state identity",
+            "protected_state33": "native state identity"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Maledictus_Entity.hurt before shared admission",
+          "vanilla_relation": "BINARY_MECHANIC"
+        },
+        {
+          "primitive": "TERRAIN_RESPONSE_ARMING",
+          "formula": "surviving concrete gate AND destroyBlocksTick<=0 -> destroyBlocksTick=20 before inherited hurt",
+          "numerical_parameters": {
+            "arming_ticks": 20
+          },
+          "parameter_units": {
+            "arming_ticks": "native ticks; arming prerequisite only"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Maledictus_Entity.hurt pre-hurt write",
+          "vanilla_relation": "BINARY_MECHANIC"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native state and BYPASSES_INVULNERABILITY predicate; inherited virtual invulnerability/effect admission remains native.",
+        "Pre-hurt terrain timer arming and later native terrain execution are distinct; no additional callback or hurt-success gate."
+      ],
+      "custom_state": "Existing native ATTACK_STATE, weapon/flying/rage/tombstone direction and transient timers only.",
+      "eligibility": "Native state and BYPASSES_INVULNERABILITY predicate; inherited virtual invulnerability/effect admission remains native.; Pre-hurt terrain timer arming and later native terrain execution are distinct; no additional callback or hurt-success gate.",
+      "source_actor": "Native Maledictus recipient/self actor; incoming direct/causing/source identities and native tombstone encounter actor remain distinct.",
+      "hurt_return_dependency": "Return the inherited hurt boolean exactly; timer arming already happened regardless of that result.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-maledictus-admission.json",
+          "witness_id": "cataclysm:maledictus-admission:entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity.class",
+          "methods": [
+            "hurt"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "hurt",
+            "canBeAffected"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:maledictus-admission:incoming_admission"
+      ],
+      "primary_test_source": "cataclysm:maledictus",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k8a-cataclysm-maledictus-admission-complete",
+      "scalability_note": "Research observations only; admission/cap/bucket/range/invulnerability/armor/state/encounter constants are not new Stage candidates. The shared native heal amount is an observation, not an eligibility/policy decision. No Stage direction/multiplier/cap/floor/balance/ownership/hook chosen. Offense including rage damage/gain and payloads deferred to R2k8b.",
+      "scalable_parameter_candidates": [],
+      "admission_order": [
+        "STATE31_32_33_UNLESS_INVULNERABILITY_BYPASS",
+        "ARM_DESTROY_BLOCKS20_IF_TIMER_NONPOSITIVE",
+        "SHARED_HURT_SAME_SOURCE_AND_AMOUNT",
+        "RETURN_SHARED_HURT_RESULT"
+      ],
+      "concrete_is_invulnerable_override": false,
+      "concrete_effect_admission_override": false,
+      "incoming_amount_rewritten": false,
+      "local_direct_or_causing_filter": false,
+      "hurt_reads_weapon_flying_rage": false,
+      "timer_armed_before_shared_hurt": true,
+      "timer_requires_hurt_success": false,
+      "post_hurt_state_write": false,
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_DAMAGE_ADMISSION",
+          "parameter": "protected_state31",
+          "native_value": 31,
+          "native_formula": "state in {31,32,33} AND !bypass -> false; otherwise shared hurt unchanged",
+          "units": "native state identity",
+          "boundary": "Maledictus_Entity.hurt before shared admission"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_ADMISSION",
+          "parameter": "protected_state32",
+          "native_value": 32,
+          "native_formula": "state in {31,32,33} AND !bypass -> false; otherwise shared hurt unchanged",
+          "units": "native state identity",
+          "boundary": "Maledictus_Entity.hurt before shared admission"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_ADMISSION",
+          "parameter": "protected_state33",
+          "native_value": 33,
+          "native_formula": "state in {31,32,33} AND !bypass -> false; otherwise shared hurt unchanged",
+          "units": "native state identity",
+          "boundary": "Maledictus_Entity.hurt before shared admission"
+        },
+        {
+          "primitive": "TERRAIN_RESPONSE_ARMING",
+          "parameter": "arming_ticks",
+          "native_value": 20,
+          "native_formula": "surviving concrete gate AND destroyBlocksTick<=0 -> destroyBlocksTick=20 before inherited hurt",
+          "units": "native ticks; arming prerequisite only",
+          "boundary": "Maledictus_Entity.hurt pre-hurt write"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:maledictus_nature_regen_binding",
+      "mod_key": "cataclysm",
+      "display_name": "Maledictus shared native regeneration amount binding",
+      "registry_ids": [
+        "cataclysm:maledictus"
+      ],
+      "primary_classification": "VANILLA_DIRECT",
+      "actual_behavior": "NatureRegen returns float(CMCommonConfig.Maledictus.natureHeal), installed25. This binds the existing cataclysm:shared_heal contract: parent tick first, self_regen countdown, server AND AI enabled AND self_regen<=0 AND NatureRegen>0 AND targetnull AND tickCount%20==0 -> native heal(NatureRegen()). Native LivingEntity/NeoForge healing admission and max-health clamp remain authoritative. No distinct concrete healing call is added by the scoped state tick fragment.",
+      "human_summary": "NatureRegen returns float(CMCommonConfig.Maledictus.natureHeal), installed25. This binds the existing cataclysm:shared_heal contract: parent tick first, self_regen countdown, server AND AI enabled AND self_regen<=0 AND NatureRegen>0 AND targetnull AND tickCount%20==0 -> native heal(NatureRegen()). Native LivingEntity/NeoForge healing admission and max-health clamp remain authoritative. No distinct concrete healing call is added by the scoped state tick fragment.",
+      "closest_vanilla_equivalent": "Native LivingEntity.heal through the locked shared heal contract",
+      "vanilla_similarities": "Original native damage/effect/attribute/healing/AI and encounter admission remains authoritative at the named boundaries.",
+      "vanilla_differences": "This records the concrete shared amount only, not another delivery or a new cadence/admission policy.",
+      "components": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "formula": "locked shared heal(float(Maledictus.natureHeal25))",
+          "numerical_parameters": {
+            "amount": 25.0
+          },
+          "parameter_units": {
+            "amount": "native heal argument HP units"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Locked shared tick heal(NatureRegen())",
+          "vanilla_relation": "VANILLA_DIRECT"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Locked server/AI/target/timer/positive/cadence gates and native heal hooks/max-health clamp."
+      ],
+      "custom_state": "Existing native ATTACK_STATE, weapon/flying/rage/tombstone direction and transient timers only.",
+      "eligibility": "Locked server/AI/target/timer/positive/cadence gates and native heal hooks/max-health clamp.",
+      "source_actor": "Native Maledictus recipient/self actor; incoming direct/causing/source identities and native tombstone encounter actor remain distinct.",
+      "hurt_return_dependency": "No new victim hurt callback; preserve the documented incoming return, state or native heal boundary.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-maledictus-admission.json",
+          "witness_id": "cataclysm:maledictus-admission:entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity.class",
+          "methods": [
+            "NatureRegen"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:maledictus-admission:nature_regen_binding"
+      ],
+      "primary_test_source": "cataclysm:maledictus",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k8a-cataclysm-maledictus-admission-complete",
+      "scalability_note": "Research observations only; admission/cap/bucket/range/invulnerability/armor/state/encounter constants are not new Stage candidates. The shared native heal amount is an observation, not an eligibility/policy decision. No Stage direction/multiplier/cap/floor/balance/ownership/hook chosen. Offense including rage damage/gain and payloads deferred to R2k8b.",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "amount"
+          ],
+          "native_value": 25.0,
+          "native_formula": "locked shared heal(float(Maledictus.natureHeal25))",
+          "units": "native heal argument HP units",
+          "native_boundary": "Locked shared tick heal(NatureRegen())"
+        }
+      ],
+      "record_kind": "SHARED_BINDING",
+      "binding_of": "cataclysm:shared_heal",
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameter": "amount",
+          "native_value": 25.0,
+          "native_formula": "locked shared heal(float(Maledictus.natureHeal25))",
+          "units": "native heal argument HP units",
+          "boundary": "Locked shared tick heal(NatureRegen())"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:maledictus_phase_state_prerequisites",
+      "mod_key": "cataclysm",
+      "display_name": "Maledictus raw combat state, health predicates and flight prerequisites",
+      "registry_ids": [
+        "cataclysm:maledictus"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Concrete synced defaults are weapon0, flyingfalse, rage0 and tombstone directionNORTH. The raw weapon/flying/rage/direction setters write supplied values directly without clamping, phase conversion, healing or implied attack-state transitions; ATTACK_STATE and its lifecycle are inherited. No separate saved phase/shield latch is introduced. isHalfHealth tests live getHealth()/getMaxHealth()<=0.5F; isQuarterHealth tests<=0.25F. These are live native ratio gates, not saved phase identity or outgoing multipliers. The scoped server tick branch decrements positive rageTicks; otherwise positive rage decrements by1 and sets rageTicks200, with no local NoAI/target/attack-state test. The independent flight branch writes noGravity=!onGround when flying, otherwisefalse, without a local side gate. Offensive health readers, weapon/flying writers, rage gain/reset/damage use, state31-33 sequences and held-victim control remain R2k8b.",
+      "human_summary": "Concrete synced defaults are weapon0, flyingfalse, rage0 and tombstone directionNORTH. The raw weapon/flying/rage/direction setters write supplied values directly without clamping, phase conversion, healing or implied attack-state transitions; ATTACK_STATE and its lifecycle are inherited. No separate saved phase/shield latch is introduced. isHalfHealth tests live getHealth()/getMaxHealth()<=0.5F; isQuarterHealth tests<=0.25F. These are live native ratio gates, not saved phase identity or outgoing multipliers. The scoped server tick branch decrements positive rageTicks; otherwise positive rage decrements by1 and sets rageTicks200, with no local NoAI/target/attack-state test. The independent flight branch writes noGravity=!onGround when flying, otherwisefalse, without a local side gate. Offensive health readers, weapon/flying writers, rage gain/reset/damage use, state31-33 sequences and held-victim control remain R2k8b.",
+      "closest_vanilla_equivalent": "Live native health predicates plus custom existing synced combat states",
+      "vanilla_similarities": "Original native damage/effect/attribute/healing/AI and encounter admission remains authoritative at the named boundaries.",
+      "vanilla_differences": "Weapon IDs, flight/rage state and live health ratios remain separate from admission immunity, saved NBT and future offensive payload amounts. No custom shield/armor test occurs in the concrete hurt method.",
+      "components": [
+        {
+          "primitive": "PHASE_STATE",
+          "formula": "live ratio=health/maxHealth; half<=0.5F; quarter<=0.25F",
+          "numerical_parameters": {
+            "half_health_ratio": 0.5,
+            "quarter_health_ratio": 0.25
+          },
+          "parameter_units": {
+            "half_health_ratio": "native live HP ratio gate",
+            "quarter_health_ratio": "native live HP ratio gate"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Maledictus_Entity.isHalfHealth/isQuarterHealth",
+          "vanilla_relation": "BINARY_MECHANIC"
+        },
+        {
+          "primitive": "COMBAT_STATE",
+          "formula": "raw synced defaults weapon0/rage0; setters retain supplied integer identities",
+          "numerical_parameters": {
+            "default_weapon": 0,
+            "default_rage": 0
+          },
+          "parameter_units": {
+            "default_weapon": "native state identity/value",
+            "default_rage": "native state identity/value"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Maledictus synced state/setters",
+          "vanilla_relation": "BINARY_MECHANIC"
+        },
+        {
+          "primitive": "RAGE_STATE_DECAY",
+          "formula": "server: rageTicks>0 -> --; else rage>0 -> rage-1, rageTicks=200",
+          "numerical_parameters": {
+            "decay_step": 1,
+            "decay_ticks": 200
+          },
+          "parameter_units": {
+            "decay_step": "native rage state units",
+            "decay_ticks": "native ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Scoped Maledictus tick state maintenance",
+          "vanilla_relation": "BINARY_MECHANIC"
+        },
+        {
+          "primitive": "FLIGHT_STATE",
+          "formula": "flying ? setNoGravity(!onGround()) : setNoGravity(false)",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "raw native flying and onGround predicates"
+          ],
+          "native_boundary": "Scoped Maledictus tick flight prerequisite",
+          "vanilla_relation": "BINARY_MECHANIC"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native health ratio gates and raw state setters; no new Stage scalar state identity.",
+        "Existing server rage decay and flight/gravity prerequisites; offensive consumers/producers and control lifecycle deferred."
+      ],
+      "custom_state": "Existing native ATTACK_STATE, weapon/flying/rage/tombstone direction and transient timers only.",
+      "eligibility": "Native health ratio gates and raw state setters; no new Stage scalar state identity.; Existing server rage decay and flight/gravity prerequisites; offensive consumers/producers and control lifecycle deferred.",
+      "source_actor": "Native Maledictus recipient/self actor; incoming direct/causing/source identities and native tombstone encounter actor remain distinct.",
+      "hurt_return_dependency": "No new victim hurt callback; preserve the documented incoming return, state or native heal boundary.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-maledictus-admission.json",
+          "witness_id": "cataclysm:maledictus-admission:entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity.class",
+          "methods": [
+            "defineSynchedData",
+            "getWeapon",
+            "setWeapon",
+            "isFlying",
+            "setFlying",
+            "getRageMeter",
+            "setRageMeter",
+            "getTombstoneDirection",
+            "setTombstoneDirection",
+            "isHalfHealth",
+            "isQuarterHealth",
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:maledictus-admission:phase_state_prerequisites"
+      ],
+      "primary_test_source": "cataclysm:maledictus",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k8a-cataclysm-maledictus-admission-complete",
+      "scalability_note": "Research observations only; admission/cap/bucket/range/invulnerability/armor/state/encounter constants are not new Stage candidates. The shared native heal amount is an observation, not an eligibility/policy decision. No Stage direction/multiplier/cap/floor/balance/ownership/hook chosen. Offense including rage damage/gain and payloads deferred to R2k8b.",
+      "scalable_parameter_candidates": [],
+      "default_state": {
+        "weapon": 0,
+        "flying": false,
+        "rage": 0,
+        "tombstone_direction": "NORTH"
+      },
+      "raw_integer_setters_clamp": false,
+      "state_setters_change_attack_state": false,
+      "state_setters_heal": false,
+      "health_predicates_saved": false,
+      "separate_saved_phase_or_shield_latch": false,
+      "rage_decay_server_only": true,
+      "rage_decay_no_ai_gate": false,
+      "rage_decay_target_gate": false,
+      "flight_no_gravity_local_server_guard": false,
+      "numeric_observations": [
+        {
+          "primitive": "PHASE_STATE",
+          "parameter": "half_health_ratio",
+          "native_value": 0.5,
+          "native_formula": "live ratio=health/maxHealth; half<=0.5F; quarter<=0.25F",
+          "units": "native live HP ratio gate",
+          "boundary": "Maledictus_Entity.isHalfHealth/isQuarterHealth"
+        },
+        {
+          "primitive": "PHASE_STATE",
+          "parameter": "quarter_health_ratio",
+          "native_value": 0.25,
+          "native_formula": "live ratio=health/maxHealth; half<=0.5F; quarter<=0.25F",
+          "units": "native live HP ratio gate",
+          "boundary": "Maledictus_Entity.isHalfHealth/isQuarterHealth"
+        },
+        {
+          "primitive": "COMBAT_STATE",
+          "parameter": "default_weapon",
+          "native_value": 0,
+          "native_formula": "raw synced defaults weapon0/rage0; setters retain supplied integer identities",
+          "units": "native state identity/value",
+          "boundary": "Maledictus synced state/setters"
+        },
+        {
+          "primitive": "COMBAT_STATE",
+          "parameter": "default_rage",
+          "native_value": 0,
+          "native_formula": "raw synced defaults weapon0/rage0; setters retain supplied integer identities",
+          "units": "native state identity/value",
+          "boundary": "Maledictus synced state/setters"
+        },
+        {
+          "primitive": "RAGE_STATE_DECAY",
+          "parameter": "decay_step",
+          "native_value": 1,
+          "native_formula": "server: rageTicks>0 -> --; else rage>0 -> rage-1, rageTicks=200",
+          "units": "native rage state units",
+          "boundary": "Scoped Maledictus tick state maintenance"
+        },
+        {
+          "primitive": "RAGE_STATE_DECAY",
+          "parameter": "decay_ticks",
+          "native_value": 200,
+          "native_formula": "server: rageTicks>0 -> --; else rage>0 -> rage-1, rageTicks=200",
+          "units": "native ticks",
+          "boundary": "Scoped Maledictus tick state maintenance"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:maledictus_shared_defense_bindings",
+      "mod_key": "cataclysm",
+      "display_name": "Maledictus concrete shared cap, bucket and range bindings",
+      "registry_ids": [
+        "cataclysm:maledictus"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "DamageCap returns float(CMCommonConfig.Maledictus.damageCap), installed20; DpsCap returns float(dpsCap), installed13; RangeLimit returns rangeCap as DOUBLE directly, installed14. Reuse the locked shared hurt order, per-hit min-cap, causing-current-distance falloff/rejection, request bucket and false-return rollback. DamageCap20 is also bucket capacity; DpsCap13 is eligible server-AI drain13/20 per tick, not capacity. Range14 admits full at<=14, falls off for14<distance<21 and rejects at>=21; causing-null skips it. Shared bypass and block_self_regen/bypasses_hurt_time tags retain their meanings. HealCooldown is inherited200. Concrete DpsMulti returns installed dpsLimitTime20, but neither locked shared hurt nor shared tick reads DpsMulti; it does not replace the proven bucket contract.",
+      "human_summary": "DamageCap returns float(CMCommonConfig.Maledictus.damageCap), installed20; DpsCap returns float(dpsCap), installed13; RangeLimit returns rangeCap as DOUBLE directly, installed14. Reuse the locked shared hurt order, per-hit min-cap, causing-current-distance falloff/rejection, request bucket and false-return rollback. DamageCap20 is also bucket capacity; DpsCap13 is eligible server-AI drain13/20 per tick, not capacity. Range14 admits full at<=14, falls off for14<distance<21 and rejects at>=21; causing-null skips it. Shared bypass and block_self_regen/bypasses_hurt_time tags retain their meanings. HealCooldown is inherited200. Concrete DpsMulti returns installed dpsLimitTime20, but neither locked shared hurt nor shared tick reads DpsMulti; it does not replace the proven bucket contract.",
+      "closest_vanilla_equivalent": "Locked shared boss admission; native defenses remain downstream",
+      "vanilla_similarities": "Original native damage/effect/attribute/healing/AI and encounter admission remains authoritative at the named boundaries.",
+      "vanilla_differences": "Unlike the Remnant binding, RangeLimit does not narrow through float. These numeric defenses/admission values are not scalar outgoing contributions.",
+      "components": [
+        {
+          "primitive": "DAMAGE_CAP",
+          "formula": "min(float(damageCap20), incoming)",
+          "numerical_parameters": {
+            "per_hit_cap": 20.0
+          },
+          "parameter_units": {
+            "per_hit_cap": "pre-mitigation requested HP units"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Locked shared hurt per-hit cap",
+          "vanilla_relation": "BINARY_MECHANIC"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "formula": "capacity=DamageCap20; eligible server-AI tick drain=float(DpsCap13/20); failed native hurt restores prior bucket",
+          "numerical_parameters": {
+            "capacity": 20.0,
+            "dps_cap": 13.0,
+            "drain_divisor": 20
+          },
+          "parameter_units": {
+            "capacity": "requested HP units",
+            "dps_cap": "requested HP units per second",
+            "drain_divisor": "ticks per second"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Locked shared hurt/tick",
+          "vanilla_relation": "BINARY_MECHANIC"
+        },
+        {
+          "primitive": "RANGE_ADMISSION",
+          "formula": "double rangeCap14; full<=14; linear falloff to1.5*14; reject>=21; causing-null skips",
+          "numerical_parameters": {
+            "range_limit": 14.0
+          },
+          "parameter_units": {
+            "range_limit": "causing actor current distance in blocks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Locked calculateRange and shared hurt",
+          "vanilla_relation": "BINARY_MECHANIC"
+        },
+        {
+          "primitive": "REGEN_ADMISSION_TIMER",
+          "formula": "successful tagged shared hurt resets self_regen=HealCooldown200 except bypass early return",
+          "numerical_parameters": {
+            "heal_cooldown": 200
+          },
+          "parameter_units": {
+            "heal_cooldown": "native ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Locked shared hurt/tick",
+          "vanilla_relation": "BINARY_MECHANIC"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native virtual admission, source tags, request bucket rollback/decay and downstream defenses are unchanged."
+      ],
+      "custom_state": "Existing native ATTACK_STATE, weapon/flying/rage/tombstone direction and transient timers only.",
+      "eligibility": "Native virtual admission, source tags, request bucket rollback/decay and downstream defenses are unchanged.",
+      "source_actor": "Native Maledictus recipient/self actor; incoming direct/causing/source identities and native tombstone encounter actor remain distinct.",
+      "hurt_return_dependency": "No new victim hurt callback; preserve the documented incoming return, state or native heal boundary.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-maledictus-admission.json",
+          "witness_id": "cataclysm:maledictus-admission:entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity.class",
+          "methods": [
+            "DamageCap",
+            "DpsCap",
+            "DpsMulti",
+            "RangeLimit"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "hurt",
+            "tick",
+            "HealCooldown"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "calculateRange"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:maledictus-admission:shared_defense_bindings"
+      ],
+      "primary_test_source": "cataclysm:maledictus",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k8a-cataclysm-maledictus-admission-complete",
+      "scalability_note": "Research observations only; admission/cap/bucket/range/invulnerability/armor/state/encounter constants are not new Stage candidates. The shared native heal amount is an observation, not an eligibility/policy decision. No Stage direction/multiplier/cap/floor/balance/ownership/hook chosen. Offense including rage damage/gain and payloads deferred to R2k8b.",
+      "scalable_parameter_candidates": [],
+      "installed_config_values": {
+        "damage_cap": 20.0,
+        "dps_cap": 13.0,
+        "range_limit": 14.0,
+        "heal_cooldown": 200,
+        "dps_limit_time": 20
+      },
+      "damage_cap_is_bucket_capacity": true,
+      "dps_is_bucket_capacity": false,
+      "range_narrows_float_before_double": false,
+      "dps_multi_read_by_shared_hurt_or_tick": false,
+      "numeric_observations": [
+        {
+          "primitive": "DAMAGE_CAP",
+          "parameter": "per_hit_cap",
+          "native_value": 20.0,
+          "native_formula": "min(float(damageCap20), incoming)",
+          "units": "pre-mitigation requested HP units",
+          "boundary": "Locked shared hurt per-hit cap"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "parameter": "capacity",
+          "native_value": 20.0,
+          "native_formula": "capacity=DamageCap20; eligible server-AI tick drain=float(DpsCap13/20); failed native hurt restores prior bucket",
+          "units": "requested HP units",
+          "boundary": "Locked shared hurt/tick"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "parameter": "dps_cap",
+          "native_value": 13.0,
+          "native_formula": "capacity=DamageCap20; eligible server-AI tick drain=float(DpsCap13/20); failed native hurt restores prior bucket",
+          "units": "requested HP units per second",
+          "boundary": "Locked shared hurt/tick"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "parameter": "drain_divisor",
+          "native_value": 20,
+          "native_formula": "capacity=DamageCap20; eligible server-AI tick drain=float(DpsCap13/20); failed native hurt restores prior bucket",
+          "units": "ticks per second",
+          "boundary": "Locked shared hurt/tick"
+        },
+        {
+          "primitive": "RANGE_ADMISSION",
+          "parameter": "range_limit",
+          "native_value": 14.0,
+          "native_formula": "double rangeCap14; full<=14; linear falloff to1.5*14; reject>=21; causing-null skips",
+          "units": "causing actor current distance in blocks",
+          "boundary": "Locked calculateRange and shared hurt"
+        },
+        {
+          "primitive": "REGEN_ADMISSION_TIMER",
+          "parameter": "heal_cooldown",
+          "native_value": 200,
+          "native_formula": "successful tagged shared hurt resets self_regen=HealCooldown200 except bypass early return",
+          "units": "native ticks",
+          "boundary": "Locked shared hurt/tick"
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:maledictus_tombstone_encounter",
+      "mod_key": "cataclysm",
+      "display_name": "Cursed tombstone Maledictus activation, spawn/home and native retry prerequisites",
+      "registry_ids": [
+        "cataclysm:maledictus"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Cursed_Tombstone_Block defaults FACING=NORTH/LIT=false/POWERED=false. Its native ticker connects the exact Cursed_tombstone_Entity.commonTick on both sides. While unpowered, cooldownProgress increments until installed CursedTombstoneCooldown1*1200, then a later tick sets POWERED=true. useItemOn requires POWERED AND !LIT, writes LITtrue and returnsSUCCESS; it neither tests nor consumes a specific item and has no local side guard. Powered+lit increments tickCount; tickCount>63 creates native MALEDICTUS before checking ServerLevel/non-null. Server spawn sets position(x+.5,y+2,z+.5), writes block FACING, sets Home=current dimension/tombstone pos, then finalizeSpawn(SPAWNER) overwrites directionSOUTH and initializes shared homeTicks400. It clears offsets X/Z=-1..1,Y=0..5 before addFreshEntity, skipping AIR.defaultBlockState and cataclysm:altar_destroy_immune, using destroyBlock(false) with no local mobGriefing gate. Only addFreshEntity=true triggers final tombstone destroyBlock(false). No attack state, persistence-required flag or target write is added. The branch does not reset tickCount after a failed create/add; if the lit tombstone remains, later eligible ticks retry. Powered+unlit resets tickCount0. Block entity saves only cooldownProgress with putInt; load tests contains(\"summonCooldownProgress\",11) then getInt, so the ordinary saved int does not round-trip through that exact-type admission. tickCount is unsaved. Existing block state persistence and native creation/finalization/add/block hooks remain native.",
+      "human_summary": "Cursed_Tombstone_Block defaults FACING=NORTH/LIT=false/POWERED=false. Its native ticker connects the exact Cursed_tombstone_Entity.commonTick on both sides. While unpowered, cooldownProgress increments until installed CursedTombstoneCooldown1*1200, then a later tick sets POWERED=true. useItemOn requires POWERED AND !LIT, writes LITtrue and returnsSUCCESS; it neither tests nor consumes a specific item and has no local side guard. Powered+lit increments tickCount; tickCount>63 creates native MALEDICTUS before checking ServerLevel/non-null. Server spawn sets position(x+.5,y+2,z+.5), writes block FACING, sets Home=current dimension/tombstone pos, then finalizeSpawn(SPAWNER) overwrites directionSOUTH and initializes shared homeTicks400. It clears offsets X/Z=-1..1,Y=0..5 before addFreshEntity, skipping AIR.defaultBlockState and cataclysm:altar_destroy_immune, using destroyBlock(false) with no local mobGriefing gate. Only addFreshEntity=true triggers final tombstone destroyBlock(false). No attack state, persistence-required flag or target write is added. The branch does not reset tickCount after a failed create/add; if the lit tombstone remains, later eligible ticks retry. Powered+unlit resets tickCount0. Block entity saves only cooldownProgress with putInt; load tests contains(\"summonCooldownProgress\",11) then getInt, so the ordinary saved int does not round-trip through that exact-type admission. tickCount is unsaved. Existing block state persistence and native creation/finalization/add/block hooks remain native.",
+      "closest_vanilla_equivalent": "Native block-state interaction, boss creation/finalization/home and encounter clearance",
+      "vanilla_similarities": "Original native damage/effect/attribute/healing/AI and encounter admission remains authoritative at the named boundaries.",
+      "vanilla_differences": "This is encounter admission, not an offensive cooldown/radius payload. Preserve literal native load type11, source block and ordering; do not repair the installed behavior or force copied block facing to survive finalizeSpawn.",
+      "components": [
+        {
+          "primitive": "ENCOUNTER_GATE",
+          "formula": "unpowered progress<config1*1200 -> ++; else powered; powered+lit tickCount>63 -> native spawn branch",
+          "numerical_parameters": {
+            "cooldown_minutes": 1,
+            "cooldown_tick_factor": 1200,
+            "summon_after_tick": 63,
+            "spawn_y_offset": 2,
+            "inherited_home_cooldown": 400
+          },
+          "parameter_units": {
+            "cooldown_minutes": "installed native encounter cooldown minutes",
+            "cooldown_tick_factor": "ticks per minute",
+            "summon_after_tick": "strict native tickCount threshold",
+            "spawn_y_offset": "blocks above tombstone",
+            "inherited_home_cooldown": "native home ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Cursed tombstone interaction/commonTick and Maledictus finalizeSpawn",
+          "vanilla_relation": "BINARY_MECHANIC"
+        },
+        {
+          "primitive": "ENCOUNTER_CLEARANCE",
+          "formula": "before add: X/Z offsets-1..1,Y0..5; skip native AIR and altar_destroy_immune; destroyBlock(false)",
+          "numerical_parameters": {
+            "horizontal_min": -1,
+            "horizontal_max": 1,
+            "vertical_min": 0,
+            "vertical_max": 5
+          },
+          "parameter_units": {
+            "horizontal_min": "native block offsets; encounter preparation only",
+            "horizontal_max": "native block offsets; encounter preparation only",
+            "vertical_min": "native block offsets; encounter preparation only",
+            "vertical_max": "native block offsets; encounter preparation only"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Scoped Cursed_tombstone_Entity.commonTick spawn branch",
+          "vanilla_relation": "BINARY_MECHANIC"
+        },
+        {
+          "primitive": "ENCOUNTER_PERSISTENCE",
+          "formula": "save putInt(cooldownProgress); load only contains(key,11), then getInt; tickCount unsaved",
+          "numerical_parameters": {
+            "load_tag_type": 11,
+            "default_progress": 0,
+            "default_tick_count": 0
+          },
+          "parameter_units": {
+            "load_tag_type": "native tag type or counter defaults as named",
+            "default_progress": "native tag type or counter defaults as named",
+            "default_tick_count": "native tag type or counter defaults as named"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Cursed tombstone constructor/save/load",
+          "vanilla_relation": "BINARY_MECHANIC"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native POWERED/LIT/block-type/counter admission; no inferred item requirement.",
+        "Native ServerLevel/non-null/create/finalize/home/add-success and terrain tag/block hooks; encounter retry remains native.",
+        "Literal cooldown save/load type mismatch and unsaved countdown retained; no generic persistence."
+      ],
+      "custom_state": "Existing native ATTACK_STATE, weapon/flying/rage/tombstone direction and transient timers only.",
+      "eligibility": "Native POWERED/LIT/block-type/counter admission; no inferred item requirement.; Native ServerLevel/non-null/create/finalize/home/add-success and terrain tag/block hooks; encounter retry remains native.; Literal cooldown save/load type mismatch and unsaved countdown retained; no generic persistence.",
+      "source_actor": "Native Maledictus recipient/self actor; incoming direct/causing/source identities and native tombstone encounter actor remain distinct.",
+      "hurt_return_dependency": "No new victim hurt callback; preserve the documented incoming return, state or native heal boundary.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-maledictus-admission.json",
+          "witness_id": "cataclysm:maledictus-admission:blocks/Cursed_Tombstone_Block",
+          "entry": "com/github/L_Ender/cataclysm/blocks/Cursed_Tombstone_Block.class",
+          "methods": [
+            "<init>",
+            "useItemOn",
+            "newBlockEntity",
+            "getTicker"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-maledictus-admission.json",
+          "witness_id": "cataclysm:maledictus-admission:blockentities/Cursed_tombstone_Entity",
+          "entry": "com/github/L_Ender/cataclysm/blockentities/Cursed_tombstone_Entity.class",
+          "methods": [
+            "<init>",
+            "commonTick",
+            "loadAdditional",
+            "saveAdditional"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-maledictus-admission.json",
+          "witness_id": "cataclysm:maledictus-admission:entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity.class",
+          "methods": [
+            "finalizeSpawn",
+            "setTombstoneDirection"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "setHomePos",
+            "finalizeSpawn"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:maledictus-admission:tombstone_encounter"
+      ],
+      "primary_test_source": "cataclysm:maledictus",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k8a-cataclysm-maledictus-admission-complete",
+      "scalability_note": "Research observations only; admission/cap/bucket/range/invulnerability/armor/state/encounter constants are not new Stage candidates. The shared native heal amount is an observation, not an eligibility/policy decision. No Stage direction/multiplier/cap/floor/balance/ownership/hook chosen. Offense including rage damage/gain and payloads deferred to R2k8b.",
+      "scalable_parameter_candidates": [],
+      "default_block_state": {
+        "facing": "NORTH",
+        "lit": false,
+        "powered": false
+      },
+      "activation_requires_item": false,
+      "activation_consumes_item": false,
+      "activation_local_server_guard": false,
+      "ticker_has_side_gate": false,
+      "spawn_order": [
+        "CREATE_BEFORE_SERVER_CHECK",
+        "SERVER_LEVEL_AND_NON_NULL",
+        "SET_POS",
+        "SET_BLOCK_FACING",
+        "SET_HOME",
+        "FINALIZE_SPAWNER_RESETS_DIRECTION_SOUTH",
+        "CLEAR_ENCOUNTER_VOLUME",
+        "ADD_FRESH_ENTITY",
+        "ON_SUCCESS_DESTROY_TOMBSTONE"
+      ],
+      "spawn_type": "SPAWNER",
+      "spawn_sets_home": true,
+      "block_facing_survives_finalize": false,
+      "spawn_sets_attack_state": false,
+      "spawn_sets_persistence_required": false,
+      "clearance_requires_mobgriefing": false,
+      "cleanup_requires_add_success": true,
+      "retry_counter_reset_on_failed_add": false,
+      "cooldown_saved_with": "putInt",
+      "cooldown_load_tag_type": 11,
+      "cooldown_int_round_trip": false,
+      "countdown_saved": false,
+      "numeric_observations": [
+        {
+          "primitive": "ENCOUNTER_GATE",
+          "parameter": "cooldown_minutes",
+          "native_value": 1,
+          "native_formula": "unpowered progress<config1*1200 -> ++; else powered; powered+lit tickCount>63 -> native spawn branch",
+          "units": "installed native encounter cooldown minutes",
+          "boundary": "Cursed tombstone interaction/commonTick and Maledictus finalizeSpawn"
+        },
+        {
+          "primitive": "ENCOUNTER_GATE",
+          "parameter": "cooldown_tick_factor",
+          "native_value": 1200,
+          "native_formula": "unpowered progress<config1*1200 -> ++; else powered; powered+lit tickCount>63 -> native spawn branch",
+          "units": "ticks per minute",
+          "boundary": "Cursed tombstone interaction/commonTick and Maledictus finalizeSpawn"
+        },
+        {
+          "primitive": "ENCOUNTER_GATE",
+          "parameter": "summon_after_tick",
+          "native_value": 63,
+          "native_formula": "unpowered progress<config1*1200 -> ++; else powered; powered+lit tickCount>63 -> native spawn branch",
+          "units": "strict native tickCount threshold",
+          "boundary": "Cursed tombstone interaction/commonTick and Maledictus finalizeSpawn"
+        },
+        {
+          "primitive": "ENCOUNTER_GATE",
+          "parameter": "spawn_y_offset",
+          "native_value": 2,
+          "native_formula": "unpowered progress<config1*1200 -> ++; else powered; powered+lit tickCount>63 -> native spawn branch",
+          "units": "blocks above tombstone",
+          "boundary": "Cursed tombstone interaction/commonTick and Maledictus finalizeSpawn"
+        },
+        {
+          "primitive": "ENCOUNTER_GATE",
+          "parameter": "inherited_home_cooldown",
+          "native_value": 400,
+          "native_formula": "unpowered progress<config1*1200 -> ++; else powered; powered+lit tickCount>63 -> native spawn branch",
+          "units": "native home ticks",
+          "boundary": "Cursed tombstone interaction/commonTick and Maledictus finalizeSpawn"
+        },
+        {
+          "primitive": "ENCOUNTER_CLEARANCE",
+          "parameter": "horizontal_min",
+          "native_value": -1,
+          "native_formula": "before add: X/Z offsets-1..1,Y0..5; skip native AIR and altar_destroy_immune; destroyBlock(false)",
+          "units": "native block offsets; encounter preparation only",
+          "boundary": "Scoped Cursed_tombstone_Entity.commonTick spawn branch"
+        },
+        {
+          "primitive": "ENCOUNTER_CLEARANCE",
+          "parameter": "horizontal_max",
+          "native_value": 1,
+          "native_formula": "before add: X/Z offsets-1..1,Y0..5; skip native AIR and altar_destroy_immune; destroyBlock(false)",
+          "units": "native block offsets; encounter preparation only",
+          "boundary": "Scoped Cursed_tombstone_Entity.commonTick spawn branch"
+        },
+        {
+          "primitive": "ENCOUNTER_CLEARANCE",
+          "parameter": "vertical_min",
+          "native_value": 0,
+          "native_formula": "before add: X/Z offsets-1..1,Y0..5; skip native AIR and altar_destroy_immune; destroyBlock(false)",
+          "units": "native block offsets; encounter preparation only",
+          "boundary": "Scoped Cursed_tombstone_Entity.commonTick spawn branch"
+        },
+        {
+          "primitive": "ENCOUNTER_CLEARANCE",
+          "parameter": "vertical_max",
+          "native_value": 5,
+          "native_formula": "before add: X/Z offsets-1..1,Y0..5; skip native AIR and altar_destroy_immune; destroyBlock(false)",
+          "units": "native block offsets; encounter preparation only",
+          "boundary": "Scoped Cursed_tombstone_Entity.commonTick spawn branch"
+        },
+        {
+          "primitive": "ENCOUNTER_PERSISTENCE",
+          "parameter": "load_tag_type",
+          "native_value": 11,
+          "native_formula": "save putInt(cooldownProgress); load only contains(key,11), then getInt; tickCount unsaved",
+          "units": "native tag type or counter defaults as named",
+          "boundary": "Cursed tombstone constructor/save/load"
+        },
+        {
+          "primitive": "ENCOUNTER_PERSISTENCE",
+          "parameter": "default_progress",
+          "native_value": 0,
+          "native_formula": "save putInt(cooldownProgress); load only contains(key,11), then getInt; tickCount unsaved",
+          "units": "native tag type or counter defaults as named",
+          "boundary": "Cursed tombstone constructor/save/load"
+        },
+        {
+          "primitive": "ENCOUNTER_PERSISTENCE",
+          "parameter": "default_tick_count",
+          "native_value": 0,
+          "native_formula": "save putInt(cooldownProgress); load only contains(key,11), then getInt; tickCount unsaved",
+          "units": "native tag type or counter defaults as named",
+          "boundary": "Cursed tombstone constructor/save/load"
+        }
+      ]
+    },
+    {
       "id": "cataclysm:monstrosity_alliance",
       "mod_key": "cataclysm",
       "display_name": "Monstrosity native alliance and offensive exclusions",
@@ -39102,6 +40343,348 @@
       "runtime_status": "NOT_RUN"
     },
     {
+      "id": "cataclysm:maledictus-admission:combat_persistence",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:maledictus_combat_persistence"
+      ],
+      "primary_source": "cataclysm:maledictus",
+      "native_path": "Native concrete NBT -> inherited Home/Life plus raw saved rage/direction; no fabricated attack resume",
+      "setup": "Static original source/state/tag/return/NBT/encounter fixtures at the documented boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-maledictus-admission.json",
+          "witness_id": "cataclysm:maledictus-admission:entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity.class",
+          "methods": [
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "setRageMeter",
+            "setTombstoneDirection"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:maledictus-admission:encounter_setup",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:maledictus_encounter_setup"
+      ],
+      "primary_source": "cataclysm:maledictus",
+      "native_path": "MALEDICTUS factory/attribute event -> configured native construction -> concrete/shared finalize/home prerequisites",
+      "setup": "Static original source/state/tag/return/NBT/encounter fixtures at the documented boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-maledictus-admission.json",
+          "witness_id": "cataclysm:maledictus-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$87",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-admission.json",
+          "witness_id": "cataclysm:guardian-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "initializeAttributes"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-maledictus-admission.json",
+          "witness_id": "cataclysm:maledictus-admission:entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity.class",
+          "methods": [
+            "<init>",
+            "maledictus",
+            "finalizeSpawn"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "finalizeSpawn",
+            "setHomePos",
+            "ReturnToHome"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "setConfigattribute"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:maledictus-admission:environment_admission",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:maledictus_environment_admission"
+      ],
+      "primary_source": "cataclysm:maledictus",
+      "native_path": "Native registered type/environment callbacks -> original native environmental admission",
+      "setup": "Static original source/state/tag/return/NBT/encounter fixtures at the documented boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-maledictus-admission.json",
+          "witness_id": "cataclysm:maledictus-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$87",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-maledictus-admission.json",
+          "witness_id": "cataclysm:maledictus-admission:entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity.class",
+          "methods": [
+            "causeFallDamage",
+            "decreaseAirSupply",
+            "isAffectedByFluids",
+            "isPushedByFluid"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:maledictus-admission:incoming_admission",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:maledictus_incoming_admission"
+      ],
+      "primary_source": "cataclysm:maledictus",
+      "native_path": "Incoming source -> concrete state gate -> pre-hurt timer arming -> locked shared/native hurt -> identical boolean",
+      "setup": "Static original source/state/tag/return/NBT/encounter fixtures at the documented boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-maledictus-admission.json",
+          "witness_id": "cataclysm:maledictus-admission:entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity.class",
+          "methods": [
+            "hurt"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "hurt",
+            "canBeAffected"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:maledictus-admission:nature_regen_binding",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:maledictus_nature_regen_binding"
+      ],
+      "primary_source": "cataclysm:maledictus",
+      "native_path": "Maledictus NatureRegen25 -> original shared gated native heal call",
+      "setup": "Static original source/state/tag/return/NBT/encounter fixtures at the documented boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-maledictus-admission.json",
+          "witness_id": "cataclysm:maledictus-admission:entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity.class",
+          "methods": [
+            "NatureRegen"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "tick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:maledictus-admission:phase_state_prerequisites",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:maledictus_phase_state_prerequisites"
+      ],
+      "primary_source": "cataclysm:maledictus",
+      "native_path": "Native synced state/live HP predicates and scoped tick state maintenance -> later native offensive readers (deferred)",
+      "setup": "Static original source/state/tag/return/NBT/encounter fixtures at the documented boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-maledictus-admission.json",
+          "witness_id": "cataclysm:maledictus-admission:entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity.class",
+          "methods": [
+            "defineSynchedData",
+            "getWeapon",
+            "setWeapon",
+            "isFlying",
+            "setFlying",
+            "getRageMeter",
+            "setRageMeter",
+            "getTombstoneDirection",
+            "setTombstoneDirection",
+            "isHalfHealth",
+            "isQuarterHealth",
+            "tick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:maledictus-admission:shared_defense_bindings",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:maledictus_shared_defense_bindings"
+      ],
+      "primary_source": "cataclysm:maledictus",
+      "native_path": "Concrete getters -> locked shared incoming cap/range/bucket/regen bookkeeping",
+      "setup": "Static original source/state/tag/return/NBT/encounter fixtures at the documented boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-maledictus-admission.json",
+          "witness_id": "cataclysm:maledictus-admission:entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity.class",
+          "methods": [
+            "DamageCap",
+            "DpsCap",
+            "DpsMulti",
+            "RangeLimit"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "hurt",
+            "tick",
+            "HealCooldown"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "calculateRange"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:maledictus-admission:tombstone_encounter",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:maledictus_tombstone_encounter"
+      ],
+      "primary_source": "cataclysm:maledictus",
+      "native_path": "Native tombstone POWERED/LIT -> countdown -> MALEDICTUS create -> server/home/finalize -> clearance -> add-result cleanup",
+      "setup": "Static original source/state/tag/return/NBT/encounter fixtures at the documented boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-maledictus-admission.json",
+          "witness_id": "cataclysm:maledictus-admission:blocks/Cursed_Tombstone_Block",
+          "entry": "com/github/L_Ender/cataclysm/blocks/Cursed_Tombstone_Block.class",
+          "methods": [
+            "<init>",
+            "useItemOn",
+            "newBlockEntity",
+            "getTicker"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-maledictus-admission.json",
+          "witness_id": "cataclysm:maledictus-admission:blockentities/Cursed_tombstone_Entity",
+          "entry": "com/github/L_Ender/cataclysm/blockentities/Cursed_tombstone_Entity.class",
+          "methods": [
+            "<init>",
+            "commonTick",
+            "loadAdditional",
+            "saveAdditional"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-maledictus-admission.json",
+          "witness_id": "cataclysm:maledictus-admission:entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Maledictus/Maledictus_Entity.class",
+          "methods": [
+            "finalizeSpawn",
+            "setTombstoneDirection"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "setHomePos",
+            "finalizeSpawn"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
       "id": "cataclysm:monstrosity-admission:awakening_home",
       "mod_key": "cataclysm",
       "status": "VERIFIED",
@@ -41968,10 +43551,10 @@
   ],
   "unresolved_native_ambiguities": null,
   "remaining_native_ambiguities": null,
-  "checkpoint": "R2k7b-cataclysm-remnant-offense-complete",
-  "scope": "Ancient Remnant scoped offense selection/mode/Rage/CRASH, charge/bite/tail/stomp/roar/monolith, owned Sandstorm/EarthQuake/stele, native source/team/hurt-return/lifecycle/terrain/death/respawner closed. R2k7a and prior contracts locked. Ancient Remnant family closed; Cataclysm PARTIAL.",
-  "notes_file": "cataclysm-r2k7b-remnant-offense.json",
-  "exact_next_task": "R2k8a: Maledictus incoming admission and phase/encounter prerequisites. Start Maledictus_Entity.hurt/isInvulnerableTo and relevant InternalAnimationMonster/IABoss hierarchy; record concrete DamageCap/DpsCap/RangeLimit/NatureRegen bindings, native admission order, source/tag bypasses, phase/state setters and combat persistence, material spawn/home/encounter prerequisites. Reuse locked shared/status, Guardian, Monstrosity, Ignis, Harbinger and fully closed Ancient Remnant. Defer all Maledictus offense/payloads to R2k8b. Static only; no runtime, Stage, production or unrelated family research.",
+  "checkpoint": "R2k8a-cataclysm-maledictus-admission-complete",
+  "scope": "Bounded Maledictus incoming state admission and pre-hurt terrain-response arming, inherited invulnerability and concrete shared cap/DPS/range/regen bindings, native environment admission, raw weapon/flying/rage and live health prerequisites, saved combat state, configured construction and cursed tombstone activation/spawn/home/clearance/persistence closed. All offense/payloads/terrain-response execution/death callbacks deferred; prior contracts locked; Cataclysm PARTIAL.",
+  "notes_file": "cataclysm-r2k8a-maledictus-admission.json",
+  "exact_next_task": "R2k8b: Maledictus offense/payload family. Start Maledictus_Entity tick/aiStep and directly used offensive goals; close attack selection, weapon/flying/health-state readers and writers, rage gain/reset/damage contributions, direct/area/combo/rush/uppercut/grab and held-victim control, halberd/arrow and directly owned payload chains, source/owner/team predicates, hurt-return status/control, payload lifecycle and directly reached terrain/death/respawner callbacks. Reuse locked R2k8a admission/shared bindings/native environment/raw state/decay/persistence/tombstone encounter, shared/status, Guardian, Monstrosity, Ignis, Harbinger and fully closed Ancient Remnant contracts. Static only; no runtime, Stage, production or unrelated boss/equipment research.",
   "protected_checkpoint": "R2k3a-cataclysm-guardian-admission-complete",
   "protected_notes_file": "cataclysm-r2k3a-guardian-admission.json",
   "protected_checkpoints": [
@@ -42010,6 +43593,10 @@
     {
       "checkpoint": "R2k7a-cataclysm-remnant-admission-complete",
       "notes_file": "cataclysm-r2k7a-remnant-admission.json"
+    },
+    {
+      "checkpoint": "R2k7b-cataclysm-remnant-offense-complete",
+      "notes_file": "cataclysm-r2k7b-remnant-offense.json"
     }
   ]
 }
