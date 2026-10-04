@@ -61,10 +61,17 @@ def validate_records(note):
             evidence = read_json(OUT / proof['evidence_file'])
             # Reference archives identify the artifact, then the exact class entry;
             # native archives identify each class witness separately.
-            witness = next(w for w in evidence['witnesses']
-                           if w.get('id', evidence.get('id')) == proof['witness_id']
-                           and w['entry'] == proof['entry'])
-            assert witness['entry'] == proof['entry']
+            if proof.get('evidence_format') == 'VANILLA_COMPARISON':
+                assert evidence['version'] == '1.21.1'
+                witness = next(w for w in evidence['classes']
+                               if w['class_name'] == proof['witness_id']
+                               and w['raw_entry'] == proof['entry'])
+                assert witness['raw_entry'] == proof['entry']
+            else:
+                witness = next(w for w in evidence['witnesses']
+                               if w.get('id', evidence.get('id')) == proof['witness_id']
+                               and w['entry'] == proof['entry'])
+                assert witness['entry'] == proof['entry']
             assert set(proof['methods']) <= {m['name'] for m in witness['methods']}
     assert dict(sorted(Counter(r['primary_classification'] for r in rows).items())) == note['classification_counts']
     assert sum(len(c['parameters']) for r in rows for c in r['scalable_parameter_candidates']) == note['candidate_numeric_parameter_count']
