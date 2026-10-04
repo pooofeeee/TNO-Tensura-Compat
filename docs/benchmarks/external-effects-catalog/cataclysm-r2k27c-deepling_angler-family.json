@@ -1,0 +1,352 @@
+{
+  "schema": "tno.external_effects.cataclysm_family_checkpoint.v1",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "cataclysm",
+  "checkpoint": "R2k27c-cataclysm-deepling_angler-family-complete",
+  "previous_checkpoint": "R2k27b-cataclysm-coral_golem-family-complete",
+  "starting_sha": "56a719d16dd81e156e65f333c85dc43dc0ebf93e",
+  "protected_production_sha": "eb37f0bfc0e7aa863632f163881566c0ae2a8701",
+  "status": "PARTIAL",
+  "scope": "Angler inherited AbstractDeepling admission, equipment/spawn/leashed Lionfish, delayed melee/hug and true-hurt Poison; directly reached Lionfish independent Monster admission/retaliation/air/bite/death-spikes/owner/Poison/lifecycle and aquatic control.",
+  "family_size": "MEDIUM_COMBINED_DIRECT_SPAWN_DEPENDENCY",
+  "family_fully_closed": true,
+  "mechanics_closed": 15,
+  "mechanic_ids": [
+    "cataclysm:deepling_angler_aquatic",
+    "cataclysm:deepling_angler_attack_selection",
+    "cataclysm:deepling_angler_hug_damage",
+    "cataclysm:deepling_angler_hug_poison",
+    "cataclysm:deepling_angler_lionfish_air",
+    "cataclysm:deepling_angler_lionfish_bite",
+    "cataclysm:deepling_angler_lionfish_death_spikes",
+    "cataclysm:deepling_angler_lionfish_motion",
+    "cataclysm:deepling_angler_lionfish_retaliation",
+    "cataclysm:deepling_angler_lionfish_setup",
+    "cataclysm:deepling_angler_lionfish_spawn",
+    "cataclysm:deepling_angler_lionfish_spike_lifecycle",
+    "cataclysm:deepling_angler_lionfish_spike_payload",
+    "cataclysm:deepling_angler_melee",
+    "cataclysm:deepling_angler_setup"
+  ],
+  "classification_counts": {
+    "BINARY_MECHANIC": 5,
+    "CUSTOM_CONTROL": 2,
+    "VANILLA_COMPOSITE": 2,
+    "VANILLA_DIRECT": 2,
+    "VANILLA_LIKE_EXTENDED": 4
+  },
+  "candidate_numeric_parameter_count": 13,
+  "unresolved_ambiguities": [],
+  "facts": {
+    "native_dependency": "Angler finalize directly creates Lionfish; closing directly reached independent combat actor/payload in same bounded pass avoids repeated setup research.",
+    "sources": "Angler owns hug damage/Poison; Lionfish owns bite/thorns/death-spike; spike sources its own Poison. Leash never substitutes as damage ownership.",
+    "scheduling": "Angler goal has no NO_ANIMATION guard/reset; preserve literal native scheduling.",
+    "excluded": [
+      "Layer/onLandProgress presentation/audio/particle payload event/default item",
+      "Unused computed death-burst fan angle",
+      "Unrelated fishing-rod utility/items/families",
+      "No inherited AbstractDeepling assumptions for Lionfish"
+    ]
+  },
+  "specification_file": "native-specifications/cataclysm-deepling_angler-family.json",
+  "evidence_file": "native-evidence/cataclysm-deepling_angler-family.json",
+  "new_class_witnesses": 11,
+  "native_boundary_assertions": [
+    {
+      "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Deepling_Angler_Entity.class",
+      "method": "finalizeSpawn",
+      "instructions": [
+        {
+          "offset": 0,
+          "opcode": "0x2a",
+          "operand": null
+        }
+      ],
+      "contains": [
+        "LIONFISH",
+        "setLeashedTo",
+        "addFreshEntity"
+      ],
+      "excludes": [
+        "setTarget",
+        "setOwner"
+      ]
+    },
+    {
+      "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Deepling_Angler_Entity$AnimationMeleeAttackGoal.class",
+      "method": "checkAndPerformAttack",
+      "instructions": [],
+      "contains": [
+        "hugcooldown",
+        "100",
+        "DEEPLING_HUG"
+      ],
+      "excludes": [
+        "NO_ANIMATION",
+        "resetAttackCooldown"
+      ]
+    },
+    {
+      "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Deepling_Angler_Entity.class",
+      "method": "tick",
+      "instructions": [],
+      "contains": [
+        "POISON",
+        "60",
+        "addEffect",
+        "mobAttack"
+      ],
+      "excludes": []
+    },
+    {
+      "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Lionfish_Entity.class",
+      "method": "hurt",
+      "instructions": [],
+      "contains": [
+        "AVOIDS_GUARDIAN_THORNS",
+        "getDirectEntity",
+        "thorns",
+        "POISON",
+        "Monster.hurt"
+      ],
+      "excludes": [
+        "getEntity()"
+      ]
+    },
+    {
+      "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Lionfish_Entity.class",
+      "method": "die",
+      "instructions": [],
+      "contains": [
+        "Lionfish_Spike_Entity",
+        "isClientSide",
+        "shoot"
+      ],
+      "excludes": [
+        "setOwner"
+      ]
+    },
+    {
+      "entry": "com/github/L_Ender/cataclysm/entity/projectile/Lionfish_Spike_Entity.class",
+      "method": "onHitEntity",
+      "instructions": [],
+      "contains": [
+        "isAlliedTo",
+        "mobProjectile",
+        "POISON",
+        "60",
+        "addEffect"
+      ],
+      "excludes": []
+    },
+    {
+      "entry": "com/github/L_Ender/cataclysm/entity/projectile/Lionfish_Spike_Entity.class",
+      "method": "onHit",
+      "instructions": [],
+      "contains": [
+        "ThrowableItemProjectile.onHit",
+        "discard"
+      ],
+      "excludes": []
+    }
+  ],
+  "declared_method_checks": [
+    {
+      "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Deepling_Angler_Entity.class",
+      "absent": [
+        "hurt",
+        "isInvulnerableTo",
+        "die",
+        "tickDeath",
+        "DamageCap",
+        "DpsCap",
+        "RangeLimit",
+        "NatureRegen",
+        "setHomePos"
+      ]
+    },
+    {
+      "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Lionfish_Entity.class",
+      "absent": [
+        "DamageCap",
+        "DpsCap",
+        "RangeLimit",
+        "NatureRegen",
+        "setHomePos",
+        "isInvulnerableTo",
+        "checkSpawnRules"
+      ]
+    }
+  ],
+  "semantic_expectations": [
+    {
+      "id": "cataclysm:deepling_angler_setup",
+      "fields": {
+        "boss_defense_bindings": false,
+        "fishing_projectile": false
+      }
+    },
+    {
+      "id": "cataclysm:deepling_angler_lionfish_spawn",
+      "fields": {
+        "damage_owner_transferred": false
+      }
+    },
+    {
+      "id": "cataclysm:deepling_angler_attack_selection",
+      "fields": {
+        "no_animation_guard": false,
+        "native_cooldown_reset": false
+      }
+    },
+    {
+      "id": "cataclysm:deepling_angler_melee",
+      "fields": {}
+    },
+    {
+      "id": "cataclysm:deepling_angler_hug_damage",
+      "fields": {
+        "grab_control": false
+      }
+    },
+    {
+      "id": "cataclysm:deepling_angler_hug_poison",
+      "fields": {
+        "effect_source": "cataclysm:deepling_angler"
+      }
+    },
+    {
+      "id": "cataclysm:deepling_angler_aquatic",
+      "fields": {
+        "victim_force": false
+      }
+    },
+    {
+      "id": "cataclysm:deepling_angler_lionfish_setup",
+      "fields": {
+        "abstract_deepling_inherited": false
+      }
+    },
+    {
+      "id": "cataclysm:deepling_angler_lionfish_retaliation",
+      "fields": {
+        "trigger_actor": "DIRECT_ENTITY",
+        "incoming_hurt_acceptance_required": false
+      }
+    },
+    {
+      "id": "cataclysm:deepling_angler_lionfish_air",
+      "fields": {
+        "environment_candidates": false
+      }
+    },
+    {
+      "id": "cataclysm:deepling_angler_lionfish_bite",
+      "fields": {
+        "bite_poison": false,
+        "delivery_distance_recheck": false
+      }
+    },
+    {
+      "id": "cataclysm:deepling_angler_lionfish_death_spikes",
+      "fields": {
+        "fan_angle_used": false,
+        "leash_owner_copied": false
+      }
+    },
+    {
+      "id": "cataclysm:deepling_angler_lionfish_spike_payload",
+      "fields": {
+        "effect_source": "PROJECTILE",
+        "ownerless_poison": false
+      }
+    },
+    {
+      "id": "cataclysm:deepling_angler_lionfish_spike_lifecycle",
+      "fields": {
+        "custom_owner_cache": false
+      }
+    },
+    {
+      "id": "cataclysm:deepling_angler_lionfish_motion",
+      "fields": {
+        "victim_force": false
+      }
+    }
+  ],
+  "reference_files": [
+    {
+      "file": "cataclysm-r2k27b-coral_golem-family.json",
+      "sha256": "0e28664d2274744f3a30ab2ecb3152e0a74125b31121a9006d6acf7c008d92d5",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-source-census.json",
+      "sha256": "fee3dbcc15b068eddb6c53271146d2f04dcb72a5f183dc9a17be2d794ed68ead",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-deepling-family.json",
+      "sha256": "f6220050513352e68ebe34a8bda80000018cc8b5429570dcc041f32f6ae3a869",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-deepling_angler-family.json",
+      "sha256": "7d5b24870dca4f1c1b82aa533e1064cbf36c114311ac3998049c45aa3c78e7de",
+      "usage": "NEW_SCOPED"
+    },
+    {
+      "file": "native-evidence/cataclysm-draugar-family.json",
+      "sha256": "0fcd816023427d2cbf6128863d4cbe08e09b49b3baeb9ae6420638540d931c16",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-guardian-admission.json",
+      "sha256": "d652ad2ea9cd6d7ebf7f6d5424122199b74d6c4b355248affeae9e673dcdf067",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-ignited-berserker-admission.json",
+      "sha256": "3245fa6c18117d679c81bc54b2894303242eeab171663c8fe7cff815ca8f88ec",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-specifications/cataclysm-deepling_angler-family.json",
+      "sha256": "26909076766cf963e3eff924d25187751d194d404190670389b2429f3e4584c1",
+      "usage": "NEW_SCOPED"
+    },
+    {
+      "file": "reference-evidence/bomd-lich-244.json",
+      "sha256": "3e4fe188ca61382be082cfd85233e0b3351ecb5220773300efc383136805840d",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/bossesrise-knight-offense-244.json",
+      "sha256": "ed906fd31cd492fd157e4c9ba6f4e3271359ae4b2c650cd440c3fff1cc788002",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/twilight-minoshroom-knight-244.json",
+      "sha256": "c80393a79949951d3eb82b8ff72a52e2473abf769d7df18ef644f0d1ea62f804",
+      "usage": "LOCKED_REUSED"
+    }
+  ],
+  "intended_files": [
+    "docs/benchmarks/external-effects-catalog/cataclysm-r2k27c-deepling_angler-family.json",
+    "docs/benchmarks/external-effects-catalog/native-specifications/cataclysm-deepling_angler-family.json",
+    "docs/benchmarks/external-effects-catalog/native-evidence/cataclysm-deepling_angler-family.json",
+    "docs/benchmarks/external-effects-catalog/mod-reviews/cataclysm.json",
+    "docs/benchmarks/external-effects-catalog/mod-completion-ledger.json"
+  ],
+  "remaining_cataclysm_research": "Other native combat families, equipment/global special paths and discovery coverage audit remain unclosed; whole-mod ambiguities remain uncounted (null), not zero.",
+  "exact_next_task": "R2k27d: Deepling Brute complete combat family. Start only entity/Deepling/Deepling_Brute_Entity and directly used goals/payloads/material native registry/spawn/equipment paths. Reuse locked R2k27a shared AbstractDeepling contract, coral-spear carrier and completed Angler/Lionfish; defer Priest/Warlock to their own bounded passes. Static only; no Stage or unrelated equipment.",
+  "whole_mod_complete": false,
+  "runtime_tests": "NOT_RUN",
+  "stage_eligibility_decided": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "root_families_closed": [
+    "Deepling_Angler_Entity",
+    "Lionfish_Entity"
+  ]
+}
