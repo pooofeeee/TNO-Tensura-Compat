@@ -26,8 +26,13 @@ class FamilyTests(unittest.TestCase):
     def test_reject_wrong_candidate_primitive(self):
         review, rows = validator.records(self.note)
         corrupted = copy.deepcopy(rows)
-        row = next(r for r in corrupted if r['scalable_parameter_candidates'])
-        row['scalable_parameter_candidates'][0]['primitive'] = 'INVENTED_PRIMITIVE'
+        row = next((r for r in corrupted if r['scalable_parameter_candidates']), corrupted[0])
+        if row['scalable_parameter_candidates']:
+            row['scalable_parameter_candidates'][0]['primitive'] = 'INVENTED_PRIMITIVE'
+        else:
+            # Admission-only checkpoints must also reject an invented mapping.
+            row['scalable_parameter_candidates'] = [dict(
+                primitive='INVENTED_PRIMITIVE', parameters=['invented_parameter'])]
         with patch.object(validator, 'records', return_value=(review, corrupted)):
             with self.assertRaises(AssertionError):
                 validator.validate_records(self.note)

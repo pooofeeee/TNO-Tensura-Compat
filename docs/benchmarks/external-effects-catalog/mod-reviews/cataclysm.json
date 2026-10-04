@@ -2119,6 +2119,651 @@
       "charge_shield_disable_active": false
     },
     {
+      "id": "cataclysm:clawdian_combat_state_persistence",
+      "mod_key": "cataclysm",
+      "display_name": "Clawdian native held-block/backstep state and persistence",
+      "registry_ids": [
+        "cataclysm:clawdian"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Synced HOLD_STATE optional empty and BACKSTEP_METER0. setHoldBlock stores nullable optional, getHoldBlock null fallback; setBackstep stores raw int. Root save after parent writes holdBlockState only when nonnull and always backstep. Load after parent requires holdBlockState compound tag10, reads via native block registry, converts air to null, then raw getInt(backstep) without clamp. Raw ATTACK_STATE and local charge/wave/accretion/backstep cooldowns/self_regen/searchingForLand are not concrete-saved. Constructor initializes four cooldowns0. Positive cooldown decrement after parent tick on both sides; active writers/readers deferred to offense. Native state is neither generic persistence nor Stage progression.",
+      "human_summary": "Synced HOLD_STATE optional empty and BACKSTEP_METER0. setHoldBlock stores nullable optional, getHoldBlock null fallback; setBackstep stores raw int. Root save after parent writes holdBlockState only when nonnull and always backstep. Load after parent requires holdBlockState compound tag10, reads via native block registry, converts air to null, then raw getInt(backstep) without clamp. Raw ATTACK_STATE and local charge/wave/accretion/backstep cooldowns/self_regen/searchingForLand are not concrete-saved. Constructor initializes four cooldowns0. Positive cooldown decrement after parent tick on both sides; active writers/readers deferred to offense. Native state is neither generic persistence nor Stage progression.",
+      "closest_vanilla_equivalent": "Native synced/NBT combat state",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Synced HOLD_STATE optional empty and BACKSTEP_METER0. setHoldBlock stores nullable optional, getHoldBlock null fallback; setBackstep stores raw int. Root save after parent writes holdBlockState only when nonnull and always backstep. Load after parent requires holdBlockState compound tag10, reads via native block registry, converts air to null, then raw getInt(backstep) without clamp. Raw ATTACK_STATE and local charge/wave/accretion/backstep cooldowns/self_regen/searchingForLand are not concrete-saved. Constructor initializes four cooldowns0. Positive cooldown decrement after parent tick on both sides; active writers/readers deferred to offense. Native state is neither generic persistence nor Stage progression.",
+      "components": [
+        {
+          "primitive": "COMBAT_NBT",
+          "formula": "Optional held block and raw int backstep only; no Stage state",
+          "numerical_parameters": {
+            "default_backstep": 0
+          },
+          "parameter_units": {
+            "default_backstep": "native raw meter"
+          },
+          "binary_parameters": [],
+          "native_boundary": "synced/setters/NBT",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native optional blockstate/registry/tag type",
+        "Native raw synced setters and parent persistence"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native optional blockstate/registry/tag type; Native raw synced setters and parent persistence",
+      "source_actor": "Clawdian native state and held block identity.",
+      "hurt_return_dependency": "Persistence independent of hurt; only normal hurt-success path increments backstep.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-clawdian-admission.json",
+          "witness_id": "cataclysm:clawdian-family:entity/InternalAnimationMonster/AcropolisMonsters/Clawdian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AcropolisMonsters/Clawdian_Entity.class",
+          "methods": [
+            "defineSynchedData",
+            "getHoldBlock",
+            "setHoldBlock",
+            "getBackstep",
+            "setBackstep",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": [
+            "getAttackState",
+            "setAttackState",
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:clawdian-family:combat_state_persistence"
+      ],
+      "primary_test_source": "cataclysm:clawdian",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k20a-cataclysm-clawdian-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "COMBAT_NBT",
+          "parameter": "default_backstep",
+          "native_value": 0,
+          "native_formula": "Optional held block and raw int backstep only; no Stage state",
+          "units": "native raw meter",
+          "boundary": "synced/setters/NBT"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "concrete_nbt_keys": [
+        "holdBlockState",
+        "backstep"
+      ],
+      "raw_state_saved": false,
+      "cooldowns_saved": false
+    },
+    {
+      "id": "cataclysm:clawdian_hurt_backstep_state",
+      "mod_key": "cataclysm",
+      "display_name": "Clawdian native regen block and hurt-return backstep meter",
+      "registry_ids": [
+        "cataclysm:clawdian"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "After both concrete prefilters, BLOCK_SELF_REGEN source tag writes self_regen=80 before native parent hurt, regardless of the returned bool. Then only native hurt true and current backstep<10 invokes setBackstep(current+1). Native bool is returned unchanged. Raw setter accepts any int, without clamp; negative or >10 values loaded from NBT are not normalized, and threshold10 is an increment gate rather than a universal setter bound. Backstep is local combat state, not an automatic Stage scalar.",
+      "human_summary": "After both concrete prefilters, BLOCK_SELF_REGEN source tag writes self_regen=80 before native parent hurt, regardless of the returned bool. Then only native hurt true and current backstep<10 invokes setBackstep(current+1). Native bool is returned unchanged. Raw setter accepts any int, without clamp; negative or >10 values loaded from NBT are not normalized, and threshold10 is an increment gate rather than a universal setter bound. Backstep is local combat state, not an automatic Stage scalar.",
+      "closest_vanilla_equivalent": "Native hurt-return tracking and local state",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "After both concrete prefilters, BLOCK_SELF_REGEN source tag writes self_regen=80 before native parent hurt, regardless of the returned bool. Then only native hurt true and current backstep<10 invokes setBackstep(current+1). Native bool is returned unchanged. Raw setter accepts any int, without clamp; negative or >10 values loaded from NBT are not normalized, and threshold10 is an increment gate rather than a universal setter bound. Backstep is local combat state, not an automatic Stage scalar.",
+      "components": [
+        {
+          "primitive": "REGEN_BLOCK_STATE",
+          "formula": "Admitted BLOCK_SELF_REGEN tag writes80 before native hurt",
+          "numerical_parameters": {
+            "block_ticks": 80
+          },
+          "parameter_units": {
+            "block_ticks": "native ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "hurt",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "BACKSTEP_STATE",
+          "formula": "Native hurt true && raw meter<10 -> meter+1, setter itself unbounded",
+          "numerical_parameters": {
+            "increment_gate": 10,
+            "success_increment": 1
+          },
+          "parameter_units": {
+            "increment_gate": "native meter threshold",
+            "success_increment": "native meter units"
+          },
+          "binary_parameters": [],
+          "native_boundary": "hurt/getBackstep/setBackstep",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Concrete parry/rider prefilters",
+        "BLOCK_SELF_REGEN native tag",
+        "Native hurt bool",
+        "Native raw backstep threshold"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Concrete parry/rider prefilters; BLOCK_SELF_REGEN native tag; Native hurt bool; Native raw backstep threshold",
+      "source_actor": "Original source forwarded to parent; Clawdian native local combat meter.",
+      "hurt_return_dependency": "Regen timer set before hurt independently; meter increments only on hurt true.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-clawdian-admission.json",
+          "witness_id": "cataclysm:clawdian-family:entity/InternalAnimationMonster/AcropolisMonsters/Clawdian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AcropolisMonsters/Clawdian_Entity.class",
+          "methods": [
+            "hurt",
+            "getBackstep",
+            "setBackstep"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:clawdian-family:hurt_backstep_state"
+      ],
+      "primary_test_source": "cataclysm:clawdian",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k20a-cataclysm-clawdian-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "REGEN_BLOCK_STATE",
+          "parameter": "block_ticks",
+          "native_value": 80,
+          "native_formula": "Admitted BLOCK_SELF_REGEN tag writes80 before native hurt",
+          "units": "native ticks",
+          "boundary": "hurt"
+        },
+        {
+          "primitive": "BACKSTEP_STATE",
+          "parameter": "increment_gate",
+          "native_value": 10,
+          "native_formula": "Native hurt true && raw meter<10 -> meter+1, setter itself unbounded",
+          "units": "native meter threshold",
+          "boundary": "hurt/getBackstep/setBackstep"
+        },
+        {
+          "primitive": "BACKSTEP_STATE",
+          "parameter": "success_increment",
+          "native_value": 1,
+          "native_formula": "Native hurt true && raw meter<10 -> meter+1, setter itself unbounded",
+          "units": "native meter units",
+          "boundary": "hurt/getBackstep/setBackstep"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "regen_block_requires_hurt_success": false,
+      "backstep_requires_hurt_success": true,
+      "backstep_setter_clamps": false
+    },
+    {
+      "id": "cataclysm:clawdian_incoming_parry",
+      "mod_key": "cataclysm",
+      "display_name": "Clawdian raw charge-phase directional parry",
+      "registry_ids": [
+        "cataclysm:clawdian"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Incoming hurt reads source.direct entity and first tests canBlockDamageSource. Raw ATTACK_STATE5, !BYPASSES_SHIELD and nonnull source position: normalize sourcePosition->self in 3D then zero Y without renormalization, dot viewVector(1F)<0 -> return false without parent hurt. No incoming amount positivity check, shield item/use/elapsed-use gate, direct-arrow piercing exclusion or BYPASSES_INVULNERABILITY exception. The local boolean flag in canBlockDamageSource is constant false, not a second runtime state. This native admission gate is distinct from attack damage and held-victim immunity.",
+      "human_summary": "Incoming hurt reads source.direct entity and first tests canBlockDamageSource. Raw ATTACK_STATE5, !BYPASSES_SHIELD and nonnull source position: normalize sourcePosition->self in 3D then zero Y without renormalization, dot viewVector(1F)<0 -> return false without parent hurt. No incoming amount positivity check, shield item/use/elapsed-use gate, direct-arrow piercing exclusion or BYPASSES_INVULNERABILITY exception. The local boolean flag in canBlockDamageSource is constant false, not a second runtime state. This native admission gate is distinct from attack damage and held-victim immunity.",
+      "closest_vanilla_equivalent": "Native shield-like direction/tag gate with custom raw-state admission",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Incoming hurt reads source.direct entity and first tests canBlockDamageSource. Raw ATTACK_STATE5, !BYPASSES_SHIELD and nonnull source position: normalize sourcePosition->self in 3D then zero Y without renormalization, dot viewVector(1F)<0 -> return false without parent hurt. No incoming amount positivity check, shield item/use/elapsed-use gate, direct-arrow piercing exclusion or BYPASSES_INVULNERABILITY exception. The local boolean flag in canBlockDamageSource is constant false, not a second runtime state. This native admission gate is distinct from attack damage and held-victim immunity.",
+      "components": [
+        {
+          "primitive": "DAMAGE_ADMISSION",
+          "formula": "raw5 && !BYPASSES_SHIELD && sourcePosition && dot<0 rejects before parent hurt",
+          "numerical_parameters": {
+            "raw_state": 5
+          },
+          "parameter_units": {
+            "raw_state": "native binary phase ID"
+          },
+          "binary_parameters": [],
+          "native_boundary": "hurt/canBlockDamageSource",
+          "vanilla_relation": "EXTENDED"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Raw ATTACK_STATE5",
+        "Native BYPASSES_SHIELD",
+        "Native source position/direction"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Raw ATTACK_STATE5; Native BYPASSES_SHIELD; Native source position/direction",
+      "source_actor": "Original incoming source/direct/causing actors untouched; direction from native source position.",
+      "hurt_return_dependency": "Parry returns false before all remaining incoming logic.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-clawdian-admission.json",
+          "witness_id": "cataclysm:clawdian-family:entity/InternalAnimationMonster/AcropolisMonsters/Clawdian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AcropolisMonsters/Clawdian_Entity.class",
+          "methods": [
+            "hurt",
+            "canBlockDamageSource"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": [
+            "getAttackState",
+            "setAttackState",
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:clawdian-family:incoming_parry"
+      ],
+      "primary_test_source": "cataclysm:clawdian",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k20a-cataclysm-clawdian-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "DAMAGE_ADMISSION",
+          "parameter": "raw_state",
+          "native_value": 5,
+          "native_formula": "raw5 && !BYPASSES_SHIELD && sourcePosition && dot<0 rejects before parent hurt",
+          "units": "native binary phase ID",
+          "boundary": "hurt/canBlockDamageSource"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "parry_checks_positive_amount": false,
+      "parry_checks_arrow_piercing": false,
+      "defensive_value_is_stage_candidate": false
+    },
+    {
+      "id": "cataclysm:clawdian_native_regeneration",
+      "mod_key": "cataclysm",
+      "display_name": "Clawdian targetless native self-healing",
+      "registry_ids": [
+        "cataclysm:clawdian"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Concrete NatureRegen returns float(CMCommonConfig.Clawdian.natureHeal), installed static snapshot25. Server tick after parent: !NoAI, self_regen<=0, repeated !NoAI, regen>0, target null and global tickCount%20==0 -> native heal(regen). No additional local wounded/alive/home/phase restriction. Positive self_regen decrements after this heal check on both sides. Native heal admission/event cancellation remains authoritative. This local regenerative defense is not the inherited shared boss NatureRegen contract and is not automatically a Stage candidate.",
+      "human_summary": "Concrete NatureRegen returns float(CMCommonConfig.Clawdian.natureHeal), installed static snapshot25. Server tick after parent: !NoAI, self_regen<=0, repeated !NoAI, regen>0, target null and global tickCount%20==0 -> native heal(regen). No additional local wounded/alive/home/phase restriction. Positive self_regen decrements after this heal check on both sides. Native heal admission/event cancellation remains authoritative. This local regenerative defense is not the inherited shared boss NatureRegen contract and is not automatically a Stage candidate.",
+      "closest_vanilla_equivalent": "Native LivingEntity.heal with custom targetless timer predicate",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Concrete NatureRegen returns float(CMCommonConfig.Clawdian.natureHeal), installed static snapshot25. Server tick after parent: !NoAI, self_regen<=0, repeated !NoAI, regen>0, target null and global tickCount%20==0 -> native heal(regen). No additional local wounded/alive/home/phase restriction. Positive self_regen decrements after this heal check on both sides. Native heal admission/event cancellation remains authoritative. This local regenerative defense is not the inherited shared boss NatureRegen contract and is not automatically a Stage candidate.",
+      "components": [
+        {
+          "primitive": "NATIVE_HEAL_REQUEST",
+          "formula": "server && !NoAI && timer<=0 && regen>0 && targetnull && globaltick%20==0 -> heal(floatconfig)",
+          "numerical_parameters": {
+            "installed_heal": 25.0,
+            "cadence": 20
+          },
+          "parameter_units": {
+            "installed_heal": "HP native request snapshot",
+            "cadence": "native ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "NatureRegen/tick",
+          "vanilla_relation": "EXTENDED"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Server/NoAI/targetless/native timer",
+        "Native heal/events",
+        "Installed config snapshot only"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Server/NoAI/targetless/native timer; Native heal/events; Installed config snapshot only",
+      "source_actor": "Clawdian self-heal, no external owner/progression inference.",
+      "hurt_return_dependency": "Heal independent of incoming hurt; prior admitted tag can delay it.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-clawdian-admission.json",
+          "witness_id": "cataclysm:clawdian-family:entity/InternalAnimationMonster/AcropolisMonsters/Clawdian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AcropolisMonsters/Clawdian_Entity.class",
+          "methods": [
+            "NatureRegen",
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:clawdian-family:native_regeneration"
+      ],
+      "primary_test_source": "cataclysm:clawdian",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k20a-cataclysm-clawdian-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_HEAL_REQUEST",
+          "parameter": "installed_heal",
+          "native_value": 25.0,
+          "native_formula": "server && !NoAI && timer<=0 && regen>0 && targetnull && globaltick%20==0 -> heal(floatconfig)",
+          "units": "HP native request snapshot",
+          "boundary": "NatureRegen/tick"
+        },
+        {
+          "primitive": "NATIVE_HEAL_REQUEST",
+          "parameter": "cadence",
+          "native_value": 20,
+          "native_formula": "server && !NoAI && timer<=0 && regen>0 && targetnull && globaltick%20==0 -> heal(floatconfig)",
+          "units": "native ticks",
+          "boundary": "NatureRegen/tick"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "shared_boss_regen_binding": false,
+      "defensive_value_is_stage_candidate": false
+    },
+    {
+      "id": "cataclysm:clawdian_native_setup_environment",
+      "mod_key": "cataclysm",
+      "display_name": "Clawdian configured construction and environment/status prerequisites",
+      "registry_ids": [
+        "cataclysm:clawdian"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Factory binds Clawdian constructor, categoryMONSTER size2.5F x4.5F/eye4.4F/tracking10/fireImmune. Base attributes follow30, speed.28F, attack16, HP225, armor12, toughness3, step2.5, KBR1. Constructor locked setConfigattribute applies health/attack multipliers, installed1/1 snapshot; no boss cap/DPS/range/Home bindings. Native land/water navigators and malus rail/water/waterBorder0; their active combat movement deferred to offense. No root spawn/home/phase prerequisite override and no Clawdian registerSpawnPlacements entry (reuse complete existing registration witnesses). decreaseAirSupply returns unchanged, isAffectedByFluids true, isPushedByFluid false, canRide false, far/peaceful despawn false. Locked canBeAffected rejects exact STUN/ABYSSAL_CURSE before parent. Native fire immunity, armor/defenses/status/encounter setup are distinct from offense and not automatic numeric Stage candidates.",
+      "human_summary": "Factory binds Clawdian constructor, categoryMONSTER size2.5F x4.5F/eye4.4F/tracking10/fireImmune. Base attributes follow30, speed.28F, attack16, HP225, armor12, toughness3, step2.5, KBR1. Constructor locked setConfigattribute applies health/attack multipliers, installed1/1 snapshot; no boss cap/DPS/range/Home bindings. Native land/water navigators and malus rail/water/waterBorder0; their active combat movement deferred to offense. No root spawn/home/phase prerequisite override and no Clawdian registerSpawnPlacements entry (reuse complete existing registration witnesses). decreaseAirSupply returns unchanged, isAffectedByFluids true, isPushedByFluid false, canRide false, far/peaceful despawn false. Locked canBeAffected rejects exact STUN/ABYSSAL_CURSE before parent. Native fire immunity, armor/defenses/status/encounter setup are distinct from offense and not automatic numeric Stage candidates.",
+      "closest_vanilla_equivalent": "Native attributes/configuration, fire immunity and environmental admission",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Factory binds Clawdian constructor, categoryMONSTER size2.5F x4.5F/eye4.4F/tracking10/fireImmune. Base attributes follow30, speed.28F, attack16, HP225, armor12, toughness3, step2.5, KBR1. Constructor locked setConfigattribute applies health/attack multipliers, installed1/1 snapshot; no boss cap/DPS/range/Home bindings. Native land/water navigators and malus rail/water/waterBorder0; their active combat movement deferred to offense. No root spawn/home/phase prerequisite override and no Clawdian registerSpawnPlacements entry (reuse complete existing registration witnesses). decreaseAirSupply returns unchanged, isAffectedByFluids true, isPushedByFluid false, canRide false, far/peaceful despawn false. Locked canBeAffected rejects exact STUN/ABYSSAL_CURSE before parent. Native fire immunity, armor/defenses/status/encounter setup are distinct from offense and not automatic numeric Stage candidates.",
+      "components": [
+        {
+          "primitive": "ENTITY_ATTRIBUTES",
+          "formula": "Base builder and locked configured health/attack modifier",
+          "numerical_parameters": {
+            "follow": 30.0,
+            "speed": 0.2800000011920929,
+            "attack_base": 16.0,
+            "health_base": 225.0,
+            "armor": 12.0,
+            "toughness": 3.0,
+            "step_height": 2.5,
+            "knockback_resistance": 1.0
+          },
+          "parameter_units": {
+            "follow": "blocks",
+            "speed": "native attribute",
+            "attack_base": "native attribute base",
+            "health_base": "HP",
+            "armor": "native attribute",
+            "toughness": "native attribute",
+            "step_height": "blocks",
+            "knockback_resistance": "native attribute"
+          },
+          "binary_parameters": [],
+          "native_boundary": "clawdian/constructor",
+          "vanilla_relation": "DIRECT"
+        },
+        {
+          "primitive": "NATIVE_ENVIRONMENT",
+          "formula": "Fire-immune factory; no air depletion/fluid push, parent status gates",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "factory/environment/canBeAffected",
+          "vanilla_relation": "EXTENDED"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native config/factory/attributes",
+        "Native environment and exact status immunity",
+        "Native parent defenses; no invented encounter requirement"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native config/factory/attributes; Native environment and exact status immunity; Native parent defenses; no invented encounter requirement",
+      "source_actor": "Native configured Clawdian constructor and native environmental admission.",
+      "hurt_return_dependency": "No outgoing hurt request in setup.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-clawdian-admission.json",
+          "witness_id": "cataclysm:clawdian-family:entity/InternalAnimationMonster/AcropolisMonsters/Clawdian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AcropolisMonsters/Clawdian_Entity.class",
+          "methods": [
+            "clawdian",
+            "<init>",
+            "decreaseAirSupply",
+            "isAffectedByFluids",
+            "isPushedByFluid",
+            "canRide",
+            "removeWhenFarAway",
+            "shouldDespawnInPeaceful"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-clawdian-admission.json",
+          "witness_id": "cataclysm:clawdian-family:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$95",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "setConfigattribute"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AcropolisMonsters/Clawdian_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AcropolisMonsters/Clawdian_Entity.class",
+          "methods": [
+            "canBeAffected"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-admission.json",
+          "witness_id": "cataclysm:guardian-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "initializeAttributes"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-draugar-family.json",
+          "witness_id": "cataclysm:draugar-family:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "registerSpawnPlacements"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-berserker-admission.json",
+          "witness_id": "cataclysm:ignited-berserker-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "registerSpawnPlacements"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:clawdian-family:native_setup_environment"
+      ],
+      "primary_test_source": "cataclysm:clawdian",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k20a-cataclysm-clawdian-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "ENTITY_ATTRIBUTES",
+          "parameter": "follow",
+          "native_value": 30.0,
+          "native_formula": "Base builder and locked configured health/attack modifier",
+          "units": "blocks",
+          "boundary": "clawdian/constructor"
+        },
+        {
+          "primitive": "ENTITY_ATTRIBUTES",
+          "parameter": "speed",
+          "native_value": 0.2800000011920929,
+          "native_formula": "Base builder and locked configured health/attack modifier",
+          "units": "native attribute",
+          "boundary": "clawdian/constructor"
+        },
+        {
+          "primitive": "ENTITY_ATTRIBUTES",
+          "parameter": "attack_base",
+          "native_value": 16.0,
+          "native_formula": "Base builder and locked configured health/attack modifier",
+          "units": "native attribute base",
+          "boundary": "clawdian/constructor"
+        },
+        {
+          "primitive": "ENTITY_ATTRIBUTES",
+          "parameter": "health_base",
+          "native_value": 225.0,
+          "native_formula": "Base builder and locked configured health/attack modifier",
+          "units": "HP",
+          "boundary": "clawdian/constructor"
+        },
+        {
+          "primitive": "ENTITY_ATTRIBUTES",
+          "parameter": "armor",
+          "native_value": 12.0,
+          "native_formula": "Base builder and locked configured health/attack modifier",
+          "units": "native attribute",
+          "boundary": "clawdian/constructor"
+        },
+        {
+          "primitive": "ENTITY_ATTRIBUTES",
+          "parameter": "toughness",
+          "native_value": 3.0,
+          "native_formula": "Base builder and locked configured health/attack modifier",
+          "units": "native attribute",
+          "boundary": "clawdian/constructor"
+        },
+        {
+          "primitive": "ENTITY_ATTRIBUTES",
+          "parameter": "step_height",
+          "native_value": 2.5,
+          "native_formula": "Base builder and locked configured health/attack modifier",
+          "units": "blocks",
+          "boundary": "clawdian/constructor"
+        },
+        {
+          "primitive": "ENTITY_ATTRIBUTES",
+          "parameter": "knockback_resistance",
+          "native_value": 1.0,
+          "native_formula": "Base builder and locked configured health/attack modifier",
+          "units": "native attribute",
+          "boundary": "clawdian/constructor"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "factory_fire_immune": true,
+      "home_binding": false,
+      "concrete_invulnerability_override": false,
+      "shared_boss_caps_bound": false
+    },
+    {
+      "id": "cataclysm:clawdian_rider_admission",
+      "mod_key": "cataclysm",
+      "display_name": "Clawdian first-passenger direct-source admission",
+      "registry_ids": [
+        "cataclysm:clawdian"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "After directional parry, if passenger list nonempty and first passenger equals incoming source.direct entity, reject false before regen block/native hurt. No raw-state, damage amount, source.causing or bypass-tag condition. Other passengers are not tested. Original source/amount handed unchanged to native parent only after both concrete prefilters. No boss DamageCap/DpsCap/RangeLimit binding or shared boss DPS bucket in this Internal_Animation_Monster hierarchy. Numeric cap settings in installed config are not proof of an active defensive binding.",
+      "human_summary": "After directional parry, if passenger list nonempty and first passenger equals incoming source.direct entity, reject false before regen block/native hurt. No raw-state, damage amount, source.causing or bypass-tag condition. Other passengers are not tested. Original source/amount handed unchanged to native parent only after both concrete prefilters. No boss DamageCap/DpsCap/RangeLimit binding or shared boss DPS bucket in this Internal_Animation_Monster hierarchy. Numeric cap settings in installed config are not proof of an active defensive binding.",
+      "closest_vanilla_equivalent": "Native incoming source and passenger state with custom exclusion",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "After directional parry, if passenger list nonempty and first passenger equals incoming source.direct entity, reject false before regen block/native hurt. No raw-state, damage amount, source.causing or bypass-tag condition. Other passengers are not tested. Original source/amount handed unchanged to native parent only after both concrete prefilters. No boss DamageCap/DpsCap/RangeLimit binding or shared boss DPS bucket in this Internal_Animation_Monster hierarchy. Numeric cap settings in installed config are not proof of an active defensive binding.",
+      "components": [
+        {
+          "primitive": "DAMAGE_ADMISSION",
+          "formula": "First passenger==source.direct rejects after parry, before block-regen/native hurt",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "hurt",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native first passenger/direct entity equality",
+        "Native parent defenses/armor/events"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native first passenger/direct entity equality; Native parent defenses/armor/events",
+      "source_actor": "Original native source; direct actor distinct from causing actor.",
+      "hurt_return_dependency": "Rejected requests do not set regen block or backstep.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-clawdian-admission.json",
+          "witness_id": "cataclysm:clawdian-family:entity/InternalAnimationMonster/AcropolisMonsters/Clawdian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AcropolisMonsters/Clawdian_Entity.class",
+          "methods": [
+            "hurt"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": [
+            "getAttackState",
+            "setAttackState",
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:clawdian-family:rider_admission"
+      ],
+      "primary_test_source": "cataclysm:clawdian",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k20a-cataclysm-clawdian-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "rider_uses_direct_entity": true,
+      "rider_bypass_exception": false,
+      "boss_bindings_applicable": false
+    },
+    {
       "id": "cataclysm:coralssus_alliance_death",
       "mod_key": "cataclysm",
       "display_name": "Coralssus bounded alliance/death/payload closure",
@@ -85766,6 +86411,254 @@
       "runtime_status": "NOT_RUN"
     },
     {
+      "id": "cataclysm:clawdian-family:combat_state_persistence",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:clawdian_combat_state_persistence"
+      ],
+      "primary_source": "cataclysm:clawdian",
+      "native_path": "Synced HOLD_STATE optional empty and BACKSTEP_METER0. setHoldBlock stores nullable optional, getHoldBlock null fallback; setBackstep stores raw int. Root save after parent writes holdBlockState only when nonnull and always backstep. Load after parent requires holdBlockState compound tag10, reads via native block registry, converts air to null, then raw getInt(backstep) without clamp. Raw ATTACK_STATE and local charge/wave/accretion/backstep cooldowns/self_regen/searchingForLand are not concrete-saved. Constructor initializes four cooldowns0. Positive cooldown decrement after parent tick on both sides; active writers/readers deferred to offense. Native state is neither generic persistence nor Stage progression.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-clawdian-admission.json",
+          "witness_id": "cataclysm:clawdian-family:entity/InternalAnimationMonster/AcropolisMonsters/Clawdian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AcropolisMonsters/Clawdian_Entity.class",
+          "methods": [
+            "defineSynchedData",
+            "getHoldBlock",
+            "setHoldBlock",
+            "getBackstep",
+            "setBackstep",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": [
+            "getAttackState",
+            "setAttackState",
+            "tick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:clawdian-family:hurt_backstep_state",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:clawdian_hurt_backstep_state"
+      ],
+      "primary_source": "cataclysm:clawdian",
+      "native_path": "After both concrete prefilters, BLOCK_SELF_REGEN source tag writes self_regen=80 before native parent hurt, regardless of the returned bool. Then only native hurt true and current backstep<10 invokes setBackstep(current+1). Native bool is returned unchanged. Raw setter accepts any int, without clamp; negative or >10 values loaded from NBT are not normalized, and threshold10 is an increment gate rather than a universal setter bound. Backstep is local combat state, not an automatic Stage scalar.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-clawdian-admission.json",
+          "witness_id": "cataclysm:clawdian-family:entity/InternalAnimationMonster/AcropolisMonsters/Clawdian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AcropolisMonsters/Clawdian_Entity.class",
+          "methods": [
+            "hurt",
+            "getBackstep",
+            "setBackstep"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:clawdian-family:incoming_parry",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:clawdian_incoming_parry"
+      ],
+      "primary_source": "cataclysm:clawdian",
+      "native_path": "Incoming hurt reads source.direct entity and first tests canBlockDamageSource. Raw ATTACK_STATE5, !BYPASSES_SHIELD and nonnull source position: normalize sourcePosition->self in 3D then zero Y without renormalization, dot viewVector(1F)<0 -> return false without parent hurt. No incoming amount positivity check, shield item/use/elapsed-use gate, direct-arrow piercing exclusion or BYPASSES_INVULNERABILITY exception. The local boolean flag in canBlockDamageSource is constant false, not a second runtime state. This native admission gate is distinct from attack damage and held-victim immunity.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-clawdian-admission.json",
+          "witness_id": "cataclysm:clawdian-family:entity/InternalAnimationMonster/AcropolisMonsters/Clawdian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AcropolisMonsters/Clawdian_Entity.class",
+          "methods": [
+            "hurt",
+            "canBlockDamageSource"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": [
+            "getAttackState",
+            "setAttackState",
+            "tick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:clawdian-family:native_regeneration",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:clawdian_native_regeneration"
+      ],
+      "primary_source": "cataclysm:clawdian",
+      "native_path": "Concrete NatureRegen returns float(CMCommonConfig.Clawdian.natureHeal), installed static snapshot25. Server tick after parent: !NoAI, self_regen<=0, repeated !NoAI, regen>0, target null and global tickCount%20==0 -> native heal(regen). No additional local wounded/alive/home/phase restriction. Positive self_regen decrements after this heal check on both sides. Native heal admission/event cancellation remains authoritative. This local regenerative defense is not the inherited shared boss NatureRegen contract and is not automatically a Stage candidate.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-clawdian-admission.json",
+          "witness_id": "cataclysm:clawdian-family:entity/InternalAnimationMonster/AcropolisMonsters/Clawdian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AcropolisMonsters/Clawdian_Entity.class",
+          "methods": [
+            "NatureRegen",
+            "tick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:clawdian-family:native_setup_environment",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:clawdian_native_setup_environment"
+      ],
+      "primary_source": "cataclysm:clawdian",
+      "native_path": "Factory binds Clawdian constructor, categoryMONSTER size2.5F x4.5F/eye4.4F/tracking10/fireImmune. Base attributes follow30, speed.28F, attack16, HP225, armor12, toughness3, step2.5, KBR1. Constructor locked setConfigattribute applies health/attack multipliers, installed1/1 snapshot; no boss cap/DPS/range/Home bindings. Native land/water navigators and malus rail/water/waterBorder0; their active combat movement deferred to offense. No root spawn/home/phase prerequisite override and no Clawdian registerSpawnPlacements entry (reuse complete existing registration witnesses). decreaseAirSupply returns unchanged, isAffectedByFluids true, isPushedByFluid false, canRide false, far/peaceful despawn false. Locked canBeAffected rejects exact STUN/ABYSSAL_CURSE before parent. Native fire immunity, armor/defenses/status/encounter setup are distinct from offense and not automatic numeric Stage candidates.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-clawdian-admission.json",
+          "witness_id": "cataclysm:clawdian-family:entity/InternalAnimationMonster/AcropolisMonsters/Clawdian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AcropolisMonsters/Clawdian_Entity.class",
+          "methods": [
+            "clawdian",
+            "<init>",
+            "decreaseAirSupply",
+            "isAffectedByFluids",
+            "isPushedByFluid",
+            "canRide",
+            "removeWhenFarAway",
+            "shouldDespawnInPeaceful"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-clawdian-admission.json",
+          "witness_id": "cataclysm:clawdian-family:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$95",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "setConfigattribute"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AcropolisMonsters/Clawdian_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AcropolisMonsters/Clawdian_Entity.class",
+          "methods": [
+            "canBeAffected"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-admission.json",
+          "witness_id": "cataclysm:guardian-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "initializeAttributes"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-draugar-family.json",
+          "witness_id": "cataclysm:draugar-family:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "registerSpawnPlacements"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-berserker-admission.json",
+          "witness_id": "cataclysm:ignited-berserker-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "registerSpawnPlacements"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:clawdian-family:rider_admission",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:clawdian_rider_admission"
+      ],
+      "primary_source": "cataclysm:clawdian",
+      "native_path": "After directional parry, if passenger list nonempty and first passenger equals incoming source.direct entity, reject false before regen block/native hurt. No raw-state, damage amount, source.causing or bypass-tag condition. Other passengers are not tested. Original source/amount handed unchanged to native parent only after both concrete prefilters. No boss DamageCap/DpsCap/RangeLimit binding or shared boss DPS bucket in this Internal_Animation_Monster hierarchy. Numeric cap settings in installed config are not proof of an active defensive binding.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-clawdian-admission.json",
+          "witness_id": "cataclysm:clawdian-family:entity/InternalAnimationMonster/AcropolisMonsters/Clawdian_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AcropolisMonsters/Clawdian_Entity.class",
+          "methods": [
+            "hurt"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": [
+            "getAttackState",
+            "setAttackState",
+            "tick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
       "id": "cataclysm:coralssus-family:alliance_death",
       "mod_key": "cataclysm",
       "status": "VERIFIED",
@@ -106155,10 +107048,10 @@
   ],
   "unresolved_native_ambiguities": null,
   "remaining_native_ambiguities": null,
-  "checkpoint": "R2k19-cataclysm-draugar-family-complete",
-  "scope": "Combined ordinary, Royal and Elite Draugar native admission, combat equipment, melee, Royal shield and Elite crossbow state/delivery/payload family. Distinct roots and native boundaries remain independent.",
-  "notes_file": "cataclysm-r2k19-draugar-family.json",
-  "exact_next_task": "R2k20a: Clawdian incoming admission and native combat-state/setup prerequisites. Start from entity/InternalAnimationMonster/AcropolisMonsters/Clawdian_Entity and its inherited Internal_Animation_Monster contract; inspect only hurt/invulnerability, concrete defensive/regen bindings, combat-relevant state/NBT/environment and material factory/spawn setup. Existing census sizes this as a large family (51 declared methods, 6525 bytecode bytes; aiStep 1773), so defer AreaAttack, HoldAttack, BlockSmashDamage, ChargeBlockBreaking and directly-owned offense/payloads to R2k20b. Reuse all locked completed families; static research only, no Stage or unrelated equipment.",
+  "checkpoint": "R2k20a-cataclysm-clawdian-admission-complete",
+  "scope": "Clawdian incoming parry/rider/native hurt, local return-dependent backstep meter, native self-regeneration, raw state/persistence and material native construction/environment prerequisites. Offense/control/payloads deferred to R2k20b.",
+  "notes_file": "cataclysm-r2k20a-clawdian-admission.json",
+  "exact_next_task": "R2k20b: Clawdian offense/payload family. Close tick repulsion, aiStep and directly-used goals/raw state/cooldowns, AreaAttack, HoldAttack, BlockSmashDamage, ChargeBlockBreaking, blockedByShield, held-victim control, movement/navigation, Wave_Entity and directly reached debris, owner/team/return/lifecycle/terrain/death callbacks. Reuse locked R2k20a admission/state/NBT/config/factory and all prior shared/status/family contracts. Static only; no Stage or unrelated equipment.",
   "protected_checkpoint": "R2k3a-cataclysm-guardian-admission-complete",
   "protected_notes_file": "cataclysm-r2k3a-guardian-admission.json",
   "protected_checkpoints": [
@@ -106273,6 +107166,10 @@
     {
       "checkpoint": "R2k18-cataclysm-aptrgangr-family-complete",
       "notes_file": "cataclysm-r2k18-aptrgangr-family.json"
+    },
+    {
+      "checkpoint": "R2k19-cataclysm-draugar-family-complete",
+      "notes_file": "cataclysm-r2k19-draugar-family.json"
     }
   ]
 }
