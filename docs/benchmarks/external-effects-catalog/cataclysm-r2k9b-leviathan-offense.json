@@ -1,0 +1,2286 @@
+{
+  "schema": "tno.external_effects.cataclysm_leviathan_offense.v1",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "cataclysm",
+  "checkpoint": "R2k9b-cataclysm-leviathan-offense-complete",
+  "previous_checkpoint": "R2k9a-cataclysm-leviathan-admission-complete",
+  "starting_sha": "4f31fffddda43e955dc7adf1c26a9cbe6647ba92",
+  "status": "PARTIAL",
+  "scope": "Bounded Leviathan attack/goal/sequence and native water/rush steering, bite/tentacle/tail/hold/grab control, ordinary/portal beams, orbs/mines/rifts/stuck portals/tongue, sources/team/return/lifecycle, directly reached terrain and death callbacks closed. Reuse R2k9a and prior shared/status/families; private uncalled helpers not promoted to active mechanics. Leviathan family closed; Cataclysm PARTIAL.",
+  "summary": {
+    "new_mechanics": 45,
+    "delivery_paths": 45,
+    "classifications": {
+      "BINARY_MECHANIC": 13,
+      "CUSTOM_CONTROL": 11,
+      "CUSTOM_DAMAGE": 9,
+      "VANILLA_COMPOSITE": 3,
+      "VANILLA_DIRECT": 4,
+      "VANILLA_LIKE_EXTENDED": 5
+    },
+    "candidate_numeric_parameters": 107,
+    "unresolved_subsection_ambiguities": 0,
+    "new_owned_payload_classes": 8,
+    "reused_non_damage_debris_classes": 1
+  },
+  "payload_entities": [
+    {
+      "entity_id": "cataclysm:abyss_blast",
+      "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/Abyss_Blast_Entity.class",
+      "role": "OWNED_BEAM",
+      "source_mechanic_ids": [
+        "cataclysm:leviathan_beam_burst_delivery",
+        "cataclysm:leviathan_beam_single_delivery",
+        "cataclysm:leviathan_held_beam_delivery"
+      ],
+      "payload_mechanic_ids": [
+        "cataclysm:leviathan_beam_contact",
+        "cataclysm:leviathan_beam_geometry",
+        "cataclysm:leviathan_beam_lifecycle",
+        "cataclysm:leviathan_beam_terrain"
+      ],
+      "source_actor": "Both custom Entity beams supply direct beam and causing native caster; no Projectile owner supercontract.; Ordinary follows Leviathan caster; portal beam uses its launch orientation.; Caster field/ID not persistent; ordinary snapshot saved, portal damage snapshot not saved.; Native beam is grief actor; caster separate.",
+      "native_lifecycle": "Native Entity warmup/on/caster; ordinary damage saved, caster unsaved."
+    },
+    {
+      "entity_id": "cataclysm:abyss_blast_portal",
+      "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/Abyss_Blast_Portal_Entity.class",
+      "role": "OWNED_DELAYED_DELIVERY",
+      "source_mechanic_ids": [
+        "cataclysm:leviathan_blast_portal_delivery"
+      ],
+      "payload_mechanic_ids": [
+        "cataclysm:leviathan_blast_portal_lifecycle"
+      ],
+      "source_actor": "Custom portal caster field/UUID; raw-field constructor guard precedes getter resolution.",
+      "native_lifecycle": "Native warmup/life, raw caster branch and saved UUID/damage/HP."
+    },
+    {
+      "entity_id": "cataclysm:abyss_mine",
+      "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/Abyss_Mine_Entity.class",
+      "role": "OWNED_HAZARD",
+      "source_mechanic_ids": [
+        "cataclysm:leviathan_mine_delivery"
+      ],
+      "payload_mechanic_ids": [
+        "cataclysm:leviathan_mine_lifecycle",
+        "cataclysm:leviathan_mine_trigger"
+      ],
+      "source_actor": "Custom native caster/casterUuid; no Projectile superclass owner invented.; Native explosion actor caster when resolved, otherwise mine; Fear applied directly to selected living trigger.",
+      "native_lifecycle": "Native warmup/life/owner UUID; per-recipient iteration not terminated by removal."
+    },
+    {
+      "entity_id": "cataclysm:abyss_orb",
+      "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/Abyss_Orb_Entity.class",
+      "role": "OWNED_PROJECTILE",
+      "source_mechanic_ids": [
+        "cataclysm:leviathan_orb_volley"
+      ],
+      "payload_mechanic_ids": [
+        "cataclysm:leviathan_orb_contact",
+        "cataclysm:leviathan_orb_lifecycle",
+        "cataclysm:leviathan_orb_motion",
+        "cataclysm:leviathan_orb_terminal_explosion"
+      ],
+      "source_actor": "Direct=orb, causing=Living owner for mobProjectile; magic fallback anonymous. Separate explosion actor is native owner (nullable).; Native Projectile owner, stored damage and optional Target UUID retained.; Native Projectile owner and stored finalTarget; no new targeting/team filter.; Native Projectile owner (nullable) supplied as explosion actor.",
+      "native_lifecycle": "Native Projectile impact/owner; tracking saved but fired read; target UUID."
+    },
+    {
+      "entity_id": "cataclysm:abyss_portal",
+      "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/Abyss_Portal_Entity.class",
+      "role": "OWNED_PORTAL",
+      "source_mechanic_ids": [
+        "cataclysm:leviathan_stuck_portal_delivery"
+      ],
+      "payload_mechanic_ids": [
+        "cataclysm:leviathan_portal_lifecycle",
+        "cataclysm:leviathan_portal_teleport"
+      ],
+      "source_actor": "Native sister UUID and destination only; Entrance reload default retained.; No owner/team filtering; Leviathan receives its own deferred native position setter.",
+      "native_lifecycle": "Native Entrance/default/link/NBT/order/lifespan and recipient teleport."
+    },
+    {
+      "entity_id": "cataclysm:cm_falling_block",
+      "entry": "com/github/L_Ender/cataclysm/entity/effect/Cm_Falling_Block_Entity.class",
+      "role": "NON_DAMAGE_DEBRIS_VERIFIED",
+      "source_mechanic_ids": [
+        "cataclysm:leviathan_rift_terrain",
+        "cataclysm:leviathan_terrain_control"
+      ],
+      "payload_mechanic_ids": [],
+      "source_actor": "Locked decorative falling Entity; not a damage source.",
+      "native_lifecycle": "Existing non-damage tick/NBT reused; supplied duration5 or20."
+    },
+    {
+      "entity_id": "cataclysm:dimensional_rift",
+      "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/Dimensional_Rift_Entity.class",
+      "role": "OWNED_HAZARD",
+      "source_mechanic_ids": [
+        "cataclysm:leviathan_rift_delivery"
+      ],
+      "payload_mechanic_ids": [
+        "cataclysm:leviathan_rift_damage",
+        "cataclysm:leviathan_rift_lifecycle",
+        "cataclysm:leviathan_rift_pull",
+        "cataclysm:leviathan_rift_terminal_explosion",
+        "cataclysm:leviathan_rift_terrain"
+      ],
+      "source_actor": "Direct=rift, causing=resolved owner for indirectMagic; anonymous magic fallback.; Custom native owner UUID/cached reference retained.; Rift own Entity alliance and cached owner exclusion; not rewritten to owner team.; Native cached nullable owner supplied as explosion actor.; Rift native grief actor; falling debris has locked non-damage role.",
+      "native_lifecycle": "Native raw Stage ordinal/close/owner UUID, no TNO state."
+    },
+    {
+      "entity_id": "cataclysm:portal_abyss_blast",
+      "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/Portal_Abyss_Blast_Entity.class",
+      "role": "OWNED_BEAM",
+      "source_mechanic_ids": [
+        "cataclysm:leviathan_blast_portal_lifecycle"
+      ],
+      "payload_mechanic_ids": [
+        "cataclysm:leviathan_beam_contact",
+        "cataclysm:leviathan_beam_geometry",
+        "cataclysm:leviathan_beam_lifecycle",
+        "cataclysm:leviathan_beam_terrain"
+      ],
+      "source_actor": "Both custom Entity beams supply direct beam and causing native caster; no Projectile owner supercontract.; Ordinary follows Leviathan caster; portal beam uses its launch orientation.; Caster field/ID not persistent; ordinary snapshot saved, portal damage snapshot not saved.; Native beam is grief actor; caster separate.",
+      "native_lifecycle": "Native fixed beam; caster/damage/HP unsaved."
+    },
+    {
+      "entity_id": "cataclysm:the_leviathan_tongue",
+      "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Tongue_Entity.class",
+      "role": "OWNED_CONTROL_ENTITY",
+      "source_mechanic_ids": [
+        "cataclysm:leviathan_tongue_delivery"
+      ],
+      "payload_mechanic_ids": [
+        "cataclysm:leviathan_tongue_contact",
+        "cataclysm:leviathan_tongue_lifecycle",
+        "cataclysm:leviathan_tongue_motion"
+      ],
+      "source_actor": "Damage source mobAttack(controller Living holder), mount vehicle tongue.; Custom controller UUID/ID; native tongue grief actor, not independent Stage storage.; Native controller UUID/ID and lagged target ID; original first-passenger control.",
+      "native_lifecycle": "Native controller/target/return/mount and goal cleanup; literal Duration load mismatch."
+    }
+  ],
+  "offense_paths_closed": [
+    "cataclysm:leviathan-offense:alliance",
+    "cataclysm:leviathan-offense:attack_selection",
+    "cataclysm:leviathan-offense:beam_burst_delivery",
+    "cataclysm:leviathan-offense:beam_contact",
+    "cataclysm:leviathan-offense:beam_geometry",
+    "cataclysm:leviathan-offense:beam_lifecycle",
+    "cataclysm:leviathan-offense:beam_single_delivery",
+    "cataclysm:leviathan-offense:beam_terrain",
+    "cataclysm:leviathan-offense:bite_contact",
+    "cataclysm:leviathan-offense:bite_delivery",
+    "cataclysm:leviathan-offense:blast_portal_delivery",
+    "cataclysm:leviathan-offense:blast_portal_lifecycle",
+    "cataclysm:leviathan-offense:defeat_lifecycle",
+    "cataclysm:leviathan-offense:held_beam_delivery",
+    "cataclysm:leviathan-offense:held_victim_control",
+    "cataclysm:leviathan-offense:hold_contact",
+    "cataclysm:leviathan-offense:hold_control",
+    "cataclysm:leviathan-offense:mine_delivery",
+    "cataclysm:leviathan-offense:mine_lifecycle",
+    "cataclysm:leviathan-offense:mine_trigger",
+    "cataclysm:leviathan-offense:orb_contact",
+    "cataclysm:leviathan-offense:orb_lifecycle",
+    "cataclysm:leviathan-offense:orb_motion",
+    "cataclysm:leviathan-offense:orb_terminal_explosion",
+    "cataclysm:leviathan-offense:orb_volley",
+    "cataclysm:leviathan-offense:portal_lifecycle",
+    "cataclysm:leviathan-offense:portal_teleport",
+    "cataclysm:leviathan-offense:rift_damage",
+    "cataclysm:leviathan-offense:rift_delivery",
+    "cataclysm:leviathan-offense:rift_lifecycle",
+    "cataclysm:leviathan-offense:rift_pull",
+    "cataclysm:leviathan-offense:rift_terminal_explosion",
+    "cataclysm:leviathan-offense:rift_terrain",
+    "cataclysm:leviathan-offense:roar_darkness",
+    "cataclysm:leviathan-offense:rush_movement",
+    "cataclysm:leviathan-offense:sequence_state",
+    "cataclysm:leviathan-offense:stuck_portal_delivery",
+    "cataclysm:leviathan-offense:tail_contact",
+    "cataclysm:leviathan-offense:tentacle_contact",
+    "cataclysm:leviathan-offense:terrain_control",
+    "cataclysm:leviathan-offense:tongue_contact",
+    "cataclysm:leviathan-offense:tongue_delivery",
+    "cataclysm:leviathan-offense:tongue_lifecycle",
+    "cataclysm:leviathan-offense:tongue_motion",
+    "cataclysm:leviathan-offense:water_movement"
+  ],
+  "mechanic_packages": [
+    {
+      "id": "cataclysm:leviathan_alliance",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:alliance"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Original tag/team-null/parent predicates",
+        "Payload-specific predicates retained"
+      ],
+      "hurt_return_dependency": "Native recipient selection, not an added hurt hook."
+    },
+    {
+      "id": "cataclysm:leviathan_attack_selection",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:attack_selection"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Native target/animation/goal-priority/Can* gates",
+        "Native fresh random draws and exact squared distances; no guessed normalized chance"
+      ],
+      "hurt_return_dependency": "No hurt return used for selection."
+    },
+    {
+      "id": "cataclysm:leviathan_beam_burst_delivery",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:beam_burst_delivery"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "BEAM_DELIVERY",
+          "parameters": [
+            "count"
+          ],
+          "native_value": 3,
+          "units": "native count/ticks",
+          "native_boundary": "LeviathanBlastFireAttackGoal.tick"
+        },
+        {
+          "primitive": "BEAM_DELIVERY",
+          "parameters": [
+            "duration"
+          ],
+          "native_value": 28,
+          "units": "native count/ticks",
+          "native_boundary": "LeviathanBlastFireAttackGoal.tick"
+        },
+        {
+          "primitive": "BEAM_DELIVERY",
+          "parameters": [
+            "interval"
+          ],
+          "native_value": 45,
+          "units": "native count/ticks",
+          "native_boundary": "LeviathanBlastFireAttackGoal.tick"
+        }
+      ],
+      "binary_gates": [
+        "Native server/animation/aim windows and launch carrier"
+      ],
+      "hurt_return_dependency": "No hurt requirement at launch."
+    },
+    {
+      "id": "cataclysm:leviathan_beam_contact",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:beam_contact"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "ABYSSAL_BURN_DELIVERY",
+          "parameters": [
+            "duration"
+          ],
+          "native_value": 160,
+          "units": "ticks",
+          "native_boundary": "locked beam tick -> locked Abyssal Burn native lifecycle"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "damage"
+          ],
+          "native_value": 10.0,
+          "units": "native requested damage/coefficient",
+          "native_boundary": "locked ordinary/portal beam tick -> causeDeathLaserDamage -> hurt"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "hp_damage"
+          ],
+          "native_value": 0.10000000149011612,
+          "units": "native requested damage/coefficient",
+          "native_boundary": "locked ordinary/portal beam tick -> causeDeathLaserDamage -> hurt"
+        }
+      ],
+      "binary_gates": [
+        "Native server/warmup/caster/team/hurt and effect admission",
+        "Native damage type/tag contract reused; Burn core unchanged"
+      ],
+      "hurt_return_dependency": "Burn only on true hurt; native damage admission preserved."
+    },
+    {
+      "id": "cataclysm:leviathan_beam_geometry",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:beam_geometry"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "AREA_SELECTION",
+          "parameters": [
+            "ordinary_query_inflation"
+          ],
+          "native_value": 2.0,
+          "units": "blocks",
+          "native_boundary": "beam calculateEndPos/raytraceEntities"
+        },
+        {
+          "primitive": "AREA_SELECTION",
+          "parameters": [
+            "ordinary_victim_pad"
+          ],
+          "native_value": 0.5,
+          "units": "blocks",
+          "native_boundary": "beam calculateEndPos/raytraceEntities"
+        },
+        {
+          "primitive": "AREA_SELECTION",
+          "parameters": [
+            "portal_query_inflation"
+          ],
+          "native_value": 1.0,
+          "units": "blocks",
+          "native_boundary": "beam calculateEndPos/raytraceEntities"
+        },
+        {
+          "primitive": "AREA_SELECTION",
+          "parameters": [
+            "portal_victim_pad"
+          ],
+          "native_value": 1.2999999523162842,
+          "units": "blocks",
+          "native_boundary": "beam calculateEndPos/raytraceEntities"
+        },
+        {
+          "primitive": "AREA_SELECTION",
+          "parameters": [
+            "range"
+          ],
+          "native_value": 50.0,
+          "units": "blocks",
+          "native_boundary": "beam calculateEndPos/raytraceEntities"
+        }
+      ],
+      "binary_gates": [
+        "Original native block/fluid/entity intersection and caster gates",
+        "No occlusion/piercing/impact policy invented"
+      ],
+      "hurt_return_dependency": "Geometry does not require previous hurt."
+    },
+    {
+      "id": "cataclysm:leviathan_beam_lifecycle",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:beam_lifecycle"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Original on/caster/side/NBT and native lifecycle gates"
+      ],
+      "hurt_return_dependency": "Lifecycle independent of hurt."
+    },
+    {
+      "id": "cataclysm:leviathan_beam_single_delivery",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:beam_single_delivery"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "BEAM_DELIVERY",
+          "parameters": [
+            "duration"
+          ],
+          "native_value": 80,
+          "units": "ticks/degrees",
+          "native_boundary": "LeviathanBlastAttackGoal.tick"
+        },
+        {
+          "primitive": "DAMAGE_CARRIER",
+          "parameters": [
+            "damage"
+          ],
+          "native_value": 10.0,
+          "units": "native damage/formula coefficient",
+          "native_boundary": "LeviathanBlastAttackGoal.tick -> beam constructor"
+        },
+        {
+          "primitive": "DAMAGE_CARRIER",
+          "parameters": [
+            "hp_damage"
+          ],
+          "native_value": 0.10000000149011612,
+          "units": "native damage/formula coefficient",
+          "native_boundary": "LeviathanBlastAttackGoal.tick -> beam constructor"
+        }
+      ],
+      "binary_gates": [
+        "Native exact animation/server/target and aim windows"
+      ],
+      "hurt_return_dependency": "No hurt requirement at launch."
+    },
+    {
+      "id": "cataclysm:leviathan_beam_terrain",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:beam_terrain"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Native server/block hit/own grief/tag predicate",
+        "No extra damage/debris/explosion"
+      ],
+      "hurt_return_dependency": "Independent of victim hurt."
+    },
+    {
+      "id": "cataclysm:leviathan_bite_contact",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:bite_contact"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "attack_coefficient"
+          ],
+          "native_value": 1.5,
+          "units": "native damage coefficient",
+          "native_boundary": "locked biteattack -> recipient.hurt(mobAttack(boss))"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "hp_coefficient"
+          ],
+          "native_value": 0.05999999865889549,
+          "units": "native damage coefficient",
+          "native_boundary": "locked biteattack -> recipient.hurt(mobAttack(boss))"
+        },
+        {
+          "primitive": "SHIELD_DISABLE",
+          "parameters": [
+            "duration"
+          ],
+          "native_value": 200,
+          "units": "ticks",
+          "native_boundary": "biteattack -> EntityUtil.disableShield"
+        },
+        {
+          "primitive": "STUN_DELIVERY",
+          "parameters": [
+            "duration"
+          ],
+          "native_value": 100,
+          "units": "ticks",
+          "native_boundary": "biteattack -> existing STUN native delivery"
+        }
+      ],
+      "binary_gates": [
+        "Native server/team/recipient/hurt/blocking/effect admission",
+        "Locked STUN core not re-reviewed"
+      ],
+      "hurt_return_dependency": "STUN requires true hurt; shield disable does not."
+    },
+    {
+      "id": "cataclysm:leviathan_bite_delivery",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:bite_delivery"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "AREA_SELECTION",
+          "parameters": [
+            "bite_radius"
+          ],
+          "native_value": 6.0,
+          "units": "blocks",
+          "native_boundary": "Leviathan.aiStep -> biteattack -> raytraceEntities"
+        },
+        {
+          "primitive": "AREA_SELECTION",
+          "parameters": [
+            "grab_bite_radius"
+          ],
+          "native_value": 6.5,
+          "units": "blocks",
+          "native_boundary": "Leviathan.aiStep -> biteattack -> raytraceEntities"
+        },
+        {
+          "primitive": "AREA_SELECTION",
+          "parameters": [
+            "query_inflation"
+          ],
+          "native_value": 1.5,
+          "units": "blocks",
+          "native_boundary": "Leviathan.aiStep -> biteattack -> raytraceEntities"
+        },
+        {
+          "primitive": "AREA_SELECTION",
+          "parameters": [
+            "victim_pad"
+          ],
+          "native_value": 2.5,
+          "units": "blocks",
+          "native_boundary": "Leviathan.aiStep -> biteattack -> raytraceEntities"
+        }
+      ],
+      "binary_gates": [
+        "Native animation tick and recipient ray/AABB predicates",
+        "No terrain occlusion or extra projectile invented"
+      ],
+      "hurt_return_dependency": "Contact/STUN semantics in the separate bite contact record."
+    },
+    {
+      "id": "cataclysm:leviathan_blast_portal_delivery",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:blast_portal_delivery"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "DAMAGE_CARRIER",
+          "parameters": [
+            "damage"
+          ],
+          "native_value": 10.0,
+          "units": "native damage/coefficient",
+          "native_boundary": "spawnUnderPortal -> blast portal constructor"
+        },
+        {
+          "primitive": "DAMAGE_CARRIER",
+          "parameters": [
+            "hp_damage"
+          ],
+          "native_value": 0.10000000149011612,
+          "units": "native damage/coefficient",
+          "native_boundary": "spawnUnderPortal -> blast portal constructor"
+        },
+        {
+          "primitive": "DELIVERY_SEQUENCE",
+          "parameters": [
+            "delay_step"
+          ],
+          "native_value": 5,
+          "units": "native count/blocks/ticks",
+          "native_boundary": "LeviathanAbyssBlastPortalAttackGoal.tick/spawnUnderPortal"
+        },
+        {
+          "primitive": "DELIVERY_SEQUENCE",
+          "parameters": [
+            "exact_count"
+          ],
+          "native_value": 3,
+          "units": "native count/blocks/ticks",
+          "native_boundary": "LeviathanAbyssBlastPortalAttackGoal.tick/spawnUnderPortal"
+        },
+        {
+          "primitive": "DELIVERY_SEQUENCE",
+          "parameters": [
+            "random_count"
+          ],
+          "native_value": 9,
+          "units": "native count/blocks/ticks",
+          "native_boundary": "LeviathanAbyssBlastPortalAttackGoal.tick/spawnUnderPortal"
+        },
+        {
+          "primitive": "DELIVERY_SEQUENCE",
+          "parameters": [
+            "random_spread"
+          ],
+          "native_value": 12.0,
+          "units": "native count/blocks/ticks",
+          "native_boundary": "LeviathanAbyssBlastPortalAttackGoal.tick/spawnUnderPortal"
+        }
+      ],
+      "binary_gates": [
+        "Native exact animation/support/search placement gates",
+        "No upper-portal branch promoted or local server guard invented"
+      ],
+      "hurt_return_dependency": "No hurt prerequisite."
+    },
+    {
+      "id": "cataclysm:leviathan_blast_portal_lifecycle",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:blast_portal_lifecycle"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "BEAM_DELIVERY",
+          "parameters": [
+            "duration"
+          ],
+          "native_value": 160,
+          "units": "ticks",
+          "native_boundary": "Abyss_Blast_Portal_Entity.tick -> portal beam ctor"
+        }
+      ],
+      "binary_gates": [
+        "Original server/warmup/raw-caster branch and lifecycle",
+        "Native ownerless damage gate not repaired"
+      ],
+      "hurt_return_dependency": "No hurt prerequisite."
+    },
+    {
+      "id": "cataclysm:leviathan_defeat_lifecycle",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:defeat_lifecycle"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Native nonnull credit/OVERWORLD data/previous flag/server spectator gates",
+        "No new respawner/progression state"
+      ],
+      "hurt_return_dependency": "Locked shared death triggers callback; not another outgoing damage request."
+    },
+    {
+      "id": "cataclysm:leviathan_held_beam_delivery",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:held_beam_delivery"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "BEAM_DELIVERY",
+          "parameters": [
+            "duration"
+          ],
+          "native_value": 80,
+          "units": "ticks",
+          "native_boundary": "LeviathanTentacleHoldBlastAttackGoal.tick"
+        }
+      ],
+      "binary_gates": [
+        "Native animation/server gates; no added mount-success predicate"
+      ],
+      "hurt_return_dependency": "No hurt prerequisite in this launch method."
+    },
+    {
+      "id": "cataclysm:leviathan_held_victim_control",
+      "primary_classification": "CUSTOM_CONTROL",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:held_victim_control"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "FORCED_POSITION",
+          "parameters": [
+            "horizontal_offset"
+          ],
+          "native_value": 8.25,
+          "units": "blocks/coefficient",
+          "native_boundary": "Leviathan.positionRider"
+        },
+        {
+          "primitive": "FORCED_POSITION",
+          "parameters": [
+            "pitch_vertical_factor"
+          ],
+          "native_value": 6.0,
+          "units": "blocks/coefficient",
+          "native_boundary": "Leviathan.positionRider"
+        }
+      ],
+      "binary_gates": [
+        "Native passenger membership and animation/tick",
+        "Disembark does not early-return from this positioning invocation"
+      ],
+      "hurt_return_dependency": "No damage callback here."
+    },
+    {
+      "id": "cataclysm:leviathan_hold_contact",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:hold_contact"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "AREA_SELECTION",
+          "parameters": [
+            "query_inflation"
+          ],
+          "native_value": 2.5,
+          "units": "blocks",
+          "native_boundary": "TentacleHoldattack -> raytraceEntities"
+        },
+        {
+          "primitive": "AREA_SELECTION",
+          "parameters": [
+            "radius"
+          ],
+          "native_value": 7.0,
+          "units": "blocks",
+          "native_boundary": "TentacleHoldattack -> raytraceEntities"
+        },
+        {
+          "primitive": "AREA_SELECTION",
+          "parameters": [
+            "victim_pad"
+          ],
+          "native_value": 2.5,
+          "units": "blocks",
+          "native_boundary": "TentacleHoldattack -> raytraceEntities"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "attack_coefficient"
+          ],
+          "native_value": 1.0,
+          "units": "native damage coefficient",
+          "native_boundary": "TentacleHoldattack -> native mobAttack hurt"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "hp_coefficient"
+          ],
+          "native_value": 0.10000000149011612,
+          "units": "native damage coefficient",
+          "native_boundary": "TentacleHoldattack -> native mobAttack hurt"
+        },
+        {
+          "primitive": "SHIELD_DISABLE",
+          "parameters": [
+            "duration"
+          ],
+          "native_value": 80,
+          "units": "ticks",
+          "native_boundary": "TentacleHoldattack native shield disable"
+        }
+      ],
+      "binary_gates": [
+        "Native server/segment/recipient/blocking conditions",
+        "Native true-hurt control kept separate"
+      ],
+      "hurt_return_dependency": "Shield does not require true hurt."
+    },
+    {
+      "id": "cataclysm:leviathan_hold_control",
+      "primary_classification": "CUSTOM_CONTROL",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:hold_control"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "True native hurt return/alive/original type tag",
+        "Native startRiding result does not guard animation message"
+      ],
+      "hurt_return_dependency": "True hurt required; animation request does not require successful riding."
+    },
+    {
+      "id": "cataclysm:leviathan_mine_delivery",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:mine_delivery"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "ENTITY_DELIVERY",
+          "parameters": [
+            "count"
+          ],
+          "native_value": 35,
+          "units": "native count/blocks/ticks",
+          "native_boundary": "LeviathanMineAttackGoal.tick/spawnMines"
+        },
+        {
+          "primitive": "ENTITY_DELIVERY",
+          "parameters": [
+            "delay_step"
+          ],
+          "native_value": 2,
+          "units": "native count/blocks/ticks",
+          "native_boundary": "LeviathanMineAttackGoal.tick/spawnMines"
+        },
+        {
+          "primitive": "ENTITY_DELIVERY",
+          "parameters": [
+            "xz_spread"
+          ],
+          "native_value": 12.0,
+          "units": "native count/blocks/ticks",
+          "native_boundary": "LeviathanMineAttackGoal.tick/spawnMines"
+        },
+        {
+          "primitive": "ENTITY_DELIVERY",
+          "parameters": [
+            "y_spread"
+          ],
+          "native_value": 8.0,
+          "units": "native count/blocks/ticks",
+          "native_boundary": "LeviathanMineAttackGoal.tick/spawnMines"
+        }
+      ],
+      "binary_gates": [
+        "Native target/animation tick/noCollision gates",
+        "No ground support or water predicate inferred"
+      ],
+      "hurt_return_dependency": "No hurt required at deployment."
+    },
+    {
+      "id": "cataclysm:leviathan_mine_lifecycle",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:mine_lifecycle"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Original countdown/server/UUID native lifetime"
+      ],
+      "hurt_return_dependency": "Independent of hurt."
+    },
+    {
+      "id": "cataclysm:leviathan_mine_trigger",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:mine_trigger"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "ABYSSAL_FEAR_DELIVERY",
+          "parameters": [
+            "duration"
+          ],
+          "native_value": 200,
+          "units": "ticks",
+          "native_boundary": "Abyss_Mine_Entity.explode -> locked Fear admission"
+        },
+        {
+          "primitive": "AREA_SELECTION",
+          "parameters": [
+            "horizontal_inflation"
+          ],
+          "native_value": 0.2,
+          "units": "blocks",
+          "native_boundary": "Abyss_Mine_Entity.tick"
+        },
+        {
+          "primitive": "NATIVE_EXPLOSION",
+          "parameters": [
+            "strength"
+          ],
+          "native_value": 1.0,
+          "units": "native explosion strength",
+          "native_boundary": "Abyss_Mine_Entity.explode -> Level.explode"
+        }
+      ],
+      "binary_gates": [
+        "Native server/warmup/recipient/caster/team/effect/explosion gates",
+        "No invented break or success-dependent Fear"
+      ],
+      "hurt_return_dependency": "No hurt boolean checked."
+    },
+    {
+      "id": "cataclysm:leviathan_orb_contact",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:orb_contact"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "ABYSSAL_FEAR_DELIVERY",
+          "parameters": [
+            "duration"
+          ],
+          "native_value": 100,
+          "units": "ticks",
+          "native_boundary": "orb onHitEntity -> locked effect admission"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "damage"
+          ],
+          "native_value": 4.0,
+          "units": "native requested damage",
+          "native_boundary": "Abyss_Orb_Entity.onHitEntity -> native hurt"
+        },
+        {
+          "primitive": "NATIVE_EXPLOSION",
+          "parameters": [
+            "strength"
+          ],
+          "native_value": 1.0,
+          "units": "native explosion strength",
+          "native_boundary": "Abyss_Orb_Entity.onHitEntity -> Level.explode"
+        }
+      ],
+      "binary_gates": [
+        "Original native impact and server/owner-type exclusions",
+        "Original hurt/effect/native explosion admission"
+      ],
+      "hurt_return_dependency": "Fear requires true direct hurt; explosion/discard do not."
+    },
+    {
+      "id": "cataclysm:leviathan_orb_lifecycle",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:orb_lifecycle"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Native lifetime/collision/owner/chunk and literal NBT contracts"
+      ],
+      "hurt_return_dependency": "Timeout/block explosion does not inspect a hurt boolean."
+    },
+    {
+      "id": "cataclysm:leviathan_orb_motion",
+      "primary_classification": "CUSTOM_CONTROL",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:orb_motion"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "axis_clamp"
+          ],
+          "native_value": 0.05,
+          "units": "native motion coefficient",
+          "native_boundary": "Abyss_Orb_Entity.tick/getInertia"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "homing_factor"
+          ],
+          "native_value": 2.0,
+          "units": "native motion coefficient",
+          "native_boundary": "Abyss_Orb_Entity.tick/getInertia"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "inertia"
+          ],
+          "native_value": 0.6000000238418579,
+          "units": "native motion coefficient",
+          "native_boundary": "Abyss_Orb_Entity.tick/getInertia"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "no_target_y"
+          ],
+          "native_value": -0.05,
+          "units": "native motion coefficient",
+          "native_boundary": "Abyss_Orb_Entity.tick/getInertia"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "target_height_factor"
+          ],
+          "native_value": 1.2000000476837158,
+          "units": "native motion coefficient",
+          "native_boundary": "Abyss_Orb_Entity.tick/getInertia"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "water_inertia"
+          ],
+          "native_value": 0.800000011920929,
+          "units": "native motion coefficient",
+          "native_boundary": "Abyss_Orb_Entity.tick/getInertia"
+        }
+      ],
+      "binary_gates": [
+        "Native impact cancellation/super hitTargetOrDeflectSelf",
+        "Original tracking/target/spectator/owner/chunk predicates"
+      ],
+      "hurt_return_dependency": "Homing does not require hurt."
+    },
+    {
+      "id": "cataclysm:leviathan_orb_terminal_explosion",
+      "primary_classification": "VANILLA_DIRECT",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:orb_terminal_explosion"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "NATIVE_EXPLOSION",
+          "parameters": [
+            "strength"
+          ],
+          "native_value": 1.0,
+          "units": "native explosion strength",
+          "native_boundary": "Abyss_Orb_Entity.onHitBlock/tick"
+        }
+      ],
+      "binary_gates": [
+        "Native server/tracking/age and Projectile impact gates",
+        "Original native explosion/owner/removal semantics"
+      ],
+      "hurt_return_dependency": "No direct hurt-return prerequisite; no local Fear application."
+    },
+    {
+      "id": "cataclysm:leviathan_orb_volley",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:orb_volley"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "DAMAGE_CARRIER",
+          "parameters": [
+            "damage"
+          ],
+          "native_value": 4.0,
+          "units": "native requested damage",
+          "native_boundary": "shootAbyssOrb -> Abyss_Orb_Entity constructor"
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "initial_power"
+          ],
+          "native_value": 0.1,
+          "units": "native count/acceleration/ticks",
+          "native_boundary": "aiStep/shootAbyssOrb -> native orb"
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "normal_volley_count"
+          ],
+          "native_value": 12,
+          "units": "native count/acceleration/ticks",
+          "native_boundary": "aiStep/shootAbyssOrb -> native orb"
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "phase_volley_count"
+          ],
+          "native_value": 24,
+          "units": "native count/acceleration/ticks",
+          "native_boundary": "aiStep/shootAbyssOrb -> native orb"
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "tracking_delay"
+          ],
+          "native_value": 40,
+          "units": "native count/acceleration/ticks",
+          "native_boundary": "aiStep/shootAbyssOrb -> native orb"
+        }
+      ],
+      "binary_gates": [
+        "Original animation/saved latch and server add gates",
+        "Native target optional; no custom ownership storage"
+      ],
+      "hurt_return_dependency": "Delivery independent of hurt."
+    },
+    {
+      "id": "cataclysm:leviathan_portal_lifecycle",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:portal_lifecycle"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Native load/default/link/life side effects"
+      ],
+      "hurt_return_dependency": "Independent of hurt."
+    },
+    {
+      "id": "cataclysm:leviathan_portal_teleport",
+      "primary_classification": "CUSTOM_CONTROL",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:portal_teleport"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "AREA_SELECTION",
+          "parameters": [
+            "inner_deflation"
+          ],
+          "native_value": 0.20000000298023224,
+          "units": "blocks",
+          "native_boundary": "Abyss_Portal_Entity.tick"
+        },
+        {
+          "primitive": "AREA_SELECTION",
+          "parameters": [
+            "leviathan_inflation"
+          ],
+          "native_value": 3.0,
+          "units": "blocks",
+          "native_boundary": "Abyss_Portal_Entity.tick"
+        }
+      ],
+      "binary_gates": [
+        "Native Entrance/destination/window/recipient cooldown/shift/type gates",
+        "Original duplicate-list iteration retained"
+      ],
+      "hurt_return_dependency": "No hurt requirement."
+    },
+    {
+      "id": "cataclysm:leviathan_rift_damage",
+      "primary_classification": "VANILLA_DIRECT",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:rift_damage"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "AREA_SELECTION",
+          "parameters": [
+            "horizontal_inflation"
+          ],
+          "native_value": 0.2,
+          "units": "blocks",
+          "native_boundary": "rift tick -> damage"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "amount"
+          ],
+          "native_value": 10.0,
+          "units": "native requested damage",
+          "native_boundary": "Dimensional_Rift_Entity.damage"
+        }
+      ],
+      "binary_gates": [
+        "Native alive/invulnerability/owner/team/Leviathan/cadence gates",
+        "No implicit server gate or config linkage invented"
+      ],
+      "hurt_return_dependency": "Hurt return ignored."
+    },
+    {
+      "id": "cataclysm:leviathan_rift_delivery",
+      "primary_classification": "CUSTOM_CONTROL",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:rift_delivery"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "ENTITY_DELIVERY",
+          "parameters": [
+            "horizontal_offset"
+          ],
+          "native_value": 12.0,
+          "units": "blocks",
+          "native_boundary": "LeviathanAbyssDimensionAttackGoal.tick"
+        },
+        {
+          "primitive": "PAYLOAD_DURATION",
+          "parameters": [
+            "lifespan"
+          ],
+          "native_value": 600,
+          "units": "ticks",
+          "native_boundary": "dimension goal -> rift setLifespan"
+        }
+      ],
+      "binary_gates": [
+        "Original animation/server/growth ordinal and nearby gates",
+        "No owner restriction added to growth"
+      ],
+      "hurt_return_dependency": "No hurt requirement."
+    },
+    {
+      "id": "cataclysm:leviathan_rift_lifecycle",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:rift_lifecycle"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Native raw state/NBT/default/cadence and resolution"
+      ],
+      "hurt_return_dependency": "Independent of hurt."
+    },
+    {
+      "id": "cataclysm:leviathan_rift_pull",
+      "primary_classification": "CUSTOM_CONTROL",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:rift_pull"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "AREA_SELECTION",
+          "parameters": [
+            "inflation"
+          ],
+          "native_value": 30.0,
+          "units": "blocks",
+          "native_boundary": "rift tick"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "living_coefficient"
+          ],
+          "native_value": 0.015,
+          "units": "native velocity coefficient",
+          "native_boundary": "Dimensional_Rift_Entity.tick"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "nonliving_coefficient"
+          ],
+          "native_value": 0.045,
+          "units": "native velocity coefficient",
+          "native_boundary": "Dimensional_Rift_Entity.tick"
+        }
+      ],
+      "binary_gates": [
+        "Original entity kind/cached owner/Player/own alliance/type tag gates",
+        "Native rift ordinal is not Stage progression"
+      ],
+      "hurt_return_dependency": "No hurt required."
+    },
+    {
+      "id": "cataclysm:leviathan_rift_terminal_explosion",
+      "primary_classification": "VANILLA_DIRECT",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:rift_terminal_explosion"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "NATIVE_EXPLOSION",
+          "parameters": [
+            "strength"
+          ],
+          "native_value": 4.0,
+          "units": "native explosion strength",
+          "native_boundary": "Dimensional_Rift_Entity.tick"
+        }
+      ],
+      "binary_gates": [
+        "Original close window/ordinal/flag/server/native explosion admission"
+      ],
+      "hurt_return_dependency": "No hurt-return dependency."
+    },
+    {
+      "id": "cataclysm:leviathan_rift_terrain",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:rift_terrain"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Native exact default state comparisons/server/grief/type/tag/random gates",
+        "No damage contribution attributed to debris"
+      ],
+      "hurt_return_dependency": "Independent of hurt."
+    },
+    {
+      "id": "cataclysm:leviathan_roar_darkness",
+      "primary_classification": "VANILLA_DIRECT",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:roar_darkness"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "AREA_SELECTION",
+          "parameters": [
+            "radius"
+          ],
+          "native_value": 48.0,
+          "units": "blocks",
+          "native_boundary": "roarDarkness native query"
+        },
+        {
+          "primitive": "DARKNESS_DELIVERY",
+          "parameters": [
+            "portal_duration"
+          ],
+          "native_value": 80,
+          "units": "ticks",
+          "native_boundary": "aiStep -> roarDarkness -> native addEffect"
+        },
+        {
+          "primitive": "DARKNESS_DELIVERY",
+          "parameters": [
+            "rush_duration"
+          ],
+          "native_value": 20,
+          "units": "ticks",
+          "native_boundary": "aiStep -> roarDarkness -> native addEffect"
+        }
+      ],
+      "binary_gates": [
+        "Native server/nearby/team/Player invulnerable ability and effect admission"
+      ],
+      "hurt_return_dependency": "No hurt required."
+    },
+    {
+      "id": "cataclysm:leviathan_rush_movement",
+      "primary_classification": "CUSTOM_CONTROL",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:rush_movement"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "NATIVE_MOVEMENT",
+          "parameters": [
+            "near_horizontal_damping"
+          ],
+          "native_value": 0.8,
+          "units": "native velocity multipliers",
+          "native_boundary": "LeviathanRushAttackGoal.tick"
+        },
+        {
+          "primitive": "NATIVE_MOVEMENT",
+          "parameters": [
+            "previous_velocity_factor"
+          ],
+          "native_value": 0.5,
+          "units": "native velocity multipliers",
+          "native_boundary": "LeviathanRushAttackGoal.tick"
+        },
+        {
+          "primitive": "NATIVE_MOVEMENT",
+          "parameters": [
+            "target_vector_factor"
+          ],
+          "native_value": 0.5,
+          "units": "native velocity multipliers",
+          "native_boundary": "LeviathanRushAttackGoal.tick"
+        }
+      ],
+      "binary_gates": [
+        "Native animation/target/water/distance/facing gates",
+        "No live charge-damage helper invocation proved"
+      ],
+      "hurt_return_dependency": "Incoming interruption only; motion itself independent of outgoing hurt."
+    },
+    {
+      "id": "cataclysm:leviathan_sequence_state",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:sequence_state"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Original raw ordinal/counter/animation gates; not automatic numeric scalars",
+        "Scoped private helper invocation checks; no active contact path invented"
+      ],
+      "hurt_return_dependency": "Incoming rush true-hurt interruption remains the locked R2k9a rule."
+    },
+    {
+      "id": "cataclysm:leviathan_stuck_portal_delivery",
+      "primary_classification": "CUSTOM_CONTROL",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:stuck_portal_delivery"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "PORTAL_DELIVERY",
+          "parameters": [
+            "cooldown"
+          ],
+          "native_value": 300,
+          "units": "ticks",
+          "native_boundary": "Leviathan createStuckPortal/createPortal2 -> portal pair"
+        },
+        {
+          "primitive": "PORTAL_DELIVERY",
+          "parameters": [
+            "lifespan"
+          ],
+          "native_value": 10000,
+          "units": "ticks",
+          "native_boundary": "Leviathan createStuckPortal/createPortal2 -> portal pair"
+        }
+      ],
+      "binary_gates": [
+        "Native target/animation/stuck/cooldown/server/portalTarget gates",
+        "Native pair UUID order retained"
+      ],
+      "hurt_return_dependency": "No hurt prerequisite."
+    },
+    {
+      "id": "cataclysm:leviathan_tail_contact",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:tail_contact"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "AREA_SELECTION",
+          "parameters": [
+            "inflation"
+          ],
+          "native_value": 7.0,
+          "units": "blocks",
+          "native_boundary": "TailWhips query"
+        },
+        {
+          "primitive": "BONE_FRACTURE_DELIVERY",
+          "parameters": [
+            "duration"
+          ],
+          "native_value": 200,
+          "units": "ticks",
+          "native_boundary": "TailWhips -> locked effect delivery"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "horizontal_factor"
+          ],
+          "native_value": 10.0,
+          "units": "native velocity/coefficient",
+          "native_boundary": "TailWhips -> launch"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "vertical"
+          ],
+          "native_value": 1.0,
+          "units": "native velocity/coefficient",
+          "native_boundary": "TailWhips -> launch"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "attack_coefficient"
+          ],
+          "native_value": 1.0,
+          "units": "native damage coefficient",
+          "native_boundary": "locked TailWhips native mobAttack hurt"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "hp_coefficient"
+          ],
+          "native_value": 0.05999999865889549,
+          "units": "native damage coefficient",
+          "native_boundary": "locked TailWhips native mobAttack hurt"
+        },
+        {
+          "primitive": "SHIELD_DISABLE",
+          "parameters": [
+            "duration"
+          ],
+          "native_value": 120,
+          "units": "ticks",
+          "native_boundary": "TailWhips -> disableShield"
+        }
+      ],
+      "binary_gates": [
+        "Native server/recipient/blocking/effect lifecycle",
+        "No reimplementation of locked Bone Fracture"
+      ],
+      "hurt_return_dependency": "Launch and Bone Fracture require true hurt; shield disable does not."
+    },
+    {
+      "id": "cataclysm:leviathan_tentacle_contact",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:tentacle_contact"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "AREA_SELECTION",
+          "parameters": [
+            "query_inflation"
+          ],
+          "native_value": 2.0,
+          "units": "blocks",
+          "native_boundary": "Tentacleattack -> raytraceEntities"
+        },
+        {
+          "primitive": "AREA_SELECTION",
+          "parameters": [
+            "radius"
+          ],
+          "native_value": 9.0,
+          "units": "blocks",
+          "native_boundary": "Tentacleattack -> raytraceEntities"
+        },
+        {
+          "primitive": "AREA_SELECTION",
+          "parameters": [
+            "victim_pad"
+          ],
+          "native_value": 2.5,
+          "units": "blocks",
+          "native_boundary": "Tentacleattack -> raytraceEntities"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "horizontal_factor"
+          ],
+          "native_value": 7.0,
+          "units": "native velocity/coefficient",
+          "native_boundary": "Tentacleattack after hurt"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "vertical"
+          ],
+          "native_value": 0.2,
+          "units": "native velocity/coefficient",
+          "native_boundary": "Tentacleattack after hurt"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "attack_coefficient"
+          ],
+          "native_value": 1.0,
+          "units": "native damage coefficient",
+          "native_boundary": "Tentacleattack -> native mobAttack hurt"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "hp_coefficient"
+          ],
+          "native_value": 0.05999999865889549,
+          "units": "native damage coefficient",
+          "native_boundary": "Tentacleattack -> native mobAttack hurt"
+        },
+        {
+          "primitive": "SHIELD_DISABLE",
+          "parameters": [
+            "duration"
+          ],
+          "native_value": 90,
+          "units": "ticks",
+          "native_boundary": "Tentacleattack -> disableShield"
+        }
+      ],
+      "binary_gates": [
+        "Native exact strike tick and original recipients",
+        "Movement requires true hurt; shield predicate independent"
+      ],
+      "hurt_return_dependency": "Movement true-hurt only; no STUN."
+    },
+    {
+      "id": "cataclysm:leviathan_terrain_control",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:terrain_control"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Original side/NoAI/config/grief/block/tag/hook/BlockEntity/counter gates",
+        "Only directly reached terrain; non-damage debris contract reused"
+      ],
+      "hurt_return_dependency": "Incoming timer arming remains locked R2k9a; execution independent of outgoing hurt."
+    },
+    {
+      "id": "cataclysm:leviathan_tongue_contact",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:tongue_contact"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "amount"
+          ],
+          "native_value": 6.0,
+          "units": "native requested damage",
+          "native_boundary": "tongue hurtEntity"
+        }
+      ],
+      "binary_gates": [
+        "Native contact/target/controller/hurt/server and mount admission",
+        "No team/native gate invented"
+      ],
+      "hurt_return_dependency": "Mount requires true hurt/server; return flag does not require successful hurt or mount."
+    },
+    {
+      "id": "cataclysm:leviathan_tongue_delivery",
+      "primary_classification": "CUSTOM_CONTROL",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:tongue_delivery"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "TONGUE_DELIVERY",
+          "parameters": [
+            "bite_distance"
+          ],
+          "native_value": 8.5,
+          "units": "ticks/blocks",
+          "native_boundary": "LeviathanGrabAttackGoal.tick -> native tongue"
+        },
+        {
+          "primitive": "TONGUE_DELIVERY",
+          "parameters": [
+            "max_duration"
+          ],
+          "native_value": 120,
+          "units": "ticks/blocks",
+          "native_boundary": "LeviathanGrabAttackGoal.tick -> native tongue"
+        }
+      ],
+      "binary_gates": [
+        "Native animation/server/create uniqueness/target-distance and cleanup gates",
+        "Bite transition does not require tongue hurt/mount"
+      ],
+      "hurt_return_dependency": "Bite transition independent of outgoing hurt."
+    },
+    {
+      "id": "cataclysm:leviathan_tongue_lifecycle",
+      "primary_classification": "BINARY_MECHANIC",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:tongue_lifecycle"
+      ],
+      "numerical_candidates": [],
+      "binary_gates": [
+        "Native controller/default/NBT/terrain/config and goal cleanup gates"
+      ],
+      "hurt_return_dependency": "Cleanup and terrain independent of hurt."
+    },
+    {
+      "id": "cataclysm:leviathan_tongue_motion",
+      "primary_classification": "CUSTOM_CONTROL",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:tongue_motion"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "NATIVE_MOVEMENT",
+          "parameters": [
+            "damping"
+          ],
+          "native_value": 0.8999999761581421,
+          "units": "native motion coefficient",
+          "native_boundary": "The_Leviathan_Tongue_Entity.tick"
+        },
+        {
+          "primitive": "NATIVE_MOVEMENT",
+          "parameters": [
+            "outbound_acceleration"
+          ],
+          "native_value": 0.0949999988079071,
+          "units": "native motion coefficient",
+          "native_boundary": "The_Leviathan_Tongue_Entity.tick"
+        },
+        {
+          "primitive": "NATIVE_MOVEMENT",
+          "parameters": [
+            "return_acceleration"
+          ],
+          "native_value": 0.15000000596046448,
+          "units": "native motion coefficient",
+          "native_boundary": "The_Leviathan_Tongue_Entity.tick"
+        }
+      ],
+      "binary_gates": [
+        "Native target/controller/return/duration/normalization gates",
+        "No projectile hit event or standard knockback introduced"
+      ],
+      "hurt_return_dependency": "Motion/return independent of hurt."
+    },
+    {
+      "id": "cataclysm:leviathan_water_movement",
+      "primary_classification": "CUSTOM_CONTROL",
+      "delivery_paths": [
+        "cataclysm:leviathan-offense:water_movement"
+      ],
+      "numerical_candidates": [
+        {
+          "primitive": "NATIVE_MOVEMENT",
+          "parameters": [
+            "collision_y"
+          ],
+          "native_value": 0.07999999821186066,
+          "units": "native movement units",
+          "native_boundary": "Leviathan.travel/switchNavigator/LeviathanMoveController.tick"
+        },
+        {
+          "primitive": "NATIVE_MOVEMENT",
+          "parameters": [
+            "damping"
+          ],
+          "native_value": 0.9,
+          "units": "native movement units",
+          "native_boundary": "Leviathan.travel/switchNavigator/LeviathanMoveController.tick"
+        },
+        {
+          "primitive": "NATIVE_MOVEMENT",
+          "parameters": [
+            "idle_sink"
+          ],
+          "native_value": -0.005,
+          "units": "native movement units",
+          "native_boundary": "Leviathan.travel/switchNavigator/LeviathanMoveController.tick"
+        },
+        {
+          "primitive": "NATIVE_MOVEMENT",
+          "parameters": [
+            "land_speed_factor"
+          ],
+          "native_value": 0.10000000149011612,
+          "units": "native movement units",
+          "native_boundary": "Leviathan.travel/switchNavigator/LeviathanMoveController.tick"
+        },
+        {
+          "primitive": "NATIVE_MOVEMENT",
+          "parameters": [
+            "speed_multiplier"
+          ],
+          "native_value": 10.0,
+          "units": "native movement units",
+          "native_boundary": "Leviathan.travel/switchNavigator/LeviathanMoveController.tick"
+        },
+        {
+          "primitive": "NATIVE_MOVEMENT",
+          "parameters": [
+            "vertical_coefficient"
+          ],
+          "native_value": 0.6,
+          "units": "native movement units",
+          "native_boundary": "Leviathan.travel/switchNavigator/LeviathanMoveController.tick"
+        },
+        {
+          "primitive": "NATIVE_MOVEMENT",
+          "parameters": [
+            "water_speed_factor"
+          ],
+          "native_value": 0.019999999552965164,
+          "units": "native movement units",
+          "native_boundary": "Leviathan.travel/switchNavigator/LeviathanMoveController.tick"
+        },
+        {
+          "primitive": "NATIVE_MOVEMENT",
+          "parameters": [
+            "y_speed_multiplier"
+          ],
+          "native_value": 1.0,
+          "units": "native movement units",
+          "native_boundary": "Leviathan.travel/switchNavigator/LeviathanMoveController.tick"
+        }
+      ],
+      "binary_gates": [
+        "Original native AI/water/navigation/input/zero-distance gates",
+        "No damage callbacks added"
+      ],
+      "hurt_return_dependency": "Independent of hurt."
+    }
+  ],
+  "facts": {
+    "attack_selection": {
+      "directly_used_goals": 16,
+      "ordered_independent_draws": true,
+      "private_charge_helpers_have_no_scoped_callers": true
+    },
+    "damage": {
+      "bite_reads_tentacle_hp_config": true,
+      "hold_hp_addition_uncapped": true,
+      "beam_hp_unit_factor": 0.01,
+      "rift_damage_hardcoded": 10.0,
+      "shield_disable_independent_of_hurt": true
+    },
+    "payloads": {
+      "ordinary_beam_is_projectile": false,
+      "portal_beam_is_projectile": false,
+      "orb_impact_event_preserved": true,
+      "rift_growth_has_owner_filter": false,
+      "mine_recipient_loop_breaks_on_removal": false
+    },
+    "lifecycle": {
+      "orb_tracking_save_load_keys": [
+        "tracking",
+        "fired"
+      ],
+      "portal_beam_damage_saved": false,
+      "blast_portal_raw_caster_guard": true,
+      "teleport_portal_entrance_saved": false,
+      "tongue_max_load_uses_set_duration": true
+    },
+    "binary_gates": {
+      "native_admission_unchanged": true,
+      "phase_and_rift_ordinals_not_tno_stage": true,
+      "non_damage_debris_verified_reused": true
+    }
+  },
+  "scoped_private_helper_checks": [
+    {
+      "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity.class",
+      "method": "chargeDamage",
+      "descriptor": "()V",
+      "access": 2,
+      "callers_within_owned_family": []
+    },
+    {
+      "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity.class",
+      "method": "chargeblockbreaking",
+      "descriptor": "()V",
+      "access": 2,
+      "callers_within_owned_family": []
+    },
+    {
+      "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Entity$LeviathanAbyssBlastPortalAttackGoal.class",
+      "method": "spawnUpperPortal",
+      "descriptor": "(DDDFI)V",
+      "access": 2,
+      "callers_within_owned_family": []
+    },
+    {
+      "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/The_Leviathan/The_Leviathan_Tongue_Entity.class",
+      "method": "shouldDropItem",
+      "descriptor": "(Lnet/minecraft/world/level/block/entity/BlockEntity;)Z",
+      "access": 2,
+      "callers_within_owned_family": []
+    }
+  ],
+  "reused_contracts": [
+    {
+      "file": "cataclysm-r2k9a-leviathan-admission.json",
+      "bindings": [
+        "Locked Leviathan admission/phase/latch90/environment/raw state/persistence/altar unchanged"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k2a-shared-admission.json",
+      "bindings": [
+        "LLibrary hurt/caps/causing range/bucket/regen/effect whitelist/Home/animation/death unchanged"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k2b-stun.json",
+      "bindings": [
+        "Existing Leviathan.biteattack witness/native STUN contract locked, not reopened"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k2d-abyssal-status.json",
+      "bindings": [
+        "Existing Abyssal Burn contract and effect class declaration reused; receiving comparison recorded literally"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k2e-remaining-status.json",
+      "bindings": [
+        "Existing Leviathan.TailWhips and all status contracts remain locked"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k3b-guardian-offense.json",
+      "bindings": [
+        "Guardian completed family locked"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k4a-monstrosity-admission.json",
+      "bindings": [
+        "Existing Cm_Part_Entity header reused; only missing constructor body new"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k4b-monstrosity-offense.json",
+      "bindings": [
+        "Monstrosity completed family locked"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k5b-ignis-offense.json",
+      "bindings": [
+        "Ignis completed family locked"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k6b-harbinger-offense.json",
+      "bindings": [
+        "Harbinger completed family locked"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k7b-remnant-offense.json",
+      "bindings": [
+        "Ancient Remnant completed family locked"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k8b-maledictus-offense.json",
+      "bindings": [
+        "Maledictus completed family locked"
+      ]
+    },
+    {
+      "file": "cataclysm-r2k3a-guardian-admission.json",
+      "bindings": [
+        "Existing AnimationGoal/SimpleAnimationGoal native lifecycle reused"
+      ]
+    }
+  ],
+  "protected_r2k9a": {
+    "file": "cataclysm-r2k9a-leviathan-admission.json",
+    "sha256": "1299583bb2dde7dbddb37c2b112dfa53b69debc55ff94722778491f71b6d3a24"
+  },
+  "reference_files": [
+    {
+      "file": "cataclysm-boss-inheritance.json",
+      "sha256": "4cf3e43f452a3b12d437588b5e9d01a14a47e6575be1353a6186fdaf61eaa7b0",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-damage-tags.json",
+      "sha256": "63acef0f45d8d8b871e97e2a26fa0695b7d03313938f3e2788c48407e6da15a6",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-installed-common-config.json",
+      "sha256": "e49736bbfea8976a8df3f0d2f28e948e5c1e0535cb1254b28e7eefca77b923cf",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k2a-shared-admission.json",
+      "sha256": "3852d7f0950abe786cd9769ea4d64fb02f2cfa4ee1f4e99c06464645218ee9e2",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k2b-stun.json",
+      "sha256": "c81fed2de650739f580e106fa4cd9ac907cb7b5a3e7e8161879a0f2a795a4cd9",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k2c-ghost-fear.json",
+      "sha256": "77c977c09003cd0b0be9f0a6261985958610c6847e712cffdc2c17143bb0e75f",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k2d-abyssal-status.json",
+      "sha256": "4f6b1b56e028c1e7c1f5dee6209f9264a3d456a26d0edbafc0f3689ca70fa35c",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k2e-remaining-status.json",
+      "sha256": "736c5033f74b821f14794a0dcd988056bcf98b12a5222fe5b70ab83d0c77c455",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k3a-guardian-admission.json",
+      "sha256": "8a920972afe714d3e69278351e6a84672d9bb6a590d0cc0f6a20f66f8ae2ca7e",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k3b-guardian-offense.json",
+      "sha256": "274e56f41b2dc3cd1ee3196a41e6edc050f700ae36ed602eed054ecfd53b104e",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k4a-monstrosity-admission.json",
+      "sha256": "5349c1f74363e063d01e25ca8eba9890c20656604f7adcc8e962215447aba432",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k4b-monstrosity-offense.json",
+      "sha256": "1f3c3c1134cfc3cdc518758c3dfc95a4407556cc4caac8187142b412989ca321",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k5a-ignis-admission.json",
+      "sha256": "7ac79ea34be27f44c3c8d2d6b8f3d9634ef3547120860c3ae70fae5ab149fdb0",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k5b-ignis-offense.json",
+      "sha256": "e9e71745affaa02fa1cdecd519ed5aeefa501475b4b9949e79ebfd2116cfb83d",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k6a-harbinger-admission.json",
+      "sha256": "3b1311d8e9f8a77e721e54609c51d956d5ed2fa5a8d6f3e12097e6d1237a3f96",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k6b-harbinger-offense.json",
+      "sha256": "9da498a35711fbb79b58b2a9fb805272400a041455c2ee6c412937681d433bff",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k7a-remnant-admission.json",
+      "sha256": "733dc914c58da500aebd4a495268b120000d4048a82306592b2bf1e72337f040",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k7b-remnant-offense.json",
+      "sha256": "92dd9219e2703997248685839c79d08a99fa64d3189ceaef2083f8c795307190",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k8a-maledictus-admission.json",
+      "sha256": "12c69cf813d3a5726f6ba3271e8c08ee123490e64b7897b800b8cd8ad95463ca",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k8b-maledictus-offense.json",
+      "sha256": "396ea938f91922aa7f03cec2a14cd381b6e7eb68dad1b9df7b0883f63323cec3",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-r2k9a-leviathan-admission.json",
+      "sha256": "1299583bb2dde7dbddb37c2b112dfa53b69debc55ff94722778491f71b6d3a24",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-source-census.json",
+      "sha256": "fee3dbcc15b068eddb6c53271146d2f04dcb72a5f183dc9a17be2d794ed68ead",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "jar-inventory.json",
+      "sha256": "e9d91482fac44a764468ddb75e2bf10ee7c0aef74f392a90b5d5dfe908ba3974",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-abyssal.json",
+      "sha256": "25d58f0c1506b0dc96c49207c0a26fef2d9513f9f5692c0895071e83a273cc70",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-foundation.json",
+      "sha256": "bb75018a6d3a72048251f24fae60edffaa4b0dcb678b3cdc3db6f2b5af99c55b",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-guardian-admission.json",
+      "sha256": "d652ad2ea9cd6d7ebf7f6d5424122199b74d6c4b355248affeae9e673dcdf067",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-guardian-offense.json",
+      "sha256": "4b086ab084546fc3b87bdc058458f297f1677a37975a8c6c75610d8ee9d0faab",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-harbinger-admission.json",
+      "sha256": "2d8f69d52c3e02afd1e95de01bb23e5f147767dcc03f49fc85c5617c5087419b",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-harbinger-offense.json",
+      "sha256": "871182fba5f0fb26b1264c55fa4a7229f886cec1937436654871610696626690",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-ignis-admission.json",
+      "sha256": "fd912858bcb07d62fd46feabe3a178e3e3db229ec8ac1d4d101b6d735384230f",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-ignis-offense.json",
+      "sha256": "9cb83c5ae62c617c2b51b0bff205ae0f9d0d818d3f34262402d620ae7857e780",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-leviathan-admission.json",
+      "sha256": "c673f14056865c7ded1bda3fb5f9c823d63a0090c848b43e4f1a72cb9cc6ab24",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-leviathan-offense.json",
+      "sha256": "87ddae223234e6a335834636845b456def12d746df6f8f0c32b21e93feb09bd5",
+      "usage": "NEW_SCOPED_WITNESS"
+    },
+    {
+      "file": "native-evidence/cataclysm-maledictus-admission.json",
+      "sha256": "79d3f24ba3e378efdbdd083087cdbaa7af5240e358e1602519b2f639a41a7861",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-maledictus-offense.json",
+      "sha256": "802750fa6eb018c4d77e60137cafdd802e771b835f2c4e77154d177f8b719da6",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-monstrosity-admission.json",
+      "sha256": "c5ac14eb0106a949e81922941fe12c2590fa3eb3687b69638c96fbfdf4afea9f",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-monstrosity-offense.json",
+      "sha256": "3de3c6430a599ba9de4dfd165ef27e6fb645cc491020bd1e1bc02ff053d85568",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-remaining-status.json",
+      "sha256": "b47482396e64fc0e4d4f10b61ac45ba6e42fe588d0117cc250ff03afc5ac422f",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-remnant-admission.json",
+      "sha256": "be9705cf2550d221d39dee11949aeb0b93374a9e33cf292bee67d05edd297fad",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-remnant-offense.json",
+      "sha256": "30345a4a9900b2683a23a05eed6e6abec0f903b5fc7338e634f625f156845a88",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-shared.json",
+      "sha256": "ba6abb73e3e33fab4cbead14196a1112f769189f873abc4fcbb5262eb2289a29",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-stun.json",
+      "sha256": "fa0ca10b9822f40d703be35748c9cf2eaf6a8ad404b942eea289a7313dae1177",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-specifications/cataclysm-harbinger-admission.json",
+      "sha256": "3409aefa5861d629df042d9bfe332ca1c9b3ddcbfa5295b5aec2b99bee39684d",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-specifications/cataclysm-harbinger-offense.json",
+      "sha256": "9cfaf40cc71ecd49d0f0671ad923108b0816ea7a73be5be1cc37531b3ce60c26",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-specifications/cataclysm-ignis-admission.json",
+      "sha256": "35abf2bfd960a16bf181ff99b103ff3812e9a950ac478c9298fa40d51758b6a6",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-specifications/cataclysm-ignis-offense.json",
+      "sha256": "ee93afdbc908acbc9ce142c04c5664de616d801e3d0b4329277e0dc134b68ced",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-specifications/cataclysm-leviathan-admission.json",
+      "sha256": "94354d2f520c4d96f88d9fe12c0411493baf4407091ae1b0e4e63e7d9c876107",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-specifications/cataclysm-leviathan-offense.json",
+      "sha256": "72fdb6d19a1ec6335d0d3dd4246efdf9039071e09d03018e1503cbcecc15ac0b",
+      "usage": "NEW_SCOPED_WITNESS"
+    },
+    {
+      "file": "native-specifications/cataclysm-maledictus-admission.json",
+      "sha256": "68ff5d9598eb146a2d6948ce6af69ff668ed4072dd9e4f0654df31450fc1a29c",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-specifications/cataclysm-maledictus-offense.json",
+      "sha256": "663d3c6346e11548d2361a9ec0c427412b8df1f20ff8a7d118c62e2d66544862",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-specifications/cataclysm-monstrosity-offense.json",
+      "sha256": "5ffcf3eaf1b230ffd034335b9f59bee00acb2f334372ffea3653ac268100fada",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-specifications/cataclysm-remnant-admission.json",
+      "sha256": "8c644bfb1182d29db71e53432013a29203848e83285326401e8bdd268a2e159f",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-specifications/cataclysm-remnant-offense.json",
+      "sha256": "0c9c39cd810e7502f1a56d2513d6247c43f1148037de47cef8cf694b9b5a682c",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/bossesrise-knight-defense-244.json",
+      "sha256": "837cad018f153c3b1c4ce5db6429ae0c0f10214c72daac55ceb864e5d4ac66e8",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/bossesrise-knight-offense-244.json",
+      "sha256": "ed906fd31cd492fd157e4c9ba6f4e3271359ae4b2c650cd440c3fff1cc788002",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/eternalstarlight-soul-hunger-244.json",
+      "sha256": "e7ac2ed7688d7fd123b10e9e09bac71954f8110b856edb6affc7da8a2ea2ade7",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/eternalstarlight-status-control-244.json",
+      "sha256": "e8b8f470bf9a5d896de48e1baa8bbfcc5e01c9985ca9dcf4dae2e8e325c34205",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/iceandfire-dragon-elements-244.json",
+      "sha256": "27b53602dcbf08bde0c888e01f2ba01dc77761dd9c637f524aaf9dc4f954bcf7",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/iceandfire-worm-cyclops-244.json",
+      "sha256": "5c43fe513bd1696b3787b29160628719b7a04544cfa55ac3fb18cbbc22cc2640",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/twilight-frosted-244.json",
+      "sha256": "ed516f1889db7ce4cbb811b1f7468d060c879d2eb6bb12bb933aba146a94d954",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/twilight-hydra-urghast-244.json",
+      "sha256": "5de22807fdb64617e2318367903cb3a54aa4c6714ef53fca915827d5df1bde12",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/twilight-minoshroom-knight-244.json",
+      "sha256": "c80393a79949951d3eb82b8ff72a52e2473abf769d7df18ef644f0d1ea62f804",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/twilight-ominous-progression-244.json",
+      "sha256": "eee551bcb17aad7d8f3ada687ae4a16948b707efd844829a4ba3e1d6105348db",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "vanilla-evidence/twilight-frosted.json",
+      "sha256": "2afaf3ecad965d6092c65532ec119d4dcf5c7420aba6b1c1aa317f03eb5c16cc",
+      "usage": "LOCKED_REUSED"
+    }
+  ],
+  "remaining_subsection_native_ambiguities": [],
+  "leviathan_family_closed": true,
+  "remaining_leviathan_work": [],
+  "remaining_cataclysm_research": [
+    "Scylla admission/phase/encounter batch then offense/payload batch",
+    "Other unreviewed concrete bosses/mobs/equipment/global hooks remain partial"
+  ],
+  "excluded_from_this_scope": [
+    "Locked R2k9a/prior admission and shared/status/families",
+    "Unrelated boss/equipment/global semantic review",
+    "Visual/animation-only methods, loot/recipes/acquisition",
+    "Uncalled private chargeDamage/chargeblockbreaking/spawnUpperPortal/shouldDropItem bodies",
+    "Stage policy/implementation and runtime compatibility"
+  ],
+  "exact_next_task": "R2k10a: Scylla incoming admission and phase/encounter prerequisites. Start Scylla_Entity.hurt/isInvulnerableTo and relevant inherited hierarchy; record concrete DamageCap/DpsCap/RangeLimit/NatureRegen bindings where applicable, native admission order, source/tag bypasses, phase/state setters and combat persistence, material spawn/home/encounter prerequisites. Reuse locked shared/status and completed Guardian, Monstrosity, Ignis, Harbinger, Ancient Remnant, Maledictus and Leviathan. Defer Scylla offense/payloads to R2k10b. Static only; no runtime, Stage, production or unrelated family research.",
+  "whole_mod_complete": false,
+  "runtime_tests": 0,
+  "stage_eligibility_decided": false,
+  "tooling": {
+    "jar_sha256": "fa4e8abd15aa86333d6a5fe20b05c4fe423ac865da7319be7808d321bcb3930c",
+    "jar_size_bytes": 73346519,
+    "new_native_witnesses": 29,
+    "new_method_witnesses": 267,
+    "reused_evidence_regenerated": false,
+    "recursive_jar_scan": false,
+    "reading_aid": "Existing pinned R2k9a root aid reused; Vineflower1.10.1 SHA256 b9b208e50793b64657a6b6292067526613f549de7405f9243624b02f4276e409 on exact root,16 offensive goal entries, move controller/two state-result holders and8 directly owned payload entries only. Finite classfile witnesses authoritative; existing status/beam ticks and shared contracts reused, no whole-JAR scan."
+  },
+  "phase6_reopened": false,
+  "production_changed": false,
+  "stage_changed": false,
+  "boss_testing_started": false,
+  "l2_testing_started": false,
+  "compatibility_fixes_started": false,
+  "phase7_started": false
+}
