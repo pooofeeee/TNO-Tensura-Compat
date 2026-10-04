@@ -51353,6 +51353,1731 @@
       "spawned_entity_ids": [
         "cataclysm:cm_falling_block"
       ]
+    },
+    {
+      "id": "cataclysm:scylla_activation_encounter",
+      "mod_key": "cataclysm",
+      "display_name": "Scylla native player activation encounter boundary",
+      "registry_ids": [
+        "cataclysm:scylla"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "mobInteract when !getAct: setHomePos(GlobalPos.of(current dimension,blockPosition)), setAct(true), native heal(getMaxHealth()), PlayerCounter(level), return SUCCESS. Otherwise native parent interaction. No item/stack/hand-content test or consume, no local server/NoAI/water/alive gate, no direct attack state setter here; saved sleep23 wakes through native goals later. Native heal hook/max-HP clamp and original LIFE counter apply; full-heal encounter reset is setup, not an independent scalable amount. Shared home return/PlayerCounter/empty inherited Retry unchanged; respawner/death behavior deferred.",
+      "human_summary": "mobInteract when !getAct: setHomePos(GlobalPos.of(current dimension,blockPosition)), setAct(true), native heal(getMaxHealth()), PlayerCounter(level), return SUCCESS. Otherwise native parent interaction. No item/stack/hand-content test or consume, no local server/NoAI/water/alive gate, no direct attack state setter here; saved sleep23 wakes through native goals later. Native heal hook/max-HP clamp and original LIFE counter apply; full-heal encounter reset is setup, not an independent scalable amount. Shared home return/PlayerCounter/empty inherited Retry unchanged; respawner/death behavior deferred.",
+      "closest_vanilla_equivalent": "Native APIs and locked IABoss/shared admission with concrete Scylla prerequisites",
+      "vanilla_similarities": "Existing native hurt, effect admission, source-position, attribute, goal, NBT, heal and encounter APIs remain authoritative.",
+      "vanilla_differences": "mobInteract when !getAct: setHomePos(GlobalPos.of(current dimension,blockPosition)), setAct(true), native heal(getMaxHealth()), PlayerCounter(level), return SUCCESS. Otherwise native parent interaction. No item/stack/hand-content test or consume, no local server/NoAI/water/alive gate, no direct attack state setter here; saved sleep23 wakes through native goals later. Native heal hook/max-HP clamp and original LIFE counter apply; full-heal encounter reset is setup, not an independent scalable amount. Shared home return/PlayerCounter/empty inherited Retry unchanged; respawner/death behavior deferred.",
+      "components": [
+        {
+          "primitive": "ENCOUNTER_ACTIVATION",
+          "formula": "!Act -> home -> Acttrue -> native full heal -> player LIFE count -> SUCCESS",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "Scylla.mobInteract -> locked home/heal/PlayerCounter",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native !Act/player-interaction/parent admission and heal hooks",
+        "No held-item/water/side or immediate-wake gate invented"
+      ],
+      "custom_state": "Native raw Phase/Act/ParryCount/Eye/Flying/ChainAnchor/AnchorUUID and inherited attack/Home/LifeRemain state only.",
+      "eligibility": "Native !Act/player-interaction/parent admission and heal hooks; No held-item/water/side or immediate-wake gate invented",
+      "source_actor": "Interacting Player initiates native Scylla self/home/health/LIFE setup, no combat source wrapper.",
+      "hurt_return_dependency": "Original native admission/lifecycle; no outgoing payload added.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity.class",
+          "methods": [
+            "mobInteract",
+            "setAct",
+            "getAct"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "setHomePos",
+            "PlayerCounter",
+            "ReturnToHome",
+            "Retry"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:scylla-admission:activation_encounter"
+      ],
+      "primary_test_source": "cataclysm:scylla",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k10a-cataclysm-scylla-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [],
+      "scalability_note": "Static observations only. Native defense/admission/phase/parry/spawn/setup constants are not automatic scalar candidates. No Stage eligibility, direction, formula, balance, cap/floor, owner integration or runtime hook chosen. NatureRegen reuses the existing shared-heal observation; no second heal.",
+      "activation_order": [
+        "IF_ACT_FALSE",
+        "SET_HOME_CURRENT_GLOBAL_POS",
+        "SET_ACT_TRUE",
+        "NATIVE_HEAL_MAX_HEALTH",
+        "NATIVE_PLAYER_COUNTER",
+        "RETURN_SUCCESS_ELSE_PARENT_INTERACTION"
+      ],
+      "interaction_local_server_guard": false,
+      "requires_specific_item": false,
+      "consumes_item": false,
+      "activation_sets_home": true,
+      "activation_heals_to_max": true,
+      "activation_counts_players": true,
+      "activation_directly_sets_attack_state": false,
+      "full_heal_is_stage_candidate": false
+    },
+    {
+      "id": "cataclysm:scylla_activation_sleep_prerequisites",
+      "mod_key": "cataclysm",
+      "display_name": "Scylla native activation and sleep/wake state distinction",
+      "registry_ids": [
+        "cataclysm:scylla"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Synced Act defaultsfalse; isSleep uses ATTACK_STATE23 or24, NOT !Act. setAct(false) updates flag/bossbar then forces23; setAct(true) only flag/bossbar and does not directly change attack state. Fresh constructor defaults inherited attackState0 even while Actfalse; concrete NBT loading missing Act invokes false setter and forces23. Native sleep goal23->23/end24,max0 continues inherited state predicate AND !Act; tick writes velocity(0,currentY,0). With Acttrue it ends into24; native wake goal24->24/end0/max40, start Eye=true, stop Eye=false. Sleep/wake states both protected in hurt. No instant state0 wake, held-item requirement or attack hook introduced.",
+      "human_summary": "Synced Act defaultsfalse; isSleep uses ATTACK_STATE23 or24, NOT !Act. setAct(false) updates flag/bossbar then forces23; setAct(true) only flag/bossbar and does not directly change attack state. Fresh constructor defaults inherited attackState0 even while Actfalse; concrete NBT loading missing Act invokes false setter and forces23. Native sleep goal23->23/end24,max0 continues inherited state predicate AND !Act; tick writes velocity(0,currentY,0). With Acttrue it ends into24; native wake goal24->24/end0/max40, start Eye=true, stop Eye=false. Sleep/wake states both protected in hurt. No instant state0 wake, held-item requirement or attack hook introduced.",
+      "closest_vanilla_equivalent": "Native APIs and locked IABoss/shared admission with concrete Scylla prerequisites",
+      "vanilla_similarities": "Existing native hurt, effect admission, source-position, attribute, goal, NBT, heal and encounter APIs remain authoritative.",
+      "vanilla_differences": "Synced Act defaultsfalse; isSleep uses ATTACK_STATE23 or24, NOT !Act. setAct(false) updates flag/bossbar then forces23; setAct(true) only flag/bossbar and does not directly change attack state. Fresh constructor defaults inherited attackState0 even while Actfalse; concrete NBT loading missing Act invokes false setter and forces23. Native sleep goal23->23/end24,max0 continues inherited state predicate AND !Act; tick writes velocity(0,currentY,0). With Acttrue it ends into24; native wake goal24->24/end0/max40, start Eye=true, stop Eye=false. Sleep/wake states both protected in hurt. No instant state0 wake, held-item requirement or attack hook introduced.",
+      "components": [
+        {
+          "primitive": "ACTIVATION_STATE",
+          "formula": "Actfalse setter ->23; true setter leaves state; original sleep23 -> wake24 -> idle0",
+          "numerical_parameters": {
+            "sleep_state": 23,
+            "wake_state": 24,
+            "idle_state": 0,
+            "wake_max_tick": 40
+          },
+          "parameter_units": {
+            "sleep_state": "native state/ticks",
+            "wake_state": "native state/ticks",
+            "idle_state": "native state/ticks",
+            "wake_max_tick": "native state/ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Scylla setAct/isSleep and native sleep/wake goals",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Original Act/raw attack-state/scheduler and native wake continuation",
+        "Enemy visibility additionally requires !isSleep"
+      ],
+      "custom_state": "Native raw Phase/Act/ParryCount/Eye/Flying/ChainAnchor/AnchorUUID and inherited attack/Home/LifeRemain state only.",
+      "eligibility": "Original Act/raw attack-state/scheduler and native wake continuation; Enemy visibility additionally requires !isSleep",
+      "source_actor": "Native self activation/goal state; incoming recipients remain Scylla.",
+      "hurt_return_dependency": "Original native admission/lifecycle; no outgoing payload added.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity.class",
+          "methods": [
+            "defineSynchedData",
+            "setAct",
+            "getAct",
+            "isSleep",
+            "canBeSeenAsEnemy",
+            "registerGoals"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity$2",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity$2.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity$3",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity$3.class",
+          "methods": [
+            "<init>",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/AI/InternalStateGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AI/InternalStateGoal.class",
+          "methods": [
+            "canUse",
+            "canContinueToUse",
+            "start",
+            "stop"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:scylla-admission:activation_sleep_prerequisites"
+      ],
+      "primary_test_source": "cataclysm:scylla",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k10a-cataclysm-scylla-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "ACTIVATION_STATE",
+          "parameter": "sleep_state",
+          "native_value": 23,
+          "native_formula": "Actfalse setter ->23; true setter leaves state; original sleep23 -> wake24 -> idle0",
+          "units": "native state/ticks",
+          "boundary": "Scylla setAct/isSleep and native sleep/wake goals"
+        },
+        {
+          "primitive": "ACTIVATION_STATE",
+          "parameter": "wake_state",
+          "native_value": 24,
+          "native_formula": "Actfalse setter ->23; true setter leaves state; original sleep23 -> wake24 -> idle0",
+          "units": "native state/ticks",
+          "boundary": "Scylla setAct/isSleep and native sleep/wake goals"
+        },
+        {
+          "primitive": "ACTIVATION_STATE",
+          "parameter": "idle_state",
+          "native_value": 0,
+          "native_formula": "Actfalse setter ->23; true setter leaves state; original sleep23 -> wake24 -> idle0",
+          "units": "native state/ticks",
+          "boundary": "Scylla setAct/isSleep and native sleep/wake goals"
+        },
+        {
+          "primitive": "ACTIVATION_STATE",
+          "parameter": "wake_max_tick",
+          "native_value": 40,
+          "native_formula": "Actfalse setter ->23; true setter leaves state; original sleep23 -> wake24 -> idle0",
+          "units": "native state/ticks",
+          "boundary": "Scylla setAct/isSleep and native sleep/wake goals"
+        }
+      ],
+      "scalability_note": "Static observations only. Native defense/admission/phase/parry/spawn/setup constants are not automatic scalar candidates. No Stage eligibility, direction, formula, balance, cap/floor, owner integration or runtime hook chosen. NatureRegen reuses the existing shared-heal observation; no second heal.",
+      "act_false_equals_sleep": false,
+      "true_act_setter_wakes_directly": false,
+      "false_act_setter_forces23": true,
+      "fresh_constructor_forces23": false,
+      "wake_has_added_damage": false
+    },
+    {
+      "id": "cataclysm:scylla_combat_persistence",
+      "mod_key": "cataclysm",
+      "display_name": "Scylla concrete combat NBT and inherited home/life",
+      "registry_ids": [
+        "cataclysm:scylla"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Save parent then optional AnchorUUID, Phase int, Act bool. Load parent, AnchorUUID only if hasUUID, raw setPhase(getInt Phase), then setAct(getBoolean Act); missing Phase0/Actfalse, latter forces23. Saved true Act does not force a wake state. Parent Home/LifeRemain retained. Concrete Eye/Flying/ChainAnchor/AnchorID/ParryCount/parry cooldown/native attack state/cooldowns/destroy timer not saved; constructor and parent transient defaults apply. No phase clamps/snapshot receipts or restore repairs. Root native anchor UUID lookup does not prove a live loaded payload; payload lifecycle deferred.",
+      "human_summary": "Save parent then optional AnchorUUID, Phase int, Act bool. Load parent, AnchorUUID only if hasUUID, raw setPhase(getInt Phase), then setAct(getBoolean Act); missing Phase0/Actfalse, latter forces23. Saved true Act does not force a wake state. Parent Home/LifeRemain retained. Concrete Eye/Flying/ChainAnchor/AnchorID/ParryCount/parry cooldown/native attack state/cooldowns/destroy timer not saved; constructor and parent transient defaults apply. No phase clamps/snapshot receipts or restore repairs. Root native anchor UUID lookup does not prove a live loaded payload; payload lifecycle deferred.",
+      "closest_vanilla_equivalent": "Native APIs and locked IABoss/shared admission with concrete Scylla prerequisites",
+      "vanilla_similarities": "Existing native hurt, effect admission, source-position, attribute, goal, NBT, heal and encounter APIs remain authoritative.",
+      "vanilla_differences": "Save parent then optional AnchorUUID, Phase int, Act bool. Load parent, AnchorUUID only if hasUUID, raw setPhase(getInt Phase), then setAct(getBoolean Act); missing Phase0/Actfalse, latter forces23. Saved true Act does not force a wake state. Parent Home/LifeRemain retained. Concrete Eye/Flying/ChainAnchor/AnchorID/ParryCount/parry cooldown/native attack state/cooldowns/destroy timer not saved; constructor and parent transient defaults apply. No phase clamps/snapshot receipts or restore repairs. Root native anchor UUID lookup does not prove a live loaded payload; payload lifecycle deferred.",
+      "components": [
+        {
+          "primitive": "COMBAT_STATE_PERSISTENCE",
+          "formula": "parent Home/LifeRemain; optional AnchorUUID, raw Phase then Act setters",
+          "numerical_parameters": {
+            "missing_phase": 0
+          },
+          "parameter_units": {
+            "missing_phase": "native saved ordinal"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Scylla concrete NBT -> raw phase/activation setters",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Original native NBT type/default/optional UUID and setter order",
+        "No generic restore/persistence mechanism"
+      ],
+      "custom_state": "Native raw Phase/Act/ParryCount/Eye/Flying/ChainAnchor/AnchorUUID and inherited attack/Home/LifeRemain state only.",
+      "eligibility": "Original native NBT type/default/optional UUID and setter order; No generic restore/persistence mechanism",
+      "source_actor": "Native self saved phase/activation/anchor UUID plus inherited Home/LifeRemain.",
+      "hurt_return_dependency": "Original native admission/lifecycle; no outgoing payload added.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity.class",
+          "methods": [
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "getAnchorUUID",
+            "setAnchorUUID",
+            "getAnchor",
+            "setPhase",
+            "setAct"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:scylla-admission:combat_persistence"
+      ],
+      "primary_test_source": "cataclysm:scylla",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k10a-cataclysm-scylla-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "COMBAT_STATE_PERSISTENCE",
+          "parameter": "missing_phase",
+          "native_value": 0,
+          "native_formula": "parent Home/LifeRemain; optional AnchorUUID, raw Phase then Act setters",
+          "units": "native saved ordinal",
+          "boundary": "Scylla concrete NBT -> raw phase/activation setters"
+        }
+      ],
+      "scalability_note": "Static observations only. Native defense/admission/phase/parry/spawn/setup constants are not automatic scalar candidates. No Stage eligibility, direction, formula, balance, cap/floor, owner integration or runtime hook chosen. NatureRegen reuses the existing shared-heal observation; no second heal.",
+      "saved_concrete_keys": [
+        "AnchorUUID",
+        "Phase",
+        "Act"
+      ],
+      "missing_key_defaults": {
+        "Phase": 0,
+        "Act": false
+      },
+      "act_missing_forces23": true,
+      "saved_parry_count": false,
+      "saved_parry_cooldown": false,
+      "saved_attack_state": false,
+      "saved_flying": false,
+      "saved_eye": false,
+      "saved_chain_anchor": false,
+      "saved_anchor_id": false,
+      "saved_terrain_timer": false,
+      "generic_persistence_added": false
+    },
+    {
+      "id": "cataclysm:scylla_encounter_setup",
+      "mod_key": "cataclysm",
+      "display_name": "Scylla configured construction and spawn-reason activation",
+      "registry_ids": [
+        "cataclysm:scylla"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Registered MONSTER Scylla EntityType widthfloat1.4/height3/fireImmune, exact factory constructor verified; existing initializeAttributes registers Scylla.scylla. Builder base health390/AD18/armor12/knockback resistance1/follow50/movement.31F/step1.75, no explicit armor toughness. Constructor applies native setConfigattribute with installed health/attack multipliers1/1 and initializes health to max via locked helper; not a heal delivery. Constructor does not establish Home, call setAct or setPhase. finalizeSpawn: COMMAND/SPAWN_EGG/MobSpawnType.isSpawner/DISPENSER -> setAct(true), other reasons preserve flag, then same args parent finalizeSpawn initializes locked home countdown (not actual home). No auto heal/player-count/water prerequisite in finalize. Actual home setup lives in activation interaction.",
+      "human_summary": "Registered MONSTER Scylla EntityType widthfloat1.4/height3/fireImmune, exact factory constructor verified; existing initializeAttributes registers Scylla.scylla. Builder base health390/AD18/armor12/knockback resistance1/follow50/movement.31F/step1.75, no explicit armor toughness. Constructor applies native setConfigattribute with installed health/attack multipliers1/1 and initializes health to max via locked helper; not a heal delivery. Constructor does not establish Home, call setAct or setPhase. finalizeSpawn: COMMAND/SPAWN_EGG/MobSpawnType.isSpawner/DISPENSER -> setAct(true), other reasons preserve flag, then same args parent finalizeSpawn initializes locked home countdown (not actual home). No auto heal/player-count/water prerequisite in finalize. Actual home setup lives in activation interaction.",
+      "closest_vanilla_equivalent": "Native APIs and locked IABoss/shared admission with concrete Scylla prerequisites",
+      "vanilla_similarities": "Existing native hurt, effect admission, source-position, attribute, goal, NBT, heal and encounter APIs remain authoritative.",
+      "vanilla_differences": "Registered MONSTER Scylla EntityType widthfloat1.4/height3/fireImmune, exact factory constructor verified; existing initializeAttributes registers Scylla.scylla. Builder base health390/AD18/armor12/knockback resistance1/follow50/movement.31F/step1.75, no explicit armor toughness. Constructor applies native setConfigattribute with installed health/attack multipliers1/1 and initializes health to max via locked helper; not a heal delivery. Constructor does not establish Home, call setAct or setPhase. finalizeSpawn: COMMAND/SPAWN_EGG/MobSpawnType.isSpawner/DISPENSER -> setAct(true), other reasons preserve flag, then same args parent finalizeSpawn initializes locked home countdown (not actual home). No auto heal/player-count/water prerequisite in finalize. Actual home setup lives in activation interaction.",
+      "components": [
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "formula": "existing attribute builder and native transient configuration modifiers",
+          "numerical_parameters": {
+            "base_health": 390.0,
+            "base_attack_damage": 18.0,
+            "armor": 12.0,
+            "knockback_resistance": 1.0,
+            "health_multiplier": 1.0,
+            "attack_multiplier": 1.0
+          },
+          "parameter_units": {
+            "base_health": "native attributes/config",
+            "base_attack_damage": "native attributes/config",
+            "armor": "native attributes/config",
+            "knockback_resistance": "native attributes/config",
+            "health_multiplier": "native attributes/config",
+            "attack_multiplier": "native attributes/config"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Scylla builder/constructor -> locked setConfigattribute",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "NATIVE_SPAWN_ACTIVATION",
+          "formula": "COMMAND/SPAWN_EGG/isSpawner/DISPENSER setAct true then parent finalizeSpawn",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "Scylla.finalizeSpawn",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Original native registry/construction/spawn reason and inherited home timer",
+        "No structures/acquisition/loot research or synthetic prerequisites"
+      ],
+      "custom_state": "Native raw Phase/Act/ParryCount/Eye/Flying/ChainAnchor/AnchorUUID and inherited attack/Home/LifeRemain state only.",
+      "eligibility": "Original native registry/construction/spawn reason and inherited home timer; No structures/acquisition/loot research or synthetic prerequisites",
+      "source_actor": "Native entity factory/construction and original spawn reason; no attack payload.",
+      "hurt_return_dependency": "Original native admission/lifecycle; no outgoing payload added.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity.class",
+          "methods": [
+            "<init>",
+            "scylla",
+            "finalizeSpawn"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$96",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-admission.json",
+          "witness_id": "cataclysm:guardian-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "initializeAttributes"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "setConfigattribute"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "finalizeSpawn"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:scylla-admission:encounter_setup"
+      ],
+      "primary_test_source": "cataclysm:scylla",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k10a-cataclysm-scylla-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "base_health",
+          "native_value": 390.0,
+          "native_formula": "existing attribute builder and native transient configuration modifiers",
+          "units": "native attributes/config",
+          "boundary": "Scylla builder/constructor -> locked setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "base_attack_damage",
+          "native_value": 18.0,
+          "native_formula": "existing attribute builder and native transient configuration modifiers",
+          "units": "native attributes/config",
+          "boundary": "Scylla builder/constructor -> locked setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "armor",
+          "native_value": 12.0,
+          "native_formula": "existing attribute builder and native transient configuration modifiers",
+          "units": "native attributes/config",
+          "boundary": "Scylla builder/constructor -> locked setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "knockback_resistance",
+          "native_value": 1.0,
+          "native_formula": "existing attribute builder and native transient configuration modifiers",
+          "units": "native attributes/config",
+          "boundary": "Scylla builder/constructor -> locked setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "health_multiplier",
+          "native_value": 1.0,
+          "native_formula": "existing attribute builder and native transient configuration modifiers",
+          "units": "native attributes/config",
+          "boundary": "Scylla builder/constructor -> locked setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "attack_multiplier",
+          "native_value": 1.0,
+          "native_formula": "existing attribute builder and native transient configuration modifiers",
+          "units": "native attributes/config",
+          "boundary": "Scylla builder/constructor -> locked setConfigattribute"
+        }
+      ],
+      "scalability_note": "Static observations only. Native defense/admission/phase/parry/spawn/setup constants are not automatic scalar candidates. No Stage eligibility, direction, formula, balance, cap/floor, owner integration or runtime hook chosen. NatureRegen reuses the existing shared-heal observation; no second heal.",
+      "registered_dimensions": {
+        "width": 1.399999976158142,
+        "height": 3.0
+      },
+      "attributes_apply_to": "cataclysm:scylla",
+      "constructor_sets_home": false,
+      "constructor_calls_set_act": false,
+      "constructor_sets_phase": false,
+      "configured_health_is_heal_delivery": false,
+      "explicit_armor_toughness_added": false,
+      "finalize_sets_home": false,
+      "finalize_counts_players": false,
+      "spawn_activation_reasons": [
+        "COMMAND",
+        "SPAWN_EGG",
+        "IS_SPAWNER",
+        "DISPENSER"
+      ]
+    },
+    {
+      "id": "cataclysm:scylla_environment_admission",
+      "mod_key": "cataclysm",
+      "display_name": "Scylla inherited invulnerability and native environment overrides",
+      "registry_ids": [
+        "cataclysm:scylla"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "No Scylla isInvulnerableTo or canBeAffected declared; exact Cataclysm IABoss/IA/Animation chain has no concrete invulnerability filter here, use locked native Entity/NeoForge admission plus shared effect whitelist. Scylla registry factory fireImmune=true. decreaseAirSupply returns input unchanged (not reset-to-max and not blanket drowning DamageType immunity). isAffectedByFluids=false,isPushedByFluid=false,canStandOnFluid checks native WATER tag. No concrete direct-arrow/in_wall/falling_block/fluid/armor shield gate in hurt. Native armor12 and knockback resistance1 are configured setup, not substituted for damage cap or parry. Floating motion execution is deferred to offense batch.",
+      "human_summary": "No Scylla isInvulnerableTo or canBeAffected declared; exact Cataclysm IABoss/IA/Animation chain has no concrete invulnerability filter here, use locked native Entity/NeoForge admission plus shared effect whitelist. Scylla registry factory fireImmune=true. decreaseAirSupply returns input unchanged (not reset-to-max and not blanket drowning DamageType immunity). isAffectedByFluids=false,isPushedByFluid=false,canStandOnFluid checks native WATER tag. No concrete direct-arrow/in_wall/falling_block/fluid/armor shield gate in hurt. Native armor12 and knockback resistance1 are configured setup, not substituted for damage cap or parry. Floating motion execution is deferred to offense batch.",
+      "closest_vanilla_equivalent": "Native APIs and locked IABoss/shared admission with concrete Scylla prerequisites",
+      "vanilla_similarities": "Existing native hurt, effect admission, source-position, attribute, goal, NBT, heal and encounter APIs remain authoritative.",
+      "vanilla_differences": "No Scylla isInvulnerableTo or canBeAffected declared; exact Cataclysm IABoss/IA/Animation chain has no concrete invulnerability filter here, use locked native Entity/NeoForge admission plus shared effect whitelist. Scylla registry factory fireImmune=true. decreaseAirSupply returns input unchanged (not reset-to-max and not blanket drowning DamageType immunity). isAffectedByFluids=false,isPushedByFluid=false,canStandOnFluid checks native WATER tag. No concrete direct-arrow/in_wall/falling_block/fluid/armor shield gate in hurt. Native armor12 and knockback resistance1 are configured setup, not substituted for damage cap or parry. Floating motion execution is deferred to offense batch.",
+      "components": [
+        {
+          "primitive": "NATIVE_FIRE_ADMISSION",
+          "formula": "native EntityType Builder.fireImmune",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "ModEntities.lambda$static$96",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "AIR_SUPPLY_GATE",
+          "formula": "decreaseAirSupply(input) returns same input",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "Scylla.decreaseAirSupply",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "FLUID_RESPONSE_GATE",
+          "formula": "native fluid flags false and stand predicate WATER tag",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "Scylla fluid overrides",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Original inherited native invulnerability/effect whitelist/armor/registration/fluid gates",
+        "No guessed blanket water/drowning immunity"
+      ],
+      "custom_state": "Native raw Phase/Act/ParryCount/Eye/Flying/ChainAnchor/AnchorUUID and inherited attack/Home/LifeRemain state only.",
+      "eligibility": "Original inherited native invulnerability/effect whitelist/armor/registration/fluid gates; No guessed blanket water/drowning immunity",
+      "source_actor": "Incoming original native DamageSource/amount passed to Scylla; direct, causing and source-position semantics retained.",
+      "hurt_return_dependency": "Original native admission/lifecycle; no outgoing payload added.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity.class",
+          "methods": [
+            "decreaseAirSupply",
+            "isAffectedByFluids",
+            "canStandOnFluid",
+            "isPushedByFluid"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$96"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:scylla-admission:environment_admission"
+      ],
+      "primary_test_source": "cataclysm:scylla",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k10a-cataclysm-scylla-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [],
+      "scalability_note": "Static observations only. Native defense/admission/phase/parry/spawn/setup constants are not automatic scalar candidates. No Stage eligibility, direction, formula, balance, cap/floor, owner integration or runtime hook chosen. NatureRegen reuses the existing shared-heal observation; no second heal.",
+      "registered_fire_immune": true,
+      "air_returns_argument": true,
+      "air_returns_native_max": false,
+      "fluid_push": false,
+      "blanket_drowning_immunity_claimed": false,
+      "concrete_invulnerability_override": false
+    },
+    {
+      "id": "cataclysm:scylla_incoming_admission",
+      "mod_key": "cataclysm",
+      "display_name": "Scylla ordered incoming admission",
+      "registry_ids": [
+        "cataclysm:scylla"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "hurt skips all concrete front-parry/state19/phase21-22/sleep23-24 rejection branches only for BYPASSES_INVULNERABILITY. Other sources: front-facing and server -> CanParryState counter>=18 reject, else RNG/cooldown reject; then front state19 at1<attackTicks<11 reject. Regardless facing/server, state21/22 or isSleep rejects. Surviving calls arm destroyBlocksTick20 iff<=0, then locked IABoss_monster.hurt with SAME source/original amount. True returned hurt plus canBlockFaceSource and raw count<18 increments count2 for IS_PROJECTILE else1; this postwrite has no local side/CanParryState/bypass/cooldown check. Return original boolean. Timer arming independent of later shared rejection. No concrete isInvulnerableTo/canBeAffected/Retry override; locked ancestor/native virtual admission and effect whitelist reused. No direct class exclusion, causing-distance override, armor rewrite or measured-HP predicate.",
+      "human_summary": "hurt skips all concrete front-parry/state19/phase21-22/sleep23-24 rejection branches only for BYPASSES_INVULNERABILITY. Other sources: front-facing and server -> CanParryState counter>=18 reject, else RNG/cooldown reject; then front state19 at1<attackTicks<11 reject. Regardless facing/server, state21/22 or isSleep rejects. Surviving calls arm destroyBlocksTick20 iff<=0, then locked IABoss_monster.hurt with SAME source/original amount. True returned hurt plus canBlockFaceSource and raw count<18 increments count2 for IS_PROJECTILE else1; this postwrite has no local side/CanParryState/bypass/cooldown check. Return original boolean. Timer arming independent of later shared rejection. No concrete isInvulnerableTo/canBeAffected/Retry override; locked ancestor/native virtual admission and effect whitelist reused. No direct class exclusion, causing-distance override, armor rewrite or measured-HP predicate.",
+      "closest_vanilla_equivalent": "Native APIs and locked IABoss/shared admission with concrete Scylla prerequisites",
+      "vanilla_similarities": "Existing native hurt, effect admission, source-position, attribute, goal, NBT, heal and encounter APIs remain authoritative.",
+      "vanilla_differences": "hurt skips all concrete front-parry/state19/phase21-22/sleep23-24 rejection branches only for BYPASSES_INVULNERABILITY. Other sources: front-facing and server -> CanParryState counter>=18 reject, else RNG/cooldown reject; then front state19 at1<attackTicks<11 reject. Regardless facing/server, state21/22 or isSleep rejects. Surviving calls arm destroyBlocksTick20 iff<=0, then locked IABoss_monster.hurt with SAME source/original amount. True returned hurt plus canBlockFaceSource and raw count<18 increments count2 for IS_PROJECTILE else1; this postwrite has no local side/CanParryState/bypass/cooldown check. Return original boolean. Timer arming independent of later shared rejection. No concrete isInvulnerableTo/canBeAffected/Retry override; locked ancestor/native virtual admission and effect whitelist reused. No direct class exclusion, causing-distance override, armor rewrite or measured-HP predicate.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_ADMISSION",
+          "formula": "exact concrete prefilters -> unchanged shared hurt -> true-result native parry bookkeeping",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "Scylla.hurt",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "TERRAIN_RESPONSE_ARMING",
+          "formula": "after concrete admission, before shared hurt; timer<=0 sets20",
+          "numerical_parameters": {
+            "arming_ticks": 20
+          },
+          "parameter_units": {
+            "arming_ticks": "ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Scylla.hurt before super.hurt",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Original invulnerability bypass/front/server/phase/sleep gates",
+        "Original virtual native hurt and shared cap/range/bucket/rollback"
+      ],
+      "custom_state": "Native raw Phase/Act/ParryCount/Eye/Flying/ChainAnchor/AnchorUUID and inherited attack/Home/LifeRemain state only.",
+      "eligibility": "Original invulnerability bypass/front/server/phase/sleep gates; Original virtual native hurt and shared cap/range/bucket/rollback",
+      "source_actor": "Incoming original native DamageSource/amount passed to Scylla; direct, causing and source-position semantics retained.",
+      "hurt_return_dependency": "Postwrite requires original hurt=true, not measured HP loss; returned native boolean unchanged.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity.class",
+          "methods": [
+            "hurt",
+            "isSleep",
+            "canBlockFaceSource",
+            "CanParryState"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "hurt",
+            "canBeAffected",
+            "Retry"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:scylla-admission:incoming_admission"
+      ],
+      "primary_test_source": "cataclysm:scylla",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k10a-cataclysm-scylla-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "TERRAIN_RESPONSE_ARMING",
+          "parameter": "arming_ticks",
+          "native_value": 20,
+          "native_formula": "after concrete admission, before shared hurt; timer<=0 sets20",
+          "units": "ticks",
+          "boundary": "Scylla.hurt before super.hurt"
+        }
+      ],
+      "scalability_note": "Static observations only. Native defense/admission/phase/parry/spawn/setup constants are not automatic scalar candidates. No Stage eligibility, direction, formula, balance, cap/floor, owner integration or runtime hook chosen. NatureRegen reuses the existing shared-heal observation; no second heal.",
+      "admission_order": [
+        "UNLESS_INVULNERABILITY_BYPASS_FACE_SERVER_PARRY_COUNT_OR_RNG_REJECT",
+        "UNLESS_INVULNERABILITY_BYPASS_FACE_SERVER_STATE19_TICKS2_TO10_REJECT",
+        "UNLESS_INVULNERABILITY_BYPASS_PHASE_STATE21_OR22_REJECT",
+        "UNLESS_INVULNERABILITY_BYPASS_SLEEP_STATE23_OR24_REJECT",
+        "ARM_DESTROY_BLOCKS20_IF_NONPOSITIVE",
+        "SHARED_HURT_SAME_SOURCE_AND_AMOUNT",
+        "TRUE_HURT_FACING_COUNT_LT18_INCREMENT_PROJECTILE2_ELSE1",
+        "RETURN_SHARED_HURT_RESULT"
+      ],
+      "source_object_preserved": true,
+      "incoming_amount_rewritten": false,
+      "timer_armed_before_shared_hurt": true,
+      "timer_requires_hurt_success": false,
+      "bypass_skips_all_concrete_rejections": true,
+      "bypass_skips_postwrite": false,
+      "concrete_invulnerability_override": false,
+      "concrete_effect_override": false,
+      "concrete_retry_override": false
+    },
+    {
+      "id": "cataclysm:scylla_incoming_damage_notification",
+      "mod_key": "cataclysm",
+      "display_name": "Scylla native incoming damage notification callback",
+      "registry_ids": [
+        "cataclysm:scylla"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "handleDamageEvent: state0 walk animation speed1.5 is presentation; writes invulnerableTime20/hurtDuration10/hurtTime, then native hurt(generic anonymous source,0F) and ignores return, sets lastDamageSource to original notification source and lastDamageStamp current game time. No local side guard in method. The zero native callback re-enters concrete/shared admission, distinct from original incoming source; no independent outgoing damage, status, heal or forced movement. Keep notification/cooldown state native; cosmetic sound/presentation not a scalar.",
+      "human_summary": "handleDamageEvent: state0 walk animation speed1.5 is presentation; writes invulnerableTime20/hurtDuration10/hurtTime, then native hurt(generic anonymous source,0F) and ignores return, sets lastDamageSource to original notification source and lastDamageStamp current game time. No local side guard in method. The zero native callback re-enters concrete/shared admission, distinct from original incoming source; no independent outgoing damage, status, heal or forced movement. Keep notification/cooldown state native; cosmetic sound/presentation not a scalar.",
+      "closest_vanilla_equivalent": "Native APIs and locked IABoss/shared admission with concrete Scylla prerequisites",
+      "vanilla_similarities": "Existing native hurt, effect admission, source-position, attribute, goal, NBT, heal and encounter APIs remain authoritative.",
+      "vanilla_differences": "handleDamageEvent: state0 walk animation speed1.5 is presentation; writes invulnerableTime20/hurtDuration10/hurtTime, then native hurt(generic anonymous source,0F) and ignores return, sets lastDamageSource to original notification source and lastDamageStamp current game time. No local side guard in method. The zero native callback re-enters concrete/shared admission, distinct from original incoming source; no independent outgoing damage, status, heal or forced movement. Keep notification/cooldown state native; cosmetic sound/presentation not a scalar.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_NOTIFICATION",
+          "formula": "notification state then self.hurt(generic,0) result ignored, record original source/time",
+          "numerical_parameters": {
+            "invulnerable_time": 20,
+            "hurt_duration": 10,
+            "callback_requested_damage": 0.0
+          },
+          "parameter_units": {
+            "invulnerable_time": "native ticks/request",
+            "hurt_duration": "native ticks/request",
+            "callback_requested_damage": "native ticks/request"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Scylla.handleDamageEvent",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native notification/cooldown/source/time rules; no synthetic duplicate event"
+      ],
+      "custom_state": "Native raw Phase/Act/ParryCount/Eye/Flying/ChainAnchor/AnchorUUID and inherited attack/Home/LifeRemain state only.",
+      "eligibility": "Native notification/cooldown/source/time rules; no synthetic duplicate event",
+      "source_actor": "Original notification source retained for lastDamageSource; nested generic0 uses native anonymous generic.",
+      "hurt_return_dependency": "Nested zero hurt return ignored; native callback only.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity.class",
+          "methods": [
+            "handleDamageEvent",
+            "hurt"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:scylla-admission:incoming_damage_notification"
+      ],
+      "primary_test_source": "cataclysm:scylla",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k10a-cataclysm-scylla-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_DAMAGE_NOTIFICATION",
+          "parameter": "invulnerable_time",
+          "native_value": 20,
+          "native_formula": "notification state then self.hurt(generic,0) result ignored, record original source/time",
+          "units": "native ticks/request",
+          "boundary": "Scylla.handleDamageEvent"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_NOTIFICATION",
+          "parameter": "hurt_duration",
+          "native_value": 10,
+          "native_formula": "notification state then self.hurt(generic,0) result ignored, record original source/time",
+          "units": "native ticks/request",
+          "boundary": "Scylla.handleDamageEvent"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_NOTIFICATION",
+          "parameter": "callback_requested_damage",
+          "native_value": 0.0,
+          "native_formula": "notification state then self.hurt(generic,0) result ignored, record original source/time",
+          "units": "native ticks/request",
+          "boundary": "Scylla.handleDamageEvent"
+        }
+      ],
+      "scalability_note": "Static observations only. Native defense/admission/phase/parry/spawn/setup constants are not automatic scalar candidates. No Stage eligibility, direction, formula, balance, cap/floor, owner integration or runtime hook chosen. NatureRegen reuses the existing shared-heal observation; no second heal.",
+      "notification_hurt_return_consumed": false,
+      "notification_has_local_server_guard": false,
+      "notification_adds_outgoing_payload": false
+    },
+    {
+      "id": "cataclysm:scylla_nature_regen_binding",
+      "mod_key": "cataclysm",
+      "display_name": "Scylla inherited nature-heal amount binding",
+      "registry_ids": [
+        "cataclysm:scylla"
+      ],
+      "primary_classification": "VANILLA_DIRECT",
+      "actual_behavior": "Concrete NatureRegen returns float(config25) to already-closed shared heal: after super.tick, server AI enabled, self_regen<=0,target null,tickCount%20==0 -> native heal(amount). Original cadence/timer/target/native heal admission and max-HP clamp preserved; no concrete second periodic heal in the inspected prerequisite tick. This record binds existing cataclysm:shared_heal, not a new occurrence. Amount25 is an observation only, distinct from encounter full-heal setup.",
+      "human_summary": "Concrete NatureRegen returns float(config25) to already-closed shared heal: after super.tick, server AI enabled, self_regen<=0,target null,tickCount%20==0 -> native heal(amount). Original cadence/timer/target/native heal admission and max-HP clamp preserved; no concrete second periodic heal in the inspected prerequisite tick. This record binds existing cataclysm:shared_heal, not a new occurrence. Amount25 is an observation only, distinct from encounter full-heal setup.",
+      "closest_vanilla_equivalent": "Native APIs and locked IABoss/shared admission with concrete Scylla prerequisites",
+      "vanilla_similarities": "Existing native hurt, effect admission, source-position, attribute, goal, NBT, heal and encounter APIs remain authoritative.",
+      "vanilla_differences": "Concrete NatureRegen returns float(config25) to already-closed shared heal: after super.tick, server AI enabled, self_regen<=0,target null,tickCount%20==0 -> native heal(amount). Original cadence/timer/target/native heal admission and max-HP clamp preserved; no concrete second periodic heal in the inspected prerequisite tick. This record binds existing cataclysm:shared_heal, not a new occurrence. Amount25 is an observation only, distinct from encounter full-heal setup.",
+      "components": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "formula": "NatureRegen=float(config25) -> existing shared heal call",
+          "numerical_parameters": {
+            "amount": 25.0
+          },
+          "parameter_units": {
+            "amount": "native healing amount"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Scylla.NatureRegen -> IABoss.tick existing heal amount",
+          "vanilla_relation": "VANILLA_DIRECT"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Locked native side/AI/timer/target/cadence/heal hooks and max HP"
+      ],
+      "custom_state": "Native raw Phase/Act/ParryCount/Eye/Flying/ChainAnchor/AnchorUUID and inherited attack/Home/LifeRemain state only.",
+      "eligibility": "Locked native side/AI/timer/target/cadence/heal hooks and max HP",
+      "source_actor": "Native self regeneration through original shared boss tick.",
+      "hurt_return_dependency": "Original native admission/lifecycle; no outgoing payload added.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity.class",
+          "methods": [
+            "NatureRegen"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "tick",
+            "HealCooldown"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:scylla-admission:nature_regen_binding"
+      ],
+      "primary_test_source": "cataclysm:scylla",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k10a-cataclysm-scylla-admission-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "amount"
+          ],
+          "native_value": 25.0,
+          "native_formula": "NatureRegen=float(config25) -> existing shared heal call",
+          "units": "native healing amount",
+          "native_boundary": "Scylla.NatureRegen -> IABoss.tick existing heal amount"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameter": "amount",
+          "native_value": 25.0,
+          "native_formula": "NatureRegen=float(config25) -> existing shared heal call",
+          "units": "native healing amount",
+          "boundary": "Scylla.NatureRegen -> IABoss.tick existing heal amount"
+        }
+      ],
+      "scalability_note": "Static observations only. Native defense/admission/phase/parry/spawn/setup constants are not automatic scalar candidates. No Stage eligibility, direction, formula, balance, cap/floor, owner integration or runtime hook chosen. NatureRegen reuses the existing shared-heal observation; no second heal.",
+      "record_kind": "SHARED_BINDING",
+      "binding_of": "cataclysm:shared_heal",
+      "binding_contract_file": "cataclysm-r2k2a-shared-admission.json",
+      "adds_second_heal": false
+    },
+    {
+      "id": "cataclysm:scylla_parry_admission",
+      "mod_key": "cataclysm",
+      "display_name": "Scylla native facing and defensive parry admission",
+      "registry_ids": [
+        "cataclysm:scylla"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "canBlockFaceSource requires !NoAI and native DamageSource.getSourcePosition nonnull; project source-to-boss displacement to Y0, normalize, dot with calculateViewVector(pitch0,headYaw), reject-facing predicate dot<0. It is source-position facing, not the shared causing-entity range or a direct-entity class filter. CanParryState: state1/2 with attackTicks>35, state3>51, state4>50. Server/front and not invulnerability-bypassing: if these windows and count>=18, write sentinel25/reject WITHOUT testing parry_cooldown. Otherwise random.nextFloat*100 < (count+1)*5 AND cooldown<=0 writes25/reject. Separate state19 ticks2..10 front rejection does not require a count/random/cooldown check. Defensive chance/state values are native admission, not proc-scaling candidates.",
+      "human_summary": "canBlockFaceSource requires !NoAI and native DamageSource.getSourcePosition nonnull; project source-to-boss displacement to Y0, normalize, dot with calculateViewVector(pitch0,headYaw), reject-facing predicate dot<0. It is source-position facing, not the shared causing-entity range or a direct-entity class filter. CanParryState: state1/2 with attackTicks>35, state3>51, state4>50. Server/front and not invulnerability-bypassing: if these windows and count>=18, write sentinel25/reject WITHOUT testing parry_cooldown. Otherwise random.nextFloat*100 < (count+1)*5 AND cooldown<=0 writes25/reject. Separate state19 ticks2..10 front rejection does not require a count/random/cooldown check. Defensive chance/state values are native admission, not proc-scaling candidates.",
+      "closest_vanilla_equivalent": "Native APIs and locked IABoss/shared admission with concrete Scylla prerequisites",
+      "vanilla_similarities": "Existing native hurt, effect admission, source-position, attribute, goal, NBT, heal and encounter APIs remain authoritative.",
+      "vanilla_differences": "canBlockFaceSource requires !NoAI and native DamageSource.getSourcePosition nonnull; project source-to-boss displacement to Y0, normalize, dot with calculateViewVector(pitch0,headYaw), reject-facing predicate dot<0. It is source-position facing, not the shared causing-entity range or a direct-entity class filter. CanParryState: state1/2 with attackTicks>35, state3>51, state4>50. Server/front and not invulnerability-bypassing: if these windows and count>=18, write sentinel25/reject WITHOUT testing parry_cooldown. Otherwise random.nextFloat*100 < (count+1)*5 AND cooldown<=0 writes25/reject. Separate state19 ticks2..10 front rejection does not require a count/random/cooldown check. Defensive chance/state values are native admission, not proc-scaling candidates.",
+      "components": [
+        {
+          "primitive": "FACING_ADMISSION",
+          "formula": "source-position horizontal normalize dot head-view <0",
+          "numerical_parameters": {
+            "dot_threshold": 0.0
+          },
+          "parameter_units": {
+            "dot_threshold": "native admission comparison"
+          },
+          "binary_parameters": [],
+          "native_boundary": "canBlockFaceSource",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "PARRY_ADMISSION",
+          "formula": "count>=18 OR random*100<(count+1)*5 with cooldown<=0; sentinel25",
+          "numerical_parameters": {
+            "count_threshold": 18,
+            "sentinel": 25,
+            "random_denominator": 100.0,
+            "chance_coefficient": 5,
+            "states12_after_tick": 35,
+            "state3_after_tick": 51,
+            "state4_after_tick": 50,
+            "state19_first_tick": 2,
+            "state19_last_tick": 10
+          },
+          "parameter_units": {
+            "count_threshold": "native count/ticks/probability admission",
+            "sentinel": "native count/ticks/probability admission",
+            "random_denominator": "native count/ticks/probability admission",
+            "chance_coefficient": "native count/ticks/probability admission",
+            "states12_after_tick": "native count/ticks/probability admission",
+            "state3_after_tick": "native count/ticks/probability admission",
+            "state4_after_tick": "native count/ticks/probability admission",
+            "state19_first_tick": "native count/ticks/probability admission",
+            "state19_last_tick": "native count/ticks/probability admission"
+          },
+          "binary_parameters": [],
+          "native_boundary": "hurt/CanParryState",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native side/AI/facing/source-position/state/window/count/RNG gates",
+        "Threshold branch ignores cooldown; no added clamps"
+      ],
+      "custom_state": "Native raw Phase/Act/ParryCount/Eye/Flying/ChainAnchor/AnchorUUID and inherited attack/Home/LifeRemain state only.",
+      "eligibility": "Native side/AI/facing/source-position/state/window/count/RNG gates; Threshold branch ignores cooldown; no added clamps",
+      "source_actor": "Incoming original native DamageSource/amount passed to Scylla; direct, causing and source-position semantics retained.",
+      "hurt_return_dependency": "Rejection precedes shared/native hurt; no damage request or attacker counterattack here.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity.class",
+          "methods": [
+            "hurt",
+            "canBlockFaceSource",
+            "CanParryState"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:scylla-admission:parry_admission"
+      ],
+      "primary_test_source": "cataclysm:scylla",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k10a-cataclysm-scylla-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "FACING_ADMISSION",
+          "parameter": "dot_threshold",
+          "native_value": 0.0,
+          "native_formula": "source-position horizontal normalize dot head-view <0",
+          "units": "native admission comparison",
+          "boundary": "canBlockFaceSource"
+        },
+        {
+          "primitive": "PARRY_ADMISSION",
+          "parameter": "count_threshold",
+          "native_value": 18,
+          "native_formula": "count>=18 OR random*100<(count+1)*5 with cooldown<=0; sentinel25",
+          "units": "native count/ticks/probability admission",
+          "boundary": "hurt/CanParryState"
+        },
+        {
+          "primitive": "PARRY_ADMISSION",
+          "parameter": "sentinel",
+          "native_value": 25,
+          "native_formula": "count>=18 OR random*100<(count+1)*5 with cooldown<=0; sentinel25",
+          "units": "native count/ticks/probability admission",
+          "boundary": "hurt/CanParryState"
+        },
+        {
+          "primitive": "PARRY_ADMISSION",
+          "parameter": "random_denominator",
+          "native_value": 100.0,
+          "native_formula": "count>=18 OR random*100<(count+1)*5 with cooldown<=0; sentinel25",
+          "units": "native count/ticks/probability admission",
+          "boundary": "hurt/CanParryState"
+        },
+        {
+          "primitive": "PARRY_ADMISSION",
+          "parameter": "chance_coefficient",
+          "native_value": 5,
+          "native_formula": "count>=18 OR random*100<(count+1)*5 with cooldown<=0; sentinel25",
+          "units": "native count/ticks/probability admission",
+          "boundary": "hurt/CanParryState"
+        },
+        {
+          "primitive": "PARRY_ADMISSION",
+          "parameter": "states12_after_tick",
+          "native_value": 35,
+          "native_formula": "count>=18 OR random*100<(count+1)*5 with cooldown<=0; sentinel25",
+          "units": "native count/ticks/probability admission",
+          "boundary": "hurt/CanParryState"
+        },
+        {
+          "primitive": "PARRY_ADMISSION",
+          "parameter": "state3_after_tick",
+          "native_value": 51,
+          "native_formula": "count>=18 OR random*100<(count+1)*5 with cooldown<=0; sentinel25",
+          "units": "native count/ticks/probability admission",
+          "boundary": "hurt/CanParryState"
+        },
+        {
+          "primitive": "PARRY_ADMISSION",
+          "parameter": "state4_after_tick",
+          "native_value": 50,
+          "native_formula": "count>=18 OR random*100<(count+1)*5 with cooldown<=0; sentinel25",
+          "units": "native count/ticks/probability admission",
+          "boundary": "hurt/CanParryState"
+        },
+        {
+          "primitive": "PARRY_ADMISSION",
+          "parameter": "state19_first_tick",
+          "native_value": 2,
+          "native_formula": "count>=18 OR random*100<(count+1)*5 with cooldown<=0; sentinel25",
+          "units": "native count/ticks/probability admission",
+          "boundary": "hurt/CanParryState"
+        },
+        {
+          "primitive": "PARRY_ADMISSION",
+          "parameter": "state19_last_tick",
+          "native_value": 10,
+          "native_formula": "count>=18 OR random*100<(count+1)*5 with cooldown<=0; sentinel25",
+          "units": "native count/ticks/probability admission",
+          "boundary": "hurt/CanParryState"
+        }
+      ],
+      "scalability_note": "Static observations only. Native defense/admission/phase/parry/spawn/setup constants are not automatic scalar candidates. No Stage eligibility, direction, formula, balance, cap/floor, owner integration or runtime hook chosen. NatureRegen reuses the existing shared-heal observation; no second heal.",
+      "facing_uses_source_position": true,
+      "facing_uses_causing_range": false,
+      "forced_parry_checks_cooldown": false,
+      "rng_parry_checks_cooldown": true,
+      "parry_is_shield_item": false
+    },
+    {
+      "id": "cataclysm:scylla_parry_state_prerequisites",
+      "mod_key": "cataclysm",
+      "display_name": "Scylla incoming parry state continuation and reset",
+      "registry_ids": [
+        "cataclysm:scylla"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "True shared hurt with front-facing raw count<18 adds2 for IS_PROJECTILE else1 without local server or attack-window gate;17+projectile may become19. Threshold/RNG rejection writes25. HorizontalSwingGoal tick only in CanParryState and count>=25 calls stop; stop chooses state19 for count>=25 else0, clears Eye. Native InternalStateGoal for state19 runs through attackTicks<=15; Scylla$8.stop selects state6 when back_step_cooldown<=0 AND target nonnull else native stop, then count0/parry_cooldown100. Root tick decrements positive parry cooldown on both sides, no local AI/side gate. Offense of state6/19 and swing motion deferred; these are native state/admission writes, not scalar payloads.",
+      "human_summary": "True shared hurt with front-facing raw count<18 adds2 for IS_PROJECTILE else1 without local server or attack-window gate;17+projectile may become19. Threshold/RNG rejection writes25. HorizontalSwingGoal tick only in CanParryState and count>=25 calls stop; stop chooses state19 for count>=25 else0, clears Eye. Native InternalStateGoal for state19 runs through attackTicks<=15; Scylla$8.stop selects state6 when back_step_cooldown<=0 AND target nonnull else native stop, then count0/parry_cooldown100. Root tick decrements positive parry cooldown on both sides, no local AI/side gate. Offense of state6/19 and swing motion deferred; these are native state/admission writes, not scalar payloads.",
+      "closest_vanilla_equivalent": "Native APIs and locked IABoss/shared admission with concrete Scylla prerequisites",
+      "vanilla_similarities": "Existing native hurt, effect admission, source-position, attribute, goal, NBT, heal and encounter APIs remain authoritative.",
+      "vanilla_differences": "True shared hurt with front-facing raw count<18 adds2 for IS_PROJECTILE else1 without local server or attack-window gate;17+projectile may become19. Threshold/RNG rejection writes25. HorizontalSwingGoal tick only in CanParryState and count>=25 calls stop; stop chooses state19 for count>=25 else0, clears Eye. Native InternalStateGoal for state19 runs through attackTicks<=15; Scylla$8.stop selects state6 when back_step_cooldown<=0 AND target nonnull else native stop, then count0/parry_cooldown100. Root tick decrements positive parry cooldown on both sides, no local AI/side gate. Offense of state6/19 and swing motion deferred; these are native state/admission writes, not scalar payloads.",
+      "components": [
+        {
+          "primitive": "NATIVE_PARRY_STATE",
+          "formula": "true hurt front count<18 + projectile2/other1; sentinel consumed into native state19",
+          "numerical_parameters": {
+            "projectile_increment": 2,
+            "other_increment": 1,
+            "accepting_count_limit": 18,
+            "sentinel": 25,
+            "parry_goal_max_tick": 15,
+            "reset_count": 0,
+            "reset_cooldown": 100
+          },
+          "parameter_units": {
+            "projectile_increment": "native count/ticks/state",
+            "other_increment": "native count/ticks/state",
+            "accepting_count_limit": "native count/ticks/state",
+            "sentinel": "native count/ticks/state",
+            "parry_goal_max_tick": "native count/ticks/state",
+            "reset_count": "native count/ticks/state",
+            "reset_cooldown": "native count/ticks/state"
+          },
+          "binary_parameters": [],
+          "native_boundary": "hurt, scoped HorizontalSwing tick/stop, state19 stop and tick countdown",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Original true hurt/facing/tag/raw-count gates",
+        "Native goal scheduler/state/target/reset gates; downstream offense deferred"
+      ],
+      "custom_state": "Native raw Phase/Act/ParryCount/Eye/Flying/ChainAnchor/AnchorUUID and inherited attack/Home/LifeRemain state only.",
+      "eligibility": "Original true hurt/facing/tag/raw-count gates; Native goal scheduler/state/target/reset gates; downstream offense deferred",
+      "source_actor": "Incoming original native DamageSource/amount passed to Scylla; direct, causing and source-position semantics retained.",
+      "hurt_return_dependency": "Only incoming count increments require native hurt=true. Sentinel consume/goal reset are state transitions.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity.class",
+          "methods": [
+            "hurt",
+            "tick",
+            "getParryCount",
+            "setParryCount"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity$HorizontalSwingGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity$HorizontalSwingGoal.class",
+          "methods": [
+            "tick",
+            "stop"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity$8",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity$8.class",
+          "methods": [
+            "<init>",
+            "stop"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/AI/InternalStateGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AI/InternalStateGoal.class",
+          "methods": [
+            "canUse",
+            "canContinueToUse",
+            "start",
+            "stop"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:scylla-admission:parry_state_prerequisites"
+      ],
+      "primary_test_source": "cataclysm:scylla",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k10a-cataclysm-scylla-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_PARRY_STATE",
+          "parameter": "projectile_increment",
+          "native_value": 2,
+          "native_formula": "true hurt front count<18 + projectile2/other1; sentinel consumed into native state19",
+          "units": "native count/ticks/state",
+          "boundary": "hurt, scoped HorizontalSwing tick/stop, state19 stop and tick countdown"
+        },
+        {
+          "primitive": "NATIVE_PARRY_STATE",
+          "parameter": "other_increment",
+          "native_value": 1,
+          "native_formula": "true hurt front count<18 + projectile2/other1; sentinel consumed into native state19",
+          "units": "native count/ticks/state",
+          "boundary": "hurt, scoped HorizontalSwing tick/stop, state19 stop and tick countdown"
+        },
+        {
+          "primitive": "NATIVE_PARRY_STATE",
+          "parameter": "accepting_count_limit",
+          "native_value": 18,
+          "native_formula": "true hurt front count<18 + projectile2/other1; sentinel consumed into native state19",
+          "units": "native count/ticks/state",
+          "boundary": "hurt, scoped HorizontalSwing tick/stop, state19 stop and tick countdown"
+        },
+        {
+          "primitive": "NATIVE_PARRY_STATE",
+          "parameter": "sentinel",
+          "native_value": 25,
+          "native_formula": "true hurt front count<18 + projectile2/other1; sentinel consumed into native state19",
+          "units": "native count/ticks/state",
+          "boundary": "hurt, scoped HorizontalSwing tick/stop, state19 stop and tick countdown"
+        },
+        {
+          "primitive": "NATIVE_PARRY_STATE",
+          "parameter": "parry_goal_max_tick",
+          "native_value": 15,
+          "native_formula": "true hurt front count<18 + projectile2/other1; sentinel consumed into native state19",
+          "units": "native count/ticks/state",
+          "boundary": "hurt, scoped HorizontalSwing tick/stop, state19 stop and tick countdown"
+        },
+        {
+          "primitive": "NATIVE_PARRY_STATE",
+          "parameter": "reset_count",
+          "native_value": 0,
+          "native_formula": "true hurt front count<18 + projectile2/other1; sentinel consumed into native state19",
+          "units": "native count/ticks/state",
+          "boundary": "hurt, scoped HorizontalSwing tick/stop, state19 stop and tick countdown"
+        },
+        {
+          "primitive": "NATIVE_PARRY_STATE",
+          "parameter": "reset_cooldown",
+          "native_value": 100,
+          "native_formula": "true hurt front count<18 + projectile2/other1; sentinel consumed into native state19",
+          "units": "native count/ticks/state",
+          "boundary": "hurt, scoped HorizontalSwing tick/stop, state19 stop and tick countdown"
+        }
+      ],
+      "scalability_note": "Static observations only. Native defense/admission/phase/parry/spawn/setup constants are not automatic scalar candidates. No Stage eligibility, direction, formula, balance, cap/floor, owner integration or runtime hook chosen. NatureRegen reuses the existing shared-heal observation; no second heal.",
+      "postwrite_local_server_guard": false,
+      "postwrite_requires_parry_window": false,
+      "postwrite_can_overshoot18": true,
+      "reset_cooldown_clamps_counter": false,
+      "goal_tick_fragment_offense_reviewed": false
+    },
+    {
+      "id": "cataclysm:scylla_phase_state_prerequisites",
+      "mod_key": "cataclysm",
+      "display_name": "Scylla native phase goal prerequisites and latch",
+      "registry_ids": [
+        "cataclysm:scylla"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Native priority0 phase goals idle state0 ->21/end0/max55/phase1/float(.6666667) and0->22/end0/max68/phase2/float(.33333334). canUse requires raw Phase<configured target, current attack state0, live health<=maxHP*float ratio. No local target/alive/NoAI/server/water/Act check; native goal scheduler controls invocation. Start changes attack state and immediately Eye=true/Phase=1 or2 (not an aiStep delayed latch), noninterruptible. Continue attackTicks<=max when max>0; stop state0/Eye=false. Raw phase setter does not clamp or heal. Healing does not clear saved Phase; 21/22 incoming immune except native bypass. All phase offense payloads deferred.",
+      "human_summary": "Native priority0 phase goals idle state0 ->21/end0/max55/phase1/float(.6666667) and0->22/end0/max68/phase2/float(.33333334). canUse requires raw Phase<configured target, current attack state0, live health<=maxHP*float ratio. No local target/alive/NoAI/server/water/Act check; native goal scheduler controls invocation. Start changes attack state and immediately Eye=true/Phase=1 or2 (not an aiStep delayed latch), noninterruptible. Continue attackTicks<=max when max>0; stop state0/Eye=false. Raw phase setter does not clamp or heal. Healing does not clear saved Phase; 21/22 incoming immune except native bypass. All phase offense payloads deferred.",
+      "closest_vanilla_equivalent": "Native APIs and locked IABoss/shared admission with concrete Scylla prerequisites",
+      "vanilla_similarities": "Existing native hurt, effect admission, source-position, attribute, goal, NBT, heal and encounter APIs remain authoritative.",
+      "vanilla_differences": "Native priority0 phase goals idle state0 ->21/end0/max55/phase1/float(.6666667) and0->22/end0/max68/phase2/float(.33333334). canUse requires raw Phase<configured target, current attack state0, live health<=maxHP*float ratio. No local target/alive/NoAI/server/water/Act check; native goal scheduler controls invocation. Start changes attack state and immediately Eye=true/Phase=1 or2 (not an aiStep delayed latch), noninterruptible. Continue attackTicks<=max when max>0; stop state0/Eye=false. Raw phase setter does not clamp or heal. Healing does not clear saved Phase; 21/22 incoming immune except native bypass. All phase offense payloads deferred.",
+      "components": [
+        {
+          "primitive": "PHASE_STATE",
+          "formula": "native idle/live-health/raw-phase admission; latch at goal.start, max inclusive",
+          "numerical_parameters": {
+            "phase1": 1,
+            "phase2": 2,
+            "phase1_attack_state": 21,
+            "phase2_attack_state": 22,
+            "phase1_health_ratio": 0.6666666865348816,
+            "phase2_health_ratio": 0.3333333432674408,
+            "phase1_max_tick": 55,
+            "phase2_max_tick": 68
+          },
+          "parameter_units": {
+            "phase1": "native phase/state/ticks/HP ratio",
+            "phase2": "native phase/state/ticks/HP ratio",
+            "phase1_attack_state": "native phase/state/ticks/HP ratio",
+            "phase2_attack_state": "native phase/state/ticks/HP ratio",
+            "phase1_health_ratio": "native phase/state/ticks/HP ratio",
+            "phase2_health_ratio": "native phase/state/ticks/HP ratio",
+            "phase1_max_tick": "native phase/state/ticks/HP ratio",
+            "phase2_max_tick": "native phase/state/ticks/HP ratio"
+          },
+          "binary_parameters": [],
+          "native_boundary": "phase goal registration/canUse/start/stop",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native goal priority/state/health/raw phase/scheduler and incoming tag gate",
+        "Binary ordinal state, not Stage progression"
+      ],
+      "custom_state": "Native raw Phase/Act/ParryCount/Eye/Flying/ChainAnchor/AnchorUUID and inherited attack/Home/LifeRemain state only.",
+      "eligibility": "Native goal priority/state/health/raw phase/scheduler and incoming tag gate; Binary ordinal state, not Stage progression",
+      "source_actor": "Native Scylla phase goal writes self state; no new source or payload.",
+      "hurt_return_dependency": "Original native admission/lifecycle; no outgoing payload added.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity.class",
+          "methods": [
+            "registerGoals",
+            "isPhase",
+            "setPhase",
+            "getEye",
+            "setEye"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity$Scylla_EntityPhaseChangeGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity$Scylla_EntityPhaseChangeGoal.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "isInterruptable",
+            "canContinueToUse"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:scylla-admission:phase_state_prerequisites"
+      ],
+      "primary_test_source": "cataclysm:scylla",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k10a-cataclysm-scylla-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "PHASE_STATE",
+          "parameter": "phase1",
+          "native_value": 1,
+          "native_formula": "native idle/live-health/raw-phase admission; latch at goal.start, max inclusive",
+          "units": "native phase/state/ticks/HP ratio",
+          "boundary": "phase goal registration/canUse/start/stop"
+        },
+        {
+          "primitive": "PHASE_STATE",
+          "parameter": "phase2",
+          "native_value": 2,
+          "native_formula": "native idle/live-health/raw-phase admission; latch at goal.start, max inclusive",
+          "units": "native phase/state/ticks/HP ratio",
+          "boundary": "phase goal registration/canUse/start/stop"
+        },
+        {
+          "primitive": "PHASE_STATE",
+          "parameter": "phase1_attack_state",
+          "native_value": 21,
+          "native_formula": "native idle/live-health/raw-phase admission; latch at goal.start, max inclusive",
+          "units": "native phase/state/ticks/HP ratio",
+          "boundary": "phase goal registration/canUse/start/stop"
+        },
+        {
+          "primitive": "PHASE_STATE",
+          "parameter": "phase2_attack_state",
+          "native_value": 22,
+          "native_formula": "native idle/live-health/raw-phase admission; latch at goal.start, max inclusive",
+          "units": "native phase/state/ticks/HP ratio",
+          "boundary": "phase goal registration/canUse/start/stop"
+        },
+        {
+          "primitive": "PHASE_STATE",
+          "parameter": "phase1_health_ratio",
+          "native_value": 0.6666666865348816,
+          "native_formula": "native idle/live-health/raw-phase admission; latch at goal.start, max inclusive",
+          "units": "native phase/state/ticks/HP ratio",
+          "boundary": "phase goal registration/canUse/start/stop"
+        },
+        {
+          "primitive": "PHASE_STATE",
+          "parameter": "phase2_health_ratio",
+          "native_value": 0.3333333432674408,
+          "native_formula": "native idle/live-health/raw-phase admission; latch at goal.start, max inclusive",
+          "units": "native phase/state/ticks/HP ratio",
+          "boundary": "phase goal registration/canUse/start/stop"
+        },
+        {
+          "primitive": "PHASE_STATE",
+          "parameter": "phase1_max_tick",
+          "native_value": 55,
+          "native_formula": "native idle/live-health/raw-phase admission; latch at goal.start, max inclusive",
+          "units": "native phase/state/ticks/HP ratio",
+          "boundary": "phase goal registration/canUse/start/stop"
+        },
+        {
+          "primitive": "PHASE_STATE",
+          "parameter": "phase2_max_tick",
+          "native_value": 68,
+          "native_formula": "native idle/live-health/raw-phase admission; latch at goal.start, max inclusive",
+          "units": "native phase/state/ticks/HP ratio",
+          "boundary": "phase goal registration/canUse/start/stop"
+        }
+      ],
+      "scalability_note": "Static observations only. Native defense/admission/phase/parry/spawn/setup constants are not automatic scalar candidates. No Stage eligibility, direction, formula, balance, cap/floor, owner integration or runtime hook chosen. NatureRegen reuses the existing shared-heal observation; no second heal.",
+      "phase_latched_at_goal_start": true,
+      "phase_latched_at_ai_step": false,
+      "phase_goal_local_server_guard": false,
+      "phase_goal_requires_target": false,
+      "phase_goal_requires_alive": false,
+      "phase_goal_local_no_ai_gate": false,
+      "raw_phase_clamped": false,
+      "healing_clears_phase": false
+    },
+    {
+      "id": "cataclysm:scylla_raw_combat_state",
+      "mod_key": "cataclysm",
+      "display_name": "Scylla raw combat state and flight prerequisites",
+      "registry_ids": [
+        "cataclysm:scylla"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Synced defaults: Eye/ChainAnchor/Flying/Act false, Phase/ParryCount0, AnchorUUID empty, AnchorID-1. Raw boolean/int/UUID setters preserve supplied values without clamps/heal/damage; only Actfalse has state23 side effect. Anchor resolves server UUID via ServerLevel.getEntity, client native synced ID; actual anchor payload body deferred. Root tick flying -> setNoGravity(!verticalCollisionBelow), nonflying ->false, no local side gate. Raw Phase/ParryCount/Flying flags are native state, not automatic numeric scalars; later offense readers/writers remain R2k10b.",
+      "human_summary": "Synced defaults: Eye/ChainAnchor/Flying/Act false, Phase/ParryCount0, AnchorUUID empty, AnchorID-1. Raw boolean/int/UUID setters preserve supplied values without clamps/heal/damage; only Actfalse has state23 side effect. Anchor resolves server UUID via ServerLevel.getEntity, client native synced ID; actual anchor payload body deferred. Root tick flying -> setNoGravity(!verticalCollisionBelow), nonflying ->false, no local side gate. Raw Phase/ParryCount/Flying flags are native state, not automatic numeric scalars; later offense readers/writers remain R2k10b.",
+      "closest_vanilla_equivalent": "Native APIs and locked IABoss/shared admission with concrete Scylla prerequisites",
+      "vanilla_similarities": "Existing native hurt, effect admission, source-position, attribute, goal, NBT, heal and encounter APIs remain authoritative.",
+      "vanilla_differences": "Synced defaults: Eye/ChainAnchor/Flying/Act false, Phase/ParryCount0, AnchorUUID empty, AnchorID-1. Raw boolean/int/UUID setters preserve supplied values without clamps/heal/damage; only Actfalse has state23 side effect. Anchor resolves server UUID via ServerLevel.getEntity, client native synced ID; actual anchor payload body deferred. Root tick flying -> setNoGravity(!verticalCollisionBelow), nonflying ->false, no local side gate. Raw Phase/ParryCount/Flying flags are native state, not automatic numeric scalars; later offense readers/writers remain R2k10b.",
+      "components": [
+        {
+          "primitive": "NATIVE_COMBAT_STATE",
+          "formula": "original synced raw setters/defaults and native flight-gravity gate",
+          "numerical_parameters": {
+            "default_phase": 0,
+            "default_parry_count": 0,
+            "default_anchor_id": -1
+          },
+          "parameter_units": {
+            "default_phase": "native ordinal/id",
+            "default_parry_count": "native ordinal/id",
+            "default_anchor_id": "native ordinal/id"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Scylla defineSynchedData/raw setters/tick gravity fragment",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native raw synced state/default/side/UUID/flight collision gates",
+        "Payload reads/writes deferred; no generic progression state"
+      ],
+      "custom_state": "Native raw Phase/Act/ParryCount/Eye/Flying/ChainAnchor/AnchorUUID and inherited attack/Home/LifeRemain state only.",
+      "eligibility": "Native raw synced state/default/side/UUID/flight collision gates; Payload reads/writes deferred; no generic progression state",
+      "source_actor": "Native boss state and stored optional anchor UUID/client ID.",
+      "hurt_return_dependency": "Original native admission/lifecycle; no outgoing payload added.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity.class",
+          "methods": [
+            "defineSynchedData",
+            "getEye",
+            "setEye",
+            "isFlying",
+            "setFlying",
+            "isPhase",
+            "setPhase",
+            "getParryCount",
+            "setParryCount",
+            "getChainAnchor",
+            "setChainAnchor",
+            "getAct",
+            "setAct",
+            "getAnchorUUID",
+            "setAnchorUUID",
+            "getAnchor",
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:scylla-admission:raw_combat_state"
+      ],
+      "primary_test_source": "cataclysm:scylla",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k10a-cataclysm-scylla-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_COMBAT_STATE",
+          "parameter": "default_phase",
+          "native_value": 0,
+          "native_formula": "original synced raw setters/defaults and native flight-gravity gate",
+          "units": "native ordinal/id",
+          "boundary": "Scylla defineSynchedData/raw setters/tick gravity fragment"
+        },
+        {
+          "primitive": "NATIVE_COMBAT_STATE",
+          "parameter": "default_parry_count",
+          "native_value": 0,
+          "native_formula": "original synced raw setters/defaults and native flight-gravity gate",
+          "units": "native ordinal/id",
+          "boundary": "Scylla defineSynchedData/raw setters/tick gravity fragment"
+        },
+        {
+          "primitive": "NATIVE_COMBAT_STATE",
+          "parameter": "default_anchor_id",
+          "native_value": -1,
+          "native_formula": "original synced raw setters/defaults and native flight-gravity gate",
+          "units": "native ordinal/id",
+          "boundary": "Scylla defineSynchedData/raw setters/tick gravity fragment"
+        }
+      ],
+      "scalability_note": "Static observations only. Native defense/admission/phase/parry/spawn/setup constants are not automatic scalar candidates. No Stage eligibility, direction, formula, balance, cap/floor, owner integration or runtime hook chosen. NatureRegen reuses the existing shared-heal observation; no second heal.",
+      "raw_integer_setters_clamp": false,
+      "raw_setters_heal": false,
+      "flight_gravity_has_local_server_guard": false,
+      "default_state": {
+        "eye": false,
+        "chain_anchor": false,
+        "flying": false,
+        "act": false,
+        "phase": 0,
+        "parry_count": 0,
+        "anchor_uuid": null,
+        "anchor_id": -1
+      }
+    },
+    {
+      "id": "cataclysm:scylla_shared_defense_bindings",
+      "mod_key": "cataclysm",
+      "display_name": "Scylla concrete shared defensive bindings",
+      "registry_ids": [
+        "cataclysm:scylla"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Only concrete overrides: DamageCap=float(config21) used per-hit and request-bucket capacity; DpsCap=float(config13) drains eligible bucket/20, not capacity; RangeLimit=double(config12) with locked causing-entity falloff12..18/reject>=18 and null causing skip; NatureRegen=float(config25) separate shared binding. Inherited HealCooldown200; no concrete DpsMulti. Installed dpsLimitTime20 is not read by this hurt/tick contract. Locked virtual invulnerability/cap/range/bucket/native defense/rollback/tag bookkeeping retained independently from front parry/phase/sleep admission. Constants described, not made Stage candidates.",
+      "human_summary": "Only concrete overrides: DamageCap=float(config21) used per-hit and request-bucket capacity; DpsCap=float(config13) drains eligible bucket/20, not capacity; RangeLimit=double(config12) with locked causing-entity falloff12..18/reject>=18 and null causing skip; NatureRegen=float(config25) separate shared binding. Inherited HealCooldown200; no concrete DpsMulti. Installed dpsLimitTime20 is not read by this hurt/tick contract. Locked virtual invulnerability/cap/range/bucket/native defense/rollback/tag bookkeeping retained independently from front parry/phase/sleep admission. Constants described, not made Stage candidates.",
+      "closest_vanilla_equivalent": "Native APIs and locked IABoss/shared admission with concrete Scylla prerequisites",
+      "vanilla_similarities": "Existing native hurt, effect admission, source-position, attribute, goal, NBT, heal and encounter APIs remain authoritative.",
+      "vanilla_differences": "Only concrete overrides: DamageCap=float(config21) used per-hit and request-bucket capacity; DpsCap=float(config13) drains eligible bucket/20, not capacity; RangeLimit=double(config12) with locked causing-entity falloff12..18/reject>=18 and null causing skip; NatureRegen=float(config25) separate shared binding. Inherited HealCooldown200; no concrete DpsMulti. Installed dpsLimitTime20 is not read by this hurt/tick contract. Locked virtual invulnerability/cap/range/bucket/native defense/rollback/tag bookkeeping retained independently from front parry/phase/sleep admission. Constants described, not made Stage candidates.",
+      "components": [
+        {
+          "primitive": "DAMAGE_CAP",
+          "formula": "min(DamageCap(),original incoming); same cap=request bucket capacity",
+          "numerical_parameters": {
+            "per_hit_cap": 21.0
+          },
+          "parameter_units": {
+            "per_hit_cap": "native damage admission"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Scylla.DamageCap -> locked IABoss.hurt",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "formula": "locked positive bucket server-AI decay DpsCap()/20",
+          "numerical_parameters": {
+            "capacity": 21.0,
+            "dps_cap": 13.0,
+            "drain_divisor": 20
+          },
+          "parameter_units": {
+            "capacity": "native request damage/ticks",
+            "dps_cap": "native request damage/ticks",
+            "drain_divisor": "native request damage/ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Scylla.DpsCap -> locked IABoss.tick",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "RANGE_ADMISSION",
+          "formula": "original causing-entity range <=12 full,12<d<18 falloff,d>=18 reject",
+          "numerical_parameters": {
+            "range_limit": 12.0
+          },
+          "parameter_units": {
+            "range_limit": "blocks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Scylla.RangeLimit -> locked shared hurt/calculateRange",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "REGEN_ADMISSION_TIMER",
+          "formula": "inherited HealCooldown200 on successful tagged shared hurt",
+          "numerical_parameters": {
+            "heal_cooldown": 200
+          },
+          "parameter_units": {
+            "heal_cooldown": "ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "IABoss.HealCooldown/shared hurt",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Locked source/virtual invulnerability/side/AI/range/bucket/tag/native admission",
+        "No defense numeric promoted to outgoing scalar"
+      ],
+      "custom_state": "Native raw Phase/Act/ParryCount/Eye/Flying/ChainAnchor/AnchorUUID and inherited attack/Home/LifeRemain state only.",
+      "eligibility": "Locked source/virtual invulnerability/side/AI/range/bucket/tag/native admission; No defense numeric promoted to outgoing scalar",
+      "source_actor": "Incoming original native DamageSource/amount passed to Scylla; direct, causing and source-position semantics retained.",
+      "hurt_return_dependency": "Original native admission/lifecycle; no outgoing payload added.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity.class",
+          "methods": [
+            "DamageCap",
+            "DpsCap",
+            "RangeLimit",
+            "NatureRegen"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "hurt",
+            "tick",
+            "HealCooldown"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "calculateRange"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:scylla-admission:shared_defense_bindings"
+      ],
+      "primary_test_source": "cataclysm:scylla",
+      "alternate_sources": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k10a-cataclysm-scylla-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "DAMAGE_CAP",
+          "parameter": "per_hit_cap",
+          "native_value": 21.0,
+          "native_formula": "min(DamageCap(),original incoming); same cap=request bucket capacity",
+          "units": "native damage admission",
+          "boundary": "Scylla.DamageCap -> locked IABoss.hurt"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "parameter": "capacity",
+          "native_value": 21.0,
+          "native_formula": "locked positive bucket server-AI decay DpsCap()/20",
+          "units": "native request damage/ticks",
+          "boundary": "Scylla.DpsCap -> locked IABoss.tick"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "parameter": "dps_cap",
+          "native_value": 13.0,
+          "native_formula": "locked positive bucket server-AI decay DpsCap()/20",
+          "units": "native request damage/ticks",
+          "boundary": "Scylla.DpsCap -> locked IABoss.tick"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "parameter": "drain_divisor",
+          "native_value": 20,
+          "native_formula": "locked positive bucket server-AI decay DpsCap()/20",
+          "units": "native request damage/ticks",
+          "boundary": "Scylla.DpsCap -> locked IABoss.tick"
+        },
+        {
+          "primitive": "RANGE_ADMISSION",
+          "parameter": "range_limit",
+          "native_value": 12.0,
+          "native_formula": "original causing-entity range <=12 full,12<d<18 falloff,d>=18 reject",
+          "units": "blocks",
+          "boundary": "Scylla.RangeLimit -> locked shared hurt/calculateRange"
+        },
+        {
+          "primitive": "REGEN_ADMISSION_TIMER",
+          "parameter": "heal_cooldown",
+          "native_value": 200,
+          "native_formula": "inherited HealCooldown200 on successful tagged shared hurt",
+          "units": "ticks",
+          "boundary": "IABoss.HealCooldown/shared hurt"
+        }
+      ],
+      "scalability_note": "Static observations only. Native defense/admission/phase/parry/spawn/setup constants are not automatic scalar candidates. No Stage eligibility, direction, formula, balance, cap/floor, owner integration or runtime hook chosen. NatureRegen reuses the existing shared-heal observation; no second heal.",
+      "concrete_bindings": {
+        "DamageCap": {
+          "config_field": "Scylla.damageCap",
+          "installed_value": 21.0,
+          "native_cast": "float(double(config))",
+          "shared_boundary": "per-hit cap AND request-bucket capacity",
+          "candidate_observation_added": false
+        },
+        "DpsCap": {
+          "config_field": "Scylla.dpsCap",
+          "installed_value": 13.0,
+          "native_cast": "float(double(config))",
+          "shared_boundary": "eligible server-AI request-bucket drain=float(DpsCap()/20)",
+          "candidate_observation_added": false
+        },
+        "RangeLimit": {
+          "config_field": "Scylla.rangeCap",
+          "installed_value": 12.0,
+          "native_cast": "double(config), no float narrowing",
+          "shared_boundary": "causing full<=12; falloff12<distance<18; reject>=18; causing-null skips",
+          "candidate_observation_added": false
+        },
+        "NatureRegen": {
+          "config_field": "Scylla.natureHeal",
+          "installed_value": 25.0,
+          "native_cast": "float(double(config))",
+          "shared_boundary": "locked shared gated native heal amount",
+          "shared_candidate_binding": "cataclysm:shared_heal",
+          "observation_only": true
+        },
+        "HealCooldown": {
+          "inherited": true,
+          "native_value": 200,
+          "shared_boundary": "successful tagged shared hurt resets self_regen; bypass early return skips reset"
+        },
+        "configuredDpsLimitTime": {
+          "config_field": "Scylla.dpsLimitTime",
+          "installed_value": 20,
+          "shared_boundary": "not read by concrete hurt or locked shared hurt/tick; no Scylla DpsMulti override; does not redefine bucket"
+        }
+      },
+      "damage_cap_is_bucket_capacity": true,
+      "dps_is_bucket_capacity": false,
+      "range_narrows_float_before_double": false,
+      "configured_dps_limit_time_used": false,
+      "concrete_heal_cooldown_override": false
     }
   ],
   "paths": [
@@ -62208,14 +63933,560 @@
         }
       ],
       "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:scylla-admission:activation_encounter",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:scylla_activation_encounter"
+      ],
+      "primary_source": "cataclysm:scylla",
+      "native_path": "mobInteract when !getAct: setHomePos(GlobalPos.of(current dimension,blockPosition)), setAct(true), native heal(getMaxHealth()), PlayerCounter(level), return SUCCESS. Otherwise native parent interaction. No item/stack/hand-content test or consume, no local server/NoAI/water/alive gate, no direct attack state setter here; saved sleep23 wakes through native goals later. Native heal hook/max-HP clamp and original LIFE counter apply; full-heal encounter reset is setup, not an independent scalable amount. Shared home return/PlayerCounter/empty inherited Retry unchanged; respawner/death behavior deferred.",
+      "setup": "Static admission/state/NBT/spawn-reason fixtures at cited native boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity.class",
+          "methods": [
+            "mobInteract",
+            "setAct",
+            "getAct"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "setHomePos",
+            "PlayerCounter",
+            "ReturnToHome",
+            "Retry"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:scylla-admission:activation_sleep_prerequisites",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:scylla_activation_sleep_prerequisites"
+      ],
+      "primary_source": "cataclysm:scylla",
+      "native_path": "Synced Act defaultsfalse; isSleep uses ATTACK_STATE23 or24, NOT !Act. setAct(false) updates flag/bossbar then forces23; setAct(true) only flag/bossbar and does not directly change attack state. Fresh constructor defaults inherited attackState0 even while Actfalse; concrete NBT loading missing Act invokes false setter and forces23. Native sleep goal23->23/end24,max0 continues inherited state predicate AND !Act; tick writes velocity(0,currentY,0). With Acttrue it ends into24; native wake goal24->24/end0/max40, start Eye=true, stop Eye=false. Sleep/wake states both protected in hurt. No instant state0 wake, held-item requirement or attack hook introduced.",
+      "setup": "Static admission/state/NBT/spawn-reason fixtures at cited native boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity.class",
+          "methods": [
+            "defineSynchedData",
+            "setAct",
+            "getAct",
+            "isSleep",
+            "canBeSeenAsEnemy",
+            "registerGoals"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity$2",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity$2.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity$3",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity$3.class",
+          "methods": [
+            "<init>",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/AI/InternalStateGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AI/InternalStateGoal.class",
+          "methods": [
+            "canUse",
+            "canContinueToUse",
+            "start",
+            "stop"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:scylla-admission:combat_persistence",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:scylla_combat_persistence"
+      ],
+      "primary_source": "cataclysm:scylla",
+      "native_path": "Save parent then optional AnchorUUID, Phase int, Act bool. Load parent, AnchorUUID only if hasUUID, raw setPhase(getInt Phase), then setAct(getBoolean Act); missing Phase0/Actfalse, latter forces23. Saved true Act does not force a wake state. Parent Home/LifeRemain retained. Concrete Eye/Flying/ChainAnchor/AnchorID/ParryCount/parry cooldown/native attack state/cooldowns/destroy timer not saved; constructor and parent transient defaults apply. No phase clamps/snapshot receipts or restore repairs. Root native anchor UUID lookup does not prove a live loaded payload; payload lifecycle deferred.",
+      "setup": "Static admission/state/NBT/spawn-reason fixtures at cited native boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity.class",
+          "methods": [
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "getAnchorUUID",
+            "setAnchorUUID",
+            "getAnchor",
+            "setPhase",
+            "setAct"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:scylla-admission:encounter_setup",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:scylla_encounter_setup"
+      ],
+      "primary_source": "cataclysm:scylla",
+      "native_path": "Registered MONSTER Scylla EntityType widthfloat1.4/height3/fireImmune, exact factory constructor verified; existing initializeAttributes registers Scylla.scylla. Builder base health390/AD18/armor12/knockback resistance1/follow50/movement.31F/step1.75, no explicit armor toughness. Constructor applies native setConfigattribute with installed health/attack multipliers1/1 and initializes health to max via locked helper; not a heal delivery. Constructor does not establish Home, call setAct or setPhase. finalizeSpawn: COMMAND/SPAWN_EGG/MobSpawnType.isSpawner/DISPENSER -> setAct(true), other reasons preserve flag, then same args parent finalizeSpawn initializes locked home countdown (not actual home). No auto heal/player-count/water prerequisite in finalize. Actual home setup lives in activation interaction.",
+      "setup": "Static admission/state/NBT/spawn-reason fixtures at cited native boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity.class",
+          "methods": [
+            "<init>",
+            "scylla",
+            "finalizeSpawn"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$96",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-admission.json",
+          "witness_id": "cataclysm:guardian-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "initializeAttributes"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "setConfigattribute"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "finalizeSpawn"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:scylla-admission:environment_admission",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:scylla_environment_admission"
+      ],
+      "primary_source": "cataclysm:scylla",
+      "native_path": "No Scylla isInvulnerableTo or canBeAffected declared; exact Cataclysm IABoss/IA/Animation chain has no concrete invulnerability filter here, use locked native Entity/NeoForge admission plus shared effect whitelist. Scylla registry factory fireImmune=true. decreaseAirSupply returns input unchanged (not reset-to-max and not blanket drowning DamageType immunity). isAffectedByFluids=false,isPushedByFluid=false,canStandOnFluid checks native WATER tag. No concrete direct-arrow/in_wall/falling_block/fluid/armor shield gate in hurt. Native armor12 and knockback resistance1 are configured setup, not substituted for damage cap or parry. Floating motion execution is deferred to offense batch.",
+      "setup": "Static admission/state/NBT/spawn-reason fixtures at cited native boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity.class",
+          "methods": [
+            "decreaseAirSupply",
+            "isAffectedByFluids",
+            "canStandOnFluid",
+            "isPushedByFluid"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$96"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:scylla-admission:incoming_admission",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:scylla_incoming_admission"
+      ],
+      "primary_source": "cataclysm:scylla",
+      "native_path": "hurt skips all concrete front-parry/state19/phase21-22/sleep23-24 rejection branches only for BYPASSES_INVULNERABILITY. Other sources: front-facing and server -> CanParryState counter>=18 reject, else RNG/cooldown reject; then front state19 at1<attackTicks<11 reject. Regardless facing/server, state21/22 or isSleep rejects. Surviving calls arm destroyBlocksTick20 iff<=0, then locked IABoss_monster.hurt with SAME source/original amount. True returned hurt plus canBlockFaceSource and raw count<18 increments count2 for IS_PROJECTILE else1; this postwrite has no local side/CanParryState/bypass/cooldown check. Return original boolean. Timer arming independent of later shared rejection. No concrete isInvulnerableTo/canBeAffected/Retry override; locked ancestor/native virtual admission and effect whitelist reused. No direct class exclusion, causing-distance override, armor rewrite or measured-HP predicate.",
+      "setup": "Static admission/state/NBT/spawn-reason fixtures at cited native boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity.class",
+          "methods": [
+            "hurt",
+            "isSleep",
+            "canBlockFaceSource",
+            "CanParryState"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "hurt",
+            "canBeAffected",
+            "Retry"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:scylla-admission:incoming_damage_notification",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:scylla_incoming_damage_notification"
+      ],
+      "primary_source": "cataclysm:scylla",
+      "native_path": "handleDamageEvent: state0 walk animation speed1.5 is presentation; writes invulnerableTime20/hurtDuration10/hurtTime, then native hurt(generic anonymous source,0F) and ignores return, sets lastDamageSource to original notification source and lastDamageStamp current game time. No local side guard in method. The zero native callback re-enters concrete/shared admission, distinct from original incoming source; no independent outgoing damage, status, heal or forced movement. Keep notification/cooldown state native; cosmetic sound/presentation not a scalar.",
+      "setup": "Static admission/state/NBT/spawn-reason fixtures at cited native boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity.class",
+          "methods": [
+            "handleDamageEvent",
+            "hurt"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:scylla-admission:nature_regen_binding",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:scylla_nature_regen_binding"
+      ],
+      "primary_source": "cataclysm:scylla",
+      "native_path": "Concrete NatureRegen returns float(config25) to already-closed shared heal: after super.tick, server AI enabled, self_regen<=0,target null,tickCount%20==0 -> native heal(amount). Original cadence/timer/target/native heal admission and max-HP clamp preserved; no concrete second periodic heal in the inspected prerequisite tick. This record binds existing cataclysm:shared_heal, not a new occurrence. Amount25 is an observation only, distinct from encounter full-heal setup.",
+      "setup": "Static admission/state/NBT/spawn-reason fixtures at cited native boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity.class",
+          "methods": [
+            "NatureRegen"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "tick",
+            "HealCooldown"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:scylla-admission:parry_admission",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:scylla_parry_admission"
+      ],
+      "primary_source": "cataclysm:scylla",
+      "native_path": "canBlockFaceSource requires !NoAI and native DamageSource.getSourcePosition nonnull; project source-to-boss displacement to Y0, normalize, dot with calculateViewVector(pitch0,headYaw), reject-facing predicate dot<0. It is source-position facing, not the shared causing-entity range or a direct-entity class filter. CanParryState: state1/2 with attackTicks>35, state3>51, state4>50. Server/front and not invulnerability-bypassing: if these windows and count>=18, write sentinel25/reject WITHOUT testing parry_cooldown. Otherwise random.nextFloat*100 < (count+1)*5 AND cooldown<=0 writes25/reject. Separate state19 ticks2..10 front rejection does not require a count/random/cooldown check. Defensive chance/state values are native admission, not proc-scaling candidates.",
+      "setup": "Static admission/state/NBT/spawn-reason fixtures at cited native boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity.class",
+          "methods": [
+            "hurt",
+            "canBlockFaceSource",
+            "CanParryState"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:scylla-admission:parry_state_prerequisites",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:scylla_parry_state_prerequisites"
+      ],
+      "primary_source": "cataclysm:scylla",
+      "native_path": "True shared hurt with front-facing raw count<18 adds2 for IS_PROJECTILE else1 without local server or attack-window gate;17+projectile may become19. Threshold/RNG rejection writes25. HorizontalSwingGoal tick only in CanParryState and count>=25 calls stop; stop chooses state19 for count>=25 else0, clears Eye. Native InternalStateGoal for state19 runs through attackTicks<=15; Scylla$8.stop selects state6 when back_step_cooldown<=0 AND target nonnull else native stop, then count0/parry_cooldown100. Root tick decrements positive parry cooldown on both sides, no local AI/side gate. Offense of state6/19 and swing motion deferred; these are native state/admission writes, not scalar payloads.",
+      "setup": "Static admission/state/NBT/spawn-reason fixtures at cited native boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity.class",
+          "methods": [
+            "hurt",
+            "tick",
+            "getParryCount",
+            "setParryCount"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity$HorizontalSwingGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity$HorizontalSwingGoal.class",
+          "methods": [
+            "tick",
+            "stop"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity$8",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity$8.class",
+          "methods": [
+            "<init>",
+            "stop"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/AI/InternalStateGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AI/InternalStateGoal.class",
+          "methods": [
+            "canUse",
+            "canContinueToUse",
+            "start",
+            "stop"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:scylla-admission:phase_state_prerequisites",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:scylla_phase_state_prerequisites"
+      ],
+      "primary_source": "cataclysm:scylla",
+      "native_path": "Native priority0 phase goals idle state0 ->21/end0/max55/phase1/float(.6666667) and0->22/end0/max68/phase2/float(.33333334). canUse requires raw Phase<configured target, current attack state0, live health<=maxHP*float ratio. No local target/alive/NoAI/server/water/Act check; native goal scheduler controls invocation. Start changes attack state and immediately Eye=true/Phase=1 or2 (not an aiStep delayed latch), noninterruptible. Continue attackTicks<=max when max>0; stop state0/Eye=false. Raw phase setter does not clamp or heal. Healing does not clear saved Phase; 21/22 incoming immune except native bypass. All phase offense payloads deferred.",
+      "setup": "Static admission/state/NBT/spawn-reason fixtures at cited native boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity.class",
+          "methods": [
+            "registerGoals",
+            "isPhase",
+            "setPhase",
+            "getEye",
+            "setEye"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity$Scylla_EntityPhaseChangeGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity$Scylla_EntityPhaseChangeGoal.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "isInterruptable",
+            "canContinueToUse"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:scylla-admission:raw_combat_state",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:scylla_raw_combat_state"
+      ],
+      "primary_source": "cataclysm:scylla",
+      "native_path": "Synced defaults: Eye/ChainAnchor/Flying/Act false, Phase/ParryCount0, AnchorUUID empty, AnchorID-1. Raw boolean/int/UUID setters preserve supplied values without clamps/heal/damage; only Actfalse has state23 side effect. Anchor resolves server UUID via ServerLevel.getEntity, client native synced ID; actual anchor payload body deferred. Root tick flying -> setNoGravity(!verticalCollisionBelow), nonflying ->false, no local side gate. Raw Phase/ParryCount/Flying flags are native state, not automatic numeric scalars; later offense readers/writers remain R2k10b.",
+      "setup": "Static admission/state/NBT/spawn-reason fixtures at cited native boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity.class",
+          "methods": [
+            "defineSynchedData",
+            "getEye",
+            "setEye",
+            "isFlying",
+            "setFlying",
+            "isPhase",
+            "setPhase",
+            "getParryCount",
+            "setParryCount",
+            "getChainAnchor",
+            "setChainAnchor",
+            "getAct",
+            "setAct",
+            "getAnchorUUID",
+            "setAnchorUUID",
+            "getAnchor",
+            "tick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:scylla-admission:shared_defense_bindings",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:scylla_shared_defense_bindings"
+      ],
+      "primary_source": "cataclysm:scylla",
+      "native_path": "Only concrete overrides: DamageCap=float(config21) used per-hit and request-bucket capacity; DpsCap=float(config13) drains eligible bucket/20, not capacity; RangeLimit=double(config12) with locked causing-entity falloff12..18/reject>=18 and null causing skip; NatureRegen=float(config25) separate shared binding. Inherited HealCooldown200; no concrete DpsMulti. Installed dpsLimitTime20 is not read by this hurt/tick contract. Locked virtual invulnerability/cap/range/bucket/native defense/rollback/tag bookkeeping retained independently from front parry/phase/sleep admission. Constants described, not made Stage candidates.",
+      "setup": "Static admission/state/NBT/spawn-reason fixtures at cited native boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-scylla-admission.json",
+          "witness_id": "cataclysm:scylla-admission:entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/Scylla/Scylla_Entity.class",
+          "methods": [
+            "DamageCap",
+            "DpsCap",
+            "RangeLimit",
+            "NatureRegen"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:entity/InternalAnimationMonster/IABossMonsters/IABoss_monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/IABossMonsters/IABoss_monster.class",
+          "methods": [
+            "hurt",
+            "tick",
+            "HealCooldown"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "calculateRange"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
     }
   ],
   "unresolved_native_ambiguities": null,
   "remaining_native_ambiguities": null,
-  "checkpoint": "R2k9b-cataclysm-leviathan-offense-complete",
-  "scope": "Bounded Leviathan attack/goal/sequence and native water/rush steering, bite/tentacle/tail/hold/grab control, ordinary/portal beams, orbs/mines/rifts/stuck portals/tongue, sources/team/return/lifecycle, directly reached terrain and death callbacks closed. Reuse R2k9a and prior shared/status/families; private uncalled helpers not promoted to active mechanics. Leviathan family closed; Cataclysm PARTIAL.",
-  "notes_file": "cataclysm-r2k9b-leviathan-offense.json",
-  "exact_next_task": "R2k10a: Scylla incoming admission and phase/encounter prerequisites. Start Scylla_Entity.hurt/isInvulnerableTo and relevant inherited hierarchy; record concrete DamageCap/DpsCap/RangeLimit/NatureRegen bindings where applicable, native admission order, source/tag bypasses, phase/state setters and combat persistence, material spawn/home/encounter prerequisites. Reuse locked shared/status and completed Guardian, Monstrosity, Ignis, Harbinger, Ancient Remnant, Maledictus and Leviathan. Defer Scylla offense/payloads to R2k10b. Static only; no runtime, Stage, production or unrelated family research.",
+  "checkpoint": "R2k10a-cataclysm-scylla-admission-complete",
+  "scope": "Bounded Scylla facing/parry/phase/sleep incoming order and return-dependent parry bookkeeping, concrete shared cap/DPS/range/regen bindings, inherited invulnerability/native environment, raw state and immediate phase goal latch, sleep/wake/activation prerequisites, combat NBT, configured construction/spawn reasons and native home/full-heal/player-count encounter closed. All offensive goals/motion/payloads/terrain/death execution deferred to R2k10b; prior contracts locked; Cataclysm PARTIAL.",
+  "notes_file": "cataclysm-r2k10a-scylla-admission.json",
+  "exact_next_task": "R2k10b: Scylla offense/payload family. Start Scylla_Entity.tick/aiStep and directly used offensive goals; close attack selection and native phase/parry/eye/flying/anchor state readers/writers not already locked, direct/area/swing/whip/spin/lightning/water-wave/grab/spear/anchor/snake and directly owned payload chains, source/owner/team predicates, hurt-return status/control/healing, lifecycle and directly reached terrain/death/respawner callbacks. Reuse locked R2k10a facing/parry/incoming/shared bindings/environment, raw state, immediate phase goal latch, sleep/wake/activation, combat NBT, configured construction, spawn-reason and home/full-heal/player-count setup; shared/status and all completed boss families. Static only; no runtime, Stage, production or unrelated family research.",
   "protected_checkpoint": "R2k3a-cataclysm-guardian-admission-complete",
   "protected_notes_file": "cataclysm-r2k3a-guardian-admission.json",
   "protected_checkpoints": [
@@ -62270,6 +64541,10 @@
     {
       "checkpoint": "R2k9a-cataclysm-leviathan-admission-complete",
       "notes_file": "cataclysm-r2k9a-leviathan-admission.json"
+    },
+    {
+      "checkpoint": "R2k9b-cataclysm-leviathan-offense-complete",
+      "notes_file": "cataclysm-r2k9b-leviathan-offense.json"
     }
   ]
 }
