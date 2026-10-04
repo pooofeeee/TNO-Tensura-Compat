@@ -9162,6 +9162,1558 @@
       "terrain_separate_from_damage": true
     },
     {
+      "id": "cataclysm:deepling_aquatic_self_motion",
+      "mod_key": "cataclysm",
+      "display_name": "Ordinary Deepling aquatic combat self-motion",
+      "registry_ids": [
+        "cataclysm:deepling"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "wantsToSwim=searchingForLand or target in water. Effective-AI water travel moveRelative.01F/moveSELF/drag.9. MoveControl speed=modifier*2F*current movement attribute, lerp.125; directional delta(speed*dx*.005,speed*normalizedDY*.1,speed*dz*.005); buoyancy.002 if target higher or search flag. Outside water airborne-.008 then parent. Swim-up active in rain OR water below seaLevel-2, sets searchtrue/start and false/stop; sea-level/path/stuck search native. Beach in rain/water near surface with standable block/two empty spaces resets searchfalse. No victim force or damage.",
+      "human_summary": "wantsToSwim=searchingForLand or target in water. Effective-AI water travel moveRelative.01F/moveSELF/drag.9. MoveControl speed=modifier*2F*current movement attribute, lerp.125; directional delta(speed*dx*.005,speed*normalizedDY*.1,speed*dz*.005); buoyancy.002 if target higher or search flag. Outside water airborne-.008 then parent. Swim-up active in rain OR water below seaLevel-2, sets searchtrue/start and false/stop; sea-level/path/stuck search native. Beach in rain/water near surface with standable block/two empty spaces resets searchfalse. No victim force or damage.",
+      "closest_vanilla_equivalent": "Custom aquatic controller with native navigation",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "wantsToSwim=searchingForLand or target in water. Effective-AI water travel moveRelative.01F/moveSELF/drag.9. MoveControl speed=modifier*2F*current movement attribute, lerp.125; directional delta(speed*dx*.005,speed*normalizedDY*.1,speed*dz*.005); buoyancy.002 if target higher or search flag. Outside water airborne-.008 then parent. Swim-up active in rain OR water below seaLevel-2, sets searchtrue/start and false/stop; sea-level/path/stuck search native. Beach in rain/water near surface with standable block/two empty spaces resets searchfalse. No victim force or damage.",
+      "components": [
+        {
+          "primitive": "SELF_MOVEMENT",
+          "formula": "Native own travel/controller/target/search inputs",
+          "numerical_parameters": {
+            "input": 0.009999999776482582,
+            "drag": 0.9,
+            "speed_multiplier": 2.0,
+            "buoyancy": 0.002
+          },
+          "parameter_units": {
+            "input": "moveRelative input",
+            "drag": "vector multiplier",
+            "speed_multiplier": "movement attribute multiplier",
+            "buoyancy": "Y velocity per tick"
+          },
+          "binary_parameters": [],
+          "native_boundary": "travel/DeeplingMoveControl.tick",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "NAVIGATION_STATE",
+          "formula": "Native search/sea-level/path/beach state",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "DeeplingSwimUpGoal/DeeplingGoToBeachGoal",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native effective AI/water/current target/search/path/stuck/terrain gates"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native effective AI/water/current target/search/path/stuck/terrain gates",
+      "source_actor": "Deepling self actor/recipient.",
+      "hurt_return_dependency": "No hurt or victim control.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/Deepling_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Deepling_Entity.class",
+          "methods": [
+            "wantsToSwim",
+            "travel",
+            "closeToNextPos",
+            "setSearchingForLand"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/Deepling_Entity$DeeplingMoveControl",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Deepling_Entity$DeeplingMoveControl.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/Deepling_Entity$DeeplingSwimUpGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Deepling_Entity$DeeplingSwimUpGoal.class",
+          "methods": [
+            "canUse",
+            "canContinueToUse",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/Deepling_Entity$DeeplingGoToBeachGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Deepling_Entity$DeeplingGoToBeachGoal.class",
+          "methods": [
+            "canUse",
+            "isValidTarget",
+            "start"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:deepling-family:aquatic_self_motion"
+      ],
+      "primary_test_source": "cataclysm:deepling",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k27a-cataclysm-deepling-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "SELF_MOVEMENT",
+          "parameter": "input",
+          "native_value": 0.009999999776482582,
+          "native_formula": "Native own travel/controller/target/search inputs",
+          "units": "moveRelative input",
+          "boundary": "travel/DeeplingMoveControl.tick"
+        },
+        {
+          "primitive": "SELF_MOVEMENT",
+          "parameter": "drag",
+          "native_value": 0.9,
+          "native_formula": "Native own travel/controller/target/search inputs",
+          "units": "vector multiplier",
+          "boundary": "travel/DeeplingMoveControl.tick"
+        },
+        {
+          "primitive": "SELF_MOVEMENT",
+          "parameter": "speed_multiplier",
+          "native_value": 2.0,
+          "native_formula": "Native own travel/controller/target/search inputs",
+          "units": "movement attribute multiplier",
+          "boundary": "travel/DeeplingMoveControl.tick"
+        },
+        {
+          "primitive": "SELF_MOVEMENT",
+          "parameter": "buoyancy",
+          "native_value": 0.002,
+          "native_formula": "Native own travel/controller/target/search inputs",
+          "units": "Y velocity per tick",
+          "boundary": "travel/DeeplingMoveControl.tick"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "search_flag_active": true
+    },
+    {
+      "id": "cataclysm:deepling_death_persistence",
+      "mod_key": "cataclysm",
+      "display_name": "Ordinary Deepling persistence/death closure",
+      "registry_ids": [
+        "cataclysm:deepling"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Concrete NBT methods only delegate shared Moisture and parent. No die/tickDeath/onDeath/respawner/terrain-offense override; locked LLibrary_Monster animation/death/native Monster lifecycle retained. Current targets, native item/projectile owners, mount actor, moisture and transient goal clocks remain distinct. Specialized Deepling payloads not reviewed by this shared closure.",
+      "human_summary": "Concrete NBT methods only delegate shared Moisture and parent. No die/tickDeath/onDeath/respawner/terrain-offense override; locked LLibrary_Monster animation/death/native Monster lifecycle retained. Current targets, native item/projectile owners, mount actor, moisture and transient goal clocks remain distinct. Specialized Deepling payloads not reviewed by this shared closure.",
+      "closest_vanilla_equivalent": "Native Monster/LLibrary death and shared native NBT",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Concrete NBT methods only delegate shared Moisture and parent. No die/tickDeath/onDeath/respawner/terrain-offense override; locked LLibrary_Monster animation/death/native Monster lifecycle retained. Current targets, native item/projectile owners, mount actor, moisture and transient goal clocks remain distinct. Specialized Deepling payloads not reviewed by this shared closure.",
+      "components": [
+        {
+          "primitive": "NATIVE_LIFECYCLE",
+          "formula": "Parent-only concrete persistence and inherited animation/death",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "Deepling NBT ->AbstractDeepling/LLibrary_Monster",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native parent death/save/spawn/animation lifecycle"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native parent death/save/spawn/animation lifecycle",
+      "source_actor": "Ordinary Deepling/native payload owners unchanged.",
+      "hurt_return_dependency": "No additional death damage or respawner.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/Deepling_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Deepling_Entity.class",
+          "methods": [
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "getAttackBoundingBox"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/LLibrary_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/LLibrary_Monster.class",
+          "methods": [
+            "tick",
+            "tickDeath",
+            "setAnimation",
+            "setAnimationTick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:deepling-family:death_persistence"
+      ],
+      "primary_test_source": "cataclysm:deepling",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k27a-cataclysm-deepling-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "specialized_payloads_deferred": true
+    },
+    {
+      "id": "cataclysm:deepling_delayed_melee",
+      "mod_key": "cataclysm",
+      "display_name": "Ordinary Deepling delayed native melee",
+      "registry_ids": [
+        "cataclysm:deepling"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "Native MeleeAttackGoal canPerformAttack and NO_ANIMATION start 20-tick melee animation without resetAttackCooldown. Alive tick5 with current target and strict distance<3 requests mobAttack(self), float(current ATTACK_DAMAGE), once at original boundary. Hurt return ignored; no Mob.doHurtTarget item/enchantment/postattack/status/extra-force path is called. Native target selection/alliance/LOS/recipient admission and animation clock preserved.",
+      "human_summary": "Native MeleeAttackGoal canPerformAttack and NO_ANIMATION start 20-tick melee animation without resetAttackCooldown. Alive tick5 with current target and strict distance<3 requests mobAttack(self), float(current ATTACK_DAMAGE), once at original boundary. Hurt return ignored; no Mob.doHurtTarget item/enchantment/postattack/status/extra-force path is called. Native target selection/alliance/LOS/recipient admission and animation clock preserved.",
+      "closest_vanilla_equivalent": "Native mobAttack damage with custom animation delivery",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Native MeleeAttackGoal canPerformAttack and NO_ANIMATION start 20-tick melee animation without resetAttackCooldown. Alive tick5 with current target and strict distance<3 requests mobAttack(self), float(current ATTACK_DAMAGE), once at original boundary. Hurt return ignored; no Mob.doHurtTarget item/enchantment/postattack/status/extra-force path is called. Native target selection/alliance/LOS/recipient admission and animation clock preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "formula": "float(current ATTACK_DAMAGE)",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "Deepling.tick melee tick5",
+          "vanilla_relation": "DIRECT",
+          "parameter_formulas": {
+            "damage": "float(current ATTACK_DAMAGE)"
+          },
+          "formula_parameter_units": {
+            "damage": "HP"
+          }
+        },
+        {
+          "primitive": "ATTACK_DELIVERY",
+          "formula": "Alive current target and native animation tick5/distance<3",
+          "numerical_parameters": {
+            "impact_tick": 5,
+            "distance": 3.0,
+            "animation_length": 20
+          },
+          "parameter_units": {
+            "impact_tick": "animation tick",
+            "distance": "blocks strict upper limit",
+            "animation_length": "ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "tick/AnimationMeleeAttackGoal",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native canPerformAttack/NO_ANIMATION target/LOS gates",
+        "Alive/native animation/strict distance/recipient admission"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native canPerformAttack/NO_ANIMATION target/LOS gates; Alive/native animation/strict distance/recipient admission",
+      "source_actor": "Deepling direct and causing native mobAttack actor.",
+      "hurt_return_dependency": "Returned hurt bool ignored; no extra status/control/postattack.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/Deepling_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Deepling_Entity.class",
+          "methods": [
+            "tick",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/Deepling_Entity$AnimationMeleeAttackGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Deepling_Entity$AnimationMeleeAttackGoal.class",
+          "methods": [
+            "checkAndPerformAttack"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/twilight-minoshroom-knight-244.json",
+          "witness_id": "twilight-minoshroom-knight-244",
+          "entry": "net/minecraft/world/entity/ai/goal/MeleeAttackGoal.class",
+          "methods": [
+            "canPerformAttack",
+            "tick",
+            "checkAndPerformAttack"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/LLibrary_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/LLibrary_Monster.class",
+          "methods": [
+            "tick",
+            "tickDeath",
+            "setAnimation",
+            "setAnimationTick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:deepling-family:delayed_melee"
+      ],
+      "primary_test_source": "cataclysm:deepling",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k27a-cataclysm-deepling-family-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "damage"
+          ],
+          "native_value": null,
+          "native_formula": "float(current ATTACK_DAMAGE)",
+          "units": "HP",
+          "native_boundary": "Deepling.tick melee tick5"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameter": "damage",
+          "native_value": null,
+          "native_formula": "float(current ATTACK_DAMAGE)",
+          "units": "HP",
+          "boundary": "Deepling.tick melee tick5"
+        },
+        {
+          "primitive": "ATTACK_DELIVERY",
+          "parameter": "impact_tick",
+          "native_value": 5,
+          "native_formula": "Alive current target and native animation tick5/distance<3",
+          "units": "animation tick",
+          "boundary": "tick/AnimationMeleeAttackGoal"
+        },
+        {
+          "primitive": "ATTACK_DELIVERY",
+          "parameter": "distance",
+          "native_value": 3.0,
+          "native_formula": "Alive current target and native animation tick5/distance<3",
+          "units": "blocks strict upper limit",
+          "boundary": "tick/AnimationMeleeAttackGoal"
+        },
+        {
+          "primitive": "ATTACK_DELIVERY",
+          "parameter": "animation_length",
+          "native_value": 20,
+          "native_formula": "Alive current target and native animation tick5/distance<3",
+          "units": "ticks",
+          "boundary": "tick/AnimationMeleeAttackGoal"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "hurt_boolean_used": false,
+      "native_Mob_doHurtTarget": false
+    },
+    {
+      "id": "cataclysm:deepling_setup_equipment_spawn",
+      "mod_key": "cataclysm",
+      "display_name": "Ordinary Deepling native setup/equipment/spawn",
+      "registry_ids": [
+        "cataclysm:deepling"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Base attributes speed.27F, attack4, HP26, follow20, KBR.25. Registered MONSTER .6F x2.3F/tracking6, ordinary attribute binding reused. finalizeSpawn calls parent then equips fresh mainhand CORAL_SPEAR. Native item mainhand ADD_VALUE attack5.5 and speed-2.9F feed current attributes; melee is not fixed base4. Registered placement exact candeeplingSpawn: nonPEACEFUL and (native spawner or water fluid). checkSpawnRules uses configured DeeplingSpawnRolls and locked rollSpawn; checkSpawnObstruction native unobstructed. No altar/home/phase/respawner invented.",
+      "human_summary": "Base attributes speed.27F, attack4, HP26, follow20, KBR.25. Registered MONSTER .6F x2.3F/tracking6, ordinary attribute binding reused. finalizeSpawn calls parent then equips fresh mainhand CORAL_SPEAR. Native item mainhand ADD_VALUE attack5.5 and speed-2.9F feed current attributes; melee is not fixed base4. Registered placement exact candeeplingSpawn: nonPEACEFUL and (native spawner or water fluid). checkSpawnRules uses configured DeeplingSpawnRolls and locked rollSpawn; checkSpawnObstruction native unobstructed. No altar/home/phase/respawner invented.",
+      "closest_vanilla_equivalent": "Native Monster registry/spawn/equipment/attributes",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Base attributes speed.27F, attack4, HP26, follow20, KBR.25. Registered MONSTER .6F x2.3F/tracking6, ordinary attribute binding reused. finalizeSpawn calls parent then equips fresh mainhand CORAL_SPEAR. Native item mainhand ADD_VALUE attack5.5 and speed-2.9F feed current attributes; melee is not fixed base4. Registered placement exact candeeplingSpawn: nonPEACEFUL and (native spawner or water fluid). checkSpawnRules uses configured DeeplingSpawnRolls and locked rollSpawn; checkSpawnObstruction native unobstructed. No altar/home/phase/respawner invented.",
+      "components": [
+        {
+          "primitive": "ENTITY_ATTRIBUTES",
+          "formula": "Native base builder and current equipped attributes",
+          "numerical_parameters": {
+            "attack_base": 4.0,
+            "health_base": 26.0,
+            "movement_speed": 0.27000001072883606,
+            "follow_range": 20.0,
+            "knockback_resistance": 0.25
+          },
+          "parameter_units": {
+            "attack_base": "attribute",
+            "health_base": "HP",
+            "movement_speed": "attribute",
+            "follow_range": "blocks",
+            "knockback_resistance": "attribute"
+          },
+          "binary_parameters": [],
+          "native_boundary": "deepling/finalizeSpawn",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "EQUIPMENT_ATTRIBUTE",
+          "formula": "CORAL_SPEAR mainhand ADD_VALUE",
+          "numerical_parameters": {
+            "attack_damage_add": 5.5,
+            "attack_speed_add": -2.9000000953674316
+          },
+          "parameter_units": {
+            "attack_damage_add": "attribute",
+            "attack_speed_add": "attribute"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Coral_Spear.createAttributes",
+          "vanilla_relation": "DIRECT"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native configured roll/spawn type/water/difficulty/obstruction/equipment admission"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native configured roll/spawn type/water/difficulty/obstruction/equipment admission",
+      "source_actor": "Ordinary registered Deepling native actor.",
+      "hurt_return_dependency": "No new hurt; original parent finalize result returned.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/Deepling_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Deepling_Entity.class",
+          "methods": [
+            "deepling",
+            "populateDefaultEquipmentSlots",
+            "finalizeSpawn",
+            "checkSpawnRules",
+            "checkSpawnObstruction",
+            "candeeplingSpawn"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$13",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:init/ModItems",
+          "entry": "com/github/L_Ender/cataclysm/init/ModItems.class",
+          "methods": [
+            "lambda$static$130",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:items/Coral_Spear",
+          "entry": "com/github/L_Ender/cataclysm/items/Coral_Spear.class",
+          "methods": [
+            "createAttributes"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-admission.json",
+          "witness_id": "cataclysm:guardian-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "initializeAttributes"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-draugar-family.json",
+          "witness_id": "cataclysm:draugar-family:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "registerSpawnPlacements"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-berserker-admission.json",
+          "witness_id": "cataclysm:ignited-berserker-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "rollSpawn"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:deepling-family:setup_equipment_spawn"
+      ],
+      "primary_test_source": "cataclysm:deepling",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k27a-cataclysm-deepling-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "ENTITY_ATTRIBUTES",
+          "parameter": "attack_base",
+          "native_value": 4.0,
+          "native_formula": "Native base builder and current equipped attributes",
+          "units": "attribute",
+          "boundary": "deepling/finalizeSpawn"
+        },
+        {
+          "primitive": "ENTITY_ATTRIBUTES",
+          "parameter": "health_base",
+          "native_value": 26.0,
+          "native_formula": "Native base builder and current equipped attributes",
+          "units": "HP",
+          "boundary": "deepling/finalizeSpawn"
+        },
+        {
+          "primitive": "ENTITY_ATTRIBUTES",
+          "parameter": "movement_speed",
+          "native_value": 0.27000001072883606,
+          "native_formula": "Native base builder and current equipped attributes",
+          "units": "attribute",
+          "boundary": "deepling/finalizeSpawn"
+        },
+        {
+          "primitive": "ENTITY_ATTRIBUTES",
+          "parameter": "follow_range",
+          "native_value": 20.0,
+          "native_formula": "Native base builder and current equipped attributes",
+          "units": "blocks",
+          "boundary": "deepling/finalizeSpawn"
+        },
+        {
+          "primitive": "ENTITY_ATTRIBUTES",
+          "parameter": "knockback_resistance",
+          "native_value": 0.25,
+          "native_formula": "Native base builder and current equipped attributes",
+          "units": "attribute",
+          "boundary": "deepling/finalizeSpawn"
+        },
+        {
+          "primitive": "EQUIPMENT_ATTRIBUTE",
+          "parameter": "attack_damage_add",
+          "native_value": 5.5,
+          "native_formula": "CORAL_SPEAR mainhand ADD_VALUE",
+          "units": "attribute",
+          "boundary": "Coral_Spear.createAttributes"
+        },
+        {
+          "primitive": "EQUIPMENT_ATTRIBUTE",
+          "parameter": "attack_speed_add",
+          "native_value": -2.9000000953674316,
+          "native_formula": "CORAL_SPEAR mainhand ADD_VALUE",
+          "units": "attribute",
+          "boundary": "Coral_Spear.createAttributes"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "current_attack_not_fixed_base": true
+    },
+    {
+      "id": "cataclysm:deepling_shared_admission",
+      "mod_key": "cataclysm",
+      "display_name": "AbstractDeepling shared incoming admission",
+      "registry_ids": [
+        "cataclysm:deepling"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Actual parent LLibrary_Monster -> Monster, not boss cap hierarchy. hurt rejects HOT_FLOOR before delegating original amount/source to parent; no local isInvulnerableTo, boss cap/DPS/range/regen or home override. Native armor, effects, immunity, events and source admission remain native. Bubble-column callbacks are empty; canInFluidType returns the current FluidType.canSwim(self), not a hard-coded water identity test.",
+      "human_summary": "Actual parent LLibrary_Monster -> Monster, not boss cap hierarchy. hurt rejects HOT_FLOOR before delegating original amount/source to parent; no local isInvulnerableTo, boss cap/DPS/range/regen or home override. Native armor, effects, immunity, events and source admission remain native. Bubble-column callbacks are empty; canInFluidType returns the current FluidType.canSwim(self), not a hard-coded water identity test.",
+      "closest_vanilla_equivalent": "Native Monster admission plus explicit hot-floor exclusion",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Actual parent LLibrary_Monster -> Monster, not boss cap hierarchy. hurt rejects HOT_FLOOR before delegating original amount/source to parent; no local isInvulnerableTo, boss cap/DPS/range/regen or home override. Native armor, effects, immunity, events and source admission remain native. Bubble-column callbacks are empty; canInFluidType returns the current FluidType.canSwim(self), not a hard-coded water identity test.",
+      "components": [
+        {
+          "primitive": "NATIVE_ADMISSION",
+          "formula": "HOT_FLOOR -> false; otherwise original parent hurt",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "AbstractDeepling.hurt",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "ENVIRONMENT_ADMISSION",
+          "formula": "Empty bubble callbacks; native FluidType swim capability",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "canInFluidType/onInsideBubbleColumn/onAboveBubbleCol",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native damage type HOT_FLOOR exclusion",
+        "Unmodified parent source/armor/event/effect admission"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native damage type HOT_FLOOR exclusion; Unmodified parent source/armor/event/effect admission",
+      "source_actor": "Native AbstractDeepling-family recipient; source unchanged.",
+      "hurt_return_dependency": "Original parent return unchanged; HOT_FLOOR never enters parent.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/AbstractDeepling",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/AbstractDeepling.class",
+          "methods": [
+            "hurt",
+            "canInFluidType",
+            "onInsideBubbleColumn",
+            "onAboveBubbleCol"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/LLibrary_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/LLibrary_Monster.class",
+          "methods": [
+            "tick",
+            "tickDeath",
+            "setAnimation",
+            "setAnimationTick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:deepling-family:shared_admission"
+      ],
+      "primary_test_source": "cataclysm:deepling",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k27a-cataclysm-deepling-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "boss_defense_bindings": false
+    },
+    {
+      "id": "cataclysm:deepling_shared_aquatic_state",
+      "mod_key": "cataclysm",
+      "display_name": "AbstractDeepling shared swimming/navigation gates",
+      "registry_ids": [
+        "cataclysm:deepling"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "isInWater switches land GroundPathNavigatorWide versus SemiAquaticPathNavigator. Client fluid swim capability plus noCollision on swim/normal boxes updates raw DEEPLINGSWIM and dimensions; this flag differs from native isSwimming used for fluid-push predicate. Default dimensions choose native subclass swimming size or scaled registered dimensions. Shared attack box deflates XZ .05; ordinary override deflates again, total .10. shouldEnterWater=moisture<300; shouldLeaveWater=target exists and not in water; stop=false; water search32. Existing water-finding/leaving goals retained with their exact native search/path admission.",
+      "human_summary": "isInWater switches land GroundPathNavigatorWide versus SemiAquaticPathNavigator. Client fluid swim capability plus noCollision on swim/normal boxes updates raw DEEPLINGSWIM and dimensions; this flag differs from native isSwimming used for fluid-push predicate. Default dimensions choose native subclass swimming size or scaled registered dimensions. Shared attack box deflates XZ .05; ordinary override deflates again, total .10. shouldEnterWater=moisture<300; shouldLeaveWater=target exists and not in water; stop=false; water search32. Existing water-finding/leaving goals retained with their exact native search/path admission.",
+      "closest_vanilla_equivalent": "Native semi-aquatic navigation with local dimension/state contract",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "isInWater switches land GroundPathNavigatorWide versus SemiAquaticPathNavigator. Client fluid swim capability plus noCollision on swim/normal boxes updates raw DEEPLINGSWIM and dimensions; this flag differs from native isSwimming used for fluid-push predicate. Default dimensions choose native subclass swimming size or scaled registered dimensions. Shared attack box deflates XZ .05; ordinary override deflates again, total .10. shouldEnterWater=moisture<300; shouldLeaveWater=target exists and not in water; stop=false; water search32. Existing water-finding/leaving goals retained with their exact native search/path admission.",
+      "components": [
+        {
+          "primitive": "AQUATIC_STATE",
+          "formula": "Native fluid/nav/client collision/dimension/push predicates",
+          "numerical_parameters": {
+            "entry_moisture": 300,
+            "water_search": 32,
+            "shared_attack_deflate": 0.05
+          },
+          "parameter_units": {
+            "entry_moisture": "native admission threshold",
+            "water_search": "blocks",
+            "shared_attack_deflate": "blocks per XZ side"
+          },
+          "binary_parameters": [],
+          "native_boundary": "AbstractDeepling.tick/predicates/getAttackBoundingBox",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "NAVIGATION_STATE",
+          "formula": "Locked MobAIFindWater/MobAILeaveWater implementations and current predicates",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "registerGoals ->shared water goals",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native fluid capability/noCollision/AI/navigation/target gates",
+        "Client dimension writes retained as observed"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native fluid capability/noCollision/AI/navigation/target gates; Client dimension writes retained as observed",
+      "source_actor": "Native Deepling self/navigation recipient; no victim force.",
+      "hurt_return_dependency": "No new hurt or status.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/AbstractDeepling",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/AbstractDeepling.class",
+          "methods": [
+            "tick",
+            "switchNavigator",
+            "getDefaultDimensions",
+            "getSwimmingBox",
+            "getNormalBox",
+            "isPushedByFluid",
+            "shouldEnterWater",
+            "shouldLeaveWater",
+            "shouldStopMoving",
+            "getWaterSearchRange",
+            "getAttackBoundingBox"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/Deepling_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Deepling_Entity.class",
+          "methods": [
+            "getSwimmingSize",
+            "getAttackBoundingBox"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-coralssus-family.json",
+          "witness_id": "cataclysm:coralssus-family:entity/AI/MobAIFindWater",
+          "entry": "com/github/L_Ender/cataclysm/entity/AI/MobAIFindWater.class",
+          "methods": [
+            "canUse",
+            "start",
+            "tick",
+            "canContinueToUse",
+            "generateTarget"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-coralssus-family.json",
+          "witness_id": "cataclysm:coralssus-family:entity/AI/MobAILeaveWater",
+          "entry": "com/github/L_Ender/cataclysm/entity/AI/MobAILeaveWater.class",
+          "methods": [
+            "canUse",
+            "start",
+            "tick",
+            "canContinueToUse",
+            "generateTarget"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:deepling-family:shared_aquatic_state"
+      ],
+      "primary_test_source": "cataclysm:deepling",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k27a-cataclysm-deepling-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "AQUATIC_STATE",
+          "parameter": "entry_moisture",
+          "native_value": 300,
+          "native_formula": "Native fluid/nav/client collision/dimension/push predicates",
+          "units": "native admission threshold",
+          "boundary": "AbstractDeepling.tick/predicates/getAttackBoundingBox"
+        },
+        {
+          "primitive": "AQUATIC_STATE",
+          "parameter": "water_search",
+          "native_value": 32,
+          "native_formula": "Native fluid/nav/client collision/dimension/push predicates",
+          "units": "blocks",
+          "boundary": "AbstractDeepling.tick/predicates/getAttackBoundingBox"
+        },
+        {
+          "primitive": "AQUATIC_STATE",
+          "parameter": "shared_attack_deflate",
+          "native_value": 0.05,
+          "native_formula": "Native fluid/nav/client collision/dimension/push predicates",
+          "units": "blocks per XZ side",
+          "boundary": "AbstractDeepling.tick/predicates/getAttackBoundingBox"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "double_attack_deflate": true,
+      "raw_swim_not_native_swimming": true
+    },
+    {
+      "id": "cataclysm:deepling_shared_moisture",
+      "mod_key": "cataclysm",
+      "display_name": "AbstractDeepling native moisture and dry-out request",
+      "registry_ids": [
+        "cataclysm:deepling"
+      ],
+      "primary_classification": "CUSTOM_RESOURCE",
+      "actual_behavior": "Synched moistness starts 40000; no-AI restores air, wet/rain/bubble resets moisture to 6000, otherwise decrement 2 by day or 1 otherwise. At moisture<=0 and post-decrement moistureAttackTime<=0, request native dryOut damage randomly 1F or 0F (nextInt(2)), ignore hurt result and reset timer20. Timer only advances in the dry/depleted branch; no clamp on raw moisture setter. Save/load Moisture; local timer and swim flag not separately saved. Environmental admission/defensive state is context, not an automatic Stage scalar.",
+      "human_summary": "Synched moistness starts 40000; no-AI restores air, wet/rain/bubble resets moisture to 6000, otherwise decrement 2 by day or 1 otherwise. At moisture<=0 and post-decrement moistureAttackTime<=0, request native dryOut damage randomly 1F or 0F (nextInt(2)), ignore hurt result and reset timer20. Timer only advances in the dry/depleted branch; no clamp on raw moisture setter. Save/load Moisture; local timer and swim flag not separately saved. Environmental admission/defensive state is context, not an automatic Stage scalar.",
+      "closest_vanilla_equivalent": "Native dryOut DamageType with custom moisture state",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Synched moistness starts 40000; no-AI restores air, wet/rain/bubble resets moisture to 6000, otherwise decrement 2 by day or 1 otherwise. At moisture<=0 and post-decrement moistureAttackTime<=0, request native dryOut damage randomly 1F or 0F (nextInt(2)), ignore hurt result and reset timer20. Timer only advances in the dry/depleted branch; no clamp on raw moisture setter. Save/load Moisture; local timer and swim flag not separately saved. Environmental admission/defensive state is context, not an automatic Stage scalar.",
+      "components": [
+        {
+          "primitive": "RESOURCE_STATE",
+          "formula": "Raw moisture; wet reset6000; dry depletion2/1 and depleted timer20",
+          "numerical_parameters": {
+            "initial": 40000,
+            "wet_reset": 6000,
+            "day_drain": 2,
+            "other_drain": 1,
+            "request_timer": 20
+          },
+          "parameter_units": {
+            "initial": "moisture units",
+            "wet_reset": "moisture units",
+            "day_drain": "units per tick",
+            "other_drain": "units per tick",
+            "request_timer": "local depleted ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "defineSynchedData/tick/setMoistness/NBT",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "formula": "nextInt(2)==0 ?1F:0F, native dryOut self request",
+          "numerical_parameters": {
+            "damage_if_selected": 1.0,
+            "damage_other": 0.0
+          },
+          "parameter_units": {
+            "damage_if_selected": "HP",
+            "damage_other": "HP"
+          },
+          "binary_parameters": [],
+          "native_boundary": "AbstractDeepling.tick ->hurt",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native no-AI/wet/day/depleted/timer/RNG gates",
+        "Native environmental damage defenses"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native no-AI/wet/day/depleted/timer/RNG gates; Native environmental damage defenses",
+      "source_actor": "Deepling recipient; native dryOut source, no attacking owner invented.",
+      "hurt_return_dependency": "Dry-out timer reset independent of returned hurt bool.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/AbstractDeepling",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/AbstractDeepling.class",
+          "methods": [
+            "defineSynchedData",
+            "tick",
+            "setMoistness",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:deepling-family:shared_moisture"
+      ],
+      "primary_test_source": "cataclysm:deepling",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k27a-cataclysm-deepling-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "RESOURCE_STATE",
+          "parameter": "initial",
+          "native_value": 40000,
+          "native_formula": "Raw moisture; wet reset6000; dry depletion2/1 and depleted timer20",
+          "units": "moisture units",
+          "boundary": "defineSynchedData/tick/setMoistness/NBT"
+        },
+        {
+          "primitive": "RESOURCE_STATE",
+          "parameter": "wet_reset",
+          "native_value": 6000,
+          "native_formula": "Raw moisture; wet reset6000; dry depletion2/1 and depleted timer20",
+          "units": "moisture units",
+          "boundary": "defineSynchedData/tick/setMoistness/NBT"
+        },
+        {
+          "primitive": "RESOURCE_STATE",
+          "parameter": "day_drain",
+          "native_value": 2,
+          "native_formula": "Raw moisture; wet reset6000; dry depletion2/1 and depleted timer20",
+          "units": "units per tick",
+          "boundary": "defineSynchedData/tick/setMoistness/NBT"
+        },
+        {
+          "primitive": "RESOURCE_STATE",
+          "parameter": "other_drain",
+          "native_value": 1,
+          "native_formula": "Raw moisture; wet reset6000; dry depletion2/1 and depleted timer20",
+          "units": "units per tick",
+          "boundary": "defineSynchedData/tick/setMoistness/NBT"
+        },
+        {
+          "primitive": "RESOURCE_STATE",
+          "parameter": "request_timer",
+          "native_value": 20,
+          "native_formula": "Raw moisture; wet reset6000; dry depletion2/1 and depleted timer20",
+          "units": "local depleted ticks",
+          "boundary": "defineSynchedData/tick/setMoistness/NBT"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameter": "damage_if_selected",
+          "native_value": 1.0,
+          "native_formula": "nextInt(2)==0 ?1F:0F, native dryOut self request",
+          "units": "HP",
+          "boundary": "AbstractDeepling.tick ->hurt"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameter": "damage_other",
+          "native_value": 0.0,
+          "native_formula": "nextInt(2)==0 ?1F:0F, native dryOut self request",
+          "units": "HP",
+          "boundary": "AbstractDeepling.tick ->hurt"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "defensive_environment_candidates": false,
+      "moisture_clamped": false
+    },
+    {
+      "id": "cataclysm:deepling_shared_mount_team",
+      "mod_key": "cataclysm",
+      "display_name": "AbstractDeepling Coralssus mount and alliance",
+      "registry_ids": [
+        "cataclysm:deepling"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Allied self/parent or TEAM_THE_LEVIATHAN with both teams null. Mount goal searches Coralssus in inflated15 box, requires nonpassenger, moisture>300, alive and not vehicle; navigates speed1 and force-startRiding below distance4. Selector preserves native comparison closest.distanceTo(entity)>entity.distanceTo(entity): latter is zero, so do not relabel as a correct nearest search. StopRiding admits moisture<300 and passenger. Coralssus native combat/ownership remains separate; no target/source transfer or added damage.",
+      "human_summary": "Allied self/parent or TEAM_THE_LEVIATHAN with both teams null. Mount goal searches Coralssus in inflated15 box, requires nonpassenger, moisture>300, alive and not vehicle; navigates speed1 and force-startRiding below distance4. Selector preserves native comparison closest.distanceTo(entity)>entity.distanceTo(entity): latter is zero, so do not relabel as a correct nearest search. StopRiding admits moisture<300 and passenger. Coralssus native combat/ownership remains separate; no target/source transfer or added damage.",
+      "closest_vanilla_equivalent": "Native mount/team predicates with local selector",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Allied self/parent or TEAM_THE_LEVIATHAN with both teams null. Mount goal searches Coralssus in inflated15 box, requires nonpassenger, moisture>300, alive and not vehicle; navigates speed1 and force-startRiding below distance4. Selector preserves native comparison closest.distanceTo(entity)>entity.distanceTo(entity): latter is zero, so do not relabel as a correct nearest search. StopRiding admits moisture<300 and passenger. Coralssus native combat/ownership remains separate; no target/source transfer or added damage.",
+      "components": [
+        {
+          "primitive": "MOUNT_CONTROL",
+          "formula": "Existing candidate loop and native mount/dismount gates",
+          "numerical_parameters": {
+            "search_box": 15.0,
+            "mount_distance": 4.0,
+            "moisture_threshold": 300
+          },
+          "parameter_units": {
+            "search_box": "blocks inflation",
+            "mount_distance": "blocks",
+            "moisture_threshold": "native gate"
+          },
+          "binary_parameters": [],
+          "native_boundary": "RidingCoralssus/StopRiding",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "ALLIED_PREDICATE",
+          "formula": "Self/parent else Leviathan tag &&both teams null",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "AbstractDeepling.isAlliedTo",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native mount/teams/alive/passenger/vehicle/moisture gates"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native mount/teams/alive/passenger/vehicle/moisture gates",
+      "source_actor": "Deepling passenger and locked Coralssus remain independent native actors.",
+      "hurt_return_dependency": "No hurt or new combat payload on mount.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/AbstractDeepling",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/AbstractDeepling.class",
+          "methods": [
+            "isAlliedTo",
+            "registerGoals"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/AbstractDeepling$RidingCoralssus",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/AbstractDeepling$RidingCoralssus.class",
+          "methods": [
+            "canUse",
+            "start",
+            "tick",
+            "stop",
+            "getClosestCoralssus_Entity"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/AbstractDeepling$StopRiding",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/AbstractDeepling$StopRiding.class",
+          "methods": [
+            "canUse",
+            "start"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:deepling-family:shared_mount_team"
+      ],
+      "primary_test_source": "cataclysm:deepling",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k27a-cataclysm-deepling-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "MOUNT_CONTROL",
+          "parameter": "search_box",
+          "native_value": 15.0,
+          "native_formula": "Existing candidate loop and native mount/dismount gates",
+          "units": "blocks inflation",
+          "boundary": "RidingCoralssus/StopRiding"
+        },
+        {
+          "primitive": "MOUNT_CONTROL",
+          "parameter": "mount_distance",
+          "native_value": 4.0,
+          "native_formula": "Existing candidate loop and native mount/dismount gates",
+          "units": "blocks",
+          "boundary": "RidingCoralssus/StopRiding"
+        },
+        {
+          "primitive": "MOUNT_CONTROL",
+          "parameter": "moisture_threshold",
+          "native_value": 300,
+          "native_formula": "Existing candidate loop and native mount/dismount gates",
+          "units": "native gate",
+          "boundary": "RidingCoralssus/StopRiding"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "nearest_selector_correct": false,
+      "owner_transferred": false
+    },
+    {
+      "id": "cataclysm:deepling_spear_contact",
+      "mod_key": "cataclysm",
+      "display_name": "Deepling coral-spear native contact payload",
+      "registry_ids": [
+        "cataclysm:deepling"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "Custom carrier reproduces trident contact shape with base6.5F, not Vanilla8 or melee attribute. Native trident(projectile,owner elseprojectile); ServerLevel stored-item EnchantmentHelper.modifyDamage. dealtDamage set before original hurt. True hurt: native Enderman earlyreturn, item postattack effects, Living knockback/posthurt. Otherwise projectile recoil(-.01,-.1,-.01) still occurs; no extra status/area/terrain. Reuse exact native Trident and installed arrow/projectile impact/PvP/cancellation/deflection contracts.",
+      "human_summary": "Custom carrier reproduces trident contact shape with base6.5F, not Vanilla8 or melee attribute. Native trident(projectile,owner elseprojectile); ServerLevel stored-item EnchantmentHelper.modifyDamage. dealtDamage set before original hurt. True hurt: native Enderman earlyreturn, item postattack effects, Living knockback/posthurt. Otherwise projectile recoil(-.01,-.1,-.01) still occurs; no extra status/area/terrain. Reuse exact native Trident and installed arrow/projectile impact/PvP/cancellation/deflection contracts.",
+      "closest_vanilla_equivalent": "Native trident source/defenses/lifecycle with different base damage",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Custom carrier reproduces trident contact shape with base6.5F, not Vanilla8 or melee attribute. Native trident(projectile,owner elseprojectile); ServerLevel stored-item EnchantmentHelper.modifyDamage. dealtDamage set before original hurt. True hurt: native Enderman earlyreturn, item postattack effects, Living knockback/posthurt. Otherwise projectile recoil(-.01,-.1,-.01) still occurs; no extra status/area/terrain. Reuse exact native Trident and installed arrow/projectile impact/PvP/cancellation/deflection contracts.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "formula": "Stored-item native enchantment modification of6.5F then one original hurt",
+          "numerical_parameters": {
+            "base_damage": 6.5
+          },
+          "parameter_units": {
+            "base_damage": "HP before native enchantment modification"
+          },
+          "binary_parameters": [],
+          "native_boundary": "ThrownCoral_Spear.onHitEntity",
+          "vanilla_relation": "EXTENDED"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native original collision/cancellation/deflection/source/recipient admission",
+        "Native stored item/enchantment/enderman/type gates"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native original collision/cancellation/deflection/source/recipient admission; Native stored item/enchantment/enderman/type gates",
+      "source_actor": "Spear direct; native resolved owner causing else spear self.",
+      "hurt_return_dependency": "dealtDamage before hurt; true-hurt effects/Enderman return retained.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/projectile/ThrownCoral_Spear_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/ThrownCoral_Spear_Entity.class",
+          "methods": [
+            "onHitEntity",
+            "getWeaponItem"
+          ]
+        },
+        {
+          "evidence_file": "vanilla-evidence/bossesrise-tentacle-trident.json",
+          "evidence_format": "VANILLA_COMPARISON",
+          "witness_id": "net/minecraft/world/entity/projectile/ThrownTrident",
+          "entry": "coc.class",
+          "methods": [
+            "onHitEntity",
+            "tick",
+            "getLoyaltyFromItem",
+            "findHitEntity",
+            "tryPickup",
+            "playerTouch",
+            "readAdditionalSaveData",
+            "addAdditionalSaveData"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/bossesrise-knight-offense-244.json",
+          "witness_id": "bossesrise-knight-offense-244",
+          "entry": "net/minecraft/world/entity/projectile/AbstractArrow.class",
+          "methods": [
+            "tick",
+            "onHitBlock",
+            "lambda$tick$1"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/bossesrise-knight-offense-244.json",
+          "witness_id": "bossesrise-knight-offense-244",
+          "entry": "net/minecraft/world/entity/projectile/Projectile.class",
+          "methods": [
+            "getOwner",
+            "canHitEntity",
+            "hitTargetOrDeflectSelf",
+            "deflect",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:deepling-family:spear_contact"
+      ],
+      "primary_test_source": "cataclysm:deepling",
+      "alternate_sources": [],
+      "spawned_entity_ids": [
+        "cataclysm:coral_spear"
+      ],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k27a-cataclysm-deepling-family-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "base_damage"
+          ],
+          "native_value": 6.5,
+          "native_formula": "Stored-item native enchantment modification of6.5F then one original hurt",
+          "units": "HP before native enchantment modification",
+          "native_boundary": "ThrownCoral_Spear.onHitEntity"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameter": "base_damage",
+          "native_value": 6.5,
+          "native_formula": "Stored-item native enchantment modification of6.5F then one original hurt",
+          "units": "HP before native enchantment modification",
+          "boundary": "ThrownCoral_Spear.onHitEntity"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "extra_status": false,
+      "velocity_scaled_damage": false
+    },
+    {
+      "id": "cataclysm:deepling_spear_delivery",
+      "mod_key": "cataclysm",
+      "display_name": "Ordinary Deepling coral-spear launch",
+      "registry_ids": [
+        "cataclysm:deepling"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "Alive throw animation tick11/current target constructs ThrownCoral_Spear(level,self,fresh CORAL_SPEAR stack), not a held-item copy. Aim target Y(1/3) plus horizontalDistance*.2F; shoot1.6F/inaccuracy float(14-4*difficultyId), addFreshEntity return ignored. No local side guard, consumption, held enchantment or loyalty transfer. Native direct projectile and Deepling owner remain separate from melee current attribute.",
+      "human_summary": "Alive throw animation tick11/current target constructs ThrownCoral_Spear(level,self,fresh CORAL_SPEAR stack), not a held-item copy. Aim target Y(1/3) plus horizontalDistance*.2F; shoot1.6F/inaccuracy float(14-4*difficultyId), addFreshEntity return ignored. No local side guard, consumption, held enchantment or loyalty transfer. Native direct projectile and Deepling owner remain separate from melee current attribute.",
+      "closest_vanilla_equivalent": "Native projectile shoot and trident-style custom carrier",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Alive throw animation tick11/current target constructs ThrownCoral_Spear(level,self,fresh CORAL_SPEAR stack), not a held-item copy. Aim target Y(1/3) plus horizontalDistance*.2F; shoot1.6F/inaccuracy float(14-4*difficultyId), addFreshEntity return ignored. No local side guard, consumption, held enchantment or loyalty transfer. Native direct projectile and Deepling owner remain separate from melee current attribute.",
+      "components": [
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "formula": "Fresh native item carrier/current owner/aim/shoot",
+          "numerical_parameters": {
+            "speed": 1.600000023841858,
+            "aim_lift": 0.20000000298023224,
+            "impact_tick": 11
+          },
+          "parameter_units": {
+            "speed": "shoot speed",
+            "aim_lift": "vertical aim per horizontal block",
+            "impact_tick": "animation tick"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Deepling.tick ->ThrownCoral_Spear constructor/shoot",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native alive/throw animation/current target/spawn/owner/collision admission"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native alive/throw animation/current target/spawn/owner/collision admission",
+      "source_actor": "Spear direct; Deepling causing resolved native owner.",
+      "hurt_return_dependency": "No immediate hurt; spawn result ignored.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/Deepling_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Deepling_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/projectile/ThrownCoral_Spear_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/ThrownCoral_Spear_Entity.class",
+          "methods": [
+            "<init>"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/bossesrise-knight-offense-244.json",
+          "witness_id": "bossesrise-knight-offense-244",
+          "entry": "net/minecraft/world/entity/projectile/Projectile.class",
+          "methods": [
+            "getOwner",
+            "canHitEntity",
+            "hitTargetOrDeflectSelf",
+            "deflect",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:deepling-family:spear_delivery"
+      ],
+      "primary_test_source": "cataclysm:deepling",
+      "alternate_sources": [],
+      "spawned_entity_ids": [
+        "cataclysm:coral_spear"
+      ],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k27a-cataclysm-deepling-family-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "aim_lift"
+          ],
+          "native_value": 0.20000000298023224,
+          "native_formula": "Fresh native item carrier/current owner/aim/shoot",
+          "units": "vertical aim per horizontal block",
+          "native_boundary": "Deepling.tick ->ThrownCoral_Spear constructor/shoot"
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "speed"
+          ],
+          "native_value": 1.600000023841858,
+          "native_formula": "Fresh native item carrier/current owner/aim/shoot",
+          "units": "shoot speed",
+          "native_boundary": "Deepling.tick ->ThrownCoral_Spear constructor/shoot"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameter": "speed",
+          "native_value": 1.600000023841858,
+          "native_formula": "Fresh native item carrier/current owner/aim/shoot",
+          "units": "shoot speed",
+          "boundary": "Deepling.tick ->ThrownCoral_Spear constructor/shoot"
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameter": "aim_lift",
+          "native_value": 0.20000000298023224,
+          "native_formula": "Fresh native item carrier/current owner/aim/shoot",
+          "units": "vertical aim per horizontal block",
+          "boundary": "Deepling.tick ->ThrownCoral_Spear constructor/shoot"
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameter": "impact_tick",
+          "native_value": 11,
+          "native_formula": "Fresh native item carrier/current owner/aim/shoot",
+          "units": "animation tick",
+          "boundary": "Deepling.tick ->ThrownCoral_Spear constructor/shoot"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "copies_held_item": false,
+      "local_server_guard": false
+    },
+    {
+      "id": "cataclysm:deepling_spear_lifecycle",
+      "mod_key": "cataclysm",
+      "display_name": "Deepling coral-spear native lifecycle/owner",
+      "registry_ids": [
+        "cataclysm:deepling"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "dealtDamage disables entity hit search; inGroundTime>4 sets dealtDamage. Stored-item positive loyalty and native owner-alive/spectator acceptance enable noPhysics return (Y*.015*loyalty, velocity*.95+normalizedToOwner*.05*loyalty), else allowed server pickup drop and discard. Save DealtDamage, parent owner/pickup stack; reload loyalty from stored item clamped0..127. Player pickup ownedBy or ownerless; native pickup/noPhysics owner rules retained. tickDespawn delegates unless allowedpickup and positive loyalty. Water inertia.99F; locked parent arrow/projectile motion/cancellation/block item-enchantment lifecycle retained. Fresh ordinary stack has no copied loyalty.",
+      "human_summary": "dealtDamage disables entity hit search; inGroundTime>4 sets dealtDamage. Stored-item positive loyalty and native owner-alive/spectator acceptance enable noPhysics return (Y*.015*loyalty, velocity*.95+normalizedToOwner*.05*loyalty), else allowed server pickup drop and discard. Save DealtDamage, parent owner/pickup stack; reload loyalty from stored item clamped0..127. Player pickup ownedBy or ownerless; native pickup/noPhysics owner rules retained. tickDespawn delegates unless allowedpickup and positive loyalty. Water inertia.99F; locked parent arrow/projectile motion/cancellation/block item-enchantment lifecycle retained. Fresh ordinary stack has no copied loyalty.",
+      "closest_vanilla_equivalent": "Trident-like carrier native owner/item/return lifecycle",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "dealtDamage disables entity hit search; inGroundTime>4 sets dealtDamage. Stored-item positive loyalty and native owner-alive/spectator acceptance enable noPhysics return (Y*.015*loyalty, velocity*.95+normalizedToOwner*.05*loyalty), else allowed server pickup drop and discard. Save DealtDamage, parent owner/pickup stack; reload loyalty from stored item clamped0..127. Player pickup ownedBy or ownerless; native pickup/noPhysics owner rules retained. tickDespawn delegates unless allowedpickup and positive loyalty. Water inertia.99F; locked parent arrow/projectile motion/cancellation/block item-enchantment lifecycle retained. Fresh ordinary stack has no copied loyalty.",
+      "components": [
+        {
+          "primitive": "PAYLOAD_LIFECYCLE",
+          "formula": "Native dealtDamage/owner/item/return/pickup/NBT/collision semantics",
+          "numerical_parameters": {
+            "water_inertia": 0.9900000095367432,
+            "loyalty_max": 127
+          },
+          "parameter_units": {
+            "water_inertia": "motion multiplier",
+            "loyalty_max": "native byte clamp"
+          },
+          "binary_parameters": [],
+          "native_boundary": "ThrownCoral_Spear.tick/NBT/pickup/tickDespawn/getWaterInertia",
+          "vanilla_relation": "EXTENDED"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native owner/item/loyalty/return/pickup/impact/lifecycle gates"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native owner/item/loyalty/return/pickup/impact/lifecycle gates",
+      "source_actor": "Native projectile owner/stack transport only; no cache or new callback.",
+      "hurt_return_dependency": "Original contact return effects preserved; no duplicate payload.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/projectile/ThrownCoral_Spear_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/ThrownCoral_Spear_Entity.class",
+          "methods": [
+            "tick",
+            "isAcceptibleReturnOwner",
+            "findHitEntity",
+            "hitBlockEnchantmentEffects",
+            "tryPickup",
+            "playerTouch",
+            "readAdditionalSaveData",
+            "addAdditionalSaveData",
+            "getLoyaltyFromItem",
+            "tickDespawn",
+            "getWaterInertia"
+          ]
+        },
+        {
+          "evidence_file": "vanilla-evidence/bossesrise-tentacle-trident.json",
+          "evidence_format": "VANILLA_COMPARISON",
+          "witness_id": "net/minecraft/world/entity/projectile/ThrownTrident",
+          "entry": "coc.class",
+          "methods": [
+            "onHitEntity",
+            "tick",
+            "getLoyaltyFromItem",
+            "findHitEntity",
+            "tryPickup",
+            "playerTouch",
+            "readAdditionalSaveData",
+            "addAdditionalSaveData"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/bossesrise-knight-offense-244.json",
+          "witness_id": "bossesrise-knight-offense-244",
+          "entry": "net/minecraft/world/entity/projectile/AbstractArrow.class",
+          "methods": [
+            "tick",
+            "onHitBlock",
+            "lambda$tick$1"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/bossesrise-knight-offense-244.json",
+          "witness_id": "bossesrise-knight-offense-244",
+          "entry": "net/minecraft/world/entity/projectile/Projectile.class",
+          "methods": [
+            "getOwner",
+            "canHitEntity",
+            "hitTargetOrDeflectSelf",
+            "deflect",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:deepling-family:spear_lifecycle"
+      ],
+      "primary_test_source": "cataclysm:deepling",
+      "alternate_sources": [],
+      "spawned_entity_ids": [
+        "cataclysm:coral_spear"
+      ],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k27a-cataclysm-deepling-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "PAYLOAD_LIFECYCLE",
+          "parameter": "water_inertia",
+          "native_value": 0.9900000095367432,
+          "native_formula": "Native dealtDamage/owner/item/return/pickup/NBT/collision semantics",
+          "units": "motion multiplier",
+          "boundary": "ThrownCoral_Spear.tick/NBT/pickup/tickDespawn/getWaterInertia"
+        },
+        {
+          "primitive": "PAYLOAD_LIFECYCLE",
+          "parameter": "loyalty_max",
+          "native_value": 127,
+          "native_formula": "Native dealtDamage/owner/item/return/pickup/NBT/collision semantics",
+          "units": "native byte clamp",
+          "boundary": "ThrownCoral_Spear.tick/NBT/pickup/tickDespawn/getWaterInertia"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "local_owner_cache": false
+    },
+    {
+      "id": "cataclysm:deepling_spear_selection",
+      "mod_key": "cataclysm",
+      "display_name": "Ordinary Deepling native ranged selection/strafe",
+      "registry_ids": [
+        "cataclysm:deepling"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Trident goal admits alive current target, mainhand CORAL_SPEAR and distanceSquared>=36; continuation also allows unfinished path. MOVE/LOOK, aggressive/item-use lifecycle. Sight counter and max distanceSquared100 govern path/strafe, not a maximum launch distance gate. At sight true and animation !=throw, set 40-tick throw animation. attackCooldown defaults0 and is never assigned; attackTime only writes -1/default cooldown and is not read/decremented. Native 20-tick strafe direction random.3, distance fractions.75/.25, strafe±.5 and 30-degree look remain native selection/control, not invented proc policy.",
+      "human_summary": "Trident goal admits alive current target, mainhand CORAL_SPEAR and distanceSquared>=36; continuation also allows unfinished path. MOVE/LOOK, aggressive/item-use lifecycle. Sight counter and max distanceSquared100 govern path/strafe, not a maximum launch distance gate. At sight true and animation !=throw, set 40-tick throw animation. attackCooldown defaults0 and is never assigned; attackTime only writes -1/default cooldown and is not read/decremented. Native 20-tick strafe direction random.3, distance fractions.75/.25, strafe±.5 and 30-degree look remain native selection/control, not invented proc policy.",
+      "closest_vanilla_equivalent": "Custom native ranged animation/AI rather than Vanilla fixed cadence",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Trident goal admits alive current target, mainhand CORAL_SPEAR and distanceSquared>=36; continuation also allows unfinished path. MOVE/LOOK, aggressive/item-use lifecycle. Sight counter and max distanceSquared100 govern path/strafe, not a maximum launch distance gate. At sight true and animation !=throw, set 40-tick throw animation. attackCooldown defaults0 and is never assigned; attackTime only writes -1/default cooldown and is not read/decremented. Native 20-tick strafe direction random.3, distance fractions.75/.25, strafe±.5 and 30-degree look remain native selection/control, not invented proc policy.",
+      "components": [
+        {
+          "primitive": "ATTACK_SELECTION",
+          "formula": "Native equipment/target/sight/animation and path/strafe state",
+          "numerical_parameters": {
+            "minimum_distance_squared": 36.0,
+            "strafe_distance_squared": 100.0,
+            "sight_strafe_ticks": 20,
+            "lost_sight_item_stop": -60
+          },
+          "parameter_units": {
+            "minimum_distance_squared": "blocks squared",
+            "strafe_distance_squared": "blocks squared",
+            "sight_strafe_ticks": "ticks",
+            "lost_sight_item_stop": "signed sight counter"
+          },
+          "binary_parameters": [],
+          "native_boundary": "DeeplingTridentShoot.canUse/tick/start/stop",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native item/target/sight/animation/navigation gates"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native item/target/sight/animation/navigation gates",
+      "source_actor": "Deepling native AI/self control, no transferred source.",
+      "hurt_return_dependency": "No hurt; no cooldown enforcement invented.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/Deepling_Entity$DeeplingTridentShoot",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Deepling_Entity$DeeplingTridentShoot.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "canContinueToUse",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/Deepling_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Deepling_Entity.class",
+          "methods": [
+            "registerGoals",
+            "<clinit>"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:deepling-family:spear_selection"
+      ],
+      "primary_test_source": "cataclysm:deepling",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k27a-cataclysm-deepling-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "ATTACK_SELECTION",
+          "parameter": "minimum_distance_squared",
+          "native_value": 36.0,
+          "native_formula": "Native equipment/target/sight/animation and path/strafe state",
+          "units": "blocks squared",
+          "boundary": "DeeplingTridentShoot.canUse/tick/start/stop"
+        },
+        {
+          "primitive": "ATTACK_SELECTION",
+          "parameter": "strafe_distance_squared",
+          "native_value": 100.0,
+          "native_formula": "Native equipment/target/sight/animation and path/strafe state",
+          "units": "blocks squared",
+          "boundary": "DeeplingTridentShoot.canUse/tick/start/stop"
+        },
+        {
+          "primitive": "ATTACK_SELECTION",
+          "parameter": "sight_strafe_ticks",
+          "native_value": 20,
+          "native_formula": "Native equipment/target/sight/animation and path/strafe state",
+          "units": "ticks",
+          "boundary": "DeeplingTridentShoot.canUse/tick/start/stop"
+        },
+        {
+          "primitive": "ATTACK_SELECTION",
+          "parameter": "lost_sight_item_stop",
+          "native_value": -60,
+          "native_formula": "Native equipment/target/sight/animation and path/strafe state",
+          "units": "signed sight counter",
+          "boundary": "DeeplingTridentShoot.canUse/tick/start/stop"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "ranged_cooldown_enforced": false,
+      "max_distance_is_launch_gate": false
+    },
+    {
       "id": "cataclysm:draugar_draugr_native_melee",
       "mod_key": "cataclysm",
       "display_name": "draugr native mob melee and return-dependent native knockback",
@@ -99377,6 +100929,644 @@
       "runtime_status": "NOT_RUN"
     },
     {
+      "id": "cataclysm:deepling-family:aquatic_self_motion",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:deepling_aquatic_self_motion"
+      ],
+      "primary_source": "cataclysm:deepling",
+      "native_path": "wantsToSwim=searchingForLand or target in water. Effective-AI water travel moveRelative.01F/moveSELF/drag.9. MoveControl speed=modifier*2F*current movement attribute, lerp.125; directional delta(speed*dx*.005,speed*normalizedDY*.1,speed*dz*.005); buoyancy.002 if target higher or search flag. Outside water airborne-.008 then parent. Swim-up active in rain OR water below seaLevel-2, sets searchtrue/start and false/stop; sea-level/path/stuck search native. Beach in rain/water near surface with standable block/two empty spaces resets searchfalse. No victim force or damage.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/Deepling_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Deepling_Entity.class",
+          "methods": [
+            "wantsToSwim",
+            "travel",
+            "closeToNextPos",
+            "setSearchingForLand"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/Deepling_Entity$DeeplingMoveControl",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Deepling_Entity$DeeplingMoveControl.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/Deepling_Entity$DeeplingSwimUpGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Deepling_Entity$DeeplingSwimUpGoal.class",
+          "methods": [
+            "canUse",
+            "canContinueToUse",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/Deepling_Entity$DeeplingGoToBeachGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Deepling_Entity$DeeplingGoToBeachGoal.class",
+          "methods": [
+            "canUse",
+            "isValidTarget",
+            "start"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:deepling-family:death_persistence",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:deepling_death_persistence"
+      ],
+      "primary_source": "cataclysm:deepling",
+      "native_path": "Concrete NBT methods only delegate shared Moisture and parent. No die/tickDeath/onDeath/respawner/terrain-offense override; locked LLibrary_Monster animation/death/native Monster lifecycle retained. Current targets, native item/projectile owners, mount actor, moisture and transient goal clocks remain distinct. Specialized Deepling payloads not reviewed by this shared closure.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/Deepling_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Deepling_Entity.class",
+          "methods": [
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "getAttackBoundingBox"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/LLibrary_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/LLibrary_Monster.class",
+          "methods": [
+            "tick",
+            "tickDeath",
+            "setAnimation",
+            "setAnimationTick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:deepling-family:delayed_melee",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:deepling_delayed_melee"
+      ],
+      "primary_source": "cataclysm:deepling",
+      "native_path": "Native MeleeAttackGoal canPerformAttack and NO_ANIMATION start 20-tick melee animation without resetAttackCooldown. Alive tick5 with current target and strict distance<3 requests mobAttack(self), float(current ATTACK_DAMAGE), once at original boundary. Hurt return ignored; no Mob.doHurtTarget item/enchantment/postattack/status/extra-force path is called. Native target selection/alliance/LOS/recipient admission and animation clock preserved.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/Deepling_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Deepling_Entity.class",
+          "methods": [
+            "tick",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/Deepling_Entity$AnimationMeleeAttackGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Deepling_Entity$AnimationMeleeAttackGoal.class",
+          "methods": [
+            "checkAndPerformAttack"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/twilight-minoshroom-knight-244.json",
+          "witness_id": "twilight-minoshroom-knight-244",
+          "entry": "net/minecraft/world/entity/ai/goal/MeleeAttackGoal.class",
+          "methods": [
+            "canPerformAttack",
+            "tick",
+            "checkAndPerformAttack"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/LLibrary_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/LLibrary_Monster.class",
+          "methods": [
+            "tick",
+            "tickDeath",
+            "setAnimation",
+            "setAnimationTick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:deepling-family:setup_equipment_spawn",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:deepling_setup_equipment_spawn"
+      ],
+      "primary_source": "cataclysm:deepling",
+      "native_path": "Base attributes speed.27F, attack4, HP26, follow20, KBR.25. Registered MONSTER .6F x2.3F/tracking6, ordinary attribute binding reused. finalizeSpawn calls parent then equips fresh mainhand CORAL_SPEAR. Native item mainhand ADD_VALUE attack5.5 and speed-2.9F feed current attributes; melee is not fixed base4. Registered placement exact candeeplingSpawn: nonPEACEFUL and (native spawner or water fluid). checkSpawnRules uses configured DeeplingSpawnRolls and locked rollSpawn; checkSpawnObstruction native unobstructed. No altar/home/phase/respawner invented.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/Deepling_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Deepling_Entity.class",
+          "methods": [
+            "deepling",
+            "populateDefaultEquipmentSlots",
+            "finalizeSpawn",
+            "checkSpawnRules",
+            "checkSpawnObstruction",
+            "candeeplingSpawn"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$13",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:init/ModItems",
+          "entry": "com/github/L_Ender/cataclysm/init/ModItems.class",
+          "methods": [
+            "lambda$static$130",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:items/Coral_Spear",
+          "entry": "com/github/L_Ender/cataclysm/items/Coral_Spear.class",
+          "methods": [
+            "createAttributes"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-admission.json",
+          "witness_id": "cataclysm:guardian-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "initializeAttributes"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-draugar-family.json",
+          "witness_id": "cataclysm:draugar-family:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "registerSpawnPlacements"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-berserker-admission.json",
+          "witness_id": "cataclysm:ignited-berserker-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "rollSpawn"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:deepling-family:shared_admission",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:deepling_shared_admission"
+      ],
+      "primary_source": "cataclysm:deepling",
+      "native_path": "Actual parent LLibrary_Monster -> Monster, not boss cap hierarchy. hurt rejects HOT_FLOOR before delegating original amount/source to parent; no local isInvulnerableTo, boss cap/DPS/range/regen or home override. Native armor, effects, immunity, events and source admission remain native. Bubble-column callbacks are empty; canInFluidType returns the current FluidType.canSwim(self), not a hard-coded water identity test.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/AbstractDeepling",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/AbstractDeepling.class",
+          "methods": [
+            "hurt",
+            "canInFluidType",
+            "onInsideBubbleColumn",
+            "onAboveBubbleCol"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/LLibrary_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/LLibrary_Monster.class",
+          "methods": [
+            "tick",
+            "tickDeath",
+            "setAnimation",
+            "setAnimationTick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:deepling-family:shared_aquatic_state",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:deepling_shared_aquatic_state"
+      ],
+      "primary_source": "cataclysm:deepling",
+      "native_path": "isInWater switches land GroundPathNavigatorWide versus SemiAquaticPathNavigator. Client fluid swim capability plus noCollision on swim/normal boxes updates raw DEEPLINGSWIM and dimensions; this flag differs from native isSwimming used for fluid-push predicate. Default dimensions choose native subclass swimming size or scaled registered dimensions. Shared attack box deflates XZ .05; ordinary override deflates again, total .10. shouldEnterWater=moisture<300; shouldLeaveWater=target exists and not in water; stop=false; water search32. Existing water-finding/leaving goals retained with their exact native search/path admission.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/AbstractDeepling",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/AbstractDeepling.class",
+          "methods": [
+            "tick",
+            "switchNavigator",
+            "getDefaultDimensions",
+            "getSwimmingBox",
+            "getNormalBox",
+            "isPushedByFluid",
+            "shouldEnterWater",
+            "shouldLeaveWater",
+            "shouldStopMoving",
+            "getWaterSearchRange",
+            "getAttackBoundingBox"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/Deepling_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Deepling_Entity.class",
+          "methods": [
+            "getSwimmingSize",
+            "getAttackBoundingBox"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-coralssus-family.json",
+          "witness_id": "cataclysm:coralssus-family:entity/AI/MobAIFindWater",
+          "entry": "com/github/L_Ender/cataclysm/entity/AI/MobAIFindWater.class",
+          "methods": [
+            "canUse",
+            "start",
+            "tick",
+            "canContinueToUse",
+            "generateTarget"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-coralssus-family.json",
+          "witness_id": "cataclysm:coralssus-family:entity/AI/MobAILeaveWater",
+          "entry": "com/github/L_Ender/cataclysm/entity/AI/MobAILeaveWater.class",
+          "methods": [
+            "canUse",
+            "start",
+            "tick",
+            "canContinueToUse",
+            "generateTarget"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:deepling-family:shared_moisture",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:deepling_shared_moisture"
+      ],
+      "primary_source": "cataclysm:deepling",
+      "native_path": "Synched moistness starts 40000; no-AI restores air, wet/rain/bubble resets moisture to 6000, otherwise decrement 2 by day or 1 otherwise. At moisture<=0 and post-decrement moistureAttackTime<=0, request native dryOut damage randomly 1F or 0F (nextInt(2)), ignore hurt result and reset timer20. Timer only advances in the dry/depleted branch; no clamp on raw moisture setter. Save/load Moisture; local timer and swim flag not separately saved. Environmental admission/defensive state is context, not an automatic Stage scalar.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/AbstractDeepling",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/AbstractDeepling.class",
+          "methods": [
+            "defineSynchedData",
+            "tick",
+            "setMoistness",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:deepling-family:shared_mount_team",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:deepling_shared_mount_team"
+      ],
+      "primary_source": "cataclysm:deepling",
+      "native_path": "Allied self/parent or TEAM_THE_LEVIATHAN with both teams null. Mount goal searches Coralssus in inflated15 box, requires nonpassenger, moisture>300, alive and not vehicle; navigates speed1 and force-startRiding below distance4. Selector preserves native comparison closest.distanceTo(entity)>entity.distanceTo(entity): latter is zero, so do not relabel as a correct nearest search. StopRiding admits moisture<300 and passenger. Coralssus native combat/ownership remains separate; no target/source transfer or added damage.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/AbstractDeepling",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/AbstractDeepling.class",
+          "methods": [
+            "isAlliedTo",
+            "registerGoals"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/AbstractDeepling$RidingCoralssus",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/AbstractDeepling$RidingCoralssus.class",
+          "methods": [
+            "canUse",
+            "start",
+            "tick",
+            "stop",
+            "getClosestCoralssus_Entity"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/AbstractDeepling$StopRiding",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/AbstractDeepling$StopRiding.class",
+          "methods": [
+            "canUse",
+            "start"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:deepling-family:spear_contact",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:deepling_spear_contact"
+      ],
+      "primary_source": "cataclysm:deepling",
+      "native_path": "Custom carrier reproduces trident contact shape with base6.5F, not Vanilla8 or melee attribute. Native trident(projectile,owner elseprojectile); ServerLevel stored-item EnchantmentHelper.modifyDamage. dealtDamage set before original hurt. True hurt: native Enderman earlyreturn, item postattack effects, Living knockback/posthurt. Otherwise projectile recoil(-.01,-.1,-.01) still occurs; no extra status/area/terrain. Reuse exact native Trident and installed arrow/projectile impact/PvP/cancellation/deflection contracts.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/projectile/ThrownCoral_Spear_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/ThrownCoral_Spear_Entity.class",
+          "methods": [
+            "onHitEntity",
+            "getWeaponItem"
+          ]
+        },
+        {
+          "evidence_file": "vanilla-evidence/bossesrise-tentacle-trident.json",
+          "evidence_format": "VANILLA_COMPARISON",
+          "witness_id": "net/minecraft/world/entity/projectile/ThrownTrident",
+          "entry": "coc.class",
+          "methods": [
+            "onHitEntity",
+            "tick",
+            "getLoyaltyFromItem",
+            "findHitEntity",
+            "tryPickup",
+            "playerTouch",
+            "readAdditionalSaveData",
+            "addAdditionalSaveData"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/bossesrise-knight-offense-244.json",
+          "witness_id": "bossesrise-knight-offense-244",
+          "entry": "net/minecraft/world/entity/projectile/AbstractArrow.class",
+          "methods": [
+            "tick",
+            "onHitBlock",
+            "lambda$tick$1"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/bossesrise-knight-offense-244.json",
+          "witness_id": "bossesrise-knight-offense-244",
+          "entry": "net/minecraft/world/entity/projectile/Projectile.class",
+          "methods": [
+            "getOwner",
+            "canHitEntity",
+            "hitTargetOrDeflectSelf",
+            "deflect",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:deepling-family:spear_delivery",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:deepling_spear_delivery"
+      ],
+      "primary_source": "cataclysm:deepling",
+      "native_path": "Alive throw animation tick11/current target constructs ThrownCoral_Spear(level,self,fresh CORAL_SPEAR stack), not a held-item copy. Aim target Y(1/3) plus horizontalDistance*.2F; shoot1.6F/inaccuracy float(14-4*difficultyId), addFreshEntity return ignored. No local side guard, consumption, held enchantment or loyalty transfer. Native direct projectile and Deepling owner remain separate from melee current attribute.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/Deepling_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Deepling_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/projectile/ThrownCoral_Spear_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/ThrownCoral_Spear_Entity.class",
+          "methods": [
+            "<init>"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/bossesrise-knight-offense-244.json",
+          "witness_id": "bossesrise-knight-offense-244",
+          "entry": "net/minecraft/world/entity/projectile/Projectile.class",
+          "methods": [
+            "getOwner",
+            "canHitEntity",
+            "hitTargetOrDeflectSelf",
+            "deflect",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:deepling-family:spear_lifecycle",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:deepling_spear_lifecycle"
+      ],
+      "primary_source": "cataclysm:deepling",
+      "native_path": "dealtDamage disables entity hit search; inGroundTime>4 sets dealtDamage. Stored-item positive loyalty and native owner-alive/spectator acceptance enable noPhysics return (Y*.015*loyalty, velocity*.95+normalizedToOwner*.05*loyalty), else allowed server pickup drop and discard. Save DealtDamage, parent owner/pickup stack; reload loyalty from stored item clamped0..127. Player pickup ownedBy or ownerless; native pickup/noPhysics owner rules retained. tickDespawn delegates unless allowedpickup and positive loyalty. Water inertia.99F; locked parent arrow/projectile motion/cancellation/block item-enchantment lifecycle retained. Fresh ordinary stack has no copied loyalty.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/projectile/ThrownCoral_Spear_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/ThrownCoral_Spear_Entity.class",
+          "methods": [
+            "tick",
+            "isAcceptibleReturnOwner",
+            "findHitEntity",
+            "hitBlockEnchantmentEffects",
+            "tryPickup",
+            "playerTouch",
+            "readAdditionalSaveData",
+            "addAdditionalSaveData",
+            "getLoyaltyFromItem",
+            "tickDespawn",
+            "getWaterInertia"
+          ]
+        },
+        {
+          "evidence_file": "vanilla-evidence/bossesrise-tentacle-trident.json",
+          "evidence_format": "VANILLA_COMPARISON",
+          "witness_id": "net/minecraft/world/entity/projectile/ThrownTrident",
+          "entry": "coc.class",
+          "methods": [
+            "onHitEntity",
+            "tick",
+            "getLoyaltyFromItem",
+            "findHitEntity",
+            "tryPickup",
+            "playerTouch",
+            "readAdditionalSaveData",
+            "addAdditionalSaveData"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/bossesrise-knight-offense-244.json",
+          "witness_id": "bossesrise-knight-offense-244",
+          "entry": "net/minecraft/world/entity/projectile/AbstractArrow.class",
+          "methods": [
+            "tick",
+            "onHitBlock",
+            "lambda$tick$1"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/bossesrise-knight-offense-244.json",
+          "witness_id": "bossesrise-knight-offense-244",
+          "entry": "net/minecraft/world/entity/projectile/Projectile.class",
+          "methods": [
+            "getOwner",
+            "canHitEntity",
+            "hitTargetOrDeflectSelf",
+            "deflect",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:deepling-family:spear_selection",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:deepling_spear_selection"
+      ],
+      "primary_source": "cataclysm:deepling",
+      "native_path": "Trident goal admits alive current target, mainhand CORAL_SPEAR and distanceSquared>=36; continuation also allows unfinished path. MOVE/LOOK, aggressive/item-use lifecycle. Sight counter and max distanceSquared100 govern path/strafe, not a maximum launch distance gate. At sight true and animation !=throw, set 40-tick throw animation. attackCooldown defaults0 and is never assigned; attackTime only writes -1/default cooldown and is not read/decremented. Native 20-tick strafe direction random.3, distance fractions.75/.25, strafe±.5 and 30-degree look remain native selection/control, not invented proc policy.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/Deepling_Entity$DeeplingTridentShoot",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Deepling_Entity$DeeplingTridentShoot.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "canContinueToUse",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-deepling-family.json",
+          "witness_id": "cataclysm:deepling-family:entity/Deepling/Deepling_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Deepling/Deepling_Entity.class",
+          "methods": [
+            "registerGoals",
+            "<clinit>"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
       "id": "cataclysm:draugar-family:draugr_native_melee",
       "mod_key": "cataclysm",
       "status": "VERIFIED",
@@ -121538,10 +123728,10 @@
   ],
   "unresolved_native_ambiguities": null,
   "remaining_native_ambiguities": null,
-  "checkpoint": "R2k26-cataclysm-koboleton-family-complete",
-  "scope": "Koboleton exact Animation_Monster/Monster parent admission/state/setup/equipment/NBT/spawn, delayed native melee request and hurt-independent hand disarm, native dropped-item lifecycle/motion, teams/environment/death closure.",
-  "notes_file": "cataclysm-r2k26-koboleton-family.json",
-  "exact_next_task": "R2k27a: AbstractDeepling shared admission/setup/aquatic-state contract plus ordinary Deepling complete combat family. Start only entity/Deepling/AbstractDeepling and Deepling_Entity (existing census:28/25 declared methods,972/887 bytecode bytes), then directly-used combat goals/material native registry/spawn/equipment paths. Keep Coral Golem, Angler, Brute, Priest, Warlock and Lionfish specialized payload families deferred until that shared contract is locked. Reuse all completed status/boss/Acropolis/Koboleton evidence; static only, no Stage or unrelated equipment.",
+  "checkpoint": "R2k27a-cataclysm-deepling-family-complete",
+  "scope": "AbstractDeepling shared LLibrary/Monster admission, moisture/swim/mount/navigation/persistence; ordinary Deepling equipment/spawn/native delayed melee and coral-spear delivery/contact/lifecycle. Specialized Deeplings deferred until this shared contract is locked.",
+  "notes_file": "cataclysm-r2k27a-deepling-family.json",
+  "exact_next_task": "R2k27b: Coral Golem complete combat family. Start only entity/Deepling/Coral_Golem_Entity and directly used goals/payloads/material spawn bindings; reuse locked R2k27a AbstractDeepling and prior shared/status contracts. Defer other specialized Deeplings until their own bounded passes. Static only; no Stage or unrelated equipment.",
   "protected_checkpoint": "R2k3a-cataclysm-guardian-admission-complete",
   "protected_notes_file": "cataclysm-r2k3a-guardian-admission.json",
   "protected_checkpoints": [
@@ -121688,6 +123878,10 @@
     {
       "checkpoint": "R2k25-cataclysm-drowned_host-family-complete",
       "notes_file": "cataclysm-r2k25-drowned_host-family.json"
+    },
+    {
+      "checkpoint": "R2k26-cataclysm-koboleton-family-complete",
+      "notes_file": "cataclysm-r2k26-koboleton-family.json"
     }
   ]
 }
