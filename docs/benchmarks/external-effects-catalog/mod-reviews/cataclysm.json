@@ -9,6 +9,1048 @@
   "delivery_mapping_complete": false,
   "effects": [
     {
+      "id": "cataclysm:ender_golem_awake_state_prerequisites",
+      "mod_key": "cataclysm",
+      "display_name": "Ender Golem awake and deactivation prerequisites",
+      "registry_ids": [
+        "cataclysm:ender_golem"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Synced IS_AWAKEN defaults false; its Boolean setter only writes the accessor and does not heal, reset timers, or change animations. After parent tick, deactivateProgress rises by 1 while dormant and <30, or falls by 1 while awake and >0. The later tick attack-dispatch block requires exactly zero progress and isAlive; payloads/selection are deferred. These progress updates have no local side/NoAI/alive gate. At the end of server tick, timeWithoutTarget increments. Any non-null target resets it and awakens a dormant entity without an explicit target-alive check. Strictly >400 targetless ticks while awake reset the timer and set awake false; no local NoAI/alive gate is added. Native HurtByTarget and Player/IronGolem NearestAttackableTarget registrations supply targets; original native goal admission remains. No separate concrete HP phase/shield/armor-state setter is declared. Animation-dependent reduction is separate from this Boolean; animation offense stays R2k11b.",
+      "human_summary": "Synced IS_AWAKEN defaults false; its Boolean setter only writes the accessor and does not heal, reset timers, or change animations. After parent tick, deactivateProgress rises by 1 while dormant and <30, or falls by 1 while awake and >0. The later tick attack-dispatch block requires exactly zero progress and isAlive; payloads/selection are deferred. These progress updates have no local side/NoAI/alive gate. At the end of server tick, timeWithoutTarget increments. Any non-null target resets it and awakens a dormant entity without an explicit target-alive check. Strictly >400 targetless ticks while awake reset the timer and set awake false; no local NoAI/alive gate is added. Native HurtByTarget and Player/IronGolem NearestAttackableTarget registrations supply targets; original native goal admission remains. No separate concrete HP phase/shield/armor-state setter is declared. Animation-dependent reduction is separate from this Boolean; animation offense stays R2k11b.",
+      "closest_vanilla_equivalent": "Custom synced activation/deactivation state and native target selection, not a MobEffect or TNO Stage",
+      "vanilla_similarities": [
+        "Original native damage, healing, entity state and encounter callbacks remain authoritative."
+      ],
+      "vanilla_differences": "Synced IS_AWAKEN defaults false; its Boolean setter only writes the accessor and does not heal, reset timers, or change animations. After parent tick, deactivateProgress rises by 1 while dormant and <30, or falls by 1 while awake and >0. The later tick attack-dispatch block requires exactly zero progress and isAlive; payloads/selection are deferred. These progress updates have no local side/NoAI/alive gate. At the end of server tick, timeWithoutTarget increments. Any non-null target resets it and awakens a dormant entity without an explicit target-alive check. Strictly >400 targetless ticks while awake reset the timer and set awake false; no local NoAI/alive gate is added. Native HurtByTarget and Player/IronGolem NearestAttackableTarget registrations supply targets; original native goal admission remains. No separate concrete HP phase/shield/armor-state setter is declared. Animation-dependent reduction is separate from this Boolean; animation offense stays R2k11b.",
+      "components": [
+        {
+          "primitive": "AWAKEN_STATE",
+          "formula": "server non-null target -> awake; awake && target-null && counter>400 -> dormant, reset counter",
+          "numerical_parameters": {
+            "targetless_threshold": 400
+          },
+          "parameter_units": {
+            "targetless_threshold": "native server ticks, strict greater-than"
+          },
+          "binary_parameters": [
+            "server-side",
+            "native target reference"
+          ],
+          "native_boundary": "Ender_Golem.tick offsets584..656 / setIsAwaken",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "DEACTIVATION_STATE",
+          "formula": "dormant && p<30 -> p+1; awake && p>0 -> p-1; attack dispatch requires p==0 && alive",
+          "numerical_parameters": {
+            "ready_progress": 0.0,
+            "dormant_progress": 30.0,
+            "step": 1.0
+          },
+          "parameter_units": {
+            "ready_progress": "native transition progress",
+            "dormant_progress": "native transition progress",
+            "step": "progress per tick"
+          },
+          "binary_parameters": [
+            "original awake Boolean",
+            "exact zero dispatch gate"
+          ],
+          "native_boundary": "Ender_Golem.tick offsets25..122",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Awake is a native Boolean, not Stage progression",
+        "Target-reference and strict targetless timeout gates remain native",
+        "Native goal/AI admission and exact zero transition gate"
+      ],
+      "custom_state": [],
+      "eligibility": "Awake is a native Boolean, not Stage progression; Target-reference and strict targetless timeout gates remain native; Native goal/AI admission and exact zero transition gate",
+      "source_actor": "The Golem native synced state and target reference own activation; no generic progression/source transport.",
+      "hurt_return_dependency": "No new hurt-return-dependent callback.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-admission.json",
+          "witness_id": "cataclysm:ender-golem-admission:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "defineSynchedData",
+            "setIsAwaken",
+            "getIsAwaken",
+            "tick",
+            "registerGoals"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ender-golem-admission:awake_state_prerequisites"
+      ],
+      "primary_test_source": "cataclysm:ender_golem",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k11a-cataclysm-ender-golem-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "AWAKEN_STATE",
+          "parameter": "targetless_threshold",
+          "native_value": 400,
+          "native_formula": "server non-null target -> awake; awake && target-null && counter>400 -> dormant, reset counter",
+          "units": "native server ticks, strict greater-than",
+          "boundary": "Ender_Golem.tick offsets584..656 / setIsAwaken"
+        },
+        {
+          "primitive": "DEACTIVATION_STATE",
+          "parameter": "ready_progress",
+          "native_value": 0.0,
+          "native_formula": "dormant && p<30 -> p+1; awake && p>0 -> p-1; attack dispatch requires p==0 && alive",
+          "units": "native transition progress",
+          "boundary": "Ender_Golem.tick offsets25..122"
+        },
+        {
+          "primitive": "DEACTIVATION_STATE",
+          "parameter": "dormant_progress",
+          "native_value": 30.0,
+          "native_formula": "dormant && p<30 -> p+1; awake && p>0 -> p-1; attack dispatch requires p==0 && alive",
+          "units": "native transition progress",
+          "boundary": "Ender_Golem.tick offsets25..122"
+        },
+        {
+          "primitive": "DEACTIVATION_STATE",
+          "parameter": "step",
+          "native_value": 1.0,
+          "native_formula": "dormant && p<30 -> p+1; awake && p>0 -> p-1; attack dispatch requires p==0 && alive",
+          "units": "progress per tick",
+          "boundary": "Ender_Golem.tick offsets25..122"
+        }
+      ],
+      "scalability_note": "Native values and primitive/boundary observations only. Admission, defense, state, cadence and construction constants are recorded without automatic promotion. No Stage eligibility, multiplier, cap/floor, balance, ownership integration or runtime hook selected.",
+      "setter_resets_progress": false,
+      "setter_heals": false,
+      "initial_awake": false,
+      "target_wake_requires_alive": false,
+      "target_state_local_no_ai_guard": false,
+      "progress_update_local_server_guard": false,
+      "targetless_timeout_strict_greater": true,
+      "raw_state_is_tno_stage": false,
+      "offensive_dispatch_reviewed": false
+    },
+    {
+      "id": "cataclysm:ender_golem_citadel_spawn_prerequisites",
+      "mod_key": "cataclysm",
+      "display_name": "Ender Golem Ruined Citadel spawn prerequisites",
+      "registry_ids": [
+        "cataclysm:ender_golem"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "In RuinedCitadelStructure.Piece.handleDataMarker, marker position must satisfy the supplied BoundingBox.isInside and Level.isInSpawnableBounds. Exact marker golem creates ENDER_GOLEM in the accessor ServerLevel, sets the marker to AIR with flag2, moves it to the BlockPos with yaw/pitch180, then addFreshEntity; its Boolean return is discarded. There is no local null guard on the created Golem and no direct finalizeSpawn, setHomePos, setIsAwaken, player counter, altar or item prerequisite in this branch. This path retains fresh-constructor false awake and transient defaults. Unrelated marker branches and structure placement/layout are not reviewed.",
+      "human_summary": "In RuinedCitadelStructure.Piece.handleDataMarker, marker position must satisfy the supplied BoundingBox.isInside and Level.isInSpawnableBounds. Exact marker golem creates ENDER_GOLEM in the accessor ServerLevel, sets the marker to AIR with flag2, moves it to the BlockPos with yaw/pitch180, then addFreshEntity; its Boolean return is discarded. There is no local null guard on the created Golem and no direct finalizeSpawn, setHomePos, setIsAwaken, player counter, altar or item prerequisite in this branch. This path retains fresh-constructor false awake and transient defaults. Unrelated marker branches and structure placement/layout are not reviewed.",
+      "closest_vanilla_equivalent": "Native structure marker/entity construction with original bounds and spawn callbacks",
+      "vanilla_similarities": [
+        "Original native damage, healing, entity state and encounter callbacks remain authoritative."
+      ],
+      "vanilla_differences": "In RuinedCitadelStructure.Piece.handleDataMarker, marker position must satisfy the supplied BoundingBox.isInside and Level.isInSpawnableBounds. Exact marker golem creates ENDER_GOLEM in the accessor ServerLevel, sets the marker to AIR with flag2, moves it to the BlockPos with yaw/pitch180, then addFreshEntity; its Boolean return is discarded. There is no local null guard on the created Golem and no direct finalizeSpawn, setHomePos, setIsAwaken, player counter, altar or item prerequisite in this branch. This path retains fresh-constructor false awake and transient defaults. Unrelated marker branches and structure placement/layout are not reviewed.",
+      "components": [
+        {
+          "primitive": "NATIVE_SPAWN_PREREQUISITE",
+          "formula": "inside bounding box AND spawnable world bounds AND exact golem marker -> create/move/add native Golem",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "RuinedCitadelStructure$Piece.handleDataMarker golem-only branch",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "BoundingBox.isInside(position)",
+        "Level.isInSpawnableBounds(position)",
+        "Exact golem marker",
+        "Original native EntityType.create and addFreshEntity lifecycle"
+      ],
+      "custom_state": [],
+      "eligibility": "BoundingBox.isInside(position); Level.isInSpawnableBounds(position); Exact golem marker; Original native EntityType.create and addFreshEntity lifecycle",
+      "source_actor": "Native Ruined Citadel marker creates the registered Golem; no source/owner substitution or progression state.",
+      "hurt_return_dependency": "No new hurt-return-dependent callback.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-admission.json",
+          "witness_id": "cataclysm:ender-golem-admission:structures/RuinedCitadelStructure$Piece",
+          "entry": "com/github/L_Ender/cataclysm/structures/RuinedCitadelStructure$Piece.class",
+          "methods": [
+            "handleDataMarker"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-admission.json",
+          "witness_id": "cataclysm:ender-golem-admission:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "<init>",
+            "defineSynchedData"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ender-golem-admission:citadel_spawn_prerequisites"
+      ],
+      "primary_test_source": "cataclysm:ender_golem",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k11a-cataclysm-ender-golem-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [],
+      "scalability_note": "Native values and primitive/boundary observations only. Admission, defense, state, cadence and construction constants are recorded without automatic promotion. No Stage eligibility, multiplier, cap/floor, balance, ownership integration or runtime hook selected.",
+      "marker_is_exact_match": true,
+      "checks_bounding_box": true,
+      "checks_spawnable_bounds": true,
+      "marker_calls_finalize_spawn": false,
+      "marker_sets_home": false,
+      "marker_sets_awake": false,
+      "marker_has_creation_null_guard": false,
+      "spawn_return_consumed": false,
+      "unrelated_markers_reviewed": false
+    },
+    {
+      "id": "cataclysm:ender_golem_combat_persistence",
+      "mod_key": "cataclysm",
+      "display_name": "Ender Golem combat-state persistence",
+      "registry_ids": [
+        "cataclysm:ender_golem"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Call shared/native NBT first, then save/load exact key is_Awaken through getIsAwaken/setIsAwaken. Missing Boolean reads false; the setter does not initialize deactivation progress or awaken-time counters. Concrete NBT adds no timeWithoutTarget, deactivateProgress, previous progress, rune cooldown or animation persistence. Shared HomePos/legacy Overworld Home handling remains; shared homeTicks/self_regen/request bucket remain transient. This LLibrary hierarchy does not add IABoss LIFE/LifeRemain bookkeeping. No generic persistent progression, snapshot carrier or receipt is added.",
+      "human_summary": "Call shared/native NBT first, then save/load exact key is_Awaken through getIsAwaken/setIsAwaken. Missing Boolean reads false; the setter does not initialize deactivation progress or awaken-time counters. Concrete NBT adds no timeWithoutTarget, deactivateProgress, previous progress, rune cooldown or animation persistence. Shared HomePos/legacy Overworld Home handling remains; shared homeTicks/self_regen/request bucket remain transient. This LLibrary hierarchy does not add IABoss LIFE/LifeRemain bookkeeping. No generic persistent progression, snapshot carrier or receipt is added.",
+      "closest_vanilla_equivalent": "Native shared Home NBT and one custom synced Boolean; no added generic state",
+      "vanilla_similarities": [
+        "Original native damage, healing, entity state and encounter callbacks remain authoritative."
+      ],
+      "vanilla_differences": "Call shared/native NBT first, then save/load exact key is_Awaken through getIsAwaken/setIsAwaken. Missing Boolean reads false; the setter does not initialize deactivation progress or awaken-time counters. Concrete NBT adds no timeWithoutTarget, deactivateProgress, previous progress, rune cooldown or animation persistence. Shared HomePos/legacy Overworld Home handling remains; shared homeTicks/self_regen/request bucket remain transient. This LLibrary hierarchy does not add IABoss LIFE/LifeRemain bookkeeping. No generic persistent progression, snapshot carrier or receipt is added.",
+      "components": [
+        {
+          "primitive": "NATIVE_COMBAT_PERSISTENCE",
+          "formula": "parent NBT -> is_Awaken Boolean; missing key false -> original setter",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "Ender_Golem.add/readAdditionalSaveData -> LLibrary native Home persistence",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Exact is_Awaken key; missing false",
+        "Native parent Home and ordinary entity persistence remain authoritative"
+      ],
+      "custom_state": [],
+      "eligibility": "Exact is_Awaken key; missing false; Native parent Home and ordinary entity persistence remain authoritative",
+      "source_actor": "Native Golem state/parent NBT; no external Stage ownership or occurrence persistence.",
+      "hurt_return_dependency": "No new hurt-return-dependent callback.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-admission.json",
+          "witness_id": "cataclysm:ender-golem-admission:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "setIsAwaken"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ender-golem-admission:combat_persistence"
+      ],
+      "primary_test_source": "cataclysm:ender_golem",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k11a-cataclysm-ender-golem-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [],
+      "scalability_note": "Native values and primitive/boundary observations only. Admission, defense, state, cadence and construction constants are recorded without automatic promotion. No Stage eligibility, multiplier, cap/floor, balance, ownership integration or runtime hook selected.",
+      "saved_awake": true,
+      "missing_awake_value": false,
+      "saved_targetless_ticks": false,
+      "saved_deactivation_progress": false,
+      "saved_rune_cooldown": false,
+      "concrete_animation_saved": false,
+      "inherited_ia_life": false,
+      "generic_persistence_added": false
+    },
+    {
+      "id": "cataclysm:ender_golem_dormant_healing",
+      "mod_key": "cataclysm",
+      "display_name": "Ender Golem dormant native healing",
+      "registry_ids": [
+        "cataclysm:ender_golem"
+      ],
+      "primary_classification": "VANILLA_DIRECT",
+      "actual_behavior": "After parent tick and progress updates, !getIsAwaken and tickCount%20==0 request native heal(2.0F). This call occurs before the end-of-tick server target/awake latch, so the pre-latch awake flag controls this tick. No local server, NoAI, target-null, self_regen or alive check surrounds this heal; LivingEntity.heal admission, NeoForge healing hooks and max-health handling remain authoritative. It does not read EnderGolem.natureHeal or inherited NatureRegen, and does not provide an extra shared regen delivery.",
+      "human_summary": "After parent tick and progress updates, !getIsAwaken and tickCount%20==0 request native heal(2.0F). This call occurs before the end-of-tick server target/awake latch, so the pre-latch awake flag controls this tick. No local server, NoAI, target-null, self_regen or alive check surrounds this heal; LivingEntity.heal admission, NeoForge healing hooks and max-health handling remain authoritative. It does not read EnderGolem.natureHeal or inherited NatureRegen, and does not provide an extra shared regen delivery.",
+      "closest_vanilla_equivalent": "Direct native LivingEntity.heal with custom dormant/cadence admission",
+      "vanilla_similarities": [
+        "Original native damage, healing, entity state and encounter callbacks remain authoritative."
+      ],
+      "vanilla_differences": "After parent tick and progress updates, !getIsAwaken and tickCount%20==0 request native heal(2.0F). This call occurs before the end-of-tick server target/awake latch, so the pre-latch awake flag controls this tick. No local server, NoAI, target-null, self_regen or alive check surrounds this heal; LivingEntity.heal admission, NeoForge healing hooks and max-health handling remain authoritative. It does not read EnderGolem.natureHeal or inherited NatureRegen, and does not provide an extra shared regen delivery.",
+      "components": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "formula": "dormant && tickCount%cadence==0 -> native heal(amount), before server awake latch",
+          "numerical_parameters": {
+            "amount": 2.0,
+            "cadence": 20
+          },
+          "parameter_units": {
+            "amount": "native HP healing request",
+            "cadence": "native ticks"
+          },
+          "binary_parameters": [
+            "!getIsAwaken",
+            "tickCount % 20 == 0",
+            "native heal admission/hooks"
+          ],
+          "native_boundary": "Ender_Golem.tick offsets87..106 -> inherited LivingEntity.heal",
+          "vanilla_relation": "VANILLA_DIRECT"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native dormant Boolean and 20-tick admission",
+        "Original native healing hooks and max-HP handling"
+      ],
+      "custom_state": [],
+      "eligibility": "Native dormant Boolean and 20-tick admission; Original native healing hooks and max-HP handling",
+      "source_actor": "Native Golem self-heal recipient; no DamageSource or added generic ownership state.",
+      "hurt_return_dependency": "No new hurt-return dependency; this direct heal does not read the shared self_regen timer.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-admission.json",
+          "witness_id": "cataclysm:ender-golem-admission:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "NatureRegen",
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ender-golem-admission:dormant_healing"
+      ],
+      "primary_test_source": "cataclysm:ender_golem",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k11a-cataclysm-ender-golem-admission-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameters": [
+            "amount"
+          ],
+          "native_value": 2.0,
+          "native_formula": "dormant && tickCount%cadence==0 -> native heal(amount), before server awake latch",
+          "units": "native HP healing request",
+          "native_boundary": "Ender_Golem.tick offsets87..106 -> inherited LivingEntity.heal"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameter": "amount",
+          "native_value": 2.0,
+          "native_formula": "dormant && tickCount%cadence==0 -> native heal(amount), before server awake latch",
+          "units": "native HP healing request",
+          "boundary": "Ender_Golem.tick offsets87..106 -> inherited LivingEntity.heal"
+        },
+        {
+          "primitive": "NATIVE_HEAL",
+          "parameter": "cadence",
+          "native_value": 20,
+          "native_formula": "dormant && tickCount%cadence==0 -> native heal(amount), before server awake latch",
+          "units": "native ticks",
+          "boundary": "Ender_Golem.tick offsets87..106 -> inherited LivingEntity.heal"
+        }
+      ],
+      "scalability_note": "Native values and primitive/boundary observations only. Admission, defense, state, cadence and construction constants are recorded without automatic promotion. No Stage eligibility, multiplier, cap/floor, balance, ownership integration or runtime hook selected.",
+      "heal_has_local_server_guard": false,
+      "heal_has_local_no_ai_guard": false,
+      "heal_has_target_null_guard": false,
+      "heal_has_local_alive_guard": false,
+      "heal_reads_self_regen": false,
+      "heal_reads_nature_heal_config": false,
+      "heal_runs_before_target_wake": true,
+      "adds_shared_regen_delivery": false
+    },
+    {
+      "id": "cataclysm:ender_golem_encounter_setup",
+      "mod_key": "cataclysm",
+      "display_name": "Ender Golem construction and encounter bindings",
+      "registry_ids": [
+        "cataclysm:ender_golem"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Existing locked initializeAttributes binds ENDER_GOLEM to ender_golem(): follow range20, movement speed float(0.28), attack damage10, max HP150, armor12, step height1.5 and knockback resistance1. Constructor applies EnderGolem health/attack multipliers through the locked native attribute helper and initializes max HP; installed multipliers are both1. This is construction, not a separate heal delivery. Constructor does not establish Home or set awake. No concrete finalizeSpawn, mobInteract, player-count, activation-item or Retry override exists. Shared finalizeSpawn can initialize its native home timer when actually called; it does not itself create Home. The directly proven Citadel marker creates/adds the entity without an explicit finalizeSpawn or Home setter, recorded separately. Native Home supplied by NBT or another legitimate native caller still follows the locked shared return contract; no claim of exhaustive spawn discovery is made.",
+      "human_summary": "Existing locked initializeAttributes binds ENDER_GOLEM to ender_golem(): follow range20, movement speed float(0.28), attack damage10, max HP150, armor12, step height1.5 and knockback resistance1. Constructor applies EnderGolem health/attack multipliers through the locked native attribute helper and initializes max HP; installed multipliers are both1. This is construction, not a separate heal delivery. Constructor does not establish Home or set awake. No concrete finalizeSpawn, mobInteract, player-count, activation-item or Retry override exists. Shared finalizeSpawn can initialize its native home timer when actually called; it does not itself create Home. The directly proven Citadel marker creates/adds the entity without an explicit finalizeSpawn or Home setter, recorded separately. Native Home supplied by NBT or another legitimate native caller still follows the locked shared return contract; no claim of exhaustive spawn discovery is made.",
+      "closest_vanilla_equivalent": "Native attribute/configured construction and reused shared Home setup; not incoming caps or a heal payload",
+      "vanilla_similarities": [
+        "Original native damage, healing, entity state and encounter callbacks remain authoritative."
+      ],
+      "vanilla_differences": "Existing locked initializeAttributes binds ENDER_GOLEM to ender_golem(): follow range20, movement speed float(0.28), attack damage10, max HP150, armor12, step height1.5 and knockback resistance1. Constructor applies EnderGolem health/attack multipliers through the locked native attribute helper and initializes max HP; installed multipliers are both1. This is construction, not a separate heal delivery. Constructor does not establish Home or set awake. No concrete finalizeSpawn, mobInteract, player-count, activation-item or Retry override exists. Shared finalizeSpawn can initialize its native home timer when actually called; it does not itself create Home. The directly proven Citadel marker creates/adds the entity without an explicit finalizeSpawn or Home setter, recorded separately. Native Home supplied by NBT or another legitimate native caller still follows the locked shared return contract; no claim of exhaustive spawn discovery is made.",
+      "components": [
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "formula": "registered base attributes -> transient native config modifiers -> initialize current HP to max",
+          "numerical_parameters": {
+            "follow_range": 20.0,
+            "movement_speed": 0.2800000011920929,
+            "attack_damage": 10.0,
+            "max_health": 150.0,
+            "armor": 12.0,
+            "step_height": 1.5,
+            "knockback_resistance": 1.0,
+            "health_multiplier": 1.0,
+            "attack_multiplier": 1.0
+          },
+          "parameter_units": {
+            "follow_range": "blocks",
+            "movement_speed": "native movement attribute",
+            "attack_damage": "native base attack attribute",
+            "max_health": "native base HP",
+            "armor": "native armor attribute",
+            "step_height": "blocks",
+            "knockback_resistance": "native attribute",
+            "health_multiplier": "installed config multiplier",
+            "attack_multiplier": "installed config multiplier"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Ender_Golem.ender_golem / constructor -> locked initializeAttributes/setConfigattribute",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "NATIVE_HOME_PREREQUISITE",
+          "formula": "shared finalizeSpawn initializes native timer only; saved Home needed for shared return behavior",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "Inherited LLibrary.finalizeSpawn/ReturnToHome/Home NBT",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Installed config is not proof of live loaded values",
+        "Native construction and saved Home prerequisites"
+      ],
+      "custom_state": [],
+      "eligibility": "Installed config is not proof of live loaded values; Native construction and saved Home prerequisites",
+      "source_actor": "Native registered Golem/attribute helper and optional native Home; no invented encounter/progression owner.",
+      "hurt_return_dependency": "No new hurt-return-dependent callback.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-admission.json",
+          "witness_id": "cataclysm:ender-golem-admission:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "<init>",
+            "ender_golem"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-admission.json",
+          "witness_id": "cataclysm:ender-golem-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$0",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-admission.json",
+          "witness_id": "cataclysm:guardian-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "initializeAttributes"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "setConfigattribute"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "finalizeSpawn",
+            "ReturnToHome"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ender-golem-admission:encounter_setup"
+      ],
+      "primary_test_source": "cataclysm:ender_golem",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k11a-cataclysm-ender-golem-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "follow_range",
+          "native_value": 20.0,
+          "native_formula": "registered base attributes -> transient native config modifiers -> initialize current HP to max",
+          "units": "blocks",
+          "boundary": "Ender_Golem.ender_golem / constructor -> locked initializeAttributes/setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "movement_speed",
+          "native_value": 0.2800000011920929,
+          "native_formula": "registered base attributes -> transient native config modifiers -> initialize current HP to max",
+          "units": "native movement attribute",
+          "boundary": "Ender_Golem.ender_golem / constructor -> locked initializeAttributes/setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "attack_damage",
+          "native_value": 10.0,
+          "native_formula": "registered base attributes -> transient native config modifiers -> initialize current HP to max",
+          "units": "native base attack attribute",
+          "boundary": "Ender_Golem.ender_golem / constructor -> locked initializeAttributes/setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "max_health",
+          "native_value": 150.0,
+          "native_formula": "registered base attributes -> transient native config modifiers -> initialize current HP to max",
+          "units": "native base HP",
+          "boundary": "Ender_Golem.ender_golem / constructor -> locked initializeAttributes/setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "armor",
+          "native_value": 12.0,
+          "native_formula": "registered base attributes -> transient native config modifiers -> initialize current HP to max",
+          "units": "native armor attribute",
+          "boundary": "Ender_Golem.ender_golem / constructor -> locked initializeAttributes/setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "step_height",
+          "native_value": 1.5,
+          "native_formula": "registered base attributes -> transient native config modifiers -> initialize current HP to max",
+          "units": "blocks",
+          "boundary": "Ender_Golem.ender_golem / constructor -> locked initializeAttributes/setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "knockback_resistance",
+          "native_value": 1.0,
+          "native_formula": "registered base attributes -> transient native config modifiers -> initialize current HP to max",
+          "units": "native attribute",
+          "boundary": "Ender_Golem.ender_golem / constructor -> locked initializeAttributes/setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "health_multiplier",
+          "native_value": 1.0,
+          "native_formula": "registered base attributes -> transient native config modifiers -> initialize current HP to max",
+          "units": "installed config multiplier",
+          "boundary": "Ender_Golem.ender_golem / constructor -> locked initializeAttributes/setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "attack_multiplier",
+          "native_value": 1.0,
+          "native_formula": "registered base attributes -> transient native config modifiers -> initialize current HP to max",
+          "units": "installed config multiplier",
+          "boundary": "Ender_Golem.ender_golem / constructor -> locked initializeAttributes/setConfigattribute"
+        }
+      ],
+      "scalability_note": "Native values and primitive/boundary observations only. Admission, defense, state, cadence and construction constants are recorded without automatic promotion. No Stage eligibility, multiplier, cap/floor, balance, ownership integration or runtime hook selected.",
+      "constructor_sets_home": false,
+      "constructor_sets_awake": false,
+      "constructor_health_is_heal_delivery": false,
+      "concrete_finalize_spawn_override": false,
+      "concrete_interaction_override": false,
+      "concrete_player_counter": false,
+      "explicit_armor_toughness_added": false,
+      "exhaustive_spawn_discovery_claimed": false
+    },
+    {
+      "id": "cataclysm:ender_golem_environment_admission",
+      "mod_key": "cataclysm",
+      "display_name": "Ender Golem native environment and push admission",
+      "registry_ids": [
+        "cataclysm:ender_golem"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "The exact cataclysm:ender_golem MONSTER type factory is fireImmune and sized 2.5 by 3.5. Ender_Golem has no concrete isInvulnerableTo override: shared virtual invulnerability and native downstream type/tag defenses remain. decreaseAirSupply returns its input unchanged, rather than forcing maximum air; this is not a blanket claim about every drowning source. canBePushedByEntity returns false independently of awake state. Constructor WATER pathfinding malus is -1; it does not imply fluid damage immunity. No concrete fluid overrides are declared. Active body repulsion and offensive terrain response remain R2k11b.",
+      "human_summary": "The exact cataclysm:ender_golem MONSTER type factory is fireImmune and sized 2.5 by 3.5. Ender_Golem has no concrete isInvulnerableTo override: shared virtual invulnerability and native downstream type/tag defenses remain. decreaseAirSupply returns its input unchanged, rather than forcing maximum air; this is not a blanket claim about every drowning source. canBePushedByEntity returns false independently of awake state. Constructor WATER pathfinding malus is -1; it does not imply fluid damage immunity. No concrete fluid overrides are declared. Active body repulsion and offensive terrain response remain R2k11b.",
+      "closest_vanilla_equivalent": "Native registered fire immunity, air handling and collision admission; separate from native armor and range rules",
+      "vanilla_similarities": [
+        "Original native damage, healing, entity state and encounter callbacks remain authoritative."
+      ],
+      "vanilla_differences": "The exact cataclysm:ender_golem MONSTER type factory is fireImmune and sized 2.5 by 3.5. Ender_Golem has no concrete isInvulnerableTo override: shared virtual invulnerability and native downstream type/tag defenses remain. decreaseAirSupply returns its input unchanged, rather than forcing maximum air; this is not a blanket claim about every drowning source. canBePushedByEntity returns false independently of awake state. Constructor WATER pathfinding malus is -1; it does not imply fluid damage immunity. No concrete fluid overrides are declared. Active body repulsion and offensive terrain response remain R2k11b.",
+      "components": [
+        {
+          "primitive": "NATIVE_ENVIRONMENT_ADMISSION",
+          "formula": "registered fireImmune; decreaseAirSupply(input)=input; WATER pathfinding malus=-1",
+          "numerical_parameters": {
+            "water_pathfinding_malus": -1.0
+          },
+          "parameter_units": {
+            "water_pathfinding_malus": "native pathfinding malus"
+          },
+          "binary_parameters": [],
+          "native_boundary": "ModEntities.lambda$static$0 / Ender_Golem.decreaseAirSupply / constructor",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "NATIVE_PUSH_ADMISSION",
+          "formula": "canBePushedByEntity(any entity)=false",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "Ender_Golem.canBePushedByEntity",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native EntityType fire immunity and damage-type bypass/tag handling",
+        "Incoming collision push gate is always false"
+      ],
+      "custom_state": [],
+      "eligibility": "Native EntityType fire immunity and damage-type bypass/tag handling; Incoming collision push gate is always false",
+      "source_actor": "Native incoming entity/source and fluid handling; no substituted damage source or control actor.",
+      "hurt_return_dependency": "No new hurt-return-dependent callback.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-admission.json",
+          "witness_id": "cataclysm:ender-golem-admission:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "decreaseAirSupply",
+            "canBePushedByEntity",
+            "<init>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-admission.json",
+          "witness_id": "cataclysm:ender-golem-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$0"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ender-golem-admission:environment_admission"
+      ],
+      "primary_test_source": "cataclysm:ender_golem",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k11a-cataclysm-ender-golem-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_ENVIRONMENT_ADMISSION",
+          "parameter": "water_pathfinding_malus",
+          "native_value": -1.0,
+          "native_formula": "registered fireImmune; decreaseAirSupply(input)=input; WATER pathfinding malus=-1",
+          "units": "native pathfinding malus",
+          "boundary": "ModEntities.lambda$static$0 / Ender_Golem.decreaseAirSupply / constructor"
+        }
+      ],
+      "scalability_note": "Native values and primitive/boundary observations only. Admission, defense, state, cadence and construction constants are recorded without automatic promotion. No Stage eligibility, multiplier, cap/floor, balance, ownership integration or runtime hook selected.",
+      "registered_fire_immune": true,
+      "concrete_invulnerability_override": false,
+      "air_returns_argument": true,
+      "air_returns_native_max": false,
+      "incoming_entity_push": false,
+      "blanket_drowning_immunity_claimed": false,
+      "concrete_fluid_override": false
+    },
+    {
+      "id": "cataclysm:ender_golem_incoming_admission",
+      "mod_key": "cataclysm",
+      "display_name": "Ender Golem incoming reductions and admission order",
+      "registry_ids": [
+        "cataclysm:ender_golem"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Before shared admission: if (animation==VOID_RUNE_ATTACK OR !isAwaken) AND (source has BYPASSES_INVULNERABILITY OR source is not exact minecraft:magic), narrow float(double(amount)*0.5). Thus the bypass tag enables this reduction even for magic; untagged exact magic skips it. Then calculateRange(source) reads the causing entity, but this concrete local result is unused. Read getDirectEntity; AbstractGolem direct actors independently narrow float(double(amount)*0.5), even for bypass-tagged or magic sources. The two reductions can stack and are not flattened into one operation. Call LLibrary_Boss_Monster.hurt once with the same DamageSource and transformed float. Concrete code never returns early, awakens directly, or adds a post-hurt callback. Inherited virtual invulnerability, bypass/cap/range/bucket, native defenses and hurt-return rollback/regeneration bookkeeping remain in their locked order.",
+      "human_summary": "Before shared admission: if (animation==VOID_RUNE_ATTACK OR !isAwaken) AND (source has BYPASSES_INVULNERABILITY OR source is not exact minecraft:magic), narrow float(double(amount)*0.5). Thus the bypass tag enables this reduction even for magic; untagged exact magic skips it. Then calculateRange(source) reads the causing entity, but this concrete local result is unused. Read getDirectEntity; AbstractGolem direct actors independently narrow float(double(amount)*0.5), even for bypass-tagged or magic sources. The two reductions can stack and are not flattened into one operation. Call LLibrary_Boss_Monster.hurt once with the same DamageSource and transformed float. Concrete code never returns early, awakens directly, or adds a post-hurt callback. Inherited virtual invulnerability, bypass/cap/range/bucket, native defenses and hurt-return rollback/regeneration bookkeeping remain in their locked order.",
+      "closest_vanilla_equivalent": "Custom pre-admission incoming multipliers before the reused native/shared hurt contract; not Resistance or armor",
+      "vanilla_similarities": [
+        "Original native damage, healing, entity state and encounter callbacks remain authoritative."
+      ],
+      "vanilla_differences": "Before shared admission: if (animation==VOID_RUNE_ATTACK OR !isAwaken) AND (source has BYPASSES_INVULNERABILITY OR source is not exact minecraft:magic), narrow float(double(amount)*0.5). Thus the bypass tag enables this reduction even for magic; untagged exact magic skips it. Then calculateRange(source) reads the causing entity, but this concrete local result is unused. Read getDirectEntity; AbstractGolem direct actors independently narrow float(double(amount)*0.5), even for bypass-tagged or magic sources. The two reductions can stack and are not flattened into one operation. Call LLibrary_Boss_Monster.hurt once with the same DamageSource and transformed float. Concrete code never returns early, awakens directly, or adds a post-hurt callback. Inherited virtual invulnerability, bypass/cap/range/bucket, native defenses and hurt-return rollback/regeneration bookkeeping remain in their locked order.",
+      "components": [
+        {
+          "primitive": "INCOMING_DAMAGE_MULTIPLIER",
+          "formula": "state condition AND (bypass tag OR !exact MAGIC) -> float(double(amount)*state_multiplier)",
+          "numerical_parameters": {
+            "state_multiplier": 0.5
+          },
+          "parameter_units": {
+            "state_multiplier": "dimensionless defensive multiplier"
+          },
+          "binary_parameters": [
+            "VOID_RUNE_ATTACK OR dormant",
+            "BYPASSES_INVULNERABILITY OR !DamageTypes.MAGIC"
+          ],
+          "native_boundary": "Ender_Golem.hurt offsets0..44 before shared admission",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "INCOMING_DAMAGE_MULTIPLIER",
+          "formula": "source.getDirectEntity instanceof AbstractGolem -> float(double(amount)*direct_golem_multiplier)",
+          "numerical_parameters": {
+            "direct_golem_multiplier": 0.5
+          },
+          "parameter_units": {
+            "direct_golem_multiplier": "dimensionless defensive multiplier"
+          },
+          "binary_parameters": [
+            "direct entity instanceof AbstractGolem"
+          ],
+          "native_boundary": "Ender_Golem.hurt offsets51..72 after the unused causing-range query",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_ADMISSION",
+          "formula": "same source, transformed amount -> locked shared virtual admission -> native hurt -> same result",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "Ender_Golem.hurt -> LLibrary_Boss_Monster.hurt",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Exact vanilla magic identity; indirect_magic is not this exemption",
+        "Direct AbstractGolem differs from causing owner",
+        "Native source tags/armor/effect/shield/cancellation and shared return behavior remain"
+      ],
+      "custom_state": [],
+      "eligibility": "Exact vanilla magic identity; indirect_magic is not this exemption; Direct AbstractGolem differs from causing owner; Native source tags/armor/effect/shield/cancellation and shared return behavior remain",
+      "source_actor": "Incoming DamageSource object is unchanged; direct actor controls the golem factor, causing actor controls shared current range.",
+      "hurt_return_dependency": "Return shared native hurt unchanged; no concrete true/false postwrite or immediate awakening.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-admission.json",
+          "witness_id": "cataclysm:ender-golem-admission:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "hurt"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "hurt"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "calculateRange"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ender-golem-admission:incoming_admission"
+      ],
+      "primary_test_source": "cataclysm:ender_golem",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k11a-cataclysm-ender-golem-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "INCOMING_DAMAGE_MULTIPLIER",
+          "parameter": "state_multiplier",
+          "native_value": 0.5,
+          "native_formula": "state condition AND (bypass tag OR !exact MAGIC) -> float(double(amount)*state_multiplier)",
+          "units": "dimensionless defensive multiplier",
+          "boundary": "Ender_Golem.hurt offsets0..44 before shared admission"
+        },
+        {
+          "primitive": "INCOMING_DAMAGE_MULTIPLIER",
+          "parameter": "direct_golem_multiplier",
+          "native_value": 0.5,
+          "native_formula": "source.getDirectEntity instanceof AbstractGolem -> float(double(amount)*direct_golem_multiplier)",
+          "units": "dimensionless defensive multiplier",
+          "boundary": "Ender_Golem.hurt offsets51..72 after the unused causing-range query"
+        }
+      ],
+      "scalability_note": "Native values and primitive/boundary observations only. Admission, defense, state, cadence and construction constants are recorded without automatic promotion. No Stage eligibility, multiplier, cap/floor, balance, ownership integration or runtime hook selected.",
+      "admission_order": [
+        "STATE_RUNE_OR_DORMANT_AND_BYPASS_TAG_OR_NOT_EXACT_MAGIC_HALF",
+        "CALCULATE_CAUSING_RANGE_RESULT_UNUSED",
+        "READ_DIRECT_ENTITY",
+        "DIRECT_ABSTRACT_GOLEM_HALF",
+        "SHARED_HURT_SAME_SOURCE_TRANSFORMED_AMOUNT",
+        "RETURN_SHARED_RESULT_WITHOUT_POSTWRITES"
+      ],
+      "source_object_preserved": true,
+      "incoming_amount_rewritten": true,
+      "concrete_invulnerability_override": false,
+      "concrete_effect_override": false,
+      "concrete_retry_override": false,
+      "calculate_range_local_unused": true,
+      "magic_exemption_is_exact_type": true,
+      "bypass_skips_state_reduction": false,
+      "bypass_skips_direct_golem_reduction": false,
+      "awakens_on_hurt_return": false,
+      "concrete_post_hurt_callback": false
+    },
+    {
+      "id": "cataclysm:ender_golem_shared_defense_bindings",
+      "mod_key": "cataclysm",
+      "display_name": "Ender Golem concrete and inherited defense/regen bindings",
+      "registry_ids": [
+        "cataclysm:ender_golem"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Only RangeLimit is overridden: EnderGolem.rangeCap returns double directly; the installed common-file snapshot is 8 blocks. The locked shared causing-range contract admits through 8, attenuates between 8 and 12, and rejects at/above 12; anonymous causing-null damage skips range. DamageCap and DpsCap remain inherited Float.MAX_VALUE, not configured 999999; the former is both the per-hit cap and request-bucket capacity, the latter supplies eligible server-AI decay /20. NatureRegen remains inherited 0, not configured 25. HealCooldown remains 200. The similarly named installed damage/DPS/DPS-time/regen settings are not read by these concrete bindings. Independent dormant healing is recorded separately. Config snapshots do not establish which values a live server loaded.",
+      "human_summary": "Only RangeLimit is overridden: EnderGolem.rangeCap returns double directly; the installed common-file snapshot is 8 blocks. The locked shared causing-range contract admits through 8, attenuates between 8 and 12, and rejects at/above 12; anonymous causing-null damage skips range. DamageCap and DpsCap remain inherited Float.MAX_VALUE, not configured 999999; the former is both the per-hit cap and request-bucket capacity, the latter supplies eligible server-AI decay /20. NatureRegen remains inherited 0, not configured 25. HealCooldown remains 200. The similarly named installed damage/DPS/DPS-time/regen settings are not read by these concrete bindings. Independent dormant healing is recorded separately. Config snapshots do not establish which values a live server loaded.",
+      "closest_vanilla_equivalent": "Locked LLibrary native target admission, bucket and heal-timer rules with one concrete range override",
+      "vanilla_similarities": [
+        "Original native damage, healing, entity state and encounter callbacks remain authoritative."
+      ],
+      "vanilla_differences": "Only RangeLimit is overridden: EnderGolem.rangeCap returns double directly; the installed common-file snapshot is 8 blocks. The locked shared causing-range contract admits through 8, attenuates between 8 and 12, and rejects at/above 12; anonymous causing-null damage skips range. DamageCap and DpsCap remain inherited Float.MAX_VALUE, not configured 999999; the former is both the per-hit cap and request-bucket capacity, the latter supplies eligible server-AI decay /20. NatureRegen remains inherited 0, not configured 25. HealCooldown remains 200. The similarly named installed damage/DPS/DPS-time/regen settings are not read by these concrete bindings. Independent dormant healing is recorded separately. Config snapshots do not establish which values a live server loaded.",
+      "components": [
+        {
+          "primitive": "DAMAGE_CAP",
+          "formula": "inherited DamageCap=Float.MAX_VALUE -> native per-hit min AND bucket capacity",
+          "numerical_parameters": {
+            "per_hit_cap": 3.4028234663852886e+38
+          },
+          "parameter_units": {
+            "per_hit_cap": "native pre-mitigation damage request"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Inherited LLibrary.DamageCap -> LLibrary.hurt",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "formula": "inherited DpsCap=Float.MAX_VALUE; positive bucket eligible server-AI decay by DpsCap()/20",
+          "numerical_parameters": {
+            "capacity": 3.4028234663852886e+38,
+            "dps_cap": 3.4028234663852886e+38,
+            "drain_divisor": 20
+          },
+          "parameter_units": {
+            "capacity": "native requested damage",
+            "dps_cap": "native requested damage per second",
+            "drain_divisor": "ticks per second"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Inherited LLibrary.DpsCap/tick and DamageCap/hurt",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "RANGE_ADMISSION",
+          "formula": "causing distance d<=L full; L<d<1.5L falloff; d>=1.5L reject; causing-null skips",
+          "numerical_parameters": {
+            "range_limit": 8.0
+          },
+          "parameter_units": {
+            "range_limit": "blocks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Ender_Golem.RangeLimit -> locked LLibrary.hurt/calculateRange",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "NATIVE_REGEN_BINDING",
+          "formula": "inherited NatureRegen=0 -> no shared NatureRegen heal delivery",
+          "numerical_parameters": {
+            "amount": 0.0
+          },
+          "parameter_units": {
+            "amount": "native healing amount"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Inherited LLibrary.NatureRegen/tick",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "REGEN_ADMISSION_TIMER",
+          "formula": "inherited HealCooldown200 on successful tagged ordinary shared hurt",
+          "numerical_parameters": {
+            "heal_cooldown": 200
+          },
+          "parameter_units": {
+            "heal_cooldown": "native ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Inherited LLibrary.HealCooldown/hurt",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Locked BYPASSES_INVULNERABILITY early native return occurs after concrete reductions",
+        "Locked native bucket-only bypass, failed-hurt rollback and ordinary defenses",
+        "Installed values are static snapshots"
+      ],
+      "custom_state": [],
+      "eligibility": "Locked BYPASSES_INVULNERABILITY early native return occurs after concrete reductions; Locked native bucket-only bypass, failed-hurt rollback and ordinary defenses; Installed values are static snapshots",
+      "source_actor": "Native shared hurt preserves direct/causing source identity; range uses current causing-owner position.",
+      "hurt_return_dependency": "Locked shared true tagged hit resets self_regen and false native hurt restores bucket; early bypass skips bookkeeping.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-admission.json",
+          "witness_id": "cataclysm:ender-golem-admission:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "RangeLimit"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "DamageCap",
+            "DpsCap",
+            "RangeLimit",
+            "NatureRegen",
+            "HealCooldown",
+            "hurt",
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ender-golem-admission:shared_defense_bindings"
+      ],
+      "primary_test_source": "cataclysm:ender_golem",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k11a-cataclysm-ender-golem-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "DAMAGE_CAP",
+          "parameter": "per_hit_cap",
+          "native_value": 3.4028234663852886e+38,
+          "native_formula": "inherited DamageCap=Float.MAX_VALUE -> native per-hit min AND bucket capacity",
+          "units": "native pre-mitigation damage request",
+          "boundary": "Inherited LLibrary.DamageCap -> LLibrary.hurt"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "parameter": "capacity",
+          "native_value": 3.4028234663852886e+38,
+          "native_formula": "inherited DpsCap=Float.MAX_VALUE; positive bucket eligible server-AI decay by DpsCap()/20",
+          "units": "native requested damage",
+          "boundary": "Inherited LLibrary.DpsCap/tick and DamageCap/hurt"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "parameter": "dps_cap",
+          "native_value": 3.4028234663852886e+38,
+          "native_formula": "inherited DpsCap=Float.MAX_VALUE; positive bucket eligible server-AI decay by DpsCap()/20",
+          "units": "native requested damage per second",
+          "boundary": "Inherited LLibrary.DpsCap/tick and DamageCap/hurt"
+        },
+        {
+          "primitive": "DPS_BUCKET",
+          "parameter": "drain_divisor",
+          "native_value": 20,
+          "native_formula": "inherited DpsCap=Float.MAX_VALUE; positive bucket eligible server-AI decay by DpsCap()/20",
+          "units": "ticks per second",
+          "boundary": "Inherited LLibrary.DpsCap/tick and DamageCap/hurt"
+        },
+        {
+          "primitive": "RANGE_ADMISSION",
+          "parameter": "range_limit",
+          "native_value": 8.0,
+          "native_formula": "causing distance d<=L full; L<d<1.5L falloff; d>=1.5L reject; causing-null skips",
+          "units": "blocks",
+          "boundary": "Ender_Golem.RangeLimit -> locked LLibrary.hurt/calculateRange"
+        },
+        {
+          "primitive": "NATIVE_REGEN_BINDING",
+          "parameter": "amount",
+          "native_value": 0.0,
+          "native_formula": "inherited NatureRegen=0 -> no shared NatureRegen heal delivery",
+          "units": "native healing amount",
+          "boundary": "Inherited LLibrary.NatureRegen/tick"
+        },
+        {
+          "primitive": "REGEN_ADMISSION_TIMER",
+          "parameter": "heal_cooldown",
+          "native_value": 200,
+          "native_formula": "inherited HealCooldown200 on successful tagged ordinary shared hurt",
+          "units": "native ticks",
+          "boundary": "Inherited LLibrary.HealCooldown/hurt"
+        }
+      ],
+      "scalability_note": "Native values and primitive/boundary observations only. Admission, defense, state, cadence and construction constants are recorded without automatic promotion. No Stage eligibility, multiplier, cap/floor, balance, ownership integration or runtime hook selected.",
+      "concrete_damage_cap_override": false,
+      "concrete_dps_cap_override": false,
+      "concrete_nature_regen_override": false,
+      "concrete_heal_cooldown_override": false,
+      "range_narrows_float_before_double": false,
+      "installed_cap_config_consumed": false,
+      "installed_dps_time_config_consumed": false,
+      "installed_nature_heal_config_consumed": false,
+      "damage_cap_is_bucket_capacity": true,
+      "dps_is_bucket_capacity": false
+    },
+    {
       "id": "cataclysm:guardian_airstrike_landing",
       "mod_key": "cataclysm",
       "display_name": "Guardian air-strike landing AoE",
@@ -59840,6 +60882,314 @@
   ],
   "paths": [
     {
+      "id": "cataclysm:ender-golem-admission:awake_state_prerequisites",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ender_golem_awake_state_prerequisites"
+      ],
+      "primary_source": "cataclysm:ender_golem",
+      "native_path": "Native target goals -> target reference -> server awake transition / local deactivation transition -> deferred offense dispatch",
+      "setup": "Static installed-JAR witness only; no Minecraft runtime test.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-admission.json",
+          "witness_id": "cataclysm:ender-golem-admission:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "defineSynchedData",
+            "setIsAwaken",
+            "getIsAwaken",
+            "tick",
+            "registerGoals"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ender-golem-admission:citadel_spawn_prerequisites",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ender_golem_citadel_spawn_prerequisites"
+      ],
+      "primary_source": "cataclysm:ender_golem",
+      "native_path": "Ruined Citadel exact golem marker/bounds -> EntityType.create -> AIR marker -> moveTo -> addFreshEntity",
+      "setup": "Static installed-JAR witness only; no Minecraft runtime test.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-admission.json",
+          "witness_id": "cataclysm:ender-golem-admission:structures/RuinedCitadelStructure$Piece",
+          "entry": "com/github/L_Ender/cataclysm/structures/RuinedCitadelStructure$Piece.class",
+          "methods": [
+            "handleDataMarker"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-admission.json",
+          "witness_id": "cataclysm:ender-golem-admission:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "<init>",
+            "defineSynchedData"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ender-golem-admission:combat_persistence",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ender_golem_combat_persistence"
+      ],
+      "primary_source": "cataclysm:ender_golem",
+      "native_path": "Native save/load -> parent Home state -> exact is_Awaken accessor; transient transition/counter fields retain constructor defaults",
+      "setup": "Static installed-JAR witness only; no Minecraft runtime test.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-admission.json",
+          "witness_id": "cataclysm:ender-golem-admission:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "setIsAwaken"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ender-golem-admission:dormant_healing",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "PASSIVE_AURA"
+      ],
+      "effect_ids": [
+        "cataclysm:ender_golem_dormant_healing"
+      ],
+      "primary_source": "cataclysm:ender_golem",
+      "native_path": "Ender_Golem.tick dormant/cadence gate -> one native heal(2.0F)",
+      "setup": "Static installed-JAR witness only; no Minecraft runtime test.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-admission.json",
+          "witness_id": "cataclysm:ender-golem-admission:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "NatureRegen",
+            "tick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ender-golem-admission:encounter_setup",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ender_golem_encounter_setup"
+      ],
+      "primary_source": "cataclysm:ender_golem",
+      "native_path": "ModEntities type/locked attribute registration -> Golem configured constructor -> native spawn/finalize/Home contracts when actually used",
+      "setup": "Static installed-JAR witness only; no Minecraft runtime test.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-admission.json",
+          "witness_id": "cataclysm:ender-golem-admission:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "<init>",
+            "ender_golem"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-admission.json",
+          "witness_id": "cataclysm:ender-golem-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$0",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-admission.json",
+          "witness_id": "cataclysm:guardian-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "initializeAttributes"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "setConfigattribute"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "finalizeSpawn",
+            "ReturnToHome"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ender-golem-admission:environment_admission",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ender_golem_environment_admission"
+      ],
+      "primary_source": "cataclysm:ender_golem",
+      "native_path": "EntityType fireImmune / native invulnerability and air callbacks / canBePushedByEntity",
+      "setup": "Static installed-JAR witness only; no Minecraft runtime test.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-admission.json",
+          "witness_id": "cataclysm:ender-golem-admission:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "decreaseAirSupply",
+            "canBePushedByEntity",
+            "<init>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-admission.json",
+          "witness_id": "cataclysm:ender-golem-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$0"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ender-golem-admission:incoming_admission",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ender_golem_incoming_admission"
+      ],
+      "primary_source": "cataclysm:ender_golem",
+      "native_path": "DamageSource -> Ender_Golem.hurt native state factor -> unused causing range -> direct golem factor -> LLibrary shared hurt",
+      "setup": "Static installed-JAR witness only; no Minecraft runtime test.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-admission.json",
+          "witness_id": "cataclysm:ender-golem-admission:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "hurt"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "hurt"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "calculateRange"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ender-golem-admission:shared_defense_bindings",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ender_golem_shared_defense_bindings"
+      ],
+      "primary_source": "cataclysm:ender_golem",
+      "native_path": "Concrete RangeLimit / inherited DamageCap,DpsCap,NatureRegen,HealCooldown -> locked LLibrary hurt/tick",
+      "setup": "Static installed-JAR witness only; no Minecraft runtime test.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-admission.json",
+          "witness_id": "cataclysm:ender-golem-admission:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "RangeLimit"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "DamageCap",
+            "DpsCap",
+            "RangeLimit",
+            "NatureRegen",
+            "HealCooldown",
+            "hurt",
+            "tick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
       "id": "cataclysm:guardian-offense:airstrike_payload",
       "mod_key": "cataclysm",
       "status": "VERIFIED",
@@ -72953,10 +74303,10 @@
   ],
   "unresolved_native_ambiguities": null,
   "remaining_native_ambiguities": null,
-  "checkpoint": "R2k10b-cataclysm-scylla-offense-complete",
-  "scope": "Bounded Scylla offensive goal selection/dispatch/control, direct area/spin/lightning body damage, native water/flight/body motion, eight directly owned storm/area/wave/spear/spark/anchor/serpent payload families, native source/owner/team/hurt-return/lifecycle and directly coupled weather/terrain/death/respawner callbacks closed. Locked R2k10a and all prior contracts unchanged; unused private helper chains not promoted. Scylla family closed statically; Cataclysm remains PARTIAL.",
-  "notes_file": "cataclysm-r2k10b-scylla-offense.json",
-  "exact_next_task": "R2k11a: Ender Golem incoming admission and combat-state/encounter prerequisites. Start Ender_Golem_Entity.hurt/isInvulnerableTo and the relevant inherited LLibrary_Boss_Monster contract; close only concrete cap/DPS/range/regen bindings where applicable, incoming order/source/direct/causing/tag distinctions, native environment/state/phase gates, combat NBT and material spawn/home prerequisites. Reuse locked shared/status and all completed Guardian/Monstrosity/Ignis/Harbinger/Remnant/Maledictus/Leviathan/Scylla families. Defer Ender Golem offense/payloads to R2k11b. Static only; no runtime, Stage, production, unrelated equipment or whole-JAR research.",
+  "checkpoint": "R2k11a-cataclysm-ender-golem-admission-complete",
+  "scope": "Bounded Ender Golem concrete incoming factors/order, inherited LLibrary cap/DPS/regen and concrete range, native environment, awake/targetless/deactivation prerequisites, direct dormant healing, combat NBT, configured construction and exact Ruined Citadel golem marker closed. Shared/status and all completed boss families locked; all Ender Golem offense/payloads deferred to R2k11b. Cataclysm PARTIAL.",
+  "notes_file": "cataclysm-r2k11a-ender-golem-admission.json",
+  "exact_next_task": "R2k11b: Ender Golem offense/payload family. Start Ender_Golem_Entity.tick and directly used offensive goals; close attack selection/animation and cooldown readers/writers not already locked, melee, EarthQuake/launch, VoidRuneAttack/spawnFangs and directly owned payload chains, source/owner/team predicates, hurt-return-dependent control, lifecycle and directly reached terrain/death/respawner callbacks. Reuse locked R2k11a incoming multipliers, shared bindings, native environment, awake/deactivation/targetless state, dormant heal, combat NBT, configured construction, registry and Citadel spawn/home prerequisites plus all prior completed contracts. Static only; no runtime, Stage, production, unrelated equipment or whole-JAR work.",
   "protected_checkpoint": "R2k3a-cataclysm-guardian-admission-complete",
   "protected_notes_file": "cataclysm-r2k3a-guardian-admission.json",
   "protected_checkpoints": [
@@ -73019,6 +74369,10 @@
     {
       "checkpoint": "R2k10a-cataclysm-scylla-admission-complete",
       "notes_file": "cataclysm-r2k10a-scylla-admission.json"
+    },
+    {
+      "checkpoint": "R2k10b-cataclysm-scylla-offense-complete",
+      "notes_file": "cataclysm-r2k10b-scylla-offense.json"
     }
   ]
 }
