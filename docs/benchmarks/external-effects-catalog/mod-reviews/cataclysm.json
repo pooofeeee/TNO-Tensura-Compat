@@ -9,6 +9,369 @@
   "delivery_mapping_complete": false,
   "effects": [
     {
+      "id": "cataclysm:ender_golem_alliance",
+      "mod_key": "cataclysm",
+      "display_name": "Ender Golem native alliance predicates",
+      "registry_ids": [
+        "cataclysm:ender_golem"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "isAlliedTo accepts self or super, then TEAM_ENDER_GUARDIAN recipient types only when both scoreboard teams are null. EarthQuake additionally excludes every Ender Golem and self; runes check alliance in both directions. Direct target melee and shared body repulsion add no local team filter.",
+      "human_summary": "isAlliedTo accepts self or super, then TEAM_ENDER_GUARDIAN recipient types only when both scoreboard teams are null. EarthQuake additionally excludes every Ender Golem and self; runes check alliance in both directions. Direct target melee and shared body repulsion add no local team filter.",
+      "closest_vanilla_equivalent": "Vanilla scoreboard alliance extended by native entity-type tag",
+      "vanilla_similarities": "Native damage/knockback, entity navigation, hooks, tags and lifecycle remain authoritative at their named boundaries; protected contracts are reused.",
+      "vanilla_differences": "isAlliedTo accepts self or super, then TEAM_ENDER_GUARDIAN recipient types only when both scoreboard teams are null. EarthQuake additionally excludes every Ender Golem and self; runes check alliance in both directions. Direct target melee and shared body repulsion add no local team filter.",
+      "components": [
+        {
+          "primitive": "TEAM_ADMISSION",
+          "formula": "self OR super OR (recipient in TEAM_ENDER_GUARDIAN AND both teams null)",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "Self/super/tag/team admission"
+          ],
+          "native_boundary": "Ender_Golem.isAlliedTo",
+          "vanilla_relation": "EXTENDED"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native self/super/team/tag gates; do not apply one global filter to all attacks"
+      ],
+      "custom_state": "Native Ender Golem animation, cooldown and owned rune state only; protected R2k11a awake/NBT/admission retained.",
+      "eligibility": "Native self/super/team/tag gates; do not apply one global filter to all attacks",
+      "source_actor": "Ender Golem and native rune caster, at separate recipient filters.",
+      "hurt_return_dependency": "Alliance is evaluated before relevant hurt requests; not a post-hurt callback.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "isAlliedTo",
+            "EarthQuake"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/projectile/Void_Rune_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Void_Rune_Entity.class",
+          "methods": [
+            "setCaster",
+            "getCaster",
+            "tick",
+            "damage",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:data:data/cataclysm/tags/entity_type/team_ender_guardian.json",
+          "entry": "data/cataclysm/tags/entity_type/team_ender_guardian.json",
+          "methods": []
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ender-golem-offense:alliance"
+      ],
+      "primary_test_source": "cataclysm:ender_golem",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k11b-cataclysm-ender-golem-offense-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Native admission, state and recorded numerical bounds remain native.",
+      "quake_filters_other_golems": true,
+      "rune_bidirectional_alliance": true,
+      "melee_extra_alliance_filter": false,
+      "body_extra_alliance_filter": false
+    },
+    {
+      "id": "cataclysm:ender_golem_attack_control",
+      "mod_key": "cataclysm",
+      "display_name": "Ender Golem attack motion and facing lock",
+      "registry_ids": [
+        "cataclysm:ender_golem"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Priority1 AttackGoal JUMP/LOOK/MOVE, active only for EARTHQUAKE or VOID_RUNE_ATTACK and updated every tick. Writes (0,oldY,0) absolutely. Before quake tick19 or rune tick22 with non-null target, calls LookControl.setLookAt and lookAt30/30; otherwise restores yRotO. stop delegates Goal.stop. No damage, target-alive test, knockback or extra local side gate.",
+      "human_summary": "Priority1 AttackGoal JUMP/LOOK/MOVE, active only for EARTHQUAKE or VOID_RUNE_ATTACK and updated every tick. Writes (0,oldY,0) absolutely. Before quake tick19 or rune tick22 with non-null target, calls LookControl.setLookAt and lookAt30/30; otherwise restores yRotO. stop delegates Goal.stop. No damage, target-alive test, knockback or extra local side gate.",
+      "closest_vanilla_equivalent": "Native Goal flags/look helpers plus custom absolute velocity lock",
+      "vanilla_similarities": "Native damage/knockback, entity navigation, hooks, tags and lifecycle remain authoritative at their named boundaries; protected contracts are reused.",
+      "vanilla_differences": "Priority1 AttackGoal JUMP/LOOK/MOVE, active only for EARTHQUAKE or VOID_RUNE_ATTACK and updated every tick. Writes (0,oldY,0) absolutely. Before quake tick19 or rune tick22 with non-null target, calls LookControl.setLookAt and lookAt30/30; otherwise restores yRotO. stop delegates Goal.stop. No damage, target-alive test, knockback or extra local side gate.",
+      "components": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "formula": "setDeltaMovement(0,oldY,0), not push/knockback",
+          "numerical_parameters": {
+            "horizontal_write": 0.0
+          },
+          "parameter_units": {
+            "horizontal_write": "absolute native X/Z velocity"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Ender_Golem$AttackGoal.tick",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "FORCED_FACING",
+          "formula": "LookControl and lookAt30/30 until native callback threshold; then yRotO",
+          "numerical_parameters": {
+            "yaw": 30.0,
+            "pitch": 30.0,
+            "quake_face_before": 19,
+            "rune_face_before": 22
+          },
+          "parameter_units": {
+            "yaw": "native yaw step degrees",
+            "pitch": "native pitch step degrees",
+            "quake_face_before": "strict native animation-tick threshold",
+            "rune_face_before": "strict native animation-tick threshold"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Ender_Golem$AttackGoal.tick",
+          "vanilla_relation": "EXTENDED"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Original animation/target/priority/flag gates",
+        "Absolute horizontal zero remains binary immobilization"
+      ],
+      "custom_state": "Native Ender Golem animation, cooldown and owned rune state only; protected R2k11a awake/NBT/admission retained.",
+      "eligibility": "Original animation/target/priority/flag gates; Absolute horizontal zero remains binary immobilization",
+      "source_actor": "Ender Golem goal controls boss movement/facing.",
+      "hurt_return_dependency": "Independent of hurt; no damage call.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "registerGoals"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity$AttackGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity$AttackGoal.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "stop",
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ender-golem-offense:attack_control"
+      ],
+      "primary_test_source": "cataclysm:ender_golem",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k11b-cataclysm-ender-golem-offense-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "FORCED_FACING",
+          "parameters": [
+            "pitch"
+          ],
+          "native_value": 30.0,
+          "native_formula": "LookControl and lookAt30/30 until native callback threshold; then yRotO",
+          "units": "native pitch step degrees",
+          "native_boundary": "Ender_Golem$AttackGoal.tick"
+        },
+        {
+          "primitive": "FORCED_FACING",
+          "parameters": [
+            "yaw"
+          ],
+          "native_value": 30.0,
+          "native_formula": "LookControl and lookAt30/30 until native callback threshold; then yRotO",
+          "units": "native yaw step degrees",
+          "native_boundary": "Ender_Golem$AttackGoal.tick"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameter": "horizontal_write",
+          "native_value": 0.0,
+          "native_formula": "setDeltaMovement(0,oldY,0), not push/knockback",
+          "units": "absolute native X/Z velocity",
+          "boundary": "Ender_Golem$AttackGoal.tick"
+        },
+        {
+          "primitive": "FORCED_FACING",
+          "parameter": "yaw",
+          "native_value": 30.0,
+          "native_formula": "LookControl and lookAt30/30 until native callback threshold; then yRotO",
+          "units": "native yaw step degrees",
+          "boundary": "Ender_Golem$AttackGoal.tick"
+        },
+        {
+          "primitive": "FORCED_FACING",
+          "parameter": "pitch",
+          "native_value": 30.0,
+          "native_formula": "LookControl and lookAt30/30 until native callback threshold; then yRotO",
+          "units": "native pitch step degrees",
+          "boundary": "Ender_Golem$AttackGoal.tick"
+        },
+        {
+          "primitive": "FORCED_FACING",
+          "parameter": "quake_face_before",
+          "native_value": 19,
+          "native_formula": "LookControl and lookAt30/30 until native callback threshold; then yRotO",
+          "units": "strict native animation-tick threshold",
+          "boundary": "Ender_Golem$AttackGoal.tick"
+        },
+        {
+          "primitive": "FORCED_FACING",
+          "parameter": "rune_face_before",
+          "native_value": 22,
+          "native_formula": "LookControl and lookAt30/30 until native callback threshold; then yRotO",
+          "units": "strict native animation-tick threshold",
+          "boundary": "Ender_Golem$AttackGoal.tick"
+        }
+      ],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Native admission, state and recorded numerical bounds remain native.",
+      "uses_native_knockback": false,
+      "preserves_vertical_velocity": true,
+      "control_depends_on_hurt": false
+    },
+    {
+      "id": "cataclysm:ender_golem_attack_selection",
+      "mod_key": "cataclysm",
+      "display_name": "Ender Golem rune and close attack selection",
+      "registry_ids": [
+        "cataclysm:ender_golem"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Within locked progress==0 and self-alive dispatch, live target required for selection. Rune admission: cooldown<=0, !NoAI, NO_ANIMATION, target grounded, then short-circuit (nextInt(45)==0 AND distance<4) OR (nextInt(24)==0 AND distance<10). Second RNG is read only when first combined test fails. Otherwise close distance<4/!NoAI/NO_ANIMATION fallback chooses ATTACK1/ATTACK2/EARTHQUAKE via nextInt(3). Grounded is not a fallback requirement. Rune sets cooldown250 before setAnimation; no local server guard.",
+      "human_summary": "Within locked progress==0 and self-alive dispatch, live target required for selection. Rune admission: cooldown<=0, !NoAI, NO_ANIMATION, target grounded, then short-circuit (nextInt(45)==0 AND distance<4) OR (nextInt(24)==0 AND distance<10). Second RNG is read only when first combined test fails. Otherwise close distance<4/!NoAI/NO_ANIMATION fallback chooses ATTACK1/ATTACK2/EARTHQUAKE via nextInt(3). Grounded is not a fallback requirement. Rune sets cooldown250 before setAnimation; no local server guard.",
+      "closest_vanilla_equivalent": "Native target/animation/AI admission with custom attack choice",
+      "vanilla_similarities": "Native damage/knockback, entity navigation, hooks, tags and lifecycle remain authoritative at their named boundaries; protected contracts are reused.",
+      "vanilla_differences": "Within locked progress==0 and self-alive dispatch, live target required for selection. Rune admission: cooldown<=0, !NoAI, NO_ANIMATION, target grounded, then short-circuit (nextInt(45)==0 AND distance<4) OR (nextInt(24)==0 AND distance<10). Second RNG is read only when first combined test fails. Otherwise close distance<4/!NoAI/NO_ANIMATION fallback chooses ATTACK1/ATTACK2/EARTHQUAKE via nextInt(3). Grounded is not a fallback requirement. Rune sets cooldown250 before setAnimation; no local server guard.",
+      "components": [
+        {
+          "primitive": "ATTACK_SELECTION",
+          "formula": "native short-circuit RNG and target/animation predicates select a single animation",
+          "numerical_parameters": {
+            "rune_close_rng": 45,
+            "rune_far_rng": 24,
+            "rune_close_distance": 4.0,
+            "rune_far_distance": 10.0,
+            "fallback_distance": 4.0,
+            "random_attack_bound": 3
+          },
+          "parameter_units": {
+            "rune_close_rng": "exclusive RNG bound",
+            "rune_far_rng": "exclusive RNG bound",
+            "rune_close_distance": "blocks; strict <",
+            "rune_far_distance": "blocks; strict <",
+            "fallback_distance": "blocks; strict <",
+            "random_attack_bound": "exclusive RNG bound"
+          },
+          "binary_parameters": [
+            "NoAI/NO_ANIMATION/live target/ground/rune cooldown gates"
+          ],
+          "native_boundary": "Ender_Golem.tick and getRandomAttack",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Locked deactivation progress==0 and self alive",
+        "Rune grounded gate remains distinct from fallback",
+        "No native selection/state/RNG constants promoted automatically"
+      ],
+      "custom_state": "Native Ender Golem animation, cooldown and owned rune state only; protected R2k11a awake/NBT/admission retained.",
+      "eligibility": "Locked deactivation progress==0 and self alive; Rune grounded gate remains distinct from fallback; No native selection/state/RNG constants promoted automatically",
+      "source_actor": "Ender Golem owns original target and RNG.",
+      "hurt_return_dependency": "Selection makes no damage request.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "tick",
+            "getRandomAttack"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ender-golem-offense:attack_selection"
+      ],
+      "primary_test_source": "cataclysm:ender_golem",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k11b-cataclysm-ender-golem-offense-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "ATTACK_SELECTION",
+          "parameter": "rune_close_rng",
+          "native_value": 45,
+          "native_formula": "native short-circuit RNG and target/animation predicates select a single animation",
+          "units": "exclusive RNG bound",
+          "boundary": "Ender_Golem.tick and getRandomAttack"
+        },
+        {
+          "primitive": "ATTACK_SELECTION",
+          "parameter": "rune_far_rng",
+          "native_value": 24,
+          "native_formula": "native short-circuit RNG and target/animation predicates select a single animation",
+          "units": "exclusive RNG bound",
+          "boundary": "Ender_Golem.tick and getRandomAttack"
+        },
+        {
+          "primitive": "ATTACK_SELECTION",
+          "parameter": "rune_close_distance",
+          "native_value": 4.0,
+          "native_formula": "native short-circuit RNG and target/animation predicates select a single animation",
+          "units": "blocks; strict <",
+          "boundary": "Ender_Golem.tick and getRandomAttack"
+        },
+        {
+          "primitive": "ATTACK_SELECTION",
+          "parameter": "rune_far_distance",
+          "native_value": 10.0,
+          "native_formula": "native short-circuit RNG and target/animation predicates select a single animation",
+          "units": "blocks; strict <",
+          "boundary": "Ender_Golem.tick and getRandomAttack"
+        },
+        {
+          "primitive": "ATTACK_SELECTION",
+          "parameter": "fallback_distance",
+          "native_value": 4.0,
+          "native_formula": "native short-circuit RNG and target/animation predicates select a single animation",
+          "units": "blocks; strict <",
+          "boundary": "Ender_Golem.tick and getRandomAttack"
+        },
+        {
+          "primitive": "ATTACK_SELECTION",
+          "parameter": "random_attack_bound",
+          "native_value": 3,
+          "native_formula": "native short-circuit RNG and target/animation predicates select a single animation",
+          "units": "exclusive RNG bound",
+          "boundary": "Ender_Golem.tick and getRandomAttack"
+        }
+      ],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Native admission, state and recorded numerical bounds remain native.",
+      "rune_ground_gate_applies_to_fallback": false,
+      "selection_local_server_guard": false,
+      "short_circuit_rng_preserved": true
+    },
+    {
       "id": "cataclysm:ender_golem_awake_state_prerequisites",
       "mod_key": "cataclysm",
       "display_name": "Ender Golem awake and deactivation prerequisites",
@@ -139,6 +502,202 @@
       "targetless_timeout_strict_greater": true,
       "raw_state_is_tno_stage": false,
       "offensive_dispatch_reviewed": false
+    },
+    {
+      "id": "cataclysm:ender_golem_body_repulsion",
+      "mod_key": "cataclysm",
+      "display_name": "Ender Golem shared absolute body repulsion binding",
+      "registry_ids": [
+        "cataclysm:ender_golem"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Every concrete tick before locked awake/alive branch, calls repelEntities(float1.7,float3.7,float1.7,float1.7); override delegates once. Reuse shared helper: LivingEntity AABB, nonself distance<=radius+recipientWidth/2 and recipientY<=bossY+y query; pickable and !noPhysics. Absolute X/Z -.1*cos/sin((angleBetween+90)*PI/180), preserves recipientY velocity. No local side/alive/ally/hurt check, native knockback call or KBR. -.1 belongs to locked shared helper, not a new Golem field.",
+      "human_summary": "Every concrete tick before locked awake/alive branch, calls repelEntities(float1.7,float3.7,float1.7,float1.7); override delegates once. Reuse shared helper: LivingEntity AABB, nonself distance<=radius+recipientWidth/2 and recipientY<=bossY+y query; pickable and !noPhysics. Absolute X/Z -.1*cos/sin((angleBetween+90)*PI/180), preserves recipientY velocity. No local side/alive/ally/hurt check, native knockback call or KBR. -.1 belongs to locked shared helper, not a new Golem field.",
+      "closest_vanilla_equivalent": "Native entity query and absolute custom velocity assignment",
+      "vanilla_similarities": "Native damage/knockback, entity navigation, hooks, tags and lifecycle remain authoritative at their named boundaries; protected contracts are reused.",
+      "vanilla_differences": "Every concrete tick before locked awake/alive branch, calls repelEntities(float1.7,float3.7,float1.7,float1.7); override delegates once. Reuse shared helper: LivingEntity AABB, nonself distance<=radius+recipientWidth/2 and recipientY<=bossY+y query; pickable and !noPhysics. Absolute X/Z -.1*cos/sin((angleBetween+90)*PI/180), preserves recipientY velocity. No local side/alive/ally/hurt check, native knockback call or KBR. -.1 belongs to locked shared helper, not a new Golem field.",
+      "components": [
+        {
+          "primitive": "BODY_QUERY",
+          "formula": "locked AABB/width-adjusted distance/upper-Y predicate with four actual float arguments",
+          "numerical_parameters": {
+            "x": 1.7000000476837158,
+            "y": 3.700000047683716,
+            "z": 1.7000000476837158,
+            "radius": 1.7000000476837158
+          },
+          "parameter_units": {
+            "x": "AABB inflation blocks",
+            "y": "AABB inflation/upper-Y blocks",
+            "z": "AABB inflation blocks",
+            "radius": "width-adjusted distance blocks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Ender_Golem.tick -> repelEntities -> shared getEntityLivingBaseNearby",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "formula": "absolute shared X/Z -.1*cos/sin(angle); preserve Y",
+          "numerical_parameters": {
+            "horizontal_write": -0.1
+          },
+          "parameter_units": {
+            "horizontal_write": "shared native absolute horizontal velocity coefficient"
+          },
+          "binary_parameters": [],
+          "native_boundary": "locked Animation_Monsters.repelEntities, reached by Golem delegate",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Locked shared query and pickable/noPhysics admission",
+        "Original single delegate; no global team-filter inference"
+      ],
+      "custom_state": "Native Ender Golem animation, cooldown and owned rune state only; protected R2k11a awake/NBT/admission retained.",
+      "eligibility": "Locked shared query and pickable/noPhysics admission; Original single delegate; no global team-filter inference",
+      "source_actor": "Ender Golem delegate reaches original shared recipient velocity writer.",
+      "hurt_return_dependency": "No damage call; unrelated to hurt return.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "tick",
+            "repelEntities"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "repelEntities"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "getEntityLivingBaseNearby",
+            "getEntitiesNearby",
+            "lambda$getEntitiesNearby$0"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ender-golem-offense:body_repulsion"
+      ],
+      "primary_test_source": "cataclysm:ender_golem",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k11b-cataclysm-ender-golem-offense-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "BODY_QUERY",
+          "parameters": [
+            "radius"
+          ],
+          "native_value": 1.7000000476837158,
+          "native_formula": "locked AABB/width-adjusted distance/upper-Y predicate with four actual float arguments",
+          "units": "width-adjusted distance blocks",
+          "native_boundary": "Ender_Golem.tick -> repelEntities -> shared getEntityLivingBaseNearby"
+        },
+        {
+          "primitive": "BODY_QUERY",
+          "parameters": [
+            "x"
+          ],
+          "native_value": 1.7000000476837158,
+          "native_formula": "locked AABB/width-adjusted distance/upper-Y predicate with four actual float arguments",
+          "units": "AABB inflation blocks",
+          "native_boundary": "Ender_Golem.tick -> repelEntities -> shared getEntityLivingBaseNearby"
+        },
+        {
+          "primitive": "BODY_QUERY",
+          "parameters": [
+            "y"
+          ],
+          "native_value": 3.700000047683716,
+          "native_formula": "locked AABB/width-adjusted distance/upper-Y predicate with four actual float arguments",
+          "units": "AABB inflation/upper-Y blocks",
+          "native_boundary": "Ender_Golem.tick -> repelEntities -> shared getEntityLivingBaseNearby"
+        },
+        {
+          "primitive": "BODY_QUERY",
+          "parameters": [
+            "z"
+          ],
+          "native_value": 1.7000000476837158,
+          "native_formula": "locked AABB/width-adjusted distance/upper-Y predicate with four actual float arguments",
+          "units": "AABB inflation blocks",
+          "native_boundary": "Ender_Golem.tick -> repelEntities -> shared getEntityLivingBaseNearby"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "horizontal_write"
+          ],
+          "native_value": -0.1,
+          "native_formula": "absolute shared X/Z -.1*cos/sin(angle); preserve Y",
+          "units": "shared native absolute horizontal velocity coefficient",
+          "native_boundary": "locked Animation_Monsters.repelEntities, reached by Golem delegate"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "BODY_QUERY",
+          "parameter": "x",
+          "native_value": 1.7000000476837158,
+          "native_formula": "locked AABB/width-adjusted distance/upper-Y predicate with four actual float arguments",
+          "units": "AABB inflation blocks",
+          "boundary": "Ender_Golem.tick -> repelEntities -> shared getEntityLivingBaseNearby"
+        },
+        {
+          "primitive": "BODY_QUERY",
+          "parameter": "y",
+          "native_value": 3.700000047683716,
+          "native_formula": "locked AABB/width-adjusted distance/upper-Y predicate with four actual float arguments",
+          "units": "AABB inflation/upper-Y blocks",
+          "boundary": "Ender_Golem.tick -> repelEntities -> shared getEntityLivingBaseNearby"
+        },
+        {
+          "primitive": "BODY_QUERY",
+          "parameter": "z",
+          "native_value": 1.7000000476837158,
+          "native_formula": "locked AABB/width-adjusted distance/upper-Y predicate with four actual float arguments",
+          "units": "AABB inflation blocks",
+          "boundary": "Ender_Golem.tick -> repelEntities -> shared getEntityLivingBaseNearby"
+        },
+        {
+          "primitive": "BODY_QUERY",
+          "parameter": "radius",
+          "native_value": 1.7000000476837158,
+          "native_formula": "locked AABB/width-adjusted distance/upper-Y predicate with four actual float arguments",
+          "units": "width-adjusted distance blocks",
+          "boundary": "Ender_Golem.tick -> repelEntities -> shared getEntityLivingBaseNearby"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameter": "horizontal_write",
+          "native_value": -0.1,
+          "native_formula": "absolute shared X/Z -.1*cos/sin(angle); preserve Y",
+          "units": "shared native absolute horizontal velocity coefficient",
+          "boundary": "locked Animation_Monsters.repelEntities, reached by Golem delegate"
+        }
+      ],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Native admission, state and recorded numerical bounds remain native.",
+      "control_depends_on_hurt": false,
+      "uses_native_knockback": false,
+      "preserves_vertical_velocity": true,
+      "local_team_guard": false,
+      "local_server_guard": false,
+      "shared_write_not_new_golem_field": true
     },
     {
       "id": "cataclysm:ender_golem_citadel_spawn_prerequisites",
@@ -294,6 +853,215 @@
       "concrete_animation_saved": false,
       "inherited_ia_life": false,
       "generic_persistence_added": false
+    },
+    {
+      "id": "cataclysm:ender_golem_defeat_lifecycle",
+      "mod_key": "cataclysm",
+      "display_name": "Ender Golem native death lifecycle without respawner payload",
+      "registry_ids": [
+        "cataclysm:ender_golem"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Concrete getDeathAnimation selects native duration95. onDeathAIUpdate delegates super, then writes boss velocity(0,oldY,0); remaining local tick40 callback is sound-only. Reuse LLibrary tickDeath: animation message once when different, onDeathUpdate(duration-20), so removal timer75; existing death hooks/cancellation and kill credit remain native. Protected declared-method inventory proves no concrete die/AfterDefeatBoss/respawner override. No concrete death combat payload, terrain destruction or respawner is added; no assertion that external global callbacks are absent.",
+      "human_summary": "Concrete getDeathAnimation selects native duration95. onDeathAIUpdate delegates super, then writes boss velocity(0,oldY,0); remaining local tick40 callback is sound-only. Reuse LLibrary tickDeath: animation message once when different, onDeathUpdate(duration-20), so removal timer75; existing death hooks/cancellation and kill credit remain native. Protected declared-method inventory proves no concrete die/AfterDefeatBoss/respawner override. No concrete death combat payload, terrain destruction or respawner is added; no assertion that external global callbacks are absent.",
+      "closest_vanilla_equivalent": "Locked native LLibrary/Animation_Monsters death animation/hook/timer",
+      "vanilla_similarities": "Native damage/knockback, entity navigation, hooks, tags and lifecycle remain authoritative at their named boundaries; protected contracts are reused.",
+      "vanilla_differences": "Concrete getDeathAnimation selects native duration95. onDeathAIUpdate delegates super, then writes boss velocity(0,oldY,0); remaining local tick40 callback is sound-only. Reuse LLibrary tickDeath: animation message once when different, onDeathUpdate(duration-20), so removal timer75; existing death hooks/cancellation and kill credit remain native. Protected declared-method inventory proves no concrete die/AfterDefeatBoss/respawner override. No concrete death combat payload, terrain destruction or respawner is added; no assertion that external global callbacks are absent.",
+      "components": [
+        {
+          "primitive": "DEATH_LIFECYCLE",
+          "formula": "native95 animation; shared deathtimer=95-20=75; concrete horizontal zero",
+          "numerical_parameters": {
+            "animation_duration": 95,
+            "shared_duration_subtraction": 20,
+            "removal_timer": 75
+          },
+          "parameter_units": {
+            "animation_duration": "native animation ticks",
+            "shared_duration_subtraction": "locked native death timer subtraction",
+            "removal_timer": "native death ticks"
+          },
+          "binary_parameters": [
+            "Native death/cancellation/kill-credit lifecycle"
+          ],
+          "native_boundary": "Golem.getDeathAnimation/onDeathAIUpdate -> reused LLibrary.tickDeath/onDeathUpdate",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Protected native death/animation contracts",
+        "Absence claim bounded to concrete declared combat callbacks"
+      ],
+      "custom_state": "Native Ender Golem animation, cooldown and owned rune state only; protected R2k11a awake/NBT/admission retained.",
+      "eligibility": "Protected native death/animation contracts; Absence claim bounded to concrete declared combat callbacks",
+      "source_actor": "Native Ender Golem death entity; no concrete respawner owner.",
+      "hurt_return_dependency": "Existing native death path and cancellation preserved; concrete callback not a damage payload.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "getDeathAnimation",
+            "onDeathAIUpdate",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/LLibrary_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/LLibrary_Monster.class",
+          "methods": [
+            "tickDeath",
+            "tick",
+            "setAnimation"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "die",
+            "onDeathUpdate",
+            "deathtimer",
+            "AfterDefeatBoss"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-admission.json",
+          "witness_id": "cataclysm:ender-golem-admission:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": []
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ender-golem-offense:defeat_lifecycle"
+      ],
+      "primary_test_source": "cataclysm:ender_golem",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k11b-cataclysm-ender-golem-offense-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "DEATH_LIFECYCLE",
+          "parameter": "animation_duration",
+          "native_value": 95,
+          "native_formula": "native95 animation; shared deathtimer=95-20=75; concrete horizontal zero",
+          "units": "native animation ticks",
+          "boundary": "Golem.getDeathAnimation/onDeathAIUpdate -> reused LLibrary.tickDeath/onDeathUpdate"
+        },
+        {
+          "primitive": "DEATH_LIFECYCLE",
+          "parameter": "shared_duration_subtraction",
+          "native_value": 20,
+          "native_formula": "native95 animation; shared deathtimer=95-20=75; concrete horizontal zero",
+          "units": "locked native death timer subtraction",
+          "boundary": "Golem.getDeathAnimation/onDeathAIUpdate -> reused LLibrary.tickDeath/onDeathUpdate"
+        },
+        {
+          "primitive": "DEATH_LIFECYCLE",
+          "parameter": "removal_timer",
+          "native_value": 75,
+          "native_formula": "native95 animation; shared deathtimer=95-20=75; concrete horizontal zero",
+          "units": "native death ticks",
+          "boundary": "Golem.getDeathAnimation/onDeathAIUpdate -> reused LLibrary.tickDeath/onDeathUpdate"
+        }
+      ],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Native admission, state and recorded numerical bounds remain native.",
+      "concrete_death_payload": false,
+      "concrete_respawner_link": false,
+      "global_death_callbacks_absent_claimed": false,
+      "shared_death_contract_reused": true
+    },
+    {
+      "id": "cataclysm:ender_golem_dormant_control",
+      "mod_key": "cataclysm",
+      "display_name": "Ender Golem dormant goal immobilization",
+      "registry_ids": [
+        "cataclysm:ender_golem"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Priority0 AwakenGoal uses JUMP/LOOK/MOVE and runs while locked deactivateProgress>0. Every goal tick writes (0,oldY,0), superseding lower conflicting goals. No hurt, heal, setter or new awake transition. R2k11a progress and awake contracts unchanged.",
+      "human_summary": "Priority0 AwakenGoal uses JUMP/LOOK/MOVE and runs while locked deactivateProgress>0. Every goal tick writes (0,oldY,0), superseding lower conflicting goals. No hurt, heal, setter or new awake transition. R2k11a progress and awake contracts unchanged.",
+      "closest_vanilla_equivalent": "Native goal admission plus absolute horizontal immobilization",
+      "vanilla_similarities": "Native damage/knockback, entity navigation, hooks, tags and lifecycle remain authoritative at their named boundaries; protected contracts are reused.",
+      "vanilla_differences": "Priority0 AwakenGoal uses JUMP/LOOK/MOVE and runs while locked deactivateProgress>0. Every goal tick writes (0,oldY,0), superseding lower conflicting goals. No hurt, heal, setter or new awake transition. R2k11a progress and awake contracts unchanged.",
+      "components": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "formula": "setDeltaMovement(0,oldY,0) while deactivateProgress>0",
+          "numerical_parameters": {
+            "horizontal_write": 0.0
+          },
+          "parameter_units": {
+            "horizontal_write": "absolute native X/Z velocity"
+          },
+          "binary_parameters": [
+            "Locked deactivateProgress>0"
+          ],
+          "native_boundary": "Ender_Golem$AwakenGoal.tick",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Locked awake/deactivation state and native goal priority/flags",
+        "Zero X/Z is immobilization, not a magnitude candidate"
+      ],
+      "custom_state": "Native Ender Golem animation, cooldown and owned rune state only; protected R2k11a awake/NBT/admission retained.",
+      "eligibility": "Locked awake/deactivation state and native goal priority/flags; Zero X/Z is immobilization, not a magnitude candidate",
+      "source_actor": "Ender Golem dormant goal.",
+      "hurt_return_dependency": "Independent of hurt.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "registerGoals"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity$AwakenGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity$AwakenGoal.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ender-golem-offense:dormant_control"
+      ],
+      "primary_test_source": "cataclysm:ender_golem",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k11b-cataclysm-ender-golem-offense-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameter": "horizontal_write",
+          "native_value": 0.0,
+          "native_formula": "setDeltaMovement(0,oldY,0) while deactivateProgress>0",
+          "units": "absolute native X/Z velocity",
+          "boundary": "Ender_Golem$AwakenGoal.tick"
+        }
+      ],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Native admission, state and recorded numerical bounds remain native.",
+      "new_awake_state_transition": false,
+      "preserves_vertical_velocity": true,
+      "control_depends_on_hurt": false
     },
     {
       "id": "cataclysm:ender_golem_dormant_healing",
@@ -851,6 +1619,1375 @@
       "concrete_post_hurt_callback": false
     },
     {
+      "id": "cataclysm:ender_golem_melee_damage",
+      "mod_key": "cataclysm",
+      "display_name": "Ender Golem direct animation melee damage",
+      "registry_ids": [
+        "cataclysm:ender_golem"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "ATTACK1/2 animation tick13 requests mobAttack(Golem) once on current non-null/live target with strict distance<4.75: float(current ATTACK_DAMAGE)+float(nextInt(4)). Requested native amount is a computed float value, not an independent coefficient1 or fixed damage10. No local server/team gate, effect/status/enchantment followup or cooldown reset. Hurt result is discarded before the separate knockback call.",
+      "human_summary": "ATTACK1/2 animation tick13 requests mobAttack(Golem) once on current non-null/live target with strict distance<4.75: float(current ATTACK_DAMAGE)+float(nextInt(4)). Requested native amount is a computed float value, not an independent coefficient1 or fixed damage10. No local server/team gate, effect/status/enchantment followup or cooldown reset. Hurt result is discarded before the separate knockback call.",
+      "closest_vanilla_equivalent": "Native mobAttack damage with animation delivery and additive RNG",
+      "vanilla_similarities": "Native damage/knockback, entity navigation, hooks, tags and lifecycle remain authoritative at their named boundaries; protected contracts are reused.",
+      "vanilla_differences": "ATTACK1/2 animation tick13 requests mobAttack(Golem) once on current non-null/live target with strict distance<4.75: float(current ATTACK_DAMAGE)+float(nextInt(4)). Requested native amount is a computed float value, not an independent coefficient1 or fixed damage10. No local server/team gate, effect/status/enchantment followup or cooldown reset. Hurt result is discarded before the separate knockback call.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "formula": "f32(f32(current configured ATTACK_DAMAGE) + float(nextInt(4)))",
+          "numerical_parameters": {
+            "random_bound": 4
+          },
+          "parameter_units": {
+            "random_bound": "exclusive RNG bound"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Ender_Golem.tick animation13 -> target.hurt",
+          "vanilla_relation": "EXTENDED",
+          "parameter_formulas": {
+            "requested_damage": "f32(f32(current configured ATTACK_DAMAGE) + float(nextInt(4)))"
+          },
+          "formula_parameter_units": {
+            "requested_damage": "native HP damage request"
+          }
+        },
+        {
+          "primitive": "ATTACK_REACH",
+          "formula": "target.distanceTo(Golem)<4.75",
+          "numerical_parameters": {
+            "distance": 4.75
+          },
+          "parameter_units": {
+            "distance": "blocks; strict <"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Ender_Golem.tick target admission",
+          "vanilla_relation": "EXTENDED"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Locked self alive/progress0",
+        "ATTACK1/2 tick13, target non-null/alive, strict distance predicate",
+        "Native damage/cancellation/immunity/defense lifecycle"
+      ],
+      "custom_state": "Native Ender Golem animation, cooldown and owned rune state only; protected R2k11a awake/NBT/admission retained.",
+      "eligibility": "Locked self alive/progress0; ATTACK1/2 tick13, target non-null/alive, strict distance predicate; Native damage/cancellation/immunity/defense lifecycle",
+      "source_actor": "DamageSources.mobAttack(Ender Golem), direct/causing boss; original target.",
+      "hurt_return_dependency": "hurt result POP; following knockback does not depend on success.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ender-golem-offense:melee_damage"
+      ],
+      "primary_test_source": "cataclysm:ender_golem",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k11b-cataclysm-ender-golem-offense-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "ATTACK_REACH",
+          "parameters": [
+            "distance"
+          ],
+          "native_value": 4.75,
+          "native_formula": "target.distanceTo(Golem)<4.75",
+          "units": "blocks; strict <",
+          "native_boundary": "Ender_Golem.tick target admission"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "requested_damage"
+          ],
+          "native_value": null,
+          "native_formula": "f32(f32(current configured ATTACK_DAMAGE) + float(nextInt(4)))",
+          "units": "native HP damage request",
+          "native_boundary": "Ender_Golem.tick animation13 -> target.hurt"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameter": "random_bound",
+          "native_value": 4,
+          "native_formula": "f32(f32(current configured ATTACK_DAMAGE) + float(nextInt(4)))",
+          "units": "exclusive RNG bound",
+          "boundary": "Ender_Golem.tick animation13 -> target.hurt"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameter": "requested_damage",
+          "native_value": null,
+          "native_formula": "f32(f32(current configured ATTACK_DAMAGE) + float(nextInt(4)))",
+          "units": "native HP damage request",
+          "boundary": "Ender_Golem.tick animation13 -> target.hurt"
+        },
+        {
+          "primitive": "ATTACK_REACH",
+          "parameter": "distance",
+          "native_value": 4.75,
+          "native_formula": "target.distanceTo(Golem)<4.75",
+          "units": "blocks; strict <",
+          "boundary": "Ender_Golem.tick target admission"
+        }
+      ],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Native admission, state and recorded numerical bounds remain native.",
+      "hurt_return_used": false,
+      "post_hurt_status": false,
+      "invulnerability_reset": false,
+      "local_server_guard": false,
+      "local_team_guard": false
+    },
+    {
+      "id": "cataclysm:ender_golem_melee_knockback",
+      "mod_key": "cataclysm",
+      "display_name": "Ender Golem hurt-independent native melee knockback",
+      "registry_ids": [
+        "cataclysm:ender_golem"
+      ],
+      "primary_classification": "VANILLA_DIRECT",
+      "actual_behavior": "Immediately after direct melee hurt, irrespective of returned boolean, calls target.knockback(1.25,GolemX-targetX,GolemZ-targetZ). Native LivingEntity knockback resistance and native hooks/velocity operation remain authoritative. This is separate from EarthQuake Entity.push and absolute goal/body motion.",
+      "human_summary": "Immediately after direct melee hurt, irrespective of returned boolean, calls target.knockback(1.25,GolemX-targetX,GolemZ-targetZ). Native LivingEntity knockback resistance and native hooks/velocity operation remain authoritative. This is separate from EarthQuake Entity.push and absolute goal/body motion.",
+      "closest_vanilla_equivalent": "Native LivingEntity.knockback",
+      "vanilla_similarities": "Native damage/knockback, entity navigation, hooks, tags and lifecycle remain authoritative at their named boundaries; protected contracts are reused.",
+      "vanilla_differences": "Immediately after direct melee hurt, irrespective of returned boolean, calls target.knockback(1.25,GolemX-targetX,GolemZ-targetZ). Native LivingEntity knockback resistance and native hooks/velocity operation remain authoritative. This is separate from EarthQuake Entity.push and absolute goal/body motion.",
+      "components": [
+        {
+          "primitive": "KNOCKBACK",
+          "formula": "LivingEntity.knockback(1.25,GolemX-targetX,GolemZ-targetZ)",
+          "numerical_parameters": {
+            "strength": 1.25
+          },
+          "parameter_units": {
+            "strength": "native knockback strength"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Ender_Golem.tick after direct target.hurt",
+          "vanilla_relation": "DIRECT"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Same original direct melee admission",
+        "Native knockback resistance and cancellation remain native"
+      ],
+      "custom_state": "Native Ender Golem animation, cooldown and owned rune state only; protected R2k11a awake/NBT/admission retained.",
+      "eligibility": "Same original direct melee admission; Native knockback resistance and cancellation remain native",
+      "source_actor": "Native target knockback from Ender Golem coordinates.",
+      "hurt_return_dependency": "Runs after both true and false hurt return.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ender-golem-offense:melee_knockback"
+      ],
+      "primary_test_source": "cataclysm:ender_golem",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k11b-cataclysm-ender-golem-offense-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "KNOCKBACK",
+          "parameters": [
+            "strength"
+          ],
+          "native_value": 1.25,
+          "native_formula": "LivingEntity.knockback(1.25,GolemX-targetX,GolemZ-targetZ)",
+          "units": "native knockback strength",
+          "native_boundary": "Ender_Golem.tick after direct target.hurt"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "KNOCKBACK",
+          "parameter": "strength",
+          "native_value": 1.25,
+          "native_formula": "LivingEntity.knockback(1.25,GolemX-targetX,GolemZ-targetZ)",
+          "units": "native knockback strength",
+          "boundary": "Ender_Golem.tick after direct target.hurt"
+        }
+      ],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Native admission, state and recorded numerical bounds remain native.",
+      "control_depends_on_hurt": false,
+      "uses_native_knockback": true
+    },
+    {
+      "id": "cataclysm:ender_golem_pursuit_goal",
+      "mod_key": "cataclysm",
+      "display_name": "Ender Golem registered pursuit goal",
+      "registry_ids": [
+        "cataclysm:ender_golem"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "Priority2 CmAttackGoal extends native MeleeAttackGoal with long memory true and speed1. canUse only requires current target non-null/alive. Its tick overrides the parent melee tick: face target30/30, predecrement repath delay; when <=0 set4+nextInt(7). Beyond FOLLOW_RANGE squared, only when not pathfinding try moveTo(target,1), adding5 on failure; within range use stored speed1. stop always stops navigation and clears aggressive only for null target. Inherited start/continuation stay native. No hurt/doHurtTarget call or second melee delivery.",
+      "human_summary": "Priority2 CmAttackGoal extends native MeleeAttackGoal with long memory true and speed1. canUse only requires current target non-null/alive. Its tick overrides the parent melee tick: face target30/30, predecrement repath delay; when <=0 set4+nextInt(7). Beyond FOLLOW_RANGE squared, only when not pathfinding try moveTo(target,1), adding5 on failure; within range use stored speed1. stop always stops navigation and clears aggressive only for null target. Inherited start/continuation stay native. No hurt/doHurtTarget call or second melee delivery.",
+      "closest_vanilla_equivalent": "Native MeleeAttackGoal navigation with custom pursuit-only tick",
+      "vanilla_similarities": "Native damage/knockback, entity navigation, hooks, tags and lifecycle remain authoritative at their named boundaries; protected contracts are reused.",
+      "vanilla_differences": "Priority2 CmAttackGoal extends native MeleeAttackGoal with long memory true and speed1. canUse only requires current target non-null/alive. Its tick overrides the parent melee tick: face target30/30, predecrement repath delay; when <=0 set4+nextInt(7). Beyond FOLLOW_RANGE squared, only when not pathfinding try moveTo(target,1), adding5 on failure; within range use stored speed1. stop always stops navigation and clears aggressive only for null target. Inherited start/continuation stay native. No hurt/doHurtTarget call or second melee delivery.",
+      "components": [
+        {
+          "primitive": "NATIVE_NAVIGATION",
+          "formula": "repath after --delay<=0:4+nextInt(7); far failed path adds5; native moveTo speed1",
+          "numerical_parameters": {
+            "speed": 1.0,
+            "repath_base": 4,
+            "repath_random_bound": 7,
+            "failed_far_extra": 5
+          },
+          "parameter_units": {
+            "speed": "native navigation speed modifier",
+            "repath_base": "goal ticks",
+            "repath_random_bound": "exclusive RNG bound",
+            "failed_far_extra": "goal ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "CmAttackGoal constructor/canUse/tick/stop and Golem.registerGoals",
+          "vanilla_relation": "EXTENDED"
+        },
+        {
+          "primitive": "FORCED_FACING",
+          "formula": "native LookControl.setLookAt(target,30f,30f)",
+          "numerical_parameters": {
+            "yaw": 30.0,
+            "pitch": 30.0
+          },
+          "parameter_units": {
+            "yaw": "native yaw step degrees",
+            "pitch": "native pitch step degrees"
+          },
+          "binary_parameters": [],
+          "native_boundary": "CmAttackGoal.tick",
+          "vanilla_relation": "DIRECT"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native inherited goal start/continuation/flag admission",
+        "Target/non-null/live and FOLLOW_RANGE/pathfinding predicates remain native"
+      ],
+      "custom_state": "Native Ender Golem animation, cooldown and owned rune state only; protected R2k11a awake/NBT/admission retained.",
+      "eligibility": "Native inherited goal start/continuation/flag admission; Target/non-null/live and FOLLOW_RANGE/pathfinding predicates remain native",
+      "source_actor": "Registered native Ender Golem goal; no separate damage actor.",
+      "hurt_return_dependency": "No damage request in this goal.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "registerGoals"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AI/CmAttackGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AI/CmAttackGoal.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "tick",
+            "stop"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ender-golem-offense:pursuit_goal"
+      ],
+      "primary_test_source": "cataclysm:ender_golem",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k11b-cataclysm-ender-golem-offense-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_NAVIGATION",
+          "parameter": "speed",
+          "native_value": 1.0,
+          "native_formula": "repath after --delay<=0:4+nextInt(7); far failed path adds5; native moveTo speed1",
+          "units": "native navigation speed modifier",
+          "boundary": "CmAttackGoal constructor/canUse/tick/stop and Golem.registerGoals"
+        },
+        {
+          "primitive": "NATIVE_NAVIGATION",
+          "parameter": "repath_base",
+          "native_value": 4,
+          "native_formula": "repath after --delay<=0:4+nextInt(7); far failed path adds5; native moveTo speed1",
+          "units": "goal ticks",
+          "boundary": "CmAttackGoal constructor/canUse/tick/stop and Golem.registerGoals"
+        },
+        {
+          "primitive": "NATIVE_NAVIGATION",
+          "parameter": "repath_random_bound",
+          "native_value": 7,
+          "native_formula": "repath after --delay<=0:4+nextInt(7); far failed path adds5; native moveTo speed1",
+          "units": "exclusive RNG bound",
+          "boundary": "CmAttackGoal constructor/canUse/tick/stop and Golem.registerGoals"
+        },
+        {
+          "primitive": "NATIVE_NAVIGATION",
+          "parameter": "failed_far_extra",
+          "native_value": 5,
+          "native_formula": "repath after --delay<=0:4+nextInt(7); far failed path adds5; native moveTo speed1",
+          "units": "goal ticks",
+          "boundary": "CmAttackGoal constructor/canUse/tick/stop and Golem.registerGoals"
+        },
+        {
+          "primitive": "FORCED_FACING",
+          "parameter": "yaw",
+          "native_value": 30.0,
+          "native_formula": "native LookControl.setLookAt(target,30f,30f)",
+          "units": "native yaw step degrees",
+          "boundary": "CmAttackGoal.tick"
+        },
+        {
+          "primitive": "FORCED_FACING",
+          "parameter": "pitch",
+          "native_value": 30.0,
+          "native_formula": "native LookControl.setLookAt(target,30f,30f)",
+          "units": "native pitch step degrees",
+          "boundary": "CmAttackGoal.tick"
+        }
+      ],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Native admission, state and recorded numerical bounds remain native.",
+      "pursuit_calls_native_hurt": false,
+      "inherited_tick_called": false,
+      "long_memory": true
+    },
+    {
+      "id": "cataclysm:ender_golem_quake_damage",
+      "mod_key": "cataclysm",
+      "display_name": "Ender Golem EarthQuake native damage requests",
+      "registry_ids": [
+        "cataclysm:ender_golem"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "EarthQuake(5,6) at quake19 and EarthQuake(4.25,4) at rune22 query server LivingEntities in boss AABB inflated equally by grow. Reject boss allies, all Ender Golems and self. Each admitted victim gets mobAttack(Golem), float(current ATTACK_DAMAGE)+float(nextInt(damage)). No radial/LOS filter, explosion, cooldown reset or status. Native hurt return is discarded; separate launch(true) always follows. Helper sound consumes nextFloat before server guard.",
+      "human_summary": "EarthQuake(5,6) at quake19 and EarthQuake(4.25,4) at rune22 query server LivingEntities in boss AABB inflated equally by grow. Reject boss allies, all Ender Golems and self. Each admitted victim gets mobAttack(Golem), float(current ATTACK_DAMAGE)+float(nextInt(damage)). No radial/LOS filter, explosion, cooldown reset or status. Native hurt return is discarded; separate launch(true) always follows. Helper sound consumes nextFloat before server guard.",
+      "closest_vanilla_equivalent": "Native mobAttack requests in custom AABB area delivery",
+      "vanilla_similarities": "Native damage/knockback, entity navigation, hooks, tags and lifecycle remain authoritative at their named boundaries; protected contracts are reused.",
+      "vanilla_differences": "EarthQuake(5,6) at quake19 and EarthQuake(4.25,4) at rune22 query server LivingEntities in boss AABB inflated equally by grow. Reject boss allies, all Ender Golems and self. Each admitted victim gets mobAttack(Golem), float(current ATTACK_DAMAGE)+float(nextInt(damage)). No radial/LOS filter, explosion, cooldown reset or status. Native hurt return is discarded; separate launch(true) always follows. Helper sound consumes nextFloat before server guard.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "formula": "f32(f32(current configured ATTACK_DAMAGE) + float(nextInt(damage))) where EarthQuake damage argument is6 at quake19 or4 at rune22",
+          "numerical_parameters": {
+            "quake_random_bound": 6,
+            "rune_random_bound": 4
+          },
+          "parameter_units": {
+            "quake_random_bound": "exclusive RNG bound",
+            "rune_random_bound": "exclusive RNG bound"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Ender_Golem.EarthQuake -> livingentity.hurt",
+          "vanilla_relation": "EXTENDED",
+          "parameter_formulas": {
+            "requested_damage": "f32(f32(current configured ATTACK_DAMAGE) + float(nextInt(damage))) where EarthQuake damage argument is6 at quake19 or4 at rune22"
+          },
+          "formula_parameter_units": {
+            "requested_damage": "native HP damage request per victim"
+          }
+        },
+        {
+          "primitive": "AREA_QUERY",
+          "formula": "LivingEntities in boss bounding box inflated(grow,grow,grow)",
+          "numerical_parameters": {
+            "quake_grow": 5.0,
+            "rune_grow": 4.25
+          },
+          "parameter_units": {
+            "quake_grow": "AABB expansion blocks",
+            "rune_grow": "AABB expansion blocks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Ender_Golem.tick -> EarthQuake(grow,damage)",
+          "vanilla_relation": "EXTENDED"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Server query",
+        "Boss alliance plus all-Golem/self exclusion",
+        "Original native damage defenses/cancellation"
+      ],
+      "custom_state": "Native Ender Golem animation, cooldown and owned rune state only; protected R2k11a awake/NBT/admission retained.",
+      "eligibility": "Server query; Boss alliance plus all-Golem/self exclusion; Original native damage defenses/cancellation",
+      "source_actor": "DamageSources.mobAttack(Ender Golem); direct/causing boss, each query victim.",
+      "hurt_return_dependency": "hurt return POP then launch(victim,true), not a success callback.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "tick",
+            "EarthQuake",
+            "isAlliedTo"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ender-golem-offense:quake_damage"
+      ],
+      "primary_test_source": "cataclysm:ender_golem",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k11b-cataclysm-ender-golem-offense-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "AREA_QUERY",
+          "parameters": [
+            "quake_grow"
+          ],
+          "native_value": 5.0,
+          "native_formula": "LivingEntities in boss bounding box inflated(grow,grow,grow)",
+          "units": "AABB expansion blocks",
+          "native_boundary": "Ender_Golem.tick -> EarthQuake(grow,damage)"
+        },
+        {
+          "primitive": "AREA_QUERY",
+          "parameters": [
+            "rune_grow"
+          ],
+          "native_value": 4.25,
+          "native_formula": "LivingEntities in boss bounding box inflated(grow,grow,grow)",
+          "units": "AABB expansion blocks",
+          "native_boundary": "Ender_Golem.tick -> EarthQuake(grow,damage)"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "requested_damage"
+          ],
+          "native_value": null,
+          "native_formula": "f32(f32(current configured ATTACK_DAMAGE) + float(nextInt(damage))) where EarthQuake damage argument is6 at quake19 or4 at rune22",
+          "units": "native HP damage request per victim",
+          "native_boundary": "Ender_Golem.EarthQuake -> livingentity.hurt"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameter": "quake_random_bound",
+          "native_value": 6,
+          "native_formula": "f32(f32(current configured ATTACK_DAMAGE) + float(nextInt(damage))) where EarthQuake damage argument is6 at quake19 or4 at rune22",
+          "units": "exclusive RNG bound",
+          "boundary": "Ender_Golem.EarthQuake -> livingentity.hurt"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameter": "rune_random_bound",
+          "native_value": 4,
+          "native_formula": "f32(f32(current configured ATTACK_DAMAGE) + float(nextInt(damage))) where EarthQuake damage argument is6 at quake19 or4 at rune22",
+          "units": "exclusive RNG bound",
+          "boundary": "Ender_Golem.EarthQuake -> livingentity.hurt"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameter": "requested_damage",
+          "native_value": null,
+          "native_formula": "f32(f32(current configured ATTACK_DAMAGE) + float(nextInt(damage))) where EarthQuake damage argument is6 at quake19 or4 at rune22",
+          "units": "native HP damage request per victim",
+          "boundary": "Ender_Golem.EarthQuake -> livingentity.hurt"
+        },
+        {
+          "primitive": "AREA_QUERY",
+          "parameter": "quake_grow",
+          "native_value": 5.0,
+          "native_formula": "LivingEntities in boss bounding box inflated(grow,grow,grow)",
+          "units": "AABB expansion blocks",
+          "boundary": "Ender_Golem.tick -> EarthQuake(grow,damage)"
+        },
+        {
+          "primitive": "AREA_QUERY",
+          "parameter": "rune_grow",
+          "native_value": 4.25,
+          "native_formula": "LivingEntities in boss bounding box inflated(grow,grow,grow)",
+          "units": "AABB expansion blocks",
+          "boundary": "Ender_Golem.tick -> EarthQuake(grow,damage)"
+        }
+      ],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Native admission, state and recorded numerical bounds remain native.",
+      "hurt_return_used": false,
+      "launch_depends_on_hurt": false,
+      "uses_native_explosion": false,
+      "extra_radial_filter": false,
+      "quake_server_only": true
+    },
+    {
+      "id": "cataclysm:ender_golem_quake_launch",
+      "mod_key": "cataclysm",
+      "display_name": "Ender Golem hurt-independent EarthQuake launch",
+      "registry_ids": [
+        "cataclysm:ender_golem"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Every admitted EarthQuake victim is passed to private launch(victim,true) after hurt. dx/dz=victim-boss, d2=max(dx*dx+dz*dz,.001); native Entity.push(dx/d2*2,.5,dz/d2*2). Additive inverse-squared horizontal push and fixed Y increment, not LivingEntity.knockback; does not read knockback resistance or hurt result. Only active caller passes huge=true; private false branch .5 power/float .2 Y is not an active delivery.",
+      "human_summary": "Every admitted EarthQuake victim is passed to private launch(victim,true) after hurt. dx/dz=victim-boss, d2=max(dx*dx+dz*dz,.001); native Entity.push(dx/d2*2,.5,dz/d2*2). Additive inverse-squared horizontal push and fixed Y increment, not LivingEntity.knockback; does not read knockback resistance or hurt result. Only active caller passes huge=true; private false branch .5 power/float .2 Y is not an active delivery.",
+      "closest_vanilla_equivalent": "Entity.push custom movement, distinct from native knockback",
+      "vanilla_similarities": "Native damage/knockback, entity navigation, hooks, tags and lifecycle remain authoritative at their named boundaries; protected contracts are reused.",
+      "vanilla_differences": "Every admitted EarthQuake victim is passed to private launch(victim,true) after hurt. dx/dz=victim-boss, d2=max(dx*dx+dz*dz,.001); native Entity.push(dx/d2*2,.5,dz/d2*2). Additive inverse-squared horizontal push and fixed Y increment, not LivingEntity.knockback; does not read knockback resistance or hurt result. Only active caller passes huge=true; private false branch .5 power/float .2 Y is not an active delivery.",
+      "components": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "formula": "Entity.push(dx/max(dx²+dz²,.001)*2, .5, dz/max(dx²+dz²,.001)*2)",
+          "numerical_parameters": {
+            "horizontal_factor": 2.0,
+            "vertical_increment": 0.5,
+            "native_denominator_minimum": 0.001
+          },
+          "parameter_units": {
+            "horizontal_factor": "native inverse-squared horizontal push coefficient",
+            "vertical_increment": "native Y velocity increment",
+            "native_denominator_minimum": "native denominator lower bound; blocks squared"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Ender_Golem.EarthQuake -> launch(victim,true)",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Original EarthQuake query/team/type gates",
+        "Native denominator minimum is an existing bound",
+        "Unused false branch is not promoted"
+      ],
+      "custom_state": "Native Ender Golem animation, cooldown and owned rune state only; protected R2k11a awake/NBT/admission retained.",
+      "eligibility": "Original EarthQuake query/team/type gates; Native denominator minimum is an existing bound; Unused false branch is not promoted",
+      "source_actor": "Ender Golem coordinates drive victim Entity.push.",
+      "hurt_return_dependency": "Runs for admitted victim after hurt true or false.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "EarthQuake",
+            "launch"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ender-golem-offense:quake_launch"
+      ],
+      "primary_test_source": "cataclysm:ender_golem",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k11b-cataclysm-ender-golem-offense-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "horizontal_factor"
+          ],
+          "native_value": 2.0,
+          "native_formula": "Entity.push(dx/max(dx²+dz²,.001)*2, .5, dz/max(dx²+dz²,.001)*2)",
+          "units": "native inverse-squared horizontal push coefficient",
+          "native_boundary": "Ender_Golem.EarthQuake -> launch(victim,true)"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "vertical_increment"
+          ],
+          "native_value": 0.5,
+          "native_formula": "Entity.push(dx/max(dx²+dz²,.001)*2, .5, dz/max(dx²+dz²,.001)*2)",
+          "units": "native Y velocity increment",
+          "native_boundary": "Ender_Golem.EarthQuake -> launch(victim,true)"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameter": "horizontal_factor",
+          "native_value": 2.0,
+          "native_formula": "Entity.push(dx/max(dx²+dz²,.001)*2, .5, dz/max(dx²+dz²,.001)*2)",
+          "units": "native inverse-squared horizontal push coefficient",
+          "boundary": "Ender_Golem.EarthQuake -> launch(victim,true)"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameter": "vertical_increment",
+          "native_value": 0.5,
+          "native_formula": "Entity.push(dx/max(dx²+dz²,.001)*2, .5, dz/max(dx²+dz²,.001)*2)",
+          "units": "native Y velocity increment",
+          "boundary": "Ender_Golem.EarthQuake -> launch(victim,true)"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameter": "native_denominator_minimum",
+          "native_value": 0.001,
+          "native_formula": "Entity.push(dx/max(dx²+dz²,.001)*2, .5, dz/max(dx²+dz²,.001)*2)",
+          "units": "native denominator lower bound; blocks squared",
+          "boundary": "Ender_Golem.EarthQuake -> launch(victim,true)"
+        }
+      ],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Native admission, state and recorded numerical bounds remain native.",
+      "control_depends_on_hurt": false,
+      "uses_native_knockback": false,
+      "reads_knockback_resistance": false,
+      "active_huge_only": true
+    },
+    {
+      "id": "cataclysm:ender_golem_rune_damage",
+      "mod_key": "cataclysm",
+      "display_name": "Ender Golem Void Rune native magic payload binding",
+      "registry_ids": [
+        "cataclysm:ender_golem"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "Golem spawnFangs stores float(EnderGolem.VoidRuneDamage), installed snapshot7.0, in the existing Void Rune constructor. Reuse locked rune: server warmup -11..-29, absolute tickCount%5==0, query AABB.inflate(.2,0,.2), alive/non-invulnerable/not-caster plus bidirectional alliance when caster resolves. Resolved caster produces indirectMagic(rune,caster), otherwise native magic() fallback; request stored damage once per admitted native pulse. Hurt boolean discarded; no effect/enchantment/cooldown reset. Guardian rune value9 and contract remain unchanged.",
+      "human_summary": "Golem spawnFangs stores float(EnderGolem.VoidRuneDamage), installed snapshot7.0, in the existing Void Rune constructor. Reuse locked rune: server warmup -11..-29, absolute tickCount%5==0, query AABB.inflate(.2,0,.2), alive/non-invulnerable/not-caster plus bidirectional alliance when caster resolves. Resolved caster produces indirectMagic(rune,caster), otherwise native magic() fallback; request stored damage once per admitted native pulse. Hurt boolean discarded; no effect/enchantment/cooldown reset. Guardian rune value9 and contract remain unchanged.",
+      "closest_vanilla_equivalent": "Native indirectMagic/magic request in existing custom delayed rune",
+      "vanilla_similarities": "Native damage/knockback, entity navigation, hooks, tags and lifecycle remain authoritative at their named boundaries; protected contracts are reused.",
+      "vanilla_differences": "Golem spawnFangs stores float(EnderGolem.VoidRuneDamage), installed snapshot7.0, in the existing Void Rune constructor. Reuse locked rune: server warmup -11..-29, absolute tickCount%5==0, query AABB.inflate(.2,0,.2), alive/non-invulnerable/not-caster plus bidirectional alliance when caster resolves. Resolved caster produces indirectMagic(rune,caster), otherwise native magic() fallback; request stored damage once per admitted native pulse. Hurt boolean discarded; no effect/enchantment/cooldown reset. Guardian rune value9 and contract remain unchanged.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "formula": "stored float(config EnderGolem.VoidRuneDamage) requested at locked rune.damage boundary",
+          "numerical_parameters": {
+            "amount": 7.0
+          },
+          "parameter_units": {
+            "amount": "native HP request; installed static config snapshot"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Golem.spawnFangs constructor binding -> reused Void_Rune_Entity.damage",
+          "vanilla_relation": "EXTENDED"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "All locked Void Rune pulse/caster/team/admission gates",
+        "Installed config snapshot is not proof of live loaded values",
+        "Native magic DamageTypes/defenses/hooks retained"
+      ],
+      "custom_state": "Native Ender Golem animation, cooldown and owned rune state only; protected R2k11a awake/NBT/admission retained.",
+      "eligibility": "All locked Void Rune pulse/caster/team/admission gates; Installed config snapshot is not proof of live loaded values; Native magic DamageTypes/defenses/hooks retained",
+      "source_actor": "Native rune direct entity, Ender Golem causing caster when resolved; otherwise source magic without caster.",
+      "hurt_return_dependency": "Rune hurt return unused; no synthesized second hurt/effect.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "spawnFangs"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/projectile/Void_Rune_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Void_Rune_Entity.class",
+          "methods": [
+            "setCaster",
+            "getCaster",
+            "tick",
+            "damage",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ender-golem-offense:rune_damage"
+      ],
+      "primary_test_source": "cataclysm:ender_golem",
+      "alternate_sources": [],
+      "spawned_entity_ids": [
+        "cataclysm:void_rune"
+      ],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k11b-cataclysm-ender-golem-offense-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "amount"
+          ],
+          "native_value": 7.0,
+          "native_formula": "stored float(config EnderGolem.VoidRuneDamage) requested at locked rune.damage boundary",
+          "units": "native HP request; installed static config snapshot",
+          "native_boundary": "Golem.spawnFangs constructor binding -> reused Void_Rune_Entity.damage"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameter": "amount",
+          "native_value": 7.0,
+          "native_formula": "stored float(config EnderGolem.VoidRuneDamage) requested at locked rune.damage boundary",
+          "units": "native HP request; installed static config snapshot",
+          "boundary": "Golem.spawnFangs constructor binding -> reused Void_Rune_Entity.damage"
+        }
+      ],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Native admission, state and recorded numerical bounds remain native.",
+      "hurt_return_used": false,
+      "stored_damage_at_creation": true,
+      "payload_evidence_reused": true,
+      "guardian_damage_binding_unchanged": true,
+      "anonymous_magic_fallback": true
+    },
+    {
+      "id": "cataclysm:ender_golem_rune_delivery",
+      "mod_key": "cataclysm",
+      "display_name": "Ender Golem ground-supported Void Rune layout",
+      "registry_ids": [
+        "cataclysm:ender_golem"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "Rune tick28 with non-null target: bound Y by min(targetY,bossY)..max+1, aim atan2 target delta. Two lines of10 at1.5*(l+1), yaw lateral±2, rotation aim, delay int(1.25f*l); ring6 radius2.5, angle aim+k*floatPI*2/6+float .83775806, delay5; Gaussian8 with independent X/Z gaussian*4.5, delay15. Native ring rotation argument is lateralX f2 and Gaussian rotation is lateralZ f3, not their placement angle; retain literal calls. 34 attempts, not34 guaranteed spawns. spawnFangs searches downward to floor(minY)-1, requires sturdy UP support and uses collision top Y. Creates custom Void_Rune_Entity with caster=this and float(config EnderGolem.VoidRuneDamage); native addFreshEntity result discarded. No local helper server guard; named spawnFangs does not create EvokerFangs.",
+      "human_summary": "Rune tick28 with non-null target: bound Y by min(targetY,bossY)..max+1, aim atan2 target delta. Two lines of10 at1.5*(l+1), yaw lateral±2, rotation aim, delay int(1.25f*l); ring6 radius2.5, angle aim+k*floatPI*2/6+float .83775806, delay5; Gaussian8 with independent X/Z gaussian*4.5, delay15. Native ring rotation argument is lateralX f2 and Gaussian rotation is lateralZ f3, not their placement angle; retain literal calls. 34 attempts, not34 guaranteed spawns. spawnFangs searches downward to floor(minY)-1, requires sturdy UP support and uses collision top Y. Creates custom Void_Rune_Entity with caster=this and float(config EnderGolem.VoidRuneDamage); native addFreshEntity result discarded. No local helper server guard; named spawnFangs does not create EvokerFangs.",
+      "closest_vanilla_equivalent": "Evoker-style support search/layout with existing custom Void Rune entity",
+      "vanilla_similarities": "Native damage/knockback, entity navigation, hooks, tags and lifecycle remain authoritative at their named boundaries; protected contracts are reused.",
+      "vanilla_differences": "Rune tick28 with non-null target: bound Y by min(targetY,bossY)..max+1, aim atan2 target delta. Two lines of10 at1.5*(l+1), yaw lateral±2, rotation aim, delay int(1.25f*l); ring6 radius2.5, angle aim+k*floatPI*2/6+float .83775806, delay5; Gaussian8 with independent X/Z gaussian*4.5, delay15. Native ring rotation argument is lateralX f2 and Gaussian rotation is lateralZ f3, not their placement angle; retain literal calls. 34 attempts, not34 guaranteed spawns. spawnFangs searches downward to floor(minY)-1, requires sturdy UP support and uses collision top Y. Creates custom Void_Rune_Entity with caster=this and float(config EnderGolem.VoidRuneDamage); native addFreshEntity result discarded. No local helper server guard; named spawnFangs does not create EvokerFangs.",
+      "components": [
+        {
+          "primitive": "RUNE_DELIVERY",
+          "formula": "two lines10*2 + ring6 + Gaussian8; original rotation/delay/support calls unchanged",
+          "numerical_parameters": {
+            "line_iterations": 10,
+            "line_step": 1.5,
+            "lateral_offset": 2.0,
+            "line_delay_factor": 1.25,
+            "ring_count": 6,
+            "ring_radius": 2.5,
+            "ring_angle_offset": 0.8377580642700195,
+            "ring_delay": 5,
+            "gaussian_count": 8,
+            "gaussian_spread": 4.5,
+            "gaussian_delay": 15
+          },
+          "parameter_units": {
+            "line_iterations": "iterations; two native spawn attempts each",
+            "line_step": "blocks per step",
+            "lateral_offset": "blocks from yaw trig",
+            "line_delay_factor": "native warmup ticks per index before int truncation",
+            "ring_count": "native spawn attempts",
+            "ring_radius": "blocks",
+            "ring_angle_offset": "native float radians",
+            "ring_delay": "native warmup ticks",
+            "gaussian_count": "native spawn attempts",
+            "gaussian_spread": "Gaussian X/Z blocks",
+            "gaussian_delay": "native warmup ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Ender_Golem.VoidRuneAttack -> spawnFangs -> new Void_Rune_Entity",
+          "vanilla_relation": "EXTENDED"
+        },
+        {
+          "primitive": "GROUND_ADMISSION",
+          "formula": "downward supporting UP face and collision shape top; stop floor(minY)-1",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "Native sturdy face/support/collision bounds"
+          ],
+          "native_boundary": "Ender_Golem.spawnFangs",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Locked native Rune animation28 and self-alive/progress0",
+        "Current target non-null; no helper target-alive test",
+        "Native ground support and original addFreshEntity lifecycle"
+      ],
+      "custom_state": "Native Ender Golem animation, cooldown and owned rune state only; protected R2k11a awake/NBT/admission retained.",
+      "eligibility": "Locked native Rune animation28 and self-alive/progress0; Current target non-null; no helper target-alive test; Native ground support and original addFreshEntity lifecycle",
+      "source_actor": "Ender Golem caster passed to each separate native Void Rune.",
+      "hurt_return_dependency": "Delivery independent of EarthQuake hurt results; each rune controls its own later hurt.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "tick",
+            "VoidRuneAttack",
+            "spawnFangs"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ender-golem-offense:rune_delivery"
+      ],
+      "primary_test_source": "cataclysm:ender_golem",
+      "alternate_sources": [],
+      "spawned_entity_ids": [
+        "cataclysm:void_rune"
+      ],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k11b-cataclysm-ender-golem-offense-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "RUNE_DELIVERY",
+          "parameters": [
+            "gaussian_count"
+          ],
+          "native_value": 8,
+          "native_formula": "two lines10*2 + ring6 + Gaussian8; original rotation/delay/support calls unchanged",
+          "units": "native spawn attempts",
+          "native_boundary": "Ender_Golem.VoidRuneAttack -> spawnFangs -> new Void_Rune_Entity"
+        },
+        {
+          "primitive": "RUNE_DELIVERY",
+          "parameters": [
+            "gaussian_delay"
+          ],
+          "native_value": 15,
+          "native_formula": "two lines10*2 + ring6 + Gaussian8; original rotation/delay/support calls unchanged",
+          "units": "native warmup ticks",
+          "native_boundary": "Ender_Golem.VoidRuneAttack -> spawnFangs -> new Void_Rune_Entity"
+        },
+        {
+          "primitive": "RUNE_DELIVERY",
+          "parameters": [
+            "gaussian_spread"
+          ],
+          "native_value": 4.5,
+          "native_formula": "two lines10*2 + ring6 + Gaussian8; original rotation/delay/support calls unchanged",
+          "units": "Gaussian X/Z blocks",
+          "native_boundary": "Ender_Golem.VoidRuneAttack -> spawnFangs -> new Void_Rune_Entity"
+        },
+        {
+          "primitive": "RUNE_DELIVERY",
+          "parameters": [
+            "lateral_offset"
+          ],
+          "native_value": 2.0,
+          "native_formula": "two lines10*2 + ring6 + Gaussian8; original rotation/delay/support calls unchanged",
+          "units": "blocks from yaw trig",
+          "native_boundary": "Ender_Golem.VoidRuneAttack -> spawnFangs -> new Void_Rune_Entity"
+        },
+        {
+          "primitive": "RUNE_DELIVERY",
+          "parameters": [
+            "line_delay_factor"
+          ],
+          "native_value": 1.25,
+          "native_formula": "two lines10*2 + ring6 + Gaussian8; original rotation/delay/support calls unchanged",
+          "units": "native warmup ticks per index before int truncation",
+          "native_boundary": "Ender_Golem.VoidRuneAttack -> spawnFangs -> new Void_Rune_Entity"
+        },
+        {
+          "primitive": "RUNE_DELIVERY",
+          "parameters": [
+            "line_iterations"
+          ],
+          "native_value": 10,
+          "native_formula": "two lines10*2 + ring6 + Gaussian8; original rotation/delay/support calls unchanged",
+          "units": "iterations; two native spawn attempts each",
+          "native_boundary": "Ender_Golem.VoidRuneAttack -> spawnFangs -> new Void_Rune_Entity"
+        },
+        {
+          "primitive": "RUNE_DELIVERY",
+          "parameters": [
+            "line_step"
+          ],
+          "native_value": 1.5,
+          "native_formula": "two lines10*2 + ring6 + Gaussian8; original rotation/delay/support calls unchanged",
+          "units": "blocks per step",
+          "native_boundary": "Ender_Golem.VoidRuneAttack -> spawnFangs -> new Void_Rune_Entity"
+        },
+        {
+          "primitive": "RUNE_DELIVERY",
+          "parameters": [
+            "ring_angle_offset"
+          ],
+          "native_value": 0.8377580642700195,
+          "native_formula": "two lines10*2 + ring6 + Gaussian8; original rotation/delay/support calls unchanged",
+          "units": "native float radians",
+          "native_boundary": "Ender_Golem.VoidRuneAttack -> spawnFangs -> new Void_Rune_Entity"
+        },
+        {
+          "primitive": "RUNE_DELIVERY",
+          "parameters": [
+            "ring_count"
+          ],
+          "native_value": 6,
+          "native_formula": "two lines10*2 + ring6 + Gaussian8; original rotation/delay/support calls unchanged",
+          "units": "native spawn attempts",
+          "native_boundary": "Ender_Golem.VoidRuneAttack -> spawnFangs -> new Void_Rune_Entity"
+        },
+        {
+          "primitive": "RUNE_DELIVERY",
+          "parameters": [
+            "ring_delay"
+          ],
+          "native_value": 5,
+          "native_formula": "two lines10*2 + ring6 + Gaussian8; original rotation/delay/support calls unchanged",
+          "units": "native warmup ticks",
+          "native_boundary": "Ender_Golem.VoidRuneAttack -> spawnFangs -> new Void_Rune_Entity"
+        },
+        {
+          "primitive": "RUNE_DELIVERY",
+          "parameters": [
+            "ring_radius"
+          ],
+          "native_value": 2.5,
+          "native_formula": "two lines10*2 + ring6 + Gaussian8; original rotation/delay/support calls unchanged",
+          "units": "blocks",
+          "native_boundary": "Ender_Golem.VoidRuneAttack -> spawnFangs -> new Void_Rune_Entity"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "RUNE_DELIVERY",
+          "parameter": "line_iterations",
+          "native_value": 10,
+          "native_formula": "two lines10*2 + ring6 + Gaussian8; original rotation/delay/support calls unchanged",
+          "units": "iterations; two native spawn attempts each",
+          "boundary": "Ender_Golem.VoidRuneAttack -> spawnFangs -> new Void_Rune_Entity"
+        },
+        {
+          "primitive": "RUNE_DELIVERY",
+          "parameter": "line_step",
+          "native_value": 1.5,
+          "native_formula": "two lines10*2 + ring6 + Gaussian8; original rotation/delay/support calls unchanged",
+          "units": "blocks per step",
+          "boundary": "Ender_Golem.VoidRuneAttack -> spawnFangs -> new Void_Rune_Entity"
+        },
+        {
+          "primitive": "RUNE_DELIVERY",
+          "parameter": "lateral_offset",
+          "native_value": 2.0,
+          "native_formula": "two lines10*2 + ring6 + Gaussian8; original rotation/delay/support calls unchanged",
+          "units": "blocks from yaw trig",
+          "boundary": "Ender_Golem.VoidRuneAttack -> spawnFangs -> new Void_Rune_Entity"
+        },
+        {
+          "primitive": "RUNE_DELIVERY",
+          "parameter": "line_delay_factor",
+          "native_value": 1.25,
+          "native_formula": "two lines10*2 + ring6 + Gaussian8; original rotation/delay/support calls unchanged",
+          "units": "native warmup ticks per index before int truncation",
+          "boundary": "Ender_Golem.VoidRuneAttack -> spawnFangs -> new Void_Rune_Entity"
+        },
+        {
+          "primitive": "RUNE_DELIVERY",
+          "parameter": "ring_count",
+          "native_value": 6,
+          "native_formula": "two lines10*2 + ring6 + Gaussian8; original rotation/delay/support calls unchanged",
+          "units": "native spawn attempts",
+          "boundary": "Ender_Golem.VoidRuneAttack -> spawnFangs -> new Void_Rune_Entity"
+        },
+        {
+          "primitive": "RUNE_DELIVERY",
+          "parameter": "ring_radius",
+          "native_value": 2.5,
+          "native_formula": "two lines10*2 + ring6 + Gaussian8; original rotation/delay/support calls unchanged",
+          "units": "blocks",
+          "boundary": "Ender_Golem.VoidRuneAttack -> spawnFangs -> new Void_Rune_Entity"
+        },
+        {
+          "primitive": "RUNE_DELIVERY",
+          "parameter": "ring_angle_offset",
+          "native_value": 0.8377580642700195,
+          "native_formula": "two lines10*2 + ring6 + Gaussian8; original rotation/delay/support calls unchanged",
+          "units": "native float radians",
+          "boundary": "Ender_Golem.VoidRuneAttack -> spawnFangs -> new Void_Rune_Entity"
+        },
+        {
+          "primitive": "RUNE_DELIVERY",
+          "parameter": "ring_delay",
+          "native_value": 5,
+          "native_formula": "two lines10*2 + ring6 + Gaussian8; original rotation/delay/support calls unchanged",
+          "units": "native warmup ticks",
+          "boundary": "Ender_Golem.VoidRuneAttack -> spawnFangs -> new Void_Rune_Entity"
+        },
+        {
+          "primitive": "RUNE_DELIVERY",
+          "parameter": "gaussian_count",
+          "native_value": 8,
+          "native_formula": "two lines10*2 + ring6 + Gaussian8; original rotation/delay/support calls unchanged",
+          "units": "native spawn attempts",
+          "boundary": "Ender_Golem.VoidRuneAttack -> spawnFangs -> new Void_Rune_Entity"
+        },
+        {
+          "primitive": "RUNE_DELIVERY",
+          "parameter": "gaussian_spread",
+          "native_value": 4.5,
+          "native_formula": "two lines10*2 + ring6 + Gaussian8; original rotation/delay/support calls unchanged",
+          "units": "Gaussian X/Z blocks",
+          "boundary": "Ender_Golem.VoidRuneAttack -> spawnFangs -> new Void_Rune_Entity"
+        },
+        {
+          "primitive": "RUNE_DELIVERY",
+          "parameter": "gaussian_delay",
+          "native_value": 15,
+          "native_formula": "two lines10*2 + ring6 + Gaussian8; original rotation/delay/support calls unchanged",
+          "units": "native warmup ticks",
+          "boundary": "Ender_Golem.VoidRuneAttack -> spawnFangs -> new Void_Rune_Entity"
+        }
+      ],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Native admission, state and recorded numerical bounds remain native.",
+      "spawn_attempts": 34,
+      "guaranteed_spawn_count": false,
+      "ring_rotation_argument": "lateralX f2",
+      "gaussian_rotation_argument": "lateralZ f3",
+      "helper_local_server_guard": false,
+      "spawn_return_used": false,
+      "creates_evoker_fangs": false
+    },
+    {
+      "id": "cataclysm:ender_golem_rune_lifecycle",
+      "mod_key": "cataclysm",
+      "display_name": "Ender Golem reused native rune lifetime and caster persistence",
+      "registry_ids": [
+        "cataclysm:ender_golem"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Reuse Guardian-closed Void Rune Entity, not a Projectile: server predecrements warmup; active gate -11..-29 inclusive and absolute entity tick%5 cadence, lifeTicks initially34 predecremented only after warmup<0 then discard<0. Owner cached LivingEntity/UUID resolves on server. Native NBT saves Warmup, optional Owner and damage; lifeTicks is not saved and resets with constructor. No receipt/state transport, impact event, added pulse, damage source or callback. Golem changes only caster/config/layout binding.",
+      "human_summary": "Reuse Guardian-closed Void Rune Entity, not a Projectile: server predecrements warmup; active gate -11..-29 inclusive and absolute entity tick%5 cadence, lifeTicks initially34 predecremented only after warmup<0 then discard<0. Owner cached LivingEntity/UUID resolves on server. Native NBT saves Warmup, optional Owner and damage; lifeTicks is not saved and resets with constructor. No receipt/state transport, impact event, added pulse, damage source or callback. Golem changes only caster/config/layout binding.",
+      "closest_vanilla_equivalent": "Native custom Entity tick/lifecycle and caster NBT",
+      "vanilla_similarities": "Native damage/knockback, entity navigation, hooks, tags and lifecycle remain authoritative at their named boundaries; protected contracts are reused.",
+      "vanilla_differences": "Reuse Guardian-closed Void Rune Entity, not a Projectile: server predecrements warmup; active gate -11..-29 inclusive and absolute entity tick%5 cadence, lifeTicks initially34 predecremented only after warmup<0 then discard<0. Owner cached LivingEntity/UUID resolves on server. Native NBT saves Warmup, optional Owner and damage; lifeTicks is not saved and resets with constructor. No receipt/state transport, impact event, added pulse, damage source or callback. Golem changes only caster/config/layout binding.",
+      "components": [
+        {
+          "primitive": "PAYLOAD_LIFECYCLE",
+          "formula": "locked server warmup--, native pulse counter and lifeTicks--/discard",
+          "numerical_parameters": {
+            "initial_life_ticks": 34,
+            "pulse_tick_modulo": 5,
+            "active_warmup_first": -11,
+            "active_warmup_last": -29,
+            "query_grow": 0.2
+          },
+          "parameter_units": {
+            "initial_life_ticks": "native active lifetime counter",
+            "pulse_tick_modulo": "absolute entity tick cadence",
+            "active_warmup_first": "derived first accepted native warmup value",
+            "active_warmup_last": "derived last accepted native warmup value",
+            "query_grow": "native X/Z AABB expansion blocks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "reused Void_Rune_Entity.tick",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "OWNER_PERSISTENCE",
+          "formula": "native Warmup/Owner/damage saved; lifeTicks unsaved",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [
+            "Native caster UUID resolution/server gate"
+          ],
+          "native_boundary": "reused Void_Rune_Entity add/read NBT",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "All existing pulse/lifetime/NBT/source predicates stay native",
+        "No new generic carrier/persistence/cache or independent duration19 invented"
+      ],
+      "custom_state": "Native Ender Golem animation, cooldown and owned rune state only; protected R2k11a awake/NBT/admission retained.",
+      "eligibility": "All existing pulse/lifetime/NBT/source predicates stay native; No new generic carrier/persistence/cache or independent duration19 invented",
+      "source_actor": "Existing rune caster and native UUID resolution, unchanged.",
+      "hurt_return_dependency": "Native lifecycle runs independently of hurt return.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/projectile/Void_Rune_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Void_Rune_Entity.class",
+          "methods": [
+            "setCaster",
+            "getCaster",
+            "tick",
+            "damage",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ender-golem-offense:rune_lifecycle"
+      ],
+      "primary_test_source": "cataclysm:ender_golem",
+      "alternate_sources": [],
+      "spawned_entity_ids": [
+        "cataclysm:void_rune"
+      ],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k11b-cataclysm-ender-golem-offense-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "PAYLOAD_LIFECYCLE",
+          "parameter": "initial_life_ticks",
+          "native_value": 34,
+          "native_formula": "locked server warmup--, native pulse counter and lifeTicks--/discard",
+          "units": "native active lifetime counter",
+          "boundary": "reused Void_Rune_Entity.tick"
+        },
+        {
+          "primitive": "PAYLOAD_LIFECYCLE",
+          "parameter": "pulse_tick_modulo",
+          "native_value": 5,
+          "native_formula": "locked server warmup--, native pulse counter and lifeTicks--/discard",
+          "units": "absolute entity tick cadence",
+          "boundary": "reused Void_Rune_Entity.tick"
+        },
+        {
+          "primitive": "PAYLOAD_LIFECYCLE",
+          "parameter": "active_warmup_first",
+          "native_value": -11,
+          "native_formula": "locked server warmup--, native pulse counter and lifeTicks--/discard",
+          "units": "derived first accepted native warmup value",
+          "boundary": "reused Void_Rune_Entity.tick"
+        },
+        {
+          "primitive": "PAYLOAD_LIFECYCLE",
+          "parameter": "active_warmup_last",
+          "native_value": -29,
+          "native_formula": "locked server warmup--, native pulse counter and lifeTicks--/discard",
+          "units": "derived last accepted native warmup value",
+          "boundary": "reused Void_Rune_Entity.tick"
+        },
+        {
+          "primitive": "PAYLOAD_LIFECYCLE",
+          "parameter": "query_grow",
+          "native_value": 0.2,
+          "native_formula": "locked server warmup--, native pulse counter and lifeTicks--/discard",
+          "units": "native X/Z AABB expansion blocks",
+          "boundary": "reused Void_Rune_Entity.tick"
+        }
+      ],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Native admission, state and recorded numerical bounds remain native.",
+      "new_owned_payload_class": false,
+      "native_damage_saved": true,
+      "native_life_ticks_saved": false,
+      "new_persistent_state": false,
+      "new_callbacks": false
+    },
+    {
+      "id": "cataclysm:ender_golem_sequence_state",
+      "mod_key": "cataclysm",
+      "display_name": "Ender Golem animation callbacks and rune cooldown",
+      "registry_ids": [
+        "cataclysm:ender_golem"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Native animations25/25/35/83 and death95. Melee ATTACK1/2 callback13; EARTHQUAKE callback19 calls EarthQuake(5,6), then particles and separate terrain gate. Rune callback22 calls EarthQuake(4.25,4), then its separate terrain gate; callback28 invokes VoidRuneAttack. After offense, positive rune cooldown decrements once, independent of side/NoAI; a selection write250 becomes249 that tick. Protected constructor/NBT resets and Lionfish animation advancement reused; no new counters.",
+      "human_summary": "Native animations25/25/35/83 and death95. Melee ATTACK1/2 callback13; EARTHQUAKE callback19 calls EarthQuake(5,6), then particles and separate terrain gate. Rune callback22 calls EarthQuake(4.25,4), then its separate terrain gate; callback28 invokes VoidRuneAttack. After offense, positive rune cooldown decrements once, independent of side/NoAI; a selection write250 becomes249 that tick. Protected constructor/NBT resets and Lionfish animation advancement reused; no new counters.",
+      "closest_vanilla_equivalent": "Native animation and unsaved cooldown state",
+      "vanilla_similarities": "Native damage/knockback, entity navigation, hooks, tags and lifecycle remain authoritative at their named boundaries; protected contracts are reused.",
+      "vanilla_differences": "Native animations25/25/35/83 and death95. Melee ATTACK1/2 callback13; EARTHQUAKE callback19 calls EarthQuake(5,6), then particles and separate terrain gate. Rune callback22 calls EarthQuake(4.25,4), then its separate terrain gate; callback28 invokes VoidRuneAttack. After offense, positive rune cooldown decrements once, independent of side/NoAI; a selection write250 becomes249 that tick. Protected constructor/NBT resets and Lionfish animation advancement reused; no new counters.",
+      "components": [
+        {
+          "primitive": "ANIMATION_STATE",
+          "formula": "native Animation.create durations and exact animation-tick callbacks",
+          "numerical_parameters": {
+            "attack1_duration": 25,
+            "attack2_duration": 25,
+            "quake_duration": 35,
+            "rune_duration": 83,
+            "death_duration": 95,
+            "melee_tick": 13,
+            "quake_tick": 19,
+            "rune_quake_tick": 22,
+            "rune_spawn_tick": 28
+          },
+          "parameter_units": {
+            "attack1_duration": "native animation ticks",
+            "attack2_duration": "native animation ticks",
+            "quake_duration": "native animation ticks",
+            "rune_duration": "native animation ticks",
+            "death_duration": "native animation ticks",
+            "melee_tick": "native animation ticks",
+            "quake_tick": "native animation ticks",
+            "rune_quake_tick": "native animation ticks",
+            "rune_spawn_tick": "native animation ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Ender_Golem <clinit>/getAnimations/tick",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "COOLDOWN_STATE",
+          "formula": "set250 on rune selection; if>0 decrement after offensive dispatch",
+          "numerical_parameters": {
+            "rune_cooldown": 250
+          },
+          "parameter_units": {
+            "rune_cooldown": "native ticks; unsaved"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Ender_Golem.tick",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native animation identity/tick/side/AI gates stay native",
+        "Cooldown and animation timing observations are state, not automatic scalar candidates"
+      ],
+      "custom_state": "Native Ender Golem animation, cooldown and owned rune state only; protected R2k11a awake/NBT/admission retained.",
+      "eligibility": "Native animation identity/tick/side/AI gates stay native; Cooldown and animation timing observations are state, not automatic scalar candidates",
+      "source_actor": "Native Ender Golem state; no progression/receipt transport.",
+      "hurt_return_dependency": "Each damage/control callback has its own documented return contract.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "<clinit>",
+            "getAnimations",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/LLibrary_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/LLibrary_Monster.class",
+          "methods": [
+            "tickDeath",
+            "tick",
+            "setAnimation"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-admission.json",
+          "witness_id": "cataclysm:ender-golem-admission:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "<init>",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ender-golem-offense:sequence_state"
+      ],
+      "primary_test_source": "cataclysm:ender_golem",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k11b-cataclysm-ender-golem-offense-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "ANIMATION_STATE",
+          "parameter": "attack1_duration",
+          "native_value": 25,
+          "native_formula": "native Animation.create durations and exact animation-tick callbacks",
+          "units": "native animation ticks",
+          "boundary": "Ender_Golem <clinit>/getAnimations/tick"
+        },
+        {
+          "primitive": "ANIMATION_STATE",
+          "parameter": "attack2_duration",
+          "native_value": 25,
+          "native_formula": "native Animation.create durations and exact animation-tick callbacks",
+          "units": "native animation ticks",
+          "boundary": "Ender_Golem <clinit>/getAnimations/tick"
+        },
+        {
+          "primitive": "ANIMATION_STATE",
+          "parameter": "quake_duration",
+          "native_value": 35,
+          "native_formula": "native Animation.create durations and exact animation-tick callbacks",
+          "units": "native animation ticks",
+          "boundary": "Ender_Golem <clinit>/getAnimations/tick"
+        },
+        {
+          "primitive": "ANIMATION_STATE",
+          "parameter": "rune_duration",
+          "native_value": 83,
+          "native_formula": "native Animation.create durations and exact animation-tick callbacks",
+          "units": "native animation ticks",
+          "boundary": "Ender_Golem <clinit>/getAnimations/tick"
+        },
+        {
+          "primitive": "ANIMATION_STATE",
+          "parameter": "death_duration",
+          "native_value": 95,
+          "native_formula": "native Animation.create durations and exact animation-tick callbacks",
+          "units": "native animation ticks",
+          "boundary": "Ender_Golem <clinit>/getAnimations/tick"
+        },
+        {
+          "primitive": "ANIMATION_STATE",
+          "parameter": "melee_tick",
+          "native_value": 13,
+          "native_formula": "native Animation.create durations and exact animation-tick callbacks",
+          "units": "native animation ticks",
+          "boundary": "Ender_Golem <clinit>/getAnimations/tick"
+        },
+        {
+          "primitive": "ANIMATION_STATE",
+          "parameter": "quake_tick",
+          "native_value": 19,
+          "native_formula": "native Animation.create durations and exact animation-tick callbacks",
+          "units": "native animation ticks",
+          "boundary": "Ender_Golem <clinit>/getAnimations/tick"
+        },
+        {
+          "primitive": "ANIMATION_STATE",
+          "parameter": "rune_quake_tick",
+          "native_value": 22,
+          "native_formula": "native Animation.create durations and exact animation-tick callbacks",
+          "units": "native animation ticks",
+          "boundary": "Ender_Golem <clinit>/getAnimations/tick"
+        },
+        {
+          "primitive": "ANIMATION_STATE",
+          "parameter": "rune_spawn_tick",
+          "native_value": 28,
+          "native_formula": "native Animation.create durations and exact animation-tick callbacks",
+          "units": "native animation ticks",
+          "boundary": "Ender_Golem <clinit>/getAnimations/tick"
+        },
+        {
+          "primitive": "COOLDOWN_STATE",
+          "parameter": "rune_cooldown",
+          "native_value": 250,
+          "native_formula": "set250 on rune selection; if>0 decrement after offensive dispatch",
+          "units": "native ticks; unsaved",
+          "boundary": "Ender_Golem.tick"
+        }
+      ],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Native admission, state and recorded numerical bounds remain native.",
+      "cooldown_decrements_after_selection": true,
+      "selected_cooldown_end_of_tick": 249,
+      "cooldown_decrement_has_no_ai_guard": false,
+      "cooldown_decrement_has_server_guard": false,
+      "new_persistent_state": false
+    },
+    {
       "id": "cataclysm:ender_golem_shared_defense_bindings",
       "mod_key": "cataclysm",
       "display_name": "Ender Golem concrete and inherited defense/regen bindings",
@@ -1049,6 +3186,112 @@
       "installed_nature_heal_config_consumed": false,
       "damage_cap_is_bucket_capacity": true,
       "dps_is_bucket_capacity": false
+    },
+    {
+      "id": "cataclysm:ender_golem_terrain_response",
+      "mod_key": "cataclysm",
+      "display_name": "Ender Golem separate EarthQuake terrain destruction",
+      "registry_ids": [
+        "cataclysm:ender_golem"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "After each quake19/rune22 EarthQuake call, server-only terrain path invokes BlockBreaking(4,4,4) if config EnderGolem.ignoreMobGriefing OR native canEntityGrief hook. Loops floor boss XYZ: X/Z -4..4, Y0..4. Literal BlockState reference != Blocks.AIR.defaultBlockState, then ENDER_GOLEM_CAN_DESTROY allowlist, native canEntityDestroy and onEntityDestroyBlock; destroyBlock(pos,true,Golem). Return flag unused. No explosion or damage/debris payload here; terrain proceeds independently of preceding hurt results.",
+      "human_summary": "After each quake19/rune22 EarthQuake call, server-only terrain path invokes BlockBreaking(4,4,4) if config EnderGolem.ignoreMobGriefing OR native canEntityGrief hook. Loops floor boss XYZ: X/Z -4..4, Y0..4. Literal BlockState reference != Blocks.AIR.defaultBlockState, then ENDER_GOLEM_CAN_DESTROY allowlist, native canEntityDestroy and onEntityDestroyBlock; destroyBlock(pos,true,Golem). Return flag unused. No explosion or damage/debris payload here; terrain proceeds independently of preceding hurt results.",
+      "closest_vanilla_equivalent": "Native destroyBlock/drop and mob-griefing hooks with custom tag/volume",
+      "vanilla_similarities": "Native damage/knockback, entity navigation, hooks, tags and lifecycle remain authoritative at their named boundaries; protected contracts are reused.",
+      "vanilla_differences": "After each quake19/rune22 EarthQuake call, server-only terrain path invokes BlockBreaking(4,4,4) if config EnderGolem.ignoreMobGriefing OR native canEntityGrief hook. Loops floor boss XYZ: X/Z -4..4, Y0..4. Literal BlockState reference != Blocks.AIR.defaultBlockState, then ENDER_GOLEM_CAN_DESTROY allowlist, native canEntityDestroy and onEntityDestroyBlock; destroyBlock(pos,true,Golem). Return flag unused. No explosion or damage/debris payload here; terrain proceeds independently of preceding hurt results.",
+      "components": [
+        {
+          "primitive": "TERRAIN_DESTRUCTION",
+          "formula": "native allowlist + block/hook predicates -> destroyBlock(pos,true,Golem)",
+          "numerical_parameters": {
+            "xz_radius": 4,
+            "y_max": 4,
+            "y_min": 0
+          },
+          "parameter_units": {
+            "xz_radius": "inclusive native integer block offset",
+            "y_max": "inclusive native integer block offset",
+            "y_min": "inclusive native integer block offset"
+          },
+          "binary_parameters": [
+            "Server/config/grief hook",
+            "AIR state reference test",
+            "Destroy allowlist and native block/event predicates"
+          ],
+          "native_boundary": "Ender_Golem.tick -> BlockBreaking(4,4,4)",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native grief config/hook and block destruction lifecycle",
+        "Native allowlist remains distinct from boss damage",
+        "Terrain bounds/gates not promoted automatically"
+      ],
+      "custom_state": "Native Ender Golem animation, cooldown and owned rune state only; protected R2k11a awake/NBT/admission retained.",
+      "eligibility": "Native grief config/hook and block destruction lifecycle; Native allowlist remains distinct from boss damage; Terrain bounds/gates not promoted automatically",
+      "source_actor": "Native Ender Golem destroyBlock actor.",
+      "hurt_return_dependency": "Terrain not conditioned on EarthQuake hurt success.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "tick",
+            "BlockBreaking"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:data:data/cataclysm/tags/block/ender_golem_can_destroy.json",
+          "entry": "data/cataclysm/tags/block/ender_golem_can_destroy.json",
+          "methods": []
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ender-golem-offense:terrain_response"
+      ],
+      "primary_test_source": "cataclysm:ender_golem",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k11b-cataclysm-ender-golem-offense-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "TERRAIN_DESTRUCTION",
+          "parameter": "xz_radius",
+          "native_value": 4,
+          "native_formula": "native allowlist + block/hook predicates -> destroyBlock(pos,true,Golem)",
+          "units": "inclusive native integer block offset",
+          "boundary": "Ender_Golem.tick -> BlockBreaking(4,4,4)"
+        },
+        {
+          "primitive": "TERRAIN_DESTRUCTION",
+          "parameter": "y_max",
+          "native_value": 4,
+          "native_formula": "native allowlist + block/hook predicates -> destroyBlock(pos,true,Golem)",
+          "units": "inclusive native integer block offset",
+          "boundary": "Ender_Golem.tick -> BlockBreaking(4,4,4)"
+        },
+        {
+          "primitive": "TERRAIN_DESTRUCTION",
+          "parameter": "y_min",
+          "native_value": 0,
+          "native_formula": "native allowlist + block/hook predicates -> destroyBlock(pos,true,Golem)",
+          "units": "inclusive native integer block offset",
+          "boundary": "Ender_Golem.tick -> BlockBreaking(4,4,4)"
+        }
+      ],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Native admission, state and recorded numerical bounds remain native.",
+      "terrain_depends_on_hurt": false,
+      "creates_explosion": false,
+      "spawns_damaging_debris": false,
+      "block_tag_is_allowlist": true,
+      "air_test_is_reference": true
     },
     {
       "id": "cataclysm:guardian_airstrike_landing",
@@ -61190,6 +63433,561 @@
       "runtime_status": "NOT_RUN"
     },
     {
+      "id": "cataclysm:ender-golem-offense:alliance",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ender_golem_alliance"
+      ],
+      "primary_source": "cataclysm:ender_golem",
+      "native_path": "isAlliedTo accepts self or super, then TEAM_ENDER_GUARDIAN recipient types only when both scoreboard teams are null. EarthQuake additionally excludes every Ender Golem and self; runes check alliance in both directions. Direct target melee and shared body repulsion add no local team filter.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "isAlliedTo",
+            "EarthQuake"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/projectile/Void_Rune_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Void_Rune_Entity.class",
+          "methods": [
+            "setCaster",
+            "getCaster",
+            "tick",
+            "damage",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:data:data/cataclysm/tags/entity_type/team_ender_guardian.json",
+          "entry": "data/cataclysm/tags/entity_type/team_ender_guardian.json",
+          "methods": []
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ender-golem-offense:attack_control",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ender_golem_attack_control"
+      ],
+      "primary_source": "cataclysm:ender_golem",
+      "native_path": "Priority1 AttackGoal JUMP/LOOK/MOVE, active only for EARTHQUAKE or VOID_RUNE_ATTACK and updated every tick. Writes (0,oldY,0) absolutely. Before quake tick19 or rune tick22 with non-null target, calls LookControl.setLookAt and lookAt30/30; otherwise restores yRotO. stop delegates Goal.stop. No damage, target-alive test, knockback or extra local side gate.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "registerGoals"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity$AttackGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity$AttackGoal.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "stop",
+            "tick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ender-golem-offense:attack_selection",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ender_golem_attack_selection"
+      ],
+      "primary_source": "cataclysm:ender_golem",
+      "native_path": "Within locked progress==0 and self-alive dispatch, live target required for selection. Rune admission: cooldown<=0, !NoAI, NO_ANIMATION, target grounded, then short-circuit (nextInt(45)==0 AND distance<4) OR (nextInt(24)==0 AND distance<10). Second RNG is read only when first combined test fails. Otherwise close distance<4/!NoAI/NO_ANIMATION fallback chooses ATTACK1/ATTACK2/EARTHQUAKE via nextInt(3). Grounded is not a fallback requirement. Rune sets cooldown250 before setAnimation; no local server guard.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "tick",
+            "getRandomAttack"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ender-golem-offense:body_repulsion",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ender_golem_body_repulsion"
+      ],
+      "primary_source": "cataclysm:ender_golem",
+      "native_path": "Every concrete tick before locked awake/alive branch, calls repelEntities(float1.7,float3.7,float1.7,float1.7); override delegates once. Reuse shared helper: LivingEntity AABB, nonself distance<=radius+recipientWidth/2 and recipientY<=bossY+y query; pickable and !noPhysics. Absolute X/Z -.1*cos/sin((angleBetween+90)*PI/180), preserves recipientY velocity. No local side/alive/ally/hurt check, native knockback call or KBR. -.1 belongs to locked shared helper, not a new Golem field.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "tick",
+            "repelEntities"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "repelEntities"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "getEntityLivingBaseNearby",
+            "getEntitiesNearby",
+            "lambda$getEntitiesNearby$0"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ender-golem-offense:defeat_lifecycle",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ender_golem_defeat_lifecycle"
+      ],
+      "primary_source": "cataclysm:ender_golem",
+      "native_path": "Concrete getDeathAnimation selects native duration95. onDeathAIUpdate delegates super, then writes boss velocity(0,oldY,0); remaining local tick40 callback is sound-only. Reuse LLibrary tickDeath: animation message once when different, onDeathUpdate(duration-20), so removal timer75; existing death hooks/cancellation and kill credit remain native. Protected declared-method inventory proves no concrete die/AfterDefeatBoss/respawner override. No concrete death combat payload, terrain destruction or respawner is added; no assertion that external global callbacks are absent.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "getDeathAnimation",
+            "onDeathAIUpdate",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/LLibrary_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/LLibrary_Monster.class",
+          "methods": [
+            "tickDeath",
+            "tick",
+            "setAnimation"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "die",
+            "onDeathUpdate",
+            "deathtimer",
+            "AfterDefeatBoss"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-admission.json",
+          "witness_id": "cataclysm:ender-golem-admission:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": []
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ender-golem-offense:dormant_control",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ender_golem_dormant_control"
+      ],
+      "primary_source": "cataclysm:ender_golem",
+      "native_path": "Priority0 AwakenGoal uses JUMP/LOOK/MOVE and runs while locked deactivateProgress>0. Every goal tick writes (0,oldY,0), superseding lower conflicting goals. No hurt, heal, setter or new awake transition. R2k11a progress and awake contracts unchanged.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "registerGoals"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity$AwakenGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity$AwakenGoal.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "tick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ender-golem-offense:melee_damage",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ender_golem_melee_damage"
+      ],
+      "primary_source": "cataclysm:ender_golem",
+      "native_path": "ATTACK1/2 animation tick13 requests mobAttack(Golem) once on current non-null/live target with strict distance<4.75: float(current ATTACK_DAMAGE)+float(nextInt(4)). Requested native amount is a computed float value, not an independent coefficient1 or fixed damage10. No local server/team gate, effect/status/enchantment followup or cooldown reset. Hurt result is discarded before the separate knockback call.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ender-golem-offense:melee_knockback",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ender_golem_melee_knockback"
+      ],
+      "primary_source": "cataclysm:ender_golem",
+      "native_path": "Immediately after direct melee hurt, irrespective of returned boolean, calls target.knockback(1.25,GolemX-targetX,GolemZ-targetZ). Native LivingEntity knockback resistance and native hooks/velocity operation remain authoritative. This is separate from EarthQuake Entity.push and absolute goal/body motion.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ender-golem-offense:pursuit_goal",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ender_golem_pursuit_goal"
+      ],
+      "primary_source": "cataclysm:ender_golem",
+      "native_path": "Priority2 CmAttackGoal extends native MeleeAttackGoal with long memory true and speed1. canUse only requires current target non-null/alive. Its tick overrides the parent melee tick: face target30/30, predecrement repath delay; when <=0 set4+nextInt(7). Beyond FOLLOW_RANGE squared, only when not pathfinding try moveTo(target,1), adding5 on failure; within range use stored speed1. stop always stops navigation and clears aggressive only for null target. Inherited start/continuation stay native. No hurt/doHurtTarget call or second melee delivery.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "registerGoals"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AI/CmAttackGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AI/CmAttackGoal.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "tick",
+            "stop"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ender-golem-offense:quake_damage",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ender_golem_quake_damage"
+      ],
+      "primary_source": "cataclysm:ender_golem",
+      "native_path": "EarthQuake(5,6) at quake19 and EarthQuake(4.25,4) at rune22 query server LivingEntities in boss AABB inflated equally by grow. Reject boss allies, all Ender Golems and self. Each admitted victim gets mobAttack(Golem), float(current ATTACK_DAMAGE)+float(nextInt(damage)). No radial/LOS filter, explosion, cooldown reset or status. Native hurt return is discarded; separate launch(true) always follows. Helper sound consumes nextFloat before server guard.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "tick",
+            "EarthQuake",
+            "isAlliedTo"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ender-golem-offense:quake_launch",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ender_golem_quake_launch"
+      ],
+      "primary_source": "cataclysm:ender_golem",
+      "native_path": "Every admitted EarthQuake victim is passed to private launch(victim,true) after hurt. dx/dz=victim-boss, d2=max(dx*dx+dz*dz,.001); native Entity.push(dx/d2*2,.5,dz/d2*2). Additive inverse-squared horizontal push and fixed Y increment, not LivingEntity.knockback; does not read knockback resistance or hurt result. Only active caller passes huge=true; private false branch .5 power/float .2 Y is not an active delivery.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "EarthQuake",
+            "launch"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ender-golem-offense:rune_damage",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ender_golem_rune_damage"
+      ],
+      "primary_source": "cataclysm:ender_golem",
+      "native_path": "Golem spawnFangs stores float(EnderGolem.VoidRuneDamage), installed snapshot7.0, in the existing Void Rune constructor. Reuse locked rune: server warmup -11..-29, absolute tickCount%5==0, query AABB.inflate(.2,0,.2), alive/non-invulnerable/not-caster plus bidirectional alliance when caster resolves. Resolved caster produces indirectMagic(rune,caster), otherwise native magic() fallback; request stored damage once per admitted native pulse. Hurt boolean discarded; no effect/enchantment/cooldown reset. Guardian rune value9 and contract remain unchanged.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "spawnFangs"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/projectile/Void_Rune_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Void_Rune_Entity.class",
+          "methods": [
+            "setCaster",
+            "getCaster",
+            "tick",
+            "damage",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ender-golem-offense:rune_delivery",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ender_golem_rune_delivery"
+      ],
+      "primary_source": "cataclysm:ender_golem",
+      "native_path": "Rune tick28 with non-null target: bound Y by min(targetY,bossY)..max+1, aim atan2 target delta. Two lines of10 at1.5*(l+1), yaw lateral±2, rotation aim, delay int(1.25f*l); ring6 radius2.5, angle aim+k*floatPI*2/6+float .83775806, delay5; Gaussian8 with independent X/Z gaussian*4.5, delay15. Native ring rotation argument is lateralX f2 and Gaussian rotation is lateralZ f3, not their placement angle; retain literal calls. 34 attempts, not34 guaranteed spawns. spawnFangs searches downward to floor(minY)-1, requires sturdy UP support and uses collision top Y. Creates custom Void_Rune_Entity with caster=this and float(config EnderGolem.VoidRuneDamage); native addFreshEntity result discarded. No local helper server guard; named spawnFangs does not create EvokerFangs.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "tick",
+            "VoidRuneAttack",
+            "spawnFangs"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ender-golem-offense:rune_lifecycle",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ender_golem_rune_lifecycle"
+      ],
+      "primary_source": "cataclysm:ender_golem",
+      "native_path": "Reuse Guardian-closed Void Rune Entity, not a Projectile: server predecrements warmup; active gate -11..-29 inclusive and absolute entity tick%5 cadence, lifeTicks initially34 predecremented only after warmup<0 then discard<0. Owner cached LivingEntity/UUID resolves on server. Native NBT saves Warmup, optional Owner and damage; lifeTicks is not saved and resets with constructor. No receipt/state transport, impact event, added pulse, damage source or callback. Golem changes only caster/config/layout binding.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/projectile/Void_Rune_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Void_Rune_Entity.class",
+          "methods": [
+            "setCaster",
+            "getCaster",
+            "tick",
+            "damage",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ender-golem-offense:sequence_state",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ender_golem_sequence_state"
+      ],
+      "primary_source": "cataclysm:ender_golem",
+      "native_path": "Native animations25/25/35/83 and death95. Melee ATTACK1/2 callback13; EARTHQUAKE callback19 calls EarthQuake(5,6), then particles and separate terrain gate. Rune callback22 calls EarthQuake(4.25,4), then its separate terrain gate; callback28 invokes VoidRuneAttack. After offense, positive rune cooldown decrements once, independent of side/NoAI; a selection write250 becomes249 that tick. Protected constructor/NBT resets and Lionfish animation advancement reused; no new counters.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "<clinit>",
+            "getAnimations",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/LLibrary_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/LLibrary_Monster.class",
+          "methods": [
+            "tickDeath",
+            "tick",
+            "setAnimation"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-admission.json",
+          "witness_id": "cataclysm:ender-golem-admission:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "<init>",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ender-golem-offense:terrain_response",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ender_golem_terrain_response"
+      ],
+      "primary_source": "cataclysm:ender_golem",
+      "native_path": "After each quake19/rune22 EarthQuake call, server-only terrain path invokes BlockBreaking(4,4,4) if config EnderGolem.ignoreMobGriefing OR native canEntityGrief hook. Loops floor boss XYZ: X/Z -4..4, Y0..4. Literal BlockState reference != Blocks.AIR.defaultBlockState, then ENDER_GOLEM_CAN_DESTROY allowlist, native canEntityDestroy and onEntityDestroyBlock; destroyBlock(pos,true,Golem). Return flag unused. No explosion or damage/debris payload here; terrain proceeds independently of preceding hurt results.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:entity/AnimationMonster/BossMonsters/Ender_Golem_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ender_Golem_Entity.class",
+          "methods": [
+            "tick",
+            "BlockBreaking"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ender-golem-offense.json",
+          "witness_id": "cataclysm:ender-golem-offense:data:data/cataclysm/tags/block/ender_golem_can_destroy.json",
+          "entry": "data/cataclysm/tags/block/ender_golem_can_destroy.json",
+          "methods": []
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
       "id": "cataclysm:guardian-offense:airstrike_payload",
       "mod_key": "cataclysm",
       "status": "VERIFIED",
@@ -74303,10 +77101,10 @@
   ],
   "unresolved_native_ambiguities": null,
   "remaining_native_ambiguities": null,
-  "checkpoint": "R2k11a-cataclysm-ender-golem-admission-complete",
-  "scope": "Bounded Ender Golem concrete incoming factors/order, inherited LLibrary cap/DPS/regen and concrete range, native environment, awake/targetless/deactivation prerequisites, direct dormant healing, combat NBT, configured construction and exact Ruined Citadel golem marker closed. Shared/status and all completed boss families locked; all Ender Golem offense/payloads deferred to R2k11b. Cataclysm PARTIAL.",
-  "notes_file": "cataclysm-r2k11a-ender-golem-admission.json",
-  "exact_next_task": "R2k11b: Ender Golem offense/payload family. Start Ender_Golem_Entity.tick and directly used offensive goals; close attack selection/animation and cooldown readers/writers not already locked, melee, EarthQuake/launch, VoidRuneAttack/spawnFangs and directly owned payload chains, source/owner/team predicates, hurt-return-dependent control, lifecycle and directly reached terrain/death/respawner callbacks. Reuse locked R2k11a incoming multipliers, shared bindings, native environment, awake/deactivation/targetless state, dormant heal, combat NBT, configured construction, registry and Citadel spawn/home prerequisites plus all prior completed contracts. Static only; no runtime, Stage, production, unrelated equipment or whole-JAR work.",
+  "checkpoint": "R2k11b-cataclysm-ender-golem-offense-complete",
+  "scope": "Bounded Ender Golem remaining offense family closed: native attack choice/animations/cooldown and three registered goals, direct melee/knockback, EarthQuake damage/launch, ground-supported Void Rune layout with reused payload/source/lifecycle, separate terrain allowlist, body repulsion/alliance and concrete death callbacks. R2k11a and all prior families locked. Ender Golem fully closed for this static scope; Cataclysm PARTIAL.",
+  "notes_file": "cataclysm-r2k11b-ender-golem-offense.json",
+  "exact_next_task": "R2k12a: Ignited Revenant incoming admission and combat-state/encounter prerequisites. Start Ignited_Revenant_Entity hurt/isInvulnerableTo and relevant inherited LLibrary admission; record concrete DamageCap/DpsCap/RangeLimit/NatureRegen bindings where applicable, native environment/shield/state gates, combat persistence and material spawn/home prerequisites. Reuse all locked shared/status and completed boss families, including Ender Golem. Defer offense/payloads to R2k12b. Static only; no runtime, Stage, production, unrelated equipment or whole-JAR work.",
   "protected_checkpoint": "R2k3a-cataclysm-guardian-admission-complete",
   "protected_notes_file": "cataclysm-r2k3a-guardian-admission.json",
   "protected_checkpoints": [
@@ -74373,6 +77171,10 @@
     {
       "checkpoint": "R2k10b-cataclysm-scylla-offense-complete",
       "notes_file": "cataclysm-r2k10b-scylla-offense.json"
+    },
+    {
+      "checkpoint": "R2k11a-cataclysm-ender-golem-admission-complete",
+      "notes_file": "cataclysm-r2k11a-ender-golem-admission.json"
     }
   ]
 }
