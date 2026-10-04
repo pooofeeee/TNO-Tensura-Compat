@@ -92,6 +92,10 @@ def validate_boundaries(note):
     for check in note.get('declared_method_checks', []):
         witness = next(w for w in evidence['witnesses'] if w['entry'] == check['entry'])
         assert set(check.get('absent', [])).isdisjoint(witness['declared_method_names'])
+    for check in note.get('bootstrap_assertions', []):
+        witness = next(w for w in evidence['witnesses'] if w['entry'] == check['entry'])
+        bootstrap = next(b for b in witness['registration_bootstraps'] if b['index'] == check['index'])
+        assert bootstrap['arguments'] == check['arguments']
     assert len(evidence['witnesses']) == note['new_class_witnesses']
 
 

@@ -5,7 +5,7 @@ from pathlib import Path
 import zipfile
 
 from catalog_common import BASELINE, OUT, read_json, write_json
-from classfile import ClassFile
+from classfile import ClassFile, Reader
 from collect_cataclysm_ignited_revenant_offense import instructions
 
 
@@ -26,6 +26,14 @@ def collect(spec, jar_path):
                        entry=entry, entry_sha256=hashlib.sha256(raw).hexdigest(),
                        class_name=cls.name, superclass=cls.super, interfaces=cls.interfaces,
                        declared_method_names=sorted({m['name'] for m in cls.methods}), methods=[])
+            if selected.get('bootstrap_indices'):
+                reader = Reader(next(data for name, data in cls.attributes if name == 'BootstrapMethods'))
+                bootstraps = [(reader.u2(), [reader.u2() for _ in range(reader.u2())])
+                              for _ in range(reader.u2())]
+                row['registration_bootstraps'] = [dict(index=index,
+                    handle=cls.resolve(bootstraps[index][0]),
+                    arguments=[cls.resolve(arg) for arg in bootstraps[index][1]])
+                    for index in selected['bootstrap_indices']]
             for selection in selected['methods']:
                 matches = [m for m in cls.methods if m['name'] == selection['name'] and
                            ('descriptor' not in selection or m['descriptor'] == selection['descriptor'])]
