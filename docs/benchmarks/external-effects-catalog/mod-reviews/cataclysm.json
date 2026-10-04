@@ -33144,6 +33144,1770 @@
       ]
     },
     {
+      "id": "cataclysm:kobolediator_awakened_state",
+      "mod_key": "cataclysm",
+      "display_name": "Kobolediator native awakened flag and setter heal",
+      "registry_ids": [
+        "cataclysm:kobolediator"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Concrete defineSynchedData calls parent then defines AWAKEN=false. getAwaken reads it. setAwaken(true) requests self.heal(current getMaxHealth()) every invocation, even if already true, before setting synced flag; false skips heal and writesfalse. This is native heal API with existing event/cancellation/max-health behavior, not direct setHealth or guaranteed restoration. Flag write does not test heal success. Setter does not set raw attack state, home, owner, progression or Stage. Local constructor attack cooldowns start0; raw IA setter/getter remain locked and all offensive readers/writers deferred.",
+      "human_summary": "Concrete defineSynchedData calls parent then defines AWAKEN=false. getAwaken reads it. setAwaken(true) requests self.heal(current getMaxHealth()) every invocation, even if already true, before setting synced flag; false skips heal and writesfalse. This is native heal API with existing event/cancellation/max-health behavior, not direct setHealth or guaranteed restoration. Flag write does not test heal success. Setter does not set raw attack state, home, owner, progression or Stage. Local constructor attack cooldowns start0; raw IA setter/getter remain locked and all offensive readers/writers deferred.",
+      "closest_vanilla_equivalent": "Native synced boolean plus native heal side effect for setup/state",
+      "vanilla_similarities": "Native incoming damage/effects, source identity, hooks, attributes, healing, spawn and lifecycle retain authority; applicable locked contracts reused.",
+      "vanilla_differences": "Concrete defineSynchedData calls parent then defines AWAKEN=false. getAwaken reads it. setAwaken(true) requests self.heal(current getMaxHealth()) every invocation, even if already true, before setting synced flag; false skips heal and writesfalse. This is native heal API with existing event/cancellation/max-health behavior, not direct setHealth or guaranteed restoration. Flag write does not test heal success. Setter does not set raw attack state, home, owner, progression or Stage. Local constructor attack cooldowns start0; raw IA setter/getter remain locked and all offensive readers/writers deferred.",
+      "components": [
+        {
+          "primitive": "AWAKEN_STATE",
+          "formula": "Synced defaultfalse; true -> heal request then flag write; false -> flag only",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "defineSynchedData/getAwaken/setAwaken",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "HEAL_REQUEST",
+          "formula": "When inputtrue, self.heal(current getMaxHealth()) before boolean write",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "setAwaken -> native heal",
+          "vanilla_relation": "DIRECT",
+          "parameter_formulas": {
+            "requested_heal": "current getMaxHealth()"
+          },
+          "formula_parameter_units": {
+            "requested_heal": "native HP heal request; state/setup boundary"
+          }
+        },
+        {
+          "primitive": "ATTACK_COOLDOWN_STATE",
+          "formula": "Constructor initializes local earthquake/charge cooldown0; offense deferred",
+          "numerical_parameters": {
+            "initial_earthquake_cooldown": 0,
+            "initial_charge_cooldown": 0
+          },
+          "parameter_units": {
+            "initial_earthquake_cooldown": "native cooldown ticks",
+            "initial_charge_cooldown": "native cooldown ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Constructor local fields",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native setter input",
+        "Native heal event/max-health constraints",
+        "Native synced boolean"
+      ],
+      "custom_state": "Native AWAKEN, raw ATTACK_STATE/attackTicks and unsaved local attack cooldowns only; no IABoss/LLibrary cap/Home/progression state.",
+      "eligibility": "Native setter input; Native heal event/max-health constraints; Native synced boolean",
+      "source_actor": "Kobolediator self; no new progression/owner carrier.",
+      "hurt_return_dependency": "Setter/flag write has no hurt-success or heal-success gate.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": [
+            "defineSynchedData",
+            "getAwaken",
+            "setAwaken",
+            "<clinit>",
+            "<init>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": [
+            "defineSynchedData",
+            "getAttackState",
+            "setAttackState"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:kobolediator-admission:awakened_state"
+      ],
+      "primary_test_source": "cataclysm:kobolediator",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k14a-cataclysm-kobolediator-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "HEAL_REQUEST",
+          "parameter": "requested_heal",
+          "native_value": null,
+          "native_formula": "current getMaxHealth()",
+          "units": "native HP heal request; state/setup boundary",
+          "boundary": "setAwaken -> native heal"
+        },
+        {
+          "primitive": "ATTACK_COOLDOWN_STATE",
+          "parameter": "initial_earthquake_cooldown",
+          "native_value": 0,
+          "native_formula": "Constructor initializes local earthquake/charge cooldown0; offense deferred",
+          "units": "native cooldown ticks",
+          "boundary": "Constructor local fields"
+        },
+        {
+          "primitive": "ATTACK_COOLDOWN_STATE",
+          "parameter": "initial_charge_cooldown",
+          "native_value": 0,
+          "native_formula": "Constructor initializes local earthquake/charge cooldown0; offense deferred",
+          "units": "native cooldown ticks",
+          "boundary": "Constructor local fields"
+        }
+      ],
+      "scalability_note": "Native defense/admission/state/setup observations; numeric constants are not automatic Stage candidates. No Stage eligibility, formula, multiplier, direction, cap/floor, balance, ownership integration or hook selected. All Kobolediator offense/payloads deferred to R2k14b.",
+      "awaken_default": false,
+      "heal_before_flag_write": true,
+      "heal_only_on_false_to_true_transition": false,
+      "flag_write_requires_heal_success": false,
+      "setter_sets_raw_state": false,
+      "setter_sets_home": false,
+      "raw_state_is_stage": false,
+      "offensive_execution_reviewed": false
+    },
+    {
+      "id": "cataclysm:kobolediator_awakening_prerequisites",
+      "mod_key": "cataclysm",
+      "display_name": "Kobolediator dormant and awakening prerequisites",
+      "registry_ids": [
+        "cataclysm:kobolediator"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Priority0 KobolediatorDoNothingGoal reserves MOVE/JUMP/LOOK, is noninterruptible and updates everytick. canUse: !AWAKEN AND (target absent/dead OR not strict distanceSquared<255 OR no native LOS); no local canContinue override. Tick writes self velocity(0,oldY,0). Stop always setAwaken(true) then raw state2, so native heal request precedes state transition; stop itself has no target/hurt check or local side guard. Priority1 shared InternalStateGoal binds2->2->0 final70/look0; matching-state start skips resetting attackTicks, continue uses state2 and ticks<=70, stop sets0. Target/selector/NoAI behavior remains native. No item/necklace/altar/HP/progression prerequisite is added; offensive goal selection deferred.",
+      "human_summary": "Priority0 KobolediatorDoNothingGoal reserves MOVE/JUMP/LOOK, is noninterruptible and updates everytick. canUse: !AWAKEN AND (target absent/dead OR not strict distanceSquared<255 OR no native LOS); no local canContinue override. Tick writes self velocity(0,oldY,0). Stop always setAwaken(true) then raw state2, so native heal request precedes state transition; stop itself has no target/hurt check or local side guard. Priority1 shared InternalStateGoal binds2->2->0 final70/look0; matching-state start skips resetting attackTicks, continue uses state2 and ticks<=70, stop sets0. Target/selector/NoAI behavior remains native. No item/necklace/altar/HP/progression prerequisite is added; offensive goal selection deferred.",
+      "closest_vanilla_equivalent": "Custom dormant/awakening raw state with native target/LOS/goal lifecycle",
+      "vanilla_similarities": "Native incoming damage/effects, source identity, hooks, attributes, healing, spawn and lifecycle retain authority; applicable locked contracts reused.",
+      "vanilla_differences": "Priority0 KobolediatorDoNothingGoal reserves MOVE/JUMP/LOOK, is noninterruptible and updates everytick. canUse: !AWAKEN AND (target absent/dead OR not strict distanceSquared<255 OR no native LOS); no local canContinue override. Tick writes self velocity(0,oldY,0). Stop always setAwaken(true) then raw state2, so native heal request precedes state transition; stop itself has no target/hurt check or local side guard. Priority1 shared InternalStateGoal binds2->2->0 final70/look0; matching-state start skips resetting attackTicks, continue uses state2 and ticks<=70, stop sets0. Target/selector/NoAI behavior remains native. No item/necklace/altar/HP/progression prerequisite is added; offensive goal selection deferred.",
+      "components": [
+        {
+          "primitive": "AWAKEN_ADMISSION",
+          "formula": "!AWAKEN && absent/dead/outside-strict-distance/noLOS target; native goal stop awakens",
+          "numerical_parameters": {
+            "target_distance_squared_limit": 255.0,
+            "dormant_goal_priority": 0
+          },
+          "parameter_units": {
+            "target_distance_squared_limit": "squared blocks; strict <",
+            "dormant_goal_priority": "native goal priority"
+          },
+          "binary_parameters": [],
+          "native_boundary": "KobolediatorDoNothingGoal.canUse",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "formula": "Dormant tick: setDeltaMovement(0,oldY,0)",
+          "numerical_parameters": {
+            "horizontal_velocity": 0.0
+          },
+          "parameter_units": {
+            "horizontal_velocity": "blocks/tick absolute X/Z"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Dormant goal tick",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "RAW_ATTACK_STATE",
+          "formula": "Dormant stop ->2; awakening goal2->2->0",
+          "numerical_parameters": {
+            "awakening_state": 2,
+            "awakening_final_ticks": 70,
+            "awakening_look_ticks": 0
+          },
+          "parameter_units": {
+            "awakening_state": "raw state ID",
+            "awakening_final_ticks": "native attack ticks",
+            "awakening_look_ticks": "native attack ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Dormant stop/awakening goal binding",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Existing awakened boolean",
+        "Native target alive/distance/LOS",
+        "Native selector/flags/stop/continuation"
+      ],
+      "custom_state": "Native AWAKEN, raw ATTACK_STATE/attackTicks and unsaved local attack cooldowns only; no IABoss/LLibrary cap/Home/progression state.",
+      "eligibility": "Existing awakened boolean; Native target alive/distance/LOS; Native selector/flags/stop/continuation",
+      "source_actor": "Native Kobolediator/current target.",
+      "hurt_return_dependency": "Awakening/heal/state transition independent of hurt success.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": [
+            "registerGoals"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity$KobolediatorDoNothingGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity$KobolediatorDoNothingGoal.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "tick",
+            "stop",
+            "isInterruptable",
+            "requiresUpdateEveryTick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/AI/InternalStateGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AI/InternalStateGoal.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "canContinueToUse"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-berserker-offense.json",
+          "witness_id": "cataclysm:ignited-berserker-offense:entity/InternalAnimationMonster/AI/InternalStateGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AI/InternalStateGoal.class",
+          "methods": [
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:kobolediator-admission:awakening_prerequisites"
+      ],
+      "primary_test_source": "cataclysm:kobolediator",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k14a-cataclysm-kobolediator-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "AWAKEN_ADMISSION",
+          "parameter": "target_distance_squared_limit",
+          "native_value": 255.0,
+          "native_formula": "!AWAKEN && absent/dead/outside-strict-distance/noLOS target; native goal stop awakens",
+          "units": "squared blocks; strict <",
+          "boundary": "KobolediatorDoNothingGoal.canUse"
+        },
+        {
+          "primitive": "AWAKEN_ADMISSION",
+          "parameter": "dormant_goal_priority",
+          "native_value": 0,
+          "native_formula": "!AWAKEN && absent/dead/outside-strict-distance/noLOS target; native goal stop awakens",
+          "units": "native goal priority",
+          "boundary": "KobolediatorDoNothingGoal.canUse"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameter": "horizontal_velocity",
+          "native_value": 0.0,
+          "native_formula": "Dormant tick: setDeltaMovement(0,oldY,0)",
+          "units": "blocks/tick absolute X/Z",
+          "boundary": "Dormant goal tick"
+        },
+        {
+          "primitive": "RAW_ATTACK_STATE",
+          "parameter": "awakening_state",
+          "native_value": 2,
+          "native_formula": "Dormant stop ->2; awakening goal2->2->0",
+          "units": "raw state ID",
+          "boundary": "Dormant stop/awakening goal binding"
+        },
+        {
+          "primitive": "RAW_ATTACK_STATE",
+          "parameter": "awakening_final_ticks",
+          "native_value": 70,
+          "native_formula": "Dormant stop ->2; awakening goal2->2->0",
+          "units": "native attack ticks",
+          "boundary": "Dormant stop/awakening goal binding"
+        },
+        {
+          "primitive": "RAW_ATTACK_STATE",
+          "parameter": "awakening_look_ticks",
+          "native_value": 0,
+          "native_formula": "Dormant stop ->2; awakening goal2->2->0",
+          "units": "native attack ticks",
+          "boundary": "Dormant stop/awakening goal binding"
+        }
+      ],
+      "scalability_note": "Native defense/admission/state/setup observations; numeric constants are not automatic Stage candidates. No Stage eligibility, formula, multiplier, direction, cap/floor, balance, ownership integration or hook selected. All Kobolediator offense/payloads deferred to R2k14b.",
+      "squared_distance_not_linear_range": true,
+      "preserves_vertical_velocity": true,
+      "stop_checks_target": false,
+      "stop_requires_hurt": false,
+      "stop_heal_before_raw_state": true,
+      "awakening_start_restarts_matching_state": false,
+      "requires_necklace_or_altar": false
+    },
+    {
+      "id": "cataclysm:kobolediator_combat_persistence",
+      "mod_key": "cataclysm",
+      "display_name": "Kobolediator awakened NBT and native load heal side effect",
+      "registry_ids": [
+        "cataclysm:kobolediator"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Concrete save first delegates parent then writes only local boolean Awaken. Load first delegates parent native NBT then calls setAwaken(compound.getBoolean(\"Awaken\")); true therefore requests heal(current maxHP) before flag write, not plain flag restoration. False/missing native boolean skips heal. No local saved raw attack state/attackTicks/cooldowns/presentation, sleep-state replay or local Home/life/bucket/regen keys. IA-monster/Animation_Monsters declare no NBT overrides; native vanilla ancestry owns its state. Preserve the heal side effect and native cancellation/bounds; do not add generic persistence or a delayed receipt.",
+      "human_summary": "Concrete save first delegates parent then writes only local boolean Awaken. Load first delegates parent native NBT then calls setAwaken(compound.getBoolean(\"Awaken\")); true therefore requests heal(current maxHP) before flag write, not plain flag restoration. False/missing native boolean skips heal. No local saved raw attack state/attackTicks/cooldowns/presentation, sleep-state replay or local Home/life/bucket/regen keys. IA-monster/Animation_Monsters declare no NBT overrides; native vanilla ancestry owns its state. Preserve the heal side effect and native cancellation/bounds; do not add generic persistence or a delayed receipt.",
+      "closest_vanilla_equivalent": "Native parent NBT plus concrete awakened boolean/setter side effect",
+      "vanilla_similarities": "Native incoming damage/effects, source identity, hooks, attributes, healing, spawn and lifecycle retain authority; applicable locked contracts reused.",
+      "vanilla_differences": "Concrete save first delegates parent then writes only local boolean Awaken. Load first delegates parent native NBT then calls setAwaken(compound.getBoolean(\"Awaken\")); true therefore requests heal(current maxHP) before flag write, not plain flag restoration. False/missing native boolean skips heal. No local saved raw attack state/attackTicks/cooldowns/presentation, sleep-state replay or local Home/life/bucket/regen keys. IA-monster/Animation_Monsters declare no NBT overrides; native vanilla ancestry owns its state. Preserve the heal side effect and native cancellation/bounds; do not add generic persistence or a delayed receipt.",
+      "components": [
+        {
+          "primitive": "NATIVE_COMBAT_PERSISTENCE",
+          "formula": "super.save -> putBoolean(Awaken); super.load -> setAwaken(getBoolean(Awaken))",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "Concrete add/readAdditionalSaveData",
+          "vanilla_relation": "EXTENDED"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native parent NBT order",
+        "Exact Awaken key/native boolean read",
+        "Native setter/heal semantics"
+      ],
+      "custom_state": "Native AWAKEN, raw ATTACK_STATE/attackTicks and unsaved local attack cooldowns only; no IABoss/LLibrary cap/Home/progression state.",
+      "eligibility": "Native parent NBT order; Exact Awaken key/native boolean read; Native setter/heal semantics",
+      "source_actor": "Recipient native CompoundTag and Kobolediator self.",
+      "hurt_return_dependency": "Load does not test hurt; true input invokes native heal regardless prior flag.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": [
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "setAwaken"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": []
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": []
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": []
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:kobolediator-admission:combat_persistence"
+      ],
+      "primary_test_source": "cataclysm:kobolediator",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k14a-cataclysm-kobolediator-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [],
+      "scalability_note": "Native defense/admission/state/setup observations; numeric constants are not automatic Stage candidates. No Stage eligibility, formula, multiplier, direction, cap/floor, balance, ownership integration or hook selected. All Kobolediator offense/payloads deferred to R2k14b.",
+      "local_nbt_keys": [
+        "Awaken"
+      ],
+      "load_uses_awaken_setter": true,
+      "load_true_requests_heal": true,
+      "load_replays_sleep_state": false,
+      "saved_raw_attack_state": false,
+      "saved_attack_cooldowns": false,
+      "inherited_boss_home_nbt": false,
+      "generic_persistence_added": false
+    },
+    {
+      "id": "cataclysm:kobolediator_death_state_transition",
+      "mod_key": "cataclysm",
+      "display_name": "Kobolediator native death admission and raw state8",
+      "registry_ids": [
+        "cataclysm:kobolediator"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Concrete die(original source) invokes locked Animation_Monsters native death contract then unconditionally setAttackState8 when the void superclass returns normally, including early canceled/removed/dead returns. Inherited setter resets attackTicks and broadcasts byte(-8). Concrete deathtimer returns60. Native cancellation, source credit, timers/removal and global callbacks remain. No concrete success/hurt check, heal or awakened-flag write in these methods. Full offensive/death/respawner/terrain callback closure is deferred to R2k14b, not assumed absent.",
+      "human_summary": "Concrete die(original source) invokes locked Animation_Monsters native death contract then unconditionally setAttackState8 when the void superclass returns normally, including early canceled/removed/dead returns. Inherited setter resets attackTicks and broadcasts byte(-8). Concrete deathtimer returns60. Native cancellation, source credit, timers/removal and global callbacks remain. No concrete success/hurt check, heal or awakened-flag write in these methods. Full offensive/death/respawner/terrain callback closure is deferred to R2k14b, not assumed absent.",
+      "closest_vanilla_equivalent": "Native death admission plus concrete raw-state/duration binding",
+      "vanilla_similarities": "Native incoming damage/effects, source identity, hooks, attributes, healing, spawn and lifecycle retain authority; applicable locked contracts reused.",
+      "vanilla_differences": "Concrete die(original source) invokes locked Animation_Monsters native death contract then unconditionally setAttackState8 when the void superclass returns normally, including early canceled/removed/dead returns. Inherited setter resets attackTicks and broadcasts byte(-8). Concrete deathtimer returns60. Native cancellation, source credit, timers/removal and global callbacks remain. No concrete success/hurt check, heal or awakened-flag write in these methods. Full offensive/death/respawner/terrain callback closure is deferred to R2k14b, not assumed absent.",
+      "components": [
+        {
+          "primitive": "RAW_ATTACK_STATE",
+          "formula": "super.die(original source) returns normally -> setAttackState8",
+          "numerical_parameters": {
+            "death_state": 8
+          },
+          "parameter_units": {
+            "death_state": "raw state ID"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Concrete die -> locked setter",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "NATIVE_DEATH_DURATION",
+          "formula": "deathtimer() returns60",
+          "numerical_parameters": {
+            "duration": 60
+          },
+          "parameter_units": {
+            "duration": "native death ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Concrete deathtimer",
+          "vanilla_relation": "DIRECT"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Protected native death cancellation/lifecycle",
+        "Normal void-super return",
+        "Offensive callback closure deferred"
+      ],
+      "custom_state": "Native AWAKEN, raw ATTACK_STATE/attackTicks and unsaved local attack cooldowns only; no IABoss/LLibrary cap/Home/progression state.",
+      "eligibility": "Protected native death cancellation/lifecycle; Normal void-super return; Offensive callback closure deferred",
+      "source_actor": "Native dying Kobolediator and unchanged DamageSource.",
+      "hurt_return_dependency": "Raw state transition does not require hurt/death success.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": [
+            "die",
+            "deathtimer"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "die"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": [
+            "setAttackState"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:kobolediator-admission:death_state_transition"
+      ],
+      "primary_test_source": "cataclysm:kobolediator",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k14a-cataclysm-kobolediator-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "RAW_ATTACK_STATE",
+          "parameter": "death_state",
+          "native_value": 8,
+          "native_formula": "super.die(original source) returns normally -> setAttackState8",
+          "units": "raw state ID",
+          "boundary": "Concrete die -> locked setter"
+        },
+        {
+          "primitive": "NATIVE_DEATH_DURATION",
+          "parameter": "duration",
+          "native_value": 60,
+          "native_formula": "deathtimer() returns60",
+          "units": "native death ticks",
+          "boundary": "Concrete deathtimer"
+        }
+      ],
+      "scalability_note": "Native defense/admission/state/setup observations; numeric constants are not automatic Stage candidates. No Stage eligibility, formula, multiplier, direction, cap/floor, balance, ownership integration or hook selected. All Kobolediator offense/payloads deferred to R2k14b.",
+      "state_write_after_super": true,
+      "state_write_requires_death_success": false,
+      "state_write_requires_hurt_success": false,
+      "source_object_preserved": true,
+      "full_offense_death_family_reviewed": false
+    },
+    {
+      "id": "cataclysm:kobolediator_effect_admission",
+      "mod_key": "cataclysm",
+      "display_name": "Kobolediator locked concrete status exclusions",
+      "registry_ids": [
+        "cataclysm:kobolediator"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Reuse already-closed native canBeAffected witness: exact STUN and ABYSSAL_CURSE exclusions, then native super effect admission. No change/re-review of effect bodies, durations, immunity, stacking or lifecycle; no inherited boss whitelist and no assertion that every other effect is admitted. Holder/reference behavior remains as captured rather than a new generic registry-name predicate.",
+      "human_summary": "Reuse already-closed native canBeAffected witness: exact STUN and ABYSSAL_CURSE exclusions, then native super effect admission. No change/re-review of effect bodies, durations, immunity, stacking or lifecycle; no inherited boss whitelist and no assertion that every other effect is admitted. Holder/reference behavior remains as captured rather than a new generic registry-name predicate.",
+      "closest_vanilla_equivalent": "Existing concrete binary status gate before native MobEffect admission",
+      "vanilla_similarities": "Native incoming damage/effects, source identity, hooks, attributes, healing, spawn and lifecycle retain authority; applicable locked contracts reused.",
+      "vanilla_differences": "Reuse already-closed native canBeAffected witness: exact STUN and ABYSSAL_CURSE exclusions, then native super effect admission. No change/re-review of effect bodies, durations, immunity, stacking or lifecycle; no inherited boss whitelist and no assertion that every other effect is admitted. Holder/reference behavior remains as captured rather than a new generic registry-name predicate.",
+      "components": [
+        {
+          "primitive": "NATIVE_EFFECT_ADMISSION",
+          "formula": "Existing STUN/ABYSSAL_CURSE exclusion -> native super.canBeAffected",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "Previously captured Kobolediator.canBeAffected",
+          "vanilla_relation": "EXTENDED"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Existing exact concrete exclusions",
+        "Native effect admission/hook"
+      ],
+      "custom_state": "Native AWAKEN, raw ATTACK_STATE/attackTicks and unsaved local attack cooldowns only; no IABoss/LLibrary cap/Home/progression state.",
+      "eligibility": "Existing exact concrete exclusions; Native effect admission/hook",
+      "source_actor": "Native effect holder and Kobolediator recipient.",
+      "hurt_return_dependency": "Effect admission does not use hurt return.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": [
+            "canBeAffected"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-abyssal.json",
+          "witness_id": "cataclysm:abyssal:com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": [
+            "canBeAffected"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:kobolediator-admission:effect_admission"
+      ],
+      "primary_test_source": "cataclysm:kobolediator",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k14a-cataclysm-kobolediator-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [],
+      "scalability_note": "Native defense/admission/state/setup observations; numeric constants are not automatic Stage candidates. No Stage eligibility, formula, multiplier, direction, cap/floor, balance, ownership integration or hook selected. All Kobolediator offense/payloads deferred to R2k14b.",
+      "exclusions": [
+        "cataclysm:stun",
+        "cataclysm:abyssal_curse"
+      ],
+      "existing_status_contract_reopened": false,
+      "all_other_effects_admitted_claimed": false
+    },
+    {
+      "id": "cataclysm:kobolediator_encounter_setup",
+      "mod_key": "cataclysm",
+      "display_name": "Kobolediator native config attributes and entity construction",
+      "registry_ids": [
+        "cataclysm:kobolediator"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Exact factory lambda$static$81/bootstrap32 creates native Kobolediator, categoryMONSTER, sized(float2.4,float4.4), ID cataclysm:kobolediator via bootstrap195. No fireImmune call. Locked initializeAttributes binding456..472 installs follow30,speedfloat.28,attack14,maxHP180,armor10,step1.25,KBR1, without explicit toughness. Constructor calls locked setConfigattribute with installed health/attack multipliers1/1: transient ADD_VALUE(base*multiplier-base), and setHealth(current maxHP) for health setup; this is distinct from setAwaken native heal. Constructor seeds no Home/awakened/state through setters, and local cooldowns start0. Do not treat attributes/config/health initialization as offense damage, regen or Stage progression.",
+      "human_summary": "Exact factory lambda$static$81/bootstrap32 creates native Kobolediator, categoryMONSTER, sized(float2.4,float4.4), ID cataclysm:kobolediator via bootstrap195. No fireImmune call. Locked initializeAttributes binding456..472 installs follow30,speedfloat.28,attack14,maxHP180,armor10,step1.25,KBR1, without explicit toughness. Constructor calls locked setConfigattribute with installed health/attack multipliers1/1: transient ADD_VALUE(base*multiplier-base), and setHealth(current maxHP) for health setup; this is distinct from setAwaken native heal. Constructor seeds no Home/awakened/state through setters, and local cooldowns start0. Do not treat attributes/config/health initialization as offense damage, regen or Stage progression.",
+      "closest_vanilla_equivalent": "Native factory/attribute/config setup, distinct from heal delivery",
+      "vanilla_similarities": "Native incoming damage/effects, source identity, hooks, attributes, healing, spawn and lifecycle retain authority; applicable locked contracts reused.",
+      "vanilla_differences": "Exact factory lambda$static$81/bootstrap32 creates native Kobolediator, categoryMONSTER, sized(float2.4,float4.4), ID cataclysm:kobolediator via bootstrap195. No fireImmune call. Locked initializeAttributes binding456..472 installs follow30,speedfloat.28,attack14,maxHP180,armor10,step1.25,KBR1, without explicit toughness. Constructor calls locked setConfigattribute with installed health/attack multipliers1/1: transient ADD_VALUE(base*multiplier-base), and setHealth(current maxHP) for health setup; this is distinct from setAwaken native heal. Constructor seeds no Home/awakened/state through setters, and local cooldowns start0. Do not treat attributes/config/health initialization as offense damage, regen or Stage progression.",
+      "components": [
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "formula": "Registered base attrs then locked native config ADD_VALUE(base*multiplier-base) modifiers",
+          "numerical_parameters": {
+            "follow_range": 30.0,
+            "movement_speed": 0.2800000011920929,
+            "attack_damage": 14.0,
+            "max_health": 180.0,
+            "armor": 10.0,
+            "step_height": 1.25,
+            "knockback_resistance": 1.0,
+            "installed_health_multiplier": 1.0,
+            "installed_attack_multiplier": 1.0
+          },
+          "parameter_units": {
+            "follow_range": "blocks",
+            "movement_speed": "native movement attribute",
+            "attack_damage": "native attack attribute",
+            "max_health": "native HP attribute",
+            "armor": "native armor attribute",
+            "step_height": "blocks",
+            "knockback_resistance": "native resistance attribute",
+            "installed_health_multiplier": "native config multiplier",
+            "installed_attack_multiplier": "native config multiplier"
+          },
+          "binary_parameters": [],
+          "native_boundary": "kobolediator()/constructor -> setConfigattribute",
+          "vanilla_relation": "DIRECT"
+        },
+        {
+          "primitive": "ENTITY_TYPE_SETUP",
+          "formula": "Native MONSTER factory sized(float2.4,float4.4)",
+          "numerical_parameters": {
+            "width": 2.4000000953674316,
+            "height": 4.400000095367432
+          },
+          "parameter_units": {
+            "width": "blocks",
+            "height": "blocks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "ModEntities.lambda$static$81",
+          "vanilla_relation": "DIRECT"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native factory/attribute binding",
+        "Installed config only",
+        "Separate constructor health setup"
+      ],
+      "custom_state": "Native AWAKEN, raw ATTACK_STATE/attackTicks and unsaved local attack cooldowns only; no IABoss/LLibrary cap/Home/progression state.",
+      "eligibility": "Native factory/attribute binding; Installed config only; Separate constructor health setup",
+      "source_actor": "Native factory, configured attributes and recipient self.",
+      "hurt_return_dependency": "Constructor is not hurt-dependent and uses direct health setup, not heal.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": [
+            "<init>",
+            "kobolediator"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$81",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-admission.json",
+          "witness_id": "cataclysm:guardian-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "initializeAttributes"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "setConfigattribute"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:kobolediator-admission:encounter_setup"
+      ],
+      "primary_test_source": "cataclysm:kobolediator",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k14a-cataclysm-kobolediator-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "follow_range",
+          "native_value": 30.0,
+          "native_formula": "Registered base attrs then locked native config ADD_VALUE(base*multiplier-base) modifiers",
+          "units": "blocks",
+          "boundary": "kobolediator()/constructor -> setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "movement_speed",
+          "native_value": 0.2800000011920929,
+          "native_formula": "Registered base attrs then locked native config ADD_VALUE(base*multiplier-base) modifiers",
+          "units": "native movement attribute",
+          "boundary": "kobolediator()/constructor -> setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "attack_damage",
+          "native_value": 14.0,
+          "native_formula": "Registered base attrs then locked native config ADD_VALUE(base*multiplier-base) modifiers",
+          "units": "native attack attribute",
+          "boundary": "kobolediator()/constructor -> setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "max_health",
+          "native_value": 180.0,
+          "native_formula": "Registered base attrs then locked native config ADD_VALUE(base*multiplier-base) modifiers",
+          "units": "native HP attribute",
+          "boundary": "kobolediator()/constructor -> setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "armor",
+          "native_value": 10.0,
+          "native_formula": "Registered base attrs then locked native config ADD_VALUE(base*multiplier-base) modifiers",
+          "units": "native armor attribute",
+          "boundary": "kobolediator()/constructor -> setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "step_height",
+          "native_value": 1.25,
+          "native_formula": "Registered base attrs then locked native config ADD_VALUE(base*multiplier-base) modifiers",
+          "units": "blocks",
+          "boundary": "kobolediator()/constructor -> setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "knockback_resistance",
+          "native_value": 1.0,
+          "native_formula": "Registered base attrs then locked native config ADD_VALUE(base*multiplier-base) modifiers",
+          "units": "native resistance attribute",
+          "boundary": "kobolediator()/constructor -> setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "installed_health_multiplier",
+          "native_value": 1.0,
+          "native_formula": "Registered base attrs then locked native config ADD_VALUE(base*multiplier-base) modifiers",
+          "units": "native config multiplier",
+          "boundary": "kobolediator()/constructor -> setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTE_SETUP",
+          "parameter": "installed_attack_multiplier",
+          "native_value": 1.0,
+          "native_formula": "Registered base attrs then locked native config ADD_VALUE(base*multiplier-base) modifiers",
+          "units": "native config multiplier",
+          "boundary": "kobolediator()/constructor -> setConfigattribute"
+        },
+        {
+          "primitive": "ENTITY_TYPE_SETUP",
+          "parameter": "width",
+          "native_value": 2.4000000953674316,
+          "native_formula": "Native MONSTER factory sized(float2.4,float4.4)",
+          "units": "blocks",
+          "boundary": "ModEntities.lambda$static$81"
+        },
+        {
+          "primitive": "ENTITY_TYPE_SETUP",
+          "parameter": "height",
+          "native_value": 4.400000095367432,
+          "native_formula": "Native MONSTER factory sized(float2.4,float4.4)",
+          "units": "blocks",
+          "boundary": "ModEntities.lambda$static$81"
+        }
+      ],
+      "scalability_note": "Native defense/admission/state/setup observations; numeric constants are not automatic Stage candidates. No Stage eligibility, formula, multiplier, direction, cap/floor, balance, ownership integration or hook selected. All Kobolediator offense/payloads deferred to R2k14b.",
+      "constructor_calls_config_attribute_helper": true,
+      "constructor_calls_heal": false,
+      "constructor_sets_home": false,
+      "constructor_sets_awaken": false,
+      "explicit_armor_toughness_added": false,
+      "config_is_progression": false
+    },
+    {
+      "id": "cataclysm:kobolediator_environment_admission",
+      "mod_key": "cataclysm",
+      "display_name": "Kobolediator native environment and riding boundaries",
+      "registry_ids": [
+        "cataclysm:kobolediator"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Concrete decreaseAirSupply returns its argument unchanged, not max air, and adds no blanket hurt rejection of all drowning/custom sources. canRide returnsfalse. No concrete fluid/fall/canBePushedByEntity override or fireImmune factory call; native environment/type tags/hooks remain; exact inherited Animation_Monsters.canBePushedByEntity returnstrue permits ordinary IA collision admission, without making all motion immune. Locked installed knockback resistance1 is distinct from all-forced-motion immunity. Constructor path malus UNPASSABLE_RAIL0/WATER-1 remains navigation state. Offense-related motion/terrain is deferred.",
+      "human_summary": "Concrete decreaseAirSupply returns its argument unchanged, not max air, and adds no blanket hurt rejection of all drowning/custom sources. canRide returnsfalse. No concrete fluid/fall/canBePushedByEntity override or fireImmune factory call; native environment/type tags/hooks remain; exact inherited Animation_Monsters.canBePushedByEntity returnstrue permits ordinary IA collision admission, without making all motion immune. Locked installed knockback resistance1 is distinct from all-forced-motion immunity. Constructor path malus UNPASSABLE_RAIL0/WATER-1 remains navigation state. Offense-related motion/terrain is deferred.",
+      "closest_vanilla_equivalent": "Native environment APIs with concrete air/riding predicates",
+      "vanilla_similarities": "Native incoming damage/effects, source identity, hooks, attributes, healing, spawn and lifecycle retain authority; applicable locked contracts reused.",
+      "vanilla_differences": "Concrete decreaseAirSupply returns its argument unchanged, not max air, and adds no blanket hurt rejection of all drowning/custom sources. canRide returnsfalse. No concrete fluid/fall/canBePushedByEntity override or fireImmune factory call; native environment/type tags/hooks remain; exact inherited Animation_Monsters.canBePushedByEntity returnstrue permits ordinary IA collision admission, without making all motion immune. Locked installed knockback resistance1 is distinct from all-forced-motion immunity. Constructor path malus UNPASSABLE_RAIL0/WATER-1 remains navigation state. Offense-related motion/terrain is deferred.",
+      "components": [
+        {
+          "primitive": "NATIVE_ENVIRONMENT_ADMISSION",
+          "formula": "Air returns input; cannot ride; constructor native path malus",
+          "numerical_parameters": {
+            "rail_path_malus": 0.0,
+            "water_path_malus": -1.0
+          },
+          "parameter_units": {
+            "rail_path_malus": "native pathfinding malus",
+            "water_path_malus": "native pathfinding malus"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Constructor/decreaseAirSupply/canRide",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native environment/type/hook predicates",
+        "Air/riding APIs"
+      ],
+      "custom_state": "Native AWAKEN, raw ATTACK_STATE/attackTicks and unsaved local attack cooldowns only; no IABoss/LLibrary cap/Home/progression state.",
+      "eligibility": "Native environment/type/hook predicates; Air/riding APIs",
+      "source_actor": "Kobolediator native environment; no outgoing source.",
+      "hurt_return_dependency": "No hurt-success-dependent environment write.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": [
+            "<init>",
+            "decreaseAirSupply",
+            "canRide"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "canBePushedByEntity"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": [
+            "push"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$81"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:kobolediator-admission:environment_admission"
+      ],
+      "primary_test_source": "cataclysm:kobolediator",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k14a-cataclysm-kobolediator-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_ENVIRONMENT_ADMISSION",
+          "parameter": "rail_path_malus",
+          "native_value": 0.0,
+          "native_formula": "Air returns input; cannot ride; constructor native path malus",
+          "units": "native pathfinding malus",
+          "boundary": "Constructor/decreaseAirSupply/canRide"
+        },
+        {
+          "primitive": "NATIVE_ENVIRONMENT_ADMISSION",
+          "parameter": "water_path_malus",
+          "native_value": -1.0,
+          "native_formula": "Air returns input; cannot ride; constructor native path malus",
+          "units": "native pathfinding malus",
+          "boundary": "Constructor/decreaseAirSupply/canRide"
+        }
+      ],
+      "scalability_note": "Native defense/admission/state/setup observations; numeric constants are not automatic Stage candidates. No Stage eligibility, formula, multiplier, direction, cap/floor, balance, ownership integration or hook selected. All Kobolediator offense/payloads deferred to R2k14b.",
+      "air_returns_argument": true,
+      "air_returns_native_max": false,
+      "can_ride": false,
+      "factory_fire_immune_call": false,
+      "concrete_collision_override": false,
+      "inherited_collision_admission": true,
+      "blanket_drowning_immunity_claimed": false,
+      "all_forced_motion_immunity_claimed": false
+    },
+    {
+      "id": "cataclysm:kobolediator_incoming_admission",
+      "mod_key": "cataclysm",
+      "display_name": "Kobolediator ordered native incoming admission",
+      "registry_ids": [
+        "cataclysm:kobolediator"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Concrete hurt first reads DIRECT entity: Poison_Dart rejects; next concrete directional projectile block may mutate that direct arrow/state and returnfalse; then isSleep rejects unless source BYPASSES_INVULNERABILITY; otherwise super.hurt receives original source and float amount and its boolean is returned directly. Exact parent chain is Internal_Animation_Monster -> Animation_Monsters -> native Monster, without IABoss/LLibrary boss wrappers. Native invulnerability/client/dead/fire-resistance, damage-container/events/shield/freezing/helmet, cooldown/actuallyHurt/source-credit/impact/totem/death callbacks retain their locked order. No incoming amount rewrite, boss distance/cap/bucket, causing-actor substitution or success-dependent post-hurt write. True hurt does not prove final HP loss.",
+      "human_summary": "Concrete hurt first reads DIRECT entity: Poison_Dart rejects; next concrete directional projectile block may mutate that direct arrow/state and returnfalse; then isSleep rejects unless source BYPASSES_INVULNERABILITY; otherwise super.hurt receives original source and float amount and its boolean is returned directly. Exact parent chain is Internal_Animation_Monster -> Animation_Monsters -> native Monster, without IABoss/LLibrary boss wrappers. Native invulnerability/client/dead/fire-resistance, damage-container/events/shield/freezing/helmet, cooldown/actuallyHurt/source-credit/impact/totem/death callbacks retain their locked order. No incoming amount rewrite, boss distance/cap/bucket, causing-actor substitution or success-dependent post-hurt write. True hurt does not prove final HP loss.",
+      "closest_vanilla_equivalent": "Concrete native admission prefilters around patched vanilla LivingEntity.hurt",
+      "vanilla_similarities": "Native incoming damage/effects, source identity, hooks, attributes, healing, spawn and lifecycle retain authority; applicable locked contracts reused.",
+      "vanilla_differences": "Concrete hurt first reads DIRECT entity: Poison_Dart rejects; next concrete directional projectile block may mutate that direct arrow/state and returnfalse; then isSleep rejects unless source BYPASSES_INVULNERABILITY; otherwise super.hurt receives original source and float amount and its boolean is returned directly. Exact parent chain is Internal_Animation_Monster -> Animation_Monsters -> native Monster, without IABoss/LLibrary boss wrappers. Native invulnerability/client/dead/fire-resistance, damage-container/events/shield/freezing/helmet, cooldown/actuallyHurt/source-credit/impact/totem/death callbacks retain their locked order. No incoming amount rewrite, boss distance/cap/bucket, causing-actor substitution or success-dependent post-hurt write. True hurt does not prove final HP loss.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_ADMISSION",
+          "formula": "Poison direct-type -> block -> sleep/tag -> super.hurt(original source,original amount)",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "Kobolediator.hurt",
+          "vanilla_relation": "EXTENDED"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Direct-type exclusion",
+        "Concrete block before sleep/native hurt",
+        "Sleep/tag admission",
+        "Existing native/global defenses and cancellation"
+      ],
+      "custom_state": "Native AWAKEN, raw ATTACK_STATE/attackTicks and unsaved local attack cooldowns only; no IABoss/LLibrary cap/Home/progression state.",
+      "eligibility": "Direct-type exclusion; Concrete block before sleep/native hurt; Sleep/tag admission; Existing native/global defenses and cancellation",
+      "source_actor": "Original DamageSource preserved. DIRECT entity selects dart/arrow behavior; block uses native source-position API, not causing-owner range; native causing/direct credit/impact roles remain separate.",
+      "hurt_return_dependency": "Blocked/dart/sleep branches returnfalse before native hurt; delegated branch returns native boolean unchanged.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": [
+            "hurt",
+            "canBlockDamageSource",
+            "isSleep"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": []
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": []
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": []
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:kobolediator-admission:incoming_admission"
+      ],
+      "primary_test_source": "cataclysm:kobolediator",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k14a-cataclysm-kobolediator-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [],
+      "scalability_note": "Native defense/admission/state/setup observations; numeric constants are not automatic Stage candidates. No Stage eligibility, formula, multiplier, direction, cap/floor, balance, ownership integration or hook selected. All Kobolediator offense/payloads deferred to R2k14b.",
+      "admission_order": [
+        "DIRECT_POISON_DART_REJECTION",
+        "CONCRETE_PROJECTILE_BLOCK_ADMISSION",
+        "BLOCKED_DIRECT_ARROW_RESPONSE_AND_IDLE_STATE9_FALSE_RETURN",
+        "SLEEP_REJECTION_UNLESS_BYPASSES_INVULNERABILITY",
+        "UNCHANGED_SOURCE_AND_AMOUNT_TO_NATIVE_HURT",
+        "NATIVE_VIRTUAL_INVULNERABILITY_CLIENT_DEAD_FIRE_RESISTANCE",
+        "NATIVE_DAMAGE_CONTAINER_EVENTS_SHIELD_FREEZING_HELMET",
+        "NATIVE_COOLDOWN_ACTUALLY_HURT_SOURCE_CREDIT_IMPACT_TOTEM_DEATH_CALLBACKS",
+        "NATIVE_RETURN_NO_CONCRETE_POST_HURT_WRITE"
+      ],
+      "uses_direct_entity": true,
+      "uses_causing_entity_in_prefilters": false,
+      "incoming_amount_rewritten": false,
+      "bypass_skips_earlier_prefilters": false,
+      "shared_boss_hurt_reached": false,
+      "concrete_post_hurt_write": false,
+      "reference_evidence": [
+        {
+          "evidence_file": "reference-evidence/bossesrise-knight-defense-244.json",
+          "entry": "net/minecraft/world/entity/LivingEntity.class",
+          "methods": [
+            "hurt"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/bossesrise-knight-defense-244.json",
+          "entry": "net/minecraft/world/entity/Entity.class",
+          "methods": [
+            "isInvulnerableTo",
+            "isInvulnerable"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:kobolediator_native_invulnerability",
+      "mod_key": "cataclysm",
+      "display_name": "Kobolediator inherited native invulnerability",
+      "registry_ids": [
+        "cataclysm:kobolediator"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "No concrete Kobolediator/IA-monster/Animation_Monsters isInvulnerableTo override. Reuse Entity removed/invulnerable/creative/BYPASSES_INVULNERABILITY, IS_FIRE+native type fireImmune, IS_FALL+recipient type tag and CommonHooks result, then other native hurt defenses/tags. Concrete sleep/projectile/dart prefilters are distinct from this virtual native contract. Factory adds no fireImmune binding; do not infer unconditional fire/fall immunity or a bypass of all admission from one tag.",
+      "human_summary": "No concrete Kobolediator/IA-monster/Animation_Monsters isInvulnerableTo override. Reuse Entity removed/invulnerable/creative/BYPASSES_INVULNERABILITY, IS_FIRE+native type fireImmune, IS_FALL+recipient type tag and CommonHooks result, then other native hurt defenses/tags. Concrete sleep/projectile/dart prefilters are distinct from this virtual native contract. Factory adds no fireImmune binding; do not infer unconditional fire/fall immunity or a bypass of all admission from one tag.",
+      "closest_vanilla_equivalent": "Existing Entity invulnerability and native hook, after concrete prefilters",
+      "vanilla_similarities": "Native incoming damage/effects, source identity, hooks, attributes, healing, spawn and lifecycle retain authority; applicable locked contracts reused.",
+      "vanilla_differences": "No concrete Kobolediator/IA-monster/Animation_Monsters isInvulnerableTo override. Reuse Entity removed/invulnerable/creative/BYPASSES_INVULNERABILITY, IS_FIRE+native type fireImmune, IS_FALL+recipient type tag and CommonHooks result, then other native hurt defenses/tags. Concrete sleep/projectile/dart prefilters are distinct from this virtual native contract. Factory adds no fireImmune binding; do not infer unconditional fire/fall immunity or a bypass of all admission from one tag.",
+      "components": [
+        {
+          "primitive": "NATIVE_INVULNERABILITY",
+          "formula": "Existing native Entity predicate/hooks; no concrete override",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "Inherited isInvulnerableTo",
+          "vanilla_relation": "DIRECT"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native removed/flag/creative/type/tag predicates",
+        "Native hook result",
+        "Earlier concrete prefilters"
+      ],
+      "custom_state": "Native AWAKEN, raw ATTACK_STATE/attackTicks and unsaved local attack cooldowns only; no IABoss/LLibrary cap/Home/progression state.",
+      "eligibility": "Native removed/flag/creative/type/tag predicates; Native hook result; Earlier concrete prefilters",
+      "source_actor": "Original DamageSource and recipient EntityType.",
+      "hurt_return_dependency": "Existing native boolean admission retained; no local success-dependent change.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": []
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": []
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": []
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:kobolediator-admission:native_invulnerability"
+      ],
+      "primary_test_source": "cataclysm:kobolediator",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k14a-cataclysm-kobolediator-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [],
+      "scalability_note": "Native defense/admission/state/setup observations; numeric constants are not automatic Stage candidates. No Stage eligibility, formula, multiplier, direction, cap/floor, balance, ownership integration or hook selected. All Kobolediator offense/payloads deferred to R2k14b.",
+      "concrete_invulnerability_override": false,
+      "unconditional_bypass_claimed": false,
+      "unconditional_fire_immunity_claimed": false,
+      "unconditional_fall_immunity_claimed": false,
+      "reference_evidence": [
+        {
+          "evidence_file": "reference-evidence/bossesrise-knight-defense-244.json",
+          "entry": "net/minecraft/world/entity/LivingEntity.class",
+          "methods": [
+            "hurt"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/bossesrise-knight-defense-244.json",
+          "entry": "net/minecraft/world/entity/Entity.class",
+          "methods": [
+            "isInvulnerableTo",
+            "isInvulnerable"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:kobolediator_poison_dart_admission",
+      "mod_key": "cataclysm",
+      "display_name": "Kobolediator direct Poison Dart exclusion",
+      "registry_ids": [
+        "cataclysm:kobolediator"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "If original source.getDirectEntity() instanceof Poison_Dart_Entity, returnfalse before block, sleep/tag or native hurt. It is a native direct-class predicate, independent of owner/causing actor, projectile tag, bypass tags, distance, AI and awakened state. Do not inspect Poison Dart offense/payload here or broaden the exclusion to all poison damage/projectiles.",
+      "human_summary": "If original source.getDirectEntity() instanceof Poison_Dart_Entity, returnfalse before block, sleep/tag or native hurt. It is a native direct-class predicate, independent of owner/causing actor, projectile tag, bypass tags, distance, AI and awakened state. Do not inspect Poison Dart offense/payload here or broaden the exclusion to all poison damage/projectiles.",
+      "closest_vanilla_equivalent": "Custom native direct-entity admission gate",
+      "vanilla_similarities": "Native incoming damage/effects, source identity, hooks, attributes, healing, spawn and lifecycle retain authority; applicable locked contracts reused.",
+      "vanilla_differences": "If original source.getDirectEntity() instanceof Poison_Dart_Entity, returnfalse before block, sleep/tag or native hurt. It is a native direct-class predicate, independent of owner/causing actor, projectile tag, bypass tags, distance, AI and awakened state. Do not inspect Poison Dart offense/payload here or broaden the exclusion to all poison damage/projectiles.",
+      "components": [
+        {
+          "primitive": "DIRECT_ENTITY_ADMISSION",
+          "formula": "DIRECT instanceof Poison_Dart_Entity -> false",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "First Kobolediator.hurt branch",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Exact direct Poison_Dart class"
+      ],
+      "custom_state": "Native AWAKEN, raw ATTACK_STATE/attackTicks and unsaved local attack cooldowns only; no IABoss/LLibrary cap/Home/progression state.",
+      "eligibility": "Exact direct Poison_Dart class",
+      "source_actor": "Original DIRECT dart, not its owner.",
+      "hurt_return_dependency": "No native hurt invocation or return-dependent mutation.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": [
+            "hurt"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:kobolediator-admission:poison_dart_admission"
+      ],
+      "primary_test_source": "cataclysm:kobolediator",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k14a-cataclysm-kobolediator-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [],
+      "scalability_note": "Native defense/admission/state/setup observations; numeric constants are not automatic Stage candidates. No Stage eligibility, formula, multiplier, direction, cap/floor, balance, ownership integration or hook selected. All Kobolediator offense/payloads deferred to R2k14b.",
+      "bypass_overrides_dart_rejection": false,
+      "excludes_all_poison_sources": false,
+      "projectile_payload_reviewed": false
+    },
+    {
+      "id": "cataclysm:kobolediator_projectile_block_admission",
+      "mod_key": "cataclysm",
+      "display_name": "Kobolediator directional projectile admission",
+      "registry_ids": [
+        "cataclysm:kobolediator"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "canBlockDamageSource requires !isNoAi, native IS_PROJECTILE tag, raw state0 or9 and non-null source.getSourcePosition(). A local false flag is never changed; there is no piercing-arrow read. Compute sourcePos.vectorTo(self.position()).normalize() in3D, zero Y without renormalizing, dot with getViewVector(1f), require<0. No native item-use/blocking/shield-segment test, BYPASSES_SHIELD check, or BYPASSES_INVULNERABILITY bypass here. This block runs before sleep admission; even an unawakened raw-state0 object can enter it. Source-position semantics remain native, not replaced by direct/causing actor coordinates.",
+      "human_summary": "canBlockDamageSource requires !isNoAi, native IS_PROJECTILE tag, raw state0 or9 and non-null source.getSourcePosition(). A local false flag is never changed; there is no piercing-arrow read. Compute sourcePos.vectorTo(self.position()).normalize() in3D, zero Y without renormalizing, dot with getViewVector(1f), require<0. No native item-use/blocking/shield-segment test, BYPASSES_SHIELD check, or BYPASSES_INVULNERABILITY bypass here. This block runs before sleep admission; even an unawakened raw-state0 object can enter it. Source-position semantics remain native, not replaced by direct/causing actor coordinates.",
+      "closest_vanilla_equivalent": "Custom native directional projectile prefilter, not vanilla held-shield admission",
+      "vanilla_similarities": "Native incoming damage/effects, source identity, hooks, attributes, healing, spawn and lifecycle retain authority; applicable locked contracts reused.",
+      "vanilla_differences": "canBlockDamageSource requires !isNoAi, native IS_PROJECTILE tag, raw state0 or9 and non-null source.getSourcePosition(). A local false flag is never changed; there is no piercing-arrow read. Compute sourcePos.vectorTo(self.position()).normalize() in3D, zero Y without renormalizing, dot with getViewVector(1f), require<0. No native item-use/blocking/shield-segment test, BYPASSES_SHIELD check, or BYPASSES_INVULNERABILITY bypass here. This block runs before sleep admission; even an unawakened raw-state0 object can enter it. Source-position semantics remain native, not replaced by direct/causing actor coordinates.",
+      "components": [
+        {
+          "primitive": "PROJECTILE_BLOCK_ADMISSION",
+          "formula": "!NoAI && IS_PROJECTILE && state0/9 && nonnull native source-position && horizontalized(normalized3D(source->self)).dot(view)<0",
+          "numerical_parameters": {
+            "view_partial_tick": 1.0,
+            "strict_dot_threshold": 0.0,
+            "idle_state": 0,
+            "block_state": 9
+          },
+          "parameter_units": {
+            "view_partial_tick": "native view interpolation",
+            "strict_dot_threshold": "native dot-product bound",
+            "idle_state": "raw state ID",
+            "block_state": "raw state ID"
+          },
+          "binary_parameters": [],
+          "native_boundary": "canBlockDamageSource",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native AI/projectile/state/source-position gates",
+        "Native strict directional dot"
+      ],
+      "custom_state": "Native AWAKEN, raw ATTACK_STATE/attackTicks and unsaved local attack cooldowns only; no IABoss/LLibrary cap/Home/progression state.",
+      "eligibility": "Native AI/projectile/state/source-position gates; Native strict directional dot",
+      "source_actor": "Original native source-position and recipient view; not causing-owner distance.",
+      "hurt_return_dependency": "Admission is evaluated before native hurt; true produces a concrete false return.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": [
+            "hurt",
+            "canBlockDamageSource"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:kobolediator-admission:projectile_block_admission"
+      ],
+      "primary_test_source": "cataclysm:kobolediator",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k14a-cataclysm-kobolediator-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "PROJECTILE_BLOCK_ADMISSION",
+          "parameter": "view_partial_tick",
+          "native_value": 1.0,
+          "native_formula": "!NoAI && IS_PROJECTILE && state0/9 && nonnull native source-position && horizontalized(normalized3D(source->self)).dot(view)<0",
+          "units": "native view interpolation",
+          "boundary": "canBlockDamageSource"
+        },
+        {
+          "primitive": "PROJECTILE_BLOCK_ADMISSION",
+          "parameter": "strict_dot_threshold",
+          "native_value": 0.0,
+          "native_formula": "!NoAI && IS_PROJECTILE && state0/9 && nonnull native source-position && horizontalized(normalized3D(source->self)).dot(view)<0",
+          "units": "native dot-product bound",
+          "boundary": "canBlockDamageSource"
+        },
+        {
+          "primitive": "PROJECTILE_BLOCK_ADMISSION",
+          "parameter": "idle_state",
+          "native_value": 0,
+          "native_formula": "!NoAI && IS_PROJECTILE && state0/9 && nonnull native source-position && horizontalized(normalized3D(source->self)).dot(view)<0",
+          "units": "raw state ID",
+          "boundary": "canBlockDamageSource"
+        },
+        {
+          "primitive": "PROJECTILE_BLOCK_ADMISSION",
+          "parameter": "block_state",
+          "native_value": 9,
+          "native_formula": "!NoAI && IS_PROJECTILE && state0/9 && nonnull native source-position && horizontalized(normalized3D(source->self)).dot(view)<0",
+          "units": "raw state ID",
+          "boundary": "canBlockDamageSource"
+        }
+      ],
+      "scalability_note": "Native defense/admission/state/setup observations; numeric constants are not automatic Stage candidates. No Stage eligibility, formula, multiplier, direction, cap/floor, balance, ownership integration or hook selected. All Kobolediator offense/payloads deferred to R2k14b.",
+      "uses_native_source_position": true,
+      "uses_causing_range": false,
+      "renormalizes_after_zero_y": false,
+      "reads_arrow_piercing": false,
+      "checks_bypasses_shield": false,
+      "bypass_overrides_block": false,
+      "requires_native_using_item": false,
+      "block_tests_awaken": false
+    },
+    {
+      "id": "cataclysm:kobolediator_projectile_block_response",
+      "mod_key": "cataclysm",
+      "display_name": "Kobolediator blocked direct-arrow motion and state response",
+      "registry_ids": [
+        "cataclysm:kobolediator"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "When concrete block succeeds and DIRECT instanceof AbstractArrow, draw f32(170f+nextFloat()*80f), scale its CURRENT velocity by1.5, add that random value to entity yaw and set hurtMarked=true. Velocity itself is not rotated/reversed or aimed at shooter; no native deflect/setOwner/duplicate arrow/new damage source is called. Other tagged projectiles may be blocked without this arrow-only mutation. Then only raw state0 sets state9; repeated state9 blocks do not reset attackTicks. Returnfalse without native hurt. No local side guard or hurt-success gate. Block-recovery goal binds9->9->0 max18/look0 with boolean flagsfalse; full offense remains deferred.",
+      "human_summary": "When concrete block succeeds and DIRECT instanceof AbstractArrow, draw f32(170f+nextFloat()*80f), scale its CURRENT velocity by1.5, add that random value to entity yaw and set hurtMarked=true. Velocity itself is not rotated/reversed or aimed at shooter; no native deflect/setOwner/duplicate arrow/new damage source is called. Other tagged projectiles may be blocked without this arrow-only mutation. Then only raw state0 sets state9; repeated state9 blocks do not reset attackTicks. Returnfalse without native hurt. No local side guard or hurt-success gate. Block-recovery goal binds9->9->0 max18/look0 with boolean flagsfalse; full offense remains deferred.",
+      "closest_vanilla_equivalent": "Custom direct projectile motion/facing plus raw block-state transition",
+      "vanilla_similarities": "Native incoming damage/effects, source identity, hooks, attributes, healing, spawn and lifecycle retain authority; applicable locked contracts reused.",
+      "vanilla_differences": "When concrete block succeeds and DIRECT instanceof AbstractArrow, draw f32(170f+nextFloat()*80f), scale its CURRENT velocity by1.5, add that random value to entity yaw and set hurtMarked=true. Velocity itself is not rotated/reversed or aimed at shooter; no native deflect/setOwner/duplicate arrow/new damage source is called. Other tagged projectiles may be blocked without this arrow-only mutation. Then only raw state0 sets state9; repeated state9 blocks do not reset attackTicks. Returnfalse without native hurt. No local side guard or hurt-success gate. Block-recovery goal binds9->9->0 max18/look0 with boolean flagsfalse; full offense remains deferred.",
+      "components": [
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "formula": "DIRECT arrow.setDeltaMovement(oldVelocity.scale(velocity_factor))",
+          "numerical_parameters": {
+            "velocity_factor": 1.5
+          },
+          "parameter_units": {
+            "velocity_factor": "dimensionless current-velocity factor"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Blocked hurt direct-arrow branch",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "PROJECTILE_FACING",
+          "formula": "DIRECT arrow.setYRot(oldYaw+f32(yaw_base+nextFloat()*yaw_span)); velocity direction untouched",
+          "numerical_parameters": {
+            "yaw_base": 170.0,
+            "yaw_span": 80.0
+          },
+          "parameter_units": {
+            "yaw_base": "degrees additive base",
+            "yaw_span": "degrees native random span"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Blocked hurt direct-arrow facing",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "RAW_ATTACK_STATE",
+          "formula": "If state0 setAttackState9; native block-recovery state9->9->0",
+          "numerical_parameters": {
+            "block_state": 9,
+            "recovery_max_ticks": 18
+          },
+          "parameter_units": {
+            "block_state": "raw state ID",
+            "recovery_max_ticks": "native attack ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Blocked hurt state response/registerGoals",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Concrete block success",
+        "Direct AbstractArrow only for projectile mutation",
+        "State0 only for raw transition",
+        "Native false return"
+      ],
+      "custom_state": "Native AWAKEN, raw ATTACK_STATE/attackTicks and unsaved local attack cooldowns only; no IABoss/LLibrary cap/Home/progression state.",
+      "eligibility": "Concrete block success; Direct AbstractArrow only for projectile mutation; State0 only for raw transition; Native false return",
+      "source_actor": "Existing DIRECT arrow object and unchanged native owner; recipient Kobolediator state.",
+      "hurt_return_dependency": "Response precedes/avoids native hurt; no hurt-success dependency.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": [
+            "hurt",
+            "registerGoals"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-berserker-offense.json",
+          "witness_id": "cataclysm:ignited-berserker-offense:entity/InternalAnimationMonster/AI/InternalStateGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AI/InternalStateGoal.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/AI/InternalStateGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AI/InternalStateGoal.class",
+          "methods": [
+            "canUse",
+            "start",
+            "stop",
+            "canContinueToUse"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:kobolediator-admission:projectile_block_response"
+      ],
+      "primary_test_source": "cataclysm:kobolediator",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k14a-cataclysm-kobolediator-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameter": "velocity_factor",
+          "native_value": 1.5,
+          "native_formula": "DIRECT arrow.setDeltaMovement(oldVelocity.scale(velocity_factor))",
+          "units": "dimensionless current-velocity factor",
+          "boundary": "Blocked hurt direct-arrow branch"
+        },
+        {
+          "primitive": "PROJECTILE_FACING",
+          "parameter": "yaw_base",
+          "native_value": 170.0,
+          "native_formula": "DIRECT arrow.setYRot(oldYaw+f32(yaw_base+nextFloat()*yaw_span)); velocity direction untouched",
+          "units": "degrees additive base",
+          "boundary": "Blocked hurt direct-arrow facing"
+        },
+        {
+          "primitive": "PROJECTILE_FACING",
+          "parameter": "yaw_span",
+          "native_value": 80.0,
+          "native_formula": "DIRECT arrow.setYRot(oldYaw+f32(yaw_base+nextFloat()*yaw_span)); velocity direction untouched",
+          "units": "degrees native random span",
+          "boundary": "Blocked hurt direct-arrow facing"
+        },
+        {
+          "primitive": "RAW_ATTACK_STATE",
+          "parameter": "block_state",
+          "native_value": 9,
+          "native_formula": "If state0 setAttackState9; native block-recovery state9->9->0",
+          "units": "raw state ID",
+          "boundary": "Blocked hurt state response/registerGoals"
+        },
+        {
+          "primitive": "RAW_ATTACK_STATE",
+          "parameter": "recovery_max_ticks",
+          "native_value": 18,
+          "native_formula": "If state0 setAttackState9; native block-recovery state9->9->0",
+          "units": "native attack ticks",
+          "boundary": "Blocked hurt state response/registerGoals"
+        }
+      ],
+      "scalability_note": "Native defense/admission/state/setup observations; numeric constants are not automatic Stage candidates. No Stage eligibility, formula, multiplier, direction, cap/floor, balance, ownership integration or hook selected. All Kobolediator offense/payloads deferred to R2k14b.",
+      "response_requires_hurt_success": false,
+      "velocity_rotated_to_new_yaw": false,
+      "owner_reassigned": false,
+      "native_deflect_called": false,
+      "duplicate_projectile_created": false,
+      "local_server_guard": false,
+      "block_state_restarts_on_repeat": false
+    },
+    {
+      "id": "cataclysm:kobolediator_pyramid_spawn_prerequisites",
+      "mod_key": "cataclysm",
+      "display_name": "Kobolediator exact Cursed Pyramid encounter setup",
+      "registry_ids": [
+        "cataclysm:kobolediator"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Native Cursed_Pyramid_Structure.Piece marker \"kobolediator\": exact KOBOLEDIATOR.create(level), null check, setPersistenceRequired, moveTo(markerPos,0,0), setSleep(true), finalizeSpawn(native STRUCTURE,current difficulty,null group), addFreshEntityWithPassengers, then clear marker AIR/flags2. Null creation skips spawn and AIR write. No local BoundingBox argument check, home/owner/target/awaken setter/necklace/Ignis-world-flag gate; do not borrow Remnant altar/item prerequisites. Concrete finalizeSpawn always setSleep(true) before forwarding original arguments to native parent; marker therefore sets raw sleep twice, not awakened flag. No concrete checkSpawnRules or ModEntities Kobolediator placement registration; native inherited spawn/loader predicates remain authoritative wherever invoked, not a universal all-creation gate. removeWhenFarAway/shouldDespawnInPeaceful returnfalse, canRidefalse; not all-removal immunity. No exhaustive global acquisition/spawn research claimed.",
+      "human_summary": "Native Cursed_Pyramid_Structure.Piece marker \"kobolediator\": exact KOBOLEDIATOR.create(level), null check, setPersistenceRequired, moveTo(markerPos,0,0), setSleep(true), finalizeSpawn(native STRUCTURE,current difficulty,null group), addFreshEntityWithPassengers, then clear marker AIR/flags2. Null creation skips spawn and AIR write. No local BoundingBox argument check, home/owner/target/awaken setter/necklace/Ignis-world-flag gate; do not borrow Remnant altar/item prerequisites. Concrete finalizeSpawn always setSleep(true) before forwarding original arguments to native parent; marker therefore sets raw sleep twice, not awakened flag. No concrete checkSpawnRules or ModEntities Kobolediator placement registration; native inherited spawn/loader predicates remain authoritative wherever invoked, not a universal all-creation gate. removeWhenFarAway/shouldDespawnInPeaceful returnfalse, canRidefalse; not all-removal immunity. No exhaustive global acquisition/spawn research claimed.",
+      "closest_vanilla_equivalent": "Native structure create/finalize/add plus raw sleep initialization",
+      "vanilla_similarities": "Native incoming damage/effects, source identity, hooks, attributes, healing, spawn and lifecycle retain authority; applicable locked contracts reused.",
+      "vanilla_differences": "Native Cursed_Pyramid_Structure.Piece marker \"kobolediator\": exact KOBOLEDIATOR.create(level), null check, setPersistenceRequired, moveTo(markerPos,0,0), setSleep(true), finalizeSpawn(native STRUCTURE,current difficulty,null group), addFreshEntityWithPassengers, then clear marker AIR/flags2. Null creation skips spawn and AIR write. No local BoundingBox argument check, home/owner/target/awaken setter/necklace/Ignis-world-flag gate; do not borrow Remnant altar/item prerequisites. Concrete finalizeSpawn always setSleep(true) before forwarding original arguments to native parent; marker therefore sets raw sleep twice, not awakened flag. No concrete checkSpawnRules or ModEntities Kobolediator placement registration; native inherited spawn/loader predicates remain authoritative wherever invoked, not a universal all-creation gate. removeWhenFarAway/shouldDespawnInPeaceful returnfalse, canRidefalse; not all-removal immunity. No exhaustive global acquisition/spawn research claimed.",
+      "components": [
+        {
+          "primitive": "NATIVE_SPAWN_SETUP",
+          "formula": "Marker create -> persistent -> move -> setSleep(true) -> finalize(STRUCTURE) -> add -> AIR; finalize delegates after setSleep(true)",
+          "numerical_parameters": {
+            "initial_raw_sleep_state": 1,
+            "spawn_yaw": 0.0,
+            "spawn_pitch": 0.0,
+            "marker_air_write_flags": 2
+          },
+          "parameter_units": {
+            "initial_raw_sleep_state": "raw state ID",
+            "spawn_yaw": "degrees",
+            "spawn_pitch": "degrees",
+            "marker_air_write_flags": "native block write flags"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Cursed Pyramid kobolediator marker/finalizeSpawn",
+          "vanilla_relation": "EXTENDED"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Exact native marker and entity type",
+        "Non-null create result",
+        "Native spawn/finalize/loader lifecycle",
+        "Native removal predicates"
+      ],
+      "custom_state": "Native AWAKEN, raw ATTACK_STATE/attackTicks and unsaved local attack cooldowns only; no IABoss/LLibrary cap/Home/progression state.",
+      "eligibility": "Exact native marker and entity type; Non-null create result; Native spawn/finalize/loader lifecycle; Native removal predicates",
+      "source_actor": "Native structure level/marker/entity; no new owner/home carrier.",
+      "hurt_return_dependency": "Spawn has no hurt dependency; native finalize result is discarded by marker.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:structures/Cursed_Pyramid_Structure$Piece",
+          "entry": "com/github/L_Ender/cataclysm/structures/Cursed_Pyramid_Structure$Piece.class",
+          "methods": [
+            "handleDataMarker"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": [
+            "finalizeSpawn",
+            "setSleep",
+            "removeWhenFarAway",
+            "shouldDespawnInPeaceful",
+            "canRide"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": []
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:kobolediator-admission:pyramid_spawn_prerequisites"
+      ],
+      "primary_test_source": "cataclysm:kobolediator",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k14a-cataclysm-kobolediator-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_SPAWN_SETUP",
+          "parameter": "initial_raw_sleep_state",
+          "native_value": 1,
+          "native_formula": "Marker create -> persistent -> move -> setSleep(true) -> finalize(STRUCTURE) -> add -> AIR; finalize delegates after setSleep(true)",
+          "units": "raw state ID",
+          "boundary": "Cursed Pyramid kobolediator marker/finalizeSpawn"
+        },
+        {
+          "primitive": "NATIVE_SPAWN_SETUP",
+          "parameter": "spawn_yaw",
+          "native_value": 0.0,
+          "native_formula": "Marker create -> persistent -> move -> setSleep(true) -> finalize(STRUCTURE) -> add -> AIR; finalize delegates after setSleep(true)",
+          "units": "degrees",
+          "boundary": "Cursed Pyramid kobolediator marker/finalizeSpawn"
+        },
+        {
+          "primitive": "NATIVE_SPAWN_SETUP",
+          "parameter": "spawn_pitch",
+          "native_value": 0.0,
+          "native_formula": "Marker create -> persistent -> move -> setSleep(true) -> finalize(STRUCTURE) -> add -> AIR; finalize delegates after setSleep(true)",
+          "units": "degrees",
+          "boundary": "Cursed Pyramid kobolediator marker/finalizeSpawn"
+        },
+        {
+          "primitive": "NATIVE_SPAWN_SETUP",
+          "parameter": "marker_air_write_flags",
+          "native_value": 2,
+          "native_formula": "Marker create -> persistent -> move -> setSleep(true) -> finalize(STRUCTURE) -> add -> AIR; finalize delegates after setSleep(true)",
+          "units": "native block write flags",
+          "boundary": "Cursed Pyramid kobolediator marker/finalizeSpawn"
+        }
+      ],
+      "scalability_note": "Native defense/admission/state/setup observations; numeric constants are not automatic Stage candidates. No Stage eligibility, formula, multiplier, direction, cap/floor, balance, ownership integration or hook selected. All Kobolediator offense/payloads deferred to R2k14b.",
+      "native_marker": "kobolediator",
+      "marker_checks_bounding_box": false,
+      "marker_sets_home": false,
+      "marker_sets_awaken": false,
+      "marker_requires_ignis_flag": false,
+      "marker_requires_necklace": false,
+      "finalize_sets_sleep_before_parent": true,
+      "finalize_result_used": false,
+      "concrete_spawn_rules_override": false,
+      "concrete_spawn_placement_registered": false,
+      "null_create_clears_marker": false,
+      "distance_despawn": false,
+      "peaceful_despawn": false,
+      "universal_spawn_gate_claimed": false
+    },
+    {
+      "id": "cataclysm:kobolediator_shared_defense_applicability",
+      "mod_key": "cataclysm",
+      "display_name": "Kobolediator boss-defense applicability boundary",
+      "registry_ids": [
+        "cataclysm:kobolediator"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Exact Kobolediator -> Internal_Animation_Monster -> Animation_Monsters -> Monster chain has no Cataclysm boss DamageCap/DpsCap/RangeLimit/NatureRegen/HealCooldown or Home/return/bucket/LifeRemain contract. Record N/A, not borrowed boss Float/Double.MAX_VALUE, regen0 or timers. No concrete amount rewrite or positive inherited boss natural-heal delivery. Existing native armor/effect admission remains, with two concrete effect exclusions recorded separately; boss effective_for_bosses whitelist does not apply. Defensive type/tag/state bindings are not automatic Stage scalars.",
+      "human_summary": "Exact Kobolediator -> Internal_Animation_Monster -> Animation_Monsters -> Monster chain has no Cataclysm boss DamageCap/DpsCap/RangeLimit/NatureRegen/HealCooldown or Home/return/bucket/LifeRemain contract. Record N/A, not borrowed boss Float/Double.MAX_VALUE, regen0 or timers. No concrete amount rewrite or positive inherited boss natural-heal delivery. Existing native armor/effect admission remains, with two concrete effect exclusions recorded separately; boss effective_for_bosses whitelist does not apply. Defensive type/tag/state bindings are not automatic Stage scalars.",
+      "closest_vanilla_equivalent": "Native Monster defenses without Cataclysm boss wrappers",
+      "vanilla_similarities": "Native incoming damage/effects, source identity, hooks, attributes, healing, spawn and lifecycle retain authority; applicable locked contracts reused.",
+      "vanilla_differences": "Exact Kobolediator -> Internal_Animation_Monster -> Animation_Monsters -> Monster chain has no Cataclysm boss DamageCap/DpsCap/RangeLimit/NatureRegen/HealCooldown or Home/return/bucket/LifeRemain contract. Record N/A, not borrowed boss Float/Double.MAX_VALUE, regen0 or timers. No concrete amount rewrite or positive inherited boss natural-heal delivery. Existing native armor/effect admission remains, with two concrete effect exclusions recorded separately; boss effective_for_bosses whitelist does not apply. Defensive type/tag/state bindings are not automatic Stage scalars.",
+      "components": [
+        {
+          "primitive": "BOSS_BINDING_APPLICABILITY",
+          "formula": "None of these boss contracts is on the hierarchy/call chain",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "Exact hierarchy/declared metadata",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Exact native hierarchy",
+        "Native defenses/effects retained",
+        "No promotion of defensive constants"
+      ],
+      "custom_state": "Native AWAKEN, raw ATTACK_STATE/attackTicks and unsaved local attack cooldowns only; no IABoss/LLibrary cap/Home/progression state.",
+      "eligibility": "Exact native hierarchy; Native defenses/effects retained; No promotion of defensive constants",
+      "source_actor": "Native Kobolediator recipient.",
+      "hurt_return_dependency": "No shared bucket rollback/range/regen post-hurt path applies.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": []
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": []
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": []
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:kobolediator-admission:shared_defense_applicability"
+      ],
+      "primary_test_source": "cataclysm:kobolediator",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k14a-cataclysm-kobolediator-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [],
+      "scalability_note": "Native defense/admission/state/setup observations; numeric constants are not automatic Stage candidates. No Stage eligibility, formula, multiplier, direction, cap/floor, balance, ownership integration or hook selected. All Kobolediator offense/payloads deferred to R2k14b.",
+      "damage_cap_applicable": false,
+      "dps_cap_applicable": false,
+      "range_limit_applicable": false,
+      "nature_regen_applicable": false,
+      "heal_cooldown_applicable": false,
+      "boss_defaults_substituted": false,
+      "boss_effect_whitelist_applies": false,
+      "boss_home_return_applies": false
+    },
+    {
+      "id": "cataclysm:kobolediator_sleep_admission",
+      "mod_key": "cataclysm",
+      "display_name": "Kobolediator sleep-state incoming and enemy admission",
+      "registry_ids": [
+        "cataclysm:kobolediator"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "isSleep is !getAwaken() OR raw state2, not merely raw sleep-state1. Only after dart/block branches does hurt reject this state unless BYPASSES_INVULNERABILITY; that tag still must pass native hurt defenses. canBeSeenAsEnemy requires !isSleep then native super result. setSleep(true/false) sets only raw state1/0 through locked IA setter, not AWAKEN and not heal. Thus setSleep(false) does not awaken false-flag entities; true-flag state1 is not by itself isSleep. No HP/shield/config/Stage threshold or incoming wake-on-damage is added.",
+      "human_summary": "isSleep is !getAwaken() OR raw state2, not merely raw sleep-state1. Only after dart/block branches does hurt reject this state unless BYPASSES_INVULNERABILITY; that tag still must pass native hurt defenses. canBeSeenAsEnemy requires !isSleep then native super result. setSleep(true/false) sets only raw state1/0 through locked IA setter, not AWAKEN and not heal. Thus setSleep(false) does not awaken false-flag entities; true-flag state1 is not by itself isSleep. No HP/shield/config/Stage threshold or incoming wake-on-damage is added.",
+      "closest_vanilla_equivalent": "Custom binary sleep gate plus native enemy admission",
+      "vanilla_similarities": "Native incoming damage/effects, source identity, hooks, attributes, healing, spawn and lifecycle retain authority; applicable locked contracts reused.",
+      "vanilla_differences": "isSleep is !getAwaken() OR raw state2, not merely raw sleep-state1. Only after dart/block branches does hurt reject this state unless BYPASSES_INVULNERABILITY; that tag still must pass native hurt defenses. canBeSeenAsEnemy requires !isSleep then native super result. setSleep(true/false) sets only raw state1/0 through locked IA setter, not AWAKEN and not heal. Thus setSleep(false) does not awaken false-flag entities; true-flag state1 is not by itself isSleep. No HP/shield/config/Stage threshold or incoming wake-on-damage is added.",
+      "components": [
+        {
+          "primitive": "SLEEP_ADMISSION",
+          "formula": "!AWAKEN || raw state2; sleep hurt needs BYPASSES_INVULNERABILITY after earlier gates",
+          "numerical_parameters": {
+            "awakening_state": 2
+          },
+          "parameter_units": {
+            "awakening_state": "raw state ID"
+          },
+          "binary_parameters": [],
+          "native_boundary": "isSleep/hurt/canBeSeenAsEnemy",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "RAW_ATTACK_STATE",
+          "formula": "setSleep(true)->1; false->0, no AWAKEN change",
+          "numerical_parameters": {
+            "sleep_state": 1,
+            "released_state": 0
+          },
+          "parameter_units": {
+            "sleep_state": "raw state ID",
+            "released_state": "raw state ID"
+          },
+          "binary_parameters": [],
+          "native_boundary": "setSleep -> inherited setAttackState",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native awakened flag or raw state2",
+        "Explicit native bypass tag",
+        "Native enemy predicate"
+      ],
+      "custom_state": "Native AWAKEN, raw ATTACK_STATE/attackTicks and unsaved local attack cooldowns only; no IABoss/LLibrary cap/Home/progression state.",
+      "eligibility": "Native awakened flag or raw state2; Explicit native bypass tag; Native enemy predicate",
+      "source_actor": "Kobolediator recipient and original incoming source.",
+      "hurt_return_dependency": "Sleep rejection returnsfalse before native hurt; raw sleep setters do not test hurt.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": [
+            "isSleep",
+            "setSleep",
+            "hurt",
+            "canBeSeenAsEnemy"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": [
+            "setAttackState"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:kobolediator-admission:sleep_admission"
+      ],
+      "primary_test_source": "cataclysm:kobolediator",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k14a-cataclysm-kobolediator-admission-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "SLEEP_ADMISSION",
+          "parameter": "awakening_state",
+          "native_value": 2,
+          "native_formula": "!AWAKEN || raw state2; sleep hurt needs BYPASSES_INVULNERABILITY after earlier gates",
+          "units": "raw state ID",
+          "boundary": "isSleep/hurt/canBeSeenAsEnemy"
+        },
+        {
+          "primitive": "RAW_ATTACK_STATE",
+          "parameter": "sleep_state",
+          "native_value": 1,
+          "native_formula": "setSleep(true)->1; false->0, no AWAKEN change",
+          "units": "raw state ID",
+          "boundary": "setSleep -> inherited setAttackState"
+        },
+        {
+          "primitive": "RAW_ATTACK_STATE",
+          "parameter": "released_state",
+          "native_value": 0,
+          "native_formula": "setSleep(true)->1; false->0, no AWAKEN change",
+          "units": "raw state ID",
+          "boundary": "setSleep -> inherited setAttackState"
+        }
+      ],
+      "scalability_note": "Native defense/admission/state/setup observations; numeric constants are not automatic Stage candidates. No Stage eligibility, formula, multiplier, direction, cap/floor, balance, ownership integration or hook selected. All Kobolediator offense/payloads deferred to R2k14b.",
+      "sleep_means_raw_state1": false,
+      "set_sleep_changes_awaken": false,
+      "set_sleep_heals": false,
+      "damage_wakes_entity": false,
+      "sleep_bypass_is_unconditional": false
+    },
+    {
       "id": "cataclysm:leviathan_alliance",
       "mod_key": "cataclysm",
       "display_name": "Leviathan native team and allied predicates",
@@ -77132,6 +78896,616 @@
       "runtime_status": "NOT_RUN"
     },
     {
+      "id": "cataclysm:kobolediator-admission:awakened_state",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:kobolediator_awakened_state"
+      ],
+      "primary_source": "cataclysm:kobolediator",
+      "native_path": "Concrete defineSynchedData calls parent then defines AWAKEN=false. getAwaken reads it. setAwaken(true) requests self.heal(current getMaxHealth()) every invocation, even if already true, before setting synced flag; false skips heal and writesfalse. This is native heal API with existing event/cancellation/max-health behavior, not direct setHealth or guaranteed restoration. Flag write does not test heal success. Setter does not set raw attack state, home, owner, progression or Stage. Local constructor attack cooldowns start0; raw IA setter/getter remain locked and all offensive readers/writers deferred.",
+      "setup": "Static incoming/state/NBT/spawn fixture at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": [
+            "defineSynchedData",
+            "getAwaken",
+            "setAwaken",
+            "<clinit>",
+            "<init>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": [
+            "defineSynchedData",
+            "getAttackState",
+            "setAttackState"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:kobolediator-admission:awakening_prerequisites",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:kobolediator_awakening_prerequisites"
+      ],
+      "primary_source": "cataclysm:kobolediator",
+      "native_path": "Priority0 KobolediatorDoNothingGoal reserves MOVE/JUMP/LOOK, is noninterruptible and updates everytick. canUse: !AWAKEN AND (target absent/dead OR not strict distanceSquared<255 OR no native LOS); no local canContinue override. Tick writes self velocity(0,oldY,0). Stop always setAwaken(true) then raw state2, so native heal request precedes state transition; stop itself has no target/hurt check or local side guard. Priority1 shared InternalStateGoal binds2->2->0 final70/look0; matching-state start skips resetting attackTicks, continue uses state2 and ticks<=70, stop sets0. Target/selector/NoAI behavior remains native. No item/necklace/altar/HP/progression prerequisite is added; offensive goal selection deferred.",
+      "setup": "Static incoming/state/NBT/spawn fixture at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": [
+            "registerGoals"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity$KobolediatorDoNothingGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity$KobolediatorDoNothingGoal.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "tick",
+            "stop",
+            "isInterruptable",
+            "requiresUpdateEveryTick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/AI/InternalStateGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AI/InternalStateGoal.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "canContinueToUse"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-berserker-offense.json",
+          "witness_id": "cataclysm:ignited-berserker-offense:entity/InternalAnimationMonster/AI/InternalStateGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AI/InternalStateGoal.class",
+          "methods": [
+            "tick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:kobolediator-admission:combat_persistence",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:kobolediator_combat_persistence"
+      ],
+      "primary_source": "cataclysm:kobolediator",
+      "native_path": "Concrete save first delegates parent then writes only local boolean Awaken. Load first delegates parent native NBT then calls setAwaken(compound.getBoolean(\"Awaken\")); true therefore requests heal(current maxHP) before flag write, not plain flag restoration. False/missing native boolean skips heal. No local saved raw attack state/attackTicks/cooldowns/presentation, sleep-state replay or local Home/life/bucket/regen keys. IA-monster/Animation_Monsters declare no NBT overrides; native vanilla ancestry owns its state. Preserve the heal side effect and native cancellation/bounds; do not add generic persistence or a delayed receipt.",
+      "setup": "Static incoming/state/NBT/spawn fixture at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": [
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "setAwaken"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": []
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": []
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": []
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:kobolediator-admission:death_state_transition",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:kobolediator_death_state_transition"
+      ],
+      "primary_source": "cataclysm:kobolediator",
+      "native_path": "Concrete die(original source) invokes locked Animation_Monsters native death contract then unconditionally setAttackState8 when the void superclass returns normally, including early canceled/removed/dead returns. Inherited setter resets attackTicks and broadcasts byte(-8). Concrete deathtimer returns60. Native cancellation, source credit, timers/removal and global callbacks remain. No concrete success/hurt check, heal or awakened-flag write in these methods. Full offensive/death/respawner/terrain callback closure is deferred to R2k14b, not assumed absent.",
+      "setup": "Static incoming/state/NBT/spawn fixture at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": [
+            "die",
+            "deathtimer"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "die"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": [
+            "setAttackState"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:kobolediator-admission:effect_admission",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:kobolediator_effect_admission"
+      ],
+      "primary_source": "cataclysm:kobolediator",
+      "native_path": "Reuse already-closed native canBeAffected witness: exact STUN and ABYSSAL_CURSE exclusions, then native super effect admission. No change/re-review of effect bodies, durations, immunity, stacking or lifecycle; no inherited boss whitelist and no assertion that every other effect is admitted. Holder/reference behavior remains as captured rather than a new generic registry-name predicate.",
+      "setup": "Static incoming/state/NBT/spawn fixture at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": [
+            "canBeAffected"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-abyssal.json",
+          "witness_id": "cataclysm:abyssal:com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": [
+            "canBeAffected"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:kobolediator-admission:encounter_setup",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:kobolediator_encounter_setup"
+      ],
+      "primary_source": "cataclysm:kobolediator",
+      "native_path": "Exact factory lambda$static$81/bootstrap32 creates native Kobolediator, categoryMONSTER, sized(float2.4,float4.4), ID cataclysm:kobolediator via bootstrap195. No fireImmune call. Locked initializeAttributes binding456..472 installs follow30,speedfloat.28,attack14,maxHP180,armor10,step1.25,KBR1, without explicit toughness. Constructor calls locked setConfigattribute with installed health/attack multipliers1/1: transient ADD_VALUE(base*multiplier-base), and setHealth(current maxHP) for health setup; this is distinct from setAwaken native heal. Constructor seeds no Home/awakened/state through setters, and local cooldowns start0. Do not treat attributes/config/health initialization as offense damage, regen or Stage progression.",
+      "setup": "Static incoming/state/NBT/spawn fixture at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": [
+            "<init>",
+            "kobolediator"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$81",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-admission.json",
+          "witness_id": "cataclysm:guardian-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "initializeAttributes"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "setConfigattribute"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:kobolediator-admission:environment_admission",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:kobolediator_environment_admission"
+      ],
+      "primary_source": "cataclysm:kobolediator",
+      "native_path": "Concrete decreaseAirSupply returns its argument unchanged, not max air, and adds no blanket hurt rejection of all drowning/custom sources. canRide returnsfalse. No concrete fluid/fall/canBePushedByEntity override or fireImmune factory call; native environment/type tags/hooks remain; exact inherited Animation_Monsters.canBePushedByEntity returnstrue permits ordinary IA collision admission, without making all motion immune. Locked installed knockback resistance1 is distinct from all-forced-motion immunity. Constructor path malus UNPASSABLE_RAIL0/WATER-1 remains navigation state. Offense-related motion/terrain is deferred.",
+      "setup": "Static incoming/state/NBT/spawn fixture at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": [
+            "<init>",
+            "decreaseAirSupply",
+            "canRide"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "canBePushedByEntity"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": [
+            "push"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$81"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:kobolediator-admission:incoming_admission",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:kobolediator_incoming_admission"
+      ],
+      "primary_source": "cataclysm:kobolediator",
+      "native_path": "Concrete hurt first reads DIRECT entity: Poison_Dart rejects; next concrete directional projectile block may mutate that direct arrow/state and returnfalse; then isSleep rejects unless source BYPASSES_INVULNERABILITY; otherwise super.hurt receives original source and float amount and its boolean is returned directly. Exact parent chain is Internal_Animation_Monster -> Animation_Monsters -> native Monster, without IABoss/LLibrary boss wrappers. Native invulnerability/client/dead/fire-resistance, damage-container/events/shield/freezing/helmet, cooldown/actuallyHurt/source-credit/impact/totem/death callbacks retain their locked order. No incoming amount rewrite, boss distance/cap/bucket, causing-actor substitution or success-dependent post-hurt write. True hurt does not prove final HP loss.",
+      "setup": "Static incoming/state/NBT/spawn fixture at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": [
+            "hurt",
+            "canBlockDamageSource",
+            "isSleep"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": []
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": []
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": []
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:kobolediator-admission:native_invulnerability",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:kobolediator_native_invulnerability"
+      ],
+      "primary_source": "cataclysm:kobolediator",
+      "native_path": "No concrete Kobolediator/IA-monster/Animation_Monsters isInvulnerableTo override. Reuse Entity removed/invulnerable/creative/BYPASSES_INVULNERABILITY, IS_FIRE+native type fireImmune, IS_FALL+recipient type tag and CommonHooks result, then other native hurt defenses/tags. Concrete sleep/projectile/dart prefilters are distinct from this virtual native contract. Factory adds no fireImmune binding; do not infer unconditional fire/fall immunity or a bypass of all admission from one tag.",
+      "setup": "Static incoming/state/NBT/spawn fixture at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": []
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": []
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": []
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:kobolediator-admission:poison_dart_admission",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:kobolediator_poison_dart_admission"
+      ],
+      "primary_source": "cataclysm:kobolediator",
+      "native_path": "If original source.getDirectEntity() instanceof Poison_Dart_Entity, returnfalse before block, sleep/tag or native hurt. It is a native direct-class predicate, independent of owner/causing actor, projectile tag, bypass tags, distance, AI and awakened state. Do not inspect Poison Dart offense/payload here or broaden the exclusion to all poison damage/projectiles.",
+      "setup": "Static incoming/state/NBT/spawn fixture at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": [
+            "hurt"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:kobolediator-admission:projectile_block_admission",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:kobolediator_projectile_block_admission"
+      ],
+      "primary_source": "cataclysm:kobolediator",
+      "native_path": "canBlockDamageSource requires !isNoAi, native IS_PROJECTILE tag, raw state0 or9 and non-null source.getSourcePosition(). A local false flag is never changed; there is no piercing-arrow read. Compute sourcePos.vectorTo(self.position()).normalize() in3D, zero Y without renormalizing, dot with getViewVector(1f), require<0. No native item-use/blocking/shield-segment test, BYPASSES_SHIELD check, or BYPASSES_INVULNERABILITY bypass here. This block runs before sleep admission; even an unawakened raw-state0 object can enter it. Source-position semantics remain native, not replaced by direct/causing actor coordinates.",
+      "setup": "Static incoming/state/NBT/spawn fixture at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": [
+            "hurt",
+            "canBlockDamageSource"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:kobolediator-admission:projectile_block_response",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:kobolediator_projectile_block_response"
+      ],
+      "primary_source": "cataclysm:kobolediator",
+      "native_path": "When concrete block succeeds and DIRECT instanceof AbstractArrow, draw f32(170f+nextFloat()*80f), scale its CURRENT velocity by1.5, add that random value to entity yaw and set hurtMarked=true. Velocity itself is not rotated/reversed or aimed at shooter; no native deflect/setOwner/duplicate arrow/new damage source is called. Other tagged projectiles may be blocked without this arrow-only mutation. Then only raw state0 sets state9; repeated state9 blocks do not reset attackTicks. Returnfalse without native hurt. No local side guard or hurt-success gate. Block-recovery goal binds9->9->0 max18/look0 with boolean flagsfalse; full offense remains deferred.",
+      "setup": "Static incoming/state/NBT/spawn fixture at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": [
+            "hurt",
+            "registerGoals"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-berserker-offense.json",
+          "witness_id": "cataclysm:ignited-berserker-offense:entity/InternalAnimationMonster/AI/InternalStateGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AI/InternalStateGoal.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-monstrosity-admission.json",
+          "witness_id": "cataclysm:monstrosity-admission:entity/InternalAnimationMonster/AI/InternalStateGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/AI/InternalStateGoal.class",
+          "methods": [
+            "canUse",
+            "start",
+            "stop",
+            "canContinueToUse"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:kobolediator-admission:pyramid_spawn_prerequisites",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:kobolediator_pyramid_spawn_prerequisites"
+      ],
+      "primary_source": "cataclysm:kobolediator",
+      "native_path": "Native Cursed_Pyramid_Structure.Piece marker \"kobolediator\": exact KOBOLEDIATOR.create(level), null check, setPersistenceRequired, moveTo(markerPos,0,0), setSleep(true), finalizeSpawn(native STRUCTURE,current difficulty,null group), addFreshEntityWithPassengers, then clear marker AIR/flags2. Null creation skips spawn and AIR write. No local BoundingBox argument check, home/owner/target/awaken setter/necklace/Ignis-world-flag gate; do not borrow Remnant altar/item prerequisites. Concrete finalizeSpawn always setSleep(true) before forwarding original arguments to native parent; marker therefore sets raw sleep twice, not awakened flag. No concrete checkSpawnRules or ModEntities Kobolediator placement registration; native inherited spawn/loader predicates remain authoritative wherever invoked, not a universal all-creation gate. removeWhenFarAway/shouldDespawnInPeaceful returnfalse, canRidefalse; not all-removal immunity. No exhaustive global acquisition/spawn research claimed.",
+      "setup": "Static incoming/state/NBT/spawn fixture at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:structures/Cursed_Pyramid_Structure$Piece",
+          "entry": "com/github/L_Ender/cataclysm/structures/Cursed_Pyramid_Structure$Piece.class",
+          "methods": [
+            "handleDataMarker"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": [
+            "finalizeSpawn",
+            "setSleep",
+            "removeWhenFarAway",
+            "shouldDespawnInPeaceful",
+            "canRide"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": []
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:kobolediator-admission:shared_defense_applicability",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:kobolediator_shared_defense_applicability"
+      ],
+      "primary_source": "cataclysm:kobolediator",
+      "native_path": "Exact Kobolediator -> Internal_Animation_Monster -> Animation_Monsters -> Monster chain has no Cataclysm boss DamageCap/DpsCap/RangeLimit/NatureRegen/HealCooldown or Home/return/bucket/LifeRemain contract. Record N/A, not borrowed boss Float/Double.MAX_VALUE, regen0 or timers. No concrete amount rewrite or positive inherited boss natural-heal delivery. Existing native armor/effect admission remains, with two concrete effect exclusions recorded separately; boss effective_for_bosses whitelist does not apply. Defensive type/tag/state bindings are not automatic Stage scalars.",
+      "setup": "Static incoming/state/NBT/spawn fixture at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": []
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": []
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remnant-admission.json",
+          "witness_id": "cataclysm:remnant-admission:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": []
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:kobolediator-admission:sleep_admission",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:kobolediator_sleep_admission"
+      ],
+      "primary_source": "cataclysm:kobolediator",
+      "native_path": "isSleep is !getAwaken() OR raw state2, not merely raw sleep-state1. Only after dart/block branches does hurt reject this state unless BYPASSES_INVULNERABILITY; that tag still must pass native hurt defenses. canBeSeenAsEnemy requires !isSleep then native super result. setSleep(true/false) sets only raw state1/0 through locked IA setter, not AWAKEN and not heal. Thus setSleep(false) does not awaken false-flag entities; true-flag state1 is not by itself isSleep. No HP/shield/config/Stage threshold or incoming wake-on-damage is added.",
+      "setup": "Static incoming/state/NBT/spawn fixture at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-kobolediator-admission.json",
+          "witness_id": "cataclysm:kobolediator-admission:entity/InternalAnimationMonster/Kobolediator_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Kobolediator_Entity.class",
+          "methods": [
+            "isSleep",
+            "setSleep",
+            "hurt",
+            "canBeSeenAsEnemy"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/InternalAnimationMonster/Internal_Animation_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/InternalAnimationMonster/Internal_Animation_Monster.class",
+          "methods": [
+            "setAttackState"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
       "id": "cataclysm:leviathan-admission:altar_encounter",
       "mod_key": "cataclysm",
       "status": "VERIFIED",
@@ -86437,10 +88811,10 @@
   ],
   "unresolved_native_ambiguities": null,
   "remaining_native_ambiguities": null,
-  "checkpoint": "R2k13b-cataclysm-ignited-berserker-offense-complete",
-  "scope": "Only Ignited Berserker bounded offense, directly used goals, movement, native area payloads, alliance and directly reached lifecycle/terrain/encounter closure.",
-  "notes_file": "cataclysm-r2k13b-ignited-berserker-offense.json",
-  "exact_next_task": "R2k14a: Kobolediator incoming admission and combat-state/encounter prerequisites. Start Kobolediator_Entity and its Internal_Animation_Monster hierarchy; close incoming hurt/invulnerability/environment admission, shared bindings where applicable, combat-state setters/persistence and material native spawn/home/encounter prerequisites. Defer all Kobolediator offense/payloads to R2k14b. Reuse locked shared/status and all completed families including R2k13a/b Ignited Berserker; static only, no runtime, Stage, production, unrelated equipment or recursive JAR work.",
+  "checkpoint": "R2k14a-cataclysm-kobolediator-admission-complete",
+  "scope": "Only Kobolediator incoming admission and its immediate blocked-projectile response, native environment/status/state/NBT and material construction/spawn/encounter prerequisites. All offense deferred.",
+  "notes_file": "cataclysm-r2k14a-kobolediator-admission.json",
+  "exact_next_task": "R2k14b: Kobolediator offense/payload family. Start Kobolediator_Entity.tick/aiStep and directly used offensive goals; close attack selection, raw ATTACK_STATE/cooldown readers/writers, direct AreaAttack/StompDamage, charge movement/ChargeBlockBreaking/spawnBlocks and directly owned payload/debris if reached, source/owner/team/hurt-return-dependent status/control, native lifecycle and directly reached terrain/death/encounter callbacks. Reuse locked R2k14a direct Poison Dart exclusion, projectile block/arrow response/sleep admission, absent boss bindings, native environment/status gates, awakened setter/load-heal/raw state/NBT, config/attributes/factory and exact Cursed Pyramid spawn setup, plus all completed families/shared/status. Static only; no runtime, Stage, production, unrelated equipment or recursive JAR work.",
   "protected_checkpoint": "R2k3a-cataclysm-guardian-admission-complete",
   "protected_notes_file": "cataclysm-r2k3a-guardian-admission.json",
   "protected_checkpoints": [
@@ -86527,6 +88901,10 @@
     {
       "checkpoint": "R2k13a-cataclysm-ignited-berserker-admission-complete",
       "notes_file": "cataclysm-r2k13a-ignited-berserker-admission.json"
+    },
+    {
+      "checkpoint": "R2k13b-cataclysm-ignited-berserker-offense-complete",
+      "notes_file": "cataclysm-r2k13b-ignited-berserker-offense.json"
     }
   ]
 }
