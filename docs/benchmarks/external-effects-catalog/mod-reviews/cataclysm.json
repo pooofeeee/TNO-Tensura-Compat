@@ -25979,6 +25979,89 @@
       ]
     },
     {
+      "id": "cataclysm:ignited_revenant_alliance",
+      "mod_key": "cataclysm",
+      "display_name": "Ignited Revenant native alliance and payload distinctions",
+      "registry_ids": [
+        "cataclysm:ignited_revenant"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Revenant.isAlliedTo accepts self, native super alliance, or TEAM_IGNIS recipient only when both scoreboard teams are null. Reuse exact installed tag: blaze,magma_cube,ignis,ignited_revenant,ignited_berserker. Shield aura additionally excludes all Revenants. Bone living-owner branch invokes shooter.isAlliedTo; Ash invokes the breath Entity.isAlliedTo and separately excludes caster, without delegating to caster TEAM_IGNIS. Do not transfer the boss tag predicate into Ash or flatten those admission paths.",
+      "human_summary": "Revenant.isAlliedTo accepts self, native super alliance, or TEAM_IGNIS recipient only when both scoreboard teams are null. Reuse exact installed tag: blaze,magma_cube,ignis,ignited_revenant,ignited_berserker. Shield aura additionally excludes all Revenants. Bone living-owner branch invokes shooter.isAlliedTo; Ash invokes the breath Entity.isAlliedTo and separately excludes caster, without delegating to caster TEAM_IGNIS. Do not transfer the boss tag predicate into Ash or flatten those admission paths.",
+      "closest_vanilla_equivalent": "Native team/alliance admission with existing TEAM_IGNIS tag",
+      "vanilla_similarities": "Native damage, effects, projectile hooks, teams and lifecycle remain authoritative at the cited boundaries; locked shared contracts reused.",
+      "vanilla_differences": "Revenant.isAlliedTo accepts self, native super alliance, or TEAM_IGNIS recipient only when both scoreboard teams are null. Reuse exact installed tag: blaze,magma_cube,ignis,ignited_revenant,ignited_berserker. Shield aura additionally excludes all Revenants. Bone living-owner branch invokes shooter.isAlliedTo; Ash invokes the breath Entity.isAlliedTo and separately excludes caster, without delegating to caster TEAM_IGNIS. Do not transfer the boss tag predicate into Ash or flatten those admission paths.",
+      "components": [
+        {
+          "primitive": "ALLIANCE_ADMISSION",
+          "formula": "Self OR super OR (recipient TEAM_IGNIS AND both scoreboard teams null); payload-specific receivers remain distinct",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "Ignited_Revenant.isAlliedTo; Ash.hitEntities; Bone.onHitEntity",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native self/super/scoreboard/tag tests",
+        "Original payload-specific alliance receivers"
+      ],
+      "custom_state": "Native Revenant animations, cooldowns, height controller and owned payload fields only; protected R2k12a anger/shield/NBT/admission retained.",
+      "eligibility": "Native self/super/scoreboard/tag tests; Original payload-specific alliance receivers",
+      "source_actor": "Boss, breath or shooter is the native predicate receiver respectively.",
+      "hurt_return_dependency": "Admission precedes native hurt, not return-dependent.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity.class",
+          "methods": [
+            "isAlliedTo",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/projectile/Ashen_Breath_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Ashen_Breath_Entity.class",
+          "methods": [
+            "hitEntities"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/projectile/Blazing_Bone_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Blazing_Bone_Entity.class",
+          "methods": [
+            "onHitEntity"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignis-offense.json",
+          "witness_id": "cataclysm:ignis-offense:team-tag",
+          "entry": "data/cataclysm/tags/entity_type/team_ignis.json",
+          "methods": []
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ignited-revenant-offense:alliance"
+      ],
+      "primary_test_source": "cataclysm:ignited_revenant",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k12b-cataclysm-ignited-revenant-offense-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Admission, state, native bounds and lifecycle remain native.",
+      "native_team_tag": "cataclysm:team_ignis",
+      "tag_requires_both_teams_null": true,
+      "ash_inherits_caster_tag": false,
+      "bone_checks_shooter_alliance": true
+    },
+    {
       "id": "cataclysm:ignited_revenant_arena_spawn_prerequisites",
       "mod_key": "cataclysm",
       "display_name": "Ignited Revenant exact Burning Arena marker spawn",
@@ -26078,6 +26161,1641 @@
       "marker_sets_shield_counter": false,
       "spawn_return_consumed": false,
       "unrelated_markers_reviewed": false
+    },
+    {
+      "id": "cataclysm:ignited_revenant_ash_blindness",
+      "mod_key": "cataclysm",
+      "display_name": "Ashen Breath hurt-dependent native Blindness",
+      "registry_ids": [
+        "cataclysm:ignited_revenant",
+        "cataclysm:ashen_breath"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "Only the successful native indirect-magic hurt branch constructs MobEffects.BLINDNESS duration60/amplifier0, ambient=false, particles=false, icon=true and calls victim.addEffect(one-argument overload), discarding its result. Failed/canceled/immune hurt skips it; effect admission/immunity/stacking and lifecycle remain native. Repeated breath hit opportunities do not imply repeated guaranteed admission. No separate custom damage, status timer or caster-source overload.",
+      "human_summary": "Only the successful native indirect-magic hurt branch constructs MobEffects.BLINDNESS duration60/amplifier0, ambient=false, particles=false, icon=true and calls victim.addEffect(one-argument overload), discarding its result. Failed/canceled/immune hurt skips it; effect admission/immunity/stacking and lifecycle remain native. Repeated breath hit opportunities do not imply repeated guaranteed admission. No separate custom damage, status timer or caster-source overload.",
+      "closest_vanilla_equivalent": "Vanilla Blindness MobEffect with damage-return-dependent delivery",
+      "vanilla_similarities": "Native damage, effects, projectile hooks, teams and lifecycle remain authoritative at the cited boundaries; locked shared contracts reused.",
+      "vanilla_differences": "Only the successful native indirect-magic hurt branch constructs MobEffects.BLINDNESS duration60/amplifier0, ambient=false, particles=false, icon=true and calls victim.addEffect(one-argument overload), discarding its result. Failed/canceled/immune hurt skips it; effect admission/immunity/stacking and lifecycle remain native. Repeated breath hit opportunities do not imply repeated guaranteed admission. No separate custom damage, status timer or caster-source overload.",
+      "components": [
+        {
+          "primitive": "BLINDNESS",
+          "formula": "Native MobEffectInstance(BLINDNESS,60,0,false,false,true) after hurt true",
+          "numerical_parameters": {
+            "duration": 60,
+            "amplifier": 0
+          },
+          "parameter_units": {
+            "duration": "native effect ticks",
+            "amplifier": "zero-based native amplifier"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Ashen_Breath.hitEntities -> LivingEntity.addEffect",
+          "vanilla_relation": "DIRECT"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "All original breath geometry/source predicates",
+        "hurt returns true",
+        "Native MobEffect admission/lifecycle"
+      ],
+      "custom_state": "Native Revenant animations, cooldowns, height controller and owned payload fields only; protected R2k12a anger/shield/NBT/admission retained.",
+      "eligibility": "All original breath geometry/source predicates; hurt returns true; Native MobEffect admission/lifecycle",
+      "source_actor": "Stored caster owns damage; one-argument native effect application to that victim.",
+      "hurt_return_dependency": "Requires hurt true; addEffect boolean is discarded.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/projectile/Ashen_Breath_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Ashen_Breath_Entity.class",
+          "methods": [
+            "hitEntities"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ignited-revenant-offense:ash_blindness"
+      ],
+      "primary_test_source": "cataclysm:ignited_revenant",
+      "alternate_sources": [],
+      "spawned_entity_ids": [
+        "cataclysm:ashen_breath"
+      ],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k12b-cataclysm-ignited-revenant-offense-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "BLINDNESS",
+          "parameters": [
+            "duration"
+          ],
+          "native_value": 60,
+          "native_formula": "Native MobEffectInstance(BLINDNESS,60,0,false,false,true) after hurt true",
+          "units": "native effect ticks",
+          "native_boundary": "Ashen_Breath.hitEntities -> LivingEntity.addEffect"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "BLINDNESS",
+          "parameter": "duration",
+          "native_value": 60,
+          "native_formula": "Native MobEffectInstance(BLINDNESS,60,0,false,false,true) after hurt true",
+          "units": "native effect ticks",
+          "boundary": "Ashen_Breath.hitEntities -> LivingEntity.addEffect"
+        },
+        {
+          "primitive": "BLINDNESS",
+          "parameter": "amplifier",
+          "native_value": 0,
+          "native_formula": "Native MobEffectInstance(BLINDNESS,60,0,false,false,true) after hurt true",
+          "units": "zero-based native amplifier",
+          "boundary": "Ashen_Breath.hitEntities -> LivingEntity.addEffect"
+        }
+      ],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Admission, state, native bounds and lifecycle remain native.",
+      "hurt_return_used": true,
+      "effect_return_used": false,
+      "uses_source_effect_overload": false
+    },
+    {
+      "id": "cataclysm:ignited_revenant_ash_damage",
+      "mod_key": "cataclysm",
+      "display_name": "Ashen Breath expanding native indirect-magic damage",
+      "registry_ids": [
+        "cataclysm:ignited_revenant",
+        "cataclysm:ashen_breath"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "After age>2 with direct caster field non-null, tick calls hitEntities on both logical sides without a local server guard. Living query is payload bbox inflated7 in XYZ, distance-to-feet<=7+recipientWidth/2 and recipientY<=payloadY+7. Damage uses recipient midpoint for 3D distance: <=integer(age/2)+1 and yaw/pitch each within wrapped +/-22.5 degrees; for a Revenant caster only, midpoint distance<=2 bypasses cone/range tests but not the original query. At age%3==0, payload.isAlliedTo(victim)==false and victim!=caster, request indirectMagic(payload,caster), getDamage(), stored at delivery from config installed4. Alliance is NOT caster.isAlliedTo. No local LOS, caster-alive, fire, stun, movement or invulnerability reset; native damage defenses/cancellation retained.",
+      "human_summary": "After age>2 with direct caster field non-null, tick calls hitEntities on both logical sides without a local server guard. Living query is payload bbox inflated7 in XYZ, distance-to-feet<=7+recipientWidth/2 and recipientY<=payloadY+7. Damage uses recipient midpoint for 3D distance: <=integer(age/2)+1 and yaw/pitch each within wrapped +/-22.5 degrees; for a Revenant caster only, midpoint distance<=2 bypasses cone/range tests but not the original query. At age%3==0, payload.isAlliedTo(victim)==false and victim!=caster, request indirectMagic(payload,caster), getDamage(), stored at delivery from config installed4. Alliance is NOT caster.isAlliedTo. No local LOS, caster-alive, fire, stun, movement or invulnerability reset; native damage defenses/cancellation retained.",
+      "closest_vanilla_equivalent": "Native indirect_magic with custom repeated cone/near-range delivery",
+      "vanilla_similarities": "Native damage, effects, projectile hooks, teams and lifecycle remain authoritative at the cited boundaries; locked shared contracts reused.",
+      "vanilla_differences": "After age>2 with direct caster field non-null, tick calls hitEntities on both logical sides without a local server guard. Living query is payload bbox inflated7 in XYZ, distance-to-feet<=7+recipientWidth/2 and recipientY<=payloadY+7. Damage uses recipient midpoint for 3D distance: <=integer(age/2)+1 and yaw/pitch each within wrapped +/-22.5 degrees; for a Revenant caster only, midpoint distance<=2 bypasses cone/range tests but not the original query. At age%3==0, payload.isAlliedTo(victim)==false and victim!=caster, request indirectMagic(payload,caster), getDamage(), stored at delivery from config installed4. Alliance is NOT caster.isAlliedTo. No local LOS, caster-alive, fire, stun, movement or invulnerability reset; native damage defenses/cancellation retained.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "formula": "victim.hurt(DamageSources.indirectMagic(payload,caster), getDamage()); stored f32(AshenbreathDamage), installed4",
+          "numerical_parameters": {
+            "installed_damage": 4.0
+          },
+          "parameter_units": {
+            "installed_damage": "configured native HP damage request at construction"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Ashen_Breath.hitEntities -> LivingEntity.hurt",
+          "vanilla_relation": "EXTENDED",
+          "parameter_formulas": {
+            "requested_damage": "getDamage(): synced float stored by delivery from f32(IgnitedRevenant.AshenbreathDamage), installed4; native NBT damage may restore another value"
+          },
+          "formula_parameter_units": {
+            "requested_damage": "native HP damage request"
+          }
+        },
+        {
+          "primitive": "ATTACK_VOLUME",
+          "formula": "Query bbox.inflate(7,7,7), radius7+width/2; midpoint distance<=integer(age/2)+1 and wrapped yaw/pitch +/-22.5 OR Revenant-caster distance<=2",
+          "numerical_parameters": {
+            "query_inflate_x": 7.0,
+            "query_inflate_y": 7.0,
+            "query_inflate_z": 7.0,
+            "query_radius": 7.0,
+            "range_age_divisor": 2,
+            "range_extension": 1.0,
+            "half_arc": 22.5,
+            "close_radius": 2.0,
+            "damage_interval": 3
+          },
+          "parameter_units": {
+            "query_inflate_x": "blocks",
+            "query_inflate_y": "blocks",
+            "query_inflate_z": "blocks",
+            "query_radius": "blocks; plus recipient width/2",
+            "range_age_divisor": "integer native age divisor",
+            "range_extension": "blocks",
+            "half_arc": "degrees; each yaw and pitch",
+            "close_radius": "blocks; Revenant-caster midpoint sphere",
+            "damage_interval": "native tick modulo"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Ashen_Breath.hitEntities query/geometry",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Original query then (cone/range OR close)",
+        "Age>2/non-null caster and age modulo3",
+        "Payload-native alliance and caster exclusion",
+        "Native hurt/immunity/cancellation"
+      ],
+      "custom_state": "Native Revenant animations, cooldowns, height controller and owned payload fields only; protected R2k12a anger/shield/NBT/admission retained.",
+      "eligibility": "Original query then (cone/range OR close); Age>2/non-null caster and age modulo3; Payload-native alliance and caster exclusion; Native hurt/immunity/cancellation",
+      "source_actor": "minecraft:indirect_magic; direct Ashen_Breath, causing stored caster.",
+      "hurt_return_dependency": "Hurt boolean solely gates the separately recorded Blindness.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/projectile/Ashen_Breath_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Ashen_Breath_Entity.class",
+          "methods": [
+            "tick",
+            "hitEntities",
+            "getEntityLivingBaseNearby",
+            "getEntitiesNearby",
+            "lambda$getEntitiesNearby$0",
+            "getDamage"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ignited-revenant-offense:ash_damage"
+      ],
+      "primary_test_source": "cataclysm:ignited_revenant",
+      "alternate_sources": [],
+      "spawned_entity_ids": [
+        "cataclysm:ashen_breath"
+      ],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k12b-cataclysm-ignited-revenant-offense-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "ATTACK_VOLUME",
+          "parameters": [
+            "close_radius"
+          ],
+          "native_value": 2.0,
+          "native_formula": "Query bbox.inflate(7,7,7), radius7+width/2; midpoint distance<=integer(age/2)+1 and wrapped yaw/pitch +/-22.5 OR Revenant-caster distance<=2",
+          "units": "blocks; Revenant-caster midpoint sphere",
+          "native_boundary": "Ashen_Breath.hitEntities query/geometry"
+        },
+        {
+          "primitive": "ATTACK_VOLUME",
+          "parameters": [
+            "half_arc"
+          ],
+          "native_value": 22.5,
+          "native_formula": "Query bbox.inflate(7,7,7), radius7+width/2; midpoint distance<=integer(age/2)+1 and wrapped yaw/pitch +/-22.5 OR Revenant-caster distance<=2",
+          "units": "degrees; each yaw and pitch",
+          "native_boundary": "Ashen_Breath.hitEntities query/geometry"
+        },
+        {
+          "primitive": "ATTACK_VOLUME",
+          "parameters": [
+            "query_radius"
+          ],
+          "native_value": 7.0,
+          "native_formula": "Query bbox.inflate(7,7,7), radius7+width/2; midpoint distance<=integer(age/2)+1 and wrapped yaw/pitch +/-22.5 OR Revenant-caster distance<=2",
+          "units": "blocks; plus recipient width/2",
+          "native_boundary": "Ashen_Breath.hitEntities query/geometry"
+        },
+        {
+          "primitive": "ATTACK_VOLUME",
+          "parameters": [
+            "range_extension"
+          ],
+          "native_value": 1.0,
+          "native_formula": "Query bbox.inflate(7,7,7), radius7+width/2; midpoint distance<=integer(age/2)+1 and wrapped yaw/pitch +/-22.5 OR Revenant-caster distance<=2",
+          "units": "blocks",
+          "native_boundary": "Ashen_Breath.hitEntities query/geometry"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "requested_damage"
+          ],
+          "native_value": null,
+          "native_formula": "getDamage(): synced float stored by delivery from f32(IgnitedRevenant.AshenbreathDamage), installed4; native NBT damage may restore another value",
+          "units": "native HP damage request",
+          "native_boundary": "Ashen_Breath.hitEntities -> LivingEntity.hurt"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameter": "installed_damage",
+          "native_value": 4.0,
+          "native_formula": "victim.hurt(DamageSources.indirectMagic(payload,caster), getDamage()); stored f32(AshenbreathDamage), installed4",
+          "units": "configured native HP damage request at construction",
+          "boundary": "Ashen_Breath.hitEntities -> LivingEntity.hurt"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameter": "requested_damage",
+          "native_value": null,
+          "native_formula": "getDamage(): synced float stored by delivery from f32(IgnitedRevenant.AshenbreathDamage), installed4; native NBT damage may restore another value",
+          "units": "native HP damage request",
+          "boundary": "Ashen_Breath.hitEntities -> LivingEntity.hurt"
+        },
+        {
+          "primitive": "ATTACK_VOLUME",
+          "parameter": "query_inflate_x",
+          "native_value": 7.0,
+          "native_formula": "Query bbox.inflate(7,7,7), radius7+width/2; midpoint distance<=integer(age/2)+1 and wrapped yaw/pitch +/-22.5 OR Revenant-caster distance<=2",
+          "units": "blocks",
+          "boundary": "Ashen_Breath.hitEntities query/geometry"
+        },
+        {
+          "primitive": "ATTACK_VOLUME",
+          "parameter": "query_inflate_y",
+          "native_value": 7.0,
+          "native_formula": "Query bbox.inflate(7,7,7), radius7+width/2; midpoint distance<=integer(age/2)+1 and wrapped yaw/pitch +/-22.5 OR Revenant-caster distance<=2",
+          "units": "blocks",
+          "boundary": "Ashen_Breath.hitEntities query/geometry"
+        },
+        {
+          "primitive": "ATTACK_VOLUME",
+          "parameter": "query_inflate_z",
+          "native_value": 7.0,
+          "native_formula": "Query bbox.inflate(7,7,7), radius7+width/2; midpoint distance<=integer(age/2)+1 and wrapped yaw/pitch +/-22.5 OR Revenant-caster distance<=2",
+          "units": "blocks",
+          "boundary": "Ashen_Breath.hitEntities query/geometry"
+        },
+        {
+          "primitive": "ATTACK_VOLUME",
+          "parameter": "query_radius",
+          "native_value": 7.0,
+          "native_formula": "Query bbox.inflate(7,7,7), radius7+width/2; midpoint distance<=integer(age/2)+1 and wrapped yaw/pitch +/-22.5 OR Revenant-caster distance<=2",
+          "units": "blocks; plus recipient width/2",
+          "boundary": "Ashen_Breath.hitEntities query/geometry"
+        },
+        {
+          "primitive": "ATTACK_VOLUME",
+          "parameter": "range_age_divisor",
+          "native_value": 2,
+          "native_formula": "Query bbox.inflate(7,7,7), radius7+width/2; midpoint distance<=integer(age/2)+1 and wrapped yaw/pitch +/-22.5 OR Revenant-caster distance<=2",
+          "units": "integer native age divisor",
+          "boundary": "Ashen_Breath.hitEntities query/geometry"
+        },
+        {
+          "primitive": "ATTACK_VOLUME",
+          "parameter": "range_extension",
+          "native_value": 1.0,
+          "native_formula": "Query bbox.inflate(7,7,7), radius7+width/2; midpoint distance<=integer(age/2)+1 and wrapped yaw/pitch +/-22.5 OR Revenant-caster distance<=2",
+          "units": "blocks",
+          "boundary": "Ashen_Breath.hitEntities query/geometry"
+        },
+        {
+          "primitive": "ATTACK_VOLUME",
+          "parameter": "half_arc",
+          "native_value": 22.5,
+          "native_formula": "Query bbox.inflate(7,7,7), radius7+width/2; midpoint distance<=integer(age/2)+1 and wrapped yaw/pitch +/-22.5 OR Revenant-caster distance<=2",
+          "units": "degrees; each yaw and pitch",
+          "boundary": "Ashen_Breath.hitEntities query/geometry"
+        },
+        {
+          "primitive": "ATTACK_VOLUME",
+          "parameter": "close_radius",
+          "native_value": 2.0,
+          "native_formula": "Query bbox.inflate(7,7,7), radius7+width/2; midpoint distance<=integer(age/2)+1 and wrapped yaw/pitch +/-22.5 OR Revenant-caster distance<=2",
+          "units": "blocks; Revenant-caster midpoint sphere",
+          "boundary": "Ashen_Breath.hitEntities query/geometry"
+        },
+        {
+          "primitive": "ATTACK_VOLUME",
+          "parameter": "damage_interval",
+          "native_value": 3,
+          "native_formula": "Query bbox.inflate(7,7,7), radius7+width/2; midpoint distance<=integer(age/2)+1 and wrapped yaw/pitch +/-22.5 OR Revenant-caster distance<=2",
+          "units": "native tick modulo",
+          "boundary": "Ashen_Breath.hitEntities query/geometry"
+        }
+      ],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Admission, state, native bounds and lifecycle remain native.",
+      "hurt_return_used": true,
+      "damage_local_server_guard": false,
+      "alliance_receiver": "payload",
+      "uses_caster_alliance": false,
+      "close_bypasses_query": false,
+      "local_los_gate": false,
+      "invulnerability_reset": false,
+      "ignites_targets": false
+    },
+    {
+      "id": "cataclysm:ignited_revenant_ash_delivery",
+      "mod_key": "cataclysm",
+      "display_name": "Ignited Revenant Ash Breath creation and facing",
+      "registry_ids": [
+        "cataclysm:ignited_revenant",
+        "cataclysm:ashen_breath"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "ShootGoal.tick faces a non-null target at30/30 before animation27, then3/30. Every goal tick constructs one Ashen_Breath with stored float(AshenbreathDamage), installed4, caster Revenant; only tick27 places/adds it at boss position+(0,2.3,0), yaw yHeadRot/pitch getXRot. Rotated zero offsets add no forward displacement. Add return discarded; no local server or target-required spawn guard. The payload is an Entity, not a moving Projectile. Target look, delivery, stored damage and later Blindness remain distinct.",
+      "human_summary": "ShootGoal.tick faces a non-null target at30/30 before animation27, then3/30. Every goal tick constructs one Ashen_Breath with stored float(AshenbreathDamage), installed4, caster Revenant; only tick27 places/adds it at boss position+(0,2.3,0), yaw yHeadRot/pitch getXRot. Rotated zero offsets add no forward displacement. Add return discarded; no local server or target-required spawn guard. The payload is an Entity, not a moving Projectile. Target look, delivery, stored damage and later Blindness remain distinct.",
+      "closest_vanilla_equivalent": "Custom owned Entity delivery with native look control",
+      "vanilla_similarities": "Native damage, effects, projectile hooks, teams and lifecycle remain authoritative at the cited boundaries; locked shared contracts reused.",
+      "vanilla_differences": "ShootGoal.tick faces a non-null target at30/30 before animation27, then3/30. Every goal tick constructs one Ashen_Breath with stored float(AshenbreathDamage), installed4, caster Revenant; only tick27 places/adds it at boss position+(0,2.3,0), yaw yHeadRot/pitch getXRot. Rotated zero offsets add no forward displacement. Add return discarded; no local server or target-required spawn guard. The payload is an Entity, not a moving Projectile. Target look, delivery, stored damage and later Blindness remain distinct.",
+      "components": [
+        {
+          "primitive": "PAYLOAD_DELIVERY",
+          "formula": "Create each goal tick; add only animation27 at position+(0,2.3,0)",
+          "numerical_parameters": {
+            "spawn_tick": 27,
+            "mouth_height": 2.3
+          },
+          "parameter_units": {
+            "spawn_tick": "animation ticks",
+            "mouth_height": "blocks above boss position"
+          },
+          "binary_parameters": [],
+          "native_boundary": "ShootGoal.tick -> Ashen_Breath constructor/absMoveTo/addFreshEntity",
+          "vanilla_relation": "EXTENDED"
+        },
+        {
+          "primitive": "FORCED_FACING",
+          "formula": "Native setLookAt: yaw30 before27 then3; pitch30",
+          "numerical_parameters": {
+            "early_yaw_limit": 30.0,
+            "late_yaw_limit": 3.0,
+            "pitch_limit": 30.0
+          },
+          "parameter_units": {
+            "early_yaw_limit": "degrees per native look update",
+            "late_yaw_limit": "degrees per native look update",
+            "pitch_limit": "degrees per native look update"
+          },
+          "binary_parameters": [],
+          "native_boundary": "ShootGoal.tick -> LookControl.setLookAt",
+          "vanilla_relation": "EXTENDED"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native ASH goal/animation",
+        "Only add at tick27; facing alone needs target",
+        "Protected goal start/stop anger"
+      ],
+      "custom_state": "Native Revenant animations, cooldowns, height controller and owned payload fields only; protected R2k12a anger/shield/NBT/admission retained.",
+      "eligibility": "Native ASH goal/animation; Only add at tick27; facing alone needs target; Protected goal start/stop anger",
+      "source_actor": "Revenant caster -> newly created Ashen_Breath entity.",
+      "hurt_return_dependency": "Delivery/facing do not test hurt.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity$ShootGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity$ShootGoal.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/projectile/Ashen_Breath_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Ashen_Breath_Entity.class",
+          "methods": [
+            "<init>",
+            "setCaster",
+            "setDamage"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "<clinit>"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ignited-revenant-offense:ash_delivery"
+      ],
+      "primary_test_source": "cataclysm:ignited_revenant",
+      "alternate_sources": [],
+      "spawned_entity_ids": [
+        "cataclysm:ashen_breath"
+      ],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k12b-cataclysm-ignited-revenant-offense-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "PAYLOAD_DELIVERY",
+          "parameters": [
+            "mouth_height"
+          ],
+          "native_value": 2.3,
+          "native_formula": "Create each goal tick; add only animation27 at position+(0,2.3,0)",
+          "units": "blocks above boss position",
+          "native_boundary": "ShootGoal.tick -> Ashen_Breath constructor/absMoveTo/addFreshEntity"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "PAYLOAD_DELIVERY",
+          "parameter": "spawn_tick",
+          "native_value": 27,
+          "native_formula": "Create each goal tick; add only animation27 at position+(0,2.3,0)",
+          "units": "animation ticks",
+          "boundary": "ShootGoal.tick -> Ashen_Breath constructor/absMoveTo/addFreshEntity"
+        },
+        {
+          "primitive": "PAYLOAD_DELIVERY",
+          "parameter": "mouth_height",
+          "native_value": 2.3,
+          "native_formula": "Create each goal tick; add only animation27 at position+(0,2.3,0)",
+          "units": "blocks above boss position",
+          "boundary": "ShootGoal.tick -> Ashen_Breath constructor/absMoveTo/addFreshEntity"
+        },
+        {
+          "primitive": "FORCED_FACING",
+          "parameter": "early_yaw_limit",
+          "native_value": 30.0,
+          "native_formula": "Native setLookAt: yaw30 before27 then3; pitch30",
+          "units": "degrees per native look update",
+          "boundary": "ShootGoal.tick -> LookControl.setLookAt"
+        },
+        {
+          "primitive": "FORCED_FACING",
+          "parameter": "late_yaw_limit",
+          "native_value": 3.0,
+          "native_formula": "Native setLookAt: yaw30 before27 then3; pitch30",
+          "units": "degrees per native look update",
+          "boundary": "ShootGoal.tick -> LookControl.setLookAt"
+        },
+        {
+          "primitive": "FORCED_FACING",
+          "parameter": "pitch_limit",
+          "native_value": 30.0,
+          "native_formula": "Native setLookAt: yaw30 before27 then3; pitch30",
+          "units": "degrees per native look update",
+          "boundary": "ShootGoal.tick -> LookControl.setLookAt"
+        }
+      ],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Admission, state, native bounds and lifecycle remain native.",
+      "delivery_local_server_guard": false,
+      "spawn_requires_target": false,
+      "constructs_each_goal_tick": true,
+      "adds_only_tick27": true,
+      "is_moving_projectile": false
+    },
+    {
+      "id": "cataclysm:ignited_revenant_ash_lifecycle",
+      "mod_key": "cataclysm",
+      "display_name": "Ashen Breath native caster, persistence and lifetime",
+      "registry_ids": [
+        "cataclysm:ignited_revenant",
+        "cataclysm:ashen_breath"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "At tick start after super, a non-null dead caster triggers discard without return; remaining tick code can still run. Non-null caster updates payload yaw from current yHeadRot, but not position or pitch. Age>25 discards after hit logic. Direct caster+UUID set at construction; native Owner UUID and damage float are saved, age is not locally saved. getCaster lazily resolves UUID to LivingEntity only on ServerLevel, but own tick/hitEntities and Revenant delivery never call it: do not claim reload automatically restores offense. No caster-null damage fallback. Payload is not pickable/collidable/pushable, ignores piston push, push(Entity) is empty. No terrain collision/explosion/damage-on-discard hook.",
+      "human_summary": "At tick start after super, a non-null dead caster triggers discard without return; remaining tick code can still run. Non-null caster updates payload yaw from current yHeadRot, but not position or pitch. Age>25 discards after hit logic. Direct caster+UUID set at construction; native Owner UUID and damage float are saved, age is not locally saved. getCaster lazily resolves UUID to LivingEntity only on ServerLevel, but own tick/hitEntities and Revenant delivery never call it: do not claim reload automatically restores offense. No caster-null damage fallback. Payload is not pickable/collidable/pushable, ignores piston push, push(Entity) is empty. No terrain collision/explosion/damage-on-discard hook.",
+      "closest_vanilla_equivalent": "Native Entity lifetime/ownership; custom stationary cone carrier",
+      "vanilla_similarities": "Native damage, effects, projectile hooks, teams and lifecycle remain authoritative at the cited boundaries; locked shared contracts reused.",
+      "vanilla_differences": "At tick start after super, a non-null dead caster triggers discard without return; remaining tick code can still run. Non-null caster updates payload yaw from current yHeadRot, but not position or pitch. Age>25 discards after hit logic. Direct caster+UUID set at construction; native Owner UUID and damage float are saved, age is not locally saved. getCaster lazily resolves UUID to LivingEntity only on ServerLevel, but own tick/hitEntities and Revenant delivery never call it: do not claim reload automatically restores offense. No caster-null damage fallback. Payload is not pickable/collidable/pushable, ignores piston push, push(Entity) is empty. No terrain collision/explosion/damage-on-discard hook.",
+      "components": [
+        {
+          "primitive": "PAYLOAD_LIFECYCLE",
+          "formula": "Check direct caster field; discard on caster death then continue; age>25 discard after hit",
+          "numerical_parameters": {
+            "first_hit_age_threshold": 2,
+            "discard_age_threshold": 25,
+            "default_damage": 0.0
+          },
+          "parameter_units": {
+            "first_hit_age_threshold": "native age; strict >",
+            "discard_age_threshold": "native age; strict >",
+            "default_damage": "native synced float"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Ashen_Breath.tick/defineSynchedData/save/load",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native removal/client synchronization",
+        "Direct caster field vs optional getter resolution",
+        "Native Owner/damage keys"
+      ],
+      "custom_state": "Native Revenant animations, cooldowns, height controller and owned payload fields only; protected R2k12a anger/shield/NBT/admission retained.",
+      "eligibility": "Native removal/client synchronization; Direct caster field vs optional getter resolution; Native Owner/damage keys",
+      "source_actor": "Native Ashen_Breath caster reference/UUID; no compat state.",
+      "hurt_return_dependency": "Removal and ownership do not depend on hurt; dead-caster discard does not early-return.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/projectile/Ashen_Breath_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Ashen_Breath_Entity.class",
+          "methods": [
+            "tick",
+            "<init>",
+            "defineSynchedData",
+            "setDamage",
+            "getDamage",
+            "setCaster",
+            "getCaster",
+            "readAdditionalSaveData",
+            "addAdditionalSaveData",
+            "getPistonPushReaction",
+            "isPickable",
+            "push",
+            "canBeCollidedWith",
+            "isPushable",
+            "<clinit>"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ignited-revenant-offense:ash_lifecycle"
+      ],
+      "primary_test_source": "cataclysm:ignited_revenant",
+      "alternate_sources": [],
+      "spawned_entity_ids": [
+        "cataclysm:ashen_breath"
+      ],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k12b-cataclysm-ignited-revenant-offense-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "PAYLOAD_LIFECYCLE",
+          "parameter": "first_hit_age_threshold",
+          "native_value": 2,
+          "native_formula": "Check direct caster field; discard on caster death then continue; age>25 discard after hit",
+          "units": "native age; strict >",
+          "boundary": "Ashen_Breath.tick/defineSynchedData/save/load"
+        },
+        {
+          "primitive": "PAYLOAD_LIFECYCLE",
+          "parameter": "discard_age_threshold",
+          "native_value": 25,
+          "native_formula": "Check direct caster field; discard on caster death then continue; age>25 discard after hit",
+          "units": "native age; strict >",
+          "boundary": "Ashen_Breath.tick/defineSynchedData/save/load"
+        },
+        {
+          "primitive": "PAYLOAD_LIFECYCLE",
+          "parameter": "default_damage",
+          "native_value": 0.0,
+          "native_formula": "Check direct caster field; discard on caster death then continue; age>25 discard after hit",
+          "units": "native synced float",
+          "boundary": "Ashen_Breath.tick/defineSynchedData/save/load"
+        }
+      ],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Admission, state, native bounds and lifecycle remain native.",
+      "saves_native_owner": true,
+      "saves_native_damage": true,
+      "saves_native_age": false,
+      "tick_resolves_caster_uuid": false,
+      "dead_caster_discard_returns": false,
+      "follows_caster_position": false,
+      "follows_caster_pitch": false,
+      "follows_caster_yaw": true,
+      "anonymous_damage_fallback": false
+    },
+    {
+      "id": "cataclysm:ignited_revenant_attack_selection",
+      "mod_key": "cataclysm",
+      "display_name": "Ignited Revenant ordered native offense admission",
+      "registry_ids": [
+        "cataclysm:ignited_revenant"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "After native super.tick and cooldown decrements, self alive plus live/non-null target admits an ordered else-if chain. Intact-shield Ash: breath<=0, !NoAI, NO_ANIMATION, nextInt(35)==0, distance<4.5, raw shield counter<4; writes breath=200 then ASH. Otherwise Storm: storm<=0, distance<6, !NoAI, NO_ANIMATION, nextInt(15)==0; writes storm=200 then BONE. Otherwise broken-shield Ash: !NoAI, NO_ANIMATION, nextInt(12)==0, distance<4.5, counter>3; neither tests nor writes breath cooldown. These are conditional RNG draws, not independent proc chances. No local server or HP-phase gate.",
+      "human_summary": "After native super.tick and cooldown decrements, self alive plus live/non-null target admits an ordered else-if chain. Intact-shield Ash: breath<=0, !NoAI, NO_ANIMATION, nextInt(35)==0, distance<4.5, raw shield counter<4; writes breath=200 then ASH. Otherwise Storm: storm<=0, distance<6, !NoAI, NO_ANIMATION, nextInt(15)==0; writes storm=200 then BONE. Otherwise broken-shield Ash: !NoAI, NO_ANIMATION, nextInt(12)==0, distance<4.5, counter>3; neither tests nor writes breath cooldown. These are conditional RNG draws, not independent proc chances. No local server or HP-phase gate.",
+      "closest_vanilla_equivalent": "Custom ordered AI/animation admission; not a MobEffect or damage scalar",
+      "vanilla_similarities": "Native damage, effects, projectile hooks, teams and lifecycle remain authoritative at the cited boundaries; locked shared contracts reused.",
+      "vanilla_differences": "After native super.tick and cooldown decrements, self alive plus live/non-null target admits an ordered else-if chain. Intact-shield Ash: breath<=0, !NoAI, NO_ANIMATION, nextInt(35)==0, distance<4.5, raw shield counter<4; writes breath=200 then ASH. Otherwise Storm: storm<=0, distance<6, !NoAI, NO_ANIMATION, nextInt(15)==0; writes storm=200 then BONE. Otherwise broken-shield Ash: !NoAI, NO_ANIMATION, nextInt(12)==0, distance<4.5, counter>3; neither tests nor writes breath cooldown. These are conditional RNG draws, not independent proc chances. No local server or HP-phase gate.",
+      "components": [
+        {
+          "primitive": "ATTACK_SELECTION",
+          "formula": "Ordered native short-circuit branches; RNG only where reached",
+          "numerical_parameters": {
+            "intact_ash_rng_bound": 35,
+            "storm_rng_bound": 15,
+            "broken_ash_rng_bound": 12,
+            "ash_distance": 4.5,
+            "storm_distance": 6.0,
+            "shield_split": 4
+          },
+          "parameter_units": {
+            "intact_ash_rng_bound": "exclusive RNG bound",
+            "storm_rng_bound": "exclusive RNG bound",
+            "broken_ash_rng_bound": "exclusive RNG bound",
+            "ash_distance": "blocks; strict <",
+            "storm_distance": "blocks; strict <",
+            "shield_split": "raw lost-segment counter"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Ignited_Revenant.tick selection",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Self/target alive",
+        "Native NoAI and animation identity",
+        "Ordered RNG and raw shield predicates"
+      ],
+      "custom_state": "Native Revenant animations, cooldowns, height controller and owned payload fields only; protected R2k12a anger/shield/NBT/admission retained.",
+      "eligibility": "Self/target alive; Native NoAI and animation identity; Ordered RNG and raw shield predicates",
+      "source_actor": "Native Revenant AI/current target.",
+      "hurt_return_dependency": "No hurt call in selection.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ignited-revenant-offense:attack_selection"
+      ],
+      "primary_test_source": "cataclysm:ignited_revenant",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k12b-cataclysm-ignited-revenant-offense-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "ATTACK_SELECTION",
+          "parameter": "intact_ash_rng_bound",
+          "native_value": 35,
+          "native_formula": "Ordered native short-circuit branches; RNG only where reached",
+          "units": "exclusive RNG bound",
+          "boundary": "Ignited_Revenant.tick selection"
+        },
+        {
+          "primitive": "ATTACK_SELECTION",
+          "parameter": "storm_rng_bound",
+          "native_value": 15,
+          "native_formula": "Ordered native short-circuit branches; RNG only where reached",
+          "units": "exclusive RNG bound",
+          "boundary": "Ignited_Revenant.tick selection"
+        },
+        {
+          "primitive": "ATTACK_SELECTION",
+          "parameter": "broken_ash_rng_bound",
+          "native_value": 12,
+          "native_formula": "Ordered native short-circuit branches; RNG only where reached",
+          "units": "exclusive RNG bound",
+          "boundary": "Ignited_Revenant.tick selection"
+        },
+        {
+          "primitive": "ATTACK_SELECTION",
+          "parameter": "ash_distance",
+          "native_value": 4.5,
+          "native_formula": "Ordered native short-circuit branches; RNG only where reached",
+          "units": "blocks; strict <",
+          "boundary": "Ignited_Revenant.tick selection"
+        },
+        {
+          "primitive": "ATTACK_SELECTION",
+          "parameter": "storm_distance",
+          "native_value": 6.0,
+          "native_formula": "Ordered native short-circuit branches; RNG only where reached",
+          "units": "blocks; strict <",
+          "boundary": "Ignited_Revenant.tick selection"
+        },
+        {
+          "primitive": "ATTACK_SELECTION",
+          "parameter": "shield_split",
+          "native_value": 4,
+          "native_formula": "Ordered native short-circuit branches; RNG only where reached",
+          "units": "raw lost-segment counter",
+          "boundary": "Ignited_Revenant.tick selection"
+        }
+      ],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Admission, state, native bounds and lifecycle remain native.",
+      "selection_local_server_guard": false,
+      "broken_ash_tests_cooldown": false,
+      "broken_ash_writes_cooldown": false,
+      "storm_has_shield_gate": false,
+      "selection_has_hp_gate": false
+    },
+    {
+      "id": "cataclysm:ignited_revenant_body_repulsion",
+      "mod_key": "cataclysm",
+      "display_name": "Ignited Revenant exposed inherited repulsion callback",
+      "registry_ids": [
+        "cataclysm:ignited_revenant"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Concrete repelEntities(x,y,z,radius) is solely a super delegate to locked Animation_Monsters helper: original living-nearby query, pickable && !noPhysics, absolute horizontal motion -.1*cos/sin(angle+90) preserving Y; no alliance/hurt/resistance gate. No call to this wrapper is present in the inspected Revenant root offense, goals or payloads, so this does not prove an additional active attack or independent delivery. Do not promote unused callback constants to candidates. Protected canBePushedByEntity=false is a different admission boundary.",
+      "human_summary": "Concrete repelEntities(x,y,z,radius) is solely a super delegate to locked Animation_Monsters helper: original living-nearby query, pickable && !noPhysics, absolute horizontal motion -.1*cos/sin(angle+90) preserving Y; no alliance/hurt/resistance gate. No call to this wrapper is present in the inspected Revenant root offense, goals or payloads, so this does not prove an additional active attack or independent delivery. Do not promote unused callback constants to candidates. Protected canBePushedByEntity=false is a different admission boundary.",
+      "closest_vanilla_equivalent": "Inherited custom repulsion callback; no newly proven active attack",
+      "vanilla_similarities": "Native damage, effects, projectile hooks, teams and lifecycle remain authoritative at the cited boundaries; locked shared contracts reused.",
+      "vanilla_differences": "Concrete repelEntities(x,y,z,radius) is solely a super delegate to locked Animation_Monsters helper: original living-nearby query, pickable && !noPhysics, absolute horizontal motion -.1*cos/sin(angle+90) preserving Y; no alliance/hurt/resistance gate. No call to this wrapper is present in the inspected Revenant root offense, goals or payloads, so this does not prove an additional active attack or independent delivery. Do not promote unused callback constants to candidates. Protected canBePushedByEntity=false is a different admission boundary.",
+      "components": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "formula": "Delegate only; inherited setDeltaMovement(-cos(angle+90)*.1,oldY,-sin(angle+90)*.1)",
+          "numerical_parameters": {
+            "inherited_horizontal_factor": 0.1
+          },
+          "parameter_units": {
+            "inherited_horizontal_factor": "native horizontal velocity magnitude if callback invoked"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Ignited_Revenant.repelEntities -> inherited Animation_Monsters helper",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Inherited living query/pickability/noPhysics",
+        "No local offense caller proven"
+      ],
+      "custom_state": "Native Revenant animations, cooldowns, height controller and owned payload fields only; protected R2k12a anger/shield/NBT/admission retained.",
+      "eligibility": "Inherited living query/pickability/noPhysics; No local offense caller proven",
+      "source_actor": "Native exposed Revenant callback only.",
+      "hurt_return_dependency": "Callback itself has no hurt dependency; no active offense invocation proved.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity.class",
+          "methods": [
+            "repelEntities"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "repelEntities"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ignited-revenant-offense:body_repulsion"
+      ],
+      "primary_test_source": "cataclysm:ignited_revenant",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k12b-cataclysm-ignited-revenant-offense-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameter": "inherited_horizontal_factor",
+          "native_value": 0.1,
+          "native_formula": "Delegate only; inherited setDeltaMovement(-cos(angle+90)*.1,oldY,-sin(angle+90)*.1)",
+          "units": "native horizontal velocity magnitude if callback invoked",
+          "boundary": "Ignited_Revenant.repelEntities -> inherited Animation_Monsters helper"
+        }
+      ],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Admission, state, native bounds and lifecycle remain native.",
+      "local_offense_caller_proven": false,
+      "control_depends_on_hurt": false,
+      "local_team_guard": false,
+      "preserves_vertical_velocity": true
+    },
+    {
+      "id": "cataclysm:ignited_revenant_bone_damage",
+      "mod_key": "cataclysm",
+      "display_name": "Blazing Bone owner-aware native projectile damage",
+      "registry_ids": [
+        "cataclysm:ignited_revenant",
+        "cataclysm:blazing_bone"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "onHitEntity calls native super first, then reads current getOwner and impact entity. A LivingEntity owner admits victim!=owner and !owner.isAlliedTo(victim), requesting mobProjectile(bone,livingOwner), getDamage(). Otherwise requests anonymous magic(), getDamage() with no local owner/team exclusions. Both hurt results POP; no fire, status, movement, healing, enchantment followup or invulnerability reset. Stored float damage initializes from config installed5 and persists independently of future config changes. Native collision/cancellation/deflection and damage defenses remain native.",
+      "human_summary": "onHitEntity calls native super first, then reads current getOwner and impact entity. A LivingEntity owner admits victim!=owner and !owner.isAlliedTo(victim), requesting mobProjectile(bone,livingOwner), getDamage(). Otherwise requests anonymous magic(), getDamage() with no local owner/team exclusions. Both hurt results POP; no fire, status, movement, healing, enchantment followup or invulnerability reset. Stored float damage initializes from config installed5 and persists independently of future config changes. Native collision/cancellation/deflection and damage defenses remain native.",
+      "closest_vanilla_equivalent": "Native mob_projectile damage with native anonymous magic fallback",
+      "vanilla_similarities": "Native damage, effects, projectile hooks, teams and lifecycle remain authoritative at the cited boundaries; locked shared contracts reused.",
+      "vanilla_differences": "onHitEntity calls native super first, then reads current getOwner and impact entity. A LivingEntity owner admits victim!=owner and !owner.isAlliedTo(victim), requesting mobProjectile(bone,livingOwner), getDamage(). Otherwise requests anonymous magic(), getDamage() with no local owner/team exclusions. Both hurt results POP; no fire, status, movement, healing, enchantment followup or invulnerability reset. Stored float damage initializes from config installed5 and persists independently of future config changes. Native collision/cancellation/deflection and damage defenses remain native.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "formula": "Living owner -> mobProjectile(bone,owner); other/missing owner -> magic(); amount=getDamage()",
+          "numerical_parameters": {
+            "installed_damage": 5.0
+          },
+          "parameter_units": {
+            "installed_damage": "configured native HP damage request at construction"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Blazing_Bone.onHitEntity -> Entity.hurt",
+          "vanilla_relation": "EXTENDED",
+          "parameter_formulas": {
+            "requested_damage": "getDamage(): synced float stored at launch from f32(IgnitedRevenant.BlazingBoneDamage), installed5; native NBT damage may restore another value"
+          },
+          "formula_parameter_units": {
+            "requested_damage": "native HP damage request"
+          }
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native impact/collision/deflection",
+        "Living owner uses owner.isAlliedTo and self exclusion",
+        "Native damage/cancellation/immunity"
+      ],
+      "custom_state": "Native Revenant animations, cooldowns, height controller and owned payload fields only; protected R2k12a anger/shield/NBT/admission retained.",
+      "eligibility": "Native impact/collision/deflection; Living owner uses owner.isAlliedTo and self exclusion; Native damage/cancellation/immunity",
+      "source_actor": "minecraft:mob_projectile: direct bone/current LivingEntity owner; fallback minecraft:magic with no direct/causing actor.",
+      "hurt_return_dependency": "Both hurt results discarded; removal remains separate and hurt-independent.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/projectile/Blazing_Bone_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Blazing_Bone_Entity.class",
+          "methods": [
+            "<init>",
+            "onHitEntity",
+            "getDamage",
+            "setDamage"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ignited-revenant-offense:bone_damage"
+      ],
+      "primary_test_source": "cataclysm:ignited_revenant",
+      "alternate_sources": [],
+      "spawned_entity_ids": [
+        "cataclysm:blazing_bone"
+      ],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k12b-cataclysm-ignited-revenant-offense-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "requested_damage"
+          ],
+          "native_value": null,
+          "native_formula": "getDamage(): synced float stored at launch from f32(IgnitedRevenant.BlazingBoneDamage), installed5; native NBT damage may restore another value",
+          "units": "native HP damage request",
+          "native_boundary": "Blazing_Bone.onHitEntity -> Entity.hurt"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameter": "installed_damage",
+          "native_value": 5.0,
+          "native_formula": "Living owner -> mobProjectile(bone,owner); other/missing owner -> magic(); amount=getDamage()",
+          "units": "configured native HP damage request at construction",
+          "boundary": "Blazing_Bone.onHitEntity -> Entity.hurt"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameter": "requested_damage",
+          "native_value": null,
+          "native_formula": "getDamage(): synced float stored at launch from f32(IgnitedRevenant.BlazingBoneDamage), installed5; native NBT damage may restore another value",
+          "units": "native HP damage request",
+          "boundary": "Blazing_Bone.onHitEntity -> Entity.hurt"
+        }
+      ],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Admission, state, native bounds and lifecycle remain native.",
+      "hurt_return_used": false,
+      "uses_owner_alliance": true,
+      "anonymous_magic_fallback": true,
+      "ignites_targets": false,
+      "post_hurt_status": false,
+      "invulnerability_reset": false,
+      "reference_evidence": [
+        {
+          "evidence_file": "reference-evidence/eternalstarlight-soul-hunger-244.json",
+          "entry": "net/minecraft/world/entity/projectile/Projectile.class",
+          "methods": [
+            "onHitEntity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:ignited_revenant_bone_delivery",
+      "mod_key": "cataclysm",
+      "display_name": "Ignited Revenant Bone Storm volleys and projectile motion",
+      "registry_ids": [
+        "cataclysm:ignited_revenant",
+        "cataclysm:blazing_bone"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "BoneStormGoal independently draws nextInt(3) at animation ticks5/10/15/20; case0/1/2 calls launchbone1/2/3 respectively. Every volley emits8/6/10 Blazing_Bones in a full ring at radians(90+bossYRot)+i*pi/(4/3/5), offset1 horizontally, bossY+height*.62. Each carries f32(BlazingBoneDamage), installed5, native Revenant owner. Native shoot(cos(angle),0,sin(angle),speed,inaccuracy1) uses speeds .5/float .6/float .4; yaw moveTo i*(45/60/36), pitch bossXRot, then addFreshEntity result discarded. Native ThrowableItemProjectile collision/owner departure/deflection/NeoForge impact handling, drag and gravity retained; isNoGravity explicitly false. No local server/target/shield/anger/hurt guard on volley delivery; target only controls native30/30 look.",
+      "human_summary": "BoneStormGoal independently draws nextInt(3) at animation ticks5/10/15/20; case0/1/2 calls launchbone1/2/3 respectively. Every volley emits8/6/10 Blazing_Bones in a full ring at radians(90+bossYRot)+i*pi/(4/3/5), offset1 horizontally, bossY+height*.62. Each carries f32(BlazingBoneDamage), installed5, native Revenant owner. Native shoot(cos(angle),0,sin(angle),speed,inaccuracy1) uses speeds .5/float .6/float .4; yaw moveTo i*(45/60/36), pitch bossXRot, then addFreshEntity result discarded. Native ThrowableItemProjectile collision/owner departure/deflection/NeoForge impact handling, drag and gravity retained; isNoGravity explicitly false. No local server/target/shield/anger/hurt guard on volley delivery; target only controls native30/30 look.",
+      "closest_vanilla_equivalent": "Vanilla throwable projectile delivery extended by timed randomized radial volleys",
+      "vanilla_similarities": "Native damage, effects, projectile hooks, teams and lifecycle remain authoritative at the cited boundaries; locked shared contracts reused.",
+      "vanilla_differences": "BoneStormGoal independently draws nextInt(3) at animation ticks5/10/15/20; case0/1/2 calls launchbone1/2/3 respectively. Every volley emits8/6/10 Blazing_Bones in a full ring at radians(90+bossYRot)+i*pi/(4/3/5), offset1 horizontally, bossY+height*.62. Each carries f32(BlazingBoneDamage), installed5, native Revenant owner. Native shoot(cos(angle),0,sin(angle),speed,inaccuracy1) uses speeds .5/float .6/float .4; yaw moveTo i*(45/60/36), pitch bossXRot, then addFreshEntity result discarded. Native ThrowableItemProjectile collision/owner departure/deflection/NeoForge impact handling, drag and gravity retained; isNoGravity explicitly false. No local server/target/shield/anger/hurt guard on volley delivery; target only controls native30/30 look.",
+      "components": [
+        {
+          "primitive": "PROJECTILE_PATTERN",
+          "formula": "Four independent native nextInt(3) ring choices at5/10/15/20; count8/6/10, angular step pi/4,pi/3,pi/5",
+          "numerical_parameters": {
+            "volley_tick_1": 5,
+            "volley_tick_2": 10,
+            "volley_tick_3": 15,
+            "volley_tick_4": 20,
+            "random_bound": 3,
+            "ring1_count": 8,
+            "ring2_count": 6,
+            "ring3_count": 10,
+            "ring1_angle_divisor": 4.0,
+            "ring2_angle_divisor": 3.0,
+            "ring3_angle_divisor": 5.0,
+            "ring1_yaw_step": 45.0,
+            "ring2_yaw_step": 60.0,
+            "ring3_yaw_step": 36.0
+          },
+          "parameter_units": {
+            "volley_tick_1": "animation ticks",
+            "volley_tick_2": "animation ticks",
+            "volley_tick_3": "animation ticks",
+            "volley_tick_4": "animation ticks",
+            "random_bound": "exclusive RNG bound",
+            "ring1_count": "projectile entities per volley",
+            "ring2_count": "projectile entities per volley",
+            "ring3_count": "projectile entities per volley",
+            "ring1_angle_divisor": "native radians divisor",
+            "ring2_angle_divisor": "native radians divisor",
+            "ring3_angle_divisor": "native radians divisor",
+            "ring1_yaw_step": "degrees",
+            "ring2_yaw_step": "degrees",
+            "ring3_yaw_step": "degrees"
+          },
+          "binary_parameters": [],
+          "native_boundary": "BoneStormGoal.tick -> launchbone1/2/3",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "formula": "boss position+(cos(angle)*1,height*.62,sin(angle)*1)",
+          "numerical_parameters": {
+            "horizontal_offset": 1.0,
+            "height_fraction": 0.62
+          },
+          "parameter_units": {
+            "horizontal_offset": "blocks",
+            "height_fraction": "fraction of native boss height"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Ignited_Revenant.launchbone1/2/3",
+          "vanilla_relation": "EXTENDED"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "formula": "Native shoot(cos(angle),0,sin(angle),speed,1); native throwable trajectory, isNoGravity=false",
+          "numerical_parameters": {
+            "ring1_speed": 0.5,
+            "ring2_speed": 0.6000000238418579,
+            "ring3_speed": 0.4000000059604645,
+            "inaccuracy": 1.0,
+            "initial_y_direction": 0.0
+          },
+          "parameter_units": {
+            "ring1_speed": "native shoot speed",
+            "ring2_speed": "native shoot speed",
+            "ring3_speed": "native shoot speed",
+            "inaccuracy": "native shoot inaccuracy argument",
+            "initial_y_direction": "native shoot direction Y before inaccuracy"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Ignited_Revenant.launchbone1/2/3 -> Projectile.shoot",
+          "vanilla_relation": "DIRECT"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native BONE animation goal/tick identity",
+        "Native RNG per volley",
+        "Inherited projectile impacts/deflection/owner filters"
+      ],
+      "custom_state": "Native Revenant animations, cooldowns, height controller and owned payload fields only; protected R2k12a anger/shield/NBT/admission retained.",
+      "eligibility": "Native BONE animation goal/tick identity; Native RNG per volley; Inherited projectile impacts/deflection/owner filters",
+      "source_actor": "Revenant is native thrower/owner; Blazing_Bone is delivery and later direct damage actor.",
+      "hurt_return_dependency": "No hurt dependency in volley creation, motion or insertion.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity$BoneStormGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity$BoneStormGoal.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity.class",
+          "methods": [
+            "launchbone1",
+            "launchbone2",
+            "launchbone3",
+            "access$000",
+            "access$100",
+            "access$200",
+            "access$300"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/projectile/Blazing_Bone_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Blazing_Bone_Entity.class",
+          "methods": [
+            "<init>",
+            "isNoGravity"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "<clinit>"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ignited-revenant-offense:bone_delivery"
+      ],
+      "primary_test_source": "cataclysm:ignited_revenant",
+      "alternate_sources": [],
+      "spawned_entity_ids": [
+        "cataclysm:blazing_bone"
+      ],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k12b-cataclysm-ignited-revenant-offense-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "height_fraction"
+          ],
+          "native_value": 0.62,
+          "native_formula": "boss position+(cos(angle)*1,height*.62,sin(angle)*1)",
+          "units": "fraction of native boss height",
+          "native_boundary": "Ignited_Revenant.launchbone1/2/3"
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "horizontal_offset"
+          ],
+          "native_value": 1.0,
+          "native_formula": "boss position+(cos(angle)*1,height*.62,sin(angle)*1)",
+          "units": "blocks",
+          "native_boundary": "Ignited_Revenant.launchbone1/2/3"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "inaccuracy"
+          ],
+          "native_value": 1.0,
+          "native_formula": "Native shoot(cos(angle),0,sin(angle),speed,1); native throwable trajectory, isNoGravity=false",
+          "units": "native shoot inaccuracy argument",
+          "native_boundary": "Ignited_Revenant.launchbone1/2/3 -> Projectile.shoot"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "ring1_speed"
+          ],
+          "native_value": 0.5,
+          "native_formula": "Native shoot(cos(angle),0,sin(angle),speed,1); native throwable trajectory, isNoGravity=false",
+          "units": "native shoot speed",
+          "native_boundary": "Ignited_Revenant.launchbone1/2/3 -> Projectile.shoot"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "ring2_speed"
+          ],
+          "native_value": 0.6000000238418579,
+          "native_formula": "Native shoot(cos(angle),0,sin(angle),speed,1); native throwable trajectory, isNoGravity=false",
+          "units": "native shoot speed",
+          "native_boundary": "Ignited_Revenant.launchbone1/2/3 -> Projectile.shoot"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "ring3_speed"
+          ],
+          "native_value": 0.4000000059604645,
+          "native_formula": "Native shoot(cos(angle),0,sin(angle),speed,1); native throwable trajectory, isNoGravity=false",
+          "units": "native shoot speed",
+          "native_boundary": "Ignited_Revenant.launchbone1/2/3 -> Projectile.shoot"
+        },
+        {
+          "primitive": "PROJECTILE_PATTERN",
+          "parameters": [
+            "ring1_count"
+          ],
+          "native_value": 8,
+          "native_formula": "Four independent native nextInt(3) ring choices at5/10/15/20; count8/6/10, angular step pi/4,pi/3,pi/5",
+          "units": "projectile entities per volley",
+          "native_boundary": "BoneStormGoal.tick -> launchbone1/2/3"
+        },
+        {
+          "primitive": "PROJECTILE_PATTERN",
+          "parameters": [
+            "ring2_count"
+          ],
+          "native_value": 6,
+          "native_formula": "Four independent native nextInt(3) ring choices at5/10/15/20; count8/6/10, angular step pi/4,pi/3,pi/5",
+          "units": "projectile entities per volley",
+          "native_boundary": "BoneStormGoal.tick -> launchbone1/2/3"
+        },
+        {
+          "primitive": "PROJECTILE_PATTERN",
+          "parameters": [
+            "ring3_count"
+          ],
+          "native_value": 10,
+          "native_formula": "Four independent native nextInt(3) ring choices at5/10/15/20; count8/6/10, angular step pi/4,pi/3,pi/5",
+          "units": "projectile entities per volley",
+          "native_boundary": "BoneStormGoal.tick -> launchbone1/2/3"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "PROJECTILE_PATTERN",
+          "parameter": "volley_tick_1",
+          "native_value": 5,
+          "native_formula": "Four independent native nextInt(3) ring choices at5/10/15/20; count8/6/10, angular step pi/4,pi/3,pi/5",
+          "units": "animation ticks",
+          "boundary": "BoneStormGoal.tick -> launchbone1/2/3"
+        },
+        {
+          "primitive": "PROJECTILE_PATTERN",
+          "parameter": "volley_tick_2",
+          "native_value": 10,
+          "native_formula": "Four independent native nextInt(3) ring choices at5/10/15/20; count8/6/10, angular step pi/4,pi/3,pi/5",
+          "units": "animation ticks",
+          "boundary": "BoneStormGoal.tick -> launchbone1/2/3"
+        },
+        {
+          "primitive": "PROJECTILE_PATTERN",
+          "parameter": "volley_tick_3",
+          "native_value": 15,
+          "native_formula": "Four independent native nextInt(3) ring choices at5/10/15/20; count8/6/10, angular step pi/4,pi/3,pi/5",
+          "units": "animation ticks",
+          "boundary": "BoneStormGoal.tick -> launchbone1/2/3"
+        },
+        {
+          "primitive": "PROJECTILE_PATTERN",
+          "parameter": "volley_tick_4",
+          "native_value": 20,
+          "native_formula": "Four independent native nextInt(3) ring choices at5/10/15/20; count8/6/10, angular step pi/4,pi/3,pi/5",
+          "units": "animation ticks",
+          "boundary": "BoneStormGoal.tick -> launchbone1/2/3"
+        },
+        {
+          "primitive": "PROJECTILE_PATTERN",
+          "parameter": "random_bound",
+          "native_value": 3,
+          "native_formula": "Four independent native nextInt(3) ring choices at5/10/15/20; count8/6/10, angular step pi/4,pi/3,pi/5",
+          "units": "exclusive RNG bound",
+          "boundary": "BoneStormGoal.tick -> launchbone1/2/3"
+        },
+        {
+          "primitive": "PROJECTILE_PATTERN",
+          "parameter": "ring1_count",
+          "native_value": 8,
+          "native_formula": "Four independent native nextInt(3) ring choices at5/10/15/20; count8/6/10, angular step pi/4,pi/3,pi/5",
+          "units": "projectile entities per volley",
+          "boundary": "BoneStormGoal.tick -> launchbone1/2/3"
+        },
+        {
+          "primitive": "PROJECTILE_PATTERN",
+          "parameter": "ring2_count",
+          "native_value": 6,
+          "native_formula": "Four independent native nextInt(3) ring choices at5/10/15/20; count8/6/10, angular step pi/4,pi/3,pi/5",
+          "units": "projectile entities per volley",
+          "boundary": "BoneStormGoal.tick -> launchbone1/2/3"
+        },
+        {
+          "primitive": "PROJECTILE_PATTERN",
+          "parameter": "ring3_count",
+          "native_value": 10,
+          "native_formula": "Four independent native nextInt(3) ring choices at5/10/15/20; count8/6/10, angular step pi/4,pi/3,pi/5",
+          "units": "projectile entities per volley",
+          "boundary": "BoneStormGoal.tick -> launchbone1/2/3"
+        },
+        {
+          "primitive": "PROJECTILE_PATTERN",
+          "parameter": "ring1_angle_divisor",
+          "native_value": 4.0,
+          "native_formula": "Four independent native nextInt(3) ring choices at5/10/15/20; count8/6/10, angular step pi/4,pi/3,pi/5",
+          "units": "native radians divisor",
+          "boundary": "BoneStormGoal.tick -> launchbone1/2/3"
+        },
+        {
+          "primitive": "PROJECTILE_PATTERN",
+          "parameter": "ring2_angle_divisor",
+          "native_value": 3.0,
+          "native_formula": "Four independent native nextInt(3) ring choices at5/10/15/20; count8/6/10, angular step pi/4,pi/3,pi/5",
+          "units": "native radians divisor",
+          "boundary": "BoneStormGoal.tick -> launchbone1/2/3"
+        },
+        {
+          "primitive": "PROJECTILE_PATTERN",
+          "parameter": "ring3_angle_divisor",
+          "native_value": 5.0,
+          "native_formula": "Four independent native nextInt(3) ring choices at5/10/15/20; count8/6/10, angular step pi/4,pi/3,pi/5",
+          "units": "native radians divisor",
+          "boundary": "BoneStormGoal.tick -> launchbone1/2/3"
+        },
+        {
+          "primitive": "PROJECTILE_PATTERN",
+          "parameter": "ring1_yaw_step",
+          "native_value": 45.0,
+          "native_formula": "Four independent native nextInt(3) ring choices at5/10/15/20; count8/6/10, angular step pi/4,pi/3,pi/5",
+          "units": "degrees",
+          "boundary": "BoneStormGoal.tick -> launchbone1/2/3"
+        },
+        {
+          "primitive": "PROJECTILE_PATTERN",
+          "parameter": "ring2_yaw_step",
+          "native_value": 60.0,
+          "native_formula": "Four independent native nextInt(3) ring choices at5/10/15/20; count8/6/10, angular step pi/4,pi/3,pi/5",
+          "units": "degrees",
+          "boundary": "BoneStormGoal.tick -> launchbone1/2/3"
+        },
+        {
+          "primitive": "PROJECTILE_PATTERN",
+          "parameter": "ring3_yaw_step",
+          "native_value": 36.0,
+          "native_formula": "Four independent native nextInt(3) ring choices at5/10/15/20; count8/6/10, angular step pi/4,pi/3,pi/5",
+          "units": "degrees",
+          "boundary": "BoneStormGoal.tick -> launchbone1/2/3"
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameter": "horizontal_offset",
+          "native_value": 1.0,
+          "native_formula": "boss position+(cos(angle)*1,height*.62,sin(angle)*1)",
+          "units": "blocks",
+          "boundary": "Ignited_Revenant.launchbone1/2/3"
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameter": "height_fraction",
+          "native_value": 0.62,
+          "native_formula": "boss position+(cos(angle)*1,height*.62,sin(angle)*1)",
+          "units": "fraction of native boss height",
+          "boundary": "Ignited_Revenant.launchbone1/2/3"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameter": "ring1_speed",
+          "native_value": 0.5,
+          "native_formula": "Native shoot(cos(angle),0,sin(angle),speed,1); native throwable trajectory, isNoGravity=false",
+          "units": "native shoot speed",
+          "boundary": "Ignited_Revenant.launchbone1/2/3 -> Projectile.shoot"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameter": "ring2_speed",
+          "native_value": 0.6000000238418579,
+          "native_formula": "Native shoot(cos(angle),0,sin(angle),speed,1); native throwable trajectory, isNoGravity=false",
+          "units": "native shoot speed",
+          "boundary": "Ignited_Revenant.launchbone1/2/3 -> Projectile.shoot"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameter": "ring3_speed",
+          "native_value": 0.4000000059604645,
+          "native_formula": "Native shoot(cos(angle),0,sin(angle),speed,1); native throwable trajectory, isNoGravity=false",
+          "units": "native shoot speed",
+          "boundary": "Ignited_Revenant.launchbone1/2/3 -> Projectile.shoot"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameter": "inaccuracy",
+          "native_value": 1.0,
+          "native_formula": "Native shoot(cos(angle),0,sin(angle),speed,1); native throwable trajectory, isNoGravity=false",
+          "units": "native shoot inaccuracy argument",
+          "boundary": "Ignited_Revenant.launchbone1/2/3 -> Projectile.shoot"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameter": "initial_y_direction",
+          "native_value": 0.0,
+          "native_formula": "Native shoot(cos(angle),0,sin(angle),speed,1); native throwable trajectory, isNoGravity=false",
+          "units": "native shoot direction Y before inaccuracy",
+          "boundary": "Ignited_Revenant.launchbone1/2/3 -> Projectile.shoot"
+        }
+      ],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Admission, state, native bounds and lifecycle remain native.",
+      "volleys_independently_randomized": true,
+      "volley_requires_target": false,
+      "delivery_local_server_guard": false,
+      "volley_shield_gate": false,
+      "gravity_disabled": false,
+      "initial_y_direction_zero": true,
+      "reference_evidence": [
+        {
+          "evidence_file": "reference-evidence/twilight-frosted-244.json",
+          "entry": "net/minecraft/world/entity/projectile/ThrowableProjectile.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/twilight-frosted-244.json",
+          "entry": "net/minecraft/world/entity/projectile/Projectile.class",
+          "methods": [
+            "hitTargetOrDeflectSelf",
+            "canHitEntity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cataclysm:ignited_revenant_bone_lifecycle",
+      "mod_key": "cataclysm",
+      "display_name": "Blazing Bone native impact removal and persistence",
+      "registry_ids": [
+        "cataclysm:ignited_revenant",
+        "cataclysm:blazing_bone"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Native ThrowableItemProjectile/Projectile ownership and NBT retained through constructor and super save/load; local synced DAMAGE defaults0 and local damage float is saved/restored. onHit delegates super first, then on server broadcasts event3 and discards on entity or block impact regardless of damage success, including an allied/no-damage entity branch. No concrete tick/lifetime/owner UUID resolver, explosion, terrain mutation or damage-on-discard override; do not invent a lifetime. Native superclass owns impact cancellation/deflection and block callbacks.",
+      "human_summary": "Native ThrowableItemProjectile/Projectile ownership and NBT retained through constructor and super save/load; local synced DAMAGE defaults0 and local damage float is saved/restored. onHit delegates super first, then on server broadcasts event3 and discards on entity or block impact regardless of damage success, including an allied/no-damage entity branch. No concrete tick/lifetime/owner UUID resolver, explosion, terrain mutation or damage-on-discard override; do not invent a lifetime. Native superclass owns impact cancellation/deflection and block callbacks.",
+      "closest_vanilla_equivalent": "Native throwable ownership/impact lifecycle, no custom receipt/cache",
+      "vanilla_similarities": "Native damage, effects, projectile hooks, teams and lifecycle remain authoritative at the cited boundaries; locked shared contracts reused.",
+      "vanilla_differences": "Native ThrowableItemProjectile/Projectile ownership and NBT retained through constructor and super save/load; local synced DAMAGE defaults0 and local damage float is saved/restored. onHit delegates super first, then on server broadcasts event3 and discards on entity or block impact regardless of damage success, including an allied/no-damage entity branch. No concrete tick/lifetime/owner UUID resolver, explosion, terrain mutation or damage-on-discard override; do not invent a lifetime. Native superclass owns impact cancellation/deflection and block callbacks.",
+      "components": [
+        {
+          "primitive": "PROJECTILE_LIFECYCLE",
+          "formula": "Native superclass save/load then local damage; onHit super then server event3/discard",
+          "numerical_parameters": {
+            "default_damage": 0.0,
+            "impact_event": 3
+          },
+          "parameter_units": {
+            "default_damage": "native synced float",
+            "impact_event": "native entity event byte"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Blazing_Bone.defineSynchedData/save/load/onHit",
+          "vanilla_relation": "DIRECT"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native projectile superclass lifecycle/hooks",
+        "Server removal branch",
+        "No hurt success prerequisite"
+      ],
+      "custom_state": "Native Revenant animations, cooldowns, height controller and owned payload fields only; protected R2k12a anger/shield/NBT/admission retained.",
+      "eligibility": "Native projectile superclass lifecycle/hooks; Server removal branch; No hurt success prerequisite",
+      "source_actor": "Native bone Projectile owner and synced damage; superclass owns UUID persistence.",
+      "hurt_return_dependency": "Impact discard does not test hurt.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/projectile/Blazing_Bone_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Blazing_Bone_Entity.class",
+          "methods": [
+            "<init>",
+            "defineSynchedData",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "onHit",
+            "<clinit>"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ignited-revenant-offense:bone_lifecycle"
+      ],
+      "primary_test_source": "cataclysm:ignited_revenant",
+      "alternate_sources": [],
+      "spawned_entity_ids": [
+        "cataclysm:blazing_bone"
+      ],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k12b-cataclysm-ignited-revenant-offense-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "PROJECTILE_LIFECYCLE",
+          "parameter": "default_damage",
+          "native_value": 0.0,
+          "native_formula": "Native superclass save/load then local damage; onHit super then server event3/discard",
+          "units": "native synced float",
+          "boundary": "Blazing_Bone.defineSynchedData/save/load/onHit"
+        },
+        {
+          "primitive": "PROJECTILE_LIFECYCLE",
+          "parameter": "impact_event",
+          "native_value": 3,
+          "native_formula": "Native superclass save/load then local damage; onHit super then server event3/discard",
+          "units": "native entity event byte",
+          "boundary": "Blazing_Bone.defineSynchedData/save/load/onHit"
+        }
+      ],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Admission, state, native bounds and lifecycle remain native.",
+      "saves_native_damage": true,
+      "parent_owns_owner_persistence": true,
+      "discard_depends_on_hurt": false,
+      "impact_discard_server_only": true,
+      "concrete_lifetime_timer": false,
+      "damage_on_discard": false
+    },
+    {
+      "id": "cataclysm:ignited_revenant_bone_self_lift",
+      "mod_key": "cataclysm",
+      "display_name": "Ignited Revenant Bone Storm self vertical control",
+      "registry_ids": [
+        "cataclysm:ignited_revenant"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "BoneStormGoal decrements nextHeightOffsetChangeTick every goal tick; <=0 resets100 and assigns allowedHeightOffset=float(random.triangle(.5,6.891)). For non-null target with targetEyeY>bossEyeY+that offset and native canAttack(target), read existing velocity and add(0,(float(.3)-oldY)*float(.3),0), then hasImpulse=true. This is self velocity interpolation, no victim launch, native knockback, damage or hurt-return gate. X/Z preserved. No local server/ground/anger/shield test. Locked root falling-motion damping remains separate.",
+      "human_summary": "BoneStormGoal decrements nextHeightOffsetChangeTick every goal tick; <=0 resets100 and assigns allowedHeightOffset=float(random.triangle(.5,6.891)). For non-null target with targetEyeY>bossEyeY+that offset and native canAttack(target), read existing velocity and add(0,(float(.3)-oldY)*float(.3),0), then hasImpulse=true. This is self velocity interpolation, no victim launch, native knockback, damage or hurt-return gate. X/Z preserved. No local server/ground/anger/shield test. Locked root falling-motion damping remains separate.",
+      "closest_vanilla_equivalent": "Custom self Entity motion, distinct from knockback/damage",
+      "vanilla_similarities": "Native damage, effects, projectile hooks, teams and lifecycle remain authoritative at the cited boundaries; locked shared contracts reused.",
+      "vanilla_differences": "BoneStormGoal decrements nextHeightOffsetChangeTick every goal tick; <=0 resets100 and assigns allowedHeightOffset=float(random.triangle(.5,6.891)). For non-null target with targetEyeY>bossEyeY+that offset and native canAttack(target), read existing velocity and add(0,(float(.3)-oldY)*float(.3),0), then hasImpulse=true. This is self velocity interpolation, no victim launch, native knockback, damage or hurt-return gate. X/Z preserved. No local server/ground/anger/shield test. Locked root falling-motion damping remains separate.",
+      "components": [
+        {
+          "primitive": "AI_HEIGHT_STATE",
+          "formula": "Decrement state timer; <=0 reset100, allowedOffset=f32(random.triangle(.5,6.891))",
+          "numerical_parameters": {
+            "offset_refresh": 100,
+            "triangle_center": 0.5,
+            "triangle_deviation": 6.891
+          },
+          "parameter_units": {
+            "offset_refresh": "goal ticks",
+            "triangle_center": "blocks relative eye height",
+            "triangle_deviation": "blocks; native triangle argument"
+          },
+          "binary_parameters": [],
+          "native_boundary": "BoneStormGoal.tick height state",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "formula": "boss.setDeltaMovement(old.add(0,(f32(.3)-oldY)*f32(.3),0)); hasImpulse=true",
+          "numerical_parameters": {
+            "target_y_velocity": 0.30000001192092896,
+            "approach_factor": 0.30000001192092896
+          },
+          "parameter_units": {
+            "target_y_velocity": "native Y velocity",
+            "approach_factor": "native interpolation coefficient"
+          },
+          "binary_parameters": [],
+          "native_boundary": "BoneStormGoal.tick -> Revenant.setDeltaMovement",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Original target eye-height and native canAttack",
+        "Native goal scheduling",
+        "Native height-state sampling"
+      ],
+      "custom_state": "Native Revenant animations, cooldowns, height controller and owned payload fields only; protected R2k12a anger/shield/NBT/admission retained.",
+      "eligibility": "Original target eye-height and native canAttack; Native goal scheduling; Native height-state sampling",
+      "source_actor": "Revenant controls its own motion toward native target height.",
+      "hurt_return_dependency": "No hurt call/dependency.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity$BoneStormGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity$BoneStormGoal.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity.class",
+          "methods": [
+            "access$400"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ignited-revenant-offense:bone_self_lift"
+      ],
+      "primary_test_source": "cataclysm:ignited_revenant",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k12b-cataclysm-ignited-revenant-offense-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "approach_factor"
+          ],
+          "native_value": 0.30000001192092896,
+          "native_formula": "boss.setDeltaMovement(old.add(0,(f32(.3)-oldY)*f32(.3),0)); hasImpulse=true",
+          "units": "native interpolation coefficient",
+          "native_boundary": "BoneStormGoal.tick -> Revenant.setDeltaMovement"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "target_y_velocity"
+          ],
+          "native_value": 0.30000001192092896,
+          "native_formula": "boss.setDeltaMovement(old.add(0,(f32(.3)-oldY)*f32(.3),0)); hasImpulse=true",
+          "units": "native Y velocity",
+          "native_boundary": "BoneStormGoal.tick -> Revenant.setDeltaMovement"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "AI_HEIGHT_STATE",
+          "parameter": "offset_refresh",
+          "native_value": 100,
+          "native_formula": "Decrement state timer; <=0 reset100, allowedOffset=f32(random.triangle(.5,6.891))",
+          "units": "goal ticks",
+          "boundary": "BoneStormGoal.tick height state"
+        },
+        {
+          "primitive": "AI_HEIGHT_STATE",
+          "parameter": "triangle_center",
+          "native_value": 0.5,
+          "native_formula": "Decrement state timer; <=0 reset100, allowedOffset=f32(random.triangle(.5,6.891))",
+          "units": "blocks relative eye height",
+          "boundary": "BoneStormGoal.tick height state"
+        },
+        {
+          "primitive": "AI_HEIGHT_STATE",
+          "parameter": "triangle_deviation",
+          "native_value": 6.891,
+          "native_formula": "Decrement state timer; <=0 reset100, allowedOffset=f32(random.triangle(.5,6.891))",
+          "units": "blocks; native triangle argument",
+          "boundary": "BoneStormGoal.tick height state"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameter": "target_y_velocity",
+          "native_value": 0.30000001192092896,
+          "native_formula": "boss.setDeltaMovement(old.add(0,(f32(.3)-oldY)*f32(.3),0)); hasImpulse=true",
+          "units": "native Y velocity",
+          "boundary": "BoneStormGoal.tick -> Revenant.setDeltaMovement"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameter": "approach_factor",
+          "native_value": 0.30000001192092896,
+          "native_formula": "boss.setDeltaMovement(old.add(0,(f32(.3)-oldY)*f32(.3),0)); hasImpulse=true",
+          "units": "native interpolation coefficient",
+          "boundary": "BoneStormGoal.tick -> Revenant.setDeltaMovement"
+        }
+      ],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Admission, state, native bounds and lifecycle remain native.",
+      "control_depends_on_hurt": false,
+      "control_recipient": "self",
+      "uses_native_knockback": false,
+      "preserves_horizontal_velocity": true,
+      "control_local_server_guard": false
     },
     {
       "id": "cataclysm:ignited_revenant_combat_persistence",
@@ -26363,6 +28081,106 @@
       "shield_gate_reads_progress": false,
       "concrete_hp_phase_gate": false,
       "offensive_execution_reviewed": false
+    },
+    {
+      "id": "cataclysm:ignited_revenant_defeat_lifecycle",
+      "mod_key": "cataclysm",
+      "display_name": "Ignited Revenant bounded native death lifecycle",
+      "registry_ids": [
+        "cataclysm:ignited_revenant"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Concrete onDeathAIUpdate calls only LLibrary_Boss_Monster.onDeathAIUpdate, already proven empty. Root has no getDeathAnimation override, retaining shared default null and tickDeath -> onDeathUpdate(20), plus original Animation_Monsters death cancellation/score/AfterDefeatBoss lifecycle. No local death offense, terrain edit or respawner/encounter-block creation in this root, goals or payloads. Locked Burning Arena marker is initial encounter creation, not a newly proven death respawner. Global death hooks remain separate/unreviewed; do not claim their absence.",
+      "human_summary": "Concrete onDeathAIUpdate calls only LLibrary_Boss_Monster.onDeathAIUpdate, already proven empty. Root has no getDeathAnimation override, retaining shared default null and tickDeath -> onDeathUpdate(20), plus original Animation_Monsters death cancellation/score/AfterDefeatBoss lifecycle. No local death offense, terrain edit or respawner/encounter-block creation in this root, goals or payloads. Locked Burning Arena marker is initial encounter creation, not a newly proven death respawner. Global death hooks remain separate/unreviewed; do not claim their absence.",
+      "closest_vanilla_equivalent": "Inherited native animation-monster death lifecycle; no concrete respawner linkage",
+      "vanilla_similarities": "Native damage, effects, projectile hooks, teams and lifecycle remain authoritative at the cited boundaries; locked shared contracts reused.",
+      "vanilla_differences": "Concrete onDeathAIUpdate calls only LLibrary_Boss_Monster.onDeathAIUpdate, already proven empty. Root has no getDeathAnimation override, retaining shared default null and tickDeath -> onDeathUpdate(20), plus original Animation_Monsters death cancellation/score/AfterDefeatBoss lifecycle. No local death offense, terrain edit or respawner/encounter-block creation in this root, goals or payloads. Locked Burning Arena marker is initial encounter creation, not a newly proven death respawner. Global death hooks remain separate/unreviewed; do not claim their absence.",
+      "components": [
+        {
+          "primitive": "DEFEAT_LIFECYCLE",
+          "formula": "Concrete super-only onDeathAIUpdate; inherited null death animation -> native onDeathUpdate(20)",
+          "numerical_parameters": {
+            "inherited_death_duration": 20
+          },
+          "parameter_units": {
+            "inherited_death_duration": "native death ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Ignited_Revenant.onDeathAIUpdate; LLibrary_Monster.tickDeath",
+          "vanilla_relation": "DIRECT"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Locked native death admission/cancellation",
+        "Inherited default death animation and lifecycle",
+        "No local respawner link proved"
+      ],
+      "custom_state": "Native Revenant animations, cooldowns, height controller and owned payload fields only; protected R2k12a anger/shield/NBT/admission retained.",
+      "eligibility": "Locked native death admission/cancellation; Inherited default death animation and lifecycle; No local respawner link proved",
+      "source_actor": "Native dying Revenant; protected initial arena marker only.",
+      "hurt_return_dependency": "No new hurt-return-dependent death payload.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity.class",
+          "methods": [
+            "onDeathAIUpdate"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "onDeathAIUpdate"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/LLibrary_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/LLibrary_Monster.class",
+          "methods": [
+            "getDeathAnimation",
+            "tickDeath"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "die",
+            "AfterDefeatBoss",
+            "onDeathUpdate"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ignited-revenant-offense:defeat_lifecycle"
+      ],
+      "primary_test_source": "cataclysm:ignited_revenant",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k12b-cataclysm-ignited-revenant-offense-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "DEFEAT_LIFECYCLE",
+          "parameter": "inherited_death_duration",
+          "native_value": 20,
+          "native_formula": "Concrete super-only onDeathAIUpdate; inherited null death animation -> native onDeathUpdate(20)",
+          "units": "native death ticks",
+          "boundary": "Ignited_Revenant.onDeathAIUpdate; LLibrary_Monster.tickDeath"
+        }
+      ],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Admission, state, native bounds and lifecycle remain native.",
+      "concrete_respawner_link": false,
+      "concrete_death_payload": false,
+      "global_death_callbacks_absent_claimed": false
     },
     {
       "id": "cataclysm:ignited_revenant_encounter_setup",
@@ -26875,6 +28693,292 @@
       "local_causing_entity_read": false
     },
     {
+      "id": "cataclysm:ignited_revenant_pursuit_goal",
+      "mod_key": "cataclysm",
+      "display_name": "Ignited Revenant native pursuit without goal melee",
+      "registry_ids": [
+        "cataclysm:ignited_revenant"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "Locked Ignited_Revenant_Goal inherits AttackMoveGoal.tick: look at current non-null target with30/30; decrement re-path delay, reset4+nextInt(7), navigate with configured speed1.1 in normal range, or native1.0 when beyond FOLLOW_RANGE squared and not pathfinding, adding5 delay on failed far move. There is no doHurtTarget/hurt melee in this goal; actual direct damage is the separate tick shield aura. Reuse locked native continuation/restriction/creative/spectator, start/stop and anger gates.",
+      "human_summary": "Locked Ignited_Revenant_Goal inherits AttackMoveGoal.tick: look at current non-null target with30/30; decrement re-path delay, reset4+nextInt(7), navigate with configured speed1.1 in normal range, or native1.0 when beyond FOLLOW_RANGE squared and not pathfinding, adding5 delay on failed far move. There is no doHurtTarget/hurt melee in this goal; actual direct damage is the separate tick shield aura. Reuse locked native continuation/restriction/creative/spectator, start/stop and anger gates.",
+      "closest_vanilla_equivalent": "Native navigation/look goal with custom scheduling, distinct from melee delivery",
+      "vanilla_similarities": "Native damage, effects, projectile hooks, teams and lifecycle remain authoritative at the cited boundaries; locked shared contracts reused.",
+      "vanilla_differences": "Locked Ignited_Revenant_Goal inherits AttackMoveGoal.tick: look at current non-null target with30/30; decrement re-path delay, reset4+nextInt(7), navigate with configured speed1.1 in normal range, or native1.0 when beyond FOLLOW_RANGE squared and not pathfinding, adding5 delay on failed far move. There is no doHurtTarget/hurt melee in this goal; actual direct damage is the separate tick shield aura. Reuse locked native continuation/restriction/creative/spectator, start/stop and anger gates.",
+      "components": [
+        {
+          "primitive": "AI_NAVIGATION",
+          "formula": "Native AttackMoveGoal re-path and look; no damage",
+          "numerical_parameters": {
+            "move_speed": 1.1,
+            "far_move_speed": 1.0,
+            "base_delay": 4,
+            "random_delay_bound": 7,
+            "failed_far_delay": 5,
+            "yaw_limit": 30.0,
+            "pitch_limit": 30.0
+          },
+          "parameter_units": {
+            "move_speed": "native navigation speed factor",
+            "far_move_speed": "native navigation speed factor",
+            "base_delay": "goal ticks",
+            "random_delay_bound": "exclusive RNG bound",
+            "failed_far_delay": "goal ticks",
+            "yaw_limit": "degrees per native look update",
+            "pitch_limit": "degrees per native look update"
+          },
+          "binary_parameters": [],
+          "native_boundary": "AttackMoveGoal.tick inherited by Revenant",
+          "vanilla_relation": "EXTENDED"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native target/admission/scheduler",
+        "Protected anger start/stop"
+      ],
+      "custom_state": "Native Revenant animations, cooldowns, height controller and owned payload fields only; protected R2k12a anger/shield/NBT/admission retained.",
+      "eligibility": "Native target/admission/scheduler; Protected anger start/stop",
+      "source_actor": "Revenant pursues its native target.",
+      "hurt_return_dependency": "No hurt call or direct attack in pursuit.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-admission.json",
+          "witness_id": "cataclysm:ignited-revenant-admission:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity$Ignited_Revenant_Goal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity$Ignited_Revenant_Goal.class",
+          "methods": [
+            "<init>",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignis-offense.json",
+          "witness_id": "cataclysm:ignis-offense:entity/AnimationMonster/AI/AttackMoveGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/AI/AttackMoveGoal.class",
+          "methods": [
+            "canUse",
+            "canContinueToUse",
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ignited-revenant-offense:pursuit_goal"
+      ],
+      "primary_test_source": "cataclysm:ignited_revenant",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k12b-cataclysm-ignited-revenant-offense-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "AI_NAVIGATION",
+          "parameter": "move_speed",
+          "native_value": 1.1,
+          "native_formula": "Native AttackMoveGoal re-path and look; no damage",
+          "units": "native navigation speed factor",
+          "boundary": "AttackMoveGoal.tick inherited by Revenant"
+        },
+        {
+          "primitive": "AI_NAVIGATION",
+          "parameter": "far_move_speed",
+          "native_value": 1.0,
+          "native_formula": "Native AttackMoveGoal re-path and look; no damage",
+          "units": "native navigation speed factor",
+          "boundary": "AttackMoveGoal.tick inherited by Revenant"
+        },
+        {
+          "primitive": "AI_NAVIGATION",
+          "parameter": "base_delay",
+          "native_value": 4,
+          "native_formula": "Native AttackMoveGoal re-path and look; no damage",
+          "units": "goal ticks",
+          "boundary": "AttackMoveGoal.tick inherited by Revenant"
+        },
+        {
+          "primitive": "AI_NAVIGATION",
+          "parameter": "random_delay_bound",
+          "native_value": 7,
+          "native_formula": "Native AttackMoveGoal re-path and look; no damage",
+          "units": "exclusive RNG bound",
+          "boundary": "AttackMoveGoal.tick inherited by Revenant"
+        },
+        {
+          "primitive": "AI_NAVIGATION",
+          "parameter": "failed_far_delay",
+          "native_value": 5,
+          "native_formula": "Native AttackMoveGoal re-path and look; no damage",
+          "units": "goal ticks",
+          "boundary": "AttackMoveGoal.tick inherited by Revenant"
+        },
+        {
+          "primitive": "AI_NAVIGATION",
+          "parameter": "yaw_limit",
+          "native_value": 30.0,
+          "native_formula": "Native AttackMoveGoal re-path and look; no damage",
+          "units": "degrees per native look update",
+          "boundary": "AttackMoveGoal.tick inherited by Revenant"
+        },
+        {
+          "primitive": "AI_NAVIGATION",
+          "parameter": "pitch_limit",
+          "native_value": 30.0,
+          "native_formula": "Native AttackMoveGoal re-path and look; no damage",
+          "units": "degrees per native look update",
+          "boundary": "AttackMoveGoal.tick inherited by Revenant"
+        }
+      ],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Admission, state, native bounds and lifecycle remain native.",
+      "pursuit_calls_native_hurt": false
+    },
+    {
+      "id": "cataclysm:ignited_revenant_sequence_state",
+      "mod_key": "cataclysm",
+      "display_name": "Ignited Revenant native animation/cooldown sequencing",
+      "registry_ids": [
+        "cataclysm:ignited_revenant"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Each positive breath/storm cooldown decrements once before self-alive/target/NoAI selection; zero or negative values are unchanged. Selected intact Ash or Storm writes200 after that decrement, leaving200 at this root tick end. ASH duration53 and BONE49; getAnimations advertises only NO_ANIMATION/ASH/BONE. BoneStormGoal is priority0 MOVE/JUMP/LOOK, alongside the locked priority0 ShootGoal and priority2 pursuit. Bone has no concrete start/stop anger writers. Locked root NBT does not save cooldowns/animation/height-controller fields; reuse native animation handler/reset lifecycle.",
+      "human_summary": "Each positive breath/storm cooldown decrements once before self-alive/target/NoAI selection; zero or negative values are unchanged. Selected intact Ash or Storm writes200 after that decrement, leaving200 at this root tick end. ASH duration53 and BONE49; getAnimations advertises only NO_ANIMATION/ASH/BONE. BoneStormGoal is priority0 MOVE/JUMP/LOOK, alongside the locked priority0 ShootGoal and priority2 pursuit. Bone has no concrete start/stop anger writers. Locked root NBT does not save cooldowns/animation/height-controller fields; reuse native animation handler/reset lifecycle.",
+      "closest_vanilla_equivalent": "Native animation/AI timers; not effect duration or automatic scalars",
+      "vanilla_similarities": "Native damage, effects, projectile hooks, teams and lifecycle remain authoritative at the cited boundaries; locked shared contracts reused.",
+      "vanilla_differences": "Each positive breath/storm cooldown decrements once before self-alive/target/NoAI selection; zero or negative values are unchanged. Selected intact Ash or Storm writes200 after that decrement, leaving200 at this root tick end. ASH duration53 and BONE49; getAnimations advertises only NO_ANIMATION/ASH/BONE. BoneStormGoal is priority0 MOVE/JUMP/LOOK, alongside the locked priority0 ShootGoal and priority2 pursuit. Bone has no concrete start/stop anger writers. Locked root NBT does not save cooldowns/animation/height-controller fields; reuse native animation handler/reset lifecycle.",
+      "components": [
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "formula": "Positive timer-- then selected branch writes200; native animation identities",
+          "numerical_parameters": {
+            "breath_reset": 200,
+            "storm_reset": 200,
+            "ash_animation_duration": 53,
+            "bone_animation_duration": 49,
+            "bone_goal_priority": 0
+          },
+          "parameter_units": {
+            "breath_reset": "native ticks",
+            "storm_reset": "native ticks",
+            "ash_animation_duration": "animation ticks",
+            "bone_animation_duration": "animation ticks",
+            "bone_goal_priority": "native AI priority"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Ignited_Revenant.tick/getAnimations/registerGoals/<clinit>",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Raw counters/animation IDs",
+        "Native goal scheduler flags",
+        "Protected R2k12a goal and NBT contracts"
+      ],
+      "custom_state": "Native Revenant animations, cooldowns, height controller and owned payload fields only; protected R2k12a anger/shield/NBT/admission retained.",
+      "eligibility": "Raw counters/animation IDs; Native goal scheduler flags; Protected R2k12a goal and NBT contracts",
+      "source_actor": "Native Revenant fields and animation scheduler.",
+      "hurt_return_dependency": "No hurt dependency.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity.class",
+          "methods": [
+            "tick",
+            "getAnimations",
+            "registerGoals",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity$BoneStormGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity$BoneStormGoal.class",
+          "methods": [
+            "<init>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-admission.json",
+          "witness_id": "cataclysm:ignited-revenant-admission:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity.class",
+          "methods": [
+            "registerGoals",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/LLibrary_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/LLibrary_Monster.class",
+          "methods": [
+            "setAnimation",
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ignited-revenant-offense:sequence_state"
+      ],
+      "primary_test_source": "cataclysm:ignited_revenant",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k12b-cataclysm-ignited-revenant-offense-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "parameter": "breath_reset",
+          "native_value": 200,
+          "native_formula": "Positive timer-- then selected branch writes200; native animation identities",
+          "units": "native ticks",
+          "boundary": "Ignited_Revenant.tick/getAnimations/registerGoals/<clinit>"
+        },
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "parameter": "storm_reset",
+          "native_value": 200,
+          "native_formula": "Positive timer-- then selected branch writes200; native animation identities",
+          "units": "native ticks",
+          "boundary": "Ignited_Revenant.tick/getAnimations/registerGoals/<clinit>"
+        },
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "parameter": "ash_animation_duration",
+          "native_value": 53,
+          "native_formula": "Positive timer-- then selected branch writes200; native animation identities",
+          "units": "animation ticks",
+          "boundary": "Ignited_Revenant.tick/getAnimations/registerGoals/<clinit>"
+        },
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "parameter": "bone_animation_duration",
+          "native_value": 49,
+          "native_formula": "Positive timer-- then selected branch writes200; native animation identities",
+          "units": "animation ticks",
+          "boundary": "Ignited_Revenant.tick/getAnimations/registerGoals/<clinit>"
+        },
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "parameter": "bone_goal_priority",
+          "native_value": 0,
+          "native_formula": "Positive timer-- then selected branch writes200; native animation identities",
+          "units": "native AI priority",
+          "boundary": "Ignited_Revenant.tick/getAnimations/registerGoals/<clinit>"
+        }
+      ],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Admission, state, native bounds and lifecycle remain native.",
+      "decrement_before_selection": true,
+      "selected_cooldown_end_of_tick": 200,
+      "bone_goal_sets_anger": false,
+      "attack_state_is_stage": false
+    },
+    {
       "id": "cataclysm:ignited_revenant_shared_defense_bindings",
       "mod_key": "cataclysm",
       "display_name": "Ignited Revenant inherited shared defense bindings",
@@ -27073,6 +29177,284 @@
       "dps_is_bucket_capacity": false,
       "installed_defense_config_present": false,
       "positive_shared_regen_delivery": false
+    },
+    {
+      "id": "cataclysm:ignited_revenant_shield_aura_damage",
+      "mod_key": "cataclysm",
+      "display_name": "Ignited Revenant periodic native shield-aura damage",
+      "registry_ids": [
+        "cataclysm:ignited_revenant"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "Inside self-alive tick, NO_ANIMATION && anger && raw shield counter<4 && tickCount%(6+counter*2)==0 queries LivingEntity in boss bbox.inflate(1.25). Reject boss allies, every Ignited_Revenant instance, and self, then request mobAttack(boss),float(current ATTACK_DAMAGE); locked installed base6 is not a fixed request or independent coefficient. No current-target/target-alive/NoAI/local-server/LOS gate on this aura. Hurt return gates the separate additive push; no effect/heal/burn/reset follows.",
+      "human_summary": "Inside self-alive tick, NO_ANIMATION && anger && raw shield counter<4 && tickCount%(6+counter*2)==0 queries LivingEntity in boss bbox.inflate(1.25). Reject boss allies, every Ignited_Revenant instance, and self, then request mobAttack(boss),float(current ATTACK_DAMAGE); locked installed base6 is not a fixed request or independent coefficient. No current-target/target-alive/NoAI/local-server/LOS gate on this aura. Hurt return gates the separate additive push; no effect/heal/burn/reset follows.",
+      "closest_vanilla_equivalent": "Native mobAttack damage with custom shield-state periodic area delivery",
+      "vanilla_similarities": "Native damage, effects, projectile hooks, teams and lifecycle remain authoritative at the cited boundaries; locked shared contracts reused.",
+      "vanilla_differences": "Inside self-alive tick, NO_ANIMATION && anger && raw shield counter<4 && tickCount%(6+counter*2)==0 queries LivingEntity in boss bbox.inflate(1.25). Reject boss allies, every Ignited_Revenant instance, and self, then request mobAttack(boss),float(current ATTACK_DAMAGE); locked installed base6 is not a fixed request or independent coefficient. No current-target/target-alive/NoAI/local-server/LOS gate on this aura. Hurt return gates the separate additive push; no effect/heal/burn/reset follows.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "formula": "victim.hurt(DamageSources.mobAttack(Revenant),float(current ATTACK_DAMAGE))",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "Ignited_Revenant.tick shield aura -> LivingEntity.hurt",
+          "vanilla_relation": "EXTENDED",
+          "parameter_formulas": {
+            "requested_damage": "f32(current configured ATTACK_DAMAGE)"
+          },
+          "formula_parameter_units": {
+            "requested_damage": "native HP damage request"
+          }
+        },
+        {
+          "primitive": "ATTACK_VOLUME",
+          "formula": "Level.getEntitiesOfClass(LivingEntity,boss.bbox.inflate(1.25))",
+          "numerical_parameters": {
+            "inflate": 1.25
+          },
+          "parameter_units": {
+            "inflate": "blocks; all axes"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Ignited_Revenant.tick shield-aura query",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "ATTACK_CADENCE",
+          "formula": "tickCount % (6 + raw lost-segment counter*2)==0; usual counter0..3 yields6/8/10/12",
+          "numerical_parameters": {
+            "base_interval": 6,
+            "segment_interval_step": 2,
+            "shield_limit": 4
+          },
+          "parameter_units": {
+            "base_interval": "native ticks",
+            "segment_interval_step": "native ticks per lost segment",
+            "shield_limit": "raw counter; strict <"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Ignited_Revenant.tick shield-aura admission",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Self alive; NO_ANIMATION; anger; raw counter<4",
+        "Original modulo cadence",
+        "Boss alliance/revenant-type/self exclusions",
+        "Native hurt contract"
+      ],
+      "custom_state": "Native Revenant animations, cooldowns, height controller and owned payload fields only; protected R2k12a anger/shield/NBT/admission retained.",
+      "eligibility": "Self alive; NO_ANIMATION; anger; raw counter<4; Original modulo cadence; Boss alliance/revenant-type/self exclusions; Native hurt contract",
+      "source_actor": "minecraft:mob_attack; direct/causing Revenant; queried victim.",
+      "hurt_return_dependency": "Native hurt boolean only gates separate push.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity.class",
+          "methods": [
+            "tick",
+            "isAlliedTo"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ignited-revenant-offense:shield_aura_damage"
+      ],
+      "primary_test_source": "cataclysm:ignited_revenant",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k12b-cataclysm-ignited-revenant-offense-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "ATTACK_VOLUME",
+          "parameters": [
+            "inflate"
+          ],
+          "native_value": 1.25,
+          "native_formula": "Level.getEntitiesOfClass(LivingEntity,boss.bbox.inflate(1.25))",
+          "units": "blocks; all axes",
+          "native_boundary": "Ignited_Revenant.tick shield-aura query"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "requested_damage"
+          ],
+          "native_value": null,
+          "native_formula": "f32(current configured ATTACK_DAMAGE)",
+          "units": "native HP damage request",
+          "native_boundary": "Ignited_Revenant.tick shield aura -> LivingEntity.hurt"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameter": "requested_damage",
+          "native_value": null,
+          "native_formula": "f32(current configured ATTACK_DAMAGE)",
+          "units": "native HP damage request",
+          "boundary": "Ignited_Revenant.tick shield aura -> LivingEntity.hurt"
+        },
+        {
+          "primitive": "ATTACK_VOLUME",
+          "parameter": "inflate",
+          "native_value": 1.25,
+          "native_formula": "Level.getEntitiesOfClass(LivingEntity,boss.bbox.inflate(1.25))",
+          "units": "blocks; all axes",
+          "boundary": "Ignited_Revenant.tick shield-aura query"
+        },
+        {
+          "primitive": "ATTACK_CADENCE",
+          "parameter": "base_interval",
+          "native_value": 6,
+          "native_formula": "tickCount % (6 + raw lost-segment counter*2)==0; usual counter0..3 yields6/8/10/12",
+          "units": "native ticks",
+          "boundary": "Ignited_Revenant.tick shield-aura admission"
+        },
+        {
+          "primitive": "ATTACK_CADENCE",
+          "parameter": "segment_interval_step",
+          "native_value": 2,
+          "native_formula": "tickCount % (6 + raw lost-segment counter*2)==0; usual counter0..3 yields6/8/10/12",
+          "units": "native ticks per lost segment",
+          "boundary": "Ignited_Revenant.tick shield-aura admission"
+        },
+        {
+          "primitive": "ATTACK_CADENCE",
+          "parameter": "shield_limit",
+          "native_value": 4,
+          "native_formula": "tickCount % (6 + raw lost-segment counter*2)==0; usual counter0..3 yields6/8/10/12",
+          "units": "raw counter; strict <",
+          "boundary": "Ignited_Revenant.tick shield-aura admission"
+        }
+      ],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Admission, state, native bounds and lifecycle remain native.",
+      "hurt_return_used": true,
+      "aura_requires_target": false,
+      "aura_checks_no_ai": false,
+      "aura_local_server_guard": false,
+      "local_los_gate": false,
+      "excludes_all_revenants": true
+    },
+    {
+      "id": "cataclysm:ignited_revenant_shield_aura_push",
+      "mod_key": "cataclysm",
+      "display_name": "Ignited Revenant hurt-dependent shield-aura push",
+      "registry_ids": [
+        "cataclysm:ignited_revenant"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Only aura hurt=true computes dx/dz=victim-boss and d2=max(dx*dx+dz*dz,.001), then Entity.push(dx/d2*1.5,.2,dz/d2*1.5). Additive inverse-squared horizontal push plus fixed Y contribution, not LivingEntity.knockback and not a velocity overwrite. No native knockback-resistance read in this helper. False/canceled/immune hurt skips this movement; original aura predicates retained.",
+      "human_summary": "Only aura hurt=true computes dx/dz=victim-boss and d2=max(dx*dx+dz*dz,.001), then Entity.push(dx/d2*1.5,.2,dz/d2*1.5). Additive inverse-squared horizontal push plus fixed Y contribution, not LivingEntity.knockback and not a velocity overwrite. No native knockback-resistance read in this helper. False/canceled/immune hurt skips this movement; original aura predicates retained.",
+      "closest_vanilla_equivalent": "Custom additive Entity.push, distinct from native knockback",
+      "vanilla_similarities": "Native damage, effects, projectile hooks, teams and lifecycle remain authoritative at the cited boundaries; locked shared contracts reused.",
+      "vanilla_differences": "Only aura hurt=true computes dx/dz=victim-boss and d2=max(dx*dx+dz*dz,.001), then Entity.push(dx/d2*1.5,.2,dz/d2*1.5). Additive inverse-squared horizontal push plus fixed Y contribution, not LivingEntity.knockback and not a velocity overwrite. No native knockback-resistance read in this helper. False/canceled/immune hurt skips this movement; original aura predicates retained.",
+      "components": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "formula": "Entity.push(dx/max(dx*dx+dz*dz,.001)*1.5,.2,dz/max(dx*dx+dz*dz,.001)*1.5)",
+          "numerical_parameters": {
+            "horizontal_factor": 1.5,
+            "vertical_increment": 0.2,
+            "native_denominator_minimum": 0.001
+          },
+          "parameter_units": {
+            "horizontal_factor": "native inverse-squared push coefficient",
+            "vertical_increment": "native Y velocity increment",
+            "native_denominator_minimum": "native lower bound; blocks squared"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Ignited_Revenant.tick aura hurt-true branch -> LivingEntity.push",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "All original aura predicates",
+        "hurt returns true",
+        "Original native denominator minimum"
+      ],
+      "custom_state": "Native Revenant animations, cooldowns, height controller and owned payload fields only; protected R2k12a anger/shield/NBT/admission retained.",
+      "eligibility": "All original aura predicates; hurt returns true; Original native denominator minimum",
+      "source_actor": "Revenant position drives queried victim push.",
+      "hurt_return_dependency": "Strictly requires aura hurt true.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ignited-revenant-offense:shield_aura_push"
+      ],
+      "primary_test_source": "cataclysm:ignited_revenant",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k12b-cataclysm-ignited-revenant-offense-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "horizontal_factor"
+          ],
+          "native_value": 1.5,
+          "native_formula": "Entity.push(dx/max(dx*dx+dz*dz,.001)*1.5,.2,dz/max(dx*dx+dz*dz,.001)*1.5)",
+          "units": "native inverse-squared push coefficient",
+          "native_boundary": "Ignited_Revenant.tick aura hurt-true branch -> LivingEntity.push"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "vertical_increment"
+          ],
+          "native_value": 0.2,
+          "native_formula": "Entity.push(dx/max(dx*dx+dz*dz,.001)*1.5,.2,dz/max(dx*dx+dz*dz,.001)*1.5)",
+          "units": "native Y velocity increment",
+          "native_boundary": "Ignited_Revenant.tick aura hurt-true branch -> LivingEntity.push"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameter": "horizontal_factor",
+          "native_value": 1.5,
+          "native_formula": "Entity.push(dx/max(dx*dx+dz*dz,.001)*1.5,.2,dz/max(dx*dx+dz*dz,.001)*1.5)",
+          "units": "native inverse-squared push coefficient",
+          "boundary": "Ignited_Revenant.tick aura hurt-true branch -> LivingEntity.push"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameter": "vertical_increment",
+          "native_value": 0.2,
+          "native_formula": "Entity.push(dx/max(dx*dx+dz*dz,.001)*1.5,.2,dz/max(dx*dx+dz*dz,.001)*1.5)",
+          "units": "native Y velocity increment",
+          "boundary": "Ignited_Revenant.tick aura hurt-true branch -> LivingEntity.push"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameter": "native_denominator_minimum",
+          "native_value": 0.001,
+          "native_formula": "Entity.push(dx/max(dx*dx+dz*dz,.001)*1.5,.2,dz/max(dx*dx+dz*dz,.001)*1.5)",
+          "units": "native lower bound; blocks squared",
+          "boundary": "Ignited_Revenant.tick aura hurt-true branch -> LivingEntity.push"
+        }
+      ],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Admission, state, native bounds and lifecycle remain native.",
+      "control_depends_on_hurt": true,
+      "uses_native_knockback": false,
+      "reads_knockback_resistance": false,
+      "absolute_velocity_write": false
     },
     {
       "id": "cataclysm:ignited_revenant_shield_block_admission",
@@ -27327,6 +29709,118 @@
       "shield_break_depends_on_hurt": false,
       "fourth_break_spills_damage": false,
       "axe_test_is_item_class": true
+    },
+    {
+      "id": "cataclysm:ignited_revenant_terrain_response",
+      "mod_key": "cataclysm",
+      "display_name": "Ignited Revenant bounded native terrain response",
+      "registry_ids": [
+        "cataclysm:ignited_revenant"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Inspected offense root/goals and Ash methods contain no local terrain destruction, ignition, explosion, damaging debris or respawner creation. Bone.onHit delegates native Projectile impact dispatch first: block hits invoke BlockState.onProjectileHit and game events through the existing native contract, followed by server discard. No Bone onHitBlock override or explicit block edits. Native block/impact callbacks and hooks remain native; this is not a claim that every global environment callback is absent.",
+      "human_summary": "Inspected offense root/goals and Ash methods contain no local terrain destruction, ignition, explosion, damaging debris or respawner creation. Bone.onHit delegates native Projectile impact dispatch first: block hits invoke BlockState.onProjectileHit and game events through the existing native contract, followed by server discard. No Bone onHitBlock override or explicit block edits. Native block/impact callbacks and hooks remain native; this is not a claim that every global environment callback is absent.",
+      "closest_vanilla_equivalent": "Native projectile block response; no concrete custom terrain payload",
+      "vanilla_similarities": "Native damage, effects, projectile hooks, teams and lifecycle remain authoritative at the cited boundaries; locked shared contracts reused.",
+      "vanilla_differences": "Inspected offense root/goals and Ash methods contain no local terrain destruction, ignition, explosion, damaging debris or respawner creation. Bone.onHit delegates native Projectile impact dispatch first: block hits invoke BlockState.onProjectileHit and game events through the existing native contract, followed by server discard. No Bone onHitBlock override or explicit block edits. Native block/impact callbacks and hooks remain native; this is not a claim that every global environment callback is absent.",
+      "components": [
+        {
+          "primitive": "NATIVE_TERRAIN_CALLBACK",
+          "formula": "Bone superclass onHit -> native onHitBlock/block-state callback; no local block edits",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "Blazing_Bone.onHit -> Projectile.onHit/onHitBlock",
+          "vanilla_relation": "DIRECT"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native projectile collision/deflection/NeoForge impact hook",
+        "Native block callbacks"
+      ],
+      "custom_state": "Native Revenant animations, cooldowns, height controller and owned payload fields only; protected R2k12a anger/shield/NBT/admission retained.",
+      "eligibility": "Native projectile collision/deflection/NeoForge impact hook; Native block callbacks",
+      "source_actor": "Native Blazing_Bone Projectile and impacted block state.",
+      "hurt_return_dependency": "No hurt dependency for native block response/removal.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity.class",
+          "methods": [
+            "tick",
+            "launchbone1",
+            "launchbone2",
+            "launchbone3"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity$ShootGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity$ShootGoal.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity$BoneStormGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity$BoneStormGoal.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/projectile/Ashen_Breath_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Ashen_Breath_Entity.class",
+          "methods": [
+            "tick",
+            "hitEntities"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/projectile/Blazing_Bone_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Blazing_Bone_Entity.class",
+          "methods": [
+            "onHit"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:ignited-revenant-offense:terrain_response"
+      ],
+      "primary_test_source": "cataclysm:ignited_revenant",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k12b-cataclysm-ignited-revenant-offense-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [],
+      "scalability_note": "Observations only; no Stage eligibility, multiplier, direction, cap/floor, balance, ownership integration or hook selected. Admission, state, native bounds and lifecycle remain native.",
+      "concrete_terrain_mutation": false,
+      "concrete_explosion": false,
+      "spawns_damaging_debris": false,
+      "global_terrain_callbacks_absent_claimed": false,
+      "reference_evidence": [
+        {
+          "evidence_file": "reference-evidence/twilight-frosted-244.json",
+          "entry": "net/minecraft/world/entity/projectile/Projectile.class",
+          "methods": [
+            "onHit"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/eternalstarlight-soul-hunger-244.json",
+          "entry": "net/minecraft/world/entity/projectile/Projectile.class",
+          "methods": [
+            "onHitBlock"
+          ]
+        }
+      ]
     },
     {
       "id": "cataclysm:leviathan_alliance",
@@ -69550,6 +72044,652 @@
       "runtime_status": "NOT_RUN"
     },
     {
+      "id": "cataclysm:ignited-revenant-offense:alliance",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ignited_revenant_alliance"
+      ],
+      "primary_source": "cataclysm:ignited_revenant",
+      "native_path": "Revenant.isAlliedTo accepts self, native super alliance, or TEAM_IGNIS recipient only when both scoreboard teams are null. Reuse exact installed tag: blaze,magma_cube,ignis,ignited_revenant,ignited_berserker. Shield aura additionally excludes all Revenants. Bone living-owner branch invokes shooter.isAlliedTo; Ash invokes the breath Entity.isAlliedTo and separately excludes caster, without delegating to caster TEAM_IGNIS. Do not transfer the boss tag predicate into Ash or flatten those admission paths.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity.class",
+          "methods": [
+            "isAlliedTo",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/projectile/Ashen_Breath_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Ashen_Breath_Entity.class",
+          "methods": [
+            "hitEntities"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/projectile/Blazing_Bone_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Blazing_Bone_Entity.class",
+          "methods": [
+            "onHitEntity"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignis-offense.json",
+          "witness_id": "cataclysm:ignis-offense:team-tag",
+          "entry": "data/cataclysm/tags/entity_type/team_ignis.json",
+          "methods": []
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ignited-revenant-offense:ash_blindness",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ignited_revenant_ash_blindness"
+      ],
+      "primary_source": "cataclysm:ignited_revenant",
+      "native_path": "Only the successful native indirect-magic hurt branch constructs MobEffects.BLINDNESS duration60/amplifier0, ambient=false, particles=false, icon=true and calls victim.addEffect(one-argument overload), discarding its result. Failed/canceled/immune hurt skips it; effect admission/immunity/stacking and lifecycle remain native. Repeated breath hit opportunities do not imply repeated guaranteed admission. No separate custom damage, status timer or caster-source overload.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/projectile/Ashen_Breath_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Ashen_Breath_Entity.class",
+          "methods": [
+            "hitEntities"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ignited-revenant-offense:ash_damage",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ignited_revenant_ash_damage"
+      ],
+      "primary_source": "cataclysm:ignited_revenant",
+      "native_path": "After age>2 with direct caster field non-null, tick calls hitEntities on both logical sides without a local server guard. Living query is payload bbox inflated7 in XYZ, distance-to-feet<=7+recipientWidth/2 and recipientY<=payloadY+7. Damage uses recipient midpoint for 3D distance: <=integer(age/2)+1 and yaw/pitch each within wrapped +/-22.5 degrees; for a Revenant caster only, midpoint distance<=2 bypasses cone/range tests but not the original query. At age%3==0, payload.isAlliedTo(victim)==false and victim!=caster, request indirectMagic(payload,caster), getDamage(), stored at delivery from config installed4. Alliance is NOT caster.isAlliedTo. No local LOS, caster-alive, fire, stun, movement or invulnerability reset; native damage defenses/cancellation retained.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/projectile/Ashen_Breath_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Ashen_Breath_Entity.class",
+          "methods": [
+            "tick",
+            "hitEntities",
+            "getEntityLivingBaseNearby",
+            "getEntitiesNearby",
+            "lambda$getEntitiesNearby$0",
+            "getDamage"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ignited-revenant-offense:ash_delivery",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ignited_revenant_ash_delivery"
+      ],
+      "primary_source": "cataclysm:ignited_revenant",
+      "native_path": "ShootGoal.tick faces a non-null target at30/30 before animation27, then3/30. Every goal tick constructs one Ashen_Breath with stored float(AshenbreathDamage), installed4, caster Revenant; only tick27 places/adds it at boss position+(0,2.3,0), yaw yHeadRot/pitch getXRot. Rotated zero offsets add no forward displacement. Add return discarded; no local server or target-required spawn guard. The payload is an Entity, not a moving Projectile. Target look, delivery, stored damage and later Blindness remain distinct.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity$ShootGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity$ShootGoal.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/projectile/Ashen_Breath_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Ashen_Breath_Entity.class",
+          "methods": [
+            "<init>",
+            "setCaster",
+            "setDamage"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "<clinit>"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ignited-revenant-offense:ash_lifecycle",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ignited_revenant_ash_lifecycle"
+      ],
+      "primary_source": "cataclysm:ignited_revenant",
+      "native_path": "At tick start after super, a non-null dead caster triggers discard without return; remaining tick code can still run. Non-null caster updates payload yaw from current yHeadRot, but not position or pitch. Age>25 discards after hit logic. Direct caster+UUID set at construction; native Owner UUID and damage float are saved, age is not locally saved. getCaster lazily resolves UUID to LivingEntity only on ServerLevel, but own tick/hitEntities and Revenant delivery never call it: do not claim reload automatically restores offense. No caster-null damage fallback. Payload is not pickable/collidable/pushable, ignores piston push, push(Entity) is empty. No terrain collision/explosion/damage-on-discard hook.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/projectile/Ashen_Breath_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Ashen_Breath_Entity.class",
+          "methods": [
+            "tick",
+            "<init>",
+            "defineSynchedData",
+            "setDamage",
+            "getDamage",
+            "setCaster",
+            "getCaster",
+            "readAdditionalSaveData",
+            "addAdditionalSaveData",
+            "getPistonPushReaction",
+            "isPickable",
+            "push",
+            "canBeCollidedWith",
+            "isPushable",
+            "<clinit>"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ignited-revenant-offense:attack_selection",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ignited_revenant_attack_selection"
+      ],
+      "primary_source": "cataclysm:ignited_revenant",
+      "native_path": "After native super.tick and cooldown decrements, self alive plus live/non-null target admits an ordered else-if chain. Intact-shield Ash: breath<=0, !NoAI, NO_ANIMATION, nextInt(35)==0, distance<4.5, raw shield counter<4; writes breath=200 then ASH. Otherwise Storm: storm<=0, distance<6, !NoAI, NO_ANIMATION, nextInt(15)==0; writes storm=200 then BONE. Otherwise broken-shield Ash: !NoAI, NO_ANIMATION, nextInt(12)==0, distance<4.5, counter>3; neither tests nor writes breath cooldown. These are conditional RNG draws, not independent proc chances. No local server or HP-phase gate.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ignited-revenant-offense:body_repulsion",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ignited_revenant_body_repulsion"
+      ],
+      "primary_source": "cataclysm:ignited_revenant",
+      "native_path": "Concrete repelEntities(x,y,z,radius) is solely a super delegate to locked Animation_Monsters helper: original living-nearby query, pickable && !noPhysics, absolute horizontal motion -.1*cos/sin(angle+90) preserving Y; no alliance/hurt/resistance gate. No call to this wrapper is present in the inspected Revenant root offense, goals or payloads, so this does not prove an additional active attack or independent delivery. Do not promote unused callback constants to candidates. Protected canBePushedByEntity=false is a different admission boundary.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity.class",
+          "methods": [
+            "repelEntities"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-offense.json",
+          "witness_id": "cataclysm:guardian-offense:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "repelEntities"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ignited-revenant-offense:bone_damage",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ignited_revenant_bone_damage"
+      ],
+      "primary_source": "cataclysm:ignited_revenant",
+      "native_path": "onHitEntity calls native super first, then reads current getOwner and impact entity. A LivingEntity owner admits victim!=owner and !owner.isAlliedTo(victim), requesting mobProjectile(bone,livingOwner), getDamage(). Otherwise requests anonymous magic(), getDamage() with no local owner/team exclusions. Both hurt results POP; no fire, status, movement, healing, enchantment followup or invulnerability reset. Stored float damage initializes from config installed5 and persists independently of future config changes. Native collision/cancellation/deflection and damage defenses remain native.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/projectile/Blazing_Bone_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Blazing_Bone_Entity.class",
+          "methods": [
+            "<init>",
+            "onHitEntity",
+            "getDamage",
+            "setDamage"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ignited-revenant-offense:bone_delivery",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ignited_revenant_bone_delivery"
+      ],
+      "primary_source": "cataclysm:ignited_revenant",
+      "native_path": "BoneStormGoal independently draws nextInt(3) at animation ticks5/10/15/20; case0/1/2 calls launchbone1/2/3 respectively. Every volley emits8/6/10 Blazing_Bones in a full ring at radians(90+bossYRot)+i*pi/(4/3/5), offset1 horizontally, bossY+height*.62. Each carries f32(BlazingBoneDamage), installed5, native Revenant owner. Native shoot(cos(angle),0,sin(angle),speed,inaccuracy1) uses speeds .5/float .6/float .4; yaw moveTo i*(45/60/36), pitch bossXRot, then addFreshEntity result discarded. Native ThrowableItemProjectile collision/owner departure/deflection/NeoForge impact handling, drag and gravity retained; isNoGravity explicitly false. No local server/target/shield/anger/hurt guard on volley delivery; target only controls native30/30 look.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity$BoneStormGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity$BoneStormGoal.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity.class",
+          "methods": [
+            "launchbone1",
+            "launchbone2",
+            "launchbone3",
+            "access$000",
+            "access$100",
+            "access$200",
+            "access$300"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/projectile/Blazing_Bone_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Blazing_Bone_Entity.class",
+          "methods": [
+            "<init>",
+            "isNoGravity"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "<clinit>"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ignited-revenant-offense:bone_lifecycle",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ignited_revenant_bone_lifecycle"
+      ],
+      "primary_source": "cataclysm:ignited_revenant",
+      "native_path": "Native ThrowableItemProjectile/Projectile ownership and NBT retained through constructor and super save/load; local synced DAMAGE defaults0 and local damage float is saved/restored. onHit delegates super first, then on server broadcasts event3 and discards on entity or block impact regardless of damage success, including an allied/no-damage entity branch. No concrete tick/lifetime/owner UUID resolver, explosion, terrain mutation or damage-on-discard override; do not invent a lifetime. Native superclass owns impact cancellation/deflection and block callbacks.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/projectile/Blazing_Bone_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Blazing_Bone_Entity.class",
+          "methods": [
+            "<init>",
+            "defineSynchedData",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "onHit",
+            "<clinit>"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ignited-revenant-offense:bone_self_lift",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ignited_revenant_bone_self_lift"
+      ],
+      "primary_source": "cataclysm:ignited_revenant",
+      "native_path": "BoneStormGoal decrements nextHeightOffsetChangeTick every goal tick; <=0 resets100 and assigns allowedHeightOffset=float(random.triangle(.5,6.891)). For non-null target with targetEyeY>bossEyeY+that offset and native canAttack(target), read existing velocity and add(0,(float(.3)-oldY)*float(.3),0), then hasImpulse=true. This is self velocity interpolation, no victim launch, native knockback, damage or hurt-return gate. X/Z preserved. No local server/ground/anger/shield test. Locked root falling-motion damping remains separate.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity$BoneStormGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity$BoneStormGoal.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity.class",
+          "methods": [
+            "access$400"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ignited-revenant-offense:defeat_lifecycle",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ignited_revenant_defeat_lifecycle"
+      ],
+      "primary_source": "cataclysm:ignited_revenant",
+      "native_path": "Concrete onDeathAIUpdate calls only LLibrary_Boss_Monster.onDeathAIUpdate, already proven empty. Root has no getDeathAnimation override, retaining shared default null and tickDeath -> onDeathUpdate(20), plus original Animation_Monsters death cancellation/score/AfterDefeatBoss lifecycle. No local death offense, terrain edit or respawner/encounter-block creation in this root, goals or payloads. Locked Burning Arena marker is initial encounter creation, not a newly proven death respawner. Global death hooks remain separate/unreviewed; do not claim their absence.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity.class",
+          "methods": [
+            "onDeathAIUpdate"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/LLibrary_Boss_Monster.class",
+          "methods": [
+            "onDeathAIUpdate"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/LLibrary_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/LLibrary_Monster.class",
+          "methods": [
+            "getDeathAnimation",
+            "tickDeath"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/etc/Animation_Monsters",
+          "entry": "com/github/L_Ender/cataclysm/entity/etc/Animation_Monsters.class",
+          "methods": [
+            "die",
+            "AfterDefeatBoss",
+            "onDeathUpdate"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ignited-revenant-offense:pursuit_goal",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ignited_revenant_pursuit_goal"
+      ],
+      "primary_source": "cataclysm:ignited_revenant",
+      "native_path": "Locked Ignited_Revenant_Goal inherits AttackMoveGoal.tick: look at current non-null target with30/30; decrement re-path delay, reset4+nextInt(7), navigate with configured speed1.1 in normal range, or native1.0 when beyond FOLLOW_RANGE squared and not pathfinding, adding5 delay on failed far move. There is no doHurtTarget/hurt melee in this goal; actual direct damage is the separate tick shield aura. Reuse locked native continuation/restriction/creative/spectator, start/stop and anger gates.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-admission.json",
+          "witness_id": "cataclysm:ignited-revenant-admission:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity$Ignited_Revenant_Goal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity$Ignited_Revenant_Goal.class",
+          "methods": [
+            "<init>",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignis-offense.json",
+          "witness_id": "cataclysm:ignis-offense:entity/AnimationMonster/AI/AttackMoveGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/AI/AttackMoveGoal.class",
+          "methods": [
+            "canUse",
+            "canContinueToUse",
+            "tick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ignited-revenant-offense:sequence_state",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ignited_revenant_sequence_state"
+      ],
+      "primary_source": "cataclysm:ignited_revenant",
+      "native_path": "Each positive breath/storm cooldown decrements once before self-alive/target/NoAI selection; zero or negative values are unchanged. Selected intact Ash or Storm writes200 after that decrement, leaving200 at this root tick end. ASH duration53 and BONE49; getAnimations advertises only NO_ANIMATION/ASH/BONE. BoneStormGoal is priority0 MOVE/JUMP/LOOK, alongside the locked priority0 ShootGoal and priority2 pursuit. Bone has no concrete start/stop anger writers. Locked root NBT does not save cooldowns/animation/height-controller fields; reuse native animation handler/reset lifecycle.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity.class",
+          "methods": [
+            "tick",
+            "getAnimations",
+            "registerGoals",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity$BoneStormGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity$BoneStormGoal.class",
+          "methods": [
+            "<init>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-admission.json",
+          "witness_id": "cataclysm:ignited-revenant-admission:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity.class",
+          "methods": [
+            "registerGoals",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-shared.json",
+          "witness_id": "cataclysm:shared:entity/AnimationMonster/LLibrary_Monster",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/LLibrary_Monster.class",
+          "methods": [
+            "setAnimation",
+            "tick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ignited-revenant-offense:shield_aura_damage",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ignited_revenant_shield_aura_damage"
+      ],
+      "primary_source": "cataclysm:ignited_revenant",
+      "native_path": "Inside self-alive tick, NO_ANIMATION && anger && raw shield counter<4 && tickCount%(6+counter*2)==0 queries LivingEntity in boss bbox.inflate(1.25). Reject boss allies, every Ignited_Revenant instance, and self, then request mobAttack(boss),float(current ATTACK_DAMAGE); locked installed base6 is not a fixed request or independent coefficient. No current-target/target-alive/NoAI/local-server/LOS gate on this aura. Hurt return gates the separate additive push; no effect/heal/burn/reset follows.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity.class",
+          "methods": [
+            "tick",
+            "isAlliedTo"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ignited-revenant-offense:shield_aura_push",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ignited_revenant_shield_aura_push"
+      ],
+      "primary_source": "cataclysm:ignited_revenant",
+      "native_path": "Only aura hurt=true computes dx/dz=victim-boss and d2=max(dx*dx+dz*dz,.001), then Entity.push(dx/d2*1.5,.2,dz/d2*1.5). Additive inverse-squared horizontal push plus fixed Y contribution, not LivingEntity.knockback and not a velocity overwrite. No native knockback-resistance read in this helper. False/canceled/immune hurt skips this movement; original aura predicates retained.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:ignited-revenant-offense:terrain_response",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:ignited_revenant_terrain_response"
+      ],
+      "primary_source": "cataclysm:ignited_revenant",
+      "native_path": "Inspected offense root/goals and Ash methods contain no local terrain destruction, ignition, explosion, damaging debris or respawner creation. Bone.onHit delegates native Projectile impact dispatch first: block hits invoke BlockState.onProjectileHit and game events through the existing native contract, followed by server discard. No Bone onHitBlock override or explicit block edits. Native block/impact callbacks and hooks remain native; this is not a claim that every global environment callback is absent.",
+      "setup": "Static source/state/return/lifecycle fixtures at cited boundaries; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity.class",
+          "methods": [
+            "tick",
+            "launchbone1",
+            "launchbone2",
+            "launchbone3"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity$ShootGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity$ShootGoal.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity$BoneStormGoal",
+          "entry": "com/github/L_Ender/cataclysm/entity/AnimationMonster/BossMonsters/Ignited_Revenant_Entity$BoneStormGoal.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/projectile/Ashen_Breath_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Ashen_Breath_Entity.class",
+          "methods": [
+            "tick",
+            "hitEntities"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-ignited-revenant-offense.json",
+          "witness_id": "cataclysm:ignited-revenant-offense:entity/projectile/Blazing_Bone_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Blazing_Bone_Entity.class",
+          "methods": [
+            "onHit"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
       "id": "cataclysm:leviathan-admission:altar_encounter",
       "mod_key": "cataclysm",
       "status": "VERIFIED",
@@ -78855,10 +81995,10 @@
   ],
   "unresolved_native_ambiguities": null,
   "remaining_native_ambiguities": null,
-  "checkpoint": "R2k12a-cataclysm-ignited-revenant-admission-complete",
-  "scope": "Bounded Ignited Revenant incoming axe/shield admission and exact source/bypass predicates, inherited LLibrary defaults, environment/falling motion, raw anger/shield state and goal start/stop prerequisites, parent-only combat NBT, configured construction/registry and exact Burning Arena revenant marker closed. All prior contracts locked; all offensive execution and payloads deferred to R2k12b. Cataclysm PARTIAL.",
-  "notes_file": "cataclysm-r2k12a-ignited-revenant-admission.json",
-  "exact_next_task": "R2k12b: Ignited Revenant offense/payload family. Start Ignited_Revenant_Entity.tick and directly used offensive goals; close attack selection/animation and cooldown readers/writers, Ash Breath/Bone Storm and direct attacks, launch/movement, directly owned payload/source/owner/team/return/lifecycle chains and directly reached terrain/death/respawner callbacks. Reuse locked R2k12a incoming axe/shield order, raw anger/shield state and goal start/stop, inherited bindings, environment/fall motion, parent-only NBT, configured construction/registry and exact Burning Arena marker plus all completed shared/status/boss contracts. Static only; no runtime, Stage, production, unrelated equipment or whole-JAR work.",
+  "checkpoint": "R2k12b-cataclysm-ignited-revenant-offense-complete",
+  "scope": "Only Ignited Revenant offense/goal execution and Ashen Breath/Blazing Bone payload family; protected R2k12a and all prior contracts reused.",
+  "notes_file": "cataclysm-r2k12b-ignited-revenant-offense.json",
+  "exact_next_task": "R2k13a: Ignited Berserker incoming admission and combat-state/encounter prerequisites. Start Ignited_Berserker_Entity and its Internal_Animation_Monster hierarchy; close incoming hurt/invulnerability/environment admission, concrete shared bindings where applicable, combat state/setters/persistence and material native spawn/home/encounter prerequisites. Defer all Ignited Berserker offense/payloads to R2k13b. Reuse locked shared/status and all completed boss/Revenant families; static only, no runtime, Stage, production, unrelated equipment or recursive JAR work.",
   "protected_checkpoint": "R2k3a-cataclysm-guardian-admission-complete",
   "protected_notes_file": "cataclysm-r2k3a-guardian-admission.json",
   "protected_checkpoints": [
@@ -78933,6 +82073,10 @@
     {
       "checkpoint": "R2k11b-cataclysm-ender-golem-offense-complete",
       "notes_file": "cataclysm-r2k11b-ender-golem-offense.json"
+    },
+    {
+      "checkpoint": "R2k12a-cataclysm-ignited-revenant-admission-complete",
+      "notes_file": "cataclysm-r2k12a-ignited-revenant-admission.json"
     }
   ]
 }
