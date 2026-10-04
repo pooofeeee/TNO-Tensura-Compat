@@ -59,7 +59,11 @@ def validate_records(note):
                 assert candidate['native_boundary'] == observation['boundary']
         for proof in row['implementation']:
             evidence = read_json(OUT / proof['evidence_file'])
-            witness = next(w for w in evidence['witnesses'] if w['id'] == proof['witness_id'])
+            # Reference archives identify the artifact, then the exact class entry;
+            # native archives identify each class witness separately.
+            witness = next(w for w in evidence['witnesses']
+                           if w.get('id', evidence.get('id')) == proof['witness_id']
+                           and w['entry'] == proof['entry'])
             assert witness['entry'] == proof['entry']
             assert set(proof['methods']) <= {m['name'] for m in witness['methods']}
     assert dict(sorted(Counter(r['primary_classification'] for r in rows).items())) == note['classification_counts']
@@ -87,7 +91,7 @@ def validate_boundaries(note):
             assert term not in text, (check, term)
     for check in note.get('declared_method_checks', []):
         witness = next(w for w in evidence['witnesses'] if w['entry'] == check['entry'])
-        assert set(check.get('absent', [])) .isdisjoint(witness['declared_method_names'])
+        assert set(check.get('absent', [])).isdisjoint(witness['declared_method_names'])
     assert len(evidence['witnesses']) == note['new_class_witnesses']
 
 
