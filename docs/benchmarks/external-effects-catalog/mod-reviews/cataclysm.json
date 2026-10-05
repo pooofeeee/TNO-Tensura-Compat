@@ -127202,6 +127202,1724 @@
       "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates."
     },
     {
+      "id": "cataclysm:tidal_claws_hook_contact",
+      "mod_key": "cataclysm",
+      "display_name": "Tidal native non-damage hook contact",
+      "registry_ids": [
+        "cataclysm:tidal_claws"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Hook ctor Arrow/noGravity/pickup DISALLOWED/baseDamage0. onHitEntity does NOT call parent/no hurt:server Player owner,hit!=owner,Living OR EnderDragonPart,hookedEntitynull ->cache native target,synced id targetID+1,isPullingtrue. No team/LOS/new health admission;source Arrow collision gates remain native. onHitBlock calls parent,sets pullingtrue;server Player&&hookedEntitynull ->owner noGravitytrue. Entity latch does not itself set owner noGravity. It moves owner toward attachment point,not target toward owner.",
+      "human_summary": "Hook ctor Arrow/noGravity/pickup DISALLOWED/baseDamage0. onHitEntity does NOT call parent/no hurt:server Player owner,hit!=owner,Living OR EnderDragonPart,hookedEntitynull ->cache native target,synced id targetID+1,isPullingtrue. No team/LOS/new health admission;source Arrow collision gates remain native. onHitBlock calls parent,sets pullingtrue;server Player&&hookedEntitynull ->owner noGravitytrue. Entity latch does not itself set owner noGravity. It moves owner toward attachment point,not target toward owner.",
+      "closest_vanilla_equivalent": "Custom latch/control,no automatic damage scalar",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Hook ctor Arrow/noGravity/pickup DISALLOWED/baseDamage0. onHitEntity does NOT call parent/no hurt:server Player owner,hit!=owner,Living OR EnderDragonPart,hookedEntitynull ->cache native target,synced id targetID+1,isPullingtrue. No team/LOS/new health admission;source Arrow collision gates remain native. onHitBlock calls parent,sets pullingtrue;server Player&&hookedEntitynull ->owner noGravitytrue. Entity latch does not itself set owner noGravity. It moves owner toward attachment point,not target toward owner.",
+      "components": [
+        {
+          "primitive": "HOOK_ADMISSION",
+          "formula": "native server Player/target kind/single cached target,not owner;block parent hit",
+          "numerical_parameters": {
+            "base_damage": 0
+          },
+          "parameter_units": {
+            "base_damage": "native off damage"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Tidal_Hook_Entity.ctor/onHitEntity/onHitBlock",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native Arrow collision/ProjectileImpact/owner admission",
+        "Native Player/Living-or-dragon-part/not owner/cached-null",
+        "Native parent block collision and gravity rules"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native Arrow collision/ProjectileImpact/owner admission; Native Player/Living-or-dragon-part/not owner/cached-null; Native parent block collision and gravity rules",
+      "source_actor": "Native owner Player;cached direct hit target/terrain point",
+      "hurt_return_dependency": "No health hurt call or return gate.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:entity/projectile/Tidal_Hook_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Tidal_Hook_Entity.class",
+          "methods": [
+            "<init>",
+            "onHitEntity",
+            "onHitBlock",
+            "defineSynchedData"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/iceandfire-ghost-troll-244.json",
+          "witness_id": "iceandfire-ghost-troll-244",
+          "entry": "net/minecraft/world/entity/projectile/AbstractArrow.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "canHitEntity"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:tidal_claws-family:hook_contact"
+      ],
+      "primary_test_source": "cataclysm:tidal_claws",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32p-cataclysm-tidal_claws-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "HOOK_ADMISSION",
+          "parameter": "base_damage",
+          "native_value": 0,
+          "native_formula": "native server Player/target kind/single cached target,not owner;block parent hit",
+          "units": "native off damage",
+          "boundary": "Tidal_Hook_Entity.ctor/onHitEntity/onHitBlock"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "entity_contact_hurt_called": false,
+      "entity_hit_moves_target": false
+    },
+    {
+      "id": "cataclysm:tidal_claws_hook_fall_gravity",
+      "mod_key": "cataclysm",
+      "display_name": "Tidal native fall latch/gravity/event contract",
+      "registry_ids": [
+        "cataclysm:tidal_claws"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "HOOK_FALLING native attachment defaultsfalse,serialized BOOL,no copyOnDeath builder;not a Stage state. When flagtrue native Player Post setsIgnoreFallDamageFromCurrentImpulse(true) and currentImpulseImpactPos=current position. Native LivingFall for Player flagtrue sets distance0 and setCanceled(false),not canceltrue. Reuse callbacks without reopening separate Cursium boots rule. Block latch sets owner noGravitytrue;Hook.kill server Player restores noGravityfalse and sends tracking/self HookFalling(ownerID,true),does NOT clear server flag. Client handler enqueues numeric ID lookup,if Living sets raw HOOK_FALLING=message bool;registered playToClient. Native release/finish separately clear flag;no new inferred ack/reset on contact/discard.",
+      "human_summary": "HOOK_FALLING native attachment defaultsfalse,serialized BOOL,no copyOnDeath builder;not a Stage state. When flagtrue native Player Post setsIgnoreFallDamageFromCurrentImpulse(true) and currentImpulseImpactPos=current position. Native LivingFall for Player flagtrue sets distance0 and setCanceled(false),not canceltrue. Reuse callbacks without reopening separate Cursium boots rule. Block latch sets owner noGravitytrue;Hook.kill server Player restores noGravityfalse and sends tracking/self HookFalling(ownerID,true),does NOT clear server flag. Client handler enqueues numeric ID lookup,if Living sets raw HOOK_FALLING=message bool;registered playToClient. Native release/finish separately clear flag;no new inferred ack/reset on contact/discard.",
+      "closest_vanilla_equivalent": "Native binary fall/gravity/event state,not a damage magnitude",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "HOOK_FALLING native attachment defaultsfalse,serialized BOOL,no copyOnDeath builder;not a Stage state. When flagtrue native Player Post setsIgnoreFallDamageFromCurrentImpulse(true) and currentImpulseImpactPos=current position. Native LivingFall for Player flagtrue sets distance0 and setCanceled(false),not canceltrue. Reuse callbacks without reopening separate Cursium boots rule. Block latch sets owner noGravitytrue;Hook.kill server Player restores noGravityfalse and sends tracking/self HookFalling(ownerID,true),does NOT clear server flag. Client handler enqueues numeric ID lookup,if Living sets raw HOOK_FALLING=message bool;registered playToClient. Native release/finish separately clear flag;no new inferred ack/reset on contact/discard.",
+      "components": [
+        {
+          "primitive": "NATIVE_FALL_GATE",
+          "formula": "native BOOL latch,fall distance0,impulse ignore true,block noGravitytrue/kill false",
+          "numerical_parameters": {
+            "fall_distance": 0
+          },
+          "parameter_units": {
+            "fall_distance": "native fall event distance"
+          },
+          "binary_parameters": [],
+          "native_boundary": "ModDataAttachments -> ServerEventHandler/Hook/MessageHookFalling",
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native Player/raw flag/fall event/client payload dispatch",
+        "Native death/caller/stack/lifecycle and existing fall cancellation behavior"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native Player/raw flag/fall event/client payload dispatch; Native death/caller/stack/lifecycle and existing fall cancellation behavior",
+      "source_actor": "Native Player owner;client numeric recipient lookup preserves Living check",
+      "hurt_return_dependency": "No hurt-return/scalar contribution.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:init/ModDataAttachments",
+          "entry": "com/github/L_Ender/cataclysm/init/ModDataAttachments.class",
+          "methods": [
+            "<clinit>",
+            "lambda$static$0",
+            "lambda$static$1"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:entity/projectile/Tidal_Hook_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Tidal_Hook_Entity.class",
+          "methods": [
+            "kill",
+            "onHitBlock"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:message/MessageHookFalling",
+          "entry": "com/github/L_Ender/cataclysm/message/MessageHookFalling.class",
+          "methods": [
+            "<init>",
+            "write",
+            "handle",
+            "lambda$handle$0"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:event/ServerEventHandler",
+          "entry": "com/github/L_Ender/cataclysm/event/ServerEventHandler.class",
+          "methods": [
+            "onLivingFall",
+            "onLivingUpdateEvent"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:Cataclysm",
+          "entry": "com/github/L_Ender/cataclysm/Cataclysm.class",
+          "methods": [
+            "setupPackets"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:tidal_claws-family:hook_fall_gravity"
+      ],
+      "primary_test_source": "cataclysm:tidal_claws",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32p-cataclysm-tidal_claws-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_FALL_GATE",
+          "parameter": "fall_distance",
+          "native_value": 0,
+          "native_formula": "native BOOL latch,fall distance0,impulse ignore true,block noGravitytrue/kill false",
+          "units": "native fall event distance",
+          "boundary": "ModDataAttachments -> ServerEventHandler/Hook/MessageHookFalling"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "hook_flag_persistent": true,
+      "hook_flag_cleared_by_kill": false,
+      "packet_to_client_only": true,
+      "fall_event_set_canceled": false
+    },
+    {
+      "id": "cataclysm:tidal_claws_hook_lifecycle",
+      "mod_key": "cataclysm",
+      "display_name": "Tidal native hook admission/persistence/cleanup",
+      "registry_ids": [
+        "cataclysm:tidal_claws"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Native hook server Player kill checks owner dead/dying OR flagfalse OR owner distance>maxRange OR neither hand item instanceofClaws;later identity check kills when neither hand is original stack reference. Native target removed path discards directly,not kill;kill restores gravity/sends clienttrue only for server Player and then parent kill. No explicit concrete cleanup for null/non-Player owner beyond parent Arrow lifecycle. Local NBT saves maxRange/maxSpeed/isPulling plus parent Arrow owner/item state;private stack reference and hookedEntity not saved/reconstructed;Player reload with null source stack hits native identity kill. Water inertia.9,portals false. No generic receipt/restored target/stack/cache or extra TTL;original post-kill/discard continuation preserved.",
+      "human_summary": "Native hook server Player kill checks owner dead/dying OR flagfalse OR owner distance>maxRange OR neither hand item instanceofClaws;later identity check kills when neither hand is original stack reference. Native target removed path discards directly,not kill;kill restores gravity/sends clienttrue only for server Player and then parent kill. No explicit concrete cleanup for null/non-Player owner beyond parent Arrow lifecycle. Local NBT saves maxRange/maxSpeed/isPulling plus parent Arrow owner/item state;private stack reference and hookedEntity not saved/reconstructed;Player reload with null source stack hits native identity kill. Water inertia.9,portals false. No generic receipt/restored target/stack/cache or extra TTL;original post-kill/discard continuation preserved.",
+      "closest_vanilla_equivalent": "Native owned Arrow lifecycle with custom unsaved hook controls",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Native hook server Player kill checks owner dead/dying OR flagfalse OR owner distance>maxRange OR neither hand item instanceofClaws;later identity check kills when neither hand is original stack reference. Native target removed path discards directly,not kill;kill restores gravity/sends clienttrue only for server Player and then parent kill. No explicit concrete cleanup for null/non-Player owner beyond parent Arrow lifecycle. Local NBT saves maxRange/maxSpeed/isPulling plus parent Arrow owner/item state;private stack reference and hookedEntity not saved/reconstructed;Player reload with null source stack hits native identity kill. Water inertia.9,portals false. No generic receipt/restored target/stack/cache or extra TTL;original post-kill/discard continuation preserved.",
+      "components": [
+        {
+          "primitive": "PAYLOAD_LIFECYCLE",
+          "formula": "native kill predicates,distinct discard,target/stack omission in NBT",
+          "numerical_parameters": {
+            "water_inertia": 0.8999999761581421
+          },
+          "parameter_units": {
+            "water_inertia": "native water velocity coefficient"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Tidal_Hook_Entity.tick/kill/NBT",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native server Player/flag/life/distance/hand class/original stack-reference checks",
+        "Native cached target removed vs kill distinction",
+        "Native parent Arrow collision/expiry/owner/NBT,portals false"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native server Player/flag/life/distance/hand class/original stack-reference checks; Native cached target removed vs kill distinction; Native parent Arrow collision/expiry/owner/NBT,portals false",
+      "source_actor": "Native Player owner and original source stack;no surrogate target/owner",
+      "hurt_return_dependency": "Lifecycle independent of health hurt.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:entity/projectile/Tidal_Hook_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Tidal_Hook_Entity.class",
+          "methods": [
+            "tick",
+            "kill",
+            "readAdditionalSaveData",
+            "addAdditionalSaveData",
+            "getWaterInertia",
+            "canUsePortal"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/iceandfire-ghost-troll-244.json",
+          "witness_id": "iceandfire-ghost-troll-244",
+          "entry": "net/minecraft/world/entity/projectile/AbstractArrow.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "canHitEntity"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:tidal_claws-family:hook_lifecycle"
+      ],
+      "primary_test_source": "cataclysm:tidal_claws",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32p-cataclysm-tidal_claws-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "PAYLOAD_LIFECYCLE",
+          "parameter": "water_inertia",
+          "native_value": 0.8999999761581421,
+          "native_formula": "native kill predicates,distinct discard,target/stack omission in NBT",
+          "units": "native water velocity coefficient",
+          "boundary": "Tidal_Hook_Entity.tick/kill/NBT"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "source_stack_reference_persistent": false,
+      "hooked_target_persistent": false,
+      "null_owner_extra_cleanup": false
+    },
+    {
+      "id": "cataclysm:tidal_claws_hook_owner_motion",
+      "mod_key": "cataclysm",
+      "display_name": "Tidal native owner pull and target-follow anchor",
+      "registry_ids": [
+        "cataclysm:tidal_claws"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "After parent Arrow tick,server Player owner updates cached target:removed ->clear/discard without kill;otherwise move hook to targetY(.8). Owner current hand must be same stack OBJECT reference;other matching Claws insufficient. isPulling ->distance=hookPos-(ownerPos+height/2),brakeZone=6*(maxSpeed/10),pullSpeed=maxSpeed/6;normalize distance scaled by pullSpeed,linear brake when length<brakeZone. If absY<.1,force motionY0;if XZdistance<length(width/2,0,width/2)/1.4 force XZ0. Writes owner absolute setDeltaMovement/hurtMarkedtrue,not knockback/push or health damage. Native kill earlier in tick does not add an early return;matching stack can still admit later motion.",
+      "human_summary": "After parent Arrow tick,server Player owner updates cached target:removed ->clear/discard without kill;otherwise move hook to targetY(.8). Owner current hand must be same stack OBJECT reference;other matching Claws insufficient. isPulling ->distance=hookPos-(ownerPos+height/2),brakeZone=6*(maxSpeed/10),pullSpeed=maxSpeed/6;normalize distance scaled by pullSpeed,linear brake when length<brakeZone. If absY<.1,force motionY0;if XZdistance<length(width/2,0,width/2)/1.4 force XZ0. Writes owner absolute setDeltaMovement/hurtMarkedtrue,not knockback/push or health damage. Native kill earlier in tick does not add an early return;matching stack can still admit later motion.",
+      "closest_vanilla_equivalent": "Custom owner velocity replacement and target-follow anchor",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "After parent Arrow tick,server Player owner updates cached target:removed ->clear/discard without kill;otherwise move hook to targetY(.8). Owner current hand must be same stack OBJECT reference;other matching Claws insufficient. isPulling ->distance=hookPos-(ownerPos+height/2),brakeZone=6*(maxSpeed/10),pullSpeed=maxSpeed/6;normalize distance scaled by pullSpeed,linear brake when length<brakeZone. If absY<.1,force motionY0;if XZdistance<length(width/2,0,width/2)/1.4 force XZ0. Writes owner absolute setDeltaMovement/hurtMarkedtrue,not knockback/push or health damage. Native kill earlier in tick does not add an early return;matching stack can still admit later motion.",
+      "components": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "formula": "native absolute owner velocity toward hook,brakeZone=6*(maxSpeed/10),pullSpeed=maxSpeed/6",
+          "numerical_parameters": {
+            "max_speed": 12,
+            "brake_factor": 6,
+            "brake_divisor": 10,
+            "speed_divisor": 6,
+            "vertical_deadzone": 0.1,
+            "horizontal_deadzone_divisor": 1.4
+          },
+          "parameter_units": {
+            "max_speed": "native velocity basis from item",
+            "brake_factor": "native coefficient",
+            "brake_divisor": "native coefficient",
+            "speed_divisor": "native coefficient",
+            "vertical_deadzone": "blocks",
+            "horizontal_deadzone_divisor": "native owner-width divisor"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Tidal_Claws.use -> Tidal_Hook_Entity.tick",
+          "vanilla_relation": "CUSTOM_CONTROL"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native server Player/same ItemStack reference/isPulling",
+        "Native cached target/removed/size/deadzone/distance/owner states"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native server Player/same ItemStack reference/isPulling; Native cached target/removed/size/deadzone/distance/owner states",
+      "source_actor": "Native owning Player receives velocity;cached living/dragon-part target only anchors hook",
+      "hurt_return_dependency": "Motion independent of hurt and preserves post-kill native continuation.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:items/Tidal_Claws",
+          "entry": "com/github/L_Ender/cataclysm/items/Tidal_Claws.class",
+          "methods": [
+            "use"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:entity/projectile/Tidal_Hook_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Tidal_Hook_Entity.class",
+          "methods": [
+            "tick",
+            "setProperties"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:tidal_claws-family:hook_owner_motion"
+      ],
+      "primary_test_source": "cataclysm:tidal_claws",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32p-cataclysm-tidal_claws-family-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "max_speed"
+          ],
+          "native_value": 12,
+          "native_formula": "native absolute owner velocity toward hook,brakeZone=6*(maxSpeed/10),pullSpeed=maxSpeed/6",
+          "units": "native velocity basis from item",
+          "native_boundary": "Tidal_Claws.use -> Tidal_Hook_Entity.tick"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameter": "max_speed",
+          "native_value": 12,
+          "native_formula": "native absolute owner velocity toward hook,brakeZone=6*(maxSpeed/10),pullSpeed=maxSpeed/6",
+          "units": "native velocity basis from item",
+          "boundary": "Tidal_Claws.use -> Tidal_Hook_Entity.tick"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameter": "brake_factor",
+          "native_value": 6,
+          "native_formula": "native absolute owner velocity toward hook,brakeZone=6*(maxSpeed/10),pullSpeed=maxSpeed/6",
+          "units": "native coefficient",
+          "boundary": "Tidal_Claws.use -> Tidal_Hook_Entity.tick"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameter": "brake_divisor",
+          "native_value": 10,
+          "native_formula": "native absolute owner velocity toward hook,brakeZone=6*(maxSpeed/10),pullSpeed=maxSpeed/6",
+          "units": "native coefficient",
+          "boundary": "Tidal_Claws.use -> Tidal_Hook_Entity.tick"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameter": "speed_divisor",
+          "native_value": 6,
+          "native_formula": "native absolute owner velocity toward hook,brakeZone=6*(maxSpeed/10),pullSpeed=maxSpeed/6",
+          "units": "native coefficient",
+          "boundary": "Tidal_Claws.use -> Tidal_Hook_Entity.tick"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameter": "vertical_deadzone",
+          "native_value": 0.1,
+          "native_formula": "native absolute owner velocity toward hook,brakeZone=6*(maxSpeed/10),pullSpeed=maxSpeed/6",
+          "units": "blocks",
+          "boundary": "Tidal_Claws.use -> Tidal_Hook_Entity.tick"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameter": "horizontal_deadzone_divisor",
+          "native_value": 1.4,
+          "native_formula": "native absolute owner velocity toward hook,brakeZone=6*(maxSpeed/10),pullSpeed=maxSpeed/6",
+          "units": "native owner-width divisor",
+          "boundary": "Tidal_Claws.use -> Tidal_Hook_Entity.tick"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "absolute_velocity_write": true,
+      "requires_same_stack_reference": true,
+      "kill_does_not_return_early": true
+    },
+    {
+      "id": "cataclysm:tidal_claws_hook_use_latch",
+      "mod_key": "cataclysm",
+      "display_name": "Tidal native hook use/release latch",
+      "registry_ids": [
+        "cataclysm:tidal_claws"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Right use:BOW/use72000,server&&!HOOK_FALLING ->one owned Hook(original supplied stack),maxRange30/maxSpeed12,setProperties yaw/pitch/roll0,shoot1.5F*float(12/10)=native1.8F/inaccuracy0,add bool ignored. Both sides then startUsingItem,set HOOK_FALLING true and return parent use (no forced success invented). Release/finish resets true flagfalse;finish returns parent result. No own cooldown/ammo/durability debit/charge wait or item consumption;hook gate differs from tentacle attachment.",
+      "human_summary": "Right use:BOW/use72000,server&&!HOOK_FALLING ->one owned Hook(original supplied stack),maxRange30/maxSpeed12,setProperties yaw/pitch/roll0,shoot1.5F*float(12/10)=native1.8F/inaccuracy0,add bool ignored. Both sides then startUsingItem,set HOOK_FALLING true and return parent use (no forced success invented). Release/finish resets true flagfalse;finish returns parent result. No own cooldown/ammo/durability debit/charge wait or item consumption;hook gate differs from tentacle attachment.",
+      "closest_vanilla_equivalent": "Custom native owned grapple with separate binary use latch",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Right use:BOW/use72000,server&&!HOOK_FALLING ->one owned Hook(original supplied stack),maxRange30/maxSpeed12,setProperties yaw/pitch/roll0,shoot1.5F*float(12/10)=native1.8F/inaccuracy0,add bool ignored. Both sides then startUsingItem,set HOOK_FALLING true and return parent use (no forced success invented). Release/finish resets true flagfalse;finish returns parent result. No own cooldown/ammo/durability debit/charge wait or item consumption;hook gate differs from tentacle attachment.",
+      "components": [
+        {
+          "primitive": "HOOK_DELIVERY",
+          "formula": "server flagfalse ->one hook;maxRange30,maxSpeed12,shoot1.5F*(maxSpeed/10F)",
+          "numerical_parameters": {
+            "max_range": 30,
+            "max_speed": 12,
+            "shoot_factor": 1.5
+          },
+          "parameter_units": {
+            "max_range": "native owner-to-hook distance in blocks",
+            "max_speed": "native velocity basis",
+            "shoot_factor": "native float velocity factor"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Tidal_Claws.use -> Tidal_Hook_Entity.setProperties",
+          "vanilla_relation": "CUSTOM_CONTROL"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native supplied hand/server/raw HOOK_FALLING/caller/parent use result",
+        "Native entity-add return ignored;no new charge/ammo/cooldown gate"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native supplied hand/server/raw HOOK_FALLING/caller/parent use result; Native entity-add return ignored;no new charge/ammo/cooldown gate",
+      "source_actor": "Native using Player owner;original supplied stack reference retained in hook",
+      "hurt_return_dependency": "No hurt-return/entity-add-success prerequisite for latch.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:items/Tidal_Claws",
+          "entry": "com/github/L_Ender/cataclysm/items/Tidal_Claws.class",
+          "methods": [
+            "use",
+            "releaseUsing",
+            "finishUsingItem",
+            "getUseAnimation",
+            "getUseDuration"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:entity/projectile/Tidal_Hook_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Tidal_Hook_Entity.class",
+          "methods": [
+            "<init>",
+            "setProperties"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:tidal_claws-family:hook_use_latch"
+      ],
+      "primary_test_source": "cataclysm:tidal_claws",
+      "alternate_sources": [],
+      "spawned_entity_ids": [
+        "cataclysm:tidal_hook"
+      ],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32p-cataclysm-tidal_claws-family-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "HOOK_DELIVERY",
+          "parameters": [
+            "max_range"
+          ],
+          "native_value": 30,
+          "native_formula": "server flagfalse ->one hook;maxRange30,maxSpeed12,shoot1.5F*(maxSpeed/10F)",
+          "units": "native owner-to-hook distance in blocks",
+          "native_boundary": "Tidal_Claws.use -> Tidal_Hook_Entity.setProperties"
+        },
+        {
+          "primitive": "HOOK_DELIVERY",
+          "parameters": [
+            "shoot_factor"
+          ],
+          "native_value": 1.5,
+          "native_formula": "server flagfalse ->one hook;maxRange30,maxSpeed12,shoot1.5F*(maxSpeed/10F)",
+          "units": "native float velocity factor",
+          "native_boundary": "Tidal_Claws.use -> Tidal_Hook_Entity.setProperties"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "HOOK_DELIVERY",
+          "parameter": "max_range",
+          "native_value": 30,
+          "native_formula": "server flagfalse ->one hook;maxRange30,maxSpeed12,shoot1.5F*(maxSpeed/10F)",
+          "units": "native owner-to-hook distance in blocks",
+          "boundary": "Tidal_Claws.use -> Tidal_Hook_Entity.setProperties"
+        },
+        {
+          "primitive": "HOOK_DELIVERY",
+          "parameter": "max_speed",
+          "native_value": 12,
+          "native_formula": "server flagfalse ->one hook;maxRange30,maxSpeed12,shoot1.5F*(maxSpeed/10F)",
+          "units": "native velocity basis",
+          "boundary": "Tidal_Claws.use -> Tidal_Hook_Entity.setProperties"
+        },
+        {
+          "primitive": "HOOK_DELIVERY",
+          "parameter": "shoot_factor",
+          "native_value": 1.5,
+          "native_formula": "server flagfalse ->one hook;maxRange30,maxSpeed12,shoot1.5F*(maxSpeed/10F)",
+          "units": "native float velocity factor",
+          "boundary": "Tidal_Claws.use -> Tidal_Hook_Entity.setProperties"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "entity_add_return_ignored": true,
+      "parent_use_result_preserved": true
+    },
+    {
+      "id": "cataclysm:tidal_claws_left_selection",
+      "mod_key": "cataclysm",
+      "display_name": "Tidal Claws native attack input and nearest-Mob selection",
+      "registry_ids": [
+        "cataclysm:tidal_claws"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "onLeftClick requires exact TIDAL_CLAWS stack; Player attackStrengthScale(.5F)>.9F,non-Player no charge test. Calls native Block.VISUAL/Fluid.NONE clip16; Level.clip signature returns BlockHitResult, so the EntityHitResult arm is not a native entity ray pick. Actual nearest fallback scans LivingEntity bbox.inflate16 and requires Mob,notself,bilateral nonalliance,actor LOS; strict nearer comparison retains native iteration ties. No spherical16 distance or facing-cone gate invented. Reuse locked input/MAIN_HAND swing packet/STUN contracts. A successful native melee hurtEnemy independently calls launchTendonsAt(attacker,target), no local charge/Mob/team/LOS recheck, then parent hurtEnemy.",
+      "human_summary": "onLeftClick requires exact TIDAL_CLAWS stack; Player attackStrengthScale(.5F)>.9F,non-Player no charge test. Calls native Block.VISUAL/Fluid.NONE clip16; Level.clip signature returns BlockHitResult, so the EntityHitResult arm is not a native entity ray pick. Actual nearest fallback scans LivingEntity bbox.inflate16 and requires Mob,notself,bilateral nonalliance,actor LOS; strict nearer comparison retains native iteration ties. No spherical16 distance or facing-cone gate invented. Reuse locked input/MAIN_HAND swing packet/STUN contracts. A successful native melee hurtEnemy independently calls launchTendonsAt(attacker,target), no local charge/Mob/team/LOS recheck, then parent hurtEnemy.",
+      "closest_vanilla_equivalent": "Custom attack selection distinct from Vanilla entity raycast and melee damage",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "onLeftClick requires exact TIDAL_CLAWS stack; Player attackStrengthScale(.5F)>.9F,non-Player no charge test. Calls native Block.VISUAL/Fluid.NONE clip16; Level.clip signature returns BlockHitResult, so the EntityHitResult arm is not a native entity ray pick. Actual nearest fallback scans LivingEntity bbox.inflate16 and requires Mob,notself,bilateral nonalliance,actor LOS; strict nearer comparison retains native iteration ties. No spherical16 distance or facing-cone gate invented. Reuse locked input/MAIN_HAND swing packet/STUN contracts. A successful native melee hurtEnemy independently calls launchTendonsAt(attacker,target), no local charge/Mob/team/LOS recheck, then parent hurtEnemy.",
+      "components": [
+        {
+          "primitive": "AREA_SELECTION",
+          "formula": "native nearest admissible Mob in inflated actor bbox,LOS",
+          "numerical_parameters": {
+            "aabb_inflate": 16
+          },
+          "parameter_units": {
+            "aabb_inflate": "blocks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Tidal_Claws.onLeftClick",
+          "vanilla_relation": "CUSTOM_CONTROL"
+        },
+        {
+          "primitive": "NATIVE_ATTACK_ADMISSION",
+          "formula": "Player attack strength>.9 at partial tick.5,exact item",
+          "numerical_parameters": {
+            "attack_strength_gate": 0.8999999761581421,
+            "partial_tick": 0.5
+          },
+          "parameter_units": {
+            "attack_strength_gate": "native attack strength exclusive",
+            "partial_tick": "native partial tick"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Tidal_Claws.isCharged/onLeftClick",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Exact item/Player strength/native input/LOS/bilateral allies/Mob/self for left-click",
+        "Native melee caller admission,then separate launch gate without those selection predicates"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Exact item/Player strength/native input/LOS/bilateral allies/Mob/self for left-click; Native melee caller admission,then separate launch gate without those selection predicates",
+      "source_actor": "Native attacking LivingEntity,Player left input or native melee target",
+      "hurt_return_dependency": "Melee callback admission native; launch independent of a new hurt request.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:items/Tidal_Claws",
+          "entry": "com/github/L_Ender/cataclysm/items/Tidal_Claws.class",
+          "methods": [
+            "onLeftClick",
+            "isCharged",
+            "hurtEnemy"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:event/ServerEventHandler",
+          "entry": "com/github/L_Ender/cataclysm/event/ServerEventHandler.class",
+          "methods": [
+            "onPlayerLeftClick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/message/MessageSwingArm.class",
+          "entry": "com/github/L_Ender/cataclysm/message/MessageSwingArm.class",
+          "methods": [
+            "handle",
+            "lambda$handle$0"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:tidal_claws-family:left_selection"
+      ],
+      "primary_test_source": "cataclysm:tidal_claws",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32p-cataclysm-tidal_claws-family-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "AREA_SELECTION",
+          "parameters": [
+            "aabb_inflate"
+          ],
+          "native_value": 16,
+          "native_formula": "native nearest admissible Mob in inflated actor bbox,LOS",
+          "units": "blocks",
+          "native_boundary": "Tidal_Claws.onLeftClick"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "AREA_SELECTION",
+          "parameter": "aabb_inflate",
+          "native_value": 16,
+          "native_formula": "native nearest admissible Mob in inflated actor bbox,LOS",
+          "units": "blocks",
+          "boundary": "Tidal_Claws.onLeftClick"
+        },
+        {
+          "primitive": "NATIVE_ATTACK_ADMISSION",
+          "parameter": "attack_strength_gate",
+          "native_value": 0.8999999761581421,
+          "native_formula": "Player attack strength>.9 at partial tick.5,exact item",
+          "units": "native attack strength exclusive",
+          "boundary": "Tidal_Claws.isCharged/onLeftClick"
+        },
+        {
+          "primitive": "NATIVE_ATTACK_ADMISSION",
+          "parameter": "partial_tick",
+          "native_value": 0.5,
+          "native_formula": "Player attack strength>.9 at partial tick.5,exact item",
+          "units": "native partial tick",
+          "boundary": "Tidal_Claws.isCharged/onLeftClick"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "native_entity_ray_pick": false,
+      "melee_launch_has_selection_recheck": false
+    },
+    {
+      "id": "cataclysm:tidal_claws_melee_attributes",
+      "mod_key": "cataclysm",
+      "display_name": "Tidal Claws native melee attack attributes",
+      "registry_ids": [
+        "cataclysm:tidal_claws"
+      ],
+      "primary_classification": "VANILLA_DIRECT",
+      "actual_behavior": "Default-components bootstrap24->lambda308 creates MAINHAND ADD_VALUE damage=float(config8)-1 default7,speed=float(config1.6)-4 default-2.4 using locked native weapon/merge; no extra reach/critical custom attribute here. These are native melee attributes, not tentacle fixed damage3 or hook damage0.",
+      "human_summary": "Default-components bootstrap24->lambda308 creates MAINHAND ADD_VALUE damage=float(config8)-1 default7,speed=float(config1.6)-4 default-2.4 using locked native weapon/merge; no extra reach/critical custom attribute here. These are native melee attributes, not tentacle fixed damage3 or hook damage0.",
+      "closest_vanilla_equivalent": "Vanilla equipment attack attributes",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Default-components bootstrap24->lambda308 creates MAINHAND ADD_VALUE damage=float(config8)-1 default7,speed=float(config1.6)-4 default-2.4 using locked native weapon/merge; no extra reach/critical custom attribute here. These are native melee attributes, not tentacle fixed damage3 or hook damage0.",
+      "components": [
+        {
+          "primitive": "ATTACK_DAMAGE_ATTRIBUTE",
+          "formula": "MAINHAND ADD_VALUE=float(config)-1",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "ModItems.lambda$modifyComponents$308",
+          "vanilla_relation": "VANILLA_DIRECT",
+          "parameter_formulas": {
+            "amount": "float(CMCommonConfig.TidalClaws.attackDamage)-1F,native default7"
+          },
+          "formula_parameter_units": {
+            "amount": "attribute ADD_VALUE"
+          }
+        },
+        {
+          "primitive": "ATTACK_SPEED_ATTRIBUTE",
+          "formula": "MAINHAND ADD_VALUE=float(config)-4",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "ModItems.lambda$modifyComponents$308",
+          "vanilla_relation": "VANILLA_DIRECT",
+          "parameter_formulas": {
+            "amount": "float(CMCommonConfig.TidalClaws.attackSpeed)-4F,native default-2.4"
+          },
+          "formula_parameter_units": {
+            "amount": "attribute ADD_VALUE"
+          }
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native MAINHAND/equipment/attribute/Player melee admission"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native MAINHAND/equipment/attribute/Player melee admission",
+      "source_actor": "Native equipped living actor",
+      "hurt_return_dependency": "Native melee admission remains native; separate hurtEnemy tentacle attempt.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:init/ModItems",
+          "entry": "com/github/L_Ender/cataclysm/init/ModItems.class",
+          "methods": [
+            "modifyComponents",
+            "lambda$modifyComponents$308"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-the_immolator-family.json",
+          "witness_id": "cataclysm:the_immolator-family:items/Cataclysm_Weapon",
+          "entry": "com/github/L_Ender/cataclysm/items/Cataclysm_Weapon.class",
+          "methods": [
+            "createAttributes"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-the_immolator-family.json",
+          "witness_id": "cataclysm:the_immolator-family:util/AttributeUtils",
+          "entry": "com/github/L_Ender/cataclysm/util/AttributeUtils.class",
+          "methods": [
+            "mergeAttributes"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:tidal_claws-family:melee_attributes"
+      ],
+      "primary_test_source": "cataclysm:tidal_claws",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32p-cataclysm-tidal_claws-family-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "ATTACK_DAMAGE_ATTRIBUTE",
+          "parameters": [
+            "amount"
+          ],
+          "native_value": null,
+          "native_formula": "float(CMCommonConfig.TidalClaws.attackDamage)-1F,native default7",
+          "units": "attribute ADD_VALUE",
+          "native_boundary": "ModItems.lambda$modifyComponents$308"
+        },
+        {
+          "primitive": "ATTACK_SPEED_ATTRIBUTE",
+          "parameters": [
+            "amount"
+          ],
+          "native_value": null,
+          "native_formula": "float(CMCommonConfig.TidalClaws.attackSpeed)-4F,native default-2.4",
+          "units": "attribute ADD_VALUE",
+          "native_boundary": "ModItems.lambda$modifyComponents$308"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "ATTACK_DAMAGE_ATTRIBUTE",
+          "parameter": "amount",
+          "native_value": null,
+          "native_formula": "float(CMCommonConfig.TidalClaws.attackDamage)-1F,native default7",
+          "units": "attribute ADD_VALUE",
+          "boundary": "ModItems.lambda$modifyComponents$308"
+        },
+        {
+          "primitive": "ATTACK_SPEED_ATTRIBUTE",
+          "parameter": "amount",
+          "native_value": null,
+          "native_formula": "float(CMCommonConfig.TidalClaws.attackSpeed)-4F,native default-2.4",
+          "units": "attribute ADD_VALUE",
+          "boundary": "ModItems.lambda$modifyComponents$308"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates."
+    },
+    {
+      "id": "cataclysm:tidal_claws_raw_tentacle_attachment",
+      "mod_key": "cataclysm",
+      "display_name": "Tidal native raw tentacle attachment/lookup",
+      "registry_ids": [
+        "cataclysm:tidal_claws"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Native attachment defaults hasTentacle=false,UUIDnull,id0; unconstrained getters/setters,no own tick/NBT. Builder only constructor/build,no serializer/copyOnDeath. setLastTentacle(entity,segment) only writes boolean(segment!=null),never ID/UUID. Direct item/chain/cascade call that helper without identifier writes; do not invent repaired tracking. getLastTendon server first requires stored UUIDnonnull,then looks up numeric id (not UUID and no UUID equality);client id!=-1 lookup. canLaunch returns last absent or removed;retractFar removes resolvable last and clears boolean. Native default-null server UUID therefore yields no resolved last in this producer path,while raw boolean still blocks item launch until native cascade clears it.",
+      "human_summary": "Native attachment defaults hasTentacle=false,UUIDnull,id0; unconstrained getters/setters,no own tick/NBT. Builder only constructor/build,no serializer/copyOnDeath. setLastTentacle(entity,segment) only writes boolean(segment!=null),never ID/UUID. Direct item/chain/cascade call that helper without identifier writes; do not invent repaired tracking. getLastTendon server first requires stored UUIDnonnull,then looks up numeric id (not UUID and no UUID equality);client id!=-1 lookup. canLaunch returns last absent or removed;retractFar removes resolvable last and clears boolean. Native default-null server UUID therefore yields no resolved last in this producer path,while raw boolean still blocks item launch until native cascade clears it.",
+      "closest_vanilla_equivalent": "Custom transient native admission state and existing lookup gap",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Native attachment defaults hasTentacle=false,UUIDnull,id0; unconstrained getters/setters,no own tick/NBT. Builder only constructor/build,no serializer/copyOnDeath. setLastTentacle(entity,segment) only writes boolean(segment!=null),never ID/UUID. Direct item/chain/cascade call that helper without identifier writes; do not invent repaired tracking. getLastTendon server first requires stored UUIDnonnull,then looks up numeric id (not UUID and no UUID equality);client id!=-1 lookup. canLaunch returns last absent or removed;retractFar removes resolvable last and clears boolean. Native default-null server UUID therefore yields no resolved last in this producer path,while raw boolean still blocks item launch until native cascade clears it.",
+      "components": [
+        {
+          "primitive": "NATIVE_ATTACHMENT_LIFECYCLE",
+          "formula": "raw bool/UUID/id;setLastTentacle writes only boolean;native id lookup",
+          "numerical_parameters": {
+            "default_id": 0
+          },
+          "parameter_units": {
+            "default_id": "native numeric entity ID"
+          },
+          "binary_parameters": [],
+          "native_boundary": "TidalTentacleAttachment/TidalTentacleUtil",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native raw boolean and lookup/type/side gates;no synthetic ID/UUID/ownership tracking",
+        "Native serialization omission remains native"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native raw boolean and lookup/type/side gates;no synthetic ID/UUID/ownership tracking; Native serialization omission remains native",
+      "source_actor": "Original native attacking living actor attachment;no owner replacement",
+      "hurt_return_dependency": "State gates independent of hurt.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:Attachment/TidalTentacleAttachment",
+          "entry": "com/github/L_Ender/cataclysm/Attachment/TidalTentacleAttachment.class",
+          "methods": [
+            "<init>",
+            "setHasTentacle",
+            "setLastTentacleID",
+            "setLastTentacleUUID"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:entity/util/TidalTentacleUtil",
+          "entry": "com/github/L_Ender/cataclysm/entity/util/TidalTentacleUtil.class",
+          "methods": [
+            "setLastTentacle",
+            "getLastTendon",
+            "canLaunchTentacles",
+            "retractFarTentacles"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:init/ModDataAttachments",
+          "entry": "com/github/L_Ender/cataclysm/init/ModDataAttachments.class",
+          "methods": [
+            "<clinit>",
+            "lambda$static$4"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:tidal_claws-family:raw_tentacle_attachment"
+      ],
+      "primary_test_source": "cataclysm:tidal_claws",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32p-cataclysm-tidal_claws-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_ATTACHMENT_LIFECYCLE",
+          "parameter": "default_id",
+          "native_value": 0,
+          "native_formula": "raw bool/UUID/id;setLastTentacle writes only boolean;native id lookup",
+          "units": "native numeric entity ID",
+          "boundary": "TidalTentacleAttachment/TidalTentacleUtil"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "identifier_written_by_set_last": false,
+      "attachment_persistent": false,
+      "native_tracking_gap_preserved": true
+    },
+    {
+      "id": "cataclysm:tidal_claws_registry_config",
+      "mod_key": "cataclysm",
+      "display_name": "Tidal Claws native weapon/carrier/config setup",
+      "registry_ids": [
+        "cataclysm:tidal_claws"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Native item bootstrap196/factory168 ->stack1/fireResistant weapon, factory MAINHAND attack7/speed-2.4. Config attackDamage8/attackSpeed1.6 with native ToolConfig0..1000000,Commonbake reused. Registered tentacle0.1x0.1 custom Entity and hook0.5x0.5 native Arrow subclass, exact concrete factories. Item fireResistant differs from owner immunity. Native item and payload entry points remain separate.",
+      "human_summary": "Native item bootstrap196/factory168 ->stack1/fireResistant weapon, factory MAINHAND attack7/speed-2.4. Config attackDamage8/attackSpeed1.6 with native ToolConfig0..1000000,Commonbake reused. Registered tentacle0.1x0.1 custom Entity and hook0.5x0.5 native Arrow subclass, exact concrete factories. Item fireResistant differs from owner immunity. Native item and payload entry points remain separate.",
+      "closest_vanilla_equivalent": "Native registry/config/equipment with custom control carriers",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Native item bootstrap196/factory168 ->stack1/fireResistant weapon, factory MAINHAND attack7/speed-2.4. Config attackDamage8/attackSpeed1.6 with native ToolConfig0..1000000,Commonbake reused. Registered tentacle0.1x0.1 custom Entity and hook0.5x0.5 native Arrow subclass, exact concrete factories. Item fireResistant differs from owner immunity. Native item and payload entry points remain separate.",
+      "components": [
+        {
+          "primitive": "NATIVE_ITEM_SETUP",
+          "formula": "native registry/config/weapon and owned payload setup",
+          "numerical_parameters": {
+            "stack_limit": 1,
+            "attack_damage_default": 8,
+            "attack_speed_default": 1.6
+          },
+          "parameter_units": {
+            "stack_limit": "items",
+            "attack_damage_default": "native config attackDamage",
+            "attack_speed_default": "native config attackSpeed"
+          },
+          "binary_parameters": [],
+          "native_boundary": "ModItems/ModEntities/TidalClaws config",
+          "vanilla_relation": "VANILLA_DIRECT"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native registry/config/component/caller/source lifecycle"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native registry/config/component/caller/source lifecycle",
+      "source_actor": "Native equipped/using living actor; hook owner must be Player for concrete control",
+      "hurt_return_dependency": "No hurt-dependent setup.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:items/Tidal_Claws",
+          "entry": "com/github/L_Ender/cataclysm/items/Tidal_Claws.class",
+          "methods": [
+            "<init>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:init/ModItems",
+          "entry": "com/github/L_Ender/cataclysm/init/ModItems.class",
+          "methods": [
+            "<clinit>",
+            "lambda$static$168"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "<clinit>",
+            "lambda$static$65",
+            "lambda$static$66"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:config/CMCommonConfig$TidalClaws",
+          "entry": "com/github/L_Ender/cataclysm/config/CMCommonConfig$TidalClaws.class",
+          "methods": [
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:config/CommonConfig$TidalClaws",
+          "entry": "com/github/L_Ender/cataclysm/config/CommonConfig$TidalClaws.class",
+          "methods": [
+            "<init>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-the_immolator-family.json",
+          "witness_id": "cataclysm:the_immolator-family:config/CommonConfig$ToolConfig",
+          "entry": "com/github/L_Ender/cataclysm/config/CommonConfig$ToolConfig.class",
+          "methods": [
+            "<init>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:config/CMCommonConfig",
+          "entry": "com/github/L_Ender/cataclysm/config/CMCommonConfig.class",
+          "methods": [
+            "Commonbake"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:tidal_claws-family:registry_config"
+      ],
+      "primary_test_source": "cataclysm:tidal_claws",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32p-cataclysm-tidal_claws-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_ITEM_SETUP",
+          "parameter": "stack_limit",
+          "native_value": 1,
+          "native_formula": "native registry/config/weapon and owned payload setup",
+          "units": "items",
+          "boundary": "ModItems/ModEntities/TidalClaws config"
+        },
+        {
+          "primitive": "NATIVE_ITEM_SETUP",
+          "parameter": "attack_damage_default",
+          "native_value": 8,
+          "native_formula": "native registry/config/weapon and owned payload setup",
+          "units": "native config attackDamage",
+          "boundary": "ModItems/ModEntities/TidalClaws config"
+        },
+        {
+          "primitive": "NATIVE_ITEM_SETUP",
+          "parameter": "attack_speed_default",
+          "native_value": 1.6,
+          "native_formula": "native registry/config/weapon and owned payload setup",
+          "units": "native config attackSpeed",
+          "boundary": "ModItems/ModEntities/TidalClaws config"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates."
+    },
+    {
+      "id": "cataclysm:tidal_claws_tentacle_chain",
+      "mod_key": "cataclysm",
+      "display_name": "Tidal native chain selection and spawned segments",
+      "registry_ids": [
+        "cataclysm:tidal_claws"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Locked server tick,!hasChained:if targetsHit>5 setRetracting;else resolved creator Living&&new progress>=5 scan bbox.inflate12,not creator/not previouslyTouched,isValidTarget,segment LOS,nearest. isValidTarget is (bilateral nonallies&&Mob) OR exact creator lastHurtMob/lastHurtByMob UUID;fallback can admit Player/allied/non-Mob,not a blanket Mob/nonallied gate. LOS samelevel/distance<=128,COLLIDER clip MISS. Child gets copied touched list plus NEW target,creatorUUID/from parentID/to targetID,target positionY(.4F),count parent+1,default progress0/damage3;setLast bool before add,add bool ignored,parent hasChained=true. Initial list empty does not pre-add first target;no invented global victim dedup. No nearest ->retract. TargetsHit5 can spawn count6 before its >5 retract gate.",
+      "human_summary": "Locked server tick,!hasChained:if targetsHit>5 setRetracting;else resolved creator Living&&new progress>=5 scan bbox.inflate12,not creator/not previouslyTouched,isValidTarget,segment LOS,nearest. isValidTarget is (bilateral nonallies&&Mob) OR exact creator lastHurtMob/lastHurtByMob UUID;fallback can admit Player/allied/non-Mob,not a blanket Mob/nonallied gate. LOS samelevel/distance<=128,COLLIDER clip MISS. Child gets copied touched list plus NEW target,creatorUUID/from parentID/to targetID,target positionY(.4F),count parent+1,default progress0/damage3;setLast bool before add,add bool ignored,parent hasChained=true. Initial list empty does not pre-add first target;no invented global victim dedup. No nearest ->retract. TargetsHit5 can spawn count6 before its >5 retract gate.",
+      "closest_vanilla_equivalent": "Custom independent chained delivery and native target history",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Locked server tick,!hasChained:if targetsHit>5 setRetracting;else resolved creator Living&&new progress>=5 scan bbox.inflate12,not creator/not previouslyTouched,isValidTarget,segment LOS,nearest. isValidTarget is (bilateral nonallies&&Mob) OR exact creator lastHurtMob/lastHurtByMob UUID;fallback can admit Player/allied/non-Mob,not a blanket Mob/nonallied gate. LOS samelevel/distance<=128,COLLIDER clip MISS. Child gets copied touched list plus NEW target,creatorUUID/from parentID/to targetID,target positionY(.4F),count parent+1,default progress0/damage3;setLast bool before add,add bool ignored,parent hasChained=true. Initial list empty does not pre-add first target;no invented global victim dedup. No nearest ->retract. TargetsHit5 can spawn count6 before its >5 retract gate.",
+      "components": [
+        {
+          "primitive": "TENTACLE_CHAIN_DELIVERY",
+          "formula": "native count>5 retract;nearest admitted target bbox.inflate12;child count+1",
+          "numerical_parameters": {
+            "chain_limit": 5,
+            "aabb_inflate": 12
+          },
+          "parameter_units": {
+            "chain_limit": "native count threshold exclusive",
+            "aabb_inflate": "blocks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Locked tick -> Tidal_Tentacle_Entity.isValidTarget/hasLineOfSight/createChain",
+          "vanilla_relation": "CUSTOM_CONTROL"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native server/!hasChained/count/new-progress/resolved creator",
+        "Native target-history/hostile-Mob OR last attacker/victim fallback,LOS/nearest",
+        "Native create/entity-add with original ignored return;no hurt-success prerequisite"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native server/!hasChained/count/new-progress/resolved creator; Native target-history/hostile-Mob OR last attacker/victim fallback,LOS/nearest; Native create/entity-add with original ignored return;no hurt-success prerequisite",
+      "source_actor": "Original resolved creator UUID retained for child;parent and target raw IDs",
+      "hurt_return_dependency": "Chain independent of hurt;no duplicate-prevention semantics added beyond native list.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-abyssal.json",
+          "witness_id": "cataclysm:abyssal:com/github/L_Ender/cataclysm/entity/projectile/Tidal_Tentacle_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Tidal_Tentacle_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:entity/projectile/Tidal_Tentacle_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Tidal_Tentacle_Entity.class",
+          "methods": [
+            "isValidTarget",
+            "hasLineOfSight",
+            "createChain",
+            "updateLastTendon"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:entity/util/TidalTentacleUtil",
+          "entry": "com/github/L_Ender/cataclysm/entity/util/TidalTentacleUtil.class",
+          "methods": [
+            "setLastTentacle"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:tidal_claws-family:tentacle_chain"
+      ],
+      "primary_test_source": "cataclysm:tidal_claws",
+      "alternate_sources": [],
+      "spawned_entity_ids": [
+        "cataclysm:tidal_tentacle"
+      ],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32p-cataclysm-tidal_claws-family-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "TENTACLE_CHAIN_DELIVERY",
+          "parameters": [
+            "aabb_inflate"
+          ],
+          "native_value": 12,
+          "native_formula": "native count>5 retract;nearest admitted target bbox.inflate12;child count+1",
+          "units": "blocks",
+          "native_boundary": "Locked tick -> Tidal_Tentacle_Entity.isValidTarget/hasLineOfSight/createChain"
+        },
+        {
+          "primitive": "TENTACLE_CHAIN_DELIVERY",
+          "parameters": [
+            "chain_limit"
+          ],
+          "native_value": 5,
+          "native_formula": "native count>5 retract;nearest admitted target bbox.inflate12;child count+1",
+          "units": "native count threshold exclusive",
+          "native_boundary": "Locked tick -> Tidal_Tentacle_Entity.isValidTarget/hasLineOfSight/createChain"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "TENTACLE_CHAIN_DELIVERY",
+          "parameter": "chain_limit",
+          "native_value": 5,
+          "native_formula": "native count>5 retract;nearest admitted target bbox.inflate12;child count+1",
+          "units": "native count threshold exclusive",
+          "boundary": "Locked tick -> Tidal_Tentacle_Entity.isValidTarget/hasLineOfSight/createChain"
+        },
+        {
+          "primitive": "TENTACLE_CHAIN_DELIVERY",
+          "parameter": "aabb_inflate",
+          "native_value": 12,
+          "native_formula": "native count>5 retract;nearest admitted target bbox.inflate12;child count+1",
+          "units": "blocks",
+          "boundary": "Locked tick -> Tidal_Tentacle_Entity.isValidTarget/hasLineOfSight/createChain"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "initial_target_added_to_history": false,
+      "chain_gated_by_hurt": false,
+      "entity_add_return_ignored": true
+    },
+    {
+      "id": "cataclysm:tidal_claws_tentacle_clock_lifecycle",
+      "mod_key": "cataclysm",
+      "display_name": "Tidal native progress/cascade/persistence lifecycle",
+      "registry_ids": [
+        "cataclysm:tidal_claws"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Native old progress snapshot;!retract&&old<5 increments1;retract&&old>0 decrements1;retract&&old==0 marks from-parent retracting/updateLast(parent),else updateLast(null),then remove DISCARD with no early-return before remaining motion/damage/chain logic. Creator fallback for updateLast is getPlayerByUUID if server creator absent;helper only boolean. No automatic owner-dead/target-removed/missing-creator expiry or independent TTL. Local NBT read/write empty:creator UUID/from/to/count/progress/damage/retract/touched/hasChained not saved;load defaults may leave creatorless segment. No repaired lookup/receipt/lifecycle.",
+      "human_summary": "Native old progress snapshot;!retract&&old<5 increments1;retract&&old>0 decrements1;retract&&old==0 marks from-parent retracting/updateLast(parent),else updateLast(null),then remove DISCARD with no early-return before remaining motion/damage/chain logic. Creator fallback for updateLast is getPlayerByUUID if server creator absent;helper only boolean. No automatic owner-dead/target-removed/missing-creator expiry or independent TTL. Local NBT read/write empty:creator UUID/from/to/count/progress/damage/retract/touched/hasChained not saved;load defaults may leave creatorless segment. No repaired lookup/receipt/lifecycle.",
+      "closest_vanilla_equivalent": "Custom native chained lifecycle and unsaved state",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Native old progress snapshot;!retract&&old<5 increments1;retract&&old>0 decrements1;retract&&old==0 marks from-parent retracting/updateLast(parent),else updateLast(null),then remove DISCARD with no early-return before remaining motion/damage/chain logic. Creator fallback for updateLast is getPlayerByUUID if server creator absent;helper only boolean. No automatic owner-dead/target-removed/missing-creator expiry or independent TTL. Local NBT read/write empty:creator UUID/from/to/count/progress/damage/retract/touched/hasChained not saved;load defaults may leave creatorless segment. No repaired lookup/receipt/lifecycle.",
+      "components": [
+        {
+          "primitive": "PAYLOAD_LIFECYCLE",
+          "formula": "old progress±1 to5,back to0,cascade parent retraction;local NBT empty",
+          "numerical_parameters": {
+            "extend_progress": 5,
+            "progress_step": 1
+          },
+          "parameter_units": {
+            "extend_progress": "raw progress",
+            "progress_step": "per native tick"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Locked tick -> Tidal_Tentacle_Entity.NBT/updateLastTendon",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native progress/retract/from-parent/creator/state and lookup gates",
+        "Native post-remove execution preserved;no invented TTL or cleanup"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native progress/retract/from-parent/creator/state and lookup gates; Native post-remove execution preserved;no invented TTL or cleanup",
+      "source_actor": "Native original creator UUID/parent IDs;no surrogate restored owner",
+      "hurt_return_dependency": "Lifecycle/cascade independent of hurt.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-abyssal.json",
+          "witness_id": "cataclysm:abyssal:com/github/L_Ender/cataclysm/entity/projectile/Tidal_Tentacle_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Tidal_Tentacle_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:entity/projectile/Tidal_Tentacle_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Tidal_Tentacle_Entity.class",
+          "methods": [
+            "readAdditionalSaveData",
+            "addAdditionalSaveData",
+            "updateLastTendon",
+            "getFromEntity",
+            "getCreatorEntity"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:entity/util/TidalTentacleUtil",
+          "entry": "com/github/L_Ender/cataclysm/entity/util/TidalTentacleUtil.class",
+          "methods": [
+            "setLastTentacle"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:tidal_claws-family:tentacle_clock_lifecycle"
+      ],
+      "primary_test_source": "cataclysm:tidal_claws",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32p-cataclysm-tidal_claws-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "PAYLOAD_LIFECYCLE",
+          "parameter": "extend_progress",
+          "native_value": 5,
+          "native_formula": "old progress±1 to5,back to0,cascade parent retraction;local NBT empty",
+          "units": "raw progress",
+          "boundary": "Locked tick -> Tidal_Tentacle_Entity.NBT/updateLastTendon"
+        },
+        {
+          "primitive": "PAYLOAD_LIFECYCLE",
+          "parameter": "progress_step",
+          "native_value": 1,
+          "native_formula": "old progress±1 to5,back to0,cascade parent retraction;local NBT empty",
+          "units": "per native tick",
+          "boundary": "Locked tick -> Tidal_Tentacle_Entity.NBT/updateLastTendon"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "local_combat_state_persistent": false,
+      "independent_ttl_present": false
+    },
+    {
+      "id": "cataclysm:tidal_claws_tentacle_curse",
+      "mod_key": "cataclysm",
+      "display_name": "Tidal native true-hurt Abyssal Curse delivery",
+      "registry_ids": [
+        "cataclysm:tidal_claws"
+      ],
+      "primary_classification": "CUSTOM_STATUS",
+      "actual_behavior": "Reuse locked R2k2d status/apply slice:tentacle current hurttrue ->cast current to Living,native Curse raw old amp+1/absent0;removeEffectNoUpdate existing,clamp0..4,reapply60,false ambient/true visible/icon,no explicit source. Native addEffect bool ignored and immunity/stack/lifecycle/DOT/teleport behavior remains the locked Curse contract;no new DOT/teleport/source. Native nonliving-target successful-hurt cast failure not repaired.",
+      "human_summary": "Reuse locked R2k2d status/apply slice:tentacle current hurttrue ->cast current to Living,native Curse raw old amp+1/absent0;removeEffectNoUpdate existing,clamp0..4,reapply60,false ambient/true visible/icon,no explicit source. Native addEffect bool ignored and immunity/stack/lifecycle/DOT/teleport behavior remains the locked Curse contract;no new DOT/teleport/source. Native nonliving-target successful-hurt cast failure not repaired.",
+      "closest_vanilla_equivalent": "Locked custom Abyssal Curse MobEffect delivery",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Reuse locked R2k2d status/apply slice:tentacle current hurttrue ->cast current to Living,native Curse raw old amp+1/absent0;removeEffectNoUpdate existing,clamp0..4,reapply60,false ambient/true visible/icon,no explicit source. Native addEffect bool ignored and immunity/stack/lifecycle/DOT/teleport behavior remains the locked Curse contract;no new DOT/teleport/source. Native nonliving-target successful-hurt cast failure not repaired.",
+      "components": [
+        {
+          "primitive": "ABYSSAL_CURSE_DELIVERY",
+          "formula": "hurttrue ->native raw replace Curse60,amp+1 cap4/absent0",
+          "numerical_parameters": {
+            "duration": 60,
+            "native_amp_cap": 4
+          },
+          "parameter_units": {
+            "duration": "ticks",
+            "native_amp_cap": "zero-based native amplifier"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Locked Tidal_Tentacle_Entity.tick -> EffectAbyssal_Curse",
+          "vanilla_relation": "CUSTOM_STATUS"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Original tentacle hurt true and native Living cast",
+        "Native raw remove/reapply/immunity/stack/cancellation/lifecycle",
+        "Native amplifier admission cap is not a Stage cap decision"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Original tentacle hurt true and native Living cast; Native raw remove/reapply/immunity/stack/cancellation/lifecycle; Native amplifier admission cap is not a Stage cap decision",
+      "source_actor": "Native current target;addEffect without explicit source",
+      "hurt_return_dependency": "Native true hurt only;effect add bool ignored.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-abyssal.json",
+          "witness_id": "cataclysm:abyssal:com/github/L_Ender/cataclysm/entity/projectile/Tidal_Tentacle_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Tidal_Tentacle_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-abyssal.json",
+          "witness_id": "cataclysm:abyssal:com/github/L_Ender/cataclysm/effects/EffectAbyssal_Curse.class",
+          "entry": "com/github/L_Ender/cataclysm/effects/EffectAbyssal_Curse.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "shouldApplyEffectTickThisTick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:tidal_claws-family:tentacle_curse"
+      ],
+      "primary_test_source": "cataclysm:tidal_claws",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32p-cataclysm-tidal_claws-family-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "ABYSSAL_CURSE_DELIVERY",
+          "parameters": [
+            "duration"
+          ],
+          "native_value": 60,
+          "native_formula": "hurttrue ->native raw replace Curse60,amp+1 cap4/absent0",
+          "units": "ticks",
+          "native_boundary": "Locked Tidal_Tentacle_Entity.tick -> EffectAbyssal_Curse"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "ABYSSAL_CURSE_DELIVERY",
+          "parameter": "duration",
+          "native_value": 60,
+          "native_formula": "hurttrue ->native raw replace Curse60,amp+1 cap4/absent0",
+          "units": "ticks",
+          "boundary": "Locked Tidal_Tentacle_Entity.tick -> EffectAbyssal_Curse"
+        },
+        {
+          "primitive": "ABYSSAL_CURSE_DELIVERY",
+          "parameter": "native_amp_cap",
+          "native_value": 4,
+          "native_formula": "hurttrue ->native raw replace Curse60,amp+1 cap4/absent0",
+          "units": "zero-based native amplifier",
+          "boundary": "Locked Tidal_Tentacle_Entity.tick -> EffectAbyssal_Curse"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "effect_source_argument_present": false
+    },
+    {
+      "id": "cataclysm:tidal_claws_tentacle_damage",
+      "mod_key": "cataclysm",
+      "display_name": "Tidal native extended tentacle damage request",
+      "registry_ids": [
+        "cataclysm:tidal_claws"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "Locked tick reads old progress before increment/retract. Server oldProgress>=5&&absolute tickCount%2==0,creator Living,current!=null/current!=creator ->native mobProjectile(segment,creator),fixed synced DAMAGE default3. No local current-alive/Living/alliance/LOS/invulnerable test beyond native hurt;root melee can initially select other living targets. No current attribute/config/melee damage multiplier. Does not gate on !retracting or !hasChained:full parent segments keep requesting damage after chaining, and old-progress retract frame can still hurt. Hurt false suppresses only Curse,not motion/chain/cascade.",
+      "human_summary": "Locked tick reads old progress before increment/retract. Server oldProgress>=5&&absolute tickCount%2==0,creator Living,current!=null/current!=creator ->native mobProjectile(segment,creator),fixed synced DAMAGE default3. No local current-alive/Living/alliance/LOS/invulnerable test beyond native hurt;root melee can initially select other living targets. No current attribute/config/melee damage multiplier. Does not gate on !retracting or !hasChained:full parent segments keep requesting damage after chaining, and old-progress retract frame can still hurt. Hurt false suppresses only Curse,not motion/chain/cascade.",
+      "closest_vanilla_equivalent": "Vanilla mob_projectile damage source with custom repeat delivery",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Locked tick reads old progress before increment/retract. Server oldProgress>=5&&absolute tickCount%2==0,creator Living,current!=null/current!=creator ->native mobProjectile(segment,creator),fixed synced DAMAGE default3. No local current-alive/Living/alliance/LOS/invulnerable test beyond native hurt;root melee can initially select other living targets. No current attribute/config/melee damage multiplier. Does not gate on !retracting or !hasChained:full parent segments keep requesting damage after chaining, and old-progress retract frame can still hurt. Hurt false suppresses only Curse,not motion/chain/cascade.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "formula": "fixed synced DAMAGE3 read by getBaseDamage",
+          "numerical_parameters": {
+            "damage": 3
+          },
+          "parameter_units": {
+            "damage": "requested damage points"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Tidal_Tentacle_Entity.defineSynchedData/getBaseDamage -> locked tick",
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_ADMISSION",
+          "formula": "old progress>=5 and absolute tick%2==0",
+          "numerical_parameters": {
+            "progress_threshold": 5,
+            "cadence": 2
+          },
+          "parameter_units": {
+            "progress_threshold": "raw progress",
+            "cadence": "absolute entity tick modulo"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Locked Tidal_Tentacle_Entity.tick",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native server/resolved Living creator/current/self/old-progress/cadence",
+        "Native hurt admission/defenses remain native;no additional recipient/team predicate"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native server/resolved Living creator/current/self/old-progress/cadence; Native hurt admission/defenses remain native;no additional recipient/team predicate",
+      "source_actor": "Direct segment;causing native resolved creator LivingEntity",
+      "hurt_return_dependency": "True hurt gates only Curse;no damage-return gate for movement/chaining.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-abyssal.json",
+          "witness_id": "cataclysm:abyssal:com/github/L_Ender/cataclysm/entity/projectile/Tidal_Tentacle_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Tidal_Tentacle_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:entity/projectile/Tidal_Tentacle_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Tidal_Tentacle_Entity.class",
+          "methods": [
+            "defineSynchedData",
+            "getBaseDamage",
+            "getCreatorEntity",
+            "getToEntity"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:tidal_claws-family:tentacle_damage"
+      ],
+      "primary_test_source": "cataclysm:tidal_claws",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32p-cataclysm-tidal_claws-family-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "damage"
+          ],
+          "native_value": 3,
+          "native_formula": "fixed synced DAMAGE3 read by getBaseDamage",
+          "units": "requested damage points",
+          "native_boundary": "Tidal_Tentacle_Entity.defineSynchedData/getBaseDamage -> locked tick"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameter": "damage",
+          "native_value": 3,
+          "native_formula": "fixed synced DAMAGE3 read by getBaseDamage",
+          "units": "requested damage points",
+          "boundary": "Tidal_Tentacle_Entity.defineSynchedData/getBaseDamage -> locked tick"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_ADMISSION",
+          "parameter": "progress_threshold",
+          "native_value": 5,
+          "native_formula": "old progress>=5 and absolute tick%2==0",
+          "units": "raw progress",
+          "boundary": "Locked Tidal_Tentacle_Entity.tick"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_ADMISSION",
+          "parameter": "cadence",
+          "native_value": 2,
+          "native_formula": "old progress>=5 and absolute tick%2==0",
+          "units": "absolute entity tick modulo",
+          "boundary": "Locked Tidal_Tentacle_Entity.tick"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "continues_damage_after_chaining": true,
+      "damage_uses_old_progress": true
+    },
+    {
+      "id": "cataclysm:tidal_claws_tentacle_motion",
+      "mod_key": "cataclysm",
+      "display_name": "Tidal tentacle native target-follow motion",
+      "registry_ids": [
+        "cataclysm:tidal_claws"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Reuse captured native tick:creator resolves by UUID only on server,current target by numericID. If creator Living&&current!=null,setVelocity=(target(X,Y(.4F),Z)-position)*.5D. Every tick later captures velocity,sets velocity*=float(.99),setsPos(oldPos+capturedVelocity),without collision move or alive/hurt-success requirement. Missing actor/target leaves native existing velocity decay;no fallback actor/target/cache.",
+      "human_summary": "Reuse captured native tick:creator resolves by UUID only on server,current target by numericID. If creator Living&&current!=null,setVelocity=(target(X,Y(.4F),Z)-position)*.5D. Every tick later captures velocity,sets velocity*=float(.99),setsPos(oldPos+capturedVelocity),without collision move or alive/hurt-success requirement. Missing actor/target leaves native existing velocity decay;no fallback actor/target/cache.",
+      "closest_vanilla_equivalent": "Custom target-follow Entity motion,not knockback",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Reuse captured native tick:creator resolves by UUID only on server,current target by numericID. If creator Living&&current!=null,setVelocity=(target(X,Y(.4F),Z)-position)*.5D. Every tick later captures velocity,sets velocity*=float(.99),setsPos(oldPos+capturedVelocity),without collision move or alive/hurt-success requirement. Missing actor/target leaves native existing velocity decay;no fallback actor/target/cache.",
+      "components": [
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "formula": "velocity=(targetY(.4F)-position)*.5;rawPos+=velocity;velocity*=float(.99)",
+          "numerical_parameters": {
+            "follow_factor": 0.5,
+            "target_height_fraction": 0.4000000059604645,
+            "inertia": 0.9900000095367432
+          },
+          "parameter_units": {
+            "follow_factor": "native velocity coefficient",
+            "target_height_fraction": "native target height fraction",
+            "inertia": "native velocity damping"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Locked Tidal_Tentacle_Entity.tick",
+          "vanilla_relation": "CUSTOM_CONTROL"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native server creator lookup,target ID lookup;native parent tick",
+        "No invented alive/alliance/health-hurt gate for motion"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native server creator lookup,target ID lookup;native parent tick; No invented alive/alliance/health-hurt gate for motion",
+      "source_actor": "Native segment tracks original numeric target;creator UUID actor remains native",
+      "hurt_return_dependency": "Motion independent of hurt.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-abyssal.json",
+          "witness_id": "cataclysm:abyssal:com/github/L_Ender/cataclysm/entity/projectile/Tidal_Tentacle_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Tidal_Tentacle_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:entity/projectile/Tidal_Tentacle_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Tidal_Tentacle_Entity.class",
+          "methods": [
+            "getCreatorEntity",
+            "getToEntity",
+            "getCreatorEntityUUID"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:tidal_claws-family:tentacle_motion"
+      ],
+      "primary_test_source": "cataclysm:tidal_claws",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32p-cataclysm-tidal_claws-family-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "follow_factor"
+          ],
+          "native_value": 0.5,
+          "native_formula": "velocity=(targetY(.4F)-position)*.5;rawPos+=velocity;velocity*=float(.99)",
+          "units": "native velocity coefficient",
+          "native_boundary": "Locked Tidal_Tentacle_Entity.tick"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameter": "follow_factor",
+          "native_value": 0.5,
+          "native_formula": "velocity=(targetY(.4F)-position)*.5;rawPos+=velocity;velocity*=float(.99)",
+          "units": "native velocity coefficient",
+          "boundary": "Locked Tidal_Tentacle_Entity.tick"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameter": "target_height_fraction",
+          "native_value": 0.4000000059604645,
+          "native_formula": "velocity=(targetY(.4F)-position)*.5;rawPos+=velocity;velocity*=float(.99)",
+          "units": "native target height fraction",
+          "boundary": "Locked Tidal_Tentacle_Entity.tick"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameter": "inertia",
+          "native_value": 0.9900000095367432,
+          "native_formula": "velocity=(targetY(.4F)-position)*.5;rawPos+=velocity;velocity*=float(.99)",
+          "units": "native velocity damping",
+          "boundary": "Locked Tidal_Tentacle_Entity.tick"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates."
+    },
+    {
+      "id": "cataclysm:tidal_claws_tentacle_producer",
+      "mod_key": "cataclysm",
+      "display_name": "Tidal Claws native first tentacle delivery",
+      "registry_ids": [
+        "cataclysm:tidal_claws"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "launchTendonsAt checks !hasTentacle&&canLaunch,then retractFar before server/nonnull target check. Server target constructs registry Entity,copyPosition actor,addFreshEntity BEFORE setting creatorUUID/from actorID/to targetID/progress0,copyPosition again,setLastTentacle booltrue,returntrue. Native create-null/cancellation/add-false behavior not repaired;add bool ignored. No consumed stack/ammo/cooldown/durability/native stat damage snapshot. Melee targets and left-click-selected targets use same native producer.",
+      "human_summary": "launchTendonsAt checks !hasTentacle&&canLaunch,then retractFar before server/nonnull target check. Server target constructs registry Entity,copyPosition actor,addFreshEntity BEFORE setting creatorUUID/from actorID/to targetID/progress0,copyPosition again,setLastTentacle booltrue,returntrue. Native create-null/cancellation/add-false behavior not repaired;add bool ignored. No consumed stack/ammo/cooldown/durability/native stat damage snapshot. Melee targets and left-click-selected targets use same native producer.",
+      "closest_vanilla_equivalent": "Custom owned chained Entity delivery",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "launchTendonsAt checks !hasTentacle&&canLaunch,then retractFar before server/nonnull target check. Server target constructs registry Entity,copyPosition actor,addFreshEntity BEFORE setting creatorUUID/from actorID/to targetID/progress0,copyPosition again,setLastTentacle booltrue,returntrue. Native create-null/cancellation/add-false behavior not repaired;add bool ignored. No consumed stack/ammo/cooldown/durability/native stat damage snapshot. Melee targets and left-click-selected targets use same native producer.",
+      "components": [
+        {
+          "primitive": "TENTACLE_DELIVERY",
+          "formula": "native first segment with creatorUUID/from actorID/to targetID/progress0",
+          "numerical_parameters": {
+            "initial_progress": 0,
+            "initial_target_count": 0
+          },
+          "parameter_units": {
+            "initial_progress": "raw progress",
+            "initial_target_count": "native chain count"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Tidal_Claws.launchTendonsAt -> Tidal_Tentacle_Entity",
+          "vanilla_relation": "CUSTOM_CONTROL"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Raw !hasTentacle&&canLaunch;retractFar before server/nonnull target",
+        "Native registry create/entity-add/cancellation",
+        "No new actor/item/LOS/ally gate beyond native caller/producer"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Raw !hasTentacle&&canLaunch;retractFar before server/nonnull target; Native registry create/entity-add/cancellation; No new actor/item/LOS/ally gate beyond native caller/producer",
+      "source_actor": "Native attacking LivingEntity creator UUID;native from/to entity IDs",
+      "hurt_return_dependency": "Delivery/add/chain flags independent of hurt;return true not add success.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:items/Tidal_Claws",
+          "entry": "com/github/L_Ender/cataclysm/items/Tidal_Claws.class",
+          "methods": [
+            "launchTendonsAt"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:entity/projectile/Tidal_Tentacle_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Tidal_Tentacle_Entity.class",
+          "methods": [
+            "<init>",
+            "defineSynchedData",
+            "setCreatorEntityUUID",
+            "setFromEntityID",
+            "setToEntityID",
+            "setProgress"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:entity/util/TidalTentacleUtil",
+          "entry": "com/github/L_Ender/cataclysm/entity/util/TidalTentacleUtil.class",
+          "methods": [
+            "setLastTentacle"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:tidal_claws-family:tentacle_producer"
+      ],
+      "primary_test_source": "cataclysm:tidal_claws",
+      "alternate_sources": [],
+      "spawned_entity_ids": [
+        "cataclysm:tidal_tentacle"
+      ],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32p-cataclysm-tidal_claws-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "TENTACLE_DELIVERY",
+          "parameter": "initial_progress",
+          "native_value": 0,
+          "native_formula": "native first segment with creatorUUID/from actorID/to targetID/progress0",
+          "units": "raw progress",
+          "boundary": "Tidal_Claws.launchTendonsAt -> Tidal_Tentacle_Entity"
+        },
+        {
+          "primitive": "TENTACLE_DELIVERY",
+          "parameter": "initial_target_count",
+          "native_value": 0,
+          "native_formula": "native first segment with creatorUUID/from actorID/to targetID/progress0",
+          "units": "native chain count",
+          "boundary": "Tidal_Claws.launchTendonsAt -> Tidal_Tentacle_Entity"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "entity_add_return_ignored": true,
+      "metadata_assigned_after_entity_add": true
+    },
+    {
       "id": "cataclysm:urchinkin_aquatic_motion",
       "mod_key": "cataclysm",
       "display_name": "Urchinkin exact aquatic controller behavior",
@@ -168434,6 +170152,671 @@
       "runtime_status": "NOT_RUN"
     },
     {
+      "id": "cataclysm:tidal_claws-family:hook_contact",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:tidal_claws_hook_contact"
+      ],
+      "primary_source": "cataclysm:tidal_claws",
+      "native_path": "Hook ctor Arrow/noGravity/pickup DISALLOWED/baseDamage0. onHitEntity does NOT call parent/no hurt:server Player owner,hit!=owner,Living OR EnderDragonPart,hookedEntitynull ->cache native target,synced id targetID+1,isPullingtrue. No team/LOS/new health admission;source Arrow collision gates remain native. onHitBlock calls parent,sets pullingtrue;server Player&&hookedEntitynull ->owner noGravitytrue. Entity latch does not itself set owner noGravity. It moves owner toward attachment point,not target toward owner.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:entity/projectile/Tidal_Hook_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Tidal_Hook_Entity.class",
+          "methods": [
+            "<init>",
+            "onHitEntity",
+            "onHitBlock",
+            "defineSynchedData"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/iceandfire-ghost-troll-244.json",
+          "witness_id": "iceandfire-ghost-troll-244",
+          "entry": "net/minecraft/world/entity/projectile/AbstractArrow.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "canHitEntity"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:tidal_claws-family:hook_fall_gravity",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:tidal_claws_hook_fall_gravity"
+      ],
+      "primary_source": "cataclysm:tidal_claws",
+      "native_path": "HOOK_FALLING native attachment defaultsfalse,serialized BOOL,no copyOnDeath builder;not a Stage state. When flagtrue native Player Post setsIgnoreFallDamageFromCurrentImpulse(true) and currentImpulseImpactPos=current position. Native LivingFall for Player flagtrue sets distance0 and setCanceled(false),not canceltrue. Reuse callbacks without reopening separate Cursium boots rule. Block latch sets owner noGravitytrue;Hook.kill server Player restores noGravityfalse and sends tracking/self HookFalling(ownerID,true),does NOT clear server flag. Client handler enqueues numeric ID lookup,if Living sets raw HOOK_FALLING=message bool;registered playToClient. Native release/finish separately clear flag;no new inferred ack/reset on contact/discard.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:init/ModDataAttachments",
+          "entry": "com/github/L_Ender/cataclysm/init/ModDataAttachments.class",
+          "methods": [
+            "<clinit>",
+            "lambda$static$0",
+            "lambda$static$1"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:entity/projectile/Tidal_Hook_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Tidal_Hook_Entity.class",
+          "methods": [
+            "kill",
+            "onHitBlock"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:message/MessageHookFalling",
+          "entry": "com/github/L_Ender/cataclysm/message/MessageHookFalling.class",
+          "methods": [
+            "<init>",
+            "write",
+            "handle",
+            "lambda$handle$0"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:event/ServerEventHandler",
+          "entry": "com/github/L_Ender/cataclysm/event/ServerEventHandler.class",
+          "methods": [
+            "onLivingFall",
+            "onLivingUpdateEvent"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:Cataclysm",
+          "entry": "com/github/L_Ender/cataclysm/Cataclysm.class",
+          "methods": [
+            "setupPackets"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:tidal_claws-family:hook_lifecycle",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:tidal_claws_hook_lifecycle"
+      ],
+      "primary_source": "cataclysm:tidal_claws",
+      "native_path": "Native hook server Player kill checks owner dead/dying OR flagfalse OR owner distance>maxRange OR neither hand item instanceofClaws;later identity check kills when neither hand is original stack reference. Native target removed path discards directly,not kill;kill restores gravity/sends clienttrue only for server Player and then parent kill. No explicit concrete cleanup for null/non-Player owner beyond parent Arrow lifecycle. Local NBT saves maxRange/maxSpeed/isPulling plus parent Arrow owner/item state;private stack reference and hookedEntity not saved/reconstructed;Player reload with null source stack hits native identity kill. Water inertia.9,portals false. No generic receipt/restored target/stack/cache or extra TTL;original post-kill/discard continuation preserved.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:entity/projectile/Tidal_Hook_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Tidal_Hook_Entity.class",
+          "methods": [
+            "tick",
+            "kill",
+            "readAdditionalSaveData",
+            "addAdditionalSaveData",
+            "getWaterInertia",
+            "canUsePortal"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/iceandfire-ghost-troll-244.json",
+          "witness_id": "iceandfire-ghost-troll-244",
+          "entry": "net/minecraft/world/entity/projectile/AbstractArrow.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "canHitEntity"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:tidal_claws-family:hook_owner_motion",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:tidal_claws_hook_owner_motion"
+      ],
+      "primary_source": "cataclysm:tidal_claws",
+      "native_path": "After parent Arrow tick,server Player owner updates cached target:removed ->clear/discard without kill;otherwise move hook to targetY(.8). Owner current hand must be same stack OBJECT reference;other matching Claws insufficient. isPulling ->distance=hookPos-(ownerPos+height/2),brakeZone=6*(maxSpeed/10),pullSpeed=maxSpeed/6;normalize distance scaled by pullSpeed,linear brake when length<brakeZone. If absY<.1,force motionY0;if XZdistance<length(width/2,0,width/2)/1.4 force XZ0. Writes owner absolute setDeltaMovement/hurtMarkedtrue,not knockback/push or health damage. Native kill earlier in tick does not add an early return;matching stack can still admit later motion.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:items/Tidal_Claws",
+          "entry": "com/github/L_Ender/cataclysm/items/Tidal_Claws.class",
+          "methods": [
+            "use"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:entity/projectile/Tidal_Hook_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Tidal_Hook_Entity.class",
+          "methods": [
+            "tick",
+            "setProperties"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:tidal_claws-family:hook_use_latch",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:tidal_claws_hook_use_latch"
+      ],
+      "primary_source": "cataclysm:tidal_claws",
+      "native_path": "Right use:BOW/use72000,server&&!HOOK_FALLING ->one owned Hook(original supplied stack),maxRange30/maxSpeed12,setProperties yaw/pitch/roll0,shoot1.5F*float(12/10)=native1.8F/inaccuracy0,add bool ignored. Both sides then startUsingItem,set HOOK_FALLING true and return parent use (no forced success invented). Release/finish resets true flagfalse;finish returns parent result. No own cooldown/ammo/durability debit/charge wait or item consumption;hook gate differs from tentacle attachment.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:items/Tidal_Claws",
+          "entry": "com/github/L_Ender/cataclysm/items/Tidal_Claws.class",
+          "methods": [
+            "use",
+            "releaseUsing",
+            "finishUsingItem",
+            "getUseAnimation",
+            "getUseDuration"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:entity/projectile/Tidal_Hook_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Tidal_Hook_Entity.class",
+          "methods": [
+            "<init>",
+            "setProperties"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:tidal_claws-family:left_selection",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:tidal_claws_left_selection"
+      ],
+      "primary_source": "cataclysm:tidal_claws",
+      "native_path": "onLeftClick requires exact TIDAL_CLAWS stack; Player attackStrengthScale(.5F)>.9F,non-Player no charge test. Calls native Block.VISUAL/Fluid.NONE clip16; Level.clip signature returns BlockHitResult, so the EntityHitResult arm is not a native entity ray pick. Actual nearest fallback scans LivingEntity bbox.inflate16 and requires Mob,notself,bilateral nonalliance,actor LOS; strict nearer comparison retains native iteration ties. No spherical16 distance or facing-cone gate invented. Reuse locked input/MAIN_HAND swing packet/STUN contracts. A successful native melee hurtEnemy independently calls launchTendonsAt(attacker,target), no local charge/Mob/team/LOS recheck, then parent hurtEnemy.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:items/Tidal_Claws",
+          "entry": "com/github/L_Ender/cataclysm/items/Tidal_Claws.class",
+          "methods": [
+            "onLeftClick",
+            "isCharged",
+            "hurtEnemy"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:event/ServerEventHandler",
+          "entry": "com/github/L_Ender/cataclysm/event/ServerEventHandler.class",
+          "methods": [
+            "onPlayerLeftClick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/message/MessageSwingArm.class",
+          "entry": "com/github/L_Ender/cataclysm/message/MessageSwingArm.class",
+          "methods": [
+            "handle",
+            "lambda$handle$0"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:tidal_claws-family:melee_attributes",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:tidal_claws_melee_attributes"
+      ],
+      "primary_source": "cataclysm:tidal_claws",
+      "native_path": "Default-components bootstrap24->lambda308 creates MAINHAND ADD_VALUE damage=float(config8)-1 default7,speed=float(config1.6)-4 default-2.4 using locked native weapon/merge; no extra reach/critical custom attribute here. These are native melee attributes, not tentacle fixed damage3 or hook damage0.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:init/ModItems",
+          "entry": "com/github/L_Ender/cataclysm/init/ModItems.class",
+          "methods": [
+            "modifyComponents",
+            "lambda$modifyComponents$308"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-the_immolator-family.json",
+          "witness_id": "cataclysm:the_immolator-family:items/Cataclysm_Weapon",
+          "entry": "com/github/L_Ender/cataclysm/items/Cataclysm_Weapon.class",
+          "methods": [
+            "createAttributes"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-the_immolator-family.json",
+          "witness_id": "cataclysm:the_immolator-family:util/AttributeUtils",
+          "entry": "com/github/L_Ender/cataclysm/util/AttributeUtils.class",
+          "methods": [
+            "mergeAttributes"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:tidal_claws-family:raw_tentacle_attachment",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:tidal_claws_raw_tentacle_attachment"
+      ],
+      "primary_source": "cataclysm:tidal_claws",
+      "native_path": "Native attachment defaults hasTentacle=false,UUIDnull,id0; unconstrained getters/setters,no own tick/NBT. Builder only constructor/build,no serializer/copyOnDeath. setLastTentacle(entity,segment) only writes boolean(segment!=null),never ID/UUID. Direct item/chain/cascade call that helper without identifier writes; do not invent repaired tracking. getLastTendon server first requires stored UUIDnonnull,then looks up numeric id (not UUID and no UUID equality);client id!=-1 lookup. canLaunch returns last absent or removed;retractFar removes resolvable last and clears boolean. Native default-null server UUID therefore yields no resolved last in this producer path,while raw boolean still blocks item launch until native cascade clears it.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:Attachment/TidalTentacleAttachment",
+          "entry": "com/github/L_Ender/cataclysm/Attachment/TidalTentacleAttachment.class",
+          "methods": [
+            "<init>",
+            "setHasTentacle",
+            "setLastTentacleID",
+            "setLastTentacleUUID"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:entity/util/TidalTentacleUtil",
+          "entry": "com/github/L_Ender/cataclysm/entity/util/TidalTentacleUtil.class",
+          "methods": [
+            "setLastTentacle",
+            "getLastTendon",
+            "canLaunchTentacles",
+            "retractFarTentacles"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:init/ModDataAttachments",
+          "entry": "com/github/L_Ender/cataclysm/init/ModDataAttachments.class",
+          "methods": [
+            "<clinit>",
+            "lambda$static$4"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:tidal_claws-family:registry_config",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:tidal_claws_registry_config"
+      ],
+      "primary_source": "cataclysm:tidal_claws",
+      "native_path": "Native item bootstrap196/factory168 ->stack1/fireResistant weapon, factory MAINHAND attack7/speed-2.4. Config attackDamage8/attackSpeed1.6 with native ToolConfig0..1000000,Commonbake reused. Registered tentacle0.1x0.1 custom Entity and hook0.5x0.5 native Arrow subclass, exact concrete factories. Item fireResistant differs from owner immunity. Native item and payload entry points remain separate.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:items/Tidal_Claws",
+          "entry": "com/github/L_Ender/cataclysm/items/Tidal_Claws.class",
+          "methods": [
+            "<init>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:init/ModItems",
+          "entry": "com/github/L_Ender/cataclysm/init/ModItems.class",
+          "methods": [
+            "<clinit>",
+            "lambda$static$168"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "<clinit>",
+            "lambda$static$65",
+            "lambda$static$66"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:config/CMCommonConfig$TidalClaws",
+          "entry": "com/github/L_Ender/cataclysm/config/CMCommonConfig$TidalClaws.class",
+          "methods": [
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:config/CommonConfig$TidalClaws",
+          "entry": "com/github/L_Ender/cataclysm/config/CommonConfig$TidalClaws.class",
+          "methods": [
+            "<init>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-the_immolator-family.json",
+          "witness_id": "cataclysm:the_immolator-family:config/CommonConfig$ToolConfig",
+          "entry": "com/github/L_Ender/cataclysm/config/CommonConfig$ToolConfig.class",
+          "methods": [
+            "<init>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:config/CMCommonConfig",
+          "entry": "com/github/L_Ender/cataclysm/config/CMCommonConfig.class",
+          "methods": [
+            "Commonbake"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:tidal_claws-family:tentacle_chain",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:tidal_claws_tentacle_chain"
+      ],
+      "primary_source": "cataclysm:tidal_claws",
+      "native_path": "Locked server tick,!hasChained:if targetsHit>5 setRetracting;else resolved creator Living&&new progress>=5 scan bbox.inflate12,not creator/not previouslyTouched,isValidTarget,segment LOS,nearest. isValidTarget is (bilateral nonallies&&Mob) OR exact creator lastHurtMob/lastHurtByMob UUID;fallback can admit Player/allied/non-Mob,not a blanket Mob/nonallied gate. LOS samelevel/distance<=128,COLLIDER clip MISS. Child gets copied touched list plus NEW target,creatorUUID/from parentID/to targetID,target positionY(.4F),count parent+1,default progress0/damage3;setLast bool before add,add bool ignored,parent hasChained=true. Initial list empty does not pre-add first target;no invented global victim dedup. No nearest ->retract. TargetsHit5 can spawn count6 before its >5 retract gate.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-abyssal.json",
+          "witness_id": "cataclysm:abyssal:com/github/L_Ender/cataclysm/entity/projectile/Tidal_Tentacle_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Tidal_Tentacle_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:entity/projectile/Tidal_Tentacle_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Tidal_Tentacle_Entity.class",
+          "methods": [
+            "isValidTarget",
+            "hasLineOfSight",
+            "createChain",
+            "updateLastTendon"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:entity/util/TidalTentacleUtil",
+          "entry": "com/github/L_Ender/cataclysm/entity/util/TidalTentacleUtil.class",
+          "methods": [
+            "setLastTentacle"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:tidal_claws-family:tentacle_clock_lifecycle",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:tidal_claws_tentacle_clock_lifecycle"
+      ],
+      "primary_source": "cataclysm:tidal_claws",
+      "native_path": "Native old progress snapshot;!retract&&old<5 increments1;retract&&old>0 decrements1;retract&&old==0 marks from-parent retracting/updateLast(parent),else updateLast(null),then remove DISCARD with no early-return before remaining motion/damage/chain logic. Creator fallback for updateLast is getPlayerByUUID if server creator absent;helper only boolean. No automatic owner-dead/target-removed/missing-creator expiry or independent TTL. Local NBT read/write empty:creator UUID/from/to/count/progress/damage/retract/touched/hasChained not saved;load defaults may leave creatorless segment. No repaired lookup/receipt/lifecycle.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-abyssal.json",
+          "witness_id": "cataclysm:abyssal:com/github/L_Ender/cataclysm/entity/projectile/Tidal_Tentacle_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Tidal_Tentacle_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:entity/projectile/Tidal_Tentacle_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Tidal_Tentacle_Entity.class",
+          "methods": [
+            "readAdditionalSaveData",
+            "addAdditionalSaveData",
+            "updateLastTendon",
+            "getFromEntity",
+            "getCreatorEntity"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:entity/util/TidalTentacleUtil",
+          "entry": "com/github/L_Ender/cataclysm/entity/util/TidalTentacleUtil.class",
+          "methods": [
+            "setLastTentacle"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:tidal_claws-family:tentacle_curse",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:tidal_claws_tentacle_curse"
+      ],
+      "primary_source": "cataclysm:tidal_claws",
+      "native_path": "Reuse locked R2k2d status/apply slice:tentacle current hurttrue ->cast current to Living,native Curse raw old amp+1/absent0;removeEffectNoUpdate existing,clamp0..4,reapply60,false ambient/true visible/icon,no explicit source. Native addEffect bool ignored and immunity/stack/lifecycle/DOT/teleport behavior remains the locked Curse contract;no new DOT/teleport/source. Native nonliving-target successful-hurt cast failure not repaired.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-abyssal.json",
+          "witness_id": "cataclysm:abyssal:com/github/L_Ender/cataclysm/entity/projectile/Tidal_Tentacle_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Tidal_Tentacle_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-abyssal.json",
+          "witness_id": "cataclysm:abyssal:com/github/L_Ender/cataclysm/effects/EffectAbyssal_Curse.class",
+          "entry": "com/github/L_Ender/cataclysm/effects/EffectAbyssal_Curse.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "shouldApplyEffectTickThisTick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:tidal_claws-family:tentacle_damage",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:tidal_claws_tentacle_damage"
+      ],
+      "primary_source": "cataclysm:tidal_claws",
+      "native_path": "Locked tick reads old progress before increment/retract. Server oldProgress>=5&&absolute tickCount%2==0,creator Living,current!=null/current!=creator ->native mobProjectile(segment,creator),fixed synced DAMAGE default3. No local current-alive/Living/alliance/LOS/invulnerable test beyond native hurt;root melee can initially select other living targets. No current attribute/config/melee damage multiplier. Does not gate on !retracting or !hasChained:full parent segments keep requesting damage after chaining, and old-progress retract frame can still hurt. Hurt false suppresses only Curse,not motion/chain/cascade.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-abyssal.json",
+          "witness_id": "cataclysm:abyssal:com/github/L_Ender/cataclysm/entity/projectile/Tidal_Tentacle_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Tidal_Tentacle_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:entity/projectile/Tidal_Tentacle_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Tidal_Tentacle_Entity.class",
+          "methods": [
+            "defineSynchedData",
+            "getBaseDamage",
+            "getCreatorEntity",
+            "getToEntity"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:tidal_claws-family:tentacle_motion",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:tidal_claws_tentacle_motion"
+      ],
+      "primary_source": "cataclysm:tidal_claws",
+      "native_path": "Reuse captured native tick:creator resolves by UUID only on server,current target by numericID. If creator Living&&current!=null,setVelocity=(target(X,Y(.4F),Z)-position)*.5D. Every tick later captures velocity,sets velocity*=float(.99),setsPos(oldPos+capturedVelocity),without collision move or alive/hurt-success requirement. Missing actor/target leaves native existing velocity decay;no fallback actor/target/cache.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-abyssal.json",
+          "witness_id": "cataclysm:abyssal:com/github/L_Ender/cataclysm/entity/projectile/Tidal_Tentacle_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Tidal_Tentacle_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:entity/projectile/Tidal_Tentacle_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Tidal_Tentacle_Entity.class",
+          "methods": [
+            "getCreatorEntity",
+            "getToEntity",
+            "getCreatorEntityUUID"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:tidal_claws-family:tentacle_producer",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:tidal_claws_tentacle_producer"
+      ],
+      "primary_source": "cataclysm:tidal_claws",
+      "native_path": "launchTendonsAt checks !hasTentacle&&canLaunch,then retractFar before server/nonnull target check. Server target constructs registry Entity,copyPosition actor,addFreshEntity BEFORE setting creatorUUID/from actorID/to targetID/progress0,copyPosition again,setLastTentacle booltrue,returntrue. Native create-null/cancellation/add-false behavior not repaired;add bool ignored. No consumed stack/ammo/cooldown/durability/native stat damage snapshot. Melee targets and left-click-selected targets use same native producer.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:items/Tidal_Claws",
+          "entry": "com/github/L_Ender/cataclysm/items/Tidal_Claws.class",
+          "methods": [
+            "launchTendonsAt"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:entity/projectile/Tidal_Tentacle_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/projectile/Tidal_Tentacle_Entity.class",
+          "methods": [
+            "<init>",
+            "defineSynchedData",
+            "setCreatorEntityUUID",
+            "setFromEntityID",
+            "setToEntityID",
+            "setProgress"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-tidal_claws-family.json",
+          "witness_id": "cataclysm:tidal_claws-family:entity/util/TidalTentacleUtil",
+          "entry": "com/github/L_Ender/cataclysm/entity/util/TidalTentacleUtil.class",
+          "methods": [
+            "setLastTentacle"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
       "id": "cataclysm:urchinkin-family:aquatic_motion",
       "mod_key": "cataclysm",
       "status": "VERIFIED",
@@ -169959,10 +172342,10 @@
   ],
   "unresolved_native_ambiguities": null,
   "remaining_native_ambiguities": null,
-  "checkpoint": "R2k32o-cataclysm-thunder_weapons-family-complete",
-  "scope": "Brontes and Ceraunus complete registered/configured native weapon families, retained-stack UUID launch gates, returning native arrow carriers, contact/control, hammer Spark/Storm producers and Ceraunus Wave producer. Existing native Player/Arrow/config/source/Spark/area/storm/Wave/status contracts locked and reused.",
-  "notes_file": "cataclysm-r2k32o-thunder_weapons-family.json",
-  "exact_next_task": "R2k32p: Tidal_Claws complete combat item family, TidalTentacleAttachment and directly owned/reached tentacle delivery/payload contracts. Start only Tidal_Claws registry/config/use/combat callbacks and material attachment/native entity paths from the existing census. Reuse locked Leviathan/tidal source/status/native Player/config contracts where applicable. Other equipment/accessories/global consumers and coverage audit remain queued; Cataclysm PARTIAL.",
+  "checkpoint": "R2k32p-cataclysm-tidal_claws-family-complete",
+  "scope": "Tidal Claws complete native registered/configured weapon, left/melee attack tentacle chain, raw TidalTentacleAttachment/utilities, owner hook motion/fall/gravity and native packet/lifecycle. Locked Abyssal Curse/tentacle tick/status slice, Native Player/Arrow/source and global native fall callbacks reused. No native state/lookup/cleanup bugs repaired.",
+  "notes_file": "cataclysm-r2k32p-tidal_claws-family.json",
+  "exact_next_task": "R2k32q: Laser_Gatling complete combat item family and directly emitted/reached native beam/projectile payload bindings. Start only Laser_Gatling registry/config/use/ammo/durability/cooldown callbacks and exact native payload paths from the existing census. Reuse locked Harbinger/laser/Player/config/source contracts where applicable. Other shoulder weapons/bows/armor/accessories/global consumers and coverage audit remain queued; Cataclysm PARTIAL.",
   "protected_checkpoint": "R2k3a-cataclysm-guardian-admission-complete",
   "protected_notes_file": "cataclysm-r2k3a-guardian-admission.json",
   "protected_checkpoints": [
@@ -170217,6 +172600,10 @@
     {
       "checkpoint": "R2k32n-cataclysm-astrape-family-complete",
       "notes_file": "cataclysm-r2k32n-astrape-family.json"
+    },
+    {
+      "checkpoint": "R2k32o-cataclysm-thunder_weapons-family-complete",
+      "notes_file": "cataclysm-r2k32o-thunder_weapons-family.json"
     }
   ]
 }
