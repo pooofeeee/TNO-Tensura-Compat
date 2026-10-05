@@ -1,0 +1,279 @@
+{
+  "schema": "tno.external_effects.cataclysm_family_checkpoint.v1",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "cataclysm",
+  "checkpoint": "R2k31-cataclysm-ignited_sword-family-complete",
+  "previous_checkpoint": "R2k30c-cataclysm-netherite_ministrosity-family-complete",
+  "starting_sha": "817593f19e9b1c0d8369fb38e6a7ac9e62309a8a",
+  "protected_production_sha": "eb37f0bfc0e7aa863632f163881566c0ae2a8701",
+  "status": "PARTIAL",
+  "scope": "Compiled Abstract_Summoned_Entity ownership/lifetime/target/follow contracts and Ignited Sword native melee/motion API are closed as an unregistered code surface. Exact ModEntities registry reference absence is pinned. No live summon producer or native registry ID is inferred.",
+  "family_size": "MEDIUM_COMBINED",
+  "family_fully_closed": true,
+  "mechanics_closed": 1,
+  "mechanic_ids": [
+    "cataclysm:ignited_sword_unregistered_boundary"
+  ],
+  "classification_counts": {
+    "BINARY_MECHANIC": 1
+  },
+  "candidate_numeric_parameter_count": 0,
+  "unresolved_ambiguities": [],
+  "facts": {
+    "root_families_closed": [
+      "Abstract_Summoned_Entity shared compiled contract",
+      "Ignited Sword unregistered code surface"
+    ],
+    "live_summon_producer_proven": false,
+    "native_registry_id": null,
+    "registry_evidence_scope": "One exact ModEntities constant-pool absence check plus locked attribute-registration evidence. No recursive archive reference search was performed; whole-mod reachability remains for the later coverage audit.",
+    "ownership_contract": "Abstract_Summoned_Entity is PathfinderMob/OwnableEntity, not TamableAnimal/AnimationPet. Tame is flag bit 4; native nullable UUID field initializes empty. tame(Player) sets tame and UUID; canAttack excludes resolved native owner, wantsToAttack always true, tame getTeam/isAlliedTo delegate to resolved owner then parent. Native OwnableEntity owner lookup is left authoritative; no substitute owner/entity cache is added.",
+    "persistence_contract": "Save writes Owner UUID if present and LifeTicks only when limited-life flag is set. Load accepts UUID or old-user conversion; non-null UUID sets owner and tame(true,false), caught Throwable sets tame(false,true). No UUID leaves constructor state. Limited life setter accepts its integer without clamping; server parent-first tick predecrements and discards at <=0. This is discard, not damage/death/respawner. Concrete sword NBT delegates only; no owner-dead or owner-missing automatic discard is added.",
+    "target_contract": "Summoner hurt-by and hurt-target goals require tame, resolved owner, a changed corresponding timestamp, native TargetGoal canAttack(DEFAULT) and wantsToAttack. Start assigns target, snapshots owner timestamp if still resolved, then native parent start. Sword also registers HurtByTarget alert-others and native MeleeAttackGoal(speed 1,long memory true).",
+    "follow_contract": "Sword binds FlyingFollowSummonerGoal(speed1,min25,max2,leaves=false). Start needs non-spectator owner, squared distance>=min^2, !combat and shouldFollow=true. Continue tests !combat and squared distance>max^2 without an added navigation-done/shouldFollow check. Combat means owner distance<30 plus alive target. Every10 ticks, if not leashed/passenger, owner distanceSquared>=144 tries up to10 teleports (XZ +/-3,Y +/-1), THEN still invokes IFollower.followEntity -> native navigation moveTo. Teleport rejects near-owner X/Z, accepts AIR+noCollision or WALKABLE+leaf/noCollision checks. Parent separate teleport API uses WALKABLE, 10 attempts and canFlyToOwner=false; it is not a registered additional goal.",
+    "setup_motion_contract": "Sword extends the compiled summoned base. Native FlyingMoveControl(20,true) and FlyingPathNavigation(openDoors=false,float=true,passDoors=true). Attribute helper defines follow30, move0.25, fly1.25, attack4, health28, armor3,KBR1; this supplier has no native registration binding. Attack bounding box inflates parent by (0.5,0,0.5), remaining native melee reach/cooldown/LOS stays native. checkFallDamage is empty and onClimbable=false; other incoming defenses remain inherited, with no proven type fire immunity. Locally controlled travel uses water input0.02F/drag0.8F, lava input0.02F/drag0.5, air friction0.91F and on-ground native block friction with 0.16277137F/f^3 and ground input0.1F; SELF movement, no generic knockback rewrite.",
+    "locked_melee_status_contract": "Reuse the already captured doHurtTarget witness without regeneration: broadcasts native event4 before calling parent Mob.doHurtTarget; false native return exits false, accepted hit on LivingEntity requests Blazing Brand(duration100, implicit amplifier0, source=sword), ignores effect-add return and returns true. Native damage actor remains sword, with native attack/enchantment/knockback/post-hit pipeline. Event4 only chooses client presentation animation; tick/aiStep add no second damage callback. Locked Blazing Brand attribute/status semantics remain unchanged.",
+    "code_only_numeric_observations": [
+      {
+        "primitive": "NATIVE_DAMAGE_REQUEST",
+        "parameter": "attack_attribute",
+        "native_value": 4,
+        "units": "health points before native attack pipeline",
+        "boundary": "IgnitedSword.ignited; supplier unregistered"
+      },
+      {
+        "primitive": "BLAZING_BRAND_DELIVERY",
+        "parameter": "duration",
+        "native_value": 100,
+        "units": "ticks",
+        "boundary": "Locked IgnitedSword.doHurtTarget; no native caller proven"
+      },
+      {
+        "primitive": "AREA_SELECTION",
+        "parameter": "horizontal_attack_box_inflate",
+        "native_value": 0.5,
+        "units": "blocks X/Z",
+        "boundary": "IgnitedSword.getAttackBoundingBox"
+      },
+      {
+        "primitive": "PAYLOAD_LIFECYCLE",
+        "parameter": "limited_life",
+        "native_value": null,
+        "native_formula": "supplied integer; server --life<=0 discards",
+        "units": "ticks",
+        "boundary": "AbstractSummoned.setLimitedLife/tick"
+      }
+    ],
+    "excluded_non_combat": [
+      "Client taming particles/entity-event animation states and presentation-only idle tick",
+      "Unproven summon-item/equipment producer; no live registry ID or source is guessed",
+      "Unused parent teleport APIs are documented as code-only, not a second runtime callback",
+      "Unrelated equipment/global domains deferred until R2k32a"
+    ],
+    "exact_distinctions": [
+      "Tame ownership is distinct from causing damage actor.",
+      "Native limited-life discard is distinct from hurt/death.",
+      "Native event4 before hurt can show animation despite rejected damage.",
+      "Compiled numeric values and native helper APIs do not establish a registered live mechanic."
+    ],
+    "targeted_validation": "Selected family checks, exact absence-check rejection of a present term, source/candidate exclusion, and pinned-JAR reproduction; no runtime tests.",
+    "context_checkpoint": "Summoned native APIs closed as code-only; equipment evidence not loaded. Keep Cataclysm PARTIAL and resume exactly at R2k32a before opening the next equipment domain."
+  },
+  "specification_file": "native-specifications/cataclysm-ignited_sword-family.json",
+  "evidence_file": "native-evidence/cataclysm-ignited_sword-family.json",
+  "new_class_witnesses": 7,
+  "native_boundary_assertions": [
+    {
+      "entry": "com/github/L_Ender/cataclysm/entity/Pet/Summoned_Entity/Ignited_Sword_Entity.class",
+      "method": "ignited",
+      "instructions": [
+        {
+          "offset": 6,
+          "opcode": "0x14",
+          "operand": 30.0
+        },
+        {
+          "offset": 24,
+          "opcode": "0x14",
+          "operand": 1.25
+        },
+        {
+          "offset": 33,
+          "opcode": "0x14",
+          "operand": 4.0
+        },
+        {
+          "offset": 42,
+          "opcode": "0x14",
+          "operand": 28.0
+        }
+      ],
+      "contains": [
+        "ATTACK_DAMAGE",
+        "ARMOR"
+      ],
+      "excludes": []
+    },
+    {
+      "entry": "com/github/L_Ender/cataclysm/entity/Pet/Summoned_Entity/Ignited_Sword_Entity.class",
+      "method": "registerGoals",
+      "instructions": [],
+      "contains": [
+        "MeleeAttackGoal",
+        "SummonerHurtByTargetGoal",
+        "SummonerHurtTargetGoal",
+        "FlyingFollowSummonerGoal"
+      ],
+      "excludes": []
+    },
+    {
+      "entry": "com/github/L_Ender/cataclysm/entity/Pet/Summoned_Entity/Abstract_Summoned_Entity.class",
+      "method": "tick",
+      "instructions": [
+        {
+          "offset": 26,
+          "opcode": "0x4",
+          "operand": 1
+        },
+        {
+          "offset": 36,
+          "opcode": "0xb6",
+          "operand": "com/github/L_Ender/cataclysm/entity/Pet/Summoned_Entity/Abstract_Summoned_Entity.discard()V"
+        }
+      ],
+      "contains": [
+        "hasLimitedLife",
+        "discard"
+      ],
+      "excludes": [
+        ".hurt(",
+        "getOwner"
+      ]
+    },
+    {
+      "entry": "com/github/L_Ender/cataclysm/entity/Pet/Summoned_Entity/Abstract_Summoned_Entity.class",
+      "method": "readAdditionalSaveData",
+      "instructions": [],
+      "contains": [
+        "Owner",
+        "LifeTicks",
+        "setOwnerUUID",
+        "setTame",
+        "setLimitedLife"
+      ],
+      "excludes": [
+        "setAttackState"
+      ]
+    },
+    {
+      "entry": "com/github/L_Ender/cataclysm/entity/Pet/Summoned_Entity/FlyingFollowSummonerGoal.class",
+      "method": "tick",
+      "instructions": [],
+      "contains": [
+        "tryToTeleportNearEntity",
+        "followEntity"
+      ],
+      "excludes": [
+        ".hurt("
+      ]
+    }
+  ],
+  "declared_method_checks": [
+    {
+      "entry": "com/github/L_Ender/cataclysm/entity/Pet/Summoned_Entity/Abstract_Summoned_Entity.class",
+      "absent": [
+        "hurt",
+        "isInvulnerableTo",
+        "DamageCap",
+        "DpsCap",
+        "RangeLimit",
+        "NatureRegen",
+        "die",
+        "tickDeath",
+        "AfterDefeatBoss"
+      ]
+    },
+    {
+      "entry": "com/github/L_Ender/cataclysm/entity/Pet/Summoned_Entity/Ignited_Sword_Entity.class",
+      "absent": [
+        "hurt",
+        "isInvulnerableTo",
+        "DamageCap",
+        "DpsCap",
+        "RangeLimit",
+        "NatureRegen",
+        "die",
+        "tickDeath",
+        "AfterDefeatBoss"
+      ]
+    }
+  ],
+  "semantic_expectations": [
+    {
+      "id": "cataclysm:ignited_sword_unregistered_boundary",
+      "fields": {
+        "native_source_status": "UNREGISTERED_CODE_SURFACE",
+        "registered_actor_proven": false,
+        "stage_candidate_source_proven": false
+      }
+    }
+  ],
+  "reference_files": [
+    {
+      "file": "cataclysm-r2k30c-netherite_ministrosity-family.json",
+      "sha256": "7f28fbddc0778de61c607ad76e276f68ec27c3e5415d150ce56ff4a62b943665",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "cataclysm-source-census.json",
+      "sha256": "fee3dbcc15b068eddb6c53271146d2f04dcb72a5f183dc9a17be2d794ed68ead",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-guardian-admission.json",
+      "sha256": "d652ad2ea9cd6d7ebf7f6d5424122199b74d6c4b355248affeae9e673dcdf067",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-evidence/cataclysm-ignited_sword-family.json",
+      "sha256": "5aace6c04a443bd7c65dc87ddffc5d40e84b4b2d08c74c285975763ac9e27b6f",
+      "usage": "NEW_SCOPED"
+    },
+    {
+      "file": "native-evidence/cataclysm-remaining-status.json",
+      "sha256": "b47482396e64fc0e4d4f10b61ac45ba6e42fe588d0117cc250ff03afc5ac422f",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "native-specifications/cataclysm-ignited_sword-family.json",
+      "sha256": "97d2be6965dc8f6ff7568a895277a82cce3239b26a253ba15b6f591328dd5af0",
+      "usage": "NEW_SCOPED"
+    },
+    {
+      "file": "reference-evidence/bossesrise-knight-offense-244.json",
+      "sha256": "ed906fd31cd492fd157e4c9ba6f4e3271359ae4b2c650cd440c3fff1cc788002",
+      "usage": "LOCKED_REUSED"
+    },
+    {
+      "file": "reference-evidence/twilight-minoshroom-knight-244.json",
+      "sha256": "c80393a79949951d3eb82b8ff72a52e2473abf769d7df18ef644f0d1ea62f804",
+      "usage": "LOCKED_REUSED"
+    }
+  ],
+  "intended_files": [
+    "docs/benchmarks/external-effects-catalog/cataclysm-r2k31-ignited_sword-family.json",
+    "docs/benchmarks/external-effects-catalog/native-specifications/cataclysm-ignited_sword-family.json",
+    "docs/benchmarks/external-effects-catalog/native-evidence/cataclysm-ignited_sword-family.json",
+    "docs/benchmarks/external-effects-catalog/mod-reviews/cataclysm.json",
+    "docs/benchmarks/external-effects-catalog/mod-completion-ledger.json",
+    "scripts/external-effects/collect_cataclysm_family.py",
+    "scripts/external-effects/test_cataclysm_unregistered_summon.py"
+  ],
+  "remaining_cataclysm_research": "Other native combat families, equipment/global special paths and discovery coverage audit remain unclosed; whole-mod ambiguities remain uncounted (null), not zero.",
+  "exact_next_task": "R2k32a: The_Immolator complete combat family. Start only items/The_Immolator from the existing census, its registered attribute/use/hit/summon paths and directly owned payloads actually reached. Reuse locked Cataclysm status, damage-source, projectile and summoned-code contracts; inspect only missing equipment semantics. Keep other weapons/armor/accessories/global hooks deferred. Preserve the R2k31 unregistered Ignited Sword finding; any newly reached concrete producer must be recorded as direct evidence, not assumed.",
+  "whole_mod_complete": false,
+  "runtime_tests": "NOT_RUN",
+  "stage_eligibility_decided": false,
+  "production_changed": false,
+  "stage_changed": false
+}

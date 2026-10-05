@@ -26,6 +26,15 @@ def collect(spec, jar_path):
                        entry=entry, entry_sha256=hashlib.sha256(raw).hexdigest(),
                        class_name=cls.name, superclass=cls.super, interfaces=cls.interfaces,
                        declared_method_names=sorted({m['name'] for m in cls.methods}), methods=[])
+            # A scoped registry absence check reads only this explicitly selected
+            # class, rather than discovering or recursively scanning the archive.
+            if selected.get('absent_constant_pool_terms'):
+                references = [str(cls.resolve(index)) for index in range(1, len(cls.cp))
+                              if cls.cp[index] is not None]
+                terms = selected['absent_constant_pool_terms']
+                assert all(not any(term in value for value in references)
+                           for term in terms), (entry, terms)
+                row['absent_constant_pool_terms'] = terms
             if selected.get('bootstrap_indices'):
                 reader = Reader(next(data for name, data in cls.attributes if name == 'BootstrapMethods'))
                 bootstraps = [(reader.u2(), [reader.u2() for _ in range(reader.u2())])
