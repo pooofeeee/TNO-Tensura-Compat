@@ -103,7 +103,12 @@ def validate_boundaries(note):
         witness = next(w for w in evidence['witnesses'] if w['entry'] == check['entry'])
         bootstrap = next(b for b in witness['registration_bootstraps'] if b['index'] == check['index'])
         assert bootstrap['arguments'] == check['arguments']
-    assert len(evidence['witnesses']) == note['new_class_witnesses']
+    if note.get('evidence_mode') == 'LOCKED_REUSE':
+        assert note['new_class_witnesses'] == 0
+        assert any(ref['file'] == note['evidence_file'] and ref['usage'] == 'LOCKED_REUSED'
+                   for ref in note['reference_files'])
+    else:
+        assert len(evidence['witnesses']) == note['new_class_witnesses']
 
 
 def validate_protection(note):
@@ -134,6 +139,48 @@ def validate_protection(note):
 
 
 def validate_reproduction(note, jar):
+    if note.get('evidence_mode') == 'LOCKED_REUSE':
+        # Reproduce only the selected methods from existing witnesses. Do not
+        # regenerate a completed evidence domain or duplicate it in a new file.
+        import zipfile
+        from classfile import ClassFile
+        from collect_cataclysm_ignited_revenant_offense import instructions
+
+        target = next(t for t in read_json(OUT / 'jar-inventory.json')['targets']
+                      if t['key'] == 'cataclysm')
+        with Path(jar).open('rb') as stream:
+            assert hashlib.file_digest(stream, 'sha256').hexdigest() == target['sha256']
+        assert Path(jar).stat().st_size == target['size_bytes']
+        evidence = read_json(OUT / note['evidence_file'])
+        assert note['reproduction_methods']
+        with zipfile.ZipFile(jar) as archive:
+            for selected in note['reproduction_methods']:
+                witness = next(w for w in evidence['witnesses']
+                               if w['entry'] == selected['entry'])
+                raw = archive.read(witness['entry'])
+                assert witness['jar_sha256'] == target['sha256']
+                assert hashlib.sha256(raw).hexdigest() == witness['entry_sha256']
+                cls = ClassFile(raw)
+                for name in selected['methods']:
+                    stored = [m for m in witness['methods'] if m['name'] == name]
+                    assert stored, (witness['entry'], name)
+                    for method in stored:
+                        native = next(m for m in cls.methods if m['name'] == name
+                                      and m['descriptor'] == method['descriptor'])
+                        code = native.get('code', b'')
+                        assert hashlib.sha256(code).hexdigest() == method['code_sha256']
+                        body = instructions(cls, code)
+                        ranges = method.get('instruction_offset_ranges')
+                        if ranges:
+                            body = [i for i in body if any(a <= i['offset'] <= b
+                                                          for a, b in ranges)]
+                        # Older witnesses predate decoded branch/local metadata;
+                        # the exact code hash above still protects those bytes.
+                        stored_body = method['instructions']
+                        assert len(body) == len(stored_body)
+                        assert all(all(actual.get(k) == v for k, v in stored.items())
+                                   for actual, stored in zip(body, stored_body))
+        return
     assert collect(read_json(OUT / note['specification_file']), jar) == read_json(OUT / note['evidence_file'])
 
 
