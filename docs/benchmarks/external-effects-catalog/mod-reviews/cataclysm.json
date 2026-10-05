@@ -80137,6 +80137,1236 @@
       ]
     },
     {
+      "id": "cataclysm:modern_remnant_admission",
+      "mod_key": "cataclysm",
+      "display_name": "Modern Remnant native incoming environment rules",
+      "registry_ids": [
+        "cataclysm:modern_remnant"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Concrete invulnerability rejects IN_WALL and FALLING_BLOCK before delegating to parent. Air supply decrement returns its input; fire immunity is a registered type property. No concrete hurt, shared boss cap/DPS/range/regen or Home binding exists. Other defenses, native status lifecycle, cancellation and source checks remain inherited.",
+      "human_summary": "Concrete invulnerability rejects IN_WALL and FALLING_BLOCK before delegating to parent. Air supply decrement returns its input; fire immunity is a registered type property. No concrete hurt, shared boss cap/DPS/range/regen or Home binding exists. Other defenses, native status lifecycle, cancellation and source checks remain inherited.",
+      "closest_vanilla_equivalent": "Native TamableAnimal/LivingEntity admission with explicit exclusions",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Concrete invulnerability rejects IN_WALL and FALLING_BLOCK before delegating to parent. Air supply decrement returns its input; fire immunity is a registered type property. No concrete hurt, shared boss cap/DPS/range/regen or Home binding exists. Other defenses, native status lifecycle, cancellation and source checks remain inherited.",
+      "components": [],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Damage-type exclusions are native gates, not scalar defenses."
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Damage-type exclusions are native gates, not scalar defenses.",
+      "source_actor": "Native Modern Remnant, with native TamableAnimal owner UUID; owner is not a substituted damage source.",
+      "hurt_return_dependency": "No concrete hurt postfilter or return-dependent response.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/Modern_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/Modern_Remnant_Entity.class",
+          "methods": [
+            "isInvulnerableTo",
+            "decreaseAirSupply"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$79"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:modern_remnant-family:admission"
+      ],
+      "primary_test_source": "cataclysm:modern_remnant",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k30a-cataclysm-modern_remnant-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates."
+    },
+    {
+      "id": "cataclysm:modern_remnant_attack_mode_motion",
+      "mod_key": "cataclysm",
+      "display_name": "Modern Remnant circle/melee attack control",
+      "registry_ids": [
+        "cataclysm:modern_remnant"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Goal canUse requires a current alive target; continue only requires a non-null current target. Start enters CIRCLE, selects 120+nextInt(40) circle ticks, radius 8+nextInt(4), random direction and aggression. Circle helper computes t=direction*frame*0.5*speed/radius+offset and navigates to target+(radius*cos(t),0,radius*sin(t)) at speed*moveSpeedMultiplier (both 1 here). Circle expires or linear target distance <5 enters MELEE. Melee navigates at 1, faces target at 30/30, restarts at 120 ticks, otherwise squared distance <=4 and NO_ANIMATION selects the 11-tick bite. Stop randomizes/reset mode state, clears unsuitable creative/spectator target and stops navigation. No explicit local sitting/tame/LOS or team gate is added to this goal.",
+      "human_summary": "Goal canUse requires a current alive target; continue only requires a non-null current target. Start enters CIRCLE, selects 120+nextInt(40) circle ticks, radius 8+nextInt(4), random direction and aggression. Circle helper computes t=direction*frame*0.5*speed/radius+offset and navigates to target+(radius*cos(t),0,radius*sin(t)) at speed*moveSpeedMultiplier (both 1 here). Circle expires or linear target distance <5 enters MELEE. Melee navigates at 1, faces target at 30/30, restarts at 120 ticks, otherwise squared distance <=4 and NO_ANIMATION selects the 11-tick bite. Stop randomizes/reset mode state, clears unsuitable creative/spectator target and stops navigation. No explicit local sitting/tame/LOS or team gate is added to this goal.",
+      "closest_vanilla_equivalent": "Custom circling navigation and animation attack selector",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Goal canUse requires a current alive target; continue only requires a non-null current target. Start enters CIRCLE, selects 120+nextInt(40) circle ticks, radius 8+nextInt(4), random direction and aggression. Circle helper computes t=direction*frame*0.5*speed/radius+offset and navigates to target+(radius*cos(t),0,radius*sin(t)) at speed*moveSpeedMultiplier (both 1 here). Circle expires or linear target distance <5 enters MELEE. Melee navigates at 1, faces target at 30/30, restarts at 120 ticks, otherwise squared distance <=4 and NO_ANIMATION selects the 11-tick bite. Stop randomizes/reset mode state, clears unsuitable creative/spectator target and stops navigation. No explicit local sitting/tame/LOS or team gate is added to this goal.",
+      "components": [
+        {
+          "primitive": "SELF_MOVEMENT",
+          "formula": "radius=8+nextInt(4); t=direction*frame*0.5*speed/radius+offset; destination=target+(r*cos(t),0,r*sin(t))",
+          "numerical_parameters": {
+            "circle_radius_base": 8,
+            "circle_radius_random_bound": 4,
+            "circle_speed": 1,
+            "angular_coefficient": 0.5
+          },
+          "parameter_units": {
+            "circle_radius_base": "blocks",
+            "circle_radius_random_bound": "random bound",
+            "circle_speed": "native navigation speed factor",
+            "angular_coefficient": "native angle factor"
+          },
+          "binary_parameters": [],
+          "native_boundary": "ModernRemnantAIMelee.start/tick -> AnimationPet.circleEntity",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "ATTACK_STATE",
+          "formula": "Native CIRCLE/MELEE clocks and admission",
+          "numerical_parameters": {
+            "circle_time_base": 120,
+            "circle_time_random_bound": 40,
+            "melee_time": 120,
+            "mode_switch_distance": 5,
+            "attack_entry_squared_distance": 4,
+            "animation_length": 11
+          },
+          "parameter_units": {
+            "circle_time_base": "goal ticks",
+            "circle_time_random_bound": "random bound",
+            "melee_time": "goal ticks",
+            "mode_switch_distance": "linear blocks",
+            "attack_entry_squared_distance": "blocks squared",
+            "animation_length": "ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "ModernRemnantAIMelee.start/stop/tick",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Mode, clocks, random direction, native target and animation admission are state gates, not automatically numeric Stage scalars."
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Mode, clocks, random direction, native target and animation admission are state gates, not automatically numeric Stage scalars.",
+      "source_actor": "Native Modern Remnant, with native TamableAnimal owner UUID; owner is not a substituted damage source.",
+      "hurt_return_dependency": "Goal mode/selection is independent of hurt result.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/Modern_Remnant_Entity$ModernRemnantAIMelee",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/Modern_Remnant_Entity$ModernRemnantAIMelee.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "canContinueToUse",
+            "start",
+            "stop",
+            "requiresUpdateEveryTick",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/AnimationPet",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/AnimationPet.class",
+          "methods": [
+            "circleEntity"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/Modern_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/Modern_Remnant_Entity.class",
+          "methods": [
+            "<clinit>"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:modern_remnant-family:attack_mode_motion"
+      ],
+      "primary_test_source": "cataclysm:modern_remnant",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k30a-cataclysm-modern_remnant-family-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "SELF_MOVEMENT",
+          "parameters": [
+            "angular_coefficient"
+          ],
+          "native_value": 0.5,
+          "native_formula": "radius=8+nextInt(4); t=direction*frame*0.5*speed/radius+offset; destination=target+(r*cos(t),0,r*sin(t))",
+          "units": "native angle factor",
+          "native_boundary": "ModernRemnantAIMelee.start/tick -> AnimationPet.circleEntity"
+        },
+        {
+          "primitive": "SELF_MOVEMENT",
+          "parameters": [
+            "circle_radius_base"
+          ],
+          "native_value": 8,
+          "native_formula": "radius=8+nextInt(4); t=direction*frame*0.5*speed/radius+offset; destination=target+(r*cos(t),0,r*sin(t))",
+          "units": "blocks",
+          "native_boundary": "ModernRemnantAIMelee.start/tick -> AnimationPet.circleEntity"
+        },
+        {
+          "primitive": "SELF_MOVEMENT",
+          "parameters": [
+            "circle_radius_random_bound"
+          ],
+          "native_value": 4,
+          "native_formula": "radius=8+nextInt(4); t=direction*frame*0.5*speed/radius+offset; destination=target+(r*cos(t),0,r*sin(t))",
+          "units": "random bound",
+          "native_boundary": "ModernRemnantAIMelee.start/tick -> AnimationPet.circleEntity"
+        },
+        {
+          "primitive": "SELF_MOVEMENT",
+          "parameters": [
+            "circle_speed"
+          ],
+          "native_value": 1,
+          "native_formula": "radius=8+nextInt(4); t=direction*frame*0.5*speed/radius+offset; destination=target+(r*cos(t),0,r*sin(t))",
+          "units": "native navigation speed factor",
+          "native_boundary": "ModernRemnantAIMelee.start/tick -> AnimationPet.circleEntity"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "SELF_MOVEMENT",
+          "parameter": "circle_radius_base",
+          "native_value": 8,
+          "native_formula": "radius=8+nextInt(4); t=direction*frame*0.5*speed/radius+offset; destination=target+(r*cos(t),0,r*sin(t))",
+          "units": "blocks",
+          "boundary": "ModernRemnantAIMelee.start/tick -> AnimationPet.circleEntity"
+        },
+        {
+          "primitive": "SELF_MOVEMENT",
+          "parameter": "circle_radius_random_bound",
+          "native_value": 4,
+          "native_formula": "radius=8+nextInt(4); t=direction*frame*0.5*speed/radius+offset; destination=target+(r*cos(t),0,r*sin(t))",
+          "units": "random bound",
+          "boundary": "ModernRemnantAIMelee.start/tick -> AnimationPet.circleEntity"
+        },
+        {
+          "primitive": "SELF_MOVEMENT",
+          "parameter": "circle_speed",
+          "native_value": 1,
+          "native_formula": "radius=8+nextInt(4); t=direction*frame*0.5*speed/radius+offset; destination=target+(r*cos(t),0,r*sin(t))",
+          "units": "native navigation speed factor",
+          "boundary": "ModernRemnantAIMelee.start/tick -> AnimationPet.circleEntity"
+        },
+        {
+          "primitive": "SELF_MOVEMENT",
+          "parameter": "angular_coefficient",
+          "native_value": 0.5,
+          "native_formula": "radius=8+nextInt(4); t=direction*frame*0.5*speed/radius+offset; destination=target+(r*cos(t),0,r*sin(t))",
+          "units": "native angle factor",
+          "boundary": "ModernRemnantAIMelee.start/tick -> AnimationPet.circleEntity"
+        },
+        {
+          "primitive": "ATTACK_STATE",
+          "parameter": "circle_time_base",
+          "native_value": 120,
+          "native_formula": "Native CIRCLE/MELEE clocks and admission",
+          "units": "goal ticks",
+          "boundary": "ModernRemnantAIMelee.start/stop/tick"
+        },
+        {
+          "primitive": "ATTACK_STATE",
+          "parameter": "circle_time_random_bound",
+          "native_value": 40,
+          "native_formula": "Native CIRCLE/MELEE clocks and admission",
+          "units": "random bound",
+          "boundary": "ModernRemnantAIMelee.start/stop/tick"
+        },
+        {
+          "primitive": "ATTACK_STATE",
+          "parameter": "melee_time",
+          "native_value": 120,
+          "native_formula": "Native CIRCLE/MELEE clocks and admission",
+          "units": "goal ticks",
+          "boundary": "ModernRemnantAIMelee.start/stop/tick"
+        },
+        {
+          "primitive": "ATTACK_STATE",
+          "parameter": "mode_switch_distance",
+          "native_value": 5,
+          "native_formula": "Native CIRCLE/MELEE clocks and admission",
+          "units": "linear blocks",
+          "boundary": "ModernRemnantAIMelee.start/stop/tick"
+        },
+        {
+          "primitive": "ATTACK_STATE",
+          "parameter": "attack_entry_squared_distance",
+          "native_value": 4,
+          "native_formula": "Native CIRCLE/MELEE clocks and admission",
+          "units": "blocks squared",
+          "boundary": "ModernRemnantAIMelee.start/stop/tick"
+        },
+        {
+          "primitive": "ATTACK_STATE",
+          "parameter": "animation_length",
+          "native_value": 11,
+          "native_formula": "Native CIRCLE/MELEE clocks and admission",
+          "units": "ticks",
+          "boundary": "ModernRemnantAIMelee.start/stop/tick"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates."
+    },
+    {
+      "id": "cataclysm:modern_remnant_bite_damage",
+      "mod_key": "cataclysm",
+      "display_name": "Modern Remnant native delayed bite damage",
+      "registry_ids": [
+        "cataclysm:modern_remnant"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "Offensive goal tick, after circle/melee processing, checks the current target, bite animation tick 5 and LINEAR distance < (selfWidth*2.5)*(selfWidth*2.5)+targetWidth. It requests native mobAttack(pet) with current ATTACK_DAMAGE cast to float (base 6 with native config modifier); hurt return is discarded. This delivery threshold differs from squared-distance attack-entry <=4. There is no local LOS, allied, alive, server-side or accepted-hurt follow-up check, no forced movement/status/heal or projectile. aiStep sound tick 3 is not another damage callback.",
+      "human_summary": "Offensive goal tick, after circle/melee processing, checks the current target, bite animation tick 5 and LINEAR distance < (selfWidth*2.5)*(selfWidth*2.5)+targetWidth. It requests native mobAttack(pet) with current ATTACK_DAMAGE cast to float (base 6 with native config modifier); hurt return is discarded. This delivery threshold differs from squared-distance attack-entry <=4. There is no local LOS, allied, alive, server-side or accepted-hurt follow-up check, no forced movement/status/heal or projectile. aiStep sound tick 3 is not another damage callback.",
+      "closest_vanilla_equivalent": "Native mobAttack request with custom goal animation delivery",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Offensive goal tick, after circle/melee processing, checks the current target, bite animation tick 5 and LINEAR distance < (selfWidth*2.5)*(selfWidth*2.5)+targetWidth. It requests native mobAttack(pet) with current ATTACK_DAMAGE cast to float (base 6 with native config modifier); hurt return is discarded. This delivery threshold differs from squared-distance attack-entry <=4. There is no local LOS, allied, alive, server-side or accepted-hurt follow-up check, no forced movement/status/heal or projectile. aiStep sound tick 3 is not another damage callback.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "formula": "(float) current ATTACK_DAMAGE; native base 6 and pet_damage config modifier",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "ModernRemnantAIMelee.tick: bite tick 5",
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED",
+          "parameter_formulas": {
+            "damage": "(float) current ATTACK_DAMAGE"
+          },
+          "formula_parameter_units": {
+            "damage": "health points"
+          }
+        },
+        {
+          "primitive": "DELIVERY_TIMING",
+          "formula": "Bite animation impact gate",
+          "numerical_parameters": {
+            "impact_tick": 5
+          },
+          "parameter_units": {
+            "impact_tick": "animation ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "ModernRemnantAIMelee.tick",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Current goal target and native animation/reach gates; inherited goal scheduler and victim native hurt admission remain native."
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Current goal target and native animation/reach gates; inherited goal scheduler and victim native hurt admission remain native.",
+      "source_actor": "Native Modern Remnant, with native TamableAnimal owner UUID; owner is not a substituted damage source.",
+      "hurt_return_dependency": "Hurt return ignored; no return-dependent payload.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/Modern_Remnant_Entity$ModernRemnantAIMelee",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/Modern_Remnant_Entity$ModernRemnantAIMelee.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/Modern_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/Modern_Remnant_Entity.class",
+          "methods": [
+            "aiStep"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:modern_remnant-family:bite_damage"
+      ],
+      "primary_test_source": "cataclysm:modern_remnant",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k30a-cataclysm-modern_remnant-family-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "damage"
+          ],
+          "native_value": null,
+          "native_formula": "(float) current ATTACK_DAMAGE",
+          "units": "health points",
+          "native_boundary": "ModernRemnantAIMelee.tick: bite tick 5"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameter": "damage",
+          "native_value": null,
+          "native_formula": "(float) current ATTACK_DAMAGE",
+          "units": "health points",
+          "boundary": "ModernRemnantAIMelee.tick: bite tick 5"
+        },
+        {
+          "primitive": "DELIVERY_TIMING",
+          "parameter": "impact_tick",
+          "native_value": 5,
+          "native_formula": "Bite animation impact gate",
+          "units": "animation ticks",
+          "boundary": "ModernRemnantAIMelee.tick"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "hurt_result_ignored": true,
+      "damage_actor_remains_pet": true
+    },
+    {
+      "id": "cataclysm:modern_remnant_bucket_lifecycle",
+      "mod_key": "cataclysm",
+      "display_name": "Modern Remnant bucket and combat NBT lifecycle",
+      "registry_ids": [
+        "cataclysm:modern_remnant"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Concrete NBT adds FromBucket to parent owner/command/sitting persistence. saveToBucketTag calls native default Bucketable save and adds concrete NBT to BUCKET_ENTITY_DATA; load reads concrete NBT then native default load. Tame bucket pickup requires BUCKET and alive, not interacting owner, saves data before discarding and replacing the hand stack. The concrete ModernRemantBucket (Fluids.EMPTY) use accepts block hit/mayInteract and calls inherited checkExtraContent at that block before native empty-success handling; it does not invoke its own emptyContents in this use path. emptyContents separately tests air or replaceable EMPTY fluid. Parent bucket spawn/default loading remains an unchanged native boundary. No custom combat death/respawner callback, offspring, attack entity or Home prerequisite is present.",
+      "human_summary": "Concrete NBT adds FromBucket to parent owner/command/sitting persistence. saveToBucketTag calls native default Bucketable save and adds concrete NBT to BUCKET_ENTITY_DATA; load reads concrete NBT then native default load. Tame bucket pickup requires BUCKET and alive, not interacting owner, saves data before discarding and replacing the hand stack. The concrete ModernRemantBucket (Fluids.EMPTY) use accepts block hit/mayInteract and calls inherited checkExtraContent at that block before native empty-success handling; it does not invoke its own emptyContents in this use path. emptyContents separately tests air or replaceable EMPTY fluid. Parent bucket spawn/default loading remains an unchanged native boundary. No custom combat death/respawner callback, offspring, attack entity or Home prerequisite is present.",
+      "closest_vanilla_equivalent": "Native bucket entity-data transport with custom release admission",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Concrete NBT adds FromBucket to parent owner/command/sitting persistence. saveToBucketTag calls native default Bucketable save and adds concrete NBT to BUCKET_ENTITY_DATA; load reads concrete NBT then native default load. Tame bucket pickup requires BUCKET and alive, not interacting owner, saves data before discarding and replacing the hand stack. The concrete ModernRemantBucket (Fluids.EMPTY) use accepts block hit/mayInteract and calls inherited checkExtraContent at that block before native empty-success handling; it does not invoke its own emptyContents in this use path. emptyContents separately tests air or replaceable EMPTY fluid. Parent bucket spawn/default loading remains an unchanged native boundary. No custom combat death/respawner callback, offspring, attack entity or Home prerequisite is present.",
+      "components": [],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native owner UUID transport must not be substituted; capture is tame/alive gated but not owned-by-player gated; native release is not a synthetic attack."
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native owner UUID transport must not be substituted; capture is tame/alive gated but not owned-by-player gated; native release is not a synthetic attack.",
+      "source_actor": "Native Modern Remnant, with native TamableAnimal owner UUID; owner is not a substituted damage source.",
+      "hurt_return_dependency": "Capture/release/death have no new hurt-return-dependent payload.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/Modern_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/Modern_Remnant_Entity.class",
+          "methods": [
+            "defineSynchedData",
+            "fromBucket",
+            "setFromBucket",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "saveToBucketTag",
+            "loadFromBucketTag",
+            "getBucketItemStack",
+            "mobInteract",
+            "emptybucketMobPickup",
+            "getBreedOffspring"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:items/ModernRemantBucket",
+          "entry": "com/github/L_Ender/cataclysm/items/ModernRemantBucket.class",
+          "methods": [
+            "<init>",
+            "use",
+            "emptyContents"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:init/ModItems",
+          "entry": "com/github/L_Ender/cataclysm/init/ModItems.class",
+          "methods": [
+            "<clinit>",
+            "lambda$static$232"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/twilight-summon-resources-244.json",
+          "witness_id": "twilight-summon-resources-244",
+          "entry": "net/minecraft/world/entity/TamableAnimal.class",
+          "methods": [
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "tame",
+            "getOwnerUUID",
+            "setOwnerUUID",
+            "isOwnedBy",
+            "isAlliedTo",
+            "isOrderedToSit",
+            "setOrderedToSit",
+            "getTeam",
+            "canAttack",
+            "wantsToAttack"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:modern_remnant-family:bucket_lifecycle"
+      ],
+      "primary_test_source": "cataclysm:modern_remnant",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k30a-cataclysm-modern_remnant-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "native_bucket_extra_content_unchanged": true
+    },
+    {
+      "id": "cataclysm:modern_remnant_construction",
+      "mod_key": "cataclysm",
+      "display_name": "Modern Remnant attributes, config and registry",
+      "registry_ids": [
+        "cataclysm:modern_remnant"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "Native base health 150, knockback resistance 0.5, armor 5, follow range 32, attack damage 6, step height 1 and speed 0.4F use Mob attributes. Constructor applies shared pet config health/attack multipliers (initial static defaults 1, baked from COMMON combat config). Registered CREATURE type is sized 0.75 by 0.42F and fireImmune; existing attribute binding is reused. These setup/defense observations are not automatic Stage candidates.",
+      "human_summary": "Native base health 150, knockback resistance 0.5, armor 5, follow range 32, attack damage 6, step height 1 and speed 0.4F use Mob attributes. Constructor applies shared pet config health/attack multipliers (initial static defaults 1, baked from COMMON combat config). Registered CREATURE type is sized 0.75 by 0.42F and fireImmune; existing attribute binding is reused. These setup/defense observations are not automatic Stage candidates.",
+      "closest_vanilla_equivalent": "Mob attributes with native pet config modifiers",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Native base health 150, knockback resistance 0.5, armor 5, follow range 32, attack damage 6, step height 1 and speed 0.4F use Mob attributes. Constructor applies shared pet config health/attack multipliers (initial static defaults 1, baked from COMMON combat config). Registered CREATURE type is sized 0.75 by 0.42F and fireImmune; existing attribute binding is reused. These setup/defense observations are not automatic Stage candidates.",
+      "components": [
+        {
+          "primitive": "NATIVE_ATTRIBUTES",
+          "formula": "Native Mob attribute supplier + AnimationPet transient config modifiers",
+          "numerical_parameters": {
+            "max_health": 150,
+            "knockback_resistance": 0.5,
+            "armor": 5,
+            "follow_range": 32,
+            "attack_damage": 6,
+            "step_height": 1,
+            "movement_speed": 0.4000000059604645,
+            "initial_health_multiplier": 1,
+            "initial_attack_multiplier": 1
+          },
+          "parameter_units": {
+            "max_health": "health points",
+            "knockback_resistance": "attribute",
+            "armor": "attribute",
+            "follow_range": "blocks",
+            "attack_damage": "health points",
+            "step_height": "blocks",
+            "movement_speed": "attribute",
+            "initial_health_multiplier": "config multiplier before bake",
+            "initial_attack_multiplier": "config multiplier before bake"
+          },
+          "binary_parameters": [],
+          "native_boundary": "ModernRemnant.modernremnant/<init> -> AnimationPet.setConfigattribute",
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Current baked config is not inferred from a static default or file snapshot; native registry/factory is authoritative."
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Current baked config is not inferred from a static default or file snapshot; native registry/factory is authoritative.",
+      "source_actor": "Native Modern Remnant, with native TamableAnimal owner UUID; owner is not a substituted damage source.",
+      "hurt_return_dependency": "No hurt request at setup.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/Modern_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/Modern_Remnant_Entity.class",
+          "methods": [
+            "modernremnant",
+            "<init>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:config/CMCommonConfig$ModernRemnant",
+          "entry": "com/github/L_Ender/cataclysm/config/CMCommonConfig$ModernRemnant.class",
+          "methods": [
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/AnimationPet",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/AnimationPet.class",
+          "methods": [
+            "setConfigattribute"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:config/CMCommonConfig",
+          "entry": "com/github/L_Ender/cataclysm/config/CMCommonConfig.class",
+          "methods": [
+            "Commonbake"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-admission.json",
+          "witness_id": "cataclysm:guardian-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "initializeAttributes"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "<clinit>",
+            "lambda$static$79"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:modern_remnant-family:construction"
+      ],
+      "primary_test_source": "cataclysm:modern_remnant",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k30a-cataclysm-modern_remnant-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_ATTRIBUTES",
+          "parameter": "max_health",
+          "native_value": 150,
+          "native_formula": "Native Mob attribute supplier + AnimationPet transient config modifiers",
+          "units": "health points",
+          "boundary": "ModernRemnant.modernremnant/<init> -> AnimationPet.setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTES",
+          "parameter": "knockback_resistance",
+          "native_value": 0.5,
+          "native_formula": "Native Mob attribute supplier + AnimationPet transient config modifiers",
+          "units": "attribute",
+          "boundary": "ModernRemnant.modernremnant/<init> -> AnimationPet.setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTES",
+          "parameter": "armor",
+          "native_value": 5,
+          "native_formula": "Native Mob attribute supplier + AnimationPet transient config modifiers",
+          "units": "attribute",
+          "boundary": "ModernRemnant.modernremnant/<init> -> AnimationPet.setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTES",
+          "parameter": "follow_range",
+          "native_value": 32,
+          "native_formula": "Native Mob attribute supplier + AnimationPet transient config modifiers",
+          "units": "blocks",
+          "boundary": "ModernRemnant.modernremnant/<init> -> AnimationPet.setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTES",
+          "parameter": "attack_damage",
+          "native_value": 6,
+          "native_formula": "Native Mob attribute supplier + AnimationPet transient config modifiers",
+          "units": "health points",
+          "boundary": "ModernRemnant.modernremnant/<init> -> AnimationPet.setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTES",
+          "parameter": "step_height",
+          "native_value": 1,
+          "native_formula": "Native Mob attribute supplier + AnimationPet transient config modifiers",
+          "units": "blocks",
+          "boundary": "ModernRemnant.modernremnant/<init> -> AnimationPet.setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTES",
+          "parameter": "movement_speed",
+          "native_value": 0.4000000059604645,
+          "native_formula": "Native Mob attribute supplier + AnimationPet transient config modifiers",
+          "units": "attribute",
+          "boundary": "ModernRemnant.modernremnant/<init> -> AnimationPet.setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTES",
+          "parameter": "initial_health_multiplier",
+          "native_value": 1,
+          "native_formula": "Native Mob attribute supplier + AnimationPet transient config modifiers",
+          "units": "config multiplier before bake",
+          "boundary": "ModernRemnant.modernremnant/<init> -> AnimationPet.setConfigattribute"
+        },
+        {
+          "primitive": "NATIVE_ATTRIBUTES",
+          "parameter": "initial_attack_multiplier",
+          "native_value": 1,
+          "native_formula": "Native Mob attribute supplier + AnimationPet transient config modifiers",
+          "units": "config multiplier before bake",
+          "boundary": "ModernRemnant.modernremnant/<init> -> AnimationPet.setConfigattribute"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates."
+    },
+    {
+      "id": "cataclysm:modern_remnant_feeding_heal",
+      "mod_key": "cataclysm",
+      "display_name": "Modern Remnant bone-tag feeding heal",
+      "registry_ids": [
+        "cataclysm:modern_remnant"
+      ],
+      "primary_classification": "VANILLA_DIRECT",
+      "actual_behavior": "After the parent interaction, a tame pet holding a BONE_ITEM food stack and below max health consumes the item and calls native heal(5). At full health this branch returns PASS. No interacting-owner check is added to feeding and no Stage resource/progression is created.",
+      "human_summary": "After the parent interaction, a tame pet holding a BONE_ITEM food stack and below max health consumes the item and calls native heal(5). At full health this branch returns PASS. No interacting-owner check is added to feeding and no Stage resource/progression is created.",
+      "closest_vanilla_equivalent": "Native LivingEntity heal request",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "After the parent interaction, a tame pet holding a BONE_ITEM food stack and below max health consumes the item and calls native heal(5). At full health this branch returns PASS. No interacting-owner check is added to feeding and no Stage resource/progression is created.",
+      "components": [
+        {
+          "primitive": "HEAL",
+          "formula": "heal(5.0F)",
+          "numerical_parameters": {
+            "amount": 5
+          },
+          "parameter_units": {
+            "amount": "health points"
+          },
+          "binary_parameters": [],
+          "native_boundary": "ModernRemnant.mobInteract -> heal",
+          "vanilla_relation": "VANILLA_DIRECT"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Tame, bone-tag food and below-max-health admission; native heal event/health bound remain native."
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Tame, bone-tag food and below-max-health admission; native heal event/health bound remain native.",
+      "source_actor": "Native Modern Remnant, with native TamableAnimal owner UUID; owner is not a substituted damage source.",
+      "hurt_return_dependency": "Heal request is not tied to accepted outgoing damage.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/Modern_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/Modern_Remnant_Entity.class",
+          "methods": [
+            "mobInteract",
+            "isFood"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:modern_remnant-family:feeding_heal"
+      ],
+      "primary_test_source": "cataclysm:modern_remnant",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k30a-cataclysm-modern_remnant-family-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "HEAL",
+          "parameters": [
+            "amount"
+          ],
+          "native_value": 5,
+          "native_formula": "heal(5.0F)",
+          "units": "health points",
+          "native_boundary": "ModernRemnant.mobInteract -> heal"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "HEAL",
+          "parameter": "amount",
+          "native_value": 5,
+          "native_formula": "heal(5.0F)",
+          "units": "health points",
+          "boundary": "ModernRemnant.mobInteract -> heal"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates."
+    },
+    {
+      "id": "cataclysm:modern_remnant_shared_animation",
+      "mod_key": "cataclysm",
+      "display_name": "Shared LLibraryAnimationPet animation carrier",
+      "registry_ids": [
+        "cataclysm:modern_remnant"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "LLibraryAnimationPet adds a transient animation and tick carrier, not a boss contract. setAnimation(NO_ANIMATION) first invokes empty onAnimationFinish on the previous animation, then stores the supplied animation and resets animationTick=0. Raw tick setter is unchanged; no extra NBT or animation persistence is introduced.",
+      "human_summary": "LLibraryAnimationPet adds a transient animation and tick carrier, not a boss contract. setAnimation(NO_ANIMATION) first invokes empty onAnimationFinish on the previous animation, then stores the supplied animation and resets animationTick=0. Raw tick setter is unchanged; no extra NBT or animation persistence is introduced.",
+      "closest_vanilla_equivalent": "Native mod animation carrier",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "LLibraryAnimationPet adds a transient animation and tick carrier, not a boss contract. setAnimation(NO_ANIMATION) first invokes empty onAnimationFinish on the previous animation, then stores the supplied animation and resets animationTick=0. Raw tick setter is unchanged; no extra NBT or animation persistence is introduced.",
+      "components": [],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "No synthetic callback, native clock, damage or ownership may be added."
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "No synthetic callback, native clock, damage or ownership may be added.",
+      "source_actor": "Native Modern Remnant, with native TamableAnimal owner UUID; owner is not a substituted damage source.",
+      "hurt_return_dependency": "No hurt request.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/LLibraryAnimationPet",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/LLibraryAnimationPet.class",
+          "methods": [
+            "<init>",
+            "getAnimations",
+            "getAnimationTick",
+            "setAnimationTick",
+            "getAnimation",
+            "setAnimation",
+            "onAnimationFinish",
+            "defineSynchedData"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:modern_remnant-family:shared_animation"
+      ],
+      "primary_test_source": "cataclysm:modern_remnant",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k30a-cataclysm-modern_remnant-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates."
+    },
+    {
+      "id": "cataclysm:modern_remnant_shared_pet_config",
+      "mod_key": "cataclysm",
+      "display_name": "Shared AnimationPet native config attribute setup",
+      "registry_ids": [
+        "cataclysm:modern_remnant"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "For a present MAX_HEALTH attribute, setConfigattribute adds transient ADD_VALUE modifier cataclysm:pet_health with base*(hpConfig-1), then sets current health to current max. For present ATTACK_DAMAGE, it adds cataclysm:pet_damage with base*(damageConfig-1). No extra Stage state, repeat-protection mechanism or native damage request is added.",
+      "human_summary": "For a present MAX_HEALTH attribute, setConfigattribute adds transient ADD_VALUE modifier cataclysm:pet_health with base*(hpConfig-1), then sets current health to current max. For present ATTACK_DAMAGE, it adds cataclysm:pet_damage with base*(damageConfig-1). No extra Stage state, repeat-protection mechanism or native damage request is added.",
+      "closest_vanilla_equivalent": "Native transient attribute modifiers and health setter",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "For a present MAX_HEALTH attribute, setConfigattribute adds transient ADD_VALUE modifier cataclysm:pet_health with base*(hpConfig-1), then sets current health to current max. For present ATTACK_DAMAGE, it adds cataclysm:pet_damage with base*(damageConfig-1). No extra Stage state, repeat-protection mechanism or native damage request is added.",
+      "components": [
+        {
+          "primitive": "ATTRIBUTE_MODIFIER",
+          "formula": "ADD_VALUE base*config-base; native config binding, not Stage",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "AnimationPet.setConfigattribute",
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED",
+          "parameter_formulas": {
+            "health_modifier": "base MAX_HEALTH * hpconfig - base MAX_HEALTH",
+            "damage_modifier": "base ATTACK_DAMAGE * dmgconfig - base ATTACK_DAMAGE"
+          },
+          "formula_parameter_units": {
+            "health_modifier": "health points",
+            "damage_modifier": "health points"
+          }
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Attribute existence and native modifier identity/operation; setup health fill is distinct from heal()."
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Attribute existence and native modifier identity/operation; setup health fill is distinct from heal().",
+      "source_actor": "Native Modern Remnant, with native TamableAnimal owner UUID; owner is not a substituted damage source.",
+      "hurt_return_dependency": "Health setter is not a hurt-return-dependent heal.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/AnimationPet",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/AnimationPet.class",
+          "methods": [
+            "setConfigattribute",
+            "<clinit>"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:modern_remnant-family:shared_pet_config"
+      ],
+      "primary_test_source": "cataclysm:modern_remnant",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k30a-cataclysm-modern_remnant-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "ATTRIBUTE_MODIFIER",
+          "parameter": "health_modifier",
+          "native_value": null,
+          "native_formula": "base MAX_HEALTH * hpconfig - base MAX_HEALTH",
+          "units": "health points",
+          "boundary": "AnimationPet.setConfigattribute"
+        },
+        {
+          "primitive": "ATTRIBUTE_MODIFIER",
+          "parameter": "damage_modifier",
+          "native_value": null,
+          "native_formula": "base ATTACK_DAMAGE * dmgconfig - base ATTACK_DAMAGE",
+          "units": "health points",
+          "boundary": "AnimationPet.setConfigattribute"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates."
+    },
+    {
+      "id": "cataclysm:modern_remnant_shared_pet_state",
+      "mod_key": "cataclysm",
+      "display_name": "Shared AnimationPet command, sit and owner persistence",
+      "registry_ids": [
+        "cataclysm:modern_remnant"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "AnimationPet extends TamableAnimal directly. It defines Command=0 and a distinct SITTING=false; raw setCommand accepts the supplied integer. Its setOrderedToSit writes only custom SITTING, without invoking the TamableAnimal setter or changing native orderedToSit/sitting-pose fields. Save/load delegates to parent and separately stores CmPetSitting and Command; parent owner UUID and native Sitting remain distinct. removeWhenFarAway=false, base isFood=false, offspring=null and base shouldFollow=false.",
+      "human_summary": "AnimationPet extends TamableAnimal directly. It defines Command=0 and a distinct SITTING=false; raw setCommand accepts the supplied integer. Its setOrderedToSit writes only custom SITTING, without invoking the TamableAnimal setter or changing native orderedToSit/sitting-pose fields. Save/load delegates to parent and separately stores CmPetSitting and Command; parent owner UUID and native Sitting remain distinct. removeWhenFarAway=false, base isFood=false, offspring=null and base shouldFollow=false.",
+      "closest_vanilla_equivalent": "Native TamableAnimal owner/persistence plus separate command/sit state",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "AnimationPet extends TamableAnimal directly. It defines Command=0 and a distinct SITTING=false; raw setCommand accepts the supplied integer. Its setOrderedToSit writes only custom SITTING, without invoking the TamableAnimal setter or changing native orderedToSit/sitting-pose fields. Save/load delegates to parent and separately stores CmPetSitting and Command; parent owner UUID and native Sitting remain distinct. removeWhenFarAway=false, base isFood=false, offspring=null and base shouldFollow=false.",
+      "components": [],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "No boss cap/DPS/range/regen/Home or hurt override in this hierarchy; native owner admission/alliances remain native.",
+        "Custom sitting state must not be equated to native orderedToSit."
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "No boss cap/DPS/range/regen/Home or hurt override in this hierarchy; native owner admission/alliances remain native.; Custom sitting state must not be equated to native orderedToSit.",
+      "source_actor": "Native Modern Remnant, with native TamableAnimal owner UUID; owner is not a substituted damage source.",
+      "hurt_return_dependency": "Inherited native hurt result; no extra damage admission.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/AnimationPet",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/AnimationPet.class",
+          "methods": [
+            "defineSynchedData",
+            "getCommand",
+            "setCommand",
+            "isSitting",
+            "setOrderedToSit",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "removeWhenFarAway",
+            "isFood",
+            "shouldFollow",
+            "getBreedOffspring"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/twilight-summon-resources-244.json",
+          "witness_id": "twilight-summon-resources-244",
+          "entry": "net/minecraft/world/entity/TamableAnimal.class",
+          "methods": [
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "tame",
+            "getOwnerUUID",
+            "setOwnerUUID",
+            "isOwnedBy",
+            "isAlliedTo",
+            "isOrderedToSit",
+            "setOrderedToSit",
+            "getTeam",
+            "canAttack",
+            "wantsToAttack"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:modern_remnant-family:shared_pet_state"
+      ],
+      "primary_test_source": "cataclysm:modern_remnant",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k30a-cataclysm-modern_remnant-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "custom_sit_distinct_from_native": true
+    },
+    {
+      "id": "cataclysm:modern_remnant_sit_follow",
+      "mod_key": "cataclysm",
+      "display_name": "Modern Remnant native sit/travel/follow control",
+      "registry_ids": [
+        "cataclysm:modern_remnant"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Custom isSitting stops an existing navigation path and replaces travel input with Vec3.ZERO before parent travel; aiStep stops navigation when sitting and isDone. shouldFollow means Command==1. TameableAIFollowOwner adds shouldFollow and !isInCombat to native FollowOwnerGoal canUse/continue; combat means owner exists, pet-owner distance <30 and pet target is alive. Constructor passes speed 1.3 and distances 6/2; its teleportToLeaves boolean is not passed to the native constructor. Native follow movement is inherited, not a new teleport or attack.",
+      "human_summary": "Custom isSitting stops an existing navigation path and replaces travel input with Vec3.ZERO before parent travel; aiStep stops navigation when sitting and isDone. shouldFollow means Command==1. TameableAIFollowOwner adds shouldFollow and !isInCombat to native FollowOwnerGoal canUse/continue; combat means owner exists, pet-owner distance <30 and pet target is alive. Constructor passes speed 1.3 and distances 6/2; its teleportToLeaves boolean is not passed to the native constructor. Native follow movement is inherited, not a new teleport or attack.",
+      "closest_vanilla_equivalent": "Native follow owner goal plus custom command admission",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Custom isSitting stops an existing navigation path and replaces travel input with Vec3.ZERO before parent travel; aiStep stops navigation when sitting and isDone. shouldFollow means Command==1. TameableAIFollowOwner adds shouldFollow and !isInCombat to native FollowOwnerGoal canUse/continue; combat means owner exists, pet-owner distance <30 and pet target is alive. Constructor passes speed 1.3 and distances 6/2; its teleportToLeaves boolean is not passed to the native constructor. Native follow movement is inherited, not a new teleport or attack.",
+      "components": [
+        {
+          "primitive": "NATIVE_FOLLOW",
+          "formula": "Inherited FollowOwnerGoal with native command/combat prefilters",
+          "numerical_parameters": {
+            "speed": 1.3,
+            "start_distance": 6,
+            "stop_distance": 2,
+            "combat_owner_distance": 30
+          },
+          "parameter_units": {
+            "speed": "navigation speed multiplier",
+            "start_distance": "blocks",
+            "stop_distance": "blocks",
+            "combat_owner_distance": "blocks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "ModernRemnant.registerGoals/travel -> TameableAIFollowOwner.canUse/canContinueToUse",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native follow predicates remain inherited; custom sitting differs from native orderedToSit; MOVE/LOOK goal arbitration remains native."
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native follow predicates remain inherited; custom sitting differs from native orderedToSit; MOVE/LOOK goal arbitration remains native.",
+      "source_actor": "Native Modern Remnant, with native TamableAnimal owner UUID; owner is not a substituted damage source.",
+      "hurt_return_dependency": "Movement admission independent of hurt.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/Modern_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/Modern_Remnant_Entity.class",
+          "methods": [
+            "registerGoals",
+            "shouldFollow",
+            "travel",
+            "aiStep"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/AI/TameableAIFollowOwner",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/AI/TameableAIFollowOwner.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "canContinueToUse",
+            "isInCombat"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:modern_remnant-family:sit_follow"
+      ],
+      "primary_test_source": "cataclysm:modern_remnant",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k30a-cataclysm-modern_remnant-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_FOLLOW",
+          "parameter": "speed",
+          "native_value": 1.3,
+          "native_formula": "Inherited FollowOwnerGoal with native command/combat prefilters",
+          "units": "navigation speed multiplier",
+          "boundary": "ModernRemnant.registerGoals/travel -> TameableAIFollowOwner.canUse/canContinueToUse"
+        },
+        {
+          "primitive": "NATIVE_FOLLOW",
+          "parameter": "start_distance",
+          "native_value": 6,
+          "native_formula": "Inherited FollowOwnerGoal with native command/combat prefilters",
+          "units": "blocks",
+          "boundary": "ModernRemnant.registerGoals/travel -> TameableAIFollowOwner.canUse/canContinueToUse"
+        },
+        {
+          "primitive": "NATIVE_FOLLOW",
+          "parameter": "stop_distance",
+          "native_value": 2,
+          "native_formula": "Inherited FollowOwnerGoal with native command/combat prefilters",
+          "units": "blocks",
+          "boundary": "ModernRemnant.registerGoals/travel -> TameableAIFollowOwner.canUse/canContinueToUse"
+        },
+        {
+          "primitive": "NATIVE_FOLLOW",
+          "parameter": "combat_owner_distance",
+          "native_value": 30,
+          "native_formula": "Inherited FollowOwnerGoal with native command/combat prefilters",
+          "units": "blocks",
+          "boundary": "ModernRemnant.registerGoals/travel -> TameableAIFollowOwner.canUse/canContinueToUse"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates."
+    },
+    {
+      "id": "cataclysm:modern_remnant_tame_command",
+      "mod_key": "cataclysm",
+      "display_name": "Modern Remnant native taming and command gates",
+      "registry_ids": [
+        "cataclysm:modern_remnant"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "mobInteract calls parent first. Untamed SNIFFER_EGG consumes the item, then native onAnimalTame cancellation decides whether tame(player) occurs; this branch returns SUCCESS either way. For tame, owned, non-shift interaction only after item and parent results are not SUCCESS, Command increments and wraps only when exactly 3; command 2 sets custom sitting, others clear it. No command-range validation or ownership correction is invented.",
+      "human_summary": "mobInteract calls parent first. Untamed SNIFFER_EGG consumes the item, then native onAnimalTame cancellation decides whether tame(player) occurs; this branch returns SUCCESS either way. For tame, owned, non-shift interaction only after item and parent results are not SUCCESS, Command increments and wraps only when exactly 3; command 2 sets custom sitting, others clear it. No command-range validation or ownership correction is invented.",
+      "closest_vanilla_equivalent": "Native taming event plus custom pet command cycle",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "mobInteract calls parent first. Untamed SNIFFER_EGG consumes the item, then native onAnimalTame cancellation decides whether tame(player) occurs; this branch returns SUCCESS either way. For tame, owned, non-shift interaction only after item and parent results are not SUCCESS, Command increments and wraps only when exactly 3; command 2 sets custom sitting, others clear it. No command-range validation or ownership correction is invented.",
+      "components": [],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Tame cancellation remains native; only command branch requires interacting owner; raw invalid command values are not normalized beyond exact ==3."
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Tame cancellation remains native; only command branch requires interacting owner; raw invalid command values are not normalized beyond exact ==3.",
+      "source_actor": "Native Modern Remnant, with native TamableAnimal owner UUID; owner is not a substituted damage source.",
+      "hurt_return_dependency": "No combat damage return involved.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/Modern_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/Modern_Remnant_Entity.class",
+          "methods": [
+            "mobInteract"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/AnimationPet",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/AnimationPet.class",
+          "methods": [
+            "setCommand",
+            "setOrderedToSit"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/twilight-summon-resources-244.json",
+          "witness_id": "twilight-summon-resources-244",
+          "entry": "net/minecraft/world/entity/TamableAnimal.class",
+          "methods": [
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "tame",
+            "getOwnerUUID",
+            "setOwnerUUID",
+            "isOwnedBy",
+            "isAlliedTo",
+            "isOrderedToSit",
+            "setOrderedToSit",
+            "getTeam",
+            "canAttack",
+            "wantsToAttack"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:modern_remnant-family:tame_command"
+      ],
+      "primary_test_source": "cataclysm:modern_remnant",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k30a-cataclysm-modern_remnant-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates."
+    },
+    {
+      "id": "cataclysm:modern_remnant_targets_alliances",
+      "mod_key": "cataclysm",
+      "display_name": "Modern Remnant target and owner alliance contracts",
+      "registry_ids": [
+        "cataclysm:modern_remnant"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Registers native owner-hurt and owner-attack target goals, HurtByTarget and non-tame random target selection from MODERN_REMNANT_TARGET. Tag predicate requires alive and matching EntityType; null tag returns alwaysFalse. Tame alliance accepts the native owner, another TamableAnimal owned by that owner, or the owner alliance; otherwise parent alliance applies. It does not rewrite the damage causing actor to the pet owner.",
+      "human_summary": "Registers native owner-hurt and owner-attack target goals, HurtByTarget and non-tame random target selection from MODERN_REMNANT_TARGET. Tag predicate requires alive and matching EntityType; null tag returns alwaysFalse. Tame alliance accepts the native owner, another TamableAnimal owned by that owner, or the owner alliance; otherwise parent alliance applies. It does not rewrite the damage causing actor to the pet owner.",
+      "closest_vanilla_equivalent": "Native tame owner target goals and alliance checks",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Registers native owner-hurt and owner-attack target goals, HurtByTarget and non-tame random target selection from MODERN_REMNANT_TARGET. Tag predicate requires alive and matching EntityType; null tag returns alwaysFalse. Tame alliance accepts the native owner, another TamableAnimal owned by that owner, or the owner alliance; otherwise parent alliance applies. It does not rewrite the damage causing actor to the pet owner.",
+      "components": [],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native tame/owner lookup/teams/target predicate remain distinct from damage delivery admission."
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native tame/owner lookup/teams/target predicate remain distinct from damage delivery admission.",
+      "source_actor": "Native Modern Remnant, with native TamableAnimal owner UUID; owner is not a substituted damage source.",
+      "hurt_return_dependency": "Target selection itself makes no hurt request.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/Modern_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/Modern_Remnant_Entity.class",
+          "methods": [
+            "registerGoals",
+            "isAlliedTo"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "buildPredicateFromTag",
+            "lambda$buildPredicateFromTag$103"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/twilight-summon-resources-244.json",
+          "witness_id": "twilight-summon-resources-244",
+          "entry": "net/minecraft/world/entity/TamableAnimal.class",
+          "methods": [
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "tame",
+            "getOwnerUUID",
+            "setOwnerUUID",
+            "isOwnedBy",
+            "isAlliedTo",
+            "isOrderedToSit",
+            "setOrderedToSit",
+            "getTeam",
+            "canAttack",
+            "wantsToAttack"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:modern_remnant-family:targets_alliances"
+      ],
+      "primary_test_source": "cataclysm:modern_remnant",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k30a-cataclysm-modern_remnant-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates."
+    },
+    {
       "id": "cataclysm:monstrosity_alliance",
       "mod_key": "cataclysm",
       "display_name": "Monstrosity native alliance and offensive exclusions",
@@ -129855,6 +131085,544 @@
       "runtime_status": "NOT_RUN"
     },
     {
+      "id": "cataclysm:modern_remnant-family:admission",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:modern_remnant_admission"
+      ],
+      "primary_source": "cataclysm:modern_remnant",
+      "native_path": "Concrete invulnerability rejects IN_WALL and FALLING_BLOCK before delegating to parent. Air supply decrement returns its input; fire immunity is a registered type property. No concrete hurt, shared boss cap/DPS/range/regen or Home binding exists. Other defenses, native status lifecycle, cancellation and source checks remain inherited.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/Modern_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/Modern_Remnant_Entity.class",
+          "methods": [
+            "isInvulnerableTo",
+            "decreaseAirSupply"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "lambda$static$79"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:modern_remnant-family:attack_mode_motion",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:modern_remnant_attack_mode_motion"
+      ],
+      "primary_source": "cataclysm:modern_remnant",
+      "native_path": "Goal canUse requires a current alive target; continue only requires a non-null current target. Start enters CIRCLE, selects 120+nextInt(40) circle ticks, radius 8+nextInt(4), random direction and aggression. Circle helper computes t=direction*frame*0.5*speed/radius+offset and navigates to target+(radius*cos(t),0,radius*sin(t)) at speed*moveSpeedMultiplier (both 1 here). Circle expires or linear target distance <5 enters MELEE. Melee navigates at 1, faces target at 30/30, restarts at 120 ticks, otherwise squared distance <=4 and NO_ANIMATION selects the 11-tick bite. Stop randomizes/reset mode state, clears unsuitable creative/spectator target and stops navigation. No explicit local sitting/tame/LOS or team gate is added to this goal.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/Modern_Remnant_Entity$ModernRemnantAIMelee",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/Modern_Remnant_Entity$ModernRemnantAIMelee.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "canContinueToUse",
+            "start",
+            "stop",
+            "requiresUpdateEveryTick",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/AnimationPet",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/AnimationPet.class",
+          "methods": [
+            "circleEntity"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/Modern_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/Modern_Remnant_Entity.class",
+          "methods": [
+            "<clinit>"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:modern_remnant-family:bite_damage",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:modern_remnant_bite_damage"
+      ],
+      "primary_source": "cataclysm:modern_remnant",
+      "native_path": "Offensive goal tick, after circle/melee processing, checks the current target, bite animation tick 5 and LINEAR distance < (selfWidth*2.5)*(selfWidth*2.5)+targetWidth. It requests native mobAttack(pet) with current ATTACK_DAMAGE cast to float (base 6 with native config modifier); hurt return is discarded. This delivery threshold differs from squared-distance attack-entry <=4. There is no local LOS, allied, alive, server-side or accepted-hurt follow-up check, no forced movement/status/heal or projectile. aiStep sound tick 3 is not another damage callback.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/Modern_Remnant_Entity$ModernRemnantAIMelee",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/Modern_Remnant_Entity$ModernRemnantAIMelee.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/Modern_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/Modern_Remnant_Entity.class",
+          "methods": [
+            "aiStep"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:modern_remnant-family:bucket_lifecycle",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:modern_remnant_bucket_lifecycle"
+      ],
+      "primary_source": "cataclysm:modern_remnant",
+      "native_path": "Concrete NBT adds FromBucket to parent owner/command/sitting persistence. saveToBucketTag calls native default Bucketable save and adds concrete NBT to BUCKET_ENTITY_DATA; load reads concrete NBT then native default load. Tame bucket pickup requires BUCKET and alive, not interacting owner, saves data before discarding and replacing the hand stack. The concrete ModernRemantBucket (Fluids.EMPTY) use accepts block hit/mayInteract and calls inherited checkExtraContent at that block before native empty-success handling; it does not invoke its own emptyContents in this use path. emptyContents separately tests air or replaceable EMPTY fluid. Parent bucket spawn/default loading remains an unchanged native boundary. No custom combat death/respawner callback, offspring, attack entity or Home prerequisite is present.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/Modern_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/Modern_Remnant_Entity.class",
+          "methods": [
+            "defineSynchedData",
+            "fromBucket",
+            "setFromBucket",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "saveToBucketTag",
+            "loadFromBucketTag",
+            "getBucketItemStack",
+            "mobInteract",
+            "emptybucketMobPickup",
+            "getBreedOffspring"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:items/ModernRemantBucket",
+          "entry": "com/github/L_Ender/cataclysm/items/ModernRemantBucket.class",
+          "methods": [
+            "<init>",
+            "use",
+            "emptyContents"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:init/ModItems",
+          "entry": "com/github/L_Ender/cataclysm/init/ModItems.class",
+          "methods": [
+            "<clinit>",
+            "lambda$static$232"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/twilight-summon-resources-244.json",
+          "witness_id": "twilight-summon-resources-244",
+          "entry": "net/minecraft/world/entity/TamableAnimal.class",
+          "methods": [
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "tame",
+            "getOwnerUUID",
+            "setOwnerUUID",
+            "isOwnedBy",
+            "isAlliedTo",
+            "isOrderedToSit",
+            "setOrderedToSit",
+            "getTeam",
+            "canAttack",
+            "wantsToAttack"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:modern_remnant-family:construction",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:modern_remnant_construction"
+      ],
+      "primary_source": "cataclysm:modern_remnant",
+      "native_path": "Native base health 150, knockback resistance 0.5, armor 5, follow range 32, attack damage 6, step height 1 and speed 0.4F use Mob attributes. Constructor applies shared pet config health/attack multipliers (initial static defaults 1, baked from COMMON combat config). Registered CREATURE type is sized 0.75 by 0.42F and fireImmune; existing attribute binding is reused. These setup/defense observations are not automatic Stage candidates.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/Modern_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/Modern_Remnant_Entity.class",
+          "methods": [
+            "modernremnant",
+            "<init>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:config/CMCommonConfig$ModernRemnant",
+          "entry": "com/github/L_Ender/cataclysm/config/CMCommonConfig$ModernRemnant.class",
+          "methods": [
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/AnimationPet",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/AnimationPet.class",
+          "methods": [
+            "setConfigattribute"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:config/CMCommonConfig",
+          "entry": "com/github/L_Ender/cataclysm/config/CMCommonConfig.class",
+          "methods": [
+            "Commonbake"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-guardian-admission.json",
+          "witness_id": "cataclysm:guardian-admission:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "initializeAttributes"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "<clinit>",
+            "lambda$static$79"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:modern_remnant-family:feeding_heal",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:modern_remnant_feeding_heal"
+      ],
+      "primary_source": "cataclysm:modern_remnant",
+      "native_path": "After the parent interaction, a tame pet holding a BONE_ITEM food stack and below max health consumes the item and calls native heal(5). At full health this branch returns PASS. No interacting-owner check is added to feeding and no Stage resource/progression is created.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/Modern_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/Modern_Remnant_Entity.class",
+          "methods": [
+            "mobInteract",
+            "isFood"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:modern_remnant-family:shared_animation",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:modern_remnant_shared_animation"
+      ],
+      "primary_source": "cataclysm:modern_remnant",
+      "native_path": "LLibraryAnimationPet adds a transient animation and tick carrier, not a boss contract. setAnimation(NO_ANIMATION) first invokes empty onAnimationFinish on the previous animation, then stores the supplied animation and resets animationTick=0. Raw tick setter is unchanged; no extra NBT or animation persistence is introduced.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/LLibraryAnimationPet",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/LLibraryAnimationPet.class",
+          "methods": [
+            "<init>",
+            "getAnimations",
+            "getAnimationTick",
+            "setAnimationTick",
+            "getAnimation",
+            "setAnimation",
+            "onAnimationFinish",
+            "defineSynchedData"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:modern_remnant-family:shared_pet_config",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:modern_remnant_shared_pet_config"
+      ],
+      "primary_source": "cataclysm:modern_remnant",
+      "native_path": "For a present MAX_HEALTH attribute, setConfigattribute adds transient ADD_VALUE modifier cataclysm:pet_health with base*(hpConfig-1), then sets current health to current max. For present ATTACK_DAMAGE, it adds cataclysm:pet_damage with base*(damageConfig-1). No extra Stage state, repeat-protection mechanism or native damage request is added.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/AnimationPet",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/AnimationPet.class",
+          "methods": [
+            "setConfigattribute",
+            "<clinit>"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:modern_remnant-family:shared_pet_state",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:modern_remnant_shared_pet_state"
+      ],
+      "primary_source": "cataclysm:modern_remnant",
+      "native_path": "AnimationPet extends TamableAnimal directly. It defines Command=0 and a distinct SITTING=false; raw setCommand accepts the supplied integer. Its setOrderedToSit writes only custom SITTING, without invoking the TamableAnimal setter or changing native orderedToSit/sitting-pose fields. Save/load delegates to parent and separately stores CmPetSitting and Command; parent owner UUID and native Sitting remain distinct. removeWhenFarAway=false, base isFood=false, offspring=null and base shouldFollow=false.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/AnimationPet",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/AnimationPet.class",
+          "methods": [
+            "defineSynchedData",
+            "getCommand",
+            "setCommand",
+            "isSitting",
+            "setOrderedToSit",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "removeWhenFarAway",
+            "isFood",
+            "shouldFollow",
+            "getBreedOffspring"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/twilight-summon-resources-244.json",
+          "witness_id": "twilight-summon-resources-244",
+          "entry": "net/minecraft/world/entity/TamableAnimal.class",
+          "methods": [
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "tame",
+            "getOwnerUUID",
+            "setOwnerUUID",
+            "isOwnedBy",
+            "isAlliedTo",
+            "isOrderedToSit",
+            "setOrderedToSit",
+            "getTeam",
+            "canAttack",
+            "wantsToAttack"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:modern_remnant-family:sit_follow",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:modern_remnant_sit_follow"
+      ],
+      "primary_source": "cataclysm:modern_remnant",
+      "native_path": "Custom isSitting stops an existing navigation path and replaces travel input with Vec3.ZERO before parent travel; aiStep stops navigation when sitting and isDone. shouldFollow means Command==1. TameableAIFollowOwner adds shouldFollow and !isInCombat to native FollowOwnerGoal canUse/continue; combat means owner exists, pet-owner distance <30 and pet target is alive. Constructor passes speed 1.3 and distances 6/2; its teleportToLeaves boolean is not passed to the native constructor. Native follow movement is inherited, not a new teleport or attack.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/Modern_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/Modern_Remnant_Entity.class",
+          "methods": [
+            "registerGoals",
+            "shouldFollow",
+            "travel",
+            "aiStep"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/AI/TameableAIFollowOwner",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/AI/TameableAIFollowOwner.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "canContinueToUse",
+            "isInCombat"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:modern_remnant-family:tame_command",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:modern_remnant_tame_command"
+      ],
+      "primary_source": "cataclysm:modern_remnant",
+      "native_path": "mobInteract calls parent first. Untamed SNIFFER_EGG consumes the item, then native onAnimalTame cancellation decides whether tame(player) occurs; this branch returns SUCCESS either way. For tame, owned, non-shift interaction only after item and parent results are not SUCCESS, Command increments and wraps only when exactly 3; command 2 sets custom sitting, others clear it. No command-range validation or ownership correction is invented.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/Modern_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/Modern_Remnant_Entity.class",
+          "methods": [
+            "mobInteract"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/AnimationPet",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/AnimationPet.class",
+          "methods": [
+            "setCommand",
+            "setOrderedToSit"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/twilight-summon-resources-244.json",
+          "witness_id": "twilight-summon-resources-244",
+          "entry": "net/minecraft/world/entity/TamableAnimal.class",
+          "methods": [
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "tame",
+            "getOwnerUUID",
+            "setOwnerUUID",
+            "isOwnedBy",
+            "isAlliedTo",
+            "isOrderedToSit",
+            "setOrderedToSit",
+            "getTeam",
+            "canAttack",
+            "wantsToAttack"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:modern_remnant-family:targets_alliances",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:modern_remnant_targets_alliances"
+      ],
+      "primary_source": "cataclysm:modern_remnant",
+      "native_path": "Registers native owner-hurt and owner-attack target goals, HurtByTarget and non-tame random target selection from MODERN_REMNANT_TARGET. Tag predicate requires alive and matching EntityType; null tag returns alwaysFalse. Tame alliance accepts the native owner, another TamableAnimal owned by that owner, or the owner alliance; otherwise parent alliance applies. It does not rewrite the damage causing actor to the pet owner.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:entity/Pet/Modern_Remnant_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/Pet/Modern_Remnant_Entity.class",
+          "methods": [
+            "registerGoals",
+            "isAlliedTo"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-modern_remnant-family.json",
+          "witness_id": "cataclysm:modern_remnant-family:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "buildPredicateFromTag",
+            "lambda$buildPredicateFromTag$103"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/twilight-summon-resources-244.json",
+          "witness_id": "twilight-summon-resources-244",
+          "entry": "net/minecraft/world/entity/TamableAnimal.class",
+          "methods": [
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "tame",
+            "getOwnerUUID",
+            "setOwnerUUID",
+            "isOwnedBy",
+            "isAlliedTo",
+            "isOrderedToSit",
+            "setOrderedToSit",
+            "getTeam",
+            "canAttack",
+            "wantsToAttack"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
       "id": "cataclysm:monstrosity-admission:awakening_home",
       "mod_key": "cataclysm",
       "status": "VERIFIED",
@@ -137217,10 +138985,10 @@
   ],
   "unresolved_native_ambiguities": null,
   "remaining_native_ambiguities": null,
-  "checkpoint": "R2k29-cataclysm-endermaptera-family-complete",
-  "scope": "Endermaptera Monster admission/setup, native animation melee, persistent jaw loss and owned Void Shards, wall/ceiling navigation and material registry/spawn contracts.",
-  "notes_file": "cataclysm-r2k29-endermaptera-family.json",
-  "exact_next_task": "R2k30a: AnimationPet/LLibraryAnimationPet shared admission/owner/command/persistence contracts plus Modern Remnant complete combat family. Start only entity/Pet/AnimationPet, LLibraryAnimationPet, Modern_Remnant_Entity, directly used goals and material registry/spawn paths from the existing census. Defer Baby Leviathan, Ministrosity and equipment/global domains until this shared contract is locked.",
+  "checkpoint": "R2k30a-cataclysm-modern_remnant-family-complete",
+  "scope": "AnimationPet/LLibraryAnimationPet native admission, command/sit/owner NBT/config helpers, and Modern Remnant complete bite/circling/target/feeding/bucket combat lifecycle. Bucket inspection is limited to the directly reached concrete release path.",
+  "notes_file": "cataclysm-r2k30a-modern_remnant-family.json",
+  "exact_next_task": "R2k30b: Baby Leviathan complete combat family. Start only entity/Pet/The_Baby_Leviathan_Entity and directly used combat goals/payloads plus material registry/bucket/spawn paths. Reuse R2k30a AnimationPet/LLibraryAnimationPet owner/command/sit/config/persistence contracts and all locked status/Leviathan payload contracts. Keep Ministrosity, summoned pets and equipment/global domains deferred.",
   "protected_checkpoint": "R2k3a-cataclysm-guardian-admission-complete",
   "protected_notes_file": "cataclysm-r2k3a-guardian-admission.json",
   "protected_checkpoints": [
@@ -137399,6 +139167,10 @@
     {
       "checkpoint": "R2k28-cataclysm-amethyst_crab-family-complete",
       "notes_file": "cataclysm-r2k28-amethyst_crab-family.json"
+    },
+    {
+      "checkpoint": "R2k29-cataclysm-endermaptera-family-complete",
+      "notes_file": "cataclysm-r2k29-endermaptera-family.json"
     }
   ]
 }
