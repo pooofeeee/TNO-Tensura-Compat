@@ -107582,6 +107582,666 @@
       "respawner_callback": false
     },
     {
+      "id": "cataclysm:the_annihilator_area_damage",
+      "mod_key": "cataclysm",
+      "display_name": "Annihilator charged native area damage request",
+      "registry_ids": [
+        "cataclysm:the_annihilator"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "releaseUsing directly calls yall once on admitted release. Query Level.getEntities(caster,caster AABB inflated6 on all axes); living recipients only. No extra team/owner/LOS/radial/alive gate. Each request uses native damageSources.mobAttack(using Player), amount=(float)caster ATTACK_DAMAGE *2F. Hurt boolean discarded; no status, healing, forced movement or explicit post-attack enchantment callback. Native recipient defenses/events remain native. Damage loop precedes the only helper client-side particle guard; release invokes yall before its server-only cooldown guard, so do not claim a helper-level server guard. Screen shake/sound/particles are excluded presentation.",
+      "human_summary": "releaseUsing directly calls yall once on admitted release. Query Level.getEntities(caster,caster AABB inflated6 on all axes); living recipients only. No extra team/owner/LOS/radial/alive gate. Each request uses native damageSources.mobAttack(using Player), amount=(float)caster ATTACK_DAMAGE *2F. Hurt boolean discarded; no status, healing, forced movement or explicit post-attack enchantment callback. Native recipient defenses/events remain native. Damage loop precedes the only helper client-side particle guard; release invokes yall before its server-only cooldown guard, so do not claim a helper-level server guard. Screen shake/sound/particles are excluded presentation.",
+      "closest_vanilla_equivalent": "Native mob-attack damage with custom AABB delivery",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "releaseUsing directly calls yall once on admitted release. Query Level.getEntities(caster,caster AABB inflated6 on all axes); living recipients only. No extra team/owner/LOS/radial/alive gate. Each request uses native damageSources.mobAttack(using Player), amount=(float)caster ATTACK_DAMAGE *2F. Hurt boolean discarded; no status, healing, forced movement or explicit post-attack enchantment callback. Native recipient defenses/events remain native. Damage loop precedes the only helper client-side particle guard; release invokes yall before its server-only cooldown guard, so do not claim a helper-level server guard. Screen shake/sound/particles are excluded presentation.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "formula": "(float)using Player.getAttributeValue(ATTACK_DAMAGE)*2F; native mobAttack(using Player)",
+          "numerical_parameters": {
+            "damage_multiplier": 2
+          },
+          "parameter_units": {
+            "damage_multiplier": "native total attribute multiplier"
+          },
+          "binary_parameters": [],
+          "native_boundary": "The_Annihilator.yall -> Entity.hurt",
+          "vanilla_relation": "VANILLA_DIRECT"
+        },
+        {
+          "primitive": "AREA_SELECTION",
+          "formula": "caster AABB inflate(6,6,6); exclude caster by native query; living recipients only",
+          "numerical_parameters": {
+            "inflate": 6
+          },
+          "parameter_units": {
+            "inflate": "blocks on each AABB axis"
+          },
+          "binary_parameters": [],
+          "native_boundary": "The_Annihilator.yall -> Level.getEntities",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Player charged release",
+        "Native query excludes caster and local instanceof LivingEntity",
+        "Native recipient hurt admission/cancellation; no extra team filter"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Player charged release; Native query excludes caster and local instanceof LivingEntity; Native recipient hurt admission/cancellation; no extra team filter",
+      "source_actor": "Direct/causing actor is using Player through native mobAttack; not playerAttack override",
+      "hurt_return_dependency": "Each hurt result ignored; no return-dependent secondary payload.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-the_annihilator-family.json",
+          "witness_id": "cataclysm:the_annihilator-family:items/The_Annihilator",
+          "entry": "com/github/L_Ender/cataclysm/items/The_Annihilator.class",
+          "methods": [
+            "releaseUsing",
+            "yall"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:the_annihilator-family:area_damage"
+      ],
+      "primary_test_source": "cataclysm:the_annihilator",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32f-cataclysm-the_annihilator-family-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "AREA_SELECTION",
+          "parameters": [
+            "inflate"
+          ],
+          "native_value": 6,
+          "native_formula": "caster AABB inflate(6,6,6); exclude caster by native query; living recipients only",
+          "units": "blocks on each AABB axis",
+          "native_boundary": "The_Annihilator.yall -> Level.getEntities"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "damage_multiplier"
+          ],
+          "native_value": 2,
+          "native_formula": "(float)using Player.getAttributeValue(ATTACK_DAMAGE)*2F; native mobAttack(using Player)",
+          "units": "native total attribute multiplier",
+          "native_boundary": "The_Annihilator.yall -> Entity.hurt"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameter": "damage_multiplier",
+          "native_value": 2,
+          "native_formula": "(float)using Player.getAttributeValue(ATTACK_DAMAGE)*2F; native mobAttack(using Player)",
+          "units": "native total attribute multiplier",
+          "boundary": "The_Annihilator.yall -> Entity.hurt"
+        },
+        {
+          "primitive": "AREA_SELECTION",
+          "parameter": "inflate",
+          "native_value": 6,
+          "native_formula": "caster AABB inflate(6,6,6); exclude caster by native query; living recipients only",
+          "units": "blocks on each AABB axis",
+          "boundary": "The_Annihilator.yall -> Level.getEntities"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "native_source_factory": "mobAttack",
+      "hurt_return_ignored": true,
+      "helper_server_guard_before_damage": false,
+      "extra_team_filter": false,
+      "secondary_status_or_motion": false
+    },
+    {
+      "id": "cataclysm:the_annihilator_native_shield_capability",
+      "mod_key": "cataclysm",
+      "display_name": "Annihilator native shield-disabling capability",
+      "registry_ids": [
+        "cataclysm:the_annihilator"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "canDisableShield returns true. No direct shield timer write, on-hit override, active new projectile/status/persistence path. Native caller attack/shield admission, events and lifecycle remain native.",
+      "human_summary": "canDisableShield returns true. No direct shield timer write, on-hit override, active new projectile/status/persistence path. Native caller attack/shield admission, events and lifecycle remain native.",
+      "closest_vanilla_equivalent": "Native shield-disabling capability",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "canDisableShield returns true. No direct shield timer write, on-hit override, active new projectile/status/persistence path. Native caller attack/shield admission, events and lifecycle remain native.",
+      "components": [
+        {
+          "primitive": "SHIELD_DISABLE_CAPABILITY",
+          "formula": "native boolean true; native caller retains processing",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "The_Annihilator.canDisableShield",
+          "vanilla_relation": "VANILLA_DIRECT"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native caller attack/shield admission"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native caller attack/shield admission",
+      "source_actor": "Native attacking actor",
+      "hurt_return_dependency": "No hurt handling in capability.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-the_annihilator-family.json",
+          "witness_id": "cataclysm:the_annihilator-family:items/The_Annihilator",
+          "entry": "com/github/L_Ender/cataclysm/items/The_Annihilator.class",
+          "methods": [
+            "canDisableShield"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/eternalstarlight-special-weapons-244.json",
+          "witness_id": "eternalstarlight-special-weapons-244",
+          "entry": "net/minecraft/world/entity/player/Player.class",
+          "methods": [
+            "attack"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:the_annihilator-family:native_shield_capability"
+      ],
+      "primary_test_source": "cataclysm:the_annihilator",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32f-cataclysm-the_annihilator-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates."
+    },
+    {
+      "id": "cataclysm:the_annihilator_paired_charge_gate",
+      "mod_key": "cataclysm",
+      "display_name": "Annihilator paired-item use and charged release admission",
+      "registry_ids": [
+        "cataclysm:the_annihilator"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Use succeeds only if opposite hand is native THE_ANNIHILATOR; starts invoked hand/consume, otherwise fail. Native duration72000. Player-only release computes duration-timeLeft and requires >=40 before calling yall. No opposite-hand recheck at release, shift/fall-flying/target or local cooldown check. Native caller interruption/cooldown/events remain native. onUseTick at elapsed10/20/30 creates particles and at40 sound only, no damage/status/motion.",
+      "human_summary": "Use succeeds only if opposite hand is native THE_ANNIHILATOR; starts invoked hand/consume, otherwise fail. Native duration72000. Player-only release computes duration-timeLeft and requires >=40 before calling yall. No opposite-hand recheck at release, shift/fall-flying/target or local cooldown check. Native caller interruption/cooldown/events remain native. onUseTick at elapsed10/20/30 creates particles and at40 sound only, no damage/status/motion.",
+      "closest_vanilla_equivalent": "Native use lifecycle with custom paired-item/charge admission",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Use succeeds only if opposite hand is native THE_ANNIHILATOR; starts invoked hand/consume, otherwise fail. Native duration72000. Player-only release computes duration-timeLeft and requires >=40 before calling yall. No opposite-hand recheck at release, shift/fall-flying/target or local cooldown check. Native caller interruption/cooldown/events remain native. onUseTick at elapsed10/20/30 creates particles and at40 sound only, no damage/status/motion.",
+      "components": [
+        {
+          "primitive": "NATIVE_USE_ADMISSION",
+          "formula": "paired item at use; Player release elapsed>=40",
+          "numerical_parameters": {
+            "use_duration": 72000,
+            "charge_threshold": 40
+          },
+          "parameter_units": {
+            "use_duration": "ticks",
+            "charge_threshold": "elapsed use ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "The_Annihilator.use/getUseDuration/releaseUsing",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Opposite hand exact native item at start",
+        "Player-only elapsed>=40 release; no release pair recheck",
+        "Native caller admission/cancellation"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Opposite hand exact native item at start; Player-only elapsed>=40 release; no release pair recheck; Native caller admission/cancellation",
+      "source_actor": "Native using Player",
+      "hurt_return_dependency": "No target/hurt prerequisite.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-the_annihilator-family.json",
+          "witness_id": "cataclysm:the_annihilator-family:items/The_Annihilator",
+          "entry": "com/github/L_Ender/cataclysm/items/The_Annihilator.class",
+          "methods": [
+            "use",
+            "getUseDuration",
+            "releaseUsing",
+            "onUseTick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:the_annihilator-family:paired_charge_gate"
+      ],
+      "primary_test_source": "cataclysm:the_annihilator",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32f-cataclysm-the_annihilator-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_USE_ADMISSION",
+          "parameter": "use_duration",
+          "native_value": 72000,
+          "native_formula": "paired item at use; Player release elapsed>=40",
+          "units": "ticks",
+          "boundary": "The_Annihilator.use/getUseDuration/releaseUsing"
+        },
+        {
+          "primitive": "NATIVE_USE_ADMISSION",
+          "parameter": "charge_threshold",
+          "native_value": 40,
+          "native_formula": "paired item at use; Player release elapsed>=40",
+          "units": "elapsed use ticks",
+          "boundary": "The_Annihilator.use/getUseDuration/releaseUsing"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "candidate_charge_threshold_not_automatic": true,
+      "release_rechecks_pair": false
+    },
+    {
+      "id": "cataclysm:the_annihilator_registry_config",
+      "mod_key": "cataclysm",
+      "display_name": "Annihilator native registered/configured setup",
+      "registry_ids": [
+        "cataclysm:the_annihilator"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Native cataclysm:the_annihilator bootstrap186 -> lambda$static$158; stacksTo1/item fireResistant. Factory damage6.5F/speed-2.4F/custom critical75; default-component bootstrap19 -> lambda$modifyComponents$303 replaces only configured attack/speed, retaining critical75. Config defaults8.5/1.6 (different factory damage), native ToolConfig ranges0..1000000 and Commonbake reused. There is no Annihilator cooldown config binding; active cooldown is literal100. Item fire resistance is not holder immunity.",
+      "human_summary": "Native cataclysm:the_annihilator bootstrap186 -> lambda$static$158; stacksTo1/item fireResistant. Factory damage6.5F/speed-2.4F/custom critical75; default-component bootstrap19 -> lambda$modifyComponents$303 replaces only configured attack/speed, retaining critical75. Config defaults8.5/1.6 (different factory damage), native ToolConfig ranges0..1000000 and Commonbake reused. There is no Annihilator cooldown config binding; active cooldown is literal100. Item fire resistance is not holder immunity.",
+      "closest_vanilla_equivalent": "Native registry/default attribute components",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Native cataclysm:the_annihilator bootstrap186 -> lambda$static$158; stacksTo1/item fireResistant. Factory damage6.5F/speed-2.4F/custom critical75; default-component bootstrap19 -> lambda$modifyComponents$303 replaces only configured attack/speed, retaining critical75. Config defaults8.5/1.6 (different factory damage), native ToolConfig ranges0..1000000 and Commonbake reused. There is no Annihilator cooldown config binding; active cooldown is literal100. Item fire resistance is not holder immunity.",
+      "components": [
+        {
+          "primitive": "NATIVE_ITEM_SETUP",
+          "formula": "registry/configuration lifecycle",
+          "numerical_parameters": {
+            "stack_limit": 1,
+            "damage_default": 8.5,
+            "speed_default": 1.6
+          },
+          "parameter_units": {
+            "stack_limit": "items",
+            "damage_default": "configured attack value",
+            "speed_default": "configured attack-speed value"
+          },
+          "binary_parameters": [],
+          "native_boundary": "ModItems / Annihilator config",
+          "vanilla_relation": "VANILLA_DIRECT"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native registry/default-component lifecycle"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native registry/default-component lifecycle",
+      "source_actor": "Native equipped/using Player",
+      "hurt_return_dependency": "No hurt-dependent setup.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-the_annihilator-family.json",
+          "witness_id": "cataclysm:the_annihilator-family:init/ModItems",
+          "entry": "com/github/L_Ender/cataclysm/init/ModItems.class",
+          "methods": [
+            "<clinit>",
+            "lambda$static$158",
+            "modifyComponents",
+            "lambda$modifyComponents$303"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-the_annihilator-family.json",
+          "witness_id": "cataclysm:the_annihilator-family:config/CMCommonConfig$Annihilator",
+          "entry": "com/github/L_Ender/cataclysm/config/CMCommonConfig$Annihilator.class",
+          "methods": [
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-the_annihilator-family.json",
+          "witness_id": "cataclysm:the_annihilator-family:config/CommonConfig$Annihilator",
+          "entry": "com/github/L_Ender/cataclysm/config/CommonConfig$Annihilator.class",
+          "methods": [
+            "<init>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:config/CMCommonConfig",
+          "entry": "com/github/L_Ender/cataclysm/config/CMCommonConfig.class",
+          "methods": [
+            "Commonbake"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-the_immolator-family.json",
+          "witness_id": "cataclysm:the_immolator-family:config/CommonConfig$ToolConfig",
+          "entry": "com/github/L_Ender/cataclysm/config/CommonConfig$ToolConfig.class",
+          "methods": [
+            "<init>"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:the_annihilator-family:registry_config"
+      ],
+      "primary_test_source": "cataclysm:the_annihilator",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32f-cataclysm-the_annihilator-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_ITEM_SETUP",
+          "parameter": "stack_limit",
+          "native_value": 1,
+          "native_formula": "registry/configuration lifecycle",
+          "units": "items",
+          "boundary": "ModItems / Annihilator config"
+        },
+        {
+          "primitive": "NATIVE_ITEM_SETUP",
+          "parameter": "damage_default",
+          "native_value": 8.5,
+          "native_formula": "registry/configuration lifecycle",
+          "units": "configured attack value",
+          "boundary": "ModItems / Annihilator config"
+        },
+        {
+          "primitive": "NATIVE_ITEM_SETUP",
+          "parameter": "speed_default",
+          "native_value": 1.6,
+          "native_formula": "registry/configuration lifecycle",
+          "units": "configured attack-speed value",
+          "boundary": "ModItems / Annihilator config"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "factory_damage_differs_from_config_default": true
+    },
+    {
+      "id": "cataclysm:the_annihilator_release_cooldown",
+      "mod_key": "cataclysm",
+      "display_name": "Annihilator native charged-release cooldown",
+      "registry_ids": [
+        "cataclysm:the_annihilator"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Player elapsed>=40 release calls yall, then only !level.isClientSide adds cooldown100. Empty recipient query or rejected hurt still requests cooldown; no native result/kill/entity-add gate. Literal100 is independent from configurable mainhand attributes.",
+      "human_summary": "Player elapsed>=40 release calls yall, then only !level.isClientSide adds cooldown100. Empty recipient query or rejected hurt still requests cooldown; no native result/kill/entity-add gate. Literal100 is independent from configurable mainhand attributes.",
+      "closest_vanilla_equivalent": "Native per-item Player cooldown",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Player elapsed>=40 release calls yall, then only !level.isClientSide adds cooldown100. Empty recipient query or rejected hurt still requests cooldown; no native result/kill/entity-add gate. Literal100 is independent from configurable mainhand attributes.",
+      "components": [
+        {
+          "primitive": "ITEM_COOLDOWN",
+          "formula": "server Player charged release -> addCooldown(this,100)",
+          "numerical_parameters": {
+            "ticks": 100
+          },
+          "parameter_units": {
+            "ticks": "ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "The_Annihilator.releaseUsing",
+          "vanilla_relation": "VANILLA_DIRECT"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Player charged release and server side"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Player charged release and server side",
+      "source_actor": "Native using Player cooldown manager",
+      "hurt_return_dependency": "Independent of any hurt result or recipient count.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-the_annihilator-family.json",
+          "witness_id": "cataclysm:the_annihilator-family:items/The_Annihilator",
+          "entry": "com/github/L_Ender/cataclysm/items/The_Annihilator.class",
+          "methods": [
+            "releaseUsing"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:the_annihilator-family:release_cooldown"
+      ],
+      "primary_test_source": "cataclysm:the_annihilator",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32f-cataclysm-the_annihilator-family-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "ITEM_COOLDOWN",
+          "parameters": [
+            "ticks"
+          ],
+          "native_value": 100,
+          "native_formula": "server Player charged release -> addCooldown(this,100)",
+          "units": "ticks",
+          "native_boundary": "The_Annihilator.releaseUsing"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "ITEM_COOLDOWN",
+          "parameter": "ticks",
+          "native_value": 100,
+          "native_formula": "server Player charged release -> addCooldown(this,100)",
+          "units": "ticks",
+          "boundary": "The_Annihilator.releaseUsing"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "cooldown_gated_by_hurt": false,
+      "cooldown_is_configured": false
+    },
+    {
+      "id": "cataclysm:the_annihilator_weapon_attributes",
+      "mod_key": "cataclysm",
+      "display_name": "Annihilator independent mainhand attribute contributions",
+      "registry_ids": [
+        "cataclysm:the_annihilator"
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "MAINHAND native configured attack damage/speed plus additional_critical_damage75 ADD_VALUE. Locked attribute IDs and attribute+slot merge preserve the custom entry. No second offhand attribute entry is supplied by the paired-use gate. Critical attribute producer/registration is proven; later global consumer remains deferred rather than inventing a damage formula. Active area damage reads total native ATTACK_DAMAGE, not this custom attribute directly.",
+      "human_summary": "MAINHAND native configured attack damage/speed plus additional_critical_damage75 ADD_VALUE. Locked attribute IDs and attribute+slot merge preserve the custom entry. No second offhand attribute entry is supplied by the paired-use gate. Critical attribute producer/registration is proven; later global consumer remains deferred rather than inventing a damage formula. Active area damage reads total native ATTACK_DAMAGE, not this custom attribute directly.",
+      "closest_vanilla_equivalent": "Native mainhand attributes plus custom critical attribute",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "MAINHAND native configured attack damage/speed plus additional_critical_damage75 ADD_VALUE. Locked attribute IDs and attribute+slot merge preserve the custom entry. No second offhand attribute entry is supplied by the paired-use gate. Critical attribute producer/registration is proven; later global consumer remains deferred rather than inventing a damage formula. Active area damage reads total native ATTACK_DAMAGE, not this custom attribute directly.",
+      "components": [
+        {
+          "primitive": "ATTACK_DAMAGE_ATTRIBUTE",
+          "formula": "MAINHAND ADD_VALUE float(CMCommonConfig.Annihilator.attackDamage)+(-1F); factory6.5; default config8.5",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "ModItems.lambda$modifyComponents$303 -> native attribute merge",
+          "vanilla_relation": "VANILLA_DIRECT",
+          "parameter_formulas": {
+            "amount": "float(config.attackDamage)+(-1F)"
+          },
+          "formula_parameter_units": {
+            "amount": "native attack-damage attribute units"
+          },
+          "native_operation": "ADD_VALUE",
+          "equipment_slot": "MAINHAND",
+          "attribute": "minecraft:generic.attack_damage"
+        },
+        {
+          "primitive": "ATTACK_SPEED_ATTRIBUTE",
+          "formula": "MAINHAND ADD_VALUE float(CMCommonConfig.Annihilator.attackSpeed)+(-4F); factory-2.4F; default config1.6",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "ModItems.lambda$modifyComponents$303 -> native attribute merge",
+          "vanilla_relation": "VANILLA_DIRECT",
+          "parameter_formulas": {
+            "amount": "float(config.attackSpeed)+(-4F)"
+          },
+          "formula_parameter_units": {
+            "amount": "native attack-speed attribute units"
+          },
+          "native_operation": "ADD_VALUE",
+          "equipment_slot": "MAINHAND",
+          "attribute": "minecraft:generic.attack_speed"
+        },
+        {
+          "primitive": "ADDITIONAL_CRITICAL_DAMAGE_ATTRIBUTE",
+          "formula": "MAINHAND ADD_VALUE75 to cataclysm:additional_critical_damage; native RangedAttribute default0, bounds-512..512, sync=true. Global consumer semantics deferred, no critical damage formula invented.",
+          "numerical_parameters": {
+            "amount": 75
+          },
+          "parameter_units": {
+            "amount": "raw custom attribute units"
+          },
+          "binary_parameters": [],
+          "native_boundary": "ModItems.lambda$static$158 -> Cataclysm_Weapon.createAttributes",
+          "vanilla_relation": "CUSTOM",
+          "native_operation": "ADD_VALUE",
+          "equipment_slot": "MAINHAND",
+          "attribute": "cataclysm:additional_critical_damage"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native MAINHAND equipment application and attribute lifecycle"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native MAINHAND equipment application and attribute lifecycle",
+      "source_actor": "Native equipped holder",
+      "hurt_return_dependency": "No local hit/status/healing callback.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-the_annihilator-family.json",
+          "witness_id": "cataclysm:the_annihilator-family:init/ModItems",
+          "entry": "com/github/L_Ender/cataclysm/init/ModItems.class",
+          "methods": [
+            "lambda$static$158",
+            "lambda$modifyComponents$303"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-the_immolator-family.json",
+          "witness_id": "cataclysm:the_immolator-family:items/Cataclysm_Weapon",
+          "entry": "com/github/L_Ender/cataclysm/items/Cataclysm_Weapon.class",
+          "methods": [
+            "createAttributes"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-the_immolator-family.json",
+          "witness_id": "cataclysm:the_immolator-family:items/CuriosItem/AttributeContainer",
+          "entry": "com/github/L_Ender/cataclysm/items/CuriosItem/AttributeContainer.class",
+          "methods": [
+            "createModifier"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-the_immolator-family.json",
+          "witness_id": "cataclysm:the_immolator-family:util/AttributeUtils",
+          "entry": "com/github/L_Ender/cataclysm/util/AttributeUtils.class",
+          "methods": [
+            "mergeAttributes"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-the_immolator-family.json",
+          "witness_id": "cataclysm:the_immolator-family:init/ModAttribute",
+          "entry": "com/github/L_Ender/cataclysm/init/ModAttribute.class",
+          "methods": [
+            "<clinit>",
+            "lambda$static$0"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:the_annihilator-family:weapon_attributes"
+      ],
+      "primary_test_source": "cataclysm:the_annihilator",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32f-cataclysm-the_annihilator-family-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "ADDITIONAL_CRITICAL_DAMAGE_ATTRIBUTE",
+          "parameters": [
+            "amount"
+          ],
+          "native_value": 75,
+          "native_formula": "MAINHAND ADD_VALUE75 to cataclysm:additional_critical_damage; native RangedAttribute default0, bounds-512..512, sync=true. Global consumer semantics deferred, no critical damage formula invented.",
+          "units": "raw custom attribute units",
+          "native_boundary": "ModItems.lambda$static$158 -> Cataclysm_Weapon.createAttributes"
+        },
+        {
+          "primitive": "ATTACK_DAMAGE_ATTRIBUTE",
+          "parameters": [
+            "amount"
+          ],
+          "native_value": null,
+          "native_formula": "float(config.attackDamage)+(-1F)",
+          "units": "native attack-damage attribute units",
+          "native_boundary": "ModItems.lambda$modifyComponents$303 -> native attribute merge"
+        },
+        {
+          "primitive": "ATTACK_SPEED_ATTRIBUTE",
+          "parameters": [
+            "amount"
+          ],
+          "native_value": null,
+          "native_formula": "float(config.attackSpeed)+(-4F)",
+          "units": "native attack-speed attribute units",
+          "native_boundary": "ModItems.lambda$modifyComponents$303 -> native attribute merge"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "ATTACK_DAMAGE_ATTRIBUTE",
+          "parameter": "amount",
+          "native_value": null,
+          "native_formula": "float(config.attackDamage)+(-1F)",
+          "units": "native attack-damage attribute units",
+          "boundary": "ModItems.lambda$modifyComponents$303 -> native attribute merge"
+        },
+        {
+          "primitive": "ATTACK_SPEED_ATTRIBUTE",
+          "parameter": "amount",
+          "native_value": null,
+          "native_formula": "float(config.attackSpeed)+(-4F)",
+          "units": "native attack-speed attribute units",
+          "boundary": "ModItems.lambda$modifyComponents$303 -> native attribute merge"
+        },
+        {
+          "primitive": "ADDITIONAL_CRITICAL_DAMAGE_ATTRIBUTE",
+          "parameter": "amount",
+          "native_value": 75,
+          "native_formula": "MAINHAND ADD_VALUE75 to cataclysm:additional_critical_damage; native RangedAttribute default0, bounds-512..512, sync=true. Global consumer semantics deferred, no critical damage formula invented.",
+          "units": "raw custom attribute units",
+          "boundary": "ModItems.lambda$static$158 -> Cataclysm_Weapon.createAttributes"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "global_critical_consumer_deferred": true
+    },
+    {
       "id": "cataclysm:the_baby_leviathan_animation_aim",
       "mod_key": "cataclysm",
       "display_name": "Baby Leviathan native attack animation/facing control",
@@ -147008,6 +147668,237 @@
       "runtime_status": "NOT_RUN"
     },
     {
+      "id": "cataclysm:the_annihilator-family:area_damage",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:the_annihilator_area_damage"
+      ],
+      "primary_source": "cataclysm:the_annihilator",
+      "native_path": "releaseUsing directly calls yall once on admitted release. Query Level.getEntities(caster,caster AABB inflated6 on all axes); living recipients only. No extra team/owner/LOS/radial/alive gate. Each request uses native damageSources.mobAttack(using Player), amount=(float)caster ATTACK_DAMAGE *2F. Hurt boolean discarded; no status, healing, forced movement or explicit post-attack enchantment callback. Native recipient defenses/events remain native. Damage loop precedes the only helper client-side particle guard; release invokes yall before its server-only cooldown guard, so do not claim a helper-level server guard. Screen shake/sound/particles are excluded presentation.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-the_annihilator-family.json",
+          "witness_id": "cataclysm:the_annihilator-family:items/The_Annihilator",
+          "entry": "com/github/L_Ender/cataclysm/items/The_Annihilator.class",
+          "methods": [
+            "releaseUsing",
+            "yall"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:the_annihilator-family:native_shield_capability",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:the_annihilator_native_shield_capability"
+      ],
+      "primary_source": "cataclysm:the_annihilator",
+      "native_path": "canDisableShield returns true. No direct shield timer write, on-hit override, active new projectile/status/persistence path. Native caller attack/shield admission, events and lifecycle remain native.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-the_annihilator-family.json",
+          "witness_id": "cataclysm:the_annihilator-family:items/The_Annihilator",
+          "entry": "com/github/L_Ender/cataclysm/items/The_Annihilator.class",
+          "methods": [
+            "canDisableShield"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/eternalstarlight-special-weapons-244.json",
+          "witness_id": "eternalstarlight-special-weapons-244",
+          "entry": "net/minecraft/world/entity/player/Player.class",
+          "methods": [
+            "attack"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:the_annihilator-family:paired_charge_gate",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:the_annihilator_paired_charge_gate"
+      ],
+      "primary_source": "cataclysm:the_annihilator",
+      "native_path": "Use succeeds only if opposite hand is native THE_ANNIHILATOR; starts invoked hand/consume, otherwise fail. Native duration72000. Player-only release computes duration-timeLeft and requires >=40 before calling yall. No opposite-hand recheck at release, shift/fall-flying/target or local cooldown check. Native caller interruption/cooldown/events remain native. onUseTick at elapsed10/20/30 creates particles and at40 sound only, no damage/status/motion.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-the_annihilator-family.json",
+          "witness_id": "cataclysm:the_annihilator-family:items/The_Annihilator",
+          "entry": "com/github/L_Ender/cataclysm/items/The_Annihilator.class",
+          "methods": [
+            "use",
+            "getUseDuration",
+            "releaseUsing",
+            "onUseTick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:the_annihilator-family:registry_config",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:the_annihilator_registry_config"
+      ],
+      "primary_source": "cataclysm:the_annihilator",
+      "native_path": "Native cataclysm:the_annihilator bootstrap186 -> lambda$static$158; stacksTo1/item fireResistant. Factory damage6.5F/speed-2.4F/custom critical75; default-component bootstrap19 -> lambda$modifyComponents$303 replaces only configured attack/speed, retaining critical75. Config defaults8.5/1.6 (different factory damage), native ToolConfig ranges0..1000000 and Commonbake reused. There is no Annihilator cooldown config binding; active cooldown is literal100. Item fire resistance is not holder immunity.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-the_annihilator-family.json",
+          "witness_id": "cataclysm:the_annihilator-family:init/ModItems",
+          "entry": "com/github/L_Ender/cataclysm/init/ModItems.class",
+          "methods": [
+            "<clinit>",
+            "lambda$static$158",
+            "modifyComponents",
+            "lambda$modifyComponents$303"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-the_annihilator-family.json",
+          "witness_id": "cataclysm:the_annihilator-family:config/CMCommonConfig$Annihilator",
+          "entry": "com/github/L_Ender/cataclysm/config/CMCommonConfig$Annihilator.class",
+          "methods": [
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-the_annihilator-family.json",
+          "witness_id": "cataclysm:the_annihilator-family:config/CommonConfig$Annihilator",
+          "entry": "com/github/L_Ender/cataclysm/config/CommonConfig$Annihilator.class",
+          "methods": [
+            "<init>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:config/CMCommonConfig",
+          "entry": "com/github/L_Ender/cataclysm/config/CMCommonConfig.class",
+          "methods": [
+            "Commonbake"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-the_immolator-family.json",
+          "witness_id": "cataclysm:the_immolator-family:config/CommonConfig$ToolConfig",
+          "entry": "com/github/L_Ender/cataclysm/config/CommonConfig$ToolConfig.class",
+          "methods": [
+            "<init>"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:the_annihilator-family:release_cooldown",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:the_annihilator_release_cooldown"
+      ],
+      "primary_source": "cataclysm:the_annihilator",
+      "native_path": "Player elapsed>=40 release calls yall, then only !level.isClientSide adds cooldown100. Empty recipient query or rejected hurt still requests cooldown; no native result/kill/entity-add gate. Literal100 is independent from configurable mainhand attributes.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-the_annihilator-family.json",
+          "witness_id": "cataclysm:the_annihilator-family:items/The_Annihilator",
+          "entry": "com/github/L_Ender/cataclysm/items/The_Annihilator.class",
+          "methods": [
+            "releaseUsing"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:the_annihilator-family:weapon_attributes",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:the_annihilator_weapon_attributes"
+      ],
+      "primary_source": "cataclysm:the_annihilator",
+      "native_path": "MAINHAND native configured attack damage/speed plus additional_critical_damage75 ADD_VALUE. Locked attribute IDs and attribute+slot merge preserve the custom entry. No second offhand attribute entry is supplied by the paired-use gate. Critical attribute producer/registration is proven; later global consumer remains deferred rather than inventing a damage formula. Active area damage reads total native ATTACK_DAMAGE, not this custom attribute directly.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-the_annihilator-family.json",
+          "witness_id": "cataclysm:the_annihilator-family:init/ModItems",
+          "entry": "com/github/L_Ender/cataclysm/init/ModItems.class",
+          "methods": [
+            "lambda$static$158",
+            "lambda$modifyComponents$303"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-the_immolator-family.json",
+          "witness_id": "cataclysm:the_immolator-family:items/Cataclysm_Weapon",
+          "entry": "com/github/L_Ender/cataclysm/items/Cataclysm_Weapon.class",
+          "methods": [
+            "createAttributes"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-the_immolator-family.json",
+          "witness_id": "cataclysm:the_immolator-family:items/CuriosItem/AttributeContainer",
+          "entry": "com/github/L_Ender/cataclysm/items/CuriosItem/AttributeContainer.class",
+          "methods": [
+            "createModifier"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-the_immolator-family.json",
+          "witness_id": "cataclysm:the_immolator-family:util/AttributeUtils",
+          "entry": "com/github/L_Ender/cataclysm/util/AttributeUtils.class",
+          "methods": [
+            "mergeAttributes"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-the_immolator-family.json",
+          "witness_id": "cataclysm:the_immolator-family:init/ModAttribute",
+          "entry": "com/github/L_Ender/cataclysm/init/ModAttribute.class",
+          "methods": [
+            "<clinit>",
+            "lambda$static$0"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
       "id": "cataclysm:the_baby_leviathan-family:animation_aim",
       "mod_key": "cataclysm",
       "status": "VERIFIED",
@@ -150387,10 +151278,10 @@
   ],
   "unresolved_native_ambiguities": null,
   "remaining_native_ambiguities": null,
-  "checkpoint": "R2k32e-cataclysm-gauntlet_of_maelstrom-family-complete",
-  "scope": "Gauntlet of Maelstrom complete native registered attributes, opposing-shield use admission, server block-pick/support placement, Player-owned Void Vortex lifespan binding and cooldown. Locked Vortex owner/control/explosion/lifecycle contract reused.",
-  "notes_file": "cataclysm-r2k32e-gauntlet_of_maelstrom-family.json",
-  "exact_next_task": "R2k32f: The_Annihilator complete combat family. Start only items/The_Annihilator from the existing census, native registry/component/use/hit paths and directly reached payloads. Reuse locked weapon/config/component, source/status and payload contracts. Keep other equipment/accessories/global domains deferred until bounded ledger tasks.",
+  "checkpoint": "R2k32f-cataclysm-the_annihilator-family-complete",
+  "scope": "The Annihilator complete native registered/configured attributes, paired-item use/charge admission, directly called native area damage, cooldown and shield capability. Locked mainhand/config/native attack and custom critical-attribute registration contracts reused; later global critical consumer remains deferred.",
+  "notes_file": "cataclysm-r2k32f-the_annihilator-family.json",
+  "exact_next_task": "R2k32g: Ancient_Spear and Khopesh complete combat weapon families. Start only items/Ancient_Spear and items/Khopesh from existing census and native registry/component/hit paths, plus directly reached status callbacks. Reuse locked native weapon/config/attribute/attack/status contracts. Other equipment/accessories/global domains deferred until bounded ledger tasks.",
   "protected_checkpoint": "R2k3a-cataclysm-guardian-admission-complete",
   "protected_notes_file": "cataclysm-r2k3a-guardian-admission.json",
   "protected_checkpoints": [
@@ -150605,6 +151496,10 @@
     {
       "checkpoint": "R2k32d-cataclysm-gauntlet_of_bulwark-family-complete",
       "notes_file": "cataclysm-r2k32d-gauntlet_of_bulwark-family.json"
+    },
+    {
+      "checkpoint": "R2k32e-cataclysm-gauntlet_of_maelstrom-family-complete",
+      "notes_file": "cataclysm-r2k32e-gauntlet_of_maelstrom-family.json"
     }
   ]
 }
