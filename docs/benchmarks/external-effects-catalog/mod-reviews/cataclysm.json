@@ -27715,6 +27715,1689 @@
       "ordered_velocity_writes": true
     },
     {
+      "id": "cataclysm:gauntlet_of_bulwark_charge_contact_impact",
+      "mod_key": "cataclysm",
+      "display_name": "Bulwark native charge contact damage and watcher enrollment",
+      "registry_ids": [
+        "cataclysm:gauntlet_of_bulwark"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Locked PlayerTickEvent.Post bridge invokes actor CHARGE_ATTACHMENT.tick; charge && server only. Save old temp=Timer, write Timer=temp-1 first. If old temp>0, query Living in actor AABB.inflate(.75), remove actor; ANY nonempty contact list triggers impact, even allies. Create WallWatcher with OLD temp and native supplied fields/source actor. Query larger AABB.inflate(3.5,.75,3.5), remove actor; target-side !isAlliedTo(actor) -> mobProjectile(actor,actor), amount=damagePerEffectiveCharge*effectiveTime (producer default12). Call watch(target) regardless of hurt boolean; true only sound. Add watcher ignoring add return; zero user velocity/hurtMarked=true/charge=false regardless of accepted hurt. Then horizontalCollision or old temp==0 also clears charge. Native targets/immunity/armor/return behavior stay native.",
+      "human_summary": "Locked PlayerTickEvent.Post bridge invokes actor CHARGE_ATTACHMENT.tick; charge && server only. Save old temp=Timer, write Timer=temp-1 first. If old temp>0, query Living in actor AABB.inflate(.75), remove actor; ANY nonempty contact list triggers impact, even allies. Create WallWatcher with OLD temp and native supplied fields/source actor. Query larger AABB.inflate(3.5,.75,3.5), remove actor; target-side !isAlliedTo(actor) -> mobProjectile(actor,actor), amount=damagePerEffectiveCharge*effectiveTime (producer default12). Call watch(target) regardless of hurt boolean; true only sound. Add watcher ignoring add return; zero user velocity/hurtMarked=true/charge=false regardless of accepted hurt. Then horizontalCollision or old temp==0 also clears charge. Native targets/immunity/armor/return behavior stay native.",
+      "closest_vanilla_equivalent": "Native mob-projectile DamageSource plus custom contact/control enrollment",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Locked PlayerTickEvent.Post bridge invokes actor CHARGE_ATTACHMENT.tick; charge && server only. Save old temp=Timer, write Timer=temp-1 first. If old temp>0, query Living in actor AABB.inflate(.75), remove actor; ANY nonempty contact list triggers impact, even allies. Create WallWatcher with OLD temp and native supplied fields/source actor. Query larger AABB.inflate(3.5,.75,3.5), remove actor; target-side !isAlliedTo(actor) -> mobProjectile(actor,actor), amount=damagePerEffectiveCharge*effectiveTime (producer default12). Call watch(target) regardless of hurt boolean; true only sound. Add watcher ignoring add return; zero user velocity/hurtMarked=true/charge=false regardless of accepted hurt. Then horizontalCollision or old temp==0 also clears charge. Native targets/immunity/armor/return behavior stay native.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "formula": "native mobProjectile(actor,actor), direct=causing=actor; coefficient*effectiveTime; binding supplied once",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "ChargeAttachment.tick first impact",
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED",
+          "parameter_formulas": {
+            "amount": "damagePerEffectiveCharge*effectiveChargeTime"
+          },
+          "formula_parameter_units": {
+            "amount": "requested health units"
+          }
+        },
+        {
+          "primitive": "AREA_SELECTION",
+          "formula": "trigger AABB inflate.75 XYZ; impact inflate3.5,.75,3.5; remove actor",
+          "numerical_parameters": {
+            "contact_inflate": 0.75,
+            "impact_horizontal": 3.5,
+            "impact_vertical": 0.75
+          },
+          "parameter_units": {
+            "contact_inflate": "blocks per axis",
+            "impact_horizontal": "blocks X/Z",
+            "impact_vertical": "blocks Y"
+          },
+          "binary_parameters": [],
+          "native_boundary": "ChargeAttachment.tick native queries",
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED"
+        },
+        {
+          "primitive": "CHARGE_CONTROL",
+          "formula": "watch even rejected hurt; add watcher; set user velocity ZERO/mark; chargefalse",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "ChargeAttachment.tick",
+          "vanilla_relation": "CUSTOM_CONTROL"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "charge && server; OLD temp>0; decremented field differs from watcher-supplied old temp",
+        "Contact list nonempty (no team predicate on trigger); impact target-side alliance filter",
+        "Native hurt/cancellation remains native; watched regardless of hurt",
+        "horizontalCollision or OLD temp==0 stops native charge"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "charge && server; OLD temp>0; decremented field differs from watcher-supplied old temp; Contact list nonempty (no team predicate on trigger); impact target-side alliance filter; Native hurt/cancellation remains native; watched regardless of hurt; horizontalCollision or OLD temp==0 stops native charge",
+      "source_actor": "Native actor is both direct/causing initial mobProjectile source; watcher stores same raw actor",
+      "hurt_return_dependency": "Watch and zero/stop are independent of hurt; hurttrue only impact sound.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:Attachment/ChargeAttachment",
+          "entry": "com/github/L_Ender/cataclysm/Attachment/ChargeAttachment.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:entity/effect/Wall_Watcher_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/effect/Wall_Watcher_Entity.class",
+          "methods": [
+            "<init>",
+            "watch"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:event/ServerEventHandler",
+          "entry": "com/github/L_Ender/cataclysm/event/ServerEventHandler.class",
+          "methods": [
+            "onLivingUpdateEvent"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:gauntlet_of_bulwark-family:charge_contact_impact"
+      ],
+      "primary_test_source": "cataclysm:gauntlet_of_bulwark",
+      "alternate_sources": [],
+      "spawned_entity_ids": [
+        "cataclysm:wall_watcher"
+      ],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32d-cataclysm-gauntlet_of_bulwark-family-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "AREA_SELECTION",
+          "parameters": [
+            "contact_inflate"
+          ],
+          "native_value": 0.75,
+          "native_formula": "trigger AABB inflate.75 XYZ; impact inflate3.5,.75,3.5; remove actor",
+          "units": "blocks per axis",
+          "native_boundary": "ChargeAttachment.tick native queries"
+        },
+        {
+          "primitive": "AREA_SELECTION",
+          "parameters": [
+            "impact_horizontal"
+          ],
+          "native_value": 3.5,
+          "native_formula": "trigger AABB inflate.75 XYZ; impact inflate3.5,.75,3.5; remove actor",
+          "units": "blocks X/Z",
+          "native_boundary": "ChargeAttachment.tick native queries"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameter": "amount",
+          "native_value": null,
+          "native_formula": "damagePerEffectiveCharge*effectiveChargeTime",
+          "units": "requested health units",
+          "boundary": "ChargeAttachment.tick first impact"
+        },
+        {
+          "primitive": "AREA_SELECTION",
+          "parameter": "contact_inflate",
+          "native_value": 0.75,
+          "native_formula": "trigger AABB inflate.75 XYZ; impact inflate3.5,.75,3.5; remove actor",
+          "units": "blocks per axis",
+          "boundary": "ChargeAttachment.tick native queries"
+        },
+        {
+          "primitive": "AREA_SELECTION",
+          "parameter": "impact_horizontal",
+          "native_value": 3.5,
+          "native_formula": "trigger AABB inflate.75 XYZ; impact inflate3.5,.75,3.5; remove actor",
+          "units": "blocks X/Z",
+          "boundary": "ChargeAttachment.tick native queries"
+        },
+        {
+          "primitive": "AREA_SELECTION",
+          "parameter": "impact_vertical",
+          "native_value": 0.75,
+          "native_formula": "trigger AABB inflate.75 XYZ; impact inflate3.5,.75,3.5; remove actor",
+          "units": "blocks Y",
+          "boundary": "ChargeAttachment.tick native queries"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "watch_requires_hurt_success": false,
+      "contact_trigger_filters_allies": false,
+      "watcher_receives_predecrement_timer": true
+    },
+    {
+      "id": "cataclysm:gauntlet_of_bulwark_charge_pulse",
+      "mod_key": "cataclysm",
+      "display_name": "Gauntlet of Bulwark native twenty-tick Brand/push pulse",
+      "registry_ids": [
+        "cataclysm:gauntlet_of_bulwark"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Reuse captured onUseTick: at elapsed==20, query user-excluding Entity AABB.inflate4.5; select LivingEntity except Player abilities.invulnerable, no explicit team/LOS/radial gate. Request Brand(duration40, implicit amp0, no supplied source), ignore addEffect boolean. Independently if recipient.onGround, dXZ=recipient-user, q=max(dx^2+dz^2,.001), push(dx/q*1.5F,0.1F,dz/q*1.5F). This is inverse-squared horizontal contribution, not normalized vanilla knockback. No hurt call/prerequisite; motion survives status rejection. Pulse has no local server guard; client guard is particles only.",
+      "human_summary": "Reuse captured onUseTick: at elapsed==20, query user-excluding Entity AABB.inflate4.5; select LivingEntity except Player abilities.invulnerable, no explicit team/LOS/radial gate. Request Brand(duration40, implicit amp0, no supplied source), ignore addEffect boolean. Independently if recipient.onGround, dXZ=recipient-user, q=max(dx^2+dz^2,.001), push(dx/q*1.5F,0.1F,dz/q*1.5F). This is inverse-squared horizontal contribution, not normalized vanilla knockback. No hurt call/prerequisite; motion survives status rejection. Pulse has no local server guard; client guard is particles only.",
+      "closest_vanilla_equivalent": "Native status request plus custom direct motion and area selection",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Reuse captured onUseTick: at elapsed==20, query user-excluding Entity AABB.inflate4.5; select LivingEntity except Player abilities.invulnerable, no explicit team/LOS/radial gate. Request Brand(duration40, implicit amp0, no supplied source), ignore addEffect boolean. Independently if recipient.onGround, dXZ=recipient-user, q=max(dx^2+dz^2,.001), push(dx/q*1.5F,0.1F,dz/q*1.5F). This is inverse-squared horizontal contribution, not normalized vanilla knockback. No hurt call/prerequisite; motion survives status rejection. Pulse has no local server guard; client guard is particles only.",
+      "components": [
+        {
+          "primitive": "BLAZING_BRAND_DELIVERY",
+          "formula": "native MobEffectInstance Brand40/implicitamp0, add return ignored",
+          "numerical_parameters": {
+            "duration": 40
+          },
+          "parameter_units": {
+            "duration": "ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Locked Gauntlet_of_Bulwark.onUseTick",
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED"
+        },
+        {
+          "primitive": "AREA_SELECTION",
+          "formula": "Entity query excludes user, inflated4.5; Living filter/Player ability gate",
+          "numerical_parameters": {
+            "aabb_inflate": 4.5
+          },
+          "parameter_units": {
+            "aabb_inflate": "blocks per axis"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Locked Gauntlet_of_Bulwark.onUseTick",
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "formula": "onGround push(dx/max(dx^2+dz^2,.001)*1.5F,.1F,dz/q*1.5F)",
+          "numerical_parameters": {
+            "horizontal_factor": 1.5,
+            "vertical": 0.10000000149011612,
+            "denominator_floor": 0.001
+          },
+          "parameter_units": {
+            "horizontal_factor": "native inverse-squared horizontal velocity contribution factor",
+            "vertical": "velocity blocks/tick",
+            "denominator_floor": "squared horizontal blocks native floor"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Locked Gauntlet_of_Bulwark.onUseTick push",
+          "vanilla_relation": "CUSTOM_CONTROL"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Exactly elapsed20; no local server gate for pulse",
+        "User excluded, Living recipients, Player abilities.invulnerable skipped",
+        "Push additionally requires onGround; not status acceptance",
+        "Native Brand stacking/immunity/lifecycle unchanged"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Exactly elapsed20; no local server gate for pulse; User excluded, Living recipients, Player abilities.invulnerable skipped; Push additionally requires onGround; not status acceptance; Native Brand stacking/immunity/lifecycle unchanged",
+      "source_actor": "Native using actor is query/push center; Brand call supplies no source",
+      "hurt_return_dependency": "No hurt call; effect-add return ignored, motion independent.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-remaining-status.json",
+          "witness_id": "cataclysm:remaining_status:com/github/L_Ender/cataclysm/items/Gauntlet_of_Bulwark.class",
+          "entry": "com/github/L_Ender/cataclysm/items/Gauntlet_of_Bulwark.class",
+          "methods": [
+            "onUseTick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:gauntlet_of_bulwark-family:charge_pulse"
+      ],
+      "primary_test_source": "cataclysm:gauntlet_of_bulwark",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32d-cataclysm-gauntlet_of_bulwark-family-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "AREA_SELECTION",
+          "parameters": [
+            "aabb_inflate"
+          ],
+          "native_value": 4.5,
+          "native_formula": "Entity query excludes user, inflated4.5; Living filter/Player ability gate",
+          "units": "blocks per axis",
+          "native_boundary": "Locked Gauntlet_of_Bulwark.onUseTick"
+        },
+        {
+          "primitive": "BLAZING_BRAND_DELIVERY",
+          "parameters": [
+            "duration"
+          ],
+          "native_value": 40,
+          "native_formula": "native MobEffectInstance Brand40/implicitamp0, add return ignored",
+          "units": "ticks",
+          "native_boundary": "Locked Gauntlet_of_Bulwark.onUseTick"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "horizontal_factor"
+          ],
+          "native_value": 1.5,
+          "native_formula": "onGround push(dx/max(dx^2+dz^2,.001)*1.5F,.1F,dz/q*1.5F)",
+          "units": "native inverse-squared horizontal velocity contribution factor",
+          "native_boundary": "Locked Gauntlet_of_Bulwark.onUseTick push"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "vertical"
+          ],
+          "native_value": 0.10000000149011612,
+          "native_formula": "onGround push(dx/max(dx^2+dz^2,.001)*1.5F,.1F,dz/q*1.5F)",
+          "units": "velocity blocks/tick",
+          "native_boundary": "Locked Gauntlet_of_Bulwark.onUseTick push"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "BLAZING_BRAND_DELIVERY",
+          "parameter": "duration",
+          "native_value": 40,
+          "native_formula": "native MobEffectInstance Brand40/implicitamp0, add return ignored",
+          "units": "ticks",
+          "boundary": "Locked Gauntlet_of_Bulwark.onUseTick"
+        },
+        {
+          "primitive": "AREA_SELECTION",
+          "parameter": "aabb_inflate",
+          "native_value": 4.5,
+          "native_formula": "Entity query excludes user, inflated4.5; Living filter/Player ability gate",
+          "units": "blocks per axis",
+          "boundary": "Locked Gauntlet_of_Bulwark.onUseTick"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameter": "horizontal_factor",
+          "native_value": 1.5,
+          "native_formula": "onGround push(dx/max(dx^2+dz^2,.001)*1.5F,.1F,dz/q*1.5F)",
+          "units": "native inverse-squared horizontal velocity contribution factor",
+          "boundary": "Locked Gauntlet_of_Bulwark.onUseTick push"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameter": "vertical",
+          "native_value": 0.10000000149011612,
+          "native_formula": "onGround push(dx/max(dx^2+dz^2,.001)*1.5F,.1F,dz/q*1.5F)",
+          "units": "velocity blocks/tick",
+          "boundary": "Locked Gauntlet_of_Bulwark.onUseTick push"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameter": "denominator_floor",
+          "native_value": 0.001,
+          "native_formula": "onGround push(dx/max(dx^2+dz^2,.001)*1.5F,.1F,dz/q*1.5F)",
+          "units": "squared horizontal blocks native floor",
+          "boundary": "Locked Gauntlet_of_Bulwark.onUseTick push"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "push_requires_effect_acceptance": false,
+      "pulse_has_local_server_guard": false
+    },
+    {
+      "id": "cataclysm:gauntlet_of_bulwark_native_attachment_payload_lifecycle",
+      "mod_key": "cataclysm",
+      "display_name": "Bulwark native attachment/Wall Watcher lifecycle and persistence boundary",
+      "registry_ids": [
+        "cataclysm:gauntlet_of_bulwark"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "CHARGE_ATTACHMENT registry bootstrap6 -> lambda$static$2 -> bootstrap3 ChargeAttachment constructor; builder.build only, no serializer/copy-on-death configured here. Constructor defaults chargefalse/fields0; raw setters unchanged. WallWatcher registered cataclysm:wall_watcher (native MISCsized0x0/noSummon/fireImmune). Producer ctor stores raw source/list/fields and native TIMER; no ownership transport cache. Locked tick is parent-first/server: null list/source discards; timers decrement by1 and remove when oldTemp-1==0, not an invented <=0 fallback. Empty list also counts down. isNoGravitytrue. Native watcher save writes no custom fields; load source=null, first native server tick discards. No serialized actor/watch/Y/timer reconstruction or death/respawner callback.",
+      "human_summary": "CHARGE_ATTACHMENT registry bootstrap6 -> lambda$static$2 -> bootstrap3 ChargeAttachment constructor; builder.build only, no serializer/copy-on-death configured here. Constructor defaults chargefalse/fields0; raw setters unchanged. WallWatcher registered cataclysm:wall_watcher (native MISCsized0x0/noSummon/fireImmune). Producer ctor stores raw source/list/fields and native TIMER; no ownership transport cache. Locked tick is parent-first/server: null list/source discards; timers decrement by1 and remove when oldTemp-1==0, not an invented <=0 fallback. Empty list also counts down. isNoGravitytrue. Native watcher save writes no custom fields; load source=null, first native server tick discards. No serialized actor/watch/Y/timer reconstruction or death/respawner callback.",
+      "closest_vanilla_equivalent": "Native attachment setup and native entity discard/persistence lifecycle",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "CHARGE_ATTACHMENT registry bootstrap6 -> lambda$static$2 -> bootstrap3 ChargeAttachment constructor; builder.build only, no serializer/copy-on-death configured here. Constructor defaults chargefalse/fields0; raw setters unchanged. WallWatcher registered cataclysm:wall_watcher (native MISCsized0x0/noSummon/fireImmune). Producer ctor stores raw source/list/fields and native TIMER; no ownership transport cache. Locked tick is parent-first/server: null list/source discards; timers decrement by1 and remove when oldTemp-1==0, not an invented <=0 fallback. Empty list also counts down. isNoGravitytrue. Native watcher save writes no custom fields; load source=null, first native server tick discards. No serialized actor/watch/Y/timer reconstruction or death/respawner callback.",
+      "components": [
+        {
+          "primitive": "NATIVE_ATTACHMENT_LIFECYCLE",
+          "formula": "native builder default object, raw fields, no serialization/copy flag configured here",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "ModDataAttachments / ChargeAttachment",
+          "vanilla_relation": "CUSTOM"
+        },
+        {
+          "primitive": "PAYLOAD_LIFECYCLE",
+          "formula": "native oldTemp-1==0 expiry, null source/list discard; nonpersistent raw source/watch data",
+          "numerical_parameters": {
+            "timer_decrement": 1,
+            "default_timer": 0
+          },
+          "parameter_units": {
+            "timer_decrement": "native ticks per server callback",
+            "default_timer": "ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "WallWatcher constructor/locked tick/NBT",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native player-post bridge, native server attachment/watcher gates",
+        "No added serializer or generic persistent progression",
+        "Native noSummon/type flags and null-source cleanup retained"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native player-post bridge, native server attachment/watcher gates; No added serializer or generic persistent progression; Native noSummon/type flags and null-source cleanup retained",
+      "source_actor": "Native per-actor charge object; watcher raw Living source, per-recipient native wrapper; no owner re-resolution invented",
+      "hurt_return_dependency": "Cleanup and counters independent of hurt/status acceptance.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:init/ModDataAttachments",
+          "entry": "com/github/L_Ender/cataclysm/init/ModDataAttachments.class",
+          "methods": [
+            "<clinit>",
+            "lambda$static$2"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:Attachment/ChargeAttachment",
+          "entry": "com/github/L_Ender/cataclysm/Attachment/ChargeAttachment.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "<clinit>",
+            "lambda$static$50"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:entity/effect/Wall_Watcher_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/effect/Wall_Watcher_Entity.class",
+          "methods": [
+            "<init>",
+            "isNoGravity",
+            "defineSynchedData",
+            "readAdditionalSaveData",
+            "addAdditionalSaveData"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/effect/Wall_Watcher_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/effect/Wall_Watcher_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:event/ServerEventHandler",
+          "entry": "com/github/L_Ender/cataclysm/event/ServerEventHandler.class",
+          "methods": [
+            "onLivingUpdateEvent"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:gauntlet_of_bulwark-family:native_attachment_payload_lifecycle"
+      ],
+      "primary_test_source": "cataclysm:gauntlet_of_bulwark",
+      "alternate_sources": [],
+      "spawned_entity_ids": [
+        "cataclysm:wall_watcher"
+      ],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32d-cataclysm-gauntlet_of_bulwark-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "PAYLOAD_LIFECYCLE",
+          "parameter": "timer_decrement",
+          "native_value": 1,
+          "native_formula": "native oldTemp-1==0 expiry, null source/list discard; nonpersistent raw source/watch data",
+          "units": "native ticks per server callback",
+          "boundary": "WallWatcher constructor/locked tick/NBT"
+        },
+        {
+          "primitive": "PAYLOAD_LIFECYCLE",
+          "parameter": "default_timer",
+          "native_value": 0,
+          "native_formula": "native oldTemp-1==0 expiry, null source/list discard; nonpersistent raw source/watch data",
+          "units": "ticks",
+          "boundary": "WallWatcher constructor/locked tick/NBT"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "native_serializer_configured": false,
+      "watcher_custom_state_persisted": false
+    },
+    {
+      "id": "cataclysm:gauntlet_of_bulwark_native_charge_bindings",
+      "mod_key": "cataclysm",
+      "display_name": "Gauntlet of Bulwark native charge clock and damage/motion payload binding",
+      "registry_ids": [
+        "cataclysm:gauntlet_of_bulwark"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Release retrieves native CHARGE_ATTACHMENT on using actor; sets charge=true, Timer=t*2, effectiveChargeTime=t*2, knockbackSpeedIndex=t*.35F, damagePerEffectiveCharge=1.2F, dx=f1*.5F,dz=f3*.5F. Admitted t5 gives timers10/index1.75; timers and effective damage time have distinct roles despite equal native initial values. These are native raw fields, not generic Stage progression/receipts. Coefficient1.2 is supplied once and used by both first impact and later wall damage; source dx/dz basis is supplied once for watcher motion. Native setters have no clamping/ownership substitution.",
+      "human_summary": "Release retrieves native CHARGE_ATTACHMENT on using actor; sets charge=true, Timer=t*2, effectiveChargeTime=t*2, knockbackSpeedIndex=t*.35F, damagePerEffectiveCharge=1.2F, dx=f1*.5F,dz=f3*.5F. Admitted t5 gives timers10/index1.75; timers and effective damage time have distinct roles despite equal native initial values. These are native raw fields, not generic Stage progression/receipts. Coefficient1.2 is supplied once and used by both first impact and later wall damage; source dx/dz basis is supplied once for watcher motion. Native setters have no clamping/ownership substitution.",
+      "closest_vanilla_equivalent": "Native local charge-state/clock transport for custom contact/delayed-control package",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Release retrieves native CHARGE_ATTACHMENT on using actor; sets charge=true, Timer=t*2, effectiveChargeTime=t*2, knockbackSpeedIndex=t*.35F, damagePerEffectiveCharge=1.2F, dx=f1*.5F,dz=f3*.5F. Admitted t5 gives timers10/index1.75; timers and effective damage time have distinct roles despite equal native initial values. These are native raw fields, not generic Stage progression/receipts. Coefficient1.2 is supplied once and used by both first impact and later wall damage; source dx/dz basis is supplied once for watcher motion. Native setters have no clamping/ownership substitution.",
+      "components": [
+        {
+          "primitive": "CHARGE_STATE",
+          "formula": "charge=true; Timer=effectiveChargeTime=t*2; admitted t5, timers10",
+          "numerical_parameters": {
+            "timer_factor": 2,
+            "timer_initial": 10,
+            "effective_charge_time": 10
+          },
+          "parameter_units": {
+            "timer_factor": "ticks per native t",
+            "timer_initial": "ticks",
+            "effective_charge_time": "native damage-time units"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Gauntlet_of_Bulwark.releaseUsing -> ChargeAttachment raw setters",
+          "vanilla_relation": "CUSTOM_CONTROL"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "formula": "supplied damagePerEffectiveCharge=1.2F; impact=coefficient*effectiveTime, wall adds1",
+          "numerical_parameters": {
+            "damage_per_effective_charge": 1.2000000476837158
+          },
+          "parameter_units": {
+            "damage_per_effective_charge": "requested health units per native effective time"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Gauntlet_of_Bulwark.releaseUsing setdamagePerEffectiveCharge",
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "formula": "speedIndex=t*.35F; source dx=f1*.5F,dz=f3*.5F; watcher velocity=sourceBasis*speedIndex",
+          "numerical_parameters": {
+            "index_factor": 0.3499999940395355,
+            "basis_factor": 0.5
+          },
+          "parameter_units": {
+            "index_factor": "native index factor per t",
+            "basis_factor": "factor on computed release X/Z"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Gauntlet_of_Bulwark.releaseUsing native motion setters",
+          "vanilla_relation": "CUSTOM_CONTROL"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native release and attachment per-actor ownership; preserve raw timer/binary coupling",
+        "No invented persistent Stage state or owner cache"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native release and attachment per-actor ownership; preserve raw timer/binary coupling; No invented persistent Stage state or owner cache",
+      "source_actor": "Attachment lives on native using actor; player-post bridge passes same Player to tick",
+      "hurt_return_dependency": "Binding/clock setup is independent of victim hurt.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:items/Gauntlet_of_Bulwark",
+          "entry": "com/github/L_Ender/cataclysm/items/Gauntlet_of_Bulwark.class",
+          "methods": [
+            "releaseUsing"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:Attachment/ChargeAttachment",
+          "entry": "com/github/L_Ender/cataclysm/Attachment/ChargeAttachment.class",
+          "methods": [
+            "<init>",
+            "setCharge",
+            "setTimer",
+            "seteffectiveChargeTime",
+            "setknockbackSpeedIndex",
+            "setdamagePerEffectiveCharge",
+            "setdx",
+            "setdZ"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:event/ServerEventHandler",
+          "entry": "com/github/L_Ender/cataclysm/event/ServerEventHandler.class",
+          "methods": [
+            "onLivingUpdateEvent"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:gauntlet_of_bulwark-family:native_charge_bindings"
+      ],
+      "primary_test_source": "cataclysm:gauntlet_of_bulwark",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32d-cataclysm-gauntlet_of_bulwark-family-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "basis_factor"
+          ],
+          "native_value": 0.5,
+          "native_formula": "speedIndex=t*.35F; source dx=f1*.5F,dz=f3*.5F; watcher velocity=sourceBasis*speedIndex",
+          "units": "factor on computed release X/Z",
+          "native_boundary": "Gauntlet_of_Bulwark.releaseUsing native motion setters"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "index_factor"
+          ],
+          "native_value": 0.3499999940395355,
+          "native_formula": "speedIndex=t*.35F; source dx=f1*.5F,dz=f3*.5F; watcher velocity=sourceBasis*speedIndex",
+          "units": "native index factor per t",
+          "native_boundary": "Gauntlet_of_Bulwark.releaseUsing native motion setters"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "damage_per_effective_charge"
+          ],
+          "native_value": 1.2000000476837158,
+          "native_formula": "supplied damagePerEffectiveCharge=1.2F; impact=coefficient*effectiveTime, wall adds1",
+          "units": "requested health units per native effective time",
+          "native_boundary": "Gauntlet_of_Bulwark.releaseUsing setdamagePerEffectiveCharge"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "CHARGE_STATE",
+          "parameter": "timer_factor",
+          "native_value": 2,
+          "native_formula": "charge=true; Timer=effectiveChargeTime=t*2; admitted t5, timers10",
+          "units": "ticks per native t",
+          "boundary": "Gauntlet_of_Bulwark.releaseUsing -> ChargeAttachment raw setters"
+        },
+        {
+          "primitive": "CHARGE_STATE",
+          "parameter": "timer_initial",
+          "native_value": 10,
+          "native_formula": "charge=true; Timer=effectiveChargeTime=t*2; admitted t5, timers10",
+          "units": "ticks",
+          "boundary": "Gauntlet_of_Bulwark.releaseUsing -> ChargeAttachment raw setters"
+        },
+        {
+          "primitive": "CHARGE_STATE",
+          "parameter": "effective_charge_time",
+          "native_value": 10,
+          "native_formula": "charge=true; Timer=effectiveChargeTime=t*2; admitted t5, timers10",
+          "units": "native damage-time units",
+          "boundary": "Gauntlet_of_Bulwark.releaseUsing -> ChargeAttachment raw setters"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameter": "damage_per_effective_charge",
+          "native_value": 1.2000000476837158,
+          "native_formula": "supplied damagePerEffectiveCharge=1.2F; impact=coefficient*effectiveTime, wall adds1",
+          "units": "requested health units per native effective time",
+          "boundary": "Gauntlet_of_Bulwark.releaseUsing setdamagePerEffectiveCharge"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameter": "index_factor",
+          "native_value": 0.3499999940395355,
+          "native_formula": "speedIndex=t*.35F; source dx=f1*.5F,dz=f3*.5F; watcher velocity=sourceBasis*speedIndex",
+          "units": "native index factor per t",
+          "boundary": "Gauntlet_of_Bulwark.releaseUsing native motion setters"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameter": "basis_factor",
+          "native_value": 0.5,
+          "native_formula": "speedIndex=t*.35F; source dx=f1*.5F,dz=f3*.5F; watcher velocity=sourceBasis*speedIndex",
+          "units": "factor on computed release X/Z",
+          "boundary": "Gauntlet_of_Bulwark.releaseUsing native motion setters"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "damage_basis_shared_by_impact_and_wall": true
+    },
+    {
+      "id": "cataclysm:gauntlet_of_bulwark_native_release_cooldown",
+      "mod_key": "cataclysm",
+      "display_name": "Gauntlet of Bulwark native admitted-release cooldown",
+      "registry_ids": [
+        "cataclysm:gauntlet_of_bulwark"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "After native dash and attachment setters, release on !level.isClientSide casts using actor to Player and requests addCooldown(this, configured cooldown), default80/native bounds0..1000. Independent of contact count, damage/Brand/Stun acceptance and wall-watch lifecycle. No local instanceof guard is invented; native material Player-use boundary and order preserved.",
+      "human_summary": "After native dash and attachment setters, release on !level.isClientSide casts using actor to Player and requests addCooldown(this, configured cooldown), default80/native bounds0..1000. Independent of contact count, damage/Brand/Stun acceptance and wall-watch lifecycle. No local instanceof guard is invented; native material Player-use boundary and order preserved.",
+      "closest_vanilla_equivalent": "Native per-item Player cooldown",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "After native dash and attachment setters, release on !level.isClientSide casts using actor to Player and requests addCooldown(this, configured cooldown), default80/native bounds0..1000. Independent of contact count, damage/Brand/Stun acceptance and wall-watch lifecycle. No local instanceof guard is invented; native material Player-use boundary and order preserved.",
+      "components": [
+        {
+          "primitive": "ITEM_COOLDOWN",
+          "formula": "after admitted native dash/state writes, configured ticks default80",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "Gauntlet_of_Bulwark.releaseUsing server branch",
+          "vanilla_relation": "VANILLA_DIRECT",
+          "parameter_formulas": {
+            "ticks": "CMCommonConfig.GauntletOfBulwark.cooldown (native default80)"
+          },
+          "formula_parameter_units": {
+            "ticks": "ticks"
+          }
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native release admission; server Player cast after dash/attachment writes"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native release admission; server Player cast after dash/attachment writes",
+      "source_actor": "Native using Player cooldown manager",
+      "hurt_return_dependency": "Independent of all victim hurt and status results.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:items/Gauntlet_of_Bulwark",
+          "entry": "com/github/L_Ender/cataclysm/items/Gauntlet_of_Bulwark.class",
+          "methods": [
+            "releaseUsing"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:config/CMCommonConfig$GauntletOfBulwark",
+          "entry": "com/github/L_Ender/cataclysm/config/CMCommonConfig$GauntletOfBulwark.class",
+          "methods": [
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:config/CommonConfig$GauntletOfBulwark",
+          "entry": "com/github/L_Ender/cataclysm/config/CommonConfig$GauntletOfBulwark.class",
+          "methods": [
+            "<init>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:config/CMCommonConfig",
+          "entry": "com/github/L_Ender/cataclysm/config/CMCommonConfig.class",
+          "methods": [
+            "Commonbake"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:gauntlet_of_bulwark-family:native_release_cooldown"
+      ],
+      "primary_test_source": "cataclysm:gauntlet_of_bulwark",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32d-cataclysm-gauntlet_of_bulwark-family-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "ITEM_COOLDOWN",
+          "parameters": [
+            "ticks"
+          ],
+          "native_value": null,
+          "native_formula": "CMCommonConfig.GauntletOfBulwark.cooldown (native default80)",
+          "units": "ticks",
+          "native_boundary": "Gauntlet_of_Bulwark.releaseUsing server branch"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "ITEM_COOLDOWN",
+          "parameter": "ticks",
+          "native_value": null,
+          "native_formula": "CMCommonConfig.GauntletOfBulwark.cooldown (native default80)",
+          "units": "ticks",
+          "boundary": "Gauntlet_of_Bulwark.releaseUsing server branch"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "cooldown_gated_by_hurt": false
+    },
+    {
+      "id": "cataclysm:gauntlet_of_bulwark_native_shield_capability",
+      "mod_key": "cataclysm",
+      "display_name": "Gauntlet of Bulwark native shield-disabling capability",
+      "registry_ids": [
+        "cataclysm:gauntlet_of_bulwark"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Native canDisableShield returns true; no hurt, shield cooldown write or extra event in callback. Class has no canPerformAction/hurtEnemy/inventoryTick override; native normal-attack/shield admission and lifecycle remain native. No shield-block ability inferred from weapon name.",
+      "human_summary": "Native canDisableShield returns true; no hurt, shield cooldown write or extra event in callback. Class has no canPerformAction/hurtEnemy/inventoryTick override; native normal-attack/shield admission and lifecycle remain native. No shield-block ability inferred from weapon name.",
+      "closest_vanilla_equivalent": "Native item shield-disabling capability",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Native canDisableShield returns true; no hurt, shield cooldown write or extra event in callback. Class has no canPerformAction/hurtEnemy/inventoryTick override; native normal-attack/shield admission and lifecycle remain native. No shield-block ability inferred from weapon name.",
+      "components": [
+        {
+          "primitive": "SHIELD_DISABLE_CAPABILITY",
+          "formula": "native boolean true; caller processing retained",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "Gauntlet_of_Bulwark.canDisableShield",
+          "vanilla_relation": "VANILLA_DIRECT"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native caller shield/attack admission/events"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native caller shield/attack admission/events",
+      "source_actor": "Native attacking actor",
+      "hurt_return_dependency": "Callback has no hurt/return handling.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:items/Gauntlet_of_Bulwark",
+          "entry": "com/github/L_Ender/cataclysm/items/Gauntlet_of_Bulwark.class",
+          "methods": [
+            "canDisableShield"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/eternalstarlight-special-weapons-244.json",
+          "witness_id": "eternalstarlight-special-weapons-244",
+          "entry": "net/minecraft/world/entity/player/Player.class",
+          "methods": [
+            "attack"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:gauntlet_of_bulwark-family:native_shield_capability"
+      ],
+      "primary_test_source": "cataclysm:gauntlet_of_bulwark",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32d-cataclysm-gauntlet_of_bulwark-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates."
+    },
+    {
+      "id": "cataclysm:gauntlet_of_bulwark_native_use_gate",
+      "mod_key": "cataclysm",
+      "display_name": "Gauntlet of Bulwark native use/charge/release admission",
+      "registry_ids": [
+        "cataclysm:gauntlet_of_bulwark"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "use refuses opposite-hand SHIELD_BLOCK only while that item is not on native cooldown; otherwise starts using invoked hand/consume. Use duration72000. Pulse occurs at elapsed==20; release requires !shift,!fallFlying and elapsed>=20. Release computes t=clamp(elapsed,1,5) before admission, so every admitted ordinary release has t=5 (not a continually growing charge tier). Release has no instanceof Player guard; its server cooldown branch performs the native Player cast after dash/state writes. Preserve native caller boundary, not a new safe fallback.",
+      "human_summary": "use refuses opposite-hand SHIELD_BLOCK only while that item is not on native cooldown; otherwise starts using invoked hand/consume. Use duration72000. Pulse occurs at elapsed==20; release requires !shift,!fallFlying and elapsed>=20. Release computes t=clamp(elapsed,1,5) before admission, so every admitted ordinary release has t=5 (not a continually growing charge tier). Release has no instanceof Player guard; its server cooldown branch performs the native Player cast after dash/state writes. Preserve native caller boundary, not a new safe fallback.",
+      "closest_vanilla_equivalent": "Native item-use lifecycle plus native binary/coupled charge gates",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "use refuses opposite-hand SHIELD_BLOCK only while that item is not on native cooldown; otherwise starts using invoked hand/consume. Use duration72000. Pulse occurs at elapsed==20; release requires !shift,!fallFlying and elapsed>=20. Release computes t=clamp(elapsed,1,5) before admission, so every admitted ordinary release has t=5 (not a continually growing charge tier). Release has no instanceof Player guard; its server cooldown branch performs the native Player cast after dash/state writes. Preserve native caller boundary, not a new safe fallback.",
+      "components": [
+        {
+          "primitive": "NATIVE_USE_ADMISSION",
+          "formula": "native opposite-shield gate; elapsed20 pulse/release; admitted t always5",
+          "numerical_parameters": {
+            "use_duration": 72000,
+            "charge_threshold": 20,
+            "raw_t_min": 1,
+            "raw_t_max": 5
+          },
+          "parameter_units": {
+            "use_duration": "ticks",
+            "charge_threshold": "ticks",
+            "raw_t_min": "native clamp value",
+            "raw_t_max": "native clamp value"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Gauntlet_of_Bulwark.use/getUseDuration/releaseUsing",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native opposing available shield gate",
+        "Pulse exactly elapsed20; release elapsed>=20 and !shift,!fallFlying",
+        "Admitted native t=5; raw state not an automatic Stage scalar",
+        "Native server Player cast and use lifecycle preserved"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native opposing available shield gate; Pulse exactly elapsed20; release elapsed>=20 and !shift,!fallFlying; Admitted native t=5; raw state not an automatic Stage scalar; Native server Player cast and use lifecycle preserved",
+      "source_actor": "Native using actor; ordinary material path is Player",
+      "hurt_return_dependency": "No hurt-dependent admission.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:items/Gauntlet_of_Bulwark",
+          "entry": "com/github/L_Ender/cataclysm/items/Gauntlet_of_Bulwark.class",
+          "methods": [
+            "use",
+            "getUseDuration",
+            "releaseUsing"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remaining-status.json",
+          "witness_id": "cataclysm:remaining_status:com/github/L_Ender/cataclysm/items/Gauntlet_of_Bulwark.class",
+          "entry": "com/github/L_Ender/cataclysm/items/Gauntlet_of_Bulwark.class",
+          "methods": [
+            "onUseTick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:gauntlet_of_bulwark-family:native_use_gate"
+      ],
+      "primary_test_source": "cataclysm:gauntlet_of_bulwark",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32d-cataclysm-gauntlet_of_bulwark-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_USE_ADMISSION",
+          "parameter": "use_duration",
+          "native_value": 72000,
+          "native_formula": "native opposite-shield gate; elapsed20 pulse/release; admitted t always5",
+          "units": "ticks",
+          "boundary": "Gauntlet_of_Bulwark.use/getUseDuration/releaseUsing"
+        },
+        {
+          "primitive": "NATIVE_USE_ADMISSION",
+          "parameter": "charge_threshold",
+          "native_value": 20,
+          "native_formula": "native opposite-shield gate; elapsed20 pulse/release; admitted t always5",
+          "units": "ticks",
+          "boundary": "Gauntlet_of_Bulwark.use/getUseDuration/releaseUsing"
+        },
+        {
+          "primitive": "NATIVE_USE_ADMISSION",
+          "parameter": "raw_t_min",
+          "native_value": 1,
+          "native_formula": "native opposite-shield gate; elapsed20 pulse/release; admitted t always5",
+          "units": "native clamp value",
+          "boundary": "Gauntlet_of_Bulwark.use/getUseDuration/releaseUsing"
+        },
+        {
+          "primitive": "NATIVE_USE_ADMISSION",
+          "parameter": "raw_t_max",
+          "native_value": 5,
+          "native_formula": "native opposite-shield gate; elapsed20 pulse/release; admitted t always5",
+          "units": "native clamp value",
+          "boundary": "Gauntlet_of_Bulwark.use/getUseDuration/releaseUsing"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "admitted_t": 5,
+      "release_has_instanceof_player_guard": false
+    },
+    {
+      "id": "cataclysm:gauntlet_of_bulwark_registry_config",
+      "mod_key": "cataclysm",
+      "display_name": "Gauntlet of Bulwark native registered/configured setup",
+      "registry_ids": [
+        "cataclysm:gauntlet_of_bulwark"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Native registry cataclysm:gauntlet_of_bulwark: bootstrap171 -> lambda$static$143, stacksTo1/item fireResistant. Factory MAINHAND attack10F,speed-2.4F,armor3,toughness3,KBR0.15000000596046448. Default-component callback bootstrap13 -> lambda$modifyComponents$297 merges configured attack/speed while retaining native defenses. Config defaults11/1.6/cooldown80; native cooldown range0..1000, shared ToolConfig/Commonbake retained. No extra generic progression or holder fire immunity.",
+      "human_summary": "Native registry cataclysm:gauntlet_of_bulwark: bootstrap171 -> lambda$static$143, stacksTo1/item fireResistant. Factory MAINHAND attack10F,speed-2.4F,armor3,toughness3,KBR0.15000000596046448. Default-component callback bootstrap13 -> lambda$modifyComponents$297 merges configured attack/speed while retaining native defenses. Config defaults11/1.6/cooldown80; native cooldown range0..1000, shared ToolConfig/Commonbake retained. No extra generic progression or holder fire immunity.",
+      "closest_vanilla_equivalent": "Native registry/configured equipment attribute components",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Native registry cataclysm:gauntlet_of_bulwark: bootstrap171 -> lambda$static$143, stacksTo1/item fireResistant. Factory MAINHAND attack10F,speed-2.4F,armor3,toughness3,KBR0.15000000596046448. Default-component callback bootstrap13 -> lambda$modifyComponents$297 merges configured attack/speed while retaining native defenses. Config defaults11/1.6/cooldown80; native cooldown range0..1000, shared ToolConfig/Commonbake retained. No extra generic progression or holder fire immunity.",
+      "components": [
+        {
+          "primitive": "NATIVE_ITEM_SETUP",
+          "formula": "registered native item/configuration/component lifecycle",
+          "numerical_parameters": {
+            "stack_limit": 1,
+            "damage_default": 11,
+            "speed_default": 1.6,
+            "cooldown_default": 80,
+            "cooldown_min": 0,
+            "cooldown_max": 1000
+          },
+          "parameter_units": {
+            "stack_limit": "items",
+            "damage_default": "configured attack value",
+            "speed_default": "configured attack-speed value",
+            "cooldown_default": "ticks",
+            "cooldown_min": "ticks",
+            "cooldown_max": "ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "ModItems / CommonConfig.GauntletOfBulwark",
+          "vanilla_relation": "VANILLA_DIRECT"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native registry and default-component callback lifecycle"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native registry and default-component callback lifecycle",
+      "source_actor": "Native equipped/using Player",
+      "hurt_return_dependency": "Setup has no hurt/return dependency.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:init/ModItems",
+          "entry": "com/github/L_Ender/cataclysm/init/ModItems.class",
+          "methods": [
+            "<clinit>",
+            "lambda$static$143",
+            "modifyComponents",
+            "lambda$modifyComponents$297"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:config/CMCommonConfig$GauntletOfBulwark",
+          "entry": "com/github/L_Ender/cataclysm/config/CMCommonConfig$GauntletOfBulwark.class",
+          "methods": [
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:config/CommonConfig$GauntletOfBulwark",
+          "entry": "com/github/L_Ender/cataclysm/config/CommonConfig$GauntletOfBulwark.class",
+          "methods": [
+            "<init>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:config/CMCommonConfig",
+          "entry": "com/github/L_Ender/cataclysm/config/CMCommonConfig.class",
+          "methods": [
+            "Commonbake"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-the_immolator-family.json",
+          "witness_id": "cataclysm:the_immolator-family:config/CommonConfig$ToolConfig",
+          "entry": "com/github/L_Ender/cataclysm/config/CommonConfig$ToolConfig.class",
+          "methods": [
+            "<init>"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:gauntlet_of_bulwark-family:registry_config"
+      ],
+      "primary_test_source": "cataclysm:gauntlet_of_bulwark",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32d-cataclysm-gauntlet_of_bulwark-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_ITEM_SETUP",
+          "parameter": "stack_limit",
+          "native_value": 1,
+          "native_formula": "registered native item/configuration/component lifecycle",
+          "units": "items",
+          "boundary": "ModItems / CommonConfig.GauntletOfBulwark"
+        },
+        {
+          "primitive": "NATIVE_ITEM_SETUP",
+          "parameter": "damage_default",
+          "native_value": 11,
+          "native_formula": "registered native item/configuration/component lifecycle",
+          "units": "configured attack value",
+          "boundary": "ModItems / CommonConfig.GauntletOfBulwark"
+        },
+        {
+          "primitive": "NATIVE_ITEM_SETUP",
+          "parameter": "speed_default",
+          "native_value": 1.6,
+          "native_formula": "registered native item/configuration/component lifecycle",
+          "units": "configured attack-speed value",
+          "boundary": "ModItems / CommonConfig.GauntletOfBulwark"
+        },
+        {
+          "primitive": "NATIVE_ITEM_SETUP",
+          "parameter": "cooldown_default",
+          "native_value": 80,
+          "native_formula": "registered native item/configuration/component lifecycle",
+          "units": "ticks",
+          "boundary": "ModItems / CommonConfig.GauntletOfBulwark"
+        },
+        {
+          "primitive": "NATIVE_ITEM_SETUP",
+          "parameter": "cooldown_min",
+          "native_value": 0,
+          "native_formula": "registered native item/configuration/component lifecycle",
+          "units": "ticks",
+          "boundary": "ModItems / CommonConfig.GauntletOfBulwark"
+        },
+        {
+          "primitive": "NATIVE_ITEM_SETUP",
+          "parameter": "cooldown_max",
+          "native_value": 1000,
+          "native_formula": "registered native item/configuration/component lifecycle",
+          "units": "ticks",
+          "boundary": "ModItems / CommonConfig.GauntletOfBulwark"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "native_registry_id": "cataclysm:gauntlet_of_bulwark"
+    },
+    {
+      "id": "cataclysm:gauntlet_of_bulwark_release_dash",
+      "mod_key": "cataclysm",
+      "display_name": "Gauntlet of Bulwark native release dash/ground step",
+      "registry_ids": [
+        "cataclysm:gauntlet_of_bulwark"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Admitted release computes native yaw/pitch direction f1/f2/f3 and full-vector norm f4; f5=3F*(t/6F), scales only X/Z by f5/f4, then entity.push(f1,0,f3). t5 gives native horizontal projection of speed2.5. Grounded user additionally moves SELF by (0,(double)1.1999999F/2,0), a positional move distinct from velocity and not generic knockback. No hurt request or local server gate surrounds dash/attachment setup; native actor movement/collision remains native.",
+      "human_summary": "Admitted release computes native yaw/pitch direction f1/f2/f3 and full-vector norm f4; f5=3F*(t/6F), scales only X/Z by f5/f4, then entity.push(f1,0,f3). t5 gives native horizontal projection of speed2.5. Grounded user additionally moves SELF by (0,(double)1.1999999F/2,0), a positional move distinct from velocity and not generic knockback. No hurt request or local server gate surrounds dash/attachment setup; native actor movement/collision remains native.",
+      "closest_vanilla_equivalent": "Custom native push and separate ground positional step",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Admitted release computes native yaw/pitch direction f1/f2/f3 and full-vector norm f4; f5=3F*(t/6F), scales only X/Z by f5/f4, then entity.push(f1,0,f3). t5 gives native horizontal projection of speed2.5. Grounded user additionally moves SELF by (0,(double)1.1999999F/2,0), a positional move distinct from velocity and not generic knockback. No hurt request or local server gate surrounds dash/attachment setup; native actor movement/collision remains native.",
+      "components": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "formula": "horizontal yaw/pitch direction normalized by full norm; native push f1,0,f3 with f5=3F*(t/6F)",
+          "numerical_parameters": {
+            "surge_factor": 3,
+            "charge_divisor": 6
+          },
+          "parameter_units": {
+            "surge_factor": "native velocity factor",
+            "charge_divisor": "native divisor"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Gauntlet_of_Bulwark.releaseUsing push",
+          "vanilla_relation": "CUSTOM_CONTROL"
+        },
+        {
+          "primitive": "POSITIONAL_MOVEMENT",
+          "formula": "if onGround move SELF Y=(double)1.1999999F/2; not velocity Y",
+          "numerical_parameters": {
+            "ground_step": 0.5999999642372131
+          },
+          "parameter_units": {
+            "ground_step": "blocks position Y"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Gauntlet_of_Bulwark.releaseUsing move",
+          "vanilla_relation": "CUSTOM_CONTROL"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Native release admission; onGround gate for separate positional step",
+        "Native push/move semantics, no explicit knockback event/KBR rewrite"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Native release admission; onGround gate for separate positional step; Native push/move semantics, no explicit knockback event/KBR rewrite",
+      "source_actor": "Using actor moves itself; no new projectile/entity owner",
+      "hurt_return_dependency": "No hurt-return dependency.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:items/Gauntlet_of_Bulwark",
+          "entry": "com/github/L_Ender/cataclysm/items/Gauntlet_of_Bulwark.class",
+          "methods": [
+            "releaseUsing"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:gauntlet_of_bulwark-family:release_dash"
+      ],
+      "primary_test_source": "cataclysm:gauntlet_of_bulwark",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32d-cataclysm-gauntlet_of_bulwark-family-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "surge_factor"
+          ],
+          "native_value": 3,
+          "native_formula": "horizontal yaw/pitch direction normalized by full norm; native push f1,0,f3 with f5=3F*(t/6F)",
+          "units": "native velocity factor",
+          "native_boundary": "Gauntlet_of_Bulwark.releaseUsing push"
+        },
+        {
+          "primitive": "POSITIONAL_MOVEMENT",
+          "parameters": [
+            "ground_step"
+          ],
+          "native_value": 0.5999999642372131,
+          "native_formula": "if onGround move SELF Y=(double)1.1999999F/2; not velocity Y",
+          "units": "blocks position Y",
+          "native_boundary": "Gauntlet_of_Bulwark.releaseUsing move"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameter": "surge_factor",
+          "native_value": 3,
+          "native_formula": "horizontal yaw/pitch direction normalized by full norm; native push f1,0,f3 with f5=3F*(t/6F)",
+          "units": "native velocity factor",
+          "boundary": "Gauntlet_of_Bulwark.releaseUsing push"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameter": "charge_divisor",
+          "native_value": 6,
+          "native_formula": "horizontal yaw/pitch direction normalized by full norm; native push f1,0,f3 with f5=3F*(t/6F)",
+          "units": "native divisor",
+          "boundary": "Gauntlet_of_Bulwark.releaseUsing push"
+        },
+        {
+          "primitive": "POSITIONAL_MOVEMENT",
+          "parameter": "ground_step",
+          "native_value": 0.5999999642372131,
+          "native_formula": "if onGround move SELF Y=(double)1.1999999F/2; not velocity Y",
+          "units": "blocks position Y",
+          "boundary": "Gauntlet_of_Bulwark.releaseUsing move"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "vertical_step_is_velocity": false
+    },
+    {
+      "id": "cataclysm:gauntlet_of_bulwark_wall_collision_damage_stun",
+      "mod_key": "cataclysm",
+      "display_name": "Bulwark native Wall Watcher collision damage/Stun request",
+      "registry_ids": [
+        "cataclysm:gauntlet_of_bulwark"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Reuse locked server Wall.tick: horizontalCollision and target-side !isAlliedTo(raw source) reset native victim.invulnerableTime=0, then hurt with mobProjectile(watcher,raw source), amount=damagePerEffectiveCharge*effectiveChargeTime+1F (producer default13). Only hurttrue requests STUN(duration50, implicitamp0, no supplied effect source); effect-add return ignored. Source actor differs from initial impact direct=actor: here direct=watcher, causing=raw actor. No status/control replay. Collision schedules watch removal even if now allied or hurt rejected. Native Stun behavior and damage defenses/cancellation remain locked.",
+      "human_summary": "Reuse locked server Wall.tick: horizontalCollision and target-side !isAlliedTo(raw source) reset native victim.invulnerableTime=0, then hurt with mobProjectile(watcher,raw source), amount=damagePerEffectiveCharge*effectiveChargeTime+1F (producer default13). Only hurttrue requests STUN(duration50, implicitamp0, no supplied effect source); effect-add return ignored. Source actor differs from initial impact direct=actor: here direct=watcher, causing=raw actor. No status/control replay. Collision schedules watch removal even if now allied or hurt rejected. Native Stun behavior and damage defenses/cancellation remain locked.",
+      "closest_vanilla_equivalent": "Native mob-projectile DamageSource plus locked native Stun delivery and collision gate",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Reuse locked server Wall.tick: horizontalCollision and target-side !isAlliedTo(raw source) reset native victim.invulnerableTime=0, then hurt with mobProjectile(watcher,raw source), amount=damagePerEffectiveCharge*effectiveChargeTime+1F (producer default13). Only hurttrue requests STUN(duration50, implicitamp0, no supplied effect source); effect-add return ignored. Source actor differs from initial impact direct=actor: here direct=watcher, causing=raw actor. No status/control replay. Collision schedules watch removal even if now allied or hurt rejected. Native Stun behavior and damage defenses/cancellation remain locked.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "formula": "mobProjectile(watcher,raw source); shared coefficient*effectiveTime plus independent1F",
+          "numerical_parameters": {
+            "wall_bonus": 1
+          },
+          "parameter_units": {
+            "wall_bonus": "requested health units"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Locked Wall_Watcher_Entity.tick collision",
+          "vanilla_relation": "VANILLA_LIKE_EXTENDED"
+        },
+        {
+          "primitive": "STUN_DELIVERY",
+          "formula": "hurttrue -> native STUN50/implicitamp0, addEffect return ignored",
+          "numerical_parameters": {
+            "duration": 50
+          },
+          "parameter_units": {
+            "duration": "ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Locked Wall_Watcher_Entity.tick true-hurt branch",
+          "vanilla_relation": "CUSTOM_CONTROL"
+        },
+        {
+          "primitive": "NATIVE_HURT_GATE",
+          "formula": "native invulnerableTime=0 before wall hurt; binary/state gate, not Stage scalar",
+          "numerical_parameters": {
+            "invulnerable_time_reset": 0
+          },
+          "parameter_units": {
+            "invulnerable_time_reset": "native hurt-window ticks"
+          },
+          "binary_parameters": [],
+          "native_boundary": "Locked Wall_Watcher_Entity.tick",
+          "vanilla_relation": "CUSTOM"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "horizontalCollision; target-side !isAlliedTo(raw native source)",
+        "Native hurt admission; Stun only on true hurt",
+        "Native invulnerable-time reset and removal order retained"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "horizontalCollision; target-side !isAlliedTo(raw native source); Native hurt admission; Stun only on true hurt; Native invulnerable-time reset and removal order retained",
+      "source_actor": "Native watcher direct; raw using actor causing; no UUID fallback or source replacement",
+      "hurt_return_dependency": "STUN depends on original wall hurttrue. Removal independent; initial hurt does not gate wall hurt.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/effect/Wall_Watcher_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/effect/Wall_Watcher_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:entity/effect/Wall_Watcher_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/effect/Wall_Watcher_Entity.class",
+          "methods": [
+            "<init>"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:gauntlet_of_bulwark-family:wall_collision_damage_stun"
+      ],
+      "primary_test_source": "cataclysm:gauntlet_of_bulwark",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32d-cataclysm-gauntlet_of_bulwark-family-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "wall_bonus"
+          ],
+          "native_value": 1,
+          "native_formula": "mobProjectile(watcher,raw source); shared coefficient*effectiveTime plus independent1F",
+          "units": "requested health units",
+          "native_boundary": "Locked Wall_Watcher_Entity.tick collision"
+        },
+        {
+          "primitive": "STUN_DELIVERY",
+          "parameters": [
+            "duration"
+          ],
+          "native_value": 50,
+          "native_formula": "hurttrue -> native STUN50/implicitamp0, addEffect return ignored",
+          "units": "ticks",
+          "native_boundary": "Locked Wall_Watcher_Entity.tick true-hurt branch"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameter": "wall_bonus",
+          "native_value": 1,
+          "native_formula": "mobProjectile(watcher,raw source); shared coefficient*effectiveTime plus independent1F",
+          "units": "requested health units",
+          "boundary": "Locked Wall_Watcher_Entity.tick collision"
+        },
+        {
+          "primitive": "STUN_DELIVERY",
+          "parameter": "duration",
+          "native_value": 50,
+          "native_formula": "hurttrue -> native STUN50/implicitamp0, addEffect return ignored",
+          "units": "ticks",
+          "boundary": "Locked Wall_Watcher_Entity.tick true-hurt branch"
+        },
+        {
+          "primitive": "NATIVE_HURT_GATE",
+          "parameter": "invulnerable_time_reset",
+          "native_value": 0,
+          "native_formula": "native invulnerableTime=0 before wall hurt; binary/state gate, not Stage scalar",
+          "units": "native hurt-window ticks",
+          "boundary": "Locked Wall_Watcher_Entity.tick"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "wall_direct_actor_is_watcher": true,
+      "stun_requires_wall_hurt_success": true
+    },
+    {
+      "id": "cataclysm:gauntlet_of_bulwark_wall_watcher_control",
+      "mod_key": "cataclysm",
+      "display_name": "Bulwark native delayed Wall Watcher fixed-Y velocity control",
+      "registry_ids": [
+        "cataclysm:gauntlet_of_bulwark"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "watch creates native YUnchangedLivingEntity after original impact hurt request, snapshotting recipient Y. Reuse captured server Wall.tick: if victim has no horizontalCollision, wrapper.setMotion(dx*speedIndex,dz*speedIndex) writes absolute XYZ velocity with Y0, resets position to current X/Z plus snapshotted Y, and marks hurtMarked. No native knockback, damage-result gate or ongoing team check on this motion branch. On horizontal collision, victim is scheduled for removal from watch list after collision processing regardless of damage/team outcome. No generic owner cache or additional callbacks.",
+      "human_summary": "watch creates native YUnchangedLivingEntity after original impact hurt request, snapshotting recipient Y. Reuse captured server Wall.tick: if victim has no horizontalCollision, wrapper.setMotion(dx*speedIndex,dz*speedIndex) writes absolute XYZ velocity with Y0, resets position to current X/Z plus snapshotted Y, and marks hurtMarked. No native knockback, damage-result gate or ongoing team check on this motion branch. On horizontal collision, victim is scheduled for removal from watch list after collision processing regardless of damage/team outcome. No generic owner cache or additional callbacks.",
+      "closest_vanilla_equivalent": "Custom delayed direct velocity and fixed-position-Y control",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "watch creates native YUnchangedLivingEntity after original impact hurt request, snapshotting recipient Y. Reuse captured server Wall.tick: if victim has no horizontalCollision, wrapper.setMotion(dx*speedIndex,dz*speedIndex) writes absolute XYZ velocity with Y0, resets position to current X/Z plus snapshotted Y, and marks hurtMarked. No native knockback, damage-result gate or ongoing team check on this motion branch. On horizontal collision, victim is scheduled for removal from watch list after collision processing regardless of damage/team outcome. No generic owner cache or additional callbacks.",
+      "components": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "formula": "native watcher absolute velocity=(dx*index,0,dz*index), basis supplied once by release",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "Locked Wall.tick -> YUnchangedLivingEntity.setMotion",
+          "vanilla_relation": "CUSTOM_CONTROL"
+        },
+        {
+          "primitive": "POSITIONAL_CONFINEMENT",
+          "formula": "native setPos(currentX,snapshottedY,currentZ) each motion step; snapshot after impact hurt",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "WallWatcher.watch / wrapper ctor/setMotion",
+          "vanilla_relation": "CUSTOM_CONTROL"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "Server watcher tick; native raw source/list present",
+        "Collision removes watch even when damage rejected/now allied",
+        "No ongoing alliance/knockback filter on non-collision motion branch"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "Server watcher tick; native raw source/list present; Collision removes watch even when damage rejected/now allied; No ongoing alliance/knockback filter on non-collision motion branch",
+      "source_actor": "Raw native source is retained on watcher; per-victim native Y wrapper owns control state",
+      "hurt_return_dependency": "Motion/enrollment/removal are not conditional on original impact hurt.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:entity/effect/Wall_Watcher_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/effect/Wall_Watcher_Entity.class",
+          "methods": [
+            "watch",
+            "removeFromWatchList"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:entity/effect/Wall_Watcher_Entity$YUnchangedLivingEntity",
+          "entry": "com/github/L_Ender/cataclysm/entity/effect/Wall_Watcher_Entity$YUnchangedLivingEntity.class",
+          "methods": [
+            "<init>",
+            "setMotion"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/effect/Wall_Watcher_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/effect/Wall_Watcher_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:gauntlet_of_bulwark-family:wall_watcher_control"
+      ],
+      "primary_test_source": "cataclysm:gauntlet_of_bulwark",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32d-cataclysm-gauntlet_of_bulwark-family-complete",
+      "scalable_parameter_candidates": [],
+      "numeric_observations": [],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "absolute_velocity_not_knockback": true,
+      "ongoing_motion_team_filter": false
+    },
+    {
+      "id": "cataclysm:gauntlet_of_bulwark_weapon_defense_attributes",
+      "mod_key": "cataclysm",
+      "display_name": "Gauntlet of Bulwark native mainhand attack and defensive attributes",
+      "registry_ids": [
+        "cataclysm:gauntlet_of_bulwark"
+      ],
+      "primary_classification": "VANILLA_DIRECT",
+      "actual_behavior": "Native MAINHAND ADD_VALUE configured damage/speed and armor3/toughness3/KBR0.15000000596046448. Locked builder identities and attribute+slot merge preserve defenses. Native armor/KBR handling is distinct from direct dash/push/watcher writes and is not automatically a Stage candidate. Item does not add an incoming hurt pipeline.",
+      "human_summary": "Native MAINHAND ADD_VALUE configured damage/speed and armor3/toughness3/KBR0.15000000596046448. Locked builder identities and attribute+slot merge preserve defenses. Native armor/KBR handling is distinct from direct dash/push/watcher writes and is not automatically a Stage candidate. Item does not add an incoming hurt pipeline.",
+      "closest_vanilla_equivalent": "Native mainhand damage/speed/armor/toughness/knockback-resistance modifiers",
+      "vanilla_similarities": "Native admission, immunity, hurt return, sources, teams, lifecycle and event cancellation remain authoritative.",
+      "vanilla_differences": "Native MAINHAND ADD_VALUE configured damage/speed and armor3/toughness3/KBR0.15000000596046448. Locked builder identities and attribute+slot merge preserve defenses. Native armor/KBR handling is distinct from direct dash/push/watcher writes and is not automatically a Stage candidate. Item does not add an incoming hurt pipeline.",
+      "components": [
+        {
+          "primitive": "ATTACK_DAMAGE_ATTRIBUTE",
+          "formula": "MAINHAND ADD_VALUE float(config.attackDamage)+(-1F), factory/default10F",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "ModItems.lambda$modifyComponents$297 -> native component merge",
+          "vanilla_relation": "VANILLA_DIRECT",
+          "parameter_formulas": {
+            "amount": "float(CMCommonConfig.GauntletOfBulwark.attackDamage)+(-1F)"
+          },
+          "formula_parameter_units": {
+            "amount": "native attack-damage units"
+          },
+          "attribute": "minecraft:generic.attack_damage",
+          "native_operation": "ADD_VALUE",
+          "equipment_slot": "MAINHAND"
+        },
+        {
+          "primitive": "ATTACK_SPEED_ATTRIBUTE",
+          "formula": "MAINHAND ADD_VALUE float(config.attackSpeed)+(-4F), factory/default about-2.4F",
+          "numerical_parameters": {},
+          "parameter_units": {},
+          "binary_parameters": [],
+          "native_boundary": "ModItems.lambda$modifyComponents$297 -> native component merge",
+          "vanilla_relation": "VANILLA_DIRECT",
+          "parameter_formulas": {
+            "amount": "float(CMCommonConfig.GauntletOfBulwark.attackSpeed)+(-4F)"
+          },
+          "formula_parameter_units": {
+            "amount": "native attack-speed units"
+          },
+          "attribute": "minecraft:generic.attack_speed",
+          "native_operation": "ADD_VALUE",
+          "equipment_slot": "MAINHAND"
+        },
+        {
+          "primitive": "ARMOR_ATTRIBUTE",
+          "formula": "MAINHAND ADD_VALUE3; native defense, not automatically a Stage candidate",
+          "numerical_parameters": {
+            "amount": 3
+          },
+          "parameter_units": {
+            "amount": "native armor attribute units"
+          },
+          "binary_parameters": [],
+          "native_boundary": "ModItems.lambda$static$143",
+          "vanilla_relation": "VANILLA_DIRECT",
+          "attribute": "minecraft:generic.armor",
+          "native_operation": "ADD_VALUE",
+          "equipment_slot": "MAINHAND"
+        },
+        {
+          "primitive": "ARMOR_TOUGHNESS_ATTRIBUTE",
+          "formula": "MAINHAND ADD_VALUE3; native defense separate from armor",
+          "numerical_parameters": {
+            "amount": 3
+          },
+          "parameter_units": {
+            "amount": "native armor-toughness attribute units"
+          },
+          "binary_parameters": [],
+          "native_boundary": "ModItems.lambda$static$143",
+          "vanilla_relation": "VANILLA_DIRECT",
+          "attribute": "minecraft:generic.armor_toughness",
+          "native_operation": "ADD_VALUE",
+          "equipment_slot": "MAINHAND"
+        },
+        {
+          "primitive": "KNOCKBACK_RESISTANCE_ATTRIBUTE",
+          "formula": "MAINHAND ADD_VALUE0.15000000596046448; native defense distinct from custom pull",
+          "numerical_parameters": {
+            "amount": 0.15000000596046448
+          },
+          "parameter_units": {
+            "amount": "native resistance attribute units"
+          },
+          "binary_parameters": [],
+          "native_boundary": "ModItems.lambda$static$143",
+          "vanilla_relation": "VANILLA_DIRECT",
+          "attribute": "minecraft:generic.knockback_resistance",
+          "native_operation": "ADD_VALUE",
+          "equipment_slot": "MAINHAND"
+        }
+      ],
+      "numerical_parameters": {},
+      "binary_parameters": [
+        "MAINHAND native application; native defense lifecycle"
+      ],
+      "custom_state": "Native local state only; no Stage progression state.",
+      "eligibility": "MAINHAND native application; native defense lifecycle",
+      "source_actor": "Native equipped holder; native incoming/normal-attack sources unchanged",
+      "hurt_return_dependency": "No extra damage/heal callback.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:init/ModItems",
+          "entry": "com/github/L_Ender/cataclysm/init/ModItems.class",
+          "methods": [
+            "lambda$static$143",
+            "lambda$modifyComponents$297"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-the_immolator-family.json",
+          "witness_id": "cataclysm:the_immolator-family:items/Cataclysm_Weapon",
+          "entry": "com/github/L_Ender/cataclysm/items/Cataclysm_Weapon.class",
+          "methods": [
+            "createAttributes"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-the_immolator-family.json",
+          "witness_id": "cataclysm:the_immolator-family:items/CuriosItem/AttributeContainer",
+          "entry": "com/github/L_Ender/cataclysm/items/CuriosItem/AttributeContainer.class",
+          "methods": [
+            "createModifier"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-the_immolator-family.json",
+          "witness_id": "cataclysm:the_immolator-family:util/AttributeUtils",
+          "entry": "com/github/L_Ender/cataclysm/util/AttributeUtils.class",
+          "methods": [
+            "mergeAttributes"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "cataclysm:gauntlet_of_bulwark-family:weapon_defense_attributes"
+      ],
+      "primary_test_source": "cataclysm:gauntlet_of_bulwark",
+      "alternate_sources": [],
+      "spawned_entity_ids": [],
+      "inspection_status": "STATIC_REVIEWED",
+      "unresolved_ambiguities": [],
+      "review_checkpoint": "R2k32d-cataclysm-gauntlet_of_bulwark-family-complete",
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "ATTACK_DAMAGE_ATTRIBUTE",
+          "parameters": [
+            "amount"
+          ],
+          "native_value": null,
+          "native_formula": "float(CMCommonConfig.GauntletOfBulwark.attackDamage)+(-1F)",
+          "units": "native attack-damage units",
+          "native_boundary": "ModItems.lambda$modifyComponents$297 -> native component merge"
+        },
+        {
+          "primitive": "ATTACK_SPEED_ATTRIBUTE",
+          "parameters": [
+            "amount"
+          ],
+          "native_value": null,
+          "native_formula": "float(CMCommonConfig.GauntletOfBulwark.attackSpeed)+(-4F)",
+          "units": "native attack-speed units",
+          "native_boundary": "ModItems.lambda$modifyComponents$297 -> native component merge"
+        }
+      ],
+      "numeric_observations": [
+        {
+          "primitive": "ATTACK_DAMAGE_ATTRIBUTE",
+          "parameter": "amount",
+          "native_value": null,
+          "native_formula": "float(CMCommonConfig.GauntletOfBulwark.attackDamage)+(-1F)",
+          "units": "native attack-damage units",
+          "boundary": "ModItems.lambda$modifyComponents$297 -> native component merge"
+        },
+        {
+          "primitive": "ATTACK_SPEED_ATTRIBUTE",
+          "parameter": "amount",
+          "native_value": null,
+          "native_formula": "float(CMCommonConfig.GauntletOfBulwark.attackSpeed)+(-4F)",
+          "units": "native attack-speed units",
+          "boundary": "ModItems.lambda$modifyComponents$297 -> native component merge"
+        },
+        {
+          "primitive": "ARMOR_ATTRIBUTE",
+          "parameter": "amount",
+          "native_value": 3,
+          "native_formula": "MAINHAND ADD_VALUE3; native defense, not automatically a Stage candidate",
+          "units": "native armor attribute units",
+          "boundary": "ModItems.lambda$static$143"
+        },
+        {
+          "primitive": "ARMOR_TOUGHNESS_ATTRIBUTE",
+          "parameter": "amount",
+          "native_value": 3,
+          "native_formula": "MAINHAND ADD_VALUE3; native defense separate from armor",
+          "units": "native armor-toughness attribute units",
+          "boundary": "ModItems.lambda$static$143"
+        },
+        {
+          "primitive": "KNOCKBACK_RESISTANCE_ATTRIBUTE",
+          "parameter": "amount",
+          "native_value": 0.15000000596046448,
+          "native_formula": "MAINHAND ADD_VALUE0.15000000596046448; native defense distinct from custom pull",
+          "units": "native resistance attribute units",
+          "boundary": "ModItems.lambda$static$143"
+        }
+      ],
+      "scalability_note": "Primitive/value/formula observations only. No Stage eligibility, policy, multiplier, cap/floor, balance, ownership integration or runtime hook. Defensive, state, admission, selection and lifecycle constants are not automatically Stage candidates.",
+      "defensive_values_not_automatic_candidates": true
+    },
+    {
       "id": "cataclysm:gauntlet_of_guard_native_shield_capability",
       "mod_key": "cataclysm",
       "display_name": "Gauntlet of Guard native shield-disabling capability",
@@ -124614,6 +126297,521 @@
       "runtime_status": "NOT_RUN"
     },
     {
+      "id": "cataclysm:gauntlet_of_bulwark-family:charge_contact_impact",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:gauntlet_of_bulwark_charge_contact_impact"
+      ],
+      "primary_source": "cataclysm:gauntlet_of_bulwark",
+      "native_path": "Locked PlayerTickEvent.Post bridge invokes actor CHARGE_ATTACHMENT.tick; charge && server only. Save old temp=Timer, write Timer=temp-1 first. If old temp>0, query Living in actor AABB.inflate(.75), remove actor; ANY nonempty contact list triggers impact, even allies. Create WallWatcher with OLD temp and native supplied fields/source actor. Query larger AABB.inflate(3.5,.75,3.5), remove actor; target-side !isAlliedTo(actor) -> mobProjectile(actor,actor), amount=damagePerEffectiveCharge*effectiveTime (producer default12). Call watch(target) regardless of hurt boolean; true only sound. Add watcher ignoring add return; zero user velocity/hurtMarked=true/charge=false regardless of accepted hurt. Then horizontalCollision or old temp==0 also clears charge. Native targets/immunity/armor/return behavior stay native.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:Attachment/ChargeAttachment",
+          "entry": "com/github/L_Ender/cataclysm/Attachment/ChargeAttachment.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:entity/effect/Wall_Watcher_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/effect/Wall_Watcher_Entity.class",
+          "methods": [
+            "<init>",
+            "watch"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:event/ServerEventHandler",
+          "entry": "com/github/L_Ender/cataclysm/event/ServerEventHandler.class",
+          "methods": [
+            "onLivingUpdateEvent"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:gauntlet_of_bulwark-family:charge_pulse",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:gauntlet_of_bulwark_charge_pulse"
+      ],
+      "primary_source": "cataclysm:gauntlet_of_bulwark",
+      "native_path": "Reuse captured onUseTick: at elapsed==20, query user-excluding Entity AABB.inflate4.5; select LivingEntity except Player abilities.invulnerable, no explicit team/LOS/radial gate. Request Brand(duration40, implicit amp0, no supplied source), ignore addEffect boolean. Independently if recipient.onGround, dXZ=recipient-user, q=max(dx^2+dz^2,.001), push(dx/q*1.5F,0.1F,dz/q*1.5F). This is inverse-squared horizontal contribution, not normalized vanilla knockback. No hurt call/prerequisite; motion survives status rejection. Pulse has no local server guard; client guard is particles only.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-remaining-status.json",
+          "witness_id": "cataclysm:remaining_status:com/github/L_Ender/cataclysm/items/Gauntlet_of_Bulwark.class",
+          "entry": "com/github/L_Ender/cataclysm/items/Gauntlet_of_Bulwark.class",
+          "methods": [
+            "onUseTick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:gauntlet_of_bulwark-family:native_attachment_payload_lifecycle",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:gauntlet_of_bulwark_native_attachment_payload_lifecycle"
+      ],
+      "primary_source": "cataclysm:gauntlet_of_bulwark",
+      "native_path": "CHARGE_ATTACHMENT registry bootstrap6 -> lambda$static$2 -> bootstrap3 ChargeAttachment constructor; builder.build only, no serializer/copy-on-death configured here. Constructor defaults chargefalse/fields0; raw setters unchanged. WallWatcher registered cataclysm:wall_watcher (native MISCsized0x0/noSummon/fireImmune). Producer ctor stores raw source/list/fields and native TIMER; no ownership transport cache. Locked tick is parent-first/server: null list/source discards; timers decrement by1 and remove when oldTemp-1==0, not an invented <=0 fallback. Empty list also counts down. isNoGravitytrue. Native watcher save writes no custom fields; load source=null, first native server tick discards. No serialized actor/watch/Y/timer reconstruction or death/respawner callback.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:init/ModDataAttachments",
+          "entry": "com/github/L_Ender/cataclysm/init/ModDataAttachments.class",
+          "methods": [
+            "<clinit>",
+            "lambda$static$2"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:Attachment/ChargeAttachment",
+          "entry": "com/github/L_Ender/cataclysm/Attachment/ChargeAttachment.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:init/ModEntities",
+          "entry": "com/github/L_Ender/cataclysm/init/ModEntities.class",
+          "methods": [
+            "<clinit>",
+            "lambda$static$50"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:entity/effect/Wall_Watcher_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/effect/Wall_Watcher_Entity.class",
+          "methods": [
+            "<init>",
+            "isNoGravity",
+            "defineSynchedData",
+            "readAdditionalSaveData",
+            "addAdditionalSaveData"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/effect/Wall_Watcher_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/effect/Wall_Watcher_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:event/ServerEventHandler",
+          "entry": "com/github/L_Ender/cataclysm/event/ServerEventHandler.class",
+          "methods": [
+            "onLivingUpdateEvent"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:gauntlet_of_bulwark-family:native_charge_bindings",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:gauntlet_of_bulwark_native_charge_bindings"
+      ],
+      "primary_source": "cataclysm:gauntlet_of_bulwark",
+      "native_path": "Release retrieves native CHARGE_ATTACHMENT on using actor; sets charge=true, Timer=t*2, effectiveChargeTime=t*2, knockbackSpeedIndex=t*.35F, damagePerEffectiveCharge=1.2F, dx=f1*.5F,dz=f3*.5F. Admitted t5 gives timers10/index1.75; timers and effective damage time have distinct roles despite equal native initial values. These are native raw fields, not generic Stage progression/receipts. Coefficient1.2 is supplied once and used by both first impact and later wall damage; source dx/dz basis is supplied once for watcher motion. Native setters have no clamping/ownership substitution.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:items/Gauntlet_of_Bulwark",
+          "entry": "com/github/L_Ender/cataclysm/items/Gauntlet_of_Bulwark.class",
+          "methods": [
+            "releaseUsing"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:Attachment/ChargeAttachment",
+          "entry": "com/github/L_Ender/cataclysm/Attachment/ChargeAttachment.class",
+          "methods": [
+            "<init>",
+            "setCharge",
+            "setTimer",
+            "seteffectiveChargeTime",
+            "setknockbackSpeedIndex",
+            "setdamagePerEffectiveCharge",
+            "setdx",
+            "setdZ"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:event/ServerEventHandler",
+          "entry": "com/github/L_Ender/cataclysm/event/ServerEventHandler.class",
+          "methods": [
+            "onLivingUpdateEvent"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:gauntlet_of_bulwark-family:native_release_cooldown",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:gauntlet_of_bulwark_native_release_cooldown"
+      ],
+      "primary_source": "cataclysm:gauntlet_of_bulwark",
+      "native_path": "After native dash and attachment setters, release on !level.isClientSide casts using actor to Player and requests addCooldown(this, configured cooldown), default80/native bounds0..1000. Independent of contact count, damage/Brand/Stun acceptance and wall-watch lifecycle. No local instanceof guard is invented; native material Player-use boundary and order preserved.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:items/Gauntlet_of_Bulwark",
+          "entry": "com/github/L_Ender/cataclysm/items/Gauntlet_of_Bulwark.class",
+          "methods": [
+            "releaseUsing"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:config/CMCommonConfig$GauntletOfBulwark",
+          "entry": "com/github/L_Ender/cataclysm/config/CMCommonConfig$GauntletOfBulwark.class",
+          "methods": [
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:config/CommonConfig$GauntletOfBulwark",
+          "entry": "com/github/L_Ender/cataclysm/config/CommonConfig$GauntletOfBulwark.class",
+          "methods": [
+            "<init>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:config/CMCommonConfig",
+          "entry": "com/github/L_Ender/cataclysm/config/CMCommonConfig.class",
+          "methods": [
+            "Commonbake"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:gauntlet_of_bulwark-family:native_shield_capability",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:gauntlet_of_bulwark_native_shield_capability"
+      ],
+      "primary_source": "cataclysm:gauntlet_of_bulwark",
+      "native_path": "Native canDisableShield returns true; no hurt, shield cooldown write or extra event in callback. Class has no canPerformAction/hurtEnemy/inventoryTick override; native normal-attack/shield admission and lifecycle remain native. No shield-block ability inferred from weapon name.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:items/Gauntlet_of_Bulwark",
+          "entry": "com/github/L_Ender/cataclysm/items/Gauntlet_of_Bulwark.class",
+          "methods": [
+            "canDisableShield"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/eternalstarlight-special-weapons-244.json",
+          "witness_id": "eternalstarlight-special-weapons-244",
+          "entry": "net/minecraft/world/entity/player/Player.class",
+          "methods": [
+            "attack"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:gauntlet_of_bulwark-family:native_use_gate",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:gauntlet_of_bulwark_native_use_gate"
+      ],
+      "primary_source": "cataclysm:gauntlet_of_bulwark",
+      "native_path": "use refuses opposite-hand SHIELD_BLOCK only while that item is not on native cooldown; otherwise starts using invoked hand/consume. Use duration72000. Pulse occurs at elapsed==20; release requires !shift,!fallFlying and elapsed>=20. Release computes t=clamp(elapsed,1,5) before admission, so every admitted ordinary release has t=5 (not a continually growing charge tier). Release has no instanceof Player guard; its server cooldown branch performs the native Player cast after dash/state writes. Preserve native caller boundary, not a new safe fallback.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:items/Gauntlet_of_Bulwark",
+          "entry": "com/github/L_Ender/cataclysm/items/Gauntlet_of_Bulwark.class",
+          "methods": [
+            "use",
+            "getUseDuration",
+            "releaseUsing"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-remaining-status.json",
+          "witness_id": "cataclysm:remaining_status:com/github/L_Ender/cataclysm/items/Gauntlet_of_Bulwark.class",
+          "entry": "com/github/L_Ender/cataclysm/items/Gauntlet_of_Bulwark.class",
+          "methods": [
+            "onUseTick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:gauntlet_of_bulwark-family:registry_config",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:gauntlet_of_bulwark_registry_config"
+      ],
+      "primary_source": "cataclysm:gauntlet_of_bulwark",
+      "native_path": "Native registry cataclysm:gauntlet_of_bulwark: bootstrap171 -> lambda$static$143, stacksTo1/item fireResistant. Factory MAINHAND attack10F,speed-2.4F,armor3,toughness3,KBR0.15000000596046448. Default-component callback bootstrap13 -> lambda$modifyComponents$297 merges configured attack/speed while retaining native defenses. Config defaults11/1.6/cooldown80; native cooldown range0..1000, shared ToolConfig/Commonbake retained. No extra generic progression or holder fire immunity.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:init/ModItems",
+          "entry": "com/github/L_Ender/cataclysm/init/ModItems.class",
+          "methods": [
+            "<clinit>",
+            "lambda$static$143",
+            "modifyComponents",
+            "lambda$modifyComponents$297"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:config/CMCommonConfig$GauntletOfBulwark",
+          "entry": "com/github/L_Ender/cataclysm/config/CMCommonConfig$GauntletOfBulwark.class",
+          "methods": [
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:config/CommonConfig$GauntletOfBulwark",
+          "entry": "com/github/L_Ender/cataclysm/config/CommonConfig$GauntletOfBulwark.class",
+          "methods": [
+            "<init>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-foundation.json",
+          "witness_id": "cataclysm:foundation:config/CMCommonConfig",
+          "entry": "com/github/L_Ender/cataclysm/config/CMCommonConfig.class",
+          "methods": [
+            "Commonbake"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-the_immolator-family.json",
+          "witness_id": "cataclysm:the_immolator-family:config/CommonConfig$ToolConfig",
+          "entry": "com/github/L_Ender/cataclysm/config/CommonConfig$ToolConfig.class",
+          "methods": [
+            "<init>"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:gauntlet_of_bulwark-family:release_dash",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:gauntlet_of_bulwark_release_dash"
+      ],
+      "primary_source": "cataclysm:gauntlet_of_bulwark",
+      "native_path": "Admitted release computes native yaw/pitch direction f1/f2/f3 and full-vector norm f4; f5=3F*(t/6F), scales only X/Z by f5/f4, then entity.push(f1,0,f3). t5 gives native horizontal projection of speed2.5. Grounded user additionally moves SELF by (0,(double)1.1999999F/2,0), a positional move distinct from velocity and not generic knockback. No hurt request or local server gate surrounds dash/attachment setup; native actor movement/collision remains native.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:items/Gauntlet_of_Bulwark",
+          "entry": "com/github/L_Ender/cataclysm/items/Gauntlet_of_Bulwark.class",
+          "methods": [
+            "releaseUsing"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:gauntlet_of_bulwark-family:wall_collision_damage_stun",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:gauntlet_of_bulwark_wall_collision_damage_stun"
+      ],
+      "primary_source": "cataclysm:gauntlet_of_bulwark",
+      "native_path": "Reuse locked server Wall.tick: horizontalCollision and target-side !isAlliedTo(raw source) reset native victim.invulnerableTime=0, then hurt with mobProjectile(watcher,raw source), amount=damagePerEffectiveCharge*effectiveChargeTime+1F (producer default13). Only hurttrue requests STUN(duration50, implicitamp0, no supplied effect source); effect-add return ignored. Source actor differs from initial impact direct=actor: here direct=watcher, causing=raw actor. No status/control replay. Collision schedules watch removal even if now allied or hurt rejected. Native Stun behavior and damage defenses/cancellation remain locked.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/effect/Wall_Watcher_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/effect/Wall_Watcher_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:entity/effect/Wall_Watcher_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/effect/Wall_Watcher_Entity.class",
+          "methods": [
+            "<init>"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:gauntlet_of_bulwark-family:wall_watcher_control",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:gauntlet_of_bulwark_wall_watcher_control"
+      ],
+      "primary_source": "cataclysm:gauntlet_of_bulwark",
+      "native_path": "watch creates native YUnchangedLivingEntity after original impact hurt request, snapshotting recipient Y. Reuse captured server Wall.tick: if victim has no horizontalCollision, wrapper.setMotion(dx*speedIndex,dz*speedIndex) writes absolute XYZ velocity with Y0, resets position to current X/Z plus snapshotted Y, and marks hurtMarked. No native knockback, damage-result gate or ongoing team check on this motion branch. On horizontal collision, victim is scheduled for removal from watch list after collision processing regardless of damage/team outcome. No generic owner cache or additional callbacks.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:entity/effect/Wall_Watcher_Entity",
+          "entry": "com/github/L_Ender/cataclysm/entity/effect/Wall_Watcher_Entity.class",
+          "methods": [
+            "watch",
+            "removeFromWatchList"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:entity/effect/Wall_Watcher_Entity$YUnchangedLivingEntity",
+          "entry": "com/github/L_Ender/cataclysm/entity/effect/Wall_Watcher_Entity$YUnchangedLivingEntity.class",
+          "methods": [
+            "<init>",
+            "setMotion"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-stun.json",
+          "witness_id": "cataclysm:stun:com/github/L_Ender/cataclysm/entity/effect/Wall_Watcher_Entity.class",
+          "entry": "com/github/L_Ender/cataclysm/entity/effect/Wall_Watcher_Entity.class",
+          "methods": [
+            "tick"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "cataclysm:gauntlet_of_bulwark-family:weapon_defense_attributes",
+      "mod_key": "cataclysm",
+      "status": "VERIFIED",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "cataclysm:gauntlet_of_bulwark_weapon_defense_attributes"
+      ],
+      "primary_source": "cataclysm:gauntlet_of_bulwark",
+      "native_path": "Native MAINHAND ADD_VALUE configured damage/speed and armor3/toughness3/KBR0.15000000596046448. Locked builder identities and attribute+slot merge preserve defenses. Native armor/KBR handling is distinct from direct dash/push/watcher writes and is not automatically a Stage candidate. Item does not add an incoming hurt pipeline.",
+      "setup": "Cited static native boundaries only; not run.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/cataclysm-gauntlet_of_bulwark-family.json",
+          "witness_id": "cataclysm:gauntlet_of_bulwark-family:init/ModItems",
+          "entry": "com/github/L_Ender/cataclysm/init/ModItems.class",
+          "methods": [
+            "lambda$static$143",
+            "lambda$modifyComponents$297"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-the_immolator-family.json",
+          "witness_id": "cataclysm:the_immolator-family:items/Cataclysm_Weapon",
+          "entry": "com/github/L_Ender/cataclysm/items/Cataclysm_Weapon.class",
+          "methods": [
+            "createAttributes"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-the_immolator-family.json",
+          "witness_id": "cataclysm:the_immolator-family:items/CuriosItem/AttributeContainer",
+          "entry": "com/github/L_Ender/cataclysm/items/CuriosItem/AttributeContainer.class",
+          "methods": [
+            "createModifier"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/cataclysm-the_immolator-family.json",
+          "witness_id": "cataclysm:the_immolator-family:util/AttributeUtils",
+          "entry": "com/github/L_Ender/cataclysm/util/AttributeUtils.class",
+          "methods": [
+            "mergeAttributes"
+          ]
+        }
+      ],
+      "runtime_status": "NOT_RUN"
+    },
+    {
       "id": "cataclysm:gauntlet_of_guard-family:native_shield_capability",
       "mod_key": "cataclysm",
       "status": "VERIFIED",
@@ -147181,10 +149379,10 @@
   ],
   "unresolved_native_ambiguities": null,
   "remaining_native_ambiguities": null,
-  "checkpoint": "R2k32c-cataclysm-gauntlet_of_guard-family-complete",
-  "scope": "Gauntlet of Guard native mainhand attributes/defenses, use admission, per-use-tick AABB pull and shield capability; shared component/setup/Vanilla contracts reused. Ordinary utility and particles excluded.",
-  "notes_file": "cataclysm-r2k32c-gauntlet_of_guard-family.json",
-  "exact_next_task": "R2k32d: Gauntlet_of_Bulwark complete combat family. Start only items/Gauntlet_of_Bulwark from the existing census, its native registered attributes/use/release/tick paths and directly reached payloads. Reuse locked native component setup and shared damage/status/motion contracts. Keep Maelstrom, other equipment/accessories and global consumers deferred until their bounded ledger tasks.",
+  "checkpoint": "R2k32d-cataclysm-gauntlet_of_bulwark-family-complete",
+  "scope": "Gauntlet of Bulwark registered native attributes/use pulse/release dash and directly owned charge attachment/Wall Watcher control, damage, lifecycle and cooldown. Locked Brand/Stun methods and player-post callback reused; no unrelated global event semantics.",
+  "notes_file": "cataclysm-r2k32d-gauntlet_of_bulwark-family.json",
+  "exact_next_task": "R2k32e: Gauntlet_of_Maelstrom complete combat family. Start only items/Gauntlet_of_Maelstrom from the existing census, registered attributes/use/release/tick paths and directly reached payloads. Reuse locked weapon/component setup, native status/damage-source contracts and previously closed Vortex/payload contracts where exact. Keep other equipment/accessories/global domains deferred. Do not assume the visible vortex family or ownership from the item name.",
   "protected_checkpoint": "R2k3a-cataclysm-guardian-admission-complete",
   "protected_notes_file": "cataclysm-r2k3a-guardian-admission.json",
   "protected_checkpoints": [
@@ -147391,6 +149589,10 @@
     {
       "checkpoint": "R2k32b-cataclysm-the_incinerator-family-complete",
       "notes_file": "cataclysm-r2k32b-the_incinerator-family.json"
+    },
+    {
+      "checkpoint": "R2k32c-cataclysm-gauntlet_of_guard-family-complete",
+      "notes_file": "cataclysm-r2k32c-gauntlet_of_guard-family.json"
     }
   ]
 }
