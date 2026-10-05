@@ -1,5 +1,6 @@
 """Reconcile the existing census with pinned semantic citations; never scan a JAR."""
 import argparse
+import copy
 from collections import Counter, defaultdict
 import hashlib
 import json
@@ -170,11 +171,80 @@ def generate(source_ref):
         exact_next_task=NEXT_TASK)
 
 
+def resolve_combat_blocks(base, review, checkpoint):
+    """Advance exactly the eight R2k33b rows; leave the frozen audit untouched."""
+    assert base['checkpoint'] == 'R2k33a-cataclysm-coverage-reconciliation-checkpoint'
+    assert checkpoint['previous_checkpoint'] == base['checkpoint']
+    assert checkpoint['status'] == review['status'] == 'PARTIAL'
+    domain = 'R2k33b_BLOCKS_TRAPS_EMP'
+    key = lambda row: (row['entry'], row['method'], row['descriptor'])
+    pending = {key(row): row for row in base['residual_methods']
+               if row.get('queue_domain') == domain
+               and row['disposition'] == 'PENDING_TARGETED_RECONCILIATION'}
+    bindings = checkpoint['coverage_boundary_resolutions']
+    assert len(pending) == len(bindings) == 8
+    assert len({key(row) for row in bindings}) == 8
+    assert {key(row) for row in bindings} == set(pending)
+    records = {row['id']: row for row in review['effects']}
+    assert len(records) == len(review['effects'])
+    assert set(checkpoint['mechanic_ids']) <= set(records)
+    bound = {key(row): row for row in bindings}
+    current = copy.deepcopy(base)
+    for row in current['residual_methods']:
+        if key(row) not in bound:
+            continue
+        binding = bound[key(row)]
+        assert binding['native_code_sha256'] == row['code_sha256']
+        assert binding['covered_census_hits'] == row['hits_to_reconcile']
+        ids = binding['mechanic_ids']
+        assert ids and len(set(ids)) == len(ids)
+        assert set(ids) <= set(checkpoint['mechanic_ids'])
+        for record_id in ids:
+            assert any(proof.get('entry') == row['entry']
+                       and row['method'] in proof.get('methods', [])
+                       for proof in records[record_id]['implementation'])
+        row.update(disposition='RESOLVED_BY_SEMANTIC_RECORD', mechanic_ids=sorted(ids),
+                   checkpoint_file=review['notes_file'],
+                   reason=binding['reason'])
+    counts = Counter(row['disposition'] for row in current['residual_methods'])
+    counts['CITED_WITH_NATIVE_WITNESS'] = base['summary']['counts_by_disposition']['CITED_WITH_NATIVE_WITNESS']
+    assert sum(counts.values()) == base['summary']['total_unique_census_methods']
+    assert counts['PENDING_TARGETED_RECONCILIATION'] == 47
+    assert counts['RESOLVED_BY_SEMANTIC_RECORD'] == 8
+    current.update(checkpoint=checkpoint['checkpoint'], status='PARTIAL',
+        scope='Incremental R2k33b semantic closure of exactly eight combat block/trap/EMP '
+              'boundaries. Other47 pending rows and all locked audit rows unchanged. '
+              'No new census,whole-JAR scan,Stage policy or whole-mod completion claim.',
+        base_audit_file='cataclysm-r2k33a-coverage-audit.json',
+        base_audit_sha256=hashlib.sha256((json.dumps(base,ensure_ascii=False,indent=2)+'\n').encode()).hexdigest(),
+        semantic_starting_commit=checkpoint['starting_sha'],
+        resolution_checkpoint_file=review['notes_file'],
+        exact_next_task=checkpoint['exact_next_task'])
+    current['summary'].update(counts_by_disposition=dict(sorted(counts.items())),
+        pending_methods_by_domain=dict(sorted(Counter(row['queue_domain']
+            for row in current['residual_methods']
+            if row['disposition']=='PENDING_TARGETED_RECONCILIATION').items())),
+        total_canonical_semantic_records=len(records),
+        total_canonical_numeric_candidates=sum(len(candidate['parameters'])
+            for record in records.values()
+            for candidate in record.get('scalable_parameter_candidates',[])),
+        classification_counts=dict(sorted(Counter(record['primary_classification']
+            for record in records.values()).items())))
+    return current
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--source-ref', required=True)
+    inputs = parser.add_mutually_exclusive_group(required=True)
+    inputs.add_argument('--source-ref')
+    inputs.add_argument('--resolution-checkpoint', type=Path)
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
-    data = generate(args.source_ref)
+    if args.resolution_checkpoint:
+        from catalog_common import read_json
+        data = resolve_combat_blocks(read_json(OUT / 'cataclysm-r2k33a-coverage-audit.json'),
+            read_json(OUT / 'mod-reviews/cataclysm.json'),read_json(args.resolution_checkpoint))
+    else:
+        data = generate(args.source_ref)
     write_json(args.output, data)
     print(json.dumps(data['summary'],sort_keys=True))
