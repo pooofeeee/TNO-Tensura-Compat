@@ -47,6 +47,15 @@ def literal_attribute_binding(method,offset):
                 value_offset=value['offset'],native_value=value['operand'])
 
 
+def literal_command_binding(method,offset):
+    """Bind a directly authored command argument; decline computed strings."""
+    body=method['instructions'];at=next(n for n,i in enumerate(body) if i['offset']==offset)
+    assert body[at]['operand']=='net/minecraft/commands/Commands.performPrefixedCommand(Lnet/minecraft/commands/CommandSourceStack;Ljava/lang/String;)V'
+    argument=body[at-1]
+    assert argument['opcode'] in ('0x12','0x13') and isinstance(argument['operand'],str)
+    return dict(command=argument['operand'],argument_offset=argument['offset'])
+
+
 def effect_receiver_binding(method,offset):
     """Trace a simple generated LivingEntity cast/local used by addEffect.
 
@@ -158,16 +167,21 @@ def validate_batch(batch,review,census):
                 '.makeStuckInBlock(','.putDouble(','.queueServerWork(','.inflate(',
                 'ItemCooldowns.addCooldown(','.teleportTo(',
                 '.setBaseDamage(','.shoot(','.push(','.igniteForSeconds(',
-                'LivingIncomingDamageEvent.setAmount(')
+                'LivingIncomingDamageEvent.setAmount(',
+                'AABB.ofSize(Lnet/minecraft/world/phys/Vec3;DDD)',
+                'PathNavigation.moveTo(DDDD)')
             rng=(candidate['primitive'] in ('ATTACK_SELECTION','SUMMON_DELIVERY','PROC_CHANCE') and
                  'Mth.nextInt(' in str(hit['operand']))
             terrain=(candidate['primitive']=='TERRAIN_PLACEMENT' and
                      hit['operand']=='net/minecraft/world/level/LevelAccessor.setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z')
             attribute='native_attribute_binding' in candidate
+            command='native_command_binding' in candidate
+            if command:
+                assert literal_command_binding(m,consumer['offset'])==candidate['native_command_binding'],('wrong native literal command',candidate)
             if attribute:
                 assert literal_attribute_binding(m,consumer['offset'])==candidate['native_attribute_binding'],('wrong native attribute literal',candidate)
-            assert hit['opcode']=='0xb5' or rng or terrain or attribute or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
-            if candidate['primitive'].startswith('MOB_EFFECT_'):
+            assert hit['opcode']=='0xb5' or rng or terrain or attribute or command or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
+            if candidate['primitive'].startswith('MOB_EFFECT_') or 'native_holder_symbol' in candidate:
                 symbol,allocation,load=effect_holder_binding(m,consumer['offset'])
                 assert (symbol,allocation,load)==(candidate['native_holder_symbol'],
                     candidate['native_holder_allocation_offset'],candidate['native_holder_load_offset'])
@@ -191,7 +205,7 @@ def validate_batch(batch,review,census):
                 other_method=next(x for x in other['methods'] if x['name']==site['method'] and x['descriptor']==site['descriptor'])
                 other_hit=next(i for i in other_method['instructions'] if i['offset']==site['offset'])
                 assert other_hit['operand']==hit['operand'],('auxiliary site uses a different consumer',site)
-                if candidate['primitive'].startswith('MOB_EFFECT_'):
+                if candidate['primitive'].startswith('MOB_EFFECT_') or 'native_holder_symbol' in candidate:
                     assert effect_holder_binding(other_method,site['offset'])[0]==candidate['native_holder_symbol']
                 if 'native_damage_type_symbol' in candidate:
                     source=damage_source_binding(other_method,site['offset'])
@@ -201,6 +215,8 @@ def validate_batch(batch,review,census):
                     assert (other_binding['attribute_symbol'],other_binding['native_value'])==(
                         candidate['native_attribute_binding']['attribute_symbol'],
                         candidate['native_attribute_binding']['native_value']),('auxiliary attribute literal differs',site)
+                if command:
+                    assert literal_command_binding(other_method,site['offset'])['command']==candidate['native_command_binding']['command'],('auxiliary command literal differs',site)
             for parameter in candidate['parameters']:
                 identity=tuple(candidate['native_parameter_identity'][k] for k in ('entry','method','descriptor','offset'))+(candidate['primitive'],parameter)
                 assert identity not in candidates,('same native parameter counted twice',identity)
