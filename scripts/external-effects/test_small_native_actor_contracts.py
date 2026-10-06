@@ -8,6 +8,85 @@ from test_shadow_clone_contracts import NativeContractHarness
 
 
 
+class NativeTormentorRootTests(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m5w-native-tormentor-root-tiers.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-native-tormentor-root-tiers.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def test_six_roots_share_two_contracts_without_controller_recapture(self):
+        validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual((len(self.batch['effects']),len(self.batch['closed_actor_callback_entries'])),(2,6))
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects'] for c in r['scalable_parameter_candidates']),3)
+        self.assertEqual((len(self.native['witnesses']),sum(len(w['methods']) for w in self.native['witnesses'])),(20,225))
+        root=next(w for w in self.native['witnesses'] if w['entry'].endswith('/TORMENTOREntity.class'))
+        self.assertFalse({'baseTick','die'} & {m['name'] for m in root['methods']})
+        self.assertFalse(any('TranscendentalTormentor' in w['entry'] for w in self.native['witnesses']))
+
+    def test_split_precedes_native_rejection_without_direct_player_arrow_gate(self):
+        b=self.body('TORMENTOREntity','hurt')
+        helper=next(i['offset'] for i in b if 'TORMENTOREntityIsHurtProcedure.execute(' in str(i['operand']))
+        first=next(i['offset'] for i in b if 'DamageTypes.IN_FIRE' in str(i['operand']))
+        self.assertLess(helper,first)
+        types=[i['operand'] for i in b if i['opcode']=='0xc1']
+        self.assertFalse(any('Player' in t or 'Arrow' in t for t in types))
+        for root in ['TormentorTestEntity']+['TormentorT'+str(t)+'Entity' for t in range(2,6)]:
+            types=[i['operand'] for i in self.body(root,'hurt') if i['opcode']=='0xc1']
+            self.assertIn('net/minecraft/world/entity/player/Player',types)
+            self.assertIn('net/minecraft/world/entity/projectile/AbstractArrow',types)
+        b=self.body('TORMENTOREntityIsHurtProcedure')
+        self.assertEqual([i['offset'] for i in b if 'EntityType.spawn(' in str(i['operand'])],[110,158])
+        self.assertFalse(any('tormentor_hitbox_split' in str(i['operand']) and i['opcode']=='0xb5' for i in b))
+        self.assertFalse(any('.setOwner(' in str(i['operand']) for i in b))
+
+    def test_delayed_respawn_only_rechecks_original_presence(self):
+        b=self.body('TORMENTOROnInitialEntitySpawnProcedure','lambda$execute$5')
+        self.assertTrue(any('List.isEmpty()' in str(i['operand']) for i in b))
+        self.assertTrue(any(i['operand']==200.0 for i in b))
+        self.assertTrue(any('.spawn(' in str(i['operand']) and i['offset']==78 for i in b))
+        self.assertFalse(any('tormentor_seal_limit' in str(i['operand']) or 'isAlive(' in str(i['operand']) or 'AscendSphere' in str(i['operand']) for i in b))
+
+    def test_tier_follow_is_five_same_offset_teleports_not_damage(self):
+        b=self.body('TormentorTestOnEntityTickUpdateProcedure')
+        offsets=[i['offset'] for i in b if '.teleportTo(' in str(i['operand'])]
+        self.assertEqual(offsets,[203,643,1083,1523,1963])
+        for offset in offsets:
+            at=next(j for j,i in enumerate(b) if i['offset']==offset)
+            self.assertTrue(any(i['operand']==.7 for i in b[at-12:at]))
+        self.assertFalse(any('.hurt(' in str(i['operand']) for i in b))
+        self.assertTrue(any('.removeAllEffects(' in str(i['operand']) and i['offset']==3648 for i in b))
+        self.assertTrue(any('.setHealth(' in str(i['operand']) and i['offset']==3689 for i in b))
+
+    def test_closure_notification_sets_health_then_anonymous_segment_request(self):
+        b=self.body('TormentorTestOnEntityTickUpdateProcedure','lambda$execute$3');by={i['offset']:i for i in b}
+        self.assertEqual((by[52]['operand'],by[82]['operand']),(1.0,100.0))
+        self.assertIn('.setHealth(',by[53]['operand']);self.assertIn('.hurt(',by[85]['operand'])
+        self.assertIn('DamageSource.<init>(Lnet/minecraft/core/Holder;)V',by[79]['operand'])
+        self.assertEqual(by[65]['operand'],'arphex:segment');self.assertEqual(by[88]['opcode'],'0x57')
+
+    def test_death_command_is_test_only_for_all_five_callers(self):
+        for root in ['TormentorTestEntity']+['TormentorT'+str(t)+'Entity' for t in range(2,6)]:
+            b=self.body(root,'tickDeath');by={i['offset']:i for i in b}
+            self.assertEqual(by[14]['operand'],1300)
+            self.assertIn('.remove(',by[24]['operand'])
+            self.assertIn('TormentorTestDeathTimeIsReachedProcedure.execute(',by[48]['operand'])
+        self.assertTrue(any(i['operand']=='arphex despawn @e[type=arphex:tormentor_test]' for i in self.body('TormentorTestDeathTimeIsReachedProcedure')))
+
+    def test_presentation_clock_and_overlay_have_no_authored_offense_consumer(self):
+        from collect_combat_census import decode_sites
+        roots={'net/arphex/entity/'+r+'.class' for r in ['TormentorTestEntity']+['TormentorT'+str(t)+'Entity' for t in range(2,6)]}
+        refs={(m['entry'],m['method'].split('(')[0]) for m in self.census['methods']
+              if any('DATA_big_attack' in str(s.get('operand')) for s in decode_sites(self.census,m,'hits'))}
+        self.assertTrue(refs)
+        self.assertTrue(all((e in roots and name in {'defineSynchedData','addAdditionalSaveData','readAdditionalSaveData','<clinit>'}) or
+                            (e.endswith('/TormentorTestOnEntityTickUpdateProcedure.class') and name=='execute') for e,name in refs))
+        b=self.body('TORMENTORThisEntityKillsAnotherOneProcedure')
+        self.assertTrue(any('show_tormentor_overlayZ' in str(i['operand']) and i['opcode']=='0xb5' for i in b))
+        self.assertFalse(any('.hurt(' in str(i['operand']) or '.addEffect(' in str(i['operand']) or '.heal(' in str(i['operand']) for i in b))
+        self.assertFalse(any(c['primitive']=='NATIVE_CONDITIONAL_MELEE' for r in self.batch['effects'] for c in r['scalable_parameter_candidates']))
+
+
 class NativeForcefieldDirectionTests(NativeContractHarness, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
