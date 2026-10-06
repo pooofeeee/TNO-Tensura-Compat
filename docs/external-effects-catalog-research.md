@@ -1,5 +1,8 @@
 # External combat effects catalog — separate research track
 
+Active ordered large-mod campaign: [canonical continuation state](benchmarks/external-effects-catalog/large-mod-campaign.json). The completion ledger records the current finite task; completed catalogs remain locked.
+
+
 **Current status: PARTIAL overall; Cataclysm is COMPLETE after R2k34 integrity repair and final coverage reconciliation.** Ten external semantic reviews and the reference-only Tensura scope are complete. Production remains unchanged; Stage policy and runtime work have not started.
 
 Use [mod-completion-ledger.json](benchmarks/external-effects-catalog/mod-completion-ledger.json) for the current queue, [catalog-integrity-audit.json](benchmarks/external-effects-catalog/catalog-integrity-audit.json) for current totals and independent checks, and [catalog-integrity-repairs.json](benchmarks/external-effects-catalog/catalog-integrity-repairs.json) for repairs and superseded historical policy output. Cataclysm's final counts and exclusions are in [cataclysm-classification-summary.json](benchmarks/external-effects-catalog/cataclysm-classification-summary.json). Earlier checkpoints below describe their historical scope; they do not override the repaired canonical reviews or choose future Stage policy.

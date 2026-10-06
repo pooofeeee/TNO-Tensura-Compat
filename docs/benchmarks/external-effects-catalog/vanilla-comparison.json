@@ -1,10 +1,709 @@
 {
   "schema": "tno.external_effects.vanilla_comparison.v1",
   "status": "PARTIAL",
-  "checkpoint": "R2m1-large-mod-source-foundation",
+  "checkpoint": "R2m2a-arphex-active-status-cores",
   "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
   "note": "Deterministic projection of canonical mod reviews,including explicit PARTIAL scope. The ledger alone tracks per-mod completeness. No Stage eligibility or policy decision.",
   "comparisons": [
+    {
+      "effect_id": "arphex:ab_flight",
+      "mod_key": "arphex",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "minecraft:slow_falling",
+      "similarities": "Uses the named native APIs/components below; native admission, stacking and defenses remain authoritative.",
+      "differences": "Each admitted tick delegates to a non-null recipient helper and, for server-side LivingEntity, requests native SLOW_FALLING(duration10,amplifier4,ambient=false,visible=false). addEffect result is ignored. Amplifier is native stacking metadata; this core adds no flight velocity or owner.",
+      "components": [
+        {
+          "primitive": "MOB_EFFECT_SLOW_FALLING",
+          "numerical_parameters": {
+            "duration": 10,
+            "native_amplifier": 4
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:breathless",
+      "mod_key": "arphex",
+      "primary_classification": "CUSTOM_STATUS",
+      "closest_vanilla": "native Slowness inside custom exertion/delayed-delivery state",
+      "similarities": "Uses the named native APIs/components below; native admission, stacking and defenses remain authoritative.",
+      "differences": "With raw creativespectator NBT false: holding ABYSS_ASCENDANT in either hand, fall-flying, riding, or unchanged exact XYZ decrements breathless_cycle by3 only while positive; otherwise increments1. If cycle>1200, queues20-tick work that requests Slowness60/2 on the captured server LivingEntity. No dedup latch, effect-presence or alive recheck is added. Stores current compare XYZ every tick. Message is cosmetic.",
+      "components": [
+        {
+          "primitive": "MOB_EFFECT_SLOWNESS",
+          "numerical_parameters": {
+            "duration": 60,
+            "amplifier": 2
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "EXERTION_STATE",
+          "numerical_parameters": {
+            "moving_gain": 1,
+            "rest_drain": 3
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "DELAYED_DELIVERY",
+          "numerical_parameters": {
+            "delay_ticks": 20
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:chaos_controlled",
+      "mod_key": "arphex",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "native Slowness plus custom delayed aggro control",
+      "similarities": "Uses the named native APIs/components below; native admission, stacking and defenses remain authoritative.",
+      "differences": "Player recipient receives Slowness5/9. Non-player TORMENTOR branch is cosmetic. Other Mob with target: creativecontrol queues20 ticks then applies CHAO_LOCK10/0 to the then-current target; an alive CHAOS_TARGET target is retained only while native particle gate permits the branch, otherwise target cleared. Targetless branch scans inflated AABB50 sorted ascending and repeatedly sets matching CHAOS_TARGET LivingEntity targets, leaving last matching target. The nested TORMENTOR test there is unreachable under the enclosing non-TORMENTOR branch. Remove/Expired clears target. No alliance/ownership attribution is invented.",
+      "components": [
+        {
+          "primitive": "MOB_EFFECT_SLOWNESS",
+          "numerical_parameters": {
+            "duration": 5,
+            "amplifier": 9
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_CHAO_LOCK",
+          "numerical_parameters": {
+            "duration": 10,
+            "native_amplifier": 0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "AGGRO_REDIRECTION",
+          "numerical_parameters": {
+            "search_inflation": 50
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "DELAYED_DELIVERY",
+          "numerical_parameters": {
+            "delay_ticks": 20
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:chaos_target",
+      "mod_key": "arphex",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "custom native Mob target retargeting",
+      "similarities": "Uses the named native APIs/components below; native admission, stacking and defenses remain authoritative.",
+      "differences": "Tick removes CHAOS_CONTROLLED on this recipient before other logic. With creativecontrol=true, a Mob with a target clears it unless target is alive and has CHAOS_CONTROLLED; when targetless, scans inflated AABB50 sorted ascending distance and sets target for every matching LivingEntity, leaving the last/farthest qualifying target. Does not break after nearest. Remove/Expired listener clears Mob target without team checks.",
+      "components": [
+        {
+          "primitive": "AGGRO_REDIRECTION",
+          "numerical_parameters": {
+            "search_inflation": 50
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:constricted",
+      "mod_key": "arphex",
+      "primary_classification": "CUSTOM_STATUS",
+      "closest_vanilla": "native generic damage/effects plus custom confinement control",
+      "similarities": "Uses the named native APIs/components below; native admission, stacking and defenses remain authoritative.",
+      "differences": "Tick removes Regeneration first. At crushdamage<=0, non-CrabConstrictor recipient lacking Resistance and raw creativespectator=false requests anonymous GENERIC3 and sets19 regardless hurt result; positive timer decrements1. Server LivingEntity then receives Hunger5/5 independently. If CrabLarvae in side8 box, support at y-1.5 nonempty and nearest larva shifting: requests Levitation5/0 and calls makeStuckInBlock(AIR,Vec3(.25,.05,.25)). No original applier source/team gate is supplied.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "requested_damage": 3
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_HUNGER",
+          "numerical_parameters": {
+            "duration": 5,
+            "amplifier": 5
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_LEVITATION",
+          "numerical_parameters": {
+            "duration": 5,
+            "amplifier": 0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "STUCK_MOVEMENT",
+          "numerical_parameters": {
+            "x_factor": 0.25,
+            "y_factor": 0.05,
+            "z_factor": 0.25
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "DAMAGE_CADENCE",
+          "numerical_parameters": {
+            "reset_ticks": 19
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:eternal_sustenance",
+      "mod_key": "arphex",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "closest_vanilla": "native Saturation plus custom maintained status/resource cadence",
+      "similarities": "Uses the named native APIs/components below; native admission, stacking and defenses remain authoritative.",
+      "differences": "Every tick requests Splintered Sanity99999/0 on server LivingEntity. Separately, slow_saturation_repeat<=0 sets200 and requests native Saturation1/0; otherwise decrements1. Does not heal via a damage source or collapse this timer into Splintered Sanity's distinct timer.",
+      "components": [
+        {
+          "primitive": "MOB_EFFECT_SPLINTERED_SANITY",
+          "numerical_parameters": {
+            "duration": 99999,
+            "native_amplifier": 0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_SATURATION",
+          "numerical_parameters": {
+            "duration": 1,
+            "amplifier": 0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "RESOURCE_CADENCE",
+          "numerical_parameters": {
+            "reset_ticks": 200
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:force_lift",
+      "mod_key": "arphex",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "native Slowness + Glowing + Weakness + conditional Levitation",
+      "similarities": "Uses the named native APIs/components below; native admission, stacking and defenses remain authoritative.",
+      "differences": "Each tick requests Slowness5/0, Glowing5/4 and Weakness5/0 on server LivingEntity. Only a Player whose inventory lacks FORCE_GAUNTLET also receives Levitation5/1. Particle delivery is cosmetic. No direct force write occurs in this callback.",
+      "components": [
+        {
+          "primitive": "MOB_EFFECT_SLOWNESS",
+          "numerical_parameters": {
+            "duration": 5,
+            "amplifier": 0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_GLOWING",
+          "numerical_parameters": {
+            "duration": 5,
+            "native_amplifier": 4
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_WEAKNESS",
+          "numerical_parameters": {
+            "duration": 5,
+            "amplifier": 0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_LEVITATION",
+          "numerical_parameters": {
+            "duration": 5,
+            "amplifier": 1
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:invincibility_temp",
+      "mod_key": "arphex",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "minecraft:resistance",
+      "similarities": "Uses the named native APIs/components below; native admission, stacking and defenses remain authoritative.",
+      "differences": "Every admitted tick requests native Resistance(duration2,amplifier4,false,false) on server LivingEntity. It does not write invulnerable state; native Resistance defenses/admission and ignored addEffect result remain separate from custom invulnerability gates elsewhere.",
+      "components": [
+        {
+          "primitive": "MOB_EFFECT_RESISTANCE",
+          "numerical_parameters": {
+            "duration": 2,
+            "amplifier": 4
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:moth_curse",
+      "mod_key": "arphex",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "native Mining Fatigue plus custom forced-facing state",
+      "similarities": "Uses the named native APIs/components below; native admission, stacking and defenses remain authoritative.",
+      "differences": "Start only emits a player message. Tick returns early for Player inventory containing BANE_OF_THE_DARKNESS or ABYSS_ASCENDANT; otherwise server LivingEntity receives Mining Fatigue20/0. shake starts/randomizes inclusive1..20, increases1 while positive and rerandomizes above100. If shake<14, writes yaw and pitch each plus independent uniform[-2,2], and synchronizes body/head/old rotations. This is actual forced facing, not vanilla Nausea rendering.",
+      "components": [
+        {
+          "primitive": "MOB_EFFECT_MINING_FATIGUE",
+          "numerical_parameters": {
+            "duration": 20,
+            "amplifier": 0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "FORCED_FACING",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "yaw_delta": "uniform(-2,2)",
+            "pitch_delta": "uniform(-2,2)"
+          }
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:paralysis",
+      "mod_key": "arphex",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "custom velocity-retention/downward-write control",
+      "similarities": "Uses the named native APIs/components below; native admission, stacking and defenses remain authoritative.",
+      "differences": "If paralysis_speed<=0, stores max(10-A,0), writes X/Z=current*0.6 while preservingY; if Y>=-0.2 then writes all components*0.3 with Y additionally-0.1. A>9 adds X/Z*0.05 preservingY. Queues int(clock/2) work: X/Z*0.3 preservingY, then if Y>=-0.2 another XYZ*0.3 and Y-0.1. Positive clock otherwise decrements1. Queued lambda has no effect/alive recheck. These are ordered absolute motion writes, not knockback; particle amounts are excluded.",
+      "components": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "initial_velocity_x": "current vx*0.6",
+            "initial_velocity_y": "current vy",
+            "initial_velocity_z": "current vz*0.6"
+          }
+        },
+        {
+          "primitive": "CONTROL_CADENCE",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "reset_ticks": "max(10-A,0)"
+          }
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:repulsion",
+      "mod_key": "arphex",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "native damage + Wither/Slowness + direct custom motion composition",
+      "similarities": "Uses the named native APIs/components below; native admission, stacking and defenses remain authoritative.",
+      "differences": "Bloodluster present in side15 box, recipient neither Bloodluster nor Clone and raw creativespectator=false: overwrite velocity(cos(nearestYaw+90)/4,.2,sin(nearestYaw+90)/4), then anonymous GENERIC1 only when health>2. Else Repellant side35 plus native ARTHROPOD tag: nearest queried in side60 box; if its SpiderSilkTouch duration>200 or Repellant in side15, request Wither60/0 only when absent and Slowness60 with amp0/1/2/3/4/5 for maxHP>199/>99/>50/>40/>30/otherwise. Movement does not depend on hurt return. No team or caster entity is supplied to damage.",
+      "components": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "velocity_x": "cos((nearest Bloodluster yaw+90)*pi/180)/4",
+            "velocity_y": "0.2",
+            "velocity_z": "sin((nearest Bloodluster yaw+90)*pi/180)/4"
+          }
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "requested_damage": 1
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_WITHER",
+          "numerical_parameters": {
+            "duration": 60,
+            "amplifier": 0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_SLOWNESS",
+          "numerical_parameters": {
+            "duration": 60
+          },
+          "parameter_formulas": {
+            "amplifier_profile": {
+              "maxHP>199": 0,
+              ">99": 1,
+              ">50": 2,
+              ">40": 3,
+              ">30": 4,
+              "otherwise": 5
+            }
+          }
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:splintered_sanity",
+      "mod_key": "arphex",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "closest_vanilla": "native Saturation with custom delayed self-maintenance",
+      "similarities": "Uses the named native APIs/components below; native admission, stacking and defenses remain authoritative.",
+      "differences": "splintered_saturation<=0 requests Saturation1/0 on server LivingEntity and sets200; otherwise decrements1. Each tick queues2-tick work: if captured entity alive, requests Splintered Sanity99999/0; otherwise queues another2 ticks and retries only if then alive. No unconditional resurrection or generic owner is implied. Resistance-amplifier3 check affects particles only.",
+      "components": [
+        {
+          "primitive": "MOB_EFFECT_SATURATION",
+          "numerical_parameters": {
+            "duration": 1,
+            "amplifier": 0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_SPLINTERED_SANITY",
+          "numerical_parameters": {
+            "duration": 99999,
+            "native_amplifier": 0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "RESOURCE_CADENCE",
+          "numerical_parameters": {
+            "reset_ticks": 200
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "DELAYED_DELIVERY",
+          "numerical_parameters": {
+            "retry_delay": 2
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:supergravity",
+      "mod_key": "arphex",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "custom conditional downward absolute velocity",
+      "similarities": "Uses the named native APIs/components below; native admission, stacking and defenses remain authoritative.",
+      "differences": "Start sends a message only. Tick requires block hardness at (x,y-1,z) strictly between-1 and0.3 and raw creativespectator=false. Writes velocity(currentX,min(currentY-0.15,0),currentZ), retaining horizontal motion. No hurt or native knockback. Particles/message are excluded.",
+      "components": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "velocity_x": "current vx",
+            "velocity_y": "min(current vy-0.15,0)",
+            "velocity_z": "current vz"
+          }
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:time_freeze",
+      "mod_key": "arphex",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "custom periodic stored-position rollback, not native frozen ticks",
+      "similarities": "Uses the named native APIs/components below; native admission, stacking and defenses remain authoritative.",
+      "differences": "Raw creativespectator=false and maxHP<1024: first teleports to stored anchor when anchorX or Z nonzero, with additional ServerPlayer connection teleport. A is capped to19 for clock calculation. If loop>0 and A<=19, decrements loop and clears nonzero anchors; otherwise requests Glowing5/0 repeatedly inside presentation loops, resets loop30-A when maxHP>200 else20-A and stores currentXYZ. If current TIME_FREEZE amp>1, requests same holder10/round(A-1). Remove/Expired helper re-reads current effect, defaultsamp0, and clears only XYZ when amp<1; loop is not cleared. No unconditional cleanup, frozen-tick or damage primitive is substituted.",
+      "components": [
+        {
+          "primitive": "POSITION_REWIND",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "anchor_x": "NBT back_time_x_vx",
+            "anchor_y": "NBT back_time_y_vx",
+            "anchor_z": "NBT back_time_z_vx"
+          }
+        },
+        {
+          "primitive": "CONTROL_CADENCE",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "reset_ticks": "maxHP>200 ? 30-min(A,19) : 20-min(A,19)"
+          }
+        },
+        {
+          "primitive": "MOB_EFFECT_GLOWING",
+          "numerical_parameters": {
+            "duration": 5,
+            "native_amplifier": 0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_TIME_FREEZE",
+          "numerical_parameters": {
+            "refresh_duration": 10
+          },
+          "parameter_formulas": {
+            "refresh_amplifier": "int(round(A-1))"
+          }
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:torment",
+      "mod_key": "arphex",
+      "primary_classification": "CUSTOM_STATUS",
+      "closest_vanilla": "custom intensity/cadence status with native damage/effect requests",
+      "similarities": "Uses the named native APIs/components below; native admission, stacking and defenses remain authoritative.",
+      "differences": "When sky visible from below water and head not IMMORTAL_HELMET, increases/syncs PlayerVariables torment_intensity by2. If intensity>119: torment_tick<=0 sets200 before armor>1 gate; armor>1 requests anonymous CRAMMING float(round(double(maxHP/15F)*A)), then independent Blindness10/0,Darkness10/0,Hunger10/0,MothCurse200/0. Positive clock decrements1 only inside intensity branch. Hurt result does not gate secondaries. Overlay/shader random branches are presentation only.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "requested_damage": "float(round(double(maxHP/15F)*A))"
+          }
+        },
+        {
+          "primitive": "TORMENT_INTENSITY",
+          "numerical_parameters": {
+            "gain_per_tick": 2
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "DAMAGE_CADENCE",
+          "numerical_parameters": {
+            "reset_ticks": 200
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_BLINDNESS",
+          "numerical_parameters": {
+            "duration": 10,
+            "native_amplifier": 0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_DARKNESS",
+          "numerical_parameters": {
+            "duration": 10,
+            "native_amplifier": 0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_HUNGER",
+          "numerical_parameters": {
+            "duration": 10,
+            "amplifier": 0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_MOTH_CURSE",
+          "numerical_parameters": {
+            "duration": 200,
+            "native_amplifier": 0
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:torment_spiral",
+      "mod_key": "arphex",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "closest_vanilla": "native hurt requests with custom armor arithmetic and direct health-write bypass",
+      "similarities": "Uses the named native APIs/components below; native admission, stacking and defenses remain authoritative.",
+      "differences": "Runs from onEffectStarted, not a tick override. Raw creativespectator=false, LivingEntity, nottormentor_summon, non-TORMENTOR and tormentor_target=true: A>0 requests VoidRepulsion15/0. In inflated AABB10, first Caterpillar triggers anonymous MOB_ATTACK float(double(70/int((armor+3)/16))*1.8); unguarded integer division by zero aborts before later payload/cleanup when int((armor+3)/16)==0 (ordinary armor0..12). Otherwise maxHP>200 and health>float(maxHP-maxHP/10F) writes health-current maxHP/10 directly; remaining highHP branches use float(double(40/int((armor+3)/16))*1.8) when denominator nonzero else float(25/((armor+3)/1.2D)); lowHP uses guarded40/denominator*1.9. Final removeEffect(TORMENT_SPIRAL) runs even admission body skipped, unless an earlier exception aborts. All DamageSources omit causing/direct actors, regardless nearby Caterpillar; hurt returns ignored.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "requested_damage_profiles": [
+              "float(double(70/int((armor+3)/16))*1.8)",
+              "highHP denominator!=0:float(double(40/int((armor+3)/16))*1.8)",
+              "highHP fallback:float(25/((armor+3)/1.2D))",
+              "lowHP denominator!=0:float(double(40/int((armor+3)/16))*1.9)"
+            ]
+          }
+        },
+        {
+          "primitive": "RAW_HEALTH_DRAIN",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "requested_health": "currentHealth-maxHP/10F"
+          }
+        },
+        {
+          "primitive": "MOB_EFFECT_VOID_REPULSION",
+          "numerical_parameters": {
+            "duration": 15,
+            "native_amplifier": 0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "EFFECT_REMOVAL",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:void_cooldown",
+      "mod_key": "arphex",
+      "primary_classification": "BINARY_MECHANIC",
+      "closest_vanilla": "native effect removal used as a binary exclusion gate",
+      "similarities": "Uses the named native APIs/components below; native admission, stacking and defenses remain authoritative.",
+      "differences": "Every tick on LivingEntity calls removeEffect(VOID_PROTECTION); result is ignored. It requests no damage, force or numeric effect magnitude. Duration/admission of the cooldown marker is supplied by other native callers.",
+      "components": [
+        {
+          "primitive": "EFFECT_REMOVAL",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:void_repulsion",
+      "mod_key": "arphex",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "custom NPC-anchor-relative absolute velocity",
+      "similarities": "Uses the named native APIs/components below; native admission, stacking and defenses remain authoritative.",
+      "differences": "Each tick requests Glowing5/0 on server LivingEntity. When SpiderMothDweller exists in side100 box, repeated closest-to-recipient lookups read its NBT xver/zver. Four strict sign-quadrant branches write outward X/Z=(-anchorDelta)*(float(300/(200+maxHP))/1.5), each clamped[-.9,.9], and absolute Y=.3. An exactly zero X or Z anchor delta matches no motion branch. No damage, knockback, team or applier-ownership source is invented.",
+      "components": [
+        {
+          "primitive": "MOB_EFFECT_GLOWING",
+          "numerical_parameters": {
+            "duration": 5,
+            "native_amplifier": 0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "velocity_x": "clamp(-(anchorX-x)*(float(300F/(200F+maxHP))/1.5D),-.9,.9)",
+            "velocity_y": "0.3",
+            "velocity_z": "clamp(-(anchorZ-z)*(float(300F/(200F+maxHP))/1.5D),-.9,.9)"
+          }
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:voidlasher_chaos_control",
+      "mod_key": "arphex",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "custom randomized motion/control with native damage and status requests",
+      "similarities": "Uses the named native APIs/components below; native admission, stacking and defenses remain authoritative.",
+      "differences": "Server LivingEntity receives NECROSIS5/0 and Glowing5/0 every tick. voidlashtime<=0 sets inclusive random10..60 then requests anonymous FLY_INTO_WALL2, ignoring result, and overwrites velocity. For maxHP>=15: X=randomInt(-2,2)/(maxHP/20), Y/Z=randomInt(-2,2)/(maxHP/25), with native float division widened to double; otherwise independent raw randomInt(-2,2) components. Positive clock decrements1. Tornado NBT/command branches are particle-only.",
+      "components": [
+        {
+          "primitive": "MOB_EFFECT_NECROSIS",
+          "numerical_parameters": {
+            "duration": 5,
+            "native_amplifier": 0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_GLOWING",
+          "numerical_parameters": {
+            "duration": 5,
+            "native_amplifier": 0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "requested_damage": 2
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "velocity_x": "maxHP>=15 ? float(randomInt[-2,2])/(maxHP/20F) : randomInt[-2,2]",
+            "velocity_y": "maxHP>=15 ? float(randomInt[-2,2])/(maxHP/25F) : randomInt[-2,2]",
+            "velocity_z": "maxHP>=15 ? float(randomInt[-2,2])/(maxHP/25F) : randomInt[-2,2]"
+          }
+        },
+        {
+          "primitive": "CONTROL_CADENCE",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "reset_ticks": "uniformIntInclusive(10,60)"
+          }
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:webbed",
+      "mod_key": "arphex",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "native Slowness + Mining Fatigue with one species-specific absolute motion branch",
+      "similarities": "Uses the named native APIs/components below; native admission, stacking and defenses remain authoritative.",
+      "differences": "Reads current WEBBED amplifier each branch, default0. A=0 requests Mining Fatigue3/1 and Slowness3/1 only if raw spidertype=false; A1,2,3 request both3/(A+1); A>=4 requests both3/5. Negative A has no matching effect branch. All child effects are ambient=true,visible=false on server LivingEntity; results ignored. Independently FlyFesterer always gets absolute velocity(0,-.2,0). Native wrapper level gates are retained.",
+      "components": [
+        {
+          "primitive": "MOB_EFFECT_SLOWNESS",
+          "numerical_parameters": {
+            "duration": 3
+          },
+          "parameter_formulas": {
+            "amplifier_profile": {
+              "0": 1,
+              "1": 2,
+              "2": 3,
+              "3": 4,
+              ">=4": 5
+            }
+          }
+        },
+        {
+          "primitive": "MOB_EFFECT_MINING_FATIGUE",
+          "numerical_parameters": {
+            "duration": 3
+          },
+          "parameter_formulas": {
+            "amplifier_profile": {
+              "0": 1,
+              "1": 2,
+              "2": 3,
+              "3": 4,
+              ">=4": 5
+            }
+          }
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "velocity_x": 0,
+            "velocity_y": -0.2,
+            "velocity_z": 0
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
     {
       "effect_id": "br:arena_mob_control",
       "mod_key": "block_factorys_bosses",

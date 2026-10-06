@@ -10,9 +10,9 @@ MANIFEST=CACHE/'minecraft_1.21.1_version_manifest.json'
 PRIMITIVES={'void':'V','boolean':'Z','byte':'B','short':'S','char':'C','int':'I','float':'F','long':'J','double':'D'}
 
 class MojangNames:
-    def __init__(self):
+    def __init__(self, mapping_path=None):
         self.named={};self.obfuscated={};self.members={};lines=[];current=None
-        for line in MAPPING.read_text(encoding='utf-8').splitlines():
+        for line in Path(mapping_path or MAPPING).read_text(encoding='utf-8').splitlines():
             if not line or line.startswith('#'):continue
             if not line.startswith(' '):
                 named,obfuscated=line[:-1].split(' -> ')
@@ -68,6 +68,33 @@ class MojangNames:
             if index:instruction['operand']=self.readable_cp(cls,index)
             result.append(instruction)
         return result
+
+def prepare_raw(spec, client, mappings, manifest_path):
+    """Exact named Vanilla witnesses without requiring a patched source-aid JAR."""
+    client=Path(client);mappings=Path(mappings);manifest=read_json(manifest_path)
+    assert manifest['id']=='1.21.1'
+    for key,path in [('client',client),('client_mappings',mappings)]:
+        with path.open('rb') as stream:
+            assert hashlib.file_digest(stream,'sha1').hexdigest()==manifest['downloads'][key]['sha1']
+    names=MojangNames(mappings);records=[]
+    with zipfile.ZipFile(client) as jar:
+        names.jar=jar
+        for named,wanted in sorted(spec['classes'].items()):
+            entry=names.named[named]+'.class';raw=jar.read(entry);cls=ClassFile(raw);methods=[]
+            for method in cls.methods:
+                name=names.member(cls.name,method['name'],method['descriptor'])
+                if name in wanted:
+                    code=method.get('code',b'')
+                    methods.append(dict(name=name,obfuscated_name=method['name'],
+                        obfuscated_descriptor=method['descriptor'],code_sha256=byte_hash(code),
+                        code_hex=code.hex(),instructions=names.instructions(cls,code)))
+            assert set(wanted)<={m['name'] for m in methods},(named,wanted)
+            records.append(dict(class_name=named,raw_entry=entry,raw_class_sha256=byte_hash(raw),methods=methods))
+    return dict(schema='tno.external_effects.vanilla_witness.v1',baseline=BASELINE,
+        status='RAW_VANILLA_BYTECODE_PINNED',version='1.21.1',client_jar_sha256=sha256(client),
+        mappings_sha256=sha256(mappings),manifest_sha256=sha256(manifest_path),
+        cached_manifest_sha1_checks_passed=True,classes=records,
+        note='Only explicitly selected raw Vanilla methods; no patched-source interpretation, runtime or broad discovery.')
 
 def prepare(spec):
     manifest=read_json(MANIFEST);assert manifest['id']=='1.21.1'
