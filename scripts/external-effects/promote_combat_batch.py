@@ -1,5 +1,6 @@
 """Promote explicitly reviewed native contracts; never infer semantics or policy."""
 import argparse
+import re
 from collections import Counter
 from copy import deepcopy
 
@@ -54,6 +55,26 @@ def literal_command_binding(method,offset):
     argument=body[at-1]
     assert argument['opcode'] in ('0x12','0x13') and isinstance(argument['operand'],str)
     return dict(command=argument['operand'],argument_offset=argument['offset'])
+
+
+def concat_command_binding(method,offset,census,entry):
+    """Bind a direct StringConcatFactory command recipe to its native call.
+
+    The finite census carries the pinned bootstrap arguments. This proves the
+    authored template and dynamic argument descriptor, not command success or
+    the runtime value of an interpolated argument.
+    """
+    body=method['instructions'];at=next(n for n,i in enumerate(body) if i['offset']==offset)
+    assert body[at]['operand']=='net/minecraft/commands/Commands.performPrefixedCommand(Lnet/minecraft/commands/CommandSourceStack;Ljava/lang/String;)V'
+    argument=body[at-1]
+    assert argument['opcode']=='0xba'
+    match=re.fullmatch(r'bootstrap#(\d+):makeConcatWithConstants(\([^)]*\)Ljava/lang/String;)',argument['operand'])
+    assert match,('not a direct native string concatenation',argument)
+    bootstrap=next(b for b in census['registration_bootstraps'] if b['entry']==entry and b['index']==int(match[1]))
+    assert bootstrap['handle'].startswith('java/lang/invoke/StringConcatFactory.makeConcatWithConstants(')
+    assert len(bootstrap['arguments'])==1 and isinstance(bootstrap['arguments'][0],str)
+    return dict(template=bootstrap['arguments'][0],argument_offset=argument['offset'],
+                bootstrap_index=int(match[1]),descriptor=match[2])
 
 
 def effect_receiver_binding(method,offset):
@@ -186,9 +207,15 @@ def validate_batch(batch,review,census):
             command='native_command_binding' in candidate
             if command:
                 assert literal_command_binding(m,consumer['offset'])==candidate['native_command_binding'],('wrong native literal command',candidate)
+            concat='native_concat_command_binding' in candidate
+            if concat:
+                assert concat_command_binding(m,consumer['offset'],census,consumer['entry'])==candidate['native_concat_command_binding'],('wrong native concatenated command',candidate)
+            area_state=(candidate['primitive']=='NATIVE_AREA_SIZE' and hit['operand']=='net/minecraft/network/syncher/SynchedEntityData.set(Lnet/minecraft/network/syncher/EntityDataAccessor;Ljava/lang/Object;)V')
+            block_speed=(candidate['primitive']=='BLOCK_SPEED_FACTOR' and hit['operand']=='net/minecraft/world/level/block/state/BlockBehaviour$Properties.speedFactor(F)Lnet/minecraft/world/level/block/state/BlockBehaviour$Properties;')
+            hazard_timer=(candidate['primitive']=='NATIVE_HAZARD_LIFECYCLE' and hit['operand'] in ('net/minecraft/world/level/Level.scheduleTick(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/Block;I)V','net/minecraft/server/level/ServerLevel.scheduleTick(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/Block;I)V'))
             if attribute:
                 assert literal_attribute_binding(m,consumer['offset'])==candidate['native_attribute_binding'],('wrong native attribute literal',candidate)
-            assert hit['opcode']=='0xb5' or rng or terrain or explosion or durability or attribute or command or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
+            assert hit['opcode']=='0xb5' or rng or terrain or explosion or durability or attribute or command or concat or area_state or block_speed or hazard_timer or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
             if candidate['primitive'].startswith('MOB_EFFECT_') or 'native_holder_symbol' in candidate:
                 symbol,allocation,load=effect_holder_binding(m,consumer['offset'])
                 assert (symbol,allocation,load)==(candidate['native_holder_symbol'],
@@ -225,6 +252,8 @@ def validate_batch(batch,review,census):
                         candidate['native_attribute_binding']['native_value']),('auxiliary attribute literal differs',site)
                 if command:
                     assert literal_command_binding(other_method,site['offset'])['command']==candidate['native_command_binding']['command'],('auxiliary command literal differs',site)
+                if concat:
+                    assert concat_command_binding(other_method,site['offset'],census,site['entry'])['template']==candidate['native_concat_command_binding']['template'],('auxiliary command recipe differs',site)
             for parameter in candidate['parameters']:
                 identity=tuple(candidate['native_parameter_identity'][k] for k in ('entry','method','descriptor','offset'))+(candidate['primitive'],parameter)
                 assert identity not in candidates,('same native parameter counted twice',identity)

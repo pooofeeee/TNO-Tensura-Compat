@@ -459,6 +459,147 @@ class ProjectileAreaFlameTests(unittest.TestCase):
             self.assertFalse(any(prefix in str(b['arguments']) for b in self.census['registration_bootstraps']))
 
 
+class ProjectileOwnerAndHazardTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.native=read_json(OUT/'native-evidence/arphex-remaining-intrinsic-projectiles.json')
+        cls.consumers=read_json(OUT/'native-evidence/arphex-projectile-direct-consumers.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+        cls.batch=read_json(OUT/'arphex-r2m3e-owner-homing-and-owned-hazards.json')
+
+    def consumer_method(self,name,method='execute'):
+        w=next(w for w in self.consumers['witnesses'] if w['entry'].endswith('/'+name+'.class'))
+        return next(m for m in w['methods'] if m['name']==method)
+
+    method = ProjectileContractsTests.method
+    def test_batch_has_four_unique_payload_contracts_and_real_scalar_consumers(self):
+        review=read_json(OUT/'mod-reviews/arphex.json');ids={r['id'] for r in self.batch['effects']}
+        review['effects']=[r for r in review['effects'] if r['id'] not in ids]
+        review['paths']=[p for p in review['paths'] if not set(p['effect_ids'])&ids]
+        self.assertEqual(len(ids),6)
+        self.assertEqual(validate_batch(self.batch,review,self.census)['semantic_records'],len(review['effects'])+6)
+        self.assertEqual(len(self.batch['intrinsic_closed_entries']),4)
+
+    def test_parent_arrow_attempt_precedes_extra_helper(self):
+        for name in ('ChronoShotEntity','GenesisShotEntity','HomingVoidseekerEntity','JudgementBlastEntity'):
+            body=self.method(name,'onHitEntity')['instructions']
+            parent=next(i['offset'] for i in body if 'AbstractArrow.onHitEntity(' in str(i['operand']))
+            helper=next(i['offset'] for i in body if '/procedures/' in str(i['operand']))
+            self.assertLess(parent,helper)
+            self.assertFalse(any(i['opcode'] in ('0x99','0x9a') for i in body if parent<i['offset']<helper))
+
+    def test_genesis_wither_captures_eligible_area_local_not_player_loop(self):
+        body=self.method('GenesisShotWhileProjectileFlyingTickProcedure','execute')['instructions'];by={i['offset']:i for i in body}
+        self.assertEqual(by[1743]['opcode'],'0x3a');self.assertEqual(by[1743]['local_index'],26)
+        self.assertEqual(by[1740]['operand'],'net/minecraft/world/entity/Entity')
+        self.assertIn('Iterator.next(',by[1735]['operand'])
+        self.assertEqual(by[1763]['operand'],'net/minecraft/world/entity/player/Player')
+        self.assertEqual(by[1766]['branch_target'],1831)
+        self.assertEqual(by[1821]['local_index'],26)
+        self.assertIn('bootstrap#4:run(Lnet/minecraft/world/entity/Entity;)',by[1823]['operand'])
+        delayed=self.method('GenesisShotWhileProjectileFlyingTickProcedure','lambda$execute$4')['instructions']
+        self.assertEqual(delayed[0]['opcode'],'0x2a')
+        self.assertTrue(any('MobEffects.WITHER' in str(i['operand']) for i in delayed))
+        self.assertEqual([i['operand'] for i in delayed if i['offset'] in (30,32,33,34)],[60,1,0,0])
+
+    def test_genesis_first_fraction_precedes_player_and_sqrt_requests(self):
+        body=self.method('GenesisShotProjectileHitsLivingEntityProcedure','execute')['instructions'];by={i['offset']:i for i in body}
+        self.assertEqual(by[288]['operand'],1000.0);self.assertEqual(by[290]['opcode'],'0x6e')
+        players=[i['offset'] for i in body if i['operand']=='net/minecraft/world/entity/player/Player']
+        self.assertTrue(players and min(players)>291)
+        self.assertEqual(by[449]['operand'],2.5);self.assertEqual(by[453]['opcode'],'0x90')
+        self.assertEqual(by[481]['operand'],60.0)
+        for off in (81,291,351,454,483):
+            at=next(n for n,i in enumerate(body) if i['offset']==off)
+            self.assertEqual(body[at+1]['opcode'],'0x57')
+
+    def test_chrono_mirror_reads_owner_fields_after_projectile_writes(self):
+        body=self.method('ChronoShotWhileProjectileFlyingTickProcedure','execute')['instructions']
+        writes=[n for n,i in enumerate(body) if i['operand']=='limit_homing_x' and i['offset']>500]
+        self.assertEqual(len(writes),2)
+        self.assertEqual(body[writes[0]-2]['opcode'],'0x2c') # projectile local2
+        self.assertEqual(body[writes[1]-2]['opcode'],'0x2b') # OWNER local1
+        self.assertFalse(any(c['primitive']=='PROJECTILE_HOMING' and 'reflected_speed' in c['parameters'] for r in self.batch['effects'] for c in r['scalable_parameter_candidates']))
+
+    def test_voidseeker_owner_tracker_and_fallback_are_not_projectile_local(self):
+        body=self.method('VoidseekerProjectileTickProcedure','execute')['instructions']
+        at=next(n for n,i in enumerate(body) if i['operand']=='distancetravelledvoid' and i['offset']>135)
+        self.assertEqual(body[at-2]['local_index'],7)
+        delayed=self.method('VoidseekerProjectileTickProcedure','lambda$execute$2')['instructions']
+        self.assertTrue(any(i['operand']==-.2 for i in delayed))
+        self.assertFalse(any('sneakfire' in str(i['operand']) or 'reverse_mirror_attack' in str(i['operand']) or '.isClientSide(' in str(i['operand']) for i in delayed))
+
+    def test_sphere_has_live_black_command_and_separate_black_hole_payload(self):
+        from promote_combat_batch import concat_command_binding
+        m=self.consumer_method('SphereAnimOnEntityTickUpdateProcedure');body=m['instructions'];by={i['offset']:i for i in body}
+        binding=concat_command_binding(m,954,self.census,'net/arphex/procedures/SphereAnimOnEntityTickUpdateProcedure.class')
+        self.assertTrue(binding['template'].startswith('effect give @e[nbt=!{SelectedItem:'))
+        self.assertTrue(binding['template'].endswith('] wither 5 5'))
+        self.assertEqual(binding['descriptor'],'(I)Ljava/lang/String;')
+        self.assertEqual(by[946]['operand'],20);self.assertEqual(by[948]['opcode'],'0x6c')
+        self.assertTrue(any('DATA_black_hole' in str(i['operand']) for i in body))
+        self.assertTrue(any('DamageTypes.GENERIC' in str(i['operand']) for i in body))
+        self.assertIn('.hurt(',by[1503]['operand']);self.assertIn('.setDeltaMovement(',by[1863]['operand'])
+        self.assertEqual(by[1582]['operand'],200)
+        self.assertTrue(any(i['opcode']=='0x6c' and 1582<i['offset']<1587 for i in body))
+        self.assertEqual(by[1761]['operand'],.4)
+        self.assertFalse('getDefaultDimensions' in next(w for w in self.consumers['witnesses'] if w['entry'].endswith('/SphereAnimEntity.class'))['declared_method_names'])
+        producer=self.consumer_method('DiabolosTickProcedure','lambda$execute$11')['instructions']
+        self.assertTrue(any('DATA_black_hole' in str(i['operand']) for i in producer))
+        self.assertTrue(any(b['entry'].endswith('/DiabolosTickProcedure.class') and '.lambda$execute$11(' in str(b['arguments']) for b in self.census['registration_bootstraps']))
+        self.assertTrue(any(m['entry'].endswith('/DiabolosDecimatorEntity.class') and m['method']=='baseTick' and any('DiabolosTickProcedure.execute(' in i['operand'] for i in decode_sites(self.census,m,'calls')) for m in self.census['methods']))
+
+    def test_scorch_status_hurt_and_burn_are_separate_native_requests(self):
+        body=self.consumer_method('ScorchEntityCollidesInTheBlockProcedure')['instructions'];by={i['offset']:i for i in body}
+        self.assertLess(457,501);self.assertLess(501,526);self.assertLess(526,533)
+        self.assertTrue(any('DamageTypes.IN_FIRE' in str(i['operand']) for i in body))
+        at=next(n for n,i in enumerate(body) if i['offset']==526)
+        self.assertEqual(body[at+1]['opcode'],'0x57')
+        self.assertEqual(body[at-1]['operand'],2.0)
+        self.assertEqual(by[531]['operand'],5.0)
+        self.assertTrue(any('EntityTypeTags.ARTHROPOD' in str(i['operand']) for i in body))
+        self.assertEqual(sum('.JUDGEMENT_BLASTER' in str(i['operand']) for i in body),2)
+        self.assertTrue(any('.NECROSIS' in str(i['operand']) for i in body))
+        tick=self.consumer_method('ScorchOnTickUpdateProcedure')['instructions']
+        self.assertTrue(any('.nextInt(' in str(i['operand']) and i['offset']==15 for i in tick))
+        self.assertEqual(sum('.setBlock(' in str(i['operand']) for i in tick),2)
+        self.assertFalse(any('.ARPHEX_ITEM_GRIEFING' in str(i['operand']) for i in tick))
+
+    def test_judgement_native_terrain_has_18_distinct_cells_and_no_explosion(self):
+        body=self.method('JudgementBlastWhileProjectileFlyingTickProcedure','execute')['instructions']
+        self.assertEqual(sum('.setBlock(' in str(i['operand']) for i in body),36) #18cells *2branches
+        self.assertEqual(sum('.isEmptyBlock(' in str(i['operand']) for i in body),18)
+        self.assertEqual(sum('.SCORCH' in str(i['operand']) for i in body),18)
+        self.assertEqual(sum('.FIRE' in str(i['operand']) for i in body),18)
+        self.assertEqual(sum(i['operand']==85 for i in body),18)
+        self.assertFalse(any('.explode(' in str(i['operand']) or '.ARPHEX_ITEM_GRIEFING' in str(i['operand']) for i in body))
+        hit=self.method('JudgementBlastProjectileHitsLivingEntityProcedure','execute')['instructions']
+        self.assertFalse(any('.hurt(' in str(i['operand']) or '.addEffect(' in str(i['operand']) for i in hit))
+
+    def test_wrong_concat_recipe_and_nonconcat_argument_fail_closed(self):
+        import copy
+        from promote_combat_batch import concat_command_binding
+        m=self.consumer_method('SphereAnimOnEntityTickUpdateProcedure')
+        with self.assertRaises(AssertionError):concat_command_binding(m,134,self.census,'net/arphex/procedures/SphereAnimOnEntityTickUpdateProcedure.class')
+        batch=copy.deepcopy(self.batch)
+        candidate=next(c for r in batch['effects'] for c in r['scalable_parameter_candidates'] if 'native_concat_command_binding' in c)
+        candidate['native_concat_command_binding']['template']='effect give @e wither 999 999'
+        review=read_json(OUT/'mod-reviews/arphex.json');ids={r['id'] for r in batch['effects']}
+        review['effects']=[r for r in review['effects'] if r['id'] not in ids];review['paths']=[p for p in review['paths'] if not set(p['effect_ids'])&ids]
+        with self.assertRaisesRegex(AssertionError,'wrong native concatenated command'):validate_batch(batch,review,self.census)
+
+    def test_brood_type_only_removal_correction_keeps_exact_native_selector(self):
+        record=next(r for r in read_json(OUT/'mod-reviews/arphex.json')['effects'] if r['id']=='arphex:spider_brood_incoming_payload')
+        self.assertNotIn('in the command dimension',record['actual_behavior'])
+        self.assertIn('across native server levels',record['actual_behavior'])
+        origin=next(r for r in read_json(OUT/'arphex-r2m2f-incoming-status-weapon-payloads.json')['effects'] if r['id']==record['id'])
+        self.assertEqual(origin['actual_behavior'],record['actual_behavior'])
+        ev=read_json(OUT/'native-evidence/arphex-global-hooks.json')
+        witness=next(w for w in ev['witnesses'] if w['entry'].endswith('/DwellerLifestealProcedure.class'))
+        commands=[i['operand'] for m in witness['methods'] for i in m['instructions'] if isinstance(i['operand'],str) and i['operand'].startswith('kill @e[type=arphex:projectile_spider_brood')]
+        self.assertTrue(commands);self.assertEqual(set(commands),{'kill @e[type=arphex:projectile_spider_brood]'})
+
+
 if __name__=='__main__':unittest.main()
 
 
