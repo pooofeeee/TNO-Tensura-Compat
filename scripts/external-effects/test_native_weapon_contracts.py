@@ -277,6 +277,107 @@ class NativeSpatialMenuContracts(NativeContractHarness, unittest.TestCase):
                 validate_batch(batch, self.prior(), self.census)
 
 
+class NativePowerInputContracts(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch = read_json(OUT / 'arphex-r2m6q-native-power-and-key-input-contracts.json')
+        cls.native = read_json(OUT / 'native-evidence/arphex-native-power-input-support.json')
+        cls.census = read_json(OUT / 'arphex-combat-census.json')
+
+    def test_existing_identities_are_refined_without_duplicate_attacks(self):
+        validate_batch(self.batch, self.prior(), self.census)
+        self.assertEqual(self.batch['effects'], [])
+        self.assertEqual(len(self.batch['record_refinements']), 8)
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['record_refinements']
+                             for c in r['candidate_additions']), 3)
+        self.assertEqual((len(self.native['witnesses']), sum(len(w['methods'])
+                         for w in self.native['witnesses'])), (14, 72))
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_native_button_routes_three_actual_helpers_without_menu_admission(self):
+        b = self.body('InherentPowersButtonMessage', 'handleButtonAction')
+        calls = [(j, i) for j, i in enumerate(b) if '/procedures/' in str(i['operand'])]
+        self.assertEqual([i['operand'].split('/')[3].split('.')[0] for _, i in calls],
+                         ['ImmortalPowerProcedure', 'SlamPowerProcedure', 'ShieldPowerProcedure'])
+        # Branch literals immediately before each independent button test.
+        tests = [(b[j-3]['operand'], b[j-2]['opcode']) for j, _ in calls]
+        self.assertEqual(tests, [(None, '0x9a'), (1, '0xa0'), (5, '0xa0')])
+        self.assertTrue(any('hasChunkAt(' in str(i['operand']) for i in b))
+        self.assertFalse(any(s in str(i['operand']) for i in b
+                             for s in ('containerMenu', 'stillValid(', 'hasPermissions(', 'distanceTo(')))
+
+    def test_three_network_handlers_are_serverbound_and_use_context_player(self):
+        for n in ('InherentPowersButtonMessage', 'PowerBindMessage', 'SpacePressMessage'):
+            b = self.body(n, 'handleData')
+            server = next(j for j, i in enumerate(b) if 'PacketFlow.SERVERBOUND' in str(i['operand']))
+            self.assertEqual(b[server+1]['opcode'], '0xa6')
+            self.assertTrue(any('enqueueWork(' in str(i['operand']) for i in b[server+1:]))
+            actor_calls = [i for w in self.native['witnesses'] if w['entry'].endswith('/' + n + '.class')
+                           for m in w['methods'] for i in m['instructions']
+                           if 'IPayloadContext.player()' in str(i['operand'])]
+            self.assertTrue(actor_calls)
+
+    def test_key_and_button_prediction_are_explicit_not_assumed_single_delivery(self):
+        for n in ('ArphexModKeyMappings$1', 'ArphexModKeyMappings$2'):
+            b = self.body(n, 'setDown')
+            send = [i['offset'] for i in b if 'PacketDistributor.sendToServer(' in str(i['operand'])]
+            local = [i['offset'] for i in b if '.pressAction(' in str(i['operand'])]
+            self.assertEqual(len(send), 2 if n.endswith('$1') else 1)
+            self.assertEqual(len(send), len(local))
+            self.assertTrue(all(a < z for a, z in zip(send, local)))
+            self.assertTrue(any('.isDownOldZ' in str(i['operand']) for i in b))
+        for name in ('lambda$init$0', 'lambda$init$1', 'lambda$init$5'):
+            b = self.body('InherentPowersScreen', name)
+            send = next(i['offset'] for i in b if 'sendToServer(' in str(i['operand']))
+            local = next(i['offset'] for i in b if '.handleButtonAction(' in str(i['operand']))
+            self.assertLess(send, local)
+
+    def test_three_native_clock_inputs_and_shield_vector_before_control_reader(self):
+        from promote_combat_batch import literal_field_numeric_binding
+        for n, offset, value, member in [('ShieldPowerProcedure', 89, 600., 'power_shield_cooldownD'),
+                                        ('SlamPowerProcedure', 89, 600., 'power_slam_cooldownD'),
+                                        ('ImmortalPowerProcedure', 228, 12000., 'inherent_power_cooldownD')]:
+            b = self.body(n)
+            binding = literal_field_numeric_binding(dict(instructions=b), offset)
+            self.assertEqual(binding['native_value'], value)
+            self.assertTrue(binding['field'].endswith(member))
+            self.assertFalse(any(s in str(i['operand']) for i in b
+                                 for s in ('.hurt(', '.addEffect(', '.setDeltaMovement(', '.spawn(', '.isOnCooldown(')))
+        b = self.body('ShieldPowerProcedure')
+        self.assertEqual(sum('.getLookAngle(' in str(i['operand']) for i in b), 3)
+        self.assertEqual(sum('.putDouble(' in str(i['operand']) for i in b), 6)
+        self.assertTrue(all(i['offset'] > 89 for i in b if '.putDouble(' in str(i['operand'])))
+
+    def test_immortal_four_actual_equipment_gates_do_not_apply_to_other_clocks(self):
+        b = self.body('ImmortalPowerProcedure')
+        items = [i['operand'].split('.')[-1].split('Lnet/')[0] for i in b
+                 if 'ArphexModItems.IMMORTAL_' in str(i['operand'])]
+        self.assertEqual(items, ['IMMORTAL_BOOTS', 'IMMORTAL_LEGGINGS', 'IMMORTAL_CHESTPLATE', 'IMMORTAL_HELMET'])
+        for n in ('ShieldPowerProcedure', 'SlamPowerProcedure'):
+            self.assertFalse(any('ArphexModItems.' in str(i['operand']) for i in self.body(n)))
+
+    def test_space_flag_before_item_gate_and_six_is_input_not_motion(self):
+        b = self.body('SpaceBarPressOnKeyPressedProcedure')
+        flag = next(i['offset'] for i in b if i['opcode'] == '0xb5' and '.holdingspaceZ' in str(i['operand']))
+        item = next(i['offset'] for i in b if 'ArphexModItems.ABYSS_ASCENDANT' in str(i['operand']))
+        self.assertLess(flag, item)
+        at = next(j for j, i in enumerate(b) if i['offset'] == 152)
+        self.assertEqual(b[at-1]['operand'], 6.)
+        self.assertFalse(any(s in str(i['operand']) for i in b
+                             for s in ('.setDeltaMovement(', '.addEffect(', '.isOnCooldown(', '.isAlive(')))
+        release = self.body('SpacePressOnKeyReleasedProcedure')
+        at = next(j for j, i in enumerate(release) if i['opcode'] == '0xb5' and '.holdingspaceZ' in str(i['operand']))
+        self.assertEqual(release[at-1]['operand'], 0)
+        self.assertFalse(any('ArphexModItems.' in str(i['operand']) for i in release))
+
+    def test_forged_clock_literal_fails_independent_native_binding(self):
+        batch = copy.deepcopy(self.batch)
+        refinement = next(r for r in batch['record_refinements'] if r['candidate_additions'])
+        refinement['component_additions'][0]['numerical_parameters']['reset'] = 1.
+        with self.assertRaises(AssertionError):
+            validate_batch(batch, self.prior(), self.census)
+
+
 class NativeForceChaosCrusherContracts(NativeContractHarness, unittest.TestCase):
     @classmethod
     def setUpClass(cls):

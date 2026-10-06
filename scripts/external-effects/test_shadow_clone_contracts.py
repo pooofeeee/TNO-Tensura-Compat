@@ -25,8 +25,9 @@ class NativeContractHarness:
     def prior(self):
         r = copy.deepcopy(read_json(OUT / 'mod-reviews/arphex.json'))
         ids = {x['id'] for x in self.batch['effects']}
+        path_ids = {x['id'] for x in self.batch['paths']}
         r['effects'] = [x for x in r['effects'] if x['id'] not in ids]
-        r['paths'] = [x for x in r['paths'] if not set(x['effect_ids']) & ids]
+        r['paths'] = [x for x in r['paths'] if x['id'] not in path_ids and not set(x['effect_ids']) & ids]
         return r
 
 
