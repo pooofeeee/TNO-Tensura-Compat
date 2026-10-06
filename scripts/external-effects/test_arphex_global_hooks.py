@@ -296,5 +296,74 @@ class GlobalHooksTests(unittest.TestCase):
             self.assertEqual(native[n-1]['opcode'],'0x2c') # shooter local2
             self.assertEqual(next(i for i in native if i['offset']==45)['operand'],100.0)
 
+    def test_death_batch_merges_scarab_and_validates_exact_consumers(self):
+        batch=read_json(OUT/'arphex-r2m2m-sourceful-death-and-shared-completion.json')
+        review=read_json(OUT/'mod-reviews/arphex.json');ids={r['id'] for r in batch['effects']}
+        review['effects']=[r for r in review['effects'] if r['id'] not in ids]
+        review['paths']=[p for p in review['paths'] if not set(p['effect_ids'])&ids]
+        result=validate_batch(batch,review,self.census)
+        self.assertEqual(result['semantic_records'],len(review['effects'])+9)
+        self.assertEqual([r['id'] for r in batch['record_refinements']],['arphex:scarab_native_family'])
+        self.assertNotIn('arphex:scarab_native_family',ids)
+
+    def test_death_requires_causing_actor_and_scarab_cancel_does_not_return(self):
+        wrapper=self.body('EntityDiesProcedure','onEntityDeath')
+        self.assertTrue(any('DamageSource.getEntity()' in str(i['operand']) for i in wrapper))
+        self.assertFalse(any('getDirectEntity' in str(i['operand']) for i in wrapper))
+        body=self.body('EntityDiesProcedure');by={i['offset']:i for i in body}
+        self.assertEqual([by[n].get('local_index') for n in (0,5)],[8,9])
+        self.assertEqual([by[n]['branch_target'] for n in (2,7)],[10,11])
+        self.assertEqual(by[10]['opcode'],'0xb1')
+        self.assertEqual([by[n]['operand'].split('.')[-1].split('(')[0] for n in (3632,3655,3674,3692)],
+                         ['setCanceled','setHealth','setCanceled','discard'])
+        self.assertFalse(any(i['opcode']=='0xb1' for i in body if 3632<=i['offset']<3695))
+        self.assertTrue(any('TORMENTOREntity' in str(i['operand']) for i in body if i['offset']>3692))
+
+    def test_nearest_core_short_circuits_shared_helper_and_wasp_is_not_bound_to_spawn(self):
+        core=self.body('EntityDiesProcedure','lambda$execute$21');by={i['offset']:i for i in core}
+        self.assertIn('CORE_OF_ETERNAL_SUFFERING',by[163]['operand'])
+        self.assertEqual(by[169]['branch_target'],239)
+        self.assertIn('TORMENTOREntityDiesProcedure.execute(',by[236]['operand'])
+        self.assertEqual(by[239]['opcode'],'0xb1')
+        wasp=self.body('EntityDiesProcedure','lambda$execute$18')
+        self.assertEqual(sum('getEntitiesOfClass(' in str(i['operand']) for i in wasp),2)
+        self.assertTrue(any('DATA_size' in str(i['operand']) for i in wasp))
+        self.assertFalse(any('setOwner' in str(i['operand']) for i in wasp))
+        main=self.body('EntityDiesProcedure');by={i['offset']:i for i in main}
+        self.assertIn('LevelAccessor;DDD)',by[4629]['operand']) # queue captures world/XYZ, not spawned entity
+
+    def test_conduit_requests_native_heal_on_causer_and_capture_statuses_stay_separate(self):
+        body=self.body('EntityDiesProcedure');by={i['offset']:i for i in body}
+        self.assertEqual([by[n]['operand'] for n in (6099,6100,6101,6102)],[1,0,0,0])
+        from promote_combat_batch import effect_receiver_binding,effect_holder_binding
+        method=max((m for m in self.witness('EntityDiesProcedure')['methods'] if m['name']=='execute'),key=lambda m:len(m['instructions']))
+        self.assertEqual(effect_receiver_binding(method,6103)['origin_local_index'],9)
+        self.assertIn('MobEffects.HEAL',effect_holder_binding(method,6103)[0])
+        holders=[effect_holder_binding(method,n)[0].split('MobEffects.')[1].split('Lnet/')[0]
+                 for n in (5266,5314,5361,5409,5457)]
+        self.assertEqual(holders,['BLINDNESS','DARKNESS','CONFUSION','WEAKNESS','DIG_SLOWDOWN'])
+        self.assertFalse(any('.hurt(' in str(i['operand']) for i in body))
+
+    def test_shared_completion_intrinsic_callers_native_guard_and_evidence_reproduce(self):
+        native=read_json(OUT/'native-evidence/arphex-death-reader-contexts.json')
+        helper=next(w for w in native['witnesses'] if w['entry'].endswith('/TORMENTOREntityDiesProcedure.class'))
+        method=next(m for m in helper['methods'] if m['name']=='execute')
+        self.assertEqual(method['descriptor'],'(Lnet/minecraft/world/level/LevelAccessor;DDD)V')
+        by={i['offset']:i for i in method['instructions']}
+        self.assertEqual([by[n]['branch_target'] for n in (11,23)],[2081,2081])
+        self.assertEqual(by[30]['operand'],2000.0)
+        self.assertEqual(by[2051]['operand'],1)
+        self.assertIn('setVisualOnly',by[2052]['operand'])
+        for w in native['witnesses']:
+            if '/entity/' not in w['entry']:continue
+            body=w['methods'][0]['instructions']
+            self.assertIn('Monster.die(',body[2]['operand'])
+            self.assertIn('TORMENTOREntityDiesProcedure.execute(',body[-2]['operand'])
+            self.assertFalse(any('branch_target' in i for i in body))
+        from pathlib import Path
+        from native_evidence import collect
+        jar=Path('/workspace/.cache/large-mod-campaign/ArPhEx-5.0.2-neoforge-1.21.1.jar')
+        if jar.exists():self.assertEqual(collect(read_json(OUT/'native-specifications/arphex-death-reader-contexts.json'),{'arphex':jar}),native)
+
 
 if __name__=='__main__':unittest.main()
