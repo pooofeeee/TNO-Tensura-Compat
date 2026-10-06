@@ -97,6 +97,7 @@ def validate_batch(batch,review,census):
                 '.addEffect(','.setDeltaMovement(','.setYRot(','.setXRot(',
                 '.makeStuckInBlock(','.putDouble(','.queueServerWork(','.inflate(',
                 'ItemCooldowns.addCooldown(','.teleportTo(',
+                '.setBaseDamage(','.shoot(','.push(','.igniteForSeconds(',
                 'LivingIncomingDamageEvent.setAmount(')
             rng=(candidate['primitive'] in ('ATTACK_SELECTION','SUMMON_DELIVERY','PROC_CHANCE') and
                  'Mth.nextInt(' in str(hit['operand']))
@@ -116,7 +117,12 @@ def validate_batch(batch,review,census):
                 identity=tuple(site[k] for k in ('entry','method','descriptor','offset'))
                 assert identity not in seen,('duplicate auxiliary site',identity)
                 seen.add(identity)
-                _,other=index.witness(dict(consumer,entry=site['entry'],methods=[site['method']]),row)
+                other_proof=dict(consumer,entry=site['entry'],methods=[site['method']],descriptor=site['descriptor'])
+                if site['entry']!=consumer['entry']:
+                    assert 'evidence_file' in site and 'witness_id' in site,('cross-class site lacks its own proof',site)
+                for key in ('evidence_file','witness_id'):
+                    if key in site:other_proof[key]=site[key]
+                _,other=index.witness(other_proof,row)
                 other_method=next(x for x in other['methods'] if x['name']==site['method'] and x['descriptor']==site['descriptor'])
                 other_hit=next(i for i in other_method['instructions'] if i['offset']==site['offset'])
                 assert other_hit['operand']==hit['operand'],('auxiliary site uses a different consumer',site)
