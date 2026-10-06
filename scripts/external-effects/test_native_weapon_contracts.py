@@ -589,3 +589,190 @@ class NativeArmorMaterialAndSharedCallbacks(NativeContractHarness, unittest.Test
         raw = self.body('InfernalBootsTickEventProcedure', 'lambda$execute$0')
         self.assertTrue(any(i['operand'] == 'Unbreakable' for i in raw))
         self.assertTrue(any('CompoundTag.putBoolean(' in str(i['operand']) for i in raw))
+
+
+class NativeRemainingArmorContracts(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch = read_json(OUT / 'arphex-r2m6f-remaining-native-armor-contracts.json')
+        cls.native = read_json(OUT / 'native-evidence/arphex-residual-native-armor.json')
+        cls.native['witnesses'] += read_json(OUT / 'native-evidence/arphex-native-armor-state-predicates.json')['witnesses']
+        cls.census = read_json(OUT / 'arphex-combat-census.json')
+
+    def method(self, name, method='execute'):
+        return max((m for w in self.native['witnesses'] if w['entry'].endswith('/'+name+'.class')
+                    for m in w['methods'] if m['name'] == method), key=lambda m:len(m['instructions']))
+
+    def test_four_contracts_close_sixteen_remaining_worn_roots(self):
+        validate_batch(self.batch, self.prior(), self.census)
+        self.assertEqual(len(self.batch['effects']), 4)
+        self.assertEqual(len(self.batch['closed_item_callback_entries']), 16)
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects']
+                             for c in r['scalable_parameter_candidates']), 79)
+        self.assertFalse(self.batch['whole_mod_complete'])
+        for entry in self.batch['closed_item_callback_entries']:
+            b=self.body(entry.split('/')[-1][:-6], 'inventoryTick')
+            parent=next(j for j,i in enumerate(b) if i['opcode']=='0xb7' and '.inventoryTick(' in str(i['operand']))
+            worn=next(j for j,i in enumerate(b) if 'Iterables.contains(' in str(i['operand']))
+            payload=next(j for j,i in enumerate(b) if '/procedures/' in str(i['operand']))
+            self.assertLess(parent,worn); self.assertLess(worn,payload)
+
+    def test_literal_status_argument_extractor_binds_exact_native_profiles(self):
+        from promote_combat_batch import literal_effect_arguments
+        expected=[('EternalBootsTickEventProcedure',372,160,2),
+                  ('EternalBootsTickEventProcedure',417,50,3),
+                  ('EternalLeggingsTickEventProcedure',74,5,15),
+                  ('ImmortalLeggingsTickProcedure',74,5,30),
+                  ('ImmortalChestplateTickProcedure',291,200,1),
+                  ('SpectralLeggingsTickProcedure',185,100,1)]
+        for name,offset,duration,amplifier in expected:
+            b=literal_effect_arguments(self.method(name),offset)
+            self.assertEqual((b['duration'],b['amplifier']),(duration,amplifier))
+        with self.assertRaisesRegex(AssertionError,'computed status arguments'):
+            literal_effect_arguments(self.method('ImmortalBootsTickProcedure'),2083)
+
+    def test_wrong_native_status_value_or_auxiliary_profile_is_rejected(self):
+        b=copy.deepcopy(self.batch)
+        row=next(r for r in b['effects'] if r['id'].endswith(':eternal_and_shared_native_worn_profiles'))
+        next(c for c in row['components'] if c['primitive']=='MOB_EFFECT_LONG_LEVITATION')['numerical_parameters']['duration']=161
+        with self.assertRaisesRegex(AssertionError,'component differs from native status literals'):
+            validate_batch(b,self.prior(),self.census)
+        b=copy.deepcopy(self.batch)
+        row=next(r for r in b['effects'] if r['id'].endswith(':eternal_and_shared_native_worn_profiles'))
+        c=next(c for c in row['scalable_parameter_candidates'] if c['primitive']=='MOB_EFFECT_LONG_LEVITATION')
+        c['additional_consumer_sites'][0]['offset']=400
+        with self.assertRaisesRegex(AssertionError,'auxiliary status literals differ'):
+            validate_batch(b,self.prior(),self.census)
+
+    def test_spacetime_ability_writes_exclude_spectator_but_not_creative(self):
+        for j,mode in [(1,'SPECTATOR'),(2,'SPECTATOR'),(3,'SPECTATOR'),(4,'CREATIVE')]:
+            b=self.body('SpacetimeBootsTickEventProcedure$'+str(j),'checkGamemode')
+            modes={i['operand'].split('GameType.')[1].split('Lnet')[0] for i in b if 'GameType.' in str(i['operand'])}
+            self.assertEqual(modes,{mode})
+        b=self.body('SpacetimeBootsTickEventProcedure')
+        writes=[j for j,i in enumerate(b) if i['opcode']=='0xb5' and any(x in str(i['operand']) for x in ['Abilities.mayfly','Abilities.flying'])]
+        self.assertEqual(len(writes),2)
+        checks=[i['operand'] for i in b[:writes[-1]] if '.checkGamemode(' in str(i['operand'])]
+        self.assertEqual(len(checks),1); self.assertIn('Procedure$1.checkGamemode',checks[0])
+        self.assertTrue(any('SPACETIME_BOOTSL' in str(i['operand']) for i in b[:writes[-1]]))
+
+    def test_immortal_boost_and_flight_keep_actual_mode_gates(self):
+        for j,mode in [(1,'SPECTATOR'),(2,'CREATIVE'),(3,'SPECTATOR'),(4,'CREATIVE')]:
+            b=self.body('ImmortalBootsTickProcedure$'+str(j),'checkGamemode')
+            self.assertEqual({i['operand'].split('GameType.')[1].split('Lnet')[0]
+                              for i in b if 'GameType.' in str(i['operand'])},{mode})
+        b=self.body('ImmortalBootsTickProcedure'); by={i['offset']:i for i in b}
+        self.assertEqual(by[768]['operand'],20.)
+        self.assertEqual(by[771]['operand'],'net/minecraft/nbt/CompoundTag.putDouble(Ljava/lang/String;D)V')
+        self.assertTrue(any(i['operand']=='sneakjump_enable' for i in b if 920<i['offset']<1200))
+
+    def test_immortal_health_restore_checks_and_sets_spacetime_leggings_cooldown(self):
+        b=self.body('ImmortalLeggingsTickProcedure')
+        fields=[i for i in b if 'SPACETIME_LEGGINGSL' in str(i['operand'])]
+        self.assertEqual(len(fields),2)
+        restore=next(j for j,i in enumerate(b) if '.setHealth(' in str(i['operand']))
+        cooldown=next(j for j,i in enumerate(b) if i['offset']==1563)
+        self.assertLess(restore,cooldown)
+        self.assertFalse(any('.heal(' in str(i['operand']) for i in b))
+        self.assertEqual(b[cooldown-1]['operand'],600)
+        self.assertFalse(any('IMMORTAL_LEGGINGSL' in str(i['operand']) for i in b))
+
+    def test_native_history_rotation_and_reset_precede_recovery(self):
+        for name,first_reset in [('SpacetimeLeggingsTickEventProcedure',339),('ImmortalLeggingsTickProcedure',1136)]:
+            b=self.body(name);before=[i['operand'] for i in b if i['offset']<first_reset]
+            self.assertIn('bcst5',before);self.assertIn('bcst4',before);self.assertIn('bcst1',before)
+            restore=next(i['offset'] for i in b if '.setHealth(' in str(i['operand']))
+            self.assertLess(first_reset,restore)
+            self.assertTrue(any(i['operand']=='buffer_cycle_spacetime' for i in b))
+        shared=self.row('spacetime_immortal_native_temporal_armor_control')
+        c=next(c for c in shared['scalable_parameter_candidates'] if c['primitive']=='NATIVE_HEALTH_HISTORY_CADENCE')
+        self.assertEqual(len(c['additional_consumer_sites']),1)
+
+    def test_double_crouch_new_window_decrement_and_active_cd_branch(self):
+        for name,reset,dec in [('SpacetimeChestplateTickProcedure',1240,1307),('ImmortalChestplateTickProcedure',2248,2315)]:
+            m=self.method(name);b=m['instructions'];by={i['offset']:i for i in b}
+            self.assertLess(reset,dec)
+            j=next(j for j,i in enumerate(b) if i['offset']==reset)
+            self.assertEqual(b[j-1]['operand'],10.)
+            j=next(j for j,i in enumerate(b) if i['offset']==dec)
+            self.assertEqual(b[j-2]['operand'],1.);self.assertEqual(b[j-1]['opcode'],'0x67')
+            # Pinned branch operands prove that current cooldown can skip this
+            # input region and both timer writes.
+            self.assertTrue(any(i['opcode']=='0xa7' and i['offset']<reset
+                                and i['branch_target']>dec for i in b))
+
+    def test_impact_damage_keeps_rounding_cap_distance_and_native_source(self):
+        from promote_combat_batch import damage_source_binding
+        m=self.method('ImmortalBootsTickProcedure');b=m['instructions'];by={i['offset']:i for i in b}
+        self.assertEqual(by[2755]['operand'],2.)
+        self.assertEqual(by[2795]['operand'],4.)
+        self.assertEqual(by[2802]['operand'],5.)
+        self.assertEqual(by[2805]['operand'],'java/lang/Math.max(DD)D')
+        self.assertEqual(by[2812]['opcode'],'0x57')
+        source=damage_source_binding(m,2809)
+        self.assertIn('DamageTypes.GENERIC',source[0]); self.assertIn('Holder;Lnet/minecraft/world/entity/Entity;',source[3])
+        self.assertEqual(by[2788]['local_index'],7)
+        self.assertTrue(any('Math.round(D)J' in str(i['operand']) for i in b))
+        self.assertTrue(any(i['operand']==20. and 2341<i['offset']<2552 for i in b))
+        self.assertFalse(any('.setDeltaMovement(' in str(i['operand']) for i in b if 2552<i['offset']<2816))
+        self.assertTrue(any('.isOwnedBy(' in str(i['operand']) for i in b if 2552<i['offset']<2809))
+
+    def test_raw_impact_charge_reset_is_after_damage_and_before_mount_status(self):
+        b=self.body('ImmortalBootsTickProcedure');by={i['offset']:i for i in b}
+        self.assertEqual(by[2910]['operand'],'immortal_impact_charge')
+        self.assertEqual(by[2913]['operand'],0.)
+        self.assertLess(2809,2914);self.assertLess(2914,2979)
+        self.assertEqual(by[2897]['operand'],'bootstrap#5:run(Lnet/minecraft/world/level/LevelAccessor;DDD)Ljava/lang/Runnable;')
+        self.assertTrue(any(i['opcode']=='0xa7' and 2083<i['offset']<2390 for i in b))
+
+    def test_helmet_evasion_captures_real_coordinates_not_source_aid_alias(self):
+        for name,offsets in [('EternalHelmetTickEventProcedure',(417,443)),('ImmortalHelmetTickProcedure',(418,444))]:
+            b=self.body(name);by={i['offset']:i for i in b}
+            self.assertIn('.getX()',by[offsets[0]]['operand']);self.assertIn('.getZ()',by[offsets[1]]['operand'])
+            lambdas=[m for w in self.native['witnesses'] if w['entry'].endswith('/'+name+'.class')
+                     for m in w['methods'] if m['name'].startswith('lambda$execute$')]
+            setters=[m['instructions'] for m in lambdas if any('.putDouble(' in str(i['operand']) for i in m['instructions'])]
+            self.assertEqual(len(setters),2)
+            self.assertEqual({i['operand'] for b in setters for i in b if type(i['operand']) is str and i['operand'].startswith('etdir')},{'etdirx','etdirz'})
+            self.assertFalse(any('.teleportTo(' in str(i['operand']) for i in b))
+        immortal=self.body('ImmortalHelmetTickProcedure')
+        self.assertFalse(any('EquipmentSlot.HEADL' in str(i['operand']) for i in immortal))
+
+    def test_native_spectral_invisibility_and_nightvision_are_inside_burst_cooldown(self):
+        from promote_combat_batch import literal_effect_arguments
+        b=self.body('SpectralLeggingsTickProcedure');cd=next(j for j,i in enumerate(b) if i['offset']==97)
+        self.assertEqual(b[cd-1]['operand'],500)
+        for offset,holder in [(185,'INVISIBILITY'),(232,'NIGHT_VISION')]:
+            p=literal_effect_arguments(self.method('SpectralLeggingsTickProcedure'),offset)
+            self.assertEqual((p['duration'],p['amplifier']),(100,1));self.assertIn(holder,p['holder'])
+        self.assertFalse(any('.isOwnedBy(' in str(i['operand']) or '.isAlliedTo(' in str(i['operand']) for i in b))
+
+    def test_shared_profile_candidates_keep_each_actual_consumer_once(self):
+        r=self.row('eternal_and_shared_native_worn_profiles')
+        c=next(c for c in r['scalable_parameter_candidates'] if c['primitive']=='MOB_EFFECT_AREA_SLOWNESS')
+        self.assertEqual({s['entry'].split('/')[-1] for s in c['additional_consumer_sites']},
+                         {'ImmortalLeggingsTickProcedure.class','SpectralLeggingsTickProcedure.class'})
+        self.assertEqual(len(c['additional_consumer_sites']),2)
+        all_candidates=[c for r in self.batch['effects'] for c in r['scalable_parameter_candidates']]
+        self.assertFalse(any('sphere_near' in p or 'immortal_near' in p or 'shadertime' in p
+                            for c in all_candidates for p in c['parameters']))
+        self.assertFalse(any(c['primitive']=='NATIVE_IMPACT_SPHERE_CONFIGURATION' for c in all_candidates))
+
+    def test_impact_rounding_binds_actual_power_conversion_not_display_copies(self):
+        from promote_combat_batch import rounded_tag_quotient_binding
+        m=self.method('ImmortalBootsTickProcedure')
+        actual=rounded_tag_quotient_binding(m,2341)
+        self.assertEqual(actual,dict(tag_key='immortal_impact_charge',divisor=10.,
+                                    entity_local_index=7,conversion='JAVA_MATH_ROUND_DOUBLE_TO_LONG'))
+        c=next(c for c in self.row('immortal_armor_native_boost_impact_and_helmet_control')['scalable_parameter_candidates']
+               if c['primitive']=='NATIVE_IMPACT_POWER')
+        self.assertEqual(c['native_consumer']['offset'],2341)
+        bad=copy.deepcopy(m);next(i for i in bad['instructions'] if i['offset']==2340)['opcode']='0x6b'
+        with self.assertRaises(AssertionError):rounded_tag_quotient_binding(bad,2341)
+        batch=copy.deepcopy(self.batch)
+        r=next(r for r in batch['effects'] if r['id'].endswith(':immortal_armor_native_boost_impact_and_helmet_control'))
+        next(c for c in r['components'] if c['primitive']=='NATIVE_IMPACT_POWER')['numerical_parameters']['charge_divisor']=11.
+        with self.assertRaises(AssertionError):validate_batch(batch,self.prior(),self.census)
+        commands=[i['operand'] for i in self.body('ImmortalLeggingsTickProcedure')
+                  if str(i['operand']).startswith('fill ')]
+        self.assertEqual(commands,['fill ~-3 ~-3 ~-3 ~3 ~3 ~3 arphex:cobweb_passable replace cobweb'])

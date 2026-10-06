@@ -20,6 +20,47 @@ def effect_holder_binding(method,offset):
     return holder['operand'],body[start]['offset'],holder['offset']
 
 
+def literal_effect_arguments(method, offset):
+    """Bind literal status arguments; refuse computed values or nearby literals."""
+    body = method['instructions']
+    at = next(n for n, i in enumerate(body) if i['offset'] == offset)
+    match = re.fullmatch(
+        r'net/minecraft/world/effect/MobEffectInstance\.<init>\(Lnet/minecraft/core/Holder;(II(?:ZZ|ZZZ)?)\)V',
+        str(body[at]['operand']))
+    assert match, ('unsupported literal status constructor', offset)
+    count = len(match.group(1))
+    arguments = body[at-count:at]
+    assert len(arguments) == count and all(
+        i['opcode'] in ('0x2', '0x3', '0x4', '0x5', '0x6', '0x7', '0x8', '0x10', '0x11', '0x12', '0x13')
+        and type(i['operand']) is int for i in arguments), ('computed status arguments', offset)
+    holder, _, load = effect_holder_binding(method, offset)
+    assert load < arguments[0]['offset']
+    flags = [i['operand'] for i in arguments[2:]]
+    assert all(v in (0, 1) for v in flags), ('invalid literal status flags', offset)
+    return dict(holder=holder, duration=arguments[0]['operand'],
+                amplifier=arguments[1]['operand'], explicit_flags=flags)
+
+
+def rounded_tag_quotient_binding(method, offset):
+    """Prove round(entity.rawTag / literal), without conflating display copies."""
+    body = method['instructions']
+    at = next(n for n, i in enumerate(body) if i['offset'] == offset)
+    assert body[at]['operand'] == 'java/lang/Math.round(D)J'
+    source = body[at-6:at]
+    assert len(source) == 6 and source[0]['opcode'] in ('0x19', '0x2a', '0x2b', '0x2c', '0x2d')
+    assert source[1]['operand'] == 'net/minecraft/world/entity/Entity.getPersistentData()Lnet/minecraft/nbt/CompoundTag;'
+    assert source[2]['opcode'] in ('0x12', '0x13') and type(source[2]['operand']) is str
+    assert source[3]['operand'] == 'net/minecraft/nbt/CompoundTag.getDouble(Ljava/lang/String;)D'
+    assert source[4]['opcode'] in ('0xe', '0xf', '0x14') and type(source[4]['operand']) is float
+    assert source[5]['opcode'] == '0x6f' and source[4]['operand'] != 0.
+    local = source[0].get('local_index')
+    if local is None:
+        local = int(source[0]['opcode'], 16) - 0x2a
+    assert local >= 0
+    return dict(tag_key=source[2]['operand'], divisor=source[4]['operand'],
+                entity_local_index=local, conversion='JAVA_MATH_ROUND_DOUBLE_TO_LONG')
+
+
 def damage_source_binding(method,offset):
     """Bind an explicitly allocated native source to its following hurt call.
 
@@ -447,6 +488,13 @@ def validate_batch(batch,review,census):
                 'PathNavigation.moveTo(DDDD)')
             rng=(candidate['primitive'] in ('ATTACK_SELECTION','SUMMON_DELIVERY','PROC_CHANCE') and
                  'Mth.nextInt(' in str(hit['operand']))
+            rounded_tag = 'native_rounded_tag_quotient_binding' in candidate
+            if rounded_tag:
+                binding = rounded_tag_quotient_binding(m, consumer['offset'])
+                assert binding == candidate['native_rounded_tag_quotient_binding']
+                assert len(candidate['parameters']) == 1
+                component = next(c for c in row['components'] if c['primitive'] == candidate['primitive'])
+                assert component['numerical_parameters'][candidate['parameters'][0]] == binding['divisor']
             terrain=(candidate['primitive']=='TERRAIN_PLACEMENT' and
                      hit['operand']=='net/minecraft/world/level/LevelAccessor.setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z')
             explosion=(candidate['primitive']=='NATIVE_EXPLOSION' and
@@ -560,7 +608,7 @@ def validate_batch(batch,review,census):
                 allowed={'native_value'} if binding['kind']=='ITEM_ATTRIBUTE_MODIFIER' else {'attack_bonus','attack_speed'}
                 assert set(roles.values())==allowed and len(roles)==len(allowed)
                 assert all(component['numerical_parameters'][parameter]==binding[role] for parameter,role in roles.items()),('component differs from pinned item attribute',candidate)
-            assert hit['opcode']=='0xb5' or rng or terrain or explosion or durability or attribute or item_attribute or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or synched_clock or clock_distribution or vector_scale or vector_expression or registry_spawn or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
+            assert hit['opcode']=='0xb5' or rounded_tag or rng or terrain or explosion or durability or attribute or item_attribute or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or synched_clock or clock_distribution or vector_scale or vector_expression or registry_spawn or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
             if candidate['primitive'].startswith('MOB_EFFECT_') or 'native_holder_symbol' in candidate:
                 symbol,allocation,load=effect_holder_binding(m,consumer['offset'])
                 assert (symbol,allocation,load)==(candidate['native_holder_symbol'],
@@ -574,6 +622,14 @@ def validate_batch(batch,review,census):
                     ('wrong native damage actor slot', candidate)
             if 'native_receiver_binding' in candidate:
                 assert effect_receiver_binding(m,consumer['offset'])==candidate['native_receiver_binding'],('wrong native recipient binding',candidate)
+            literal_effect = 'native_literal_effect_arguments' in candidate
+            if literal_effect:
+                binding = literal_effect_arguments(m, consumer['offset'])
+                assert binding == candidate['native_literal_effect_arguments'], ('wrong native status literals', candidate)
+                component = next(c for c in row['components'] if c['primitive'] == candidate['primitive'])
+                assert set(candidate['parameters']) <= {'duration', 'amplifier'}
+                assert all(component['numerical_parameters'][p] == binding[p]
+                           for p in candidate['parameters']), ('component differs from native status literals', candidate)
             seen={tuple(expected[k] for k in ('entry','method','descriptor','offset'))}
             for site in candidate.get('additional_consumer_sites',[]):
                 identity=tuple(site[k] for k in ('entry','method','descriptor','offset'))
@@ -632,6 +688,8 @@ def validate_batch(batch,review,census):
                         assert other_command['command']==candidate['native_command_binding']['command'],('auxiliary command literal differs',site)
                 if vector_scale:
                     assert literal_vector_scale_binding(other_method,site['offset'])['native_value']==candidate['native_vector_scale_binding']['native_value'],('auxiliary vector coefficient differs',site)
+                if literal_effect:
+                    assert literal_effect_arguments(other_method, site['offset']) == candidate['native_literal_effect_arguments'], ('auxiliary status literals differ', site)
                 if vector_expression:
                     binding = subtract_tag_vector_scale_binding(other_method, site['offset'])
                     expected = candidate['native_subtract_tag_vector_binding']
