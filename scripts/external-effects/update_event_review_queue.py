@@ -8,6 +8,8 @@ def generate():
     index={(m['entry'],m['method'],m['descriptor']):m for m in census['methods']}
     # Explicitly reviewed contributions, not conclusions derived from method names.
     dispositions={
+        'RightClickBlockProcedure':'CLOSED_NATIVE_BLOCK_USE_OWNER_TRANSPORT_ENCOUNTER_CONTROL_RAW_READERS_PENDING',
+        'SummonAltarProcedure':'CLOSED_NATIVE_ALTAR_ADMISSION_EXPLOSION_AND_LIFECYCLE_ACTOR_FAMILIES_PENDING',
         'HitBlockProcedure':'CLOSED_NATIVE_BLOCK_INTERACTIONS_SEISMIC_HAZARD_RAW_READERS_PENDING',
         'RightClickEntityProcedure':'CLOSED_NATIVE_ENTITY_INTERACTION_OWNER_STATE_FEEDING_RAW_READERS_PENDING',
         'EntityDiesProcedure':'CLOSED_NATIVE_SOURCEFUL_DEATH_SHARED_COMPLETION_INTRINSIC_FAMILIES_PENDING',

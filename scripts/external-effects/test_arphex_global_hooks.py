@@ -457,5 +457,74 @@ class GlobalHooksTests(unittest.TestCase):
         if jar.exists():self.assertEqual(collect(read_json(OUT/'native-specifications/arphex-interaction-readers.json'),{'arphex':jar}),
                                        read_json(OUT/'native-evidence/arphex-interaction-readers.json'))
 
+    def test_block_use_batch_exact_consumers_and_explosion_primitive_fail_closed(self):
+        from copy import deepcopy
+        batch=read_json(OUT/'arphex-r2m2o-block-use-altar-and-repellant.json')
+        review=read_json(OUT/'mod-reviews/arphex.json');ids={r['id'] for r in batch['effects']}
+        review['effects']=[r for r in review['effects'] if r['id'] not in ids]
+        review['paths']=[p for p in review['paths'] if not set(p['effect_ids'])&ids]
+        self.assertEqual(validate_batch(batch,review,self.census)['semantic_records'],len(review['effects'])+7)
+        bad=deepcopy(batch)
+        row=next(r for r in bad['effects'] if r['id']=='arphex:altar_native_explosion_delivery')
+        row['scalable_parameter_candidates'][0]['primitive']='FORCED_MOVEMENT'
+        with self.assertRaises(AssertionError):validate_batch(bad,review,self.census)
+
+    def test_block_use_hand_admission_and_summon_cooldown_reads_current_mainitem(self):
+        wrapper=self.body('RightClickBlockProcedure','onRightClickBlock')
+        by={i['offset']:i for i in wrapper}
+        self.assertIn('getHand()',by[1]['operand'])
+        self.assertIn('getUsedItemHand()',by[8]['operand'])
+        self.assertEqual(by[11]['branch_target'],15)
+        self.assertEqual(by[14]['opcode'],'0xb1')
+        delivery=self.body('RightClickBlockProcedure','lambda$execute$33')
+        by={i['offset']:i for i in delivery}
+        self.assertIn('getMainHandItem()',by[611]['operand'])
+        self.assertIn('getItem()',by[620]['operand'])
+        self.assertEqual(by[623]['operand'],200)
+        self.assertIn('addCooldown(',by[626]['operand'])
+        self.assertFalse(any('MOTH_SUMMONER' in str(i['operand']) for i in delivery))
+
+    def test_altar_failed_pattern_moth_blast_and_native_anonymous_none_explosion(self):
+        moth=self.body('SummonAltarProcedure','lambda$execute$10')
+        scorpion=self.body('SummonAltarProcedure','lambda$execute$21')
+        self.assertEqual({i['branch_target'] for i in moth if i['offset'] in (19,43,72)},{875})
+        self.assertEqual({i['branch_target'] for i in scorpion if i['offset'] in (60,84,113)},{889})
+        for body in (moth,scorpion):
+            by={i['offset']:i for i in body}
+            self.assertEqual(by[875]['operand'],1)
+            self.assertIn('queueServerWork(',by[886]['operand'])
+            self.assertEqual(by[889]['opcode'],'0xb1')
+        for name in ('lambda$execute$9','lambda$execute$20','lambda$execute$29','lambda$execute$41','lambda$execute$50'):
+            blast=self.body('SummonAltarProcedure',name);by={i['offset']:i for i in blast}
+            self.assertEqual(by[23]['opcode'],'0x1') # null actor
+            self.assertEqual(by[28]['operand'],6.0)
+            self.assertIn('ExplosionInteraction.NONE',by[31]['operand'])
+            self.assertIn('Level.explode(',by[34]['operand'])
+            self.assertEqual(by[37]['opcode'],'0x57') # ignores native result
+        wrong=self.body('SummonAltarProcedure','lambda$execute$29')
+        self.assertTrue(any('SpiderMothDwellerEntity' in str(i['operand']) for i in wrong))
+        self.assertFalse(any('DraconicVoidlasher' in str(i['operand']) for i in wrong))
+
+    def test_repellant_rechecks_marker_and_command_has_no_source_actor(self):
+        witness=self.interaction_witness('RepellantTickProcedure')
+        main=next(m for m in witness['methods'] if m['name']=='execute')
+        by={i['offset']:i for i in main['instructions']}
+        self.assertEqual(by[32]['operand'],20)
+        self.assertIn('queueServerWork(',by[41]['operand'])
+        self.assertEqual([by[n]['operand'] for n in (217,219,220,221)],[20,1,0,0])
+        self.assertEqual(by[286]['opcode'],'0x1')
+        from promote_combat_batch import literal_command_binding
+        self.assertEqual(literal_command_binding(main,295)['command'],
+                         'effect give @e[type=!player,distance=..30] arphex:repulsion 1 1 false')
+        delayed=next(m['instructions'] for m in witness['methods'] if m['name']=='lambda$execute$0')
+        by={i['offset']:i for i in delayed}
+        self.assertIn('hasEffect(',by[16]['operand'])
+        self.assertEqual([by[n]['branch_target'] for n in (19,29)],[36,36])
+        self.assertIn('discard()',by[33]['operand'])
+        entity=self.interaction_witness('RepellantEntity')
+        self.assertFalse(any(m['name']=='doHurtTarget' for m in entity['methods']))
+        goals=[m for m in entity['methods'] if m['name']=='registerGoals']
+        self.assertFalse(any('addGoal(' in str(i['operand']) for m in goals for i in m['instructions']))
+
 
 if __name__=='__main__':unittest.main()
