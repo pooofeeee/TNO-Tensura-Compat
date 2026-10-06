@@ -137,6 +137,20 @@ def literal_attribute_binding(method,offset):
                 value_offset=value['offset'],native_value=value['operand'])
 
 
+def literal_block_factor_binding(method, offset):
+    """Bind a declared block speed/jump factor, without inferring its consumers."""
+    body = method['instructions']
+    at = next(n for n, i in enumerate(body) if i['offset'] == offset)
+    factors = {f'net/minecraft/world/level/block/state/BlockBehaviour$Properties.{name}(F)Lnet/minecraft/world/level/block/state/BlockBehaviour$Properties;': name
+               for name in ('speedFactor', 'jumpFactor')}
+    assert at > 0 and body[at]['operand'] in factors
+    value = body[at-1]
+    assert value['opcode'] in ('0xb', '0xc', '0xd', '0x12', '0x13')
+    assert type(value['operand']) in (int, float)
+    return dict(property=factors[body[at]['operand']], native_value=value['operand'],
+                value_offset=value['offset'])
+
+
 def literal_numeric_input_binding(method, offset):
     """Pin a literal scalar input to arithmetic or a subsequently read local.
 
@@ -568,6 +582,16 @@ def validate_batch(batch,review,census):
                 assert component['numerical_parameters'][candidate['parameters'][0]] == binding['divisor']
             food_component = 'native_food_component_binding' in candidate
             literal_numeric = 'native_literal_numeric_input_binding' in candidate
+            block_factor = 'native_block_factor_binding' in candidate
+            if block_factor:
+                binding = literal_block_factor_binding(m, consumer['offset'])
+                assert binding == candidate['native_block_factor_binding']
+                assert candidate['primitive'] == {'speedFactor': 'BLOCK_SPEED_FACTOR',
+                                                  'jumpFactor': 'BLOCK_JUMP_FACTOR'}[binding['property']]
+                assert len(candidate['parameters']) == 1
+                component = next(c for c in row['components'] if c['primitive'] == candidate['primitive'])
+                assert component['numerical_parameters'][candidate['parameters'][0]] == binding['native_value'], \
+                    ('component differs from native block factor', candidate)
             if literal_numeric:
                 binding = literal_numeric_input_binding(m, consumer['offset'])
                 assert binding == candidate['native_literal_numeric_input_binding']
@@ -697,7 +721,7 @@ def validate_batch(batch,review,census):
                 allowed={'native_value'} if binding['kind']=='ITEM_ATTRIBUTE_MODIFIER' else {'attack_bonus','attack_speed'}
                 assert set(roles.values())==allowed and len(roles)==len(allowed)
                 assert all(component['numerical_parameters'][parameter]==binding[role] for parameter,role in roles.items()),('component differs from pinned item attribute',candidate)
-            assert hit['opcode']=='0xb5' or literal_numeric or food_component or rounded_tag or rng or terrain or explosion or durability or attribute or item_attribute or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or synched_clock or clock_distribution or vector_scale or vector_expression or registry_spawn or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
+            assert hit['opcode']=='0xb5' or block_factor or literal_numeric or food_component or rounded_tag or rng or terrain or explosion or durability or attribute or item_attribute or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or synched_clock or clock_distribution or vector_scale or vector_expression or registry_spawn or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
             if candidate['primitive'].startswith('MOB_EFFECT_') or 'native_holder_symbol' in candidate:
                 symbol,allocation,load=effect_holder_binding(m,consumer['offset'])
                 assert (symbol,allocation,load)==(candidate['native_holder_symbol'],

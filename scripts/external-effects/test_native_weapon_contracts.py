@@ -1048,3 +1048,101 @@ class NativeStaffLauncherContracts(NativeContractHarness, unittest.TestCase):
         self.assertFalse(any(i['opcode'] in ('0xb5','0xb6','0xb7','0xb8','0xb9','0xba') for i in b))
         self.assertEqual(b[-1]['opcode'],'0xb1')
         self.assertTrue(any('arphex:vortex_vanguard_owner_free_spin_delivery' in r.get('canonical_contract_reuse',[]) for r in self.batch['effects']))
+
+
+class NativeSpatialItemContracts(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m6i-native-spatial-item-contracts.json')
+        cls.support=read_json(OUT/'native-evidence/arphex-native-spatial-item-support.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-residual-native-staff-launcher.json')
+        cls.native={'witnesses':cls.native['witnesses']+cls.support['witnesses']}
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def test_bounded_spatial_contracts_preserve_utility_and_pending_real_consumers(self):
+        validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual(len(self.batch['effects']),3)
+        self.assertEqual(len(self.batch['closed_item_callback_entries']),5)
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects'] for c in r['scalable_parameter_candidates']),14)
+        self.assertEqual(len(self.batch['exclusions']),3)
+        self.assertFalse(self.batch['whole_mod_complete'])
+        self.assertTrue(any('button' in x for x in self.batch['pending_shared_contexts']))
+
+    def test_warp_inventory_helper_unconditional_and_final_fall_reset_outside_gate(self):
+        root=self.body('WarpStaffItem','inventoryTick')
+        self.assertFalse(any(i.get('branch_target') is not None for i in root))
+        b=self.body('WarpStaffToolInHandTickProcedure')
+        self.assertEqual(b[-1]['opcode'],'0xb1')
+        self.assertTrue('fallDistance' in str(b[-2]['operand']))
+        self.assertTrue(any(i.get('branch_target')==b[-4]['offset'] or i.get('branch_target')==b[-3]['offset'] for i in b))
+        self.assertFalse(any('.getTicksUsingItem(' in str(i['operand']) for i in b))
+
+    def test_warp_three_separate_native_rays_round_float_before_centering(self):
+        b=self.body('WarpStaffToolInHandTickProcedure')
+        self.assertEqual([i['offset'] for i in b if 'Vec3.scale(' in str(i['operand'])],[590,1007,1420])
+        for o in (590,1007,1420):
+            at=next(n for n,i in enumerate(b) if i['offset']==o)
+            self.assertEqual(b[at-1]['operand'],30.)
+        rounds=[n for n,i in enumerate(b) if i['operand']=='java/lang/Math.round(F)I']
+        self.assertEqual(len(rounds),3)
+        self.assertTrue(all(b[n-1]['opcode']=='0x86' and b[n+1]['opcode']=='0x87' for n in rounds))
+        self.assertFalse(any('.hurt(' in str(i['operand']) or '.addEffect(' in str(i['operand']) for i in b))
+        self.assertIn('arphex:warp_staff_native_uuid_locked_direction_carrier',self.row('warp_staff_native_direction_teleport_and_support_platform')['canonical_contract_reuse'])
+
+    def test_warp_command_geometry_and_air_tag_are_exact_native_facts(self):
+        b=self.body('WarpStaffRightclickedProcedure')
+        cmd=next(i['operand'] for i in b if isinstance(i['operand'],str) and i['operand'].startswith('/fill'))
+        self.assertEqual(cmd,'/fill ~-1 ~ ~-1 ~1 ~ ~1 arphex:warp_manifold[type=top] replace #arphex:airs')
+        self.assertFalse(any('.isOnCooldown(' in str(i['operand']) for i in b))
+        tag=next(w for w in self.support['witnesses'] if w['entry']=='data/arphex/tags/block/airs.json')
+        self.assertEqual(tag['data'],{'replace':False,'values':['minecraft:air','minecraft:void_air','minecraft:cave_air']})
+        reg=self.body('ArphexModBlocks','<clinit>');at=next(n for n,i in enumerate(reg) if i['operand']=='warp_manifold')
+        self.assertIn('bootstrap#21:',reg[at+1]['operand'])
+        self.assertIn('.register(',reg[at+2]['operand'])
+        self.assertIn('.WARP_MANIFOLD',reg[at+3]['operand'])
+        handle=next(r for r in self.census['registration_bootstraps'] if r['entry']=='net/arphex/init/ArphexModBlocks.class' and r['index']==21)
+        self.assertIn('net/arphex/block/WarpManifoldBlock.<init>()V',handle['arguments'])
+
+    def test_platform_factor_rejects_false_or_computed_literals(self):
+        from promote_combat_batch import literal_block_factor_binding
+        m=dict(instructions=copy.deepcopy(self.body('WarpManifoldBlock','<init>')))
+        self.assertEqual(literal_block_factor_binding(m,29)['native_value'],1.5)
+        next(i for i in m['instructions'] if i['offset']==27)['opcode']='0x6a'
+        with self.assertRaises(AssertionError):literal_block_factor_binding(m,29)
+        b=copy.deepcopy(self.batch);r=next(r for r in b['effects'] if r['id'].endswith(':warp_manifold_native_jump_and_conditional_terrain_lifecycle'))
+        r['components'][0]['numerical_parameters']['factor']=2.
+        with self.assertRaisesRegex(AssertionError,'component differs from native block factor'):
+            validate_batch(b,self.prior(),self.census)
+
+    def test_platform_native_schedule_and_presence_cleanup_not_particle_delay(self):
+        on=self.body('WarpManifoldBlock','onPlace');tick=self.body('WarpManifoldBlock','tick')
+        self.assertEqual(on[-3]['operand'],10);self.assertEqual(tick[-3]['operand'],10)
+        helper=self.body('WarpManifoldOnTickUpdateProcedure');by={i['offset']:i for i in helper}
+        self.assertIn('scheduleTick',on[-2]['operand']);self.assertIn('scheduleTick',tick[-2]['operand'])
+        self.assertEqual(by[56]['operand'],5)
+        delayed=self.body('WarpManifoldOnTickUpdateProcedure','lambda$execute$0')
+        self.assertTrue(any('.sendParticles(' in str(i['operand']) for i in delayed))
+        self.assertFalse(any('.setBlock(' in str(i['operand']) for i in delayed))
+        self.assertEqual(by[111]['branch_target'],135)
+        self.assertIn('.setBlock(',by[129]['operand'])
+        self.assertFalse(any('WarpManifoldBlock' in str(i['operand']) or '.isOwnedBy(' in str(i['operand']) for i in helper))
+
+    def test_transmitter_is_offhand_building_and_preview_only_not_named_time_payload(self):
+        p=self.body('TemporalTransmitterItemInHandTickProcedure')
+        forbidden=['.hurt(','.addEffect(','.setDeltaMovement(','.setBlock(','.teleportTo(']
+        self.assertFalse(any(any(s in str(i['operand']) for s in forbidden) for i in p))
+        self.assertTrue(any('.addParticle(' in str(i['operand']) for i in p))
+        b=self.body('TemporalTransmitterRightclickedOnBlockProcedure')
+        self.assertEqual(sum('.setBlock(' in str(i['operand']) for i in b),2)
+        self.assertTrue(any('.getOffhandItem(' in str(i['operand']) for i in b))
+        self.assertTrue(any('ARPHEX_BLOCK_GRIEFING' in str(i['operand']) for i in b))
+        self.assertFalse(any('.hurt(' in str(i['operand']) or 'TIME_FREEZE' in str(i['operand']) for i in b))
+
+    def test_waypoint_callbacks_are_storage_menu_not_teleport_but_consumer_stays_pending(self):
+        for name in ['WarpWayfinderRightclickedOnBlockProcedure','WarpWayfinderItemInHandTickProcedure','WarpConnectorRightclickedProcedure','WarpConnectorItemInHandTickProcedure','PlaceholderWarpProcedure']:
+            for w in self.native['witnesses']:
+                if not w['entry'].endswith('/'+name+'.class'):continue
+                self.assertFalse(any('.teleportTo(' in str(i['operand']) or '.hurt(' in str(i['operand']) or '.addEffect(' in str(i['operand']) for m in w['methods'] for i in m['instructions']))
+        menu=self.body('WarpWayfinderItem$1','createMenu')
+        self.assertTrue(any('WayfinderMenu.<init>' in str(i['operand']) for i in menu))
+        self.assertTrue(any('button' in p.lower() for p in self.batch['pending_shared_contexts']))
