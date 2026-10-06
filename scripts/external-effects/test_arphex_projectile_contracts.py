@@ -229,5 +229,139 @@ class ProjectileLifecycleTests(unittest.TestCase):
         self.assertEqual([c['parameters'] for c in row['scalable_parameter_candidates']],[['discard_delay']])
 
 
+class ProjectileControlTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.native=read_json(OUT/'native-evidence/arphex-remaining-intrinsic-projectiles.json')
+        cls.batch=read_json(OUT/'arphex-r2m3c-intrinsic-control-and-harness.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def method(self,name,method):
+        w=next(w for w in self.native['witnesses'] if w['entry'].endswith('/'+name+'.class'))
+        return next(m for m in w['methods'] if m['name']==method)
+
+    def test_batch_preserves_shared_contract_identity_and_real_consumers(self):
+        review=read_json(OUT/'mod-reviews/arphex.json');ids={r['id'] for r in self.batch['effects']}
+        review['effects']=[r for r in review['effects'] if r['id'] not in ids]
+        review['paths']=[p for p in review['paths'] if not set(p['effect_ids'])&ids]
+        self.assertEqual(validate_batch(self.batch,review,self.census)['semantic_records'],len(review['effects'])+7)
+        self.assertEqual(len(self.batch['record_refinements']),2)
+        self.assertNotIn('arphex:bloodthirsty_tendril_payload',ids)
+        self.assertNotIn('arphex:gravity_free_arrow_native_cleanup',ids)
+
+    def test_intrinsic_queue_covers_finite_arrow_classes_without_claiming_producer_closure(self):
+        q=read_json(OUT/'arphex-intrinsic-projectile-review-queue.json')
+        expected={c['entry'] for c in self.census['classes'] if c['superclass']=='net/minecraft/world/entity/projectile/AbstractArrow'}
+        self.assertEqual({r['entry'] for r in q['rows']},expected)
+        self.assertEqual(len(q['rows']),len(expected))
+        closed=sum(r['disposition']=='CLOSED_INTRINSIC_CALLBACKS' for r in q['rows'])
+        self.assertEqual(closed,q['closed_intrinsic_callback_classes'])
+        self.assertEqual(len(expected)-closed,q['pending_intrinsic_callback_classes'])
+        self.assertFalse(q['whole_mod_complete'])
+        self.assertIn('factories',q['scope'])
+        ids={r['id'] for r in read_json(OUT/'mod-reviews/arphex.json')['effects']}
+        for row in q['rows']:
+            self.assertLessEqual(set(row['canonical_contract_ids']+row['already_closed_shared_subcontracts']),ids)
+
+    def test_graviton_mirror_state_write_and_velocity_read_have_different_receivers(self):
+        by={i['offset']:i for i in self.method('GravitonTickProcedure','execute')['instructions']}
+        self.assertEqual([by[n]['opcode'] for n in (422,447,472)],['0x2c']*3) # projectile
+        self.assertEqual([by[n]['opcode'] for n in (502,511,520)],['0x2b']*3) # owner
+        self.assertEqual(by[440]['operand'],2.0)
+        row=next(r for r in self.batch['effects'] if r['id']=='arphex:graviton_arrow_intrinsic_damage_and_motion')
+        self.assertFalse(any('mirror' in p for c in row['scalable_parameter_candidates'] for p in c['parameters']))
+
+    def test_graviton_damage_admission_latch_and_source(self):
+        body=self.method('GravitonHitsEntityProcedure','execute')['instructions']
+        self.assertTrue(any('.isOwnedBy(' in str(i['operand']) for i in body))
+        self.assertTrue(any('.isBlocking(' in str(i['operand']) for i in body))
+        self.assertTrue(any('.ABYSS_ASCENDANT' in str(i['operand']) for i in body))
+        self.assertTrue(any(i['operand']==108.0 for i in body))
+        self.assertTrue(any(i['operand']==17.0 for i in body))
+        self.assertTrue(any(i['operand']==7.0 for i in body))
+        for k,i in enumerate(body):
+            if '.hurt(' in str(i['operand']):self.assertEqual(body[k+1]['opcode'],'0x57')
+        self.assertEqual(sum('DamageSource.<init>(Lnet/minecraft/core/Holder;Lnet/minecraft/world/entity/Entity;)V' in str(i['operand']) for i in body),2)
+
+    def test_hook_profiles_are_distinct_and_motion_precedes_status(self):
+        expected={'PowerHookHitsEntityProcedure':[[80,1,0,0],[100,2,0,0],[120,3,0,0],[140,3,0,0],[200,4,0,0]],
+                  'WebHookProjectileHitsLivingEntityProcedure':[[60,0,0,0],[80,1,0,0],[100,2,0,0],[120,3,0,0],[140,4,0,0]]}
+        for name,profiles in expected.items():
+            body=self.method(name,'execute')['instructions']
+            actual=[[x['operand'] for x in body[k-4:k]] for k,i in enumerate(body) if 'MobEffectInstance.<init>' in str(i['operand'])]
+            self.assertEqual(actual,profiles)
+            self.assertEqual(next(i['offset'] for i in body if '.setDeltaMovement(' in str(i['operand'])),84)
+            self.assertLess(84,next(i['offset'] for i in body if 'MobEffectInstance.<init>' in str(i['operand'])))
+
+    def test_hook_cleanup_literal_targets_power_hook_for_both_intrinsic_wrappers(self):
+        for name in ['PowerHookEntity','WebHookEntity']:
+            body=self.method(name,'tick')['instructions']
+            self.assertTrue(any('WebHookWhileProjectileFlyingTickProcedure.execute' in str(i['operand']) for i in body))
+        delayed=self.method('WebHookWhileProjectileFlyingTickProcedure','lambda$execute$0')['instructions']
+        self.assertTrue(any(i['operand']=='execute at @p run kill @e[type=arphex:projectile_power_hook,distance=..4]' for i in delayed))
+
+    def test_harness_raw_zero_admission_omits_y_and_runtime_status_is_only_harness_constructor(self):
+        w=next(w for w in self.native['witnesses'] if w['entry'].endswith('/WebHarnessOnEntityTickUpdateProcedure.class'))
+        lambdas=[m for m in w['methods'] if m['name'].startswith('lambda')]
+        matching=[m for m in lambdas if sum(i['operand']=='targetX' for i in m['instructions'])==2 and
+                  sum(i['operand']=='targetZ' for i in m['instructions'])==1]
+        self.assertEqual(len(matching),1)
+        self.assertFalse(any(i['operand']=='targetY' for i in matching[0]['instructions']))
+        body=self.method('WebHarnessOnEntityTickUpdateProcedure','execute')['instructions']
+        self.assertEqual(sum('MobEffectInstance.<init>' in str(i['operand']) for i in body),1)
+        self.assertTrue(any(i['operand']=='effect give @p[distance=..5] slow falling 2 0 true' for i in body))
+        row=next(r for r in self.batch['effects'] if r['id']=='arphex:hook_harness_native_anchor_control')
+        self.assertEqual([c['parameters'] for c in row['scalable_parameter_candidates'] if c['primitive']=='MOB_EFFECT_SLOW_FALLING'],[['near_anchor_duration']])
+
+    def test_native_effect_command_grammar_rejects_space_as_part_of_effect_id(self):
+        evidence=read_json(OUT/'vanilla-evidence/arphex-effect-command-grammar.json')['classes']
+        resource=next(w for w in evidence if w['class_name'].endswith('/ResourceLocation'))
+        method=next(m for m in resource['methods'] if m['name']=='isAllowedInResourceLocation')
+        code=bytes.fromhex(method['code_hex'])
+        def allows(character):
+            pc=0;stack=[]
+            while True:
+                op=code[pc]
+                if op==0x1a:stack.append(ord(character));pc+=1
+                elif 0x03<=op<=0x08:stack.append(op-3);pc+=1
+                elif op==0x10:stack.append(int.from_bytes(code[pc+1:pc+2],'big',signed=True));pc+=2
+                elif op in (0x9f,0xa0,0xa1,0xa4):
+                    right=stack.pop();left=stack.pop()
+                    condition={0x9f:left==right,0xa0:left!=right,0xa1:left<right,0xa4:left<=right}[op]
+                    pc+=int.from_bytes(code[pc+1:pc+3],'big',signed=True) if condition else 3
+                elif op==0xa7:pc+=int.from_bytes(code[pc+1:pc+3],'big',signed=True)
+                elif op==0xac:return bool(stack.pop())
+                else:self.fail('unexpected native predicate opcode '+hex(op))
+        self.assertFalse(allows(' '));self.assertTrue(all(allows(c) for c in 'minecraft:slow_falling'))
+        greedy=next(m for m in resource['methods'] if m['name']=='readGreedy')['instructions']
+        self.assertTrue(any('.isAllowedInResourceLocation(' in str(i['operand']) for i in greedy))
+        effect=next(w for w in evidence if w['class_name'].endswith('/EffectCommands'))
+        register=next(m for m in effect['methods'] if m['name']=='register')['instructions']
+        self.assertTrue(any(i['operand']=='seconds' for i in register))
+        self.assertTrue(any('IntegerArgumentType.integer(II)' in str(i['operand']) for i in register))
+        with self.assertRaises(ValueError):int('falling')
+
+    def test_spacetime_sources_and_motion_reflection_order_stay_separate(self):
+        hit=self.method('SpacetimeAnchorProjectileHitsLivingEntityProcedure','execute')['instructions']
+        ctors=[i['operand'] for i in hit if 'DamageSource.<init>' in str(i['operand'])]
+        self.assertEqual(ctors,['net/minecraft/world/damagesource/DamageSource.<init>(Lnet/minecraft/core/Holder;Lnet/minecraft/world/entity/Entity;)V',
+                                'net/minecraft/world/damagesource/DamageSource.<init>(Lnet/minecraft/core/Holder;)V',
+                                'net/minecraft/world/damagesource/DamageSource.<init>(Lnet/minecraft/core/Holder;Lnet/minecraft/world/entity/Entity;)V'])
+        tick=self.method('SpacetimeAnchorWhileProjectileFlyingTickProcedure','execute')['instructions'];by={i['offset']:i for i in tick}
+        self.assertIn('.setDeltaMovement(',by[446]['operand'])
+        self.assertIn('.putDouble(',by[667]['operand']);self.assertGreater(667,446)
+        self.assertEqual([by[n]['operand'] for n in (360,382,404)],[1.05]*3)
+
+    def test_shared_block_explosion_is_null_source_and_single_helper_for_three_arrows(self):
+        body=self.method('GenesisShotProjectileHitsBlockProcedure','execute')['instructions'];by={i['offset']:i for i in body}
+        self.assertEqual(next(i for i in body if i['offset']==93)['opcode'],'0x1')
+        self.assertIn('.explode(',by[114]['operand'])
+        for name in ['GenesisShotEntity','ChronoShotEntity','GravitonShotEntity']:
+            self.assertTrue(any('GenesisShotProjectileHitsBlockProcedure.execute' in str(i['operand'])
+                                for i in self.method(name,'onHitBlock')['instructions']))
+        self.assertEqual(sum(r['id']=='arphex:shared_genesis_projectile_block_explosion' for r in self.batch['effects']),1)
+
+
 if __name__=='__main__':unittest.main()
+
 

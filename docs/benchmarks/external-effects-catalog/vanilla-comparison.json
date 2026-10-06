@@ -1,7 +1,7 @@
 {
   "schema": "tno.external_effects.vanilla_comparison.v1",
   "status": "PARTIAL",
-  "checkpoint": "R2m3b-arphex-projectile-lifecycle-and-control",
+  "checkpoint": "R2m3c-arphex-intrinsic-control-and-harness",
   "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
   "note": "Deterministic projection of canonical mod reviews,including explicit PARTIAL scope. The ledger alone tracks per-mod completeness. No Stage eligibility or policy decision.",
   "comparisons": [
@@ -2094,6 +2094,46 @@
       ]
     },
     {
+      "effect_id": "arphex:graviton_arrow_intrinsic_damage_and_motion",
+      "mod_key": "arphex",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "closest_vanilla": "Custom filtered fixed/max-health native requests with distinct projectile homing and raw mirror control",
+      "similarities": "Uses the explicit native API primitives below with their native admission and lifecycle.",
+      "differences": "Custom filtered fixed/max-health native requests with distinct projectile homing and raw mirror control; exact guards/order/recipients preserved above.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "tormentor_request": 108,
+            "other_minimum": 17,
+            "other_max_health_divisor": 7
+          },
+          "parameter_formulas": {
+            "ordinary_request": "max(17F,maxHealth/7F)"
+          }
+        },
+        {
+          "primitive": "PROJECTILE_HOMING",
+          "numerical_parameters": {
+            "low_owner_health_speed": 0.9,
+            "owner_health_native_divisor": 2
+          },
+          "parameter_formulas": {
+            "normal": "(owner current targetXYZ-projectileXYZ)/distance; *.9 only owner health<max/2; no zero guard",
+            "mirror": "writes projectile limit_homingXYZ with factor2 but reads OWNER limit_homingXYZ for absolute velocity"
+          }
+        },
+        {
+          "primitive": "NATIVE_PROJECTILE_LIFECYCLE",
+          "numerical_parameters": {
+            "aim_delay": 20,
+            "discard_delay": 300
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
       "effect_id": "arphex:gravity_free_arrow_native_cleanup",
       "mod_key": "arphex",
       "primary_classification": "VANILLA_LIKE_EXTENDED",
@@ -2105,12 +2145,190 @@
           "primitive": "NATIVE_PROJECTILE_LIFECYCLE",
           "numerical_parameters": {
             "invisible_discard_delay": 200,
-            "ascendant_discard_delay": 60
+            "ascendant_discard_delay": 60,
+            "chrono_spear_discard_delay": 20
           },
           "parameter_formulas": {}
         },
         {
           "primitive": "NATIVE_PROJECTILE_GRAVITY",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:hook_arrow_native_hit_profiles",
+      "mod_key": "arphex",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "Distinct custom absolute velocity and existing Webbed marker profiles",
+      "similarities": "Uses the explicit native API primitives below with their native admission and lifecycle.",
+      "differences": "Distinct custom absolute velocity and existing Webbed marker profiles; exact guards/order/recipients preserved above.",
+      "components": [
+        {
+          "primitive": "MOB_EFFECT_WEBBED",
+          "numerical_parameters": {
+            "power_absent_duration": 80,
+            "power_absent_amplifier": 1,
+            "power_from_zero_duration": 100,
+            "power_from_zero_amplifier": 2,
+            "power_from_one_duration": 120,
+            "power_from_one_amplifier": 3,
+            "power_from_two_duration": 140,
+            "power_from_two_amplifier": 3,
+            "power_from_three_or_more_duration": 200,
+            "power_from_three_or_more_amplifier": 4,
+            "web_absent_duration": 60,
+            "web_absent_amplifier": 0,
+            "web_from_zero_duration": 80,
+            "web_from_zero_amplifier": 1,
+            "web_from_one_duration": 100,
+            "web_from_one_amplifier": 2,
+            "web_from_two_duration": 120,
+            "web_from_two_amplifier": 3,
+            "web_from_three_or_more_duration": 140,
+            "web_from_three_or_more_amplifier": 4
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "power_horizontal_factor": 2,
+            "power_reverse_factor": -1.2,
+            "power_vertical_bias": 0.5,
+            "power_vertical_factor": 1.8,
+            "web_horizontal_factor": 2,
+            "web_reverse_factor": -1,
+            "web_vertical_bias": 0.5,
+            "web_vertical_factor": 1.5
+          },
+          "parameter_formulas": {
+            "absolute_velocity": "(sin(rad(ownerYaw+180))*horizontal*reverse,(sin(rad(-ownerPitch))+bias)*vertical,cos(rad(ownerYaw))*horizontal*reverse)"
+          }
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:hook_arrow_shared_delayed_type_cleanup",
+      "mod_key": "arphex",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "Custom delayed native selector cleanup rather than a fixed single-projectile lifetime",
+      "similarities": "Uses the explicit native API primitives below with their native admission and lifecycle.",
+      "differences": "Custom delayed native selector cleanup rather than a fixed single-projectile lifetime; exact guards/order/recipients preserved above.",
+      "components": [
+        {
+          "primitive": "COMMAND_REMOVAL",
+          "numerical_parameters": {
+            "selector_distance": 4
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "DELAYED_DELIVERY",
+          "numerical_parameters": {
+            "delay_ticks": 20
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:hook_harness_native_anchor_control",
+      "mod_key": "arphex",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "Custom vehicle anchor/control, distinct native mounted admission/defenses and lifecycle; no intrinsic offense",
+      "similarities": "Uses the explicit native API primitives below with their native admission and lifecycle.",
+      "differences": "Custom vehicle anchor/control, distinct native mounted admission/defenses and lifecycle; no intrinsic offense; exact guards/order/recipients preserved above.",
+      "components": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "locked_horizontal_divisor": 24,
+            "locked_vertical": 0.1,
+            "approach_horizontal_divisor": 2,
+            "tether_open_speed": 2,
+            "tether_up_min": 0.5,
+            "tether_up_max": 0.75,
+            "locked_tether_speed": 0.1,
+            "locked_tether_up": 0.1,
+            "silk_open_speed": 1,
+            "silk_up_min": 0.4,
+            "silk_up_max": 0.65
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_LIFECYCLE",
+          "numerical_parameters": {
+            "moving_initial_delay": 60,
+            "moving_recheck_delay": 10,
+            "reversal_delay": 30,
+            "unridden_delay": 10,
+            "missing_xz_delay": 2
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_INPUT_ADMISSION",
+          "numerical_parameters": {
+            "space_limit_delay": 85
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_SLOW_FALLING",
+          "numerical_parameters": {
+            "near_anchor_duration": 60,
+            "near_anchor_native_amplifier": 3
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_ANCHOR_DELIVERY",
+          "numerical_parameters": {
+            "power_first_delay": 1,
+            "power_second_delay": 3,
+            "web_first_delay": 1,
+            "web_second_delay": 2,
+            "harness_query_full_side": 20
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_VEHICLE_ADMISSION",
+          "numerical_parameters": {
+            "initial_player_full_side": 10,
+            "tick_player_full_side": 100,
+            "power_spawn_player_full_side": 100,
+            "web_spawn_player_full_side": 50,
+            "native_velocity_gate": 0.1,
+            "native_reversal_gate": 0.15,
+            "target_box_half_side": 3,
+            "native_spawn_y_gate_offset": 5
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_ADMISSION",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_ENTITY_SETUP",
+          "numerical_parameters": {
+            "max_health": 100,
+            "armor": 0,
+            "attack_damage": 0,
+            "movement_speed": 0.3,
+            "follow_range": 16,
+            "step_height": 0.6,
+            "passenger_y_offset": -0.5
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "INVALID_LITERAL_STATUS_COMMAND",
           "numerical_parameters": {},
           "parameter_formulas": {}
         }
@@ -3194,6 +3412,53 @@
           "numerical_parameters": {
             "delay_ticks": 10
           },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:opal_arrow_intrinsic_payload",
+      "mod_key": "arphex",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "Native Levitation plus separate MAGIC/GENERIC requests and gravity/cleanup",
+      "similarities": "Uses the explicit native API primitives below with their native admission and lifecycle.",
+      "differences": "Native Levitation plus separate MAGIC/GENERIC requests and gravity/cleanup; exact guards/order/recipients preserved above.",
+      "components": [
+        {
+          "primitive": "MOB_EFFECT_LEVITATION",
+          "numerical_parameters": {
+            "direct_hit_duration": 60,
+            "direct_hit_amplifier": 1,
+            "block_area_duration": 60,
+            "block_area_amplifier": 1
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "direct_request": 8,
+            "block_request": 7
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "AREA_DELIVERY",
+          "numerical_parameters": {
+            "block_inflate": 2
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_PROJECTILE_LIFECYCLE",
+          "numerical_parameters": {
+            "discard_delay": 200
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_PROJECTILE_GRAVITY",
+          "numerical_parameters": {},
           "parameter_formulas": {}
         }
       ]
@@ -4909,6 +5174,31 @@
       ]
     },
     {
+      "effect_id": "arphex:shared_genesis_projectile_block_explosion",
+      "mod_key": "arphex",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "Native Level BLOCK explosion with custom native admission and per-projectile latch",
+      "similarities": "Uses the explicit native API primitives below with their native admission and lifecycle.",
+      "differences": "Native Level BLOCK explosion with custom native admission and per-projectile latch; exact guards/order/recipients preserved above.",
+      "components": [
+        {
+          "primitive": "NATIVE_EXPLOSION",
+          "numerical_parameters": {
+            "power": 1,
+            "x_offset": 0.5,
+            "y_offset": -0.5,
+            "z_offset": 0.5
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_PROJECTILE_EXPLOSION_ADMISSION",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
       "effect_id": "arphex:shared_native_climbing",
       "mod_key": "arphex",
       "primary_classification": "CUSTOM_CONTROL",
@@ -5269,6 +5559,51 @@
               10,
               6
             ]
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:spacetime_anchor_intrinsic_payload",
+      "mod_key": "arphex",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "closest_vanilla": "Custom max-health MAGIC/source branching, native Supergravity marker and accelerating projectile control",
+      "similarities": "Uses the explicit native API primitives below with their native admission and lifecycle.",
+      "differences": "Custom max-health MAGIC/source branching, native Supergravity marker and accelerating projectile control; exact guards/order/recipients preserved above.",
+      "components": [
+        {
+          "primitive": "MOB_EFFECT_SUPERGRAVITY",
+          "numerical_parameters": {
+            "hit_duration": 600,
+            "hit_native_amplifier": 0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "player_fraction": 1.5,
+            "mirror_nonplayer_fraction": 0.25,
+            "owned_nonplayer_fraction": 0.25
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "PROJECTILE_HOMING",
+          "numerical_parameters": {
+            "initial_y_teleport": 3,
+            "target_distance_y_offset": 1.5,
+            "initial_speed_factor": 1.5,
+            "axis_acceleration_factor": 1.05,
+            "reflected_next_tick_factor": 2
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_PROJECTILE_LIFECYCLE",
+          "numerical_parameters": {
+            "discard_delay": 200
           },
           "parameter_formulas": {}
         }
