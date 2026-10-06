@@ -7,6 +7,90 @@ from test_shadow_clone_contracts import NativeContractHarness
 
 
 
+
+class NativeForcefieldDirectionTests(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m5v-native-forcefield-direction-transient-carriers.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-native-display-control-carriers.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def test_seven_roots_reuse_known_hazards_without_duplicate_consumers(self):
+        validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual((len(self.batch['effects']),len(self.batch['closed_actor_callback_entries'])),(2,7))
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects'] for c in r['scalable_parameter_candidates']),13)
+        self.assertEqual((len(self.native['witnesses']),sum(len(w['methods']) for w in self.native['witnesses'])),(24,177))
+        for root in ('SphereAnimEntity','BlockTestEntity'):
+            self.assertFalse(any(w['entry'].endswith('/'+root+'.class') for w in self.native['witnesses']))
+        review=read_json(OUT/'mod-reviews/arphex.json')
+        for proof in self.batch['reused_closed_actor_contracts']:
+            r=next(r for r in review['effects'] if r['id']==proof['canonical_id'])
+            self.assertTrue(any(p['entry']==proof['entry'] for p in r['implementation']))
+
+    def test_block_placement_writes_actual_placer_uuid_to_block_data(self):
+        b=self.body('AscendedCubeBlockIsPlacedByProcedure');by={i['offset']:i for i in b}
+        self.assertIn('.getStringUUID(',by[121]['operand'])
+        self.assertIn('.putString(',by[124]['operand'])
+        self.assertTrue(any(i['operand']=='ascendedowner' for i in b))
+        b=self.body('AscendSphereAnimOnEntityTickUpdateProcedure$1','getValue')
+        self.assertTrue(any('.getBlockEntity(' in str(i['operand']) for i in b))
+        self.assertTrue(any('.getPersistentData(' in str(i['operand']) for i in b))
+        self.assertTrue(any('.getString(' in str(i['operand']) for i in b))
+
+    def test_block_timer_has_native_transfer_and_fifty_tick_delivery(self):
+        for m,offset in [('onPlace',14),('tick',31)]:
+            b=self.body('AscendedCubeBlock',m);by={i['offset']:i for i in b}
+            self.assertEqual(by[offset]['operand'],50)
+            self.assertTrue(any('.scheduleTick(' in str(i['operand']) for i in b))
+        b=self.body('AscendedCubeOnTickUpdateProcedure')
+        setter=next(i['offset'] for i in b if 'SynchedEntityData.set(' in str(i['operand']) and i['offset']>200)
+        clear=next(i['offset'] for i in b if '.putDouble(' in str(i['operand']))
+        self.assertLess(setter,clear)
+        self.assertTrue(any(i['operand']=='expel_enemies' for i in b))
+
+    def test_barrier_state_is_decremented_before_motion_and_payload_disposal(self):
+        b=self.body('AscendSphereAnimOnEntityTickUpdateProcedure');by={i['offset']:i for i in b}
+        self.assertIn('SynchedEntityData.set(',by[257]['operand'])
+        self.assertIn('.setDeltaMovement(',by[977]['operand'])
+        self.assertIn('.discard(',by[1381]['operand'])
+        self.assertIn('.removeAllEffects(',by[1546]['operand'])
+        self.assertTrue(any(i['opcode']=='0x64' and i['offset']<257 for i in b))
+        self.assertFalse(any('.hurt(' in str(i['operand']) or '.isAlliedTo(' in str(i['operand']) for i in b))
+
+    def test_native_resistance_and_hand_cooldowns_are_separate_consumers(self):
+        b=self.body('AscendSphereAnimOnEntityTickUpdateProcedure');by={i['offset']:i for i in b}
+        self.assertIn('.addEffect(',by[1075]['operand'])
+        self.assertIn('.addCooldown(',by[1170]['operand'])
+        self.assertIn('.addCooldown(',by[1261]['operand'])
+        r=self.row('ascended_cube_native_owner_forcefield_repulsion_and_payload_admission')
+        cooldown=next(c for c in r['scalable_parameter_candidates'] if c['primitive']=='NONOWNER_ETHEREAL_COOLDOWN')
+        self.assertEqual(cooldown['additional_consumer_sites'][0]['offset'],1261)
+
+    def test_transient_roots_do_not_turn_unused_attack_seventy_into_damage(self):
+        change=self.batch['record_refinements'][0]
+        self.assertEqual(change['id'],'arphex:recluse_display_native_transient_spider_callbacks')
+        self.assertFalse(change.get('candidate_additions'))
+        for root in ('TormentorFlashAnimEntity','TormentorLowDisplayAnimEntity','TormentorLowDisplayEntity'):
+            b=self.body(root,'baseTick')
+            self.assertTrue(any('RecluseAnim1OnEntityTickUpdateProcedure.execute(' in str(i['operand']) for i in b))
+            b=self.body(root,'registerGoals')
+            self.assertFalse(any('MeleeAttackGoal' in str(i['operand']) or 'NearestAttackableTargetGoal' in str(i['operand']) for i in b))
+            for m in ('canUse','canContinueToUse'):
+                self.assertTrue(any('TormentorLookAroundProcedure.execute(' in str(i['operand']) for i in self.body(root+'$1',m)))
+        b=self.body('TormentorLookAroundProcedure')
+        self.assertTrue(any('MobEffects.BLINDNESS' in str(i['operand']) for i in b))
+
+    def test_warp_first_qualifier_latches_before_native_uuid_equality(self):
+        b=self.body('WarpStaffDirectionOnEntityTickUpdateProcedure');by={i['offset']:i for i in b}
+        self.assertIn('.putString(',by[347]['operand'])
+        eq=next(j for j,i in enumerate(b) if '.equals(' in str(i['operand']))
+        preceding=b[eq-12:eq]
+        self.assertTrue(any(i['operand']==1 and i['opcode']=='0x4' for i in preceding))
+        self.assertIn('.teleportTo(',by[501]['operand'])
+        self.assertFalse(any('.setOwner(' in str(i['operand']) or '.tame(' in str(i['operand']) for i in b))
+        self.assertTrue(any(i['operand']=='data merge entity @s {NoAI:1}' for i in b))
+
+
 class NativeStalkerCarrierTests(NativeContractHarness, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
