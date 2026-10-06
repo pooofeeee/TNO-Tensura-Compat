@@ -776,3 +776,139 @@ class NativeRemainingArmorContracts(NativeContractHarness, unittest.TestCase):
         commands=[i['operand'] for i in self.body('ImmortalLeggingsTickProcedure')
                   if str(i['operand']).startswith('fill ')]
         self.assertEqual(commands,['fill ~-3 ~-3 ~-3 ~3 ~3 ~3 arphex:cobweb_passable replace cobweb'])
+
+
+class NativeConsumableContracts(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m6g-native-consumable-and-shared-gem-contracts.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-residual-native-consumables.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def method(self,name,method='execute'):
+        return max((m for w in self.native['witnesses'] if w['entry'].endswith('/'+name+'.class')
+                    for m in w['methods'] if m['name']==method),key=lambda m:len(m['instructions']))
+
+    def test_bounded_seven_contracts_close_twenty_eight_roots(self):
+        validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual((len(self.batch['effects']),len(self.batch['closed_item_callback_entries'])),(7,28))
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects'] for c in r['scalable_parameter_candidates']),96)
+        self.assertEqual((len(self.native['witnesses']),sum(len(w['methods']) for w in self.native['witnesses'])),(47,120))
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_food_inputs_are_literal_native_components_not_derived_aliases(self):
+        from promote_combat_batch import literal_food_component_binding
+        r=self.row('native_consumable_food_resource_input_profiles')
+        self.assertEqual(len(r['native_food_profiles']),19)
+        self.assertEqual(sum(len(c['parameters']) for c in r['scalable_parameter_candidates']),38)
+        for name,expected in [('EntropySerumItem',(50,2.,True)),('CelestialBarrierItem',(0,.30000001192092896,True)),
+                              ('ElixirOfSplinteredSanityItem',(999,20.,True)),('HemoplasmItem',(10,.4000000059604645,False))]:
+            m=self.method(name,'<init>');offset=next(i['offset'] for i in m['instructions'] if 'Item$Properties.food(' in str(i['operand']))
+            actual=literal_food_component_binding(m,offset)
+            self.assertEqual((actual['nutrition'],actual['saturation_modifier'],actual['always_edible']),expected)
+        self.assertFalse(any(p.endswith('_derived_saturation') or p.endswith('_final_health')
+                             for c in r['scalable_parameter_candidates'] for p in c['parameters']))
+
+    def test_food_argument_mutations_cannot_pass_generic_validation(self):
+        from promote_combat_batch import literal_food_component_binding
+        m=copy.deepcopy(self.method('EntropySerumItem','<init>'))
+        next(i for i in m['instructions'] if i['offset']==34)['opcode']='0x6a'
+        with self.assertRaises(AssertionError):literal_food_component_binding(m,44)
+        b=copy.deepcopy(self.batch)
+        r=next(r for r in b['effects'] if r['id'].endswith(':native_consumable_food_resource_input_profiles'))
+        next(c for c in r['components'] if c['primitive']=='NATIVE_FOOD_RESOURCE_INPUTS')['numerical_parameters']['entropyserum_nutrition']=51
+        with self.assertRaisesRegex(AssertionError,'component differs from native food input'):
+            validate_batch(b,self.prior(),self.census)
+
+    def test_bloodworm_poison_is_unconditional_release_not_consumption(self):
+        b=self.body('BloodwormGrubItem','releaseUsing')
+        self.assertEqual(len(b),3)
+        self.assertEqual(b[0]['opcode'],'0x2d')
+        self.assertIn('MaggotGrubPlayerFinishesUsingItemProcedure.execute(',b[1]['operand'])
+        self.assertEqual(b[2]['opcode'],'0xb1')
+        w=next(w for w in self.native['witnesses'] if w['entry'].endswith('/BloodwormGrubItem.class'))
+        self.assertFalse(any(m['name']=='finishUsingItem' for m in w['methods']))
+
+    def test_gems_forward_unconditionally_and_spacetime_is_not_a_holder_predicate(self):
+        roots=['AbyssalCrystalItem','EntropyMatrixItem','FireOpalItem','InfernalShardItem','SpacetimeShardItem',
+               'SpectralShardItem','TimePrismItem','UmbralShardItem','VoidGeodeItem']
+        for name in roots:
+            b=self.body(name,'inventoryTick')
+            self.assertFalse(any('branch_target' in i for i in b))
+            self.assertTrue(any('PowerGemHeldProcedure.execute(' in str(i['operand']) for i in b))
+        b=self.body('PowerGemHeldProcedure');ctors=[i for i in b if 'MobEffectInstance.<init>(' in str(i['operand'])]
+        self.assertEqual(len(ctors),8)
+        self.assertFalse(any('SPACETIME_SHARDL' in str(i['operand']) for i in b))
+        r=self.row('shared_native_power_gem_held_strength');self.assertEqual(len(r['scalable_parameter_candidates']),1)
+        self.assertEqual(len(r['scalable_parameter_candidates'][0]['additional_consumer_sites']),7)
+
+    def test_fortified_status_order_and_armor_harm_native_requests(self):
+        from promote_combat_batch import literal_effect_arguments
+        m=self.method('EntropySerumConsumedProcedure')
+        profiles=[literal_effect_arguments(m,i['offset']) for i in m['instructions'] if 'MobEffectInstance.<init>(' in str(i['operand'])]
+        self.assertEqual([(p['holder'].split('.')[-1].split('Lnet')[0],p['duration'],p['amplifier']) for p in profiles],
+                         [('MOVEMENT_SLOWDOWN',200,0),('HEAL',1,0),('FIRE_RESISTANCE',6000,0),('ABSORPTION',2400,3),
+                          ('DAMAGE_RESISTANCE',2400,1),('REGENERATION',2400,1),('HARM',1,0),('HARM',1,1)])
+        b=m['instructions'];armor=next(j for j,i in enumerate(b) if '.getArmorValue(' in str(i['operand']))
+        regen=next(j for j,i in enumerate(b) if 'MobEffects.REGENERATIONL' in str(i['operand']))
+        self.assertLess(regen,armor)
+        self.assertFalse(any('.hurt(' in str(i['operand']) for i in b))
+        self.assertTrue(any(i['operand']==19 for i in b[armor:]));self.assertTrue(any(i['operand']==11 for i in b[armor:]))
+
+    def test_vanilla_instant_ticking_and_undead_inversion_are_independent_proofs(self):
+        p=read_json(OUT/'vanilla-evidence/cult-completion.json');w=next(w for w in p['classes'] if w['raw_entry']=='brt.class')
+        b=next(m['instructions'] for m in w['methods'] if m['name']=='applyEffectTick')
+        self.assertTrue(any('.isInvertedHealAndHarm()' in str(i['operand']) for i in b))
+        self.assertTrue(any('.magic()' in str(i['operand']) for i in b))
+        self.assertTrue(any('.heal(' in str(i['operand']) for i in b));self.assertTrue(any('.hurt(' in str(i['operand']) for i in b))
+        p=read_json(OUT/'vanilla-evidence/arphex-instant-marker-command.json');w=next(w for w in p['classes'] if w['raw_entry']=='brw.class')
+        b=next(m['instructions'] for m in w['methods'] if m['name']=='shouldApplyEffectTickThisTick')
+        self.assertEqual([i['opcode'] for i in b[:3]],['0x1b','0x4','0xa1'])
+
+    def test_hemoplasm_regen_poison_remain_mutually_exclusive_native_branches(self):
+        from promote_combat_batch import literal_effect_arguments
+        m=self.method('HemoplasmPlayerFinishesUsingItemProcedure');b=m['instructions']
+        profiles=[literal_effect_arguments(m,i['offset']) for i in b if 'MobEffectInstance.<init>(' in str(i['operand'])]
+        self.assertEqual([(p['duration'],p['amplifier']) for p in profiles],[(100,1),(100,1)])
+        self.assertIn('REGENERATION',profiles[0]['holder']);self.assertIn('POISON',profiles[1]['holder'])
+        self.assertTrue(any('.getMaxHealth()' in str(i['operand']) for i in b))
+        self.assertTrue(any(i['opcode']=='0x6e' for i in b))
+        self.assertTrue(any(i['opcode']=='0xa7' and i['branch_target']>100 for i in b))
+
+    def test_cake_parent_result_is_discarded_before_helper_and_replacement(self):
+        b=self.body('CrawlingCakeItem','finishUsingItem');j=next(j for j,i in enumerate(b) if '.finishUsingItem(' in str(i['operand']))
+        self.assertEqual(b[j+1]['opcode'],'0x57')
+        helper=next(j for j,i in enumerate(b) if 'CrawlingCakePlayerFinishesUsingItemProcedure.execute(' in str(i['operand']))
+        empty=next(j for j,i in enumerate(b) if '.isEmpty()' in str(i['operand']))
+        self.assertLess(j,helper);self.assertLess(helper,empty)
+        q=self.body('CrawlingCakePlayerFinishesUsingItemProcedure')
+        invoked=next(i for i in q if i['opcode']=='0xba' and ':run(' in str(i['operand']))
+        self.assertNotIn('ItemStack;',invoked['operand']);self.assertIn('Entity;',invoked['operand'])
+
+    def test_cake_delayed_current_hand_priority_and_native_store_lifecycle(self):
+        b=self.body('CrawlingCakePlayerFinishesUsingItemProcedure','lambda$execute$0')
+        main=next(j for j,i in enumerate(b) if '.getMainHandItem()' in str(i['operand']))
+        off=next(j for j,i in enumerate(b) if '.getOffhandItem()' in str(i['operand']))
+        self.assertLess(main,off)
+        self.assertEqual(sum('.setDamageValue(' in str(i['operand']) for i in b),2)
+        self.assertEqual(sum('.setItemInHand(' in str(i['operand']) for i in b),2)
+        self.assertFalse(any('.isAlive()' in str(i['operand']) or '.getDamageValue()' in str(i['operand']) for i in b))
+        self.assertEqual(sum(i['operand']==8. for i in b),2)
+        held=self.body('CrawlingCakeItemInHandTickProcedure');by={i['offset']:i for i in held}
+        self.assertIn('.getDamageValue()',by[36]['operand']);self.assertIn('.putDouble(',by[40]['operand'])
+        self.assertTrue(any(i['branch_target']>40 for i in held if i['opcode']=='0x99'))
+
+    def test_unlock_delays_reassert_flags_and_do_not_generate_attack_payloads(self):
+        for name,field,reassertions in [('CelestialBarrierPlayerFinishesUsingItemProcedure','shield_power_unlocked',1),
+                                       ('SeismicPulsePlayerFinishedProcedure','slam_power_unlocked',3)]:
+            w=next(w for w in self.native['witnesses'] if w['entry'].endswith('/'+name+'.class'))
+            b=[i for m in w['methods'] for i in m['instructions']]
+            self.assertEqual(sum(i['opcode']=='0xb5' and field+'Z' in str(i['operand']) for i in b),reassertions)
+            self.assertFalse(any('.hurt(' in str(i['operand']) or 'MobEffectInstance' in str(i['operand']) for i in b))
+        r=self.row('native_consumed_inherent_power_unlock_prerequisites');self.assertEqual(r['scalable_parameter_candidates'],[])
+
+    def test_enhanced_senses_presentation_exclusion_is_reused_not_reinvented(self):
+        r=self.row('native_custom_status_consumable_doses')
+        self.assertIn('particle',r['native_presentation_context_reuse']['reason'])
+        self.assertFalse(any('ENHANCED_SENSES' in c['primitive'] for c in r['scalable_parameter_candidates']))
+        self.assertTrue(any('ENHANCED_SENSES' in q['holder'] for p in r['ordered_native_status_requests'] for q in p['ordered_status_requests']))

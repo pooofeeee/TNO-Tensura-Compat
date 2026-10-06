@@ -61,6 +61,29 @@ def rounded_tag_quotient_binding(method, offset):
                 entity_local_index=local, conversion='JAVA_MATH_ROUND_DOUBLE_TO_LONG')
 
 
+def literal_food_component_binding(method, offset):
+    """Read only the exact literal builder passed to Item.Properties.food."""
+    body = method['instructions']
+    at = next(n for n, i in enumerate(body) if i['offset'] == offset)
+    assert body[at]['operand'] == 'net/minecraft/world/item/Item$Properties.food(Lnet/minecraft/world/food/FoodProperties;)Lnet/minecraft/world/item/Item$Properties;'
+    prefix = 'net/minecraft/world/food/FoodProperties$Builder'
+    start = max(n for n, i in enumerate(body[:at]) if i['opcode'] == '0xbb' and i['operand'] == prefix)
+    chain = body[start:at]
+    assert len(chain) in (8, 9)
+    assert [i['opcode'] for i in chain[:3]] == ['0xbb', '0x59', '0xb7']
+    assert chain[2]['operand'] == prefix + '.<init>()V'
+    nutrition, saturation = chain[3], chain[5]
+    assert nutrition['opcode'] in ('0x2', '0x3', '0x4', '0x5', '0x6', '0x7', '0x8', '0x10', '0x11', '0x12', '0x13') and type(nutrition['operand']) is int
+    assert saturation['opcode'] in ('0xb', '0xc', '0xd', '0x12', '0x13') and type(saturation['operand']) is float
+    assert chain[4]['operand'] == prefix + '.nutrition(I)L' + prefix + ';'
+    assert chain[6]['operand'] == prefix + '.saturationModifier(F)L' + prefix + ';'
+    if len(chain) == 9:
+        assert chain[7]['operand'] == prefix + '.alwaysEdible()L' + prefix + ';'
+    assert chain[-1]['operand'] == prefix + '.build()Lnet/minecraft/world/food/FoodProperties;'
+    return dict(nutrition=nutrition['operand'], saturation_modifier=saturation['operand'],
+                always_edible=len(chain) == 9, builder_allocation_offset=chain[0]['offset'])
+
+
 def damage_source_binding(method,offset):
     """Bind an explicitly allocated native source to its following hurt call.
 
@@ -495,6 +518,16 @@ def validate_batch(batch,review,census):
                 assert len(candidate['parameters']) == 1
                 component = next(c for c in row['components'] if c['primitive'] == candidate['primitive'])
                 assert component['numerical_parameters'][candidate['parameters'][0]] == binding['divisor']
+            food_component = 'native_food_component_binding' in candidate
+            if food_component:
+                binding = literal_food_component_binding(m, consumer['offset'])
+                assert binding == candidate['native_food_component_binding']
+                roles = candidate['native_food_parameter_roles']
+                assert set(roles) == set(candidate['parameters'])
+                assert set(roles.values()) <= {'nutrition', 'saturation_modifier'}
+                component = next(c for c in row['components'] if c['primitive'] == candidate['primitive'])
+                assert all(component['numerical_parameters'][p] == binding[role]
+                           for p, role in roles.items()), ('component differs from native food input', candidate)
             terrain=(candidate['primitive']=='TERRAIN_PLACEMENT' and
                      hit['operand']=='net/minecraft/world/level/LevelAccessor.setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z')
             explosion=(candidate['primitive']=='NATIVE_EXPLOSION' and
@@ -608,7 +641,7 @@ def validate_batch(batch,review,census):
                 allowed={'native_value'} if binding['kind']=='ITEM_ATTRIBUTE_MODIFIER' else {'attack_bonus','attack_speed'}
                 assert set(roles.values())==allowed and len(roles)==len(allowed)
                 assert all(component['numerical_parameters'][parameter]==binding[role] for parameter,role in roles.items()),('component differs from pinned item attribute',candidate)
-            assert hit['opcode']=='0xb5' or rounded_tag or rng or terrain or explosion or durability or attribute or item_attribute or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or synched_clock or clock_distribution or vector_scale or vector_expression or registry_spawn or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
+            assert hit['opcode']=='0xb5' or food_component or rounded_tag or rng or terrain or explosion or durability or attribute or item_attribute or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or synched_clock or clock_distribution or vector_scale or vector_expression or registry_spawn or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
             if candidate['primitive'].startswith('MOB_EFFECT_') or 'native_holder_symbol' in candidate:
                 symbol,allocation,load=effect_holder_binding(m,consumer['offset'])
                 assert (symbol,allocation,load)==(candidate['native_holder_symbol'],
