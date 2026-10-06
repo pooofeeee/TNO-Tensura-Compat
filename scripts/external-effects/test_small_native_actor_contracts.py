@@ -6,6 +6,110 @@ from promote_combat_batch import validate_batch
 from test_shadow_clone_contracts import NativeContractHarness
 
 
+class NativeMatriarchHallucinationTests(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m5s-matriarch-hallucination-native-contracts.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-matriarch-hallucination-native-families.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def test_five_roots_four_new_contracts_one_reused_caller(self):
+        validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual((len(self.batch['effects']),len(self.batch['closed_actor_callback_entries'])),(4,5))
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects'] for c in r['scalable_parameter_candidates']),54)
+        self.assertEqual((len(self.native['witnesses']),sum(len(w['methods']) for w in self.native['witnesses'])),(28,190))
+        changes=self.batch['record_refinements'];self.assertEqual(len(changes),1)
+        self.assertEqual(changes[0]['id'],'arphex:shared_chaser_hallucination_native_callback')
+        self.assertFalse(changes[0].get('candidate_additions'))
+        self.assertTrue(any('HallucinationScorpioidTickProcedure.execute(' in str(i['operand'])
+                            for i in self.body('SpiderChaserHallucination2Entity','baseTick')))
+
+    def test_native_melee_ranges_and_spider_parent_remain_distinct(self):
+        for name,value in [('SpiderMatriarchEntity$1',36.),('SpiderMatriarchLarvaeEntity$1',1.),
+                           ('SpiderChaserHallucination2Entity$1',12.25),('SpiderChaserHallucination3Entity$1',4.)]:
+            b=self.body(name,'canPerformAttack')
+            self.assertEqual([i['operand'] for i in b if i['opcode'] in ('0xf','0x14')],[value])
+            self.assertTrue(any('.hasLineOfSight(' in str(i['operand']) for i in b))
+        b=self.body('SpiderChaserHallucination3Entity','registerGoals')
+        parent=next(i['offset'] for i in b if i['operand']=='net/minecraft/world/entity/monster/Spider.registerGoals()V')
+        local=next(i['offset'] for i in b if '.addGoal(' in str(i['operand']))
+        self.assertLess(parent,local)
+
+    def test_hatch_sideeffects_precede_rejected_incoming_hurt(self):
+        b=self.body('SpiderMatriarchEntity','hurt')
+        helper=next(i['offset'] for i in b if 'SpiderMatriarchEntityIsHurtProcedure.execute(' in str(i['operand']))
+        exclusion=next(i['offset'] for i in b if '/DamageTypes.IN_FIRE' in str(i['operand']))
+        self.assertLess(helper,exclusion)
+        b=self.body('SpiderMatriarchEntityIsHurtProcedure');by={i['offset']:i for i in b}
+        self.assertEqual((by[139]['operand'],by[141]['opcode'],by[141]['branch_target']),(6,'0xa2',224))
+        self.assertEqual(by[221]['branch_target'],137)
+        self.assertTrue(any(i['offset']==178 and 'EntityType.spawn(' in str(i['operand']) for i in b))
+        self.assertFalse(any('.setOwner(' in str(i['operand']) or '.tame(' in str(i['operand']) for i in b))
+
+    def test_hatch_setup_writes_current_neighbor_growth_distribution(self):
+        from promote_combat_batch import synched_int_distribution_binding
+        b=self.body('SpiderMatriarchEntityIsHurtProcedure','lambda$execute$2')
+        binding=synched_int_distribution_binding(dict(instructions=b),148)
+        self.assertEqual((binding['native_minimum'],binding['native_maximum']),(300,9000))
+        self.assertIn('SpiderMatriarchLarvaeEntity.DATA_grow',binding['accessor_symbol'])
+        self.assertTrue(any('net/arphex/entity/SpiderMatriarchLarvaeEntity'==i['operand'] and i['opcode']=='0xc1' for i in b))
+        self.assertFalse(any('.isAlive(' in str(i['operand']) or '.getOwner(' in str(i['operand']) for i in b))
+        changed=copy.deepcopy(self.batch);r=next(r for r in changed['effects'] if 'matriarch_native_lunge' in r['id'])
+        next(c for c in r['components'] if c['primitive']=='NATIVE_CLOCK_DISTRIBUTION')['numerical_parameters']['maximum']=9001
+        with self.assertRaises(AssertionError):validate_batch(changed,self.prior(),self.census)
+
+    def test_larval_growth_stops_before_largest_physical_branch(self):
+        b=self.body('SpiderMatriarchLarvaeOnEntityTickUpdateProcedure');by={i['offset']:i for i in b}
+        self.assertEqual((by[37]['operand'],by[40]['branch_target']),(12000,226))
+        self.assertEqual((by[75]['operand'],by[78]['branch_target']),(8000,226))
+        self.assertEqual((by[218]['operand'],by[219]['opcode']),(2,'0x60'))
+        self.assertEqual(sum('SynchedEntityData.set(' in str(i['operand']) for i in b),1)
+        shape=self.body('MatriarchLarvaeHitboxScaleProcedure');by={i['offset']:i for i in shape}
+        self.assertEqual((by[38]['operand'],by[78]['operand']),(11990,6000))
+        self.assertEqual([by[off]['operand'] for off in (44,84,88)],[1.,.7,.4])
+        b=self.body('SpiderMatriarchLarvaeEntity','getDefaultDimensions')
+        self.assertTrue(any('MatriarchLarvaeHitboxScaleProcedure.execute(' in str(i['operand']) for i in b))
+        self.assertTrue(any('EntityDimensions.scale(F)' in str(i['operand']) for i in b))
+
+    def test_matriarch_explosion_is_anonymous_and_separate_from_melee(self):
+        b=self.body('SpiderMatriarchOnEntityTickUpdateProcedure');by={i['offset']:i for i in b}
+        self.assertEqual(by[922]['operand'],7.)
+        self.assertIn('ExplosionInteraction.MOB',by[924]['operand'])
+        self.assertTrue(any(i['opcode']=='0x1' for i in b if 900<=i['offset']<907))
+        self.assertFalse(any('.hurt(' in str(i['operand']) for i in b))
+        self.assertTrue(any('DATA_store_target_distance' in str(i['operand']) for i in b))
+        self.assertEqual([by[off]['operand'] for off in (995,1062,1125)],[.3,.3,.3])
+
+    def test_hallucination3_two_ignored_anonymous_magic_requests(self):
+        b=self.body('SpiderChaserHallucination3OnEntityTickUpdateProcedure')
+        for off,amount in [(319,5.),(923,6.)]:
+            j=next(j for j,i in enumerate(b) if i['offset']==off)
+            self.assertEqual((b[j-1]['operand'],b[j+1]['opcode']),(amount,'0x57'))
+        self.assertEqual(sum('/DamageTypes.MAGIC' in str(i['operand']) for i in b),2)
+        self.assertEqual(sum('DamageSource.<init>(Lnet/minecraft/core/Holder;)V' in str(i['operand']) for i in b),2)
+        self.assertFalse(any('.hasLineOfSight(' in str(i['operand']) for i in b))
+        r=self.row('hallucination3_native_marked_contact_target_search_and_rewards')
+        self.assertFalse(any(c['primitive']=='NATIVE_CONDITIONAL_MELEE' for c in r['scalable_parameter_candidates']))
+
+    def test_enormous_has_no_offense_and_size_is_not_physical(self):
+        b=self.body('EnormousSpiderHallucinationEntity','registerGoals')
+        self.assertFalse(any('AttackGoal' in str(i['operand']) for i in b))
+        b=self.body('EnormousSpiderHallucinationEntity','getDefaultDimensions')
+        self.assertTrue(any(i['operand']==3. for i in b))
+        self.assertFalse(any('DATA_size' in str(i['operand']) for i in b))
+        r=self.row('enormous_hallucination_native_motion_admission_and_lifecycle')
+        self.assertFalse(any(c['primitive'] in ('BODY_DIMENSION_SCALE','NATIVE_DAMAGE_REQUEST') for c in r['scalable_parameter_candidates']))
+
+    def test_enormous_repeated_queued_motion_has_no_server_alive_gate(self):
+        b=self.body('EnormousSpiderHallucinationOnEntityTickUpdateProcedure','lambda$execute$2')
+        self.assertTrue(any(i['operand']==-.8 for i in b))
+        self.assertTrue(any('.setDeltaMovement(' in str(i['operand']) for i in b))
+        self.assertFalse(any(x in str(i['operand']) for i in b for x in ('.isAlive(','.isClientSide(')))
+        b=self.body('EnormousSpiderHallucinationOnEntityTickUpdateProcedure')
+        self.assertEqual(sum('.queueServerWork(' in str(i['operand']) for i in b),3)
+        self.assertTrue(any('Invulnerable:1b' in str(i['operand']) for i in b))
+
+
 class NativeSpiderControlTests(NativeContractHarness, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
