@@ -137,8 +137,50 @@ def literal_attribute_binding(method,offset):
                 value_offset=value['offset'],native_value=value['operand'])
 
 
+def literal_numeric_input_binding(method, offset):
+    """Pin a literal scalar input to arithmetic or a subsequently read local.
+
+    This proves the input bytes, not reachability, combat meaning or eligibility.
+    Computed operands and unused scratch locals fail closed. Callers must still
+    supply the reviewed native consumer and its control/formula context.
+    """
+    body = method['instructions']
+    at = next(n for n, i in enumerate(body) if i['offset'] == offset)
+    assert at > 0
+    value, hit = body[at-1:at+1]
+    assert type(value['operand']) in (int, float)
+    assert value['opcode'] in ('0x2', '0x3', '0x4', '0x5', '0x6', '0x7',
+                               '0x8', '0x9', '0xa', '0xb', '0xc', '0xd',
+                               '0xe', '0xf', '0x10', '0x11', '0x12', '0x13', '0x14')
+    op = int(hit['opcode'], 16)
+    result = dict(native_value=value['operand'], value_offset=value['offset'])
+    if 0x60 <= op <= 0x73:  # Typed add/subtract/multiply/divide/remainder.
+        return dict(kind='LITERAL_ARITHMETIC_INPUT', operation=hit['opcode'], **result)
+    stores = {0x36: ('I', 0x15, range(0x1a, 0x1e), range(0x3b, 0x3f)),
+              0x37: ('J', 0x16, range(0x1e, 0x22), range(0x3f, 0x43)),
+              0x38: ('F', 0x17, range(0x22, 0x26), range(0x43, 0x47)),
+              0x39: ('D', 0x18, range(0x26, 0x2a), range(0x47, 0x4b))}
+    selection = next(((k, v) for k, v in stores.items() if op == k or op in v[3]), None)
+    assert selection is not None, ('not a literal arithmetic/local input', hit)
+    store_op, (kind, load_op, compact_loads, compact_stores) = selection
+    local = hit.get('local_index')
+    assert type(local) is int
+    reads = []
+    for instruction in body[at+1:]:
+        other = int(instruction['opcode'], 16)
+        if instruction.get('local_index') != local:
+            continue
+        if other in compact_stores or other == store_op:
+            break
+        if other == load_op or other in compact_loads:
+            reads.append(instruction['offset'])
+    assert reads, ('unused or overwritten native scratch local', hit)
+    return dict(kind='READ_LOCAL_LITERAL_INPUT', local_type=kind,
+                local_index=local, read_offsets=reads, **result)
+
+
 def literal_item_attribute_binding(method, offset):
-    """Bind exact item-modifier literals or native DiggerItem arguments.
+    """Bind exact item-modifier literals or native DiggerItem/SwordItem arguments.
 
     No tier bonus, inherited base value or final attack damage is inferred.
     The tier declaration/consumer must be supplied separately when relevant.
@@ -160,12 +202,18 @@ def literal_item_attribute_binding(method, offset):
                     modifier_id_symbol=identifier['operand'], native_value=value['operand'],
                     operation_symbol=operation['operand'], slot_symbol=slot['operand'],
                     value_offset=value['offset'], builder_offset=consumer['offset'])
-    assert operand == 'net/minecraft/world/item/DiggerItem.createAttributes(Lnet/minecraft/world/item/Tier;FF)Lnet/minecraft/world/item/component/ItemAttributeModifiers;'
+    builders = {
+        'net/minecraft/world/item/DiggerItem': 'DIGGER_ATTRIBUTE_ARGUMENTS',
+        'net/minecraft/world/item/SwordItem': 'SWORD_ATTRIBUTE_ARGUMENTS',
+    }
+    kind = next((kind for owner, kind in builders.items() if operand == owner +
+                 '.createAttributes(Lnet/minecraft/world/item/Tier;FF)Lnet/minecraft/world/item/component/ItemAttributeModifiers;'), None)
+    assert kind is not None, ('unsupported native item attribute builder', operand)
     tier, damage, speed = body[at-3:at]
     assert tier['opcode'] == '0xb2' and tier['operand'].endswith('Lnet/minecraft/world/item/Tier;')
     for value in (damage, speed):
         assert value['opcode'] in ('0xb', '0xc', '0xd', '0x12', '0x13') and type(value['operand']) in (int, float)
-    return dict(kind='DIGGER_ATTRIBUTE_ARGUMENTS', tier_symbol=tier['operand'],
+    return dict(kind=kind, tier_symbol=tier['operand'],
                 attack_bonus=damage['operand'], attack_speed=speed['operand'],
                 damage_offset=damage['offset'], speed_offset=speed['offset'])
 
@@ -519,6 +567,14 @@ def validate_batch(batch,review,census):
                 component = next(c for c in row['components'] if c['primitive'] == candidate['primitive'])
                 assert component['numerical_parameters'][candidate['parameters'][0]] == binding['divisor']
             food_component = 'native_food_component_binding' in candidate
+            literal_numeric = 'native_literal_numeric_input_binding' in candidate
+            if literal_numeric:
+                binding = literal_numeric_input_binding(m, consumer['offset'])
+                assert binding == candidate['native_literal_numeric_input_binding']
+                assert len(candidate['parameters']) == 1
+                component = next(c for c in row['components'] if c['primitive'] == candidate['primitive'])
+                assert component['numerical_parameters'][candidate['parameters'][0]] == binding['native_value'], \
+                    ('component differs from native numeric input', candidate)
             if food_component:
                 binding = literal_food_component_binding(m, consumer['offset'])
                 assert binding == candidate['native_food_component_binding']
@@ -641,7 +697,7 @@ def validate_batch(batch,review,census):
                 allowed={'native_value'} if binding['kind']=='ITEM_ATTRIBUTE_MODIFIER' else {'attack_bonus','attack_speed'}
                 assert set(roles.values())==allowed and len(roles)==len(allowed)
                 assert all(component['numerical_parameters'][parameter]==binding[role] for parameter,role in roles.items()),('component differs from pinned item attribute',candidate)
-            assert hit['opcode']=='0xb5' or food_component or rounded_tag or rng or terrain or explosion or durability or attribute or item_attribute or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or synched_clock or clock_distribution or vector_scale or vector_expression or registry_spawn or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
+            assert hit['opcode']=='0xb5' or literal_numeric or food_component or rounded_tag or rng or terrain or explosion or durability or attribute or item_attribute or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or synched_clock or clock_distribution or vector_scale or vector_expression or registry_spawn or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
             if candidate['primitive'].startswith('MOB_EFFECT_') or 'native_holder_symbol' in candidate:
                 symbol,allocation,load=effect_holder_binding(m,consumer['offset'])
                 assert (symbol,allocation,load)==(candidate['native_holder_symbol'],

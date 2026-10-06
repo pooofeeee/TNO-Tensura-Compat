@@ -912,3 +912,139 @@ class NativeConsumableContracts(NativeContractHarness, unittest.TestCase):
         self.assertIn('particle',r['native_presentation_context_reuse']['reason'])
         self.assertFalse(any('ENHANCED_SENSES' in c['primitive'] for c in r['scalable_parameter_candidates']))
         self.assertTrue(any('ENHANCED_SENSES' in q['holder'] for p in r['ordered_native_status_requests'] for q in p['ordered_status_requests']))
+
+
+class NativeStaffLauncherContracts(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m6h-native-staff-launcher-contracts.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-residual-native-staff-launcher.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def test_bounded_callbacks_validate_without_claiming_captured_spatial_scope(self):
+        validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual(len(self.batch['effects']),7)
+        self.assertEqual(len(self.batch['closed_item_callback_entries']),9)
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects']
+                             for c in r['scalable_parameter_candidates']),77)
+        closed={p['entry'] for r in self.batch['effects'] for p in r['implementation']}
+        self.assertIn('net/arphex/item/WarpStaffItem.class',self.batch['captured_but_unreviewed_entries'])
+        self.assertNotIn('net/arphex/item/WarpStaffItem.class',closed)
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_native_float_sword_builder_and_zero_tier_are_distinct_from_vanilla_int(self):
+        b=literal_item_attribute_binding(dict(instructions=self.body('VortexDevastatorItem','<init>')),18)
+        self.assertEqual((b['kind'],b['attack_bonus'],b['attack_speed']),('SWORD_ATTRIBUTE_ARGUMENTS',3.,-3.))
+        self.assertEqual(self.body('VortexDevastatorItem$1','getAttackDamageBonus')[0]['operand'],0.)
+        p=read_json(OUT/'reference-evidence/native-item-attributes-loader-244.json')
+        text=''.join(s['text'] for w in p['witnesses'] for s in w['text_sections'])
+        self.assertIn('return createAttributes(p_330371_, (float)p_331976_, p_332104_);',text)
+        self.assertIn('Tier p_330371_, float p_331976_, float p_332104_',text)
+        self.assertTrue(any('.attributes(' in str(i['operand']) for i in self.body('VortexDevastatorItem','<init>')))
+
+    def test_local_scalar_input_requires_literal_and_real_read_not_unused_scratch(self):
+        from promote_combat_batch import literal_numeric_input_binding
+        m=dict(instructions=copy.deepcopy(self.body('HornetHailstormItemInHandTickProcedure')))
+        b=literal_numeric_input_binding(m,154)
+        self.assertEqual((b['native_value'],b['local_index']),(5.,15))
+        self.assertTrue(b['read_offsets'])
+        next(i for i in m['instructions'] if i['offset']==151)['opcode']='0x63'
+        with self.assertRaises(AssertionError):literal_numeric_input_binding(m,154)
+        m=dict(instructions=self.body('HornetHailstormItemInHandTickProcedure'))
+        # Native distance_scaling_factor is assigned 1 but never read.
+        with self.assertRaisesRegex(AssertionError,'unused or overwritten'):
+            literal_numeric_input_binding(m,179)
+
+    def test_false_targeting_coefficient_is_rejected_by_native_literal(self):
+        b=copy.deepcopy(self.batch)
+        r=next(r for r in b['effects'] if r['id'].endswith(':shared_hornet_nemesis_native_lock_release_and_owned_cancel'))
+        next(c for c in r['components'] if c['primitive']=='NATIVE_LOCK_SELECTION')['numerical_parameters']['pitch_numerator']=141.
+        with self.assertRaisesRegex(AssertionError,'component differs from native numeric input'):
+            validate_batch(b,self.prior(),self.census)
+
+    def test_ascent_vehicle_request_and_delayed_profile_not_first_passenger(self):
+        from promote_combat_batch import literal_effect_arguments
+        m=dict(instructions=self.body('AscendantStaffRightclickedProcedure'))
+        self.assertEqual(literal_effect_arguments(m,413)['duration'],90)
+        self.assertEqual(literal_effect_arguments(m,460)['duration'],90)
+        self.assertTrue(any('.getVehicle(' in str(i['operand']) for i in m['instructions']))
+        self.assertFalse(any('.getFirstPassenger(' in str(i['operand']) for i in m['instructions']))
+        delayed=dict(instructions=self.body('AscendantStaffRightclickedProcedure','lambda$execute$0'))
+        self.assertEqual(literal_effect_arguments(delayed,35)['duration'],87)
+        self.assertFalse(any('getCooldowns' in str(i['operand']) or 'getItem(' in str(i['operand']) for i in delayed['instructions']))
+
+    def test_ethereal_inventory_delivery_and_null_source_nearest_player_command(self):
+        b=self.body('EtherealStaffItem','inventoryTick');by={i['offset']:i for i in b}
+        call=next(i['offset'] for i in b if 'EtherealStaffRightclickedProcedure.execute(' in str(i['operand']))
+        selected=next(i for i in b if i.get('branch_target') is not None)
+        self.assertLessEqual(selected['branch_target'],call)
+        helper=self.body('EtherealStaffRightclickedProcedure')
+        self.assertTrue(any(i['operand']=='execute at @p run tp @p ^ ^0.01 ^0.5' for i in helper))
+        self.assertTrue(any('CommandSource.NULL' in str(i['operand']) for i in helper))
+        self.assertFalse(any('.hurt(' in str(i['operand']) for i in helper))
+        self.assertEqual([i['offset'] for i in helper if 'addCooldown(' in str(i['operand'])],[739,854])
+
+    def test_vitality_regen_presence_branch_still_reaches_clock_reset(self):
+        b=self.body('StaffOfVitalityToolInHandTickProcedure');by={i['offset']:i for i in b}
+        presence=next(n for n,i in enumerate(b) if '.hasEffect(' in str(i['operand']))
+        branch=b[presence+1]
+        self.assertGreater(branch['branch_target'],87)
+        self.assertLess(branch['branch_target'],149)
+        self.assertEqual(by[146]['operand'],150.)
+        self.assertIn('putDouble',by[149]['operand'])
+
+    def test_swarm_releases_reuse_targets_without_cooldown_or_owner_recheck(self):
+        for n,species in [('HornetHailstormOnPlayerStoppedUsingProcedure','HORNET_PROJECTILE'),('VenomTyphoonStoppedUsingProcedure','NEMESIS_PROJECTILE')]:
+            b=self.body(n)
+            self.assertFalse(any('.isOnCooldown(' in str(i['operand']) or '.getTicksUsingItem(' in str(i['operand']) or '.setOwner(' in str(i['operand']) or '.tame(' in str(i['operand']) for i in b))
+            self.assertTrue(any(species in str(i['operand']) for i in b))
+            self.assertTrue(any(i['operand']==8 and i['opcode']=='0x10' for i in b))
+            self.assertEqual([i['offset'] for i in b if 'EntityType.spawn(' in str(i['operand'])],[188])
+        for n in ['HornetHailstormRightclickedProcedure','VenomTyphoonRightClickedProcedure']:
+            b=self.body(n)
+            self.assertTrue(any('.isOnCooldown(' in str(i['operand']) for i in b))
+            self.assertTrue(any('.isOwnedBy(' in str(i['operand']) for i in b))
+        self.assertIn('arphex:hornet_nemesis_native_uuid_carrier_and_melee',self.row('shared_hornet_nemesis_native_lock_release_and_owned_cancel')['canonical_contract_reuse'])
+
+    def test_ray_damage_sources_are_carrier_and_low_mode_has_no_floor(self):
+        from promote_combat_batch import direct_damage_actor_local
+        b=self.body('OblivionRayHeldProcedure');m=dict(instructions=b);by={i['offset']:i for i in b}
+        hurt=[i['offset'] for i in b if '.hurt(' in str(i['operand'])]
+        self.assertEqual(hurt,[1459,1487,1592,1620,1816,1846])
+        self.assertTrue(all(direct_damage_actor_local(m,o)==7 for o in hurt))
+        self.assertEqual((by[1451]['operand'],by[1452]['opcode']),(3,'0x6c'))
+        self.assertEqual((by[1584]['operand'],by[1587]['opcode']),(10.,'0x67'))
+        self.assertEqual((by[1812]['operand'],by[1815]['opcode']),('java/lang/Math.round(D)J','0x89'))
+        # Low branch round is immediately converted to float and requested: no max/floor.
+        self.assertEqual([i['opcode'] for i in b if 1812<=i['offset']<=1819],['0xb8','0x89','0xb6','0x57'])
+        self.assertLess(1633,1859)  # Toggle is written after each of the two recipient arms.
+        self.assertIn('putBoolean',by[1633]['operand']);self.assertIn('putBoolean',by[1859]['operand'])
+
+    def test_ray_cooldown_integer_division_and_null_actor_native_explosion(self):
+        b=self.body('OblivionRayHeldProcedure');by={i['offset']:i for i in b}
+        self.assertEqual((by[333]['operand'],by[334]['opcode']),(2,'0x6c'))
+        self.assertTrue(any('Math.round(F)I' in str(i['operand']) and i['offset']<339 for i in b))
+        explode=next(n for n,i in enumerate(b) if i['offset']==2278)
+        self.assertIn('ExplosionInteraction.BLOCK',b[explode-1]['operand'])
+        self.assertTrue(any(i['opcode']=='0x1' for i in b[explode-15:explode]))
+        self.assertTrue(any(i['operand']==2. and i['opcode'] in ['0xd','0x12','0x13'] for i in b[explode-15:explode]))
+        self.assertEqual(by[2192]['operand'],20.)
+        self.assertFalse(any('putBoolean' in str(i['operand']) for i in self.body('OblivionRayRightclickedProcedure')))
+
+    def test_vortex_queue_is_outside_cooldown_arm_and_motion_is_per_stack(self):
+        b=self.body('VortexDevastatorRightclickedProcedure')
+        check=next(n for n,i in enumerate(b) if '.isOnCooldown(' in str(i['operand']))
+        self.assertLessEqual(b[check+1]['branch_target'],300)
+        self.assertGreater(b[check+1]['branch_target'],77)
+        b=self.body('VortexDevastatorToolInInventoryTickProcedure');by={i['offset']:i for i in b}
+        self.assertEqual((by[206]['operand'],by[221]['operand'],by[263]['operand'],by[275]['operand']),(1.5,.2,2.,.3))
+        self.assertLess(139,243)
+        root=self.body('VortexDevastatorItem','inventoryTick')
+        self.assertEqual(next(i['branch_target'] for i in root if i.get('branch_target') is not None),34)
+        self.assertTrue(any('VortexDevastatorToolInInventoryTickProcedure.execute(' in str(i['operand']) and i['offset']>34 for i in root))
+
+    def test_vanguard_empty_held_callback_keeps_active_swing_contract(self):
+        b=self.body('VortexVanguardItemInHandTickProcedure')
+        self.assertFalse(any(i['opcode'] in ('0xb5','0xb6','0xb7','0xb8','0xb9','0xba') for i in b))
+        self.assertEqual(b[-1]['opcode'],'0xb1')
+        self.assertTrue(any('arphex:vortex_vanguard_owner_free_spin_delivery' in r.get('canonical_contract_reuse',[]) for r in self.batch['effects']))
