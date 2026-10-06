@@ -36,6 +36,36 @@ def damage_source_binding(method,offset):
     return holder['operand'],body[start]['offset'],ctor['offset'],ctor['operand']
 
 
+def effect_receiver_binding(method,offset):
+    """Trace a simple generated LivingEntity cast/local used by addEffect.
+
+    Complex expression recipients require their own exact evidence; this helper
+    deliberately refuses to infer them from a decompiler variable name.
+    """
+    body=method['instructions'];at=next(n for n,i in enumerate(body) if i['offset']==offset)
+    assert 'LivingEntity.addEffect(Lnet/minecraft/world/effect/MobEffectInstance;)Z' in str(body[at+1]['operand'])
+    start=max(n for n,i in enumerate(body[:at]) if i['opcode']=='0xbb' and
+              i['operand']=='net/minecraft/world/effect/MobEffectInstance')
+    def local(i,store=False):
+        op=int(i['opcode'],16)
+        if op==(0x3a if store else 0x19):return i['local_index']
+        low=0x4b if store else 0x2a
+        assert low<=op<=low+3,('not an object local operation',i)
+        return op-low
+    receiver=body[start-1];receiver_local=local(receiver)
+    stores=[n for n,i in enumerate(body[:start]) if
+            (i['opcode']=='0x3a' or 0x4b<=int(i['opcode'],16)<=0x4e) and local(i,True)==receiver_local]
+    assert stores,('recipient has no simple cast binding',receiver)
+    store=stores[-1];cast=body[store-1];origin=body[store-2]
+    assert cast['opcode']=='0xc0' and cast['operand'] in (
+        'net/minecraft/world/entity/LivingEntity','net/minecraft/server/level/ServerPlayer')
+    assert not any(origin['offset']<i.get('branch_target',-1)<=offset for i in body),('recipient cast is not a closed straight-line binding',origin)
+    return dict(origin_local_index=local(origin),origin_load_offset=origin['offset'],
+                cast_offset=cast['offset'],cast_type=cast['operand'],
+                receiver_local_index=receiver_local,store_offset=body[store]['offset'],
+                receiver_load_offset=receiver['offset'])
+
+
 def validate_batch(batch,review,census):
     assert batch['mod_key']==review['mod_key']==census['mod_key']
     native={(r['entry'],r['method'],r['descriptor']):r for r in census['methods']}
@@ -68,7 +98,7 @@ def validate_batch(batch,review,census):
                 '.makeStuckInBlock(','.putDouble(','.queueServerWork(','.inflate(',
                 'ItemCooldowns.addCooldown(','.teleportTo(',
                 'LivingIncomingDamageEvent.setAmount(')
-            rng=(candidate['primitive'] in ('ATTACK_SELECTION','SUMMON_DELIVERY') and
+            rng=(candidate['primitive'] in ('ATTACK_SELECTION','SUMMON_DELIVERY','PROC_CHANCE') and
                  'Mth.nextInt(' in str(hit['operand']))
             assert hit['opcode']=='0xb5' or rng or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
             if candidate['primitive'].startswith('MOB_EFFECT_'):
@@ -79,6 +109,8 @@ def validate_batch(batch,review,census):
                 assert damage_source_binding(m,consumer['offset'])==(
                     candidate['native_damage_type_symbol'],candidate['native_damage_source_allocation_offset'],
                     candidate['native_damage_source_constructor_offset'],candidate['native_damage_source_constructor'])
+            if 'native_receiver_binding' in candidate:
+                assert effect_receiver_binding(m,consumer['offset'])==candidate['native_receiver_binding'],('wrong native recipient binding',candidate)
             seen={tuple(expected[k] for k in ('entry','method','descriptor','offset'))}
             for site in candidate.get('additional_consumer_sites',[]):
                 identity=tuple(site[k] for k in ('entry','method','descriptor','offset'))
