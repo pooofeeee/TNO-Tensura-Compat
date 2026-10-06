@@ -106,6 +106,61 @@ def literal_item_attribute_binding(method, offset):
                 damage_offset=damage['offset'], speed_offset=speed['offset'])
 
 
+def registered_armor_material_binding(witness, census):
+    """Read a pinned literal material registration, including its actual lambdas."""
+    assert witness['superclass'] == 'net/minecraft/world/item/ArmorItem'
+    methods = {m['name']: m for m in witness['methods']}
+    registration = methods['registerArmorMaterial']
+    assert any(a['descriptor'].endswith('/SubscribeEvent;') for a in registration['annotations'])
+    assert any(a['descriptor'].endswith('/EventBusSubscriber;') and
+               a['values']['bus']['constant'] == 'MOD' for a in witness['annotations'])
+    bootstraps = {r['index']: r for r in census['registration_bootstraps'] if r['entry'] == witness['entry']}
+
+    def lambda_target(instruction):
+        assert instruction['opcode'] == '0xba'
+        index = int(instruction['operand'].split('#')[1].split(':')[0])
+        bootstrap = bootstraps[index]
+        assert 'LambdaMetafactory.metafactory(' in bootstrap['handle']
+        targets = [arg for arg in bootstrap['arguments'] if arg.startswith(witness['class_name'] + '.lambda$')]
+        assert len(targets) == 1
+        return targets[0].split('.')[-1].split('(')[0]
+
+    body = registration['instructions']
+    assert body[1]['operand'] == 'net/minecraft/core/registries/Registries.ARMOR_MATERIALLnet/minecraft/resources/ResourceKey;'
+    factory = methods[lambda_target(body[2])]
+    body = factory['instructions']
+    assert body[0]['opcode'] == '0xbb' and body[0]['operand'] == 'net/minecraft/world/item/ArmorMaterial'
+    map_method = methods[lambda_target(body[6])]
+    values = {}; map_body = map_method['instructions']
+    assert len(map_body) == 31 and map_body[-1]['opcode'] == '0xb1'
+    for at in range(0, 30, 6):
+        load, key, value, box, put, pop = map_body[at:at+6]
+        assert load['opcode'] == '0x2a' and key['opcode'] == '0xb2'
+        match = re.fullmatch(r'net/minecraft/world/item/ArmorItem\$Type\.(\w+)Lnet/minecraft/world/item/ArmorItem\$Type;', key['operand'])
+        assert match and type(value['operand']) is int
+        assert box['operand'] == 'java/lang/Integer.valueOf(I)Ljava/lang/Integer;'
+        assert put['operand'] == 'java/util/EnumMap.put(Ljava/lang/Enum;Ljava/lang/Object;)Ljava/lang/Object;'
+        assert pop['opcode'] == '0x57' and match[1] not in values
+        values[match[1]] = value['operand']
+    assert set(values) == {'BOOTS', 'LEGGINGS', 'CHESTPLATE', 'HELMET', 'BODY'}
+    ctor = next(n for n, i in enumerate(body) if str(i['operand']).startswith('net/minecraft/world/item/ArmorMaterial.<init>('))
+    toughness, knockback = body[ctor-2:ctor]
+    assert all(i['opcode'] in ('0xb', '0xc', '0xd', '0x12', '0x13') and type(i['operand']) is float for i in (toughness, knockback))
+    enchantment = body[9]; assert type(enchantment['operand']) is int
+    register = next(n for n, i in enumerate(body) if 'RegisterEvent$RegisterHelper.register(' in str(i['operand']))
+    registry_key = body[register-3]
+    assert registry_key['opcode'] in ('0x12', '0x13') and isinstance(registry_key['operand'], str)
+    holder = next(i['operand'] for i in body if i['opcode'] == '0xb3' and '.ARMOR_MATERIAL' in str(i['operand']))
+    assert holder.startswith(witness['class_name'] + '.')
+    assert holder in [i['operand'] for i in methods['<init>']['instructions'] if i['opcode'] == '0xb2']
+    return dict(registry_key=registry_key['operand'], holder_symbol=holder,
+                defense_by_native_type=dict(sorted(values.items())),
+                enchantment_value=enchantment['operand'], toughness=toughness['operand'],
+                knockback_resistance=knockback['operand'],
+                registration_method=registration['name'], factory_method=factory['name'],
+                defense_map_method=map_method['name'])
+
+
 def literal_command_binding(method,offset):
     """Bind a directly authored command argument; decline computed strings."""
     body=method['instructions'];at=next(n for n,i in enumerate(body) if i['offset']==offset)
@@ -364,6 +419,13 @@ def validate_batch(batch,review,census):
                         continue
                     key=(proof['entry'],m['name'],m['descriptor'])
                     assert native[key]['code_sha256']==m['code_sha256'],('unindexed native contract',key)
+        material_keys = set()
+        for profile in row.get('native_armor_material_profiles', []):
+            _, witness = index.witness(profile['proof'], row)
+            binding = registered_armor_material_binding(witness, census)
+            assert binding == profile['binding'], ('wrong pinned armor material profile', profile)
+            assert binding['registry_key'] not in material_keys
+            material_keys.add(binding['registry_key'])
         for candidate in row['scalable_parameter_candidates']:
             consumer=candidate['native_consumer']
             _,w=index.witness(consumer,row)

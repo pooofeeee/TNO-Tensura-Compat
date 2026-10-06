@@ -449,3 +449,143 @@ class NativeScytheSpearContracts(NativeContractHarness, unittest.TestCase):
         self.assertEqual([i['operand'] for i in b[at-4:at-2]], [5, 1])
         at = next(j for j, i in enumerate(b) if i['offset'] == 1260)
         self.assertEqual([i['operand'] for i in b[at-4:at-2]], [30, 0])
+
+
+class NativeArmorMaterialAndSharedCallbacks(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch = read_json(OUT / 'arphex-r2m6e-native-material-shared-armor-contracts.json')
+        cls.native = read_json(OUT / 'native-evidence/arphex-residual-native-armor.json')
+        cls.census = read_json(OUT / 'arphex-combat-census.json')
+
+    def test_material_setup_and_28_callback_pieces_close_without_claiming_all_capture_reviewed(self):
+        validate_batch(self.batch, self.prior(), self.census)
+        self.assertEqual((len(self.batch['closed_armor_material_entries']), len(self.batch['closed_item_callback_entries'])), (11, 28))
+        self.assertEqual((len(self.batch['effects']), sum(len(c['parameters']) for r in self.batch['effects']
+                         for c in r['scalable_parameter_candidates'])), (5, 43))
+        self.assertEqual(len(self.batch['pending_captured_armor_callback_entries']), 16)
+        self.assertEqual((len(self.native['witnesses']), sum(len(w['methods']) for w in self.native['witnesses'])), (87, 305))
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_literal_armor_profiles_preserve_actual_native_type_values_and_float_precision(self):
+        from promote_combat_batch import registered_armor_material_binding
+        expected = {'ChitinArmourItem': ([2, 5, 6, 2, 6], 10, 2., 0.),
+                    'ChitinArmourTier2Item': ([3, 5, 7, 2, 7], 10, 2., 0.),
+                    'ChitinArmourTier3Item': ([3, 6, 8, 3, 8], 12, 3., 0.),
+                    'EternalItem': ([6, 11, 15, 7, 15], 100, 6., .8999999761581421),
+                    'ImmortalItem': ([10, 16, 20, 10, 20], 100, 6., .8999999761581421),
+                    'InfernalItem': ([5, 10, 13, 5, 13], 50, 6., .30000001192092896),
+                    'JuggernautItem': ([5, 10, 14, 6, 14], 12, 6., 1.),
+                    'SpacetimeItem': ([5, 10, 14, 6, 14], 12, 6., 1.),
+                    'SpectralItem': ([5, 10, 13, 5, 13], 50, 6., .30000001192092896),
+                    'UmbralItem': ([5, 10, 13, 5, 13], 50, 6., .20000000298023224),
+                    'VitalityArmourItem': ([3, 4, 8, 5, 8], 10, 2., 0.)}
+        for name, (values, enchant, toughness, knockback) in expected.items():
+            w = next(w for w in self.native['witnesses'] if w['entry'].endswith('/' + name + '.class'))
+            binding = registered_armor_material_binding(w, self.census)
+            self.assertEqual([binding['defense_by_native_type'][key]
+                              for key in ('BOOTS', 'LEGGINGS', 'CHESTPLATE', 'HELMET', 'BODY')], values)
+            self.assertEqual((binding['enchantment_value'], binding['toughness'], binding['knockback_resistance']),
+                             (enchant, toughness, knockback))
+        row = self.row('native_registered_armor_material_profiles')
+        self.assertEqual(len(row['native_piece_setup']), 44)
+        self.assertEqual(row['scalable_parameter_candidates'], [])
+
+    def test_wrong_material_value_or_actual_lambda_target_is_rejected(self):
+        from promote_combat_batch import registered_armor_material_binding
+        batch = copy.deepcopy(self.batch)
+        row = next(r for r in batch['effects'] if r['id'].endswith(':native_registered_armor_material_profiles'))
+        row['native_armor_material_profiles'][0]['binding']['defense_by_native_type']['BOOTS'] = 999
+        with self.assertRaisesRegex(AssertionError, 'wrong pinned armor material profile'):
+            validate_batch(batch, self.prior(), self.census)
+        c = copy.deepcopy(self.census)
+        entry = 'net/arphex/item/ChitinArmourItem.class'
+        bootstrap = next(r for r in c['registration_bootstraps'] if r['entry'] == entry and r['index'] == 0)
+        bootstrap['arguments'] = [arg.replace('lambda$registerArmorMaterial$2', 'lambda$registerArmorMaterial$1')
+                                  for arg in bootstrap['arguments']]
+        w = next(w for w in self.native['witnesses'] if w['entry'] == entry)
+        with self.assertRaises(AssertionError): registered_armor_material_binding(w, c)
+
+    def test_exact_native_mod_bus_and_register_event_annotation_are_required(self):
+        from promote_combat_batch import registered_armor_material_binding
+        w = copy.deepcopy(next(w for w in self.native['witnesses'] if w['entry'].endswith('/ChitinArmourItem.class')))
+        w['annotations'][0]['values']['bus']['constant'] = 'GAME'
+        with self.assertRaises(AssertionError): registered_armor_material_binding(w, self.census)
+
+    def test_closed_pieces_require_native_player_and_armor_stack_membership(self):
+        for entry in self.batch['closed_item_callback_entries']:
+            name = entry.split('/')[-1][:-6]
+            b = self.body(name, 'inventoryTick')
+            self.assertTrue(any(i['opcode'] == '0xc1' and i['operand'] == 'net/minecraft/world/entity/player/Player' for i in b))
+            self.assertTrue(any('.getArmorSlots()' in str(i['operand']) for i in b))
+            self.assertTrue(any('Iterables.contains(' in str(i['operand']) for i in b))
+            forward = next(j for j, i in enumerate(b) if '/procedures/' in str(i['operand']) and '.execute(' in str(i['operand']))
+            self.assertTrue(any('.inventoryTick(' in str(i['operand']) for i in b[:forward]))
+        row = self.row('native_registered_armor_material_profiles')
+        for proof in row['implementation']:
+            if any(proof['entry'].split('/')[-1].startswith(prefix + '$')
+                   for prefix in ('EternalItem', 'ImmortalItem', 'SpacetimeItem', 'SpectralItem')):
+                self.assertEqual(proof['methods'], ['<init>'])
+
+    def test_chitin_all_three_tiers_and_juggernaut_forward_one_callback_per_piece(self):
+        for parent in ('ChitinArmourItem', 'ChitinArmourTier2Item', 'ChitinArmourTier3Item', 'JuggernautItem'):
+            for piece in ('Boots', 'Chestplate', 'Helmet', 'Leggings'):
+                b = self.body(parent + '$' + piece, 'inventoryTick')
+                self.assertEqual(sum('ChitinArmour' + piece + 'TickEventProcedure.execute(' in str(i['operand']) for i in b), 1)
+        b = self.body('ChitinArmourChestplateTickEventProcedure')
+        self.assertTrue(any('TamableAnimal.isOwnedBy(' in str(i['operand']) for i in b))
+        self.assertFalse(any('TamableAnimal.isTame(' in str(i['operand']) for i in b))
+        row = self.row('shared_chitin_tiers_juggernaut_native_worn_callbacks')
+        strength = next(c for c in row['scalable_parameter_candidates'] if c['primitive'] == 'MOB_EFFECT_PET_STRENGTH')
+        self.assertEqual(len(strength['additional_consumer_sites']), 1)
+
+    def test_chitin_helmet_scan_has_particles_but_no_glowing_status_or_native_damage(self):
+        b = self.body('ChitinArmourHelmetTickEventProcedure')
+        self.assertFalse(any('MobEffectInstance.<init>' in str(i['operand']) or '.hurt(' in str(i['operand'])
+                             or '.setTarget(' in str(i['operand']) for i in b))
+        self.assertTrue(any(str(i['operand']).startswith('particle arphex:glow_sense') for i in b))
+        row = self.row('shared_chitin_tiers_juggernaut_native_worn_callbacks')
+        self.assertFalse(any('scanpower' in parameter for c in row['scalable_parameter_candidates'] for parameter in c['parameters']))
+        terrain = next(c for c in row['scalable_parameter_candidates'] if c['primitive'] == 'NATIVE_TERRAIN_COMMAND')
+        self.assertEqual(terrain['native_command_binding']['command'],
+                         'fill ~-3 ~-3 ~-3 ~3 ~3 ~3 arphex:cobweb_passable replace cobweb')
+
+    def test_vitality_reset_after_absorption_request_and_same_amp_does_not_refresh(self):
+        b = self.body('VitalityArmourChestplateTickEventProcedure'); by = {i['offset']: i for i in b}
+        self.assertIn('MobEffectInstance.<init>', by[55]['operand'])
+        self.assertEqual(by[68]['operand'], 600.)
+        self.assertIn('.putDouble(', by[71]['operand'])
+        self.assertLess(55, 71)
+        b = self.body('VitalityArmourLeggingsTickEventProcedure'); by = {i['offset']: i for i in b}
+        self.assertEqual((by[212]['operand'], by[214]['operand'], by[303]['operand'], by[305]['operand']), (100, 2, 100, 1))
+        self.assertEqual(sum('.getAmplifier()' in str(i['operand']) for i in b), 2)
+        self.assertTrue(any(i['opcode'] == '0xa2' for i in b))  # Native >= skips refresh.
+        removes = [i['operand'] for i in self.body('VitalityArmourHelmetTickEventProcedure') if '/MobEffects.' in str(i['operand'])]
+        self.assertTrue('CONFUSION' in removes[0] and 'BLINDNESS' in removes[1])
+
+    def test_infernal_first_passenger_is_not_the_native_vehicle(self):
+        b = self.body('InfernalBootsTickEventProcedure')
+        self.assertTrue(any('.isPassenger()' in str(i['operand']) for i in b))
+        self.assertTrue(any('.getFirstPassenger()' in str(i['operand']) for i in b))
+        self.assertFalse(any('.getVehicle()' in str(i['operand']) for i in b))
+        c = self.body('InfernalChestplateTickEventProcedure')
+        air = next(j for j, i in enumerate(c) if '.setAirSupply(' in str(i['operand']))
+        self.assertEqual(c[air-1]['operand'], 300)
+        self.assertFalse(any('FIRE_RESISTANCE' in str(i['operand']) for i in b + c))
+
+    def test_umbral_two_ordered_levitations_and_inclusive_void_roll_remain_distinct(self):
+        b = self.body('UmbralBootsTickProcedure'); by = {i['offset']: i for i in b}
+        self.assertEqual((by[119]['operand'], by[122]['operand'], by[165]['operand'], by[167]['operand']), (160, 2, 50, 3))
+        b = self.body('UmbralChestplateTickProcedure'); by = {i['offset']: i for i in b}
+        self.assertEqual((by[61]['operand'], by[62]['operand']), (1, 2))
+        self.assertIn('Mth.nextInt(', by[63]['operand'])
+        self.assertTrue(any('VOID_PROTECTION' in str(i['operand']) for i in b))
+        self.assertTrue(any('VOID_COOLDOWN' in str(i['operand']) for i in b))
+
+    def test_unbreakable_raw_custom_tag_is_not_an_actual_native_component_set(self):
+        b = self.body('InfernalBootsTickEventProcedure')
+        self.assertTrue(any(str(i['operand']).startswith('item modify entity @s armor.feet') for i in b))
+        self.assertFalse(any('DataComponents.UNBREAKABLE' in str(i['operand']) for i in b))
+        raw = self.body('InfernalBootsTickEventProcedure', 'lambda$execute$0')
+        self.assertTrue(any(i['operand'] == 'Unbreakable' for i in raw))
+        self.assertTrue(any('CompoundTag.putBoolean(' in str(i['operand']) for i in raw))
