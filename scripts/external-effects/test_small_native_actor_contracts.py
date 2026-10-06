@@ -5,6 +5,111 @@ from promote_combat_batch import validate_batch
 from test_shadow_clone_contracts import NativeContractHarness
 
 
+class ButterflyBulwarkNativeTests(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m5n-butterfly-bulwark-native-contracts.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-butterfly-bulwark-native-families.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def test_exact_native_consumers_and_three_roots(self):
+        validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual((len(self.batch['effects']),len(self.batch['closed_actor_callback_entries'])),(3,3))
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects']
+                             for c in r['scalable_parameter_candidates']),32)
+        self.assertEqual((len(self.native['witnesses']),sum(len(w['methods']) for w in self.native['witnesses'])),(26,182))
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_butterfly_goals_have_no_attack_producer(self):
+        for a in ('ButterflyBewitcherEntity','ButterflyBewitcherGiantEntity'):
+            b=self.body(a,'registerGoals')
+            self.assertFalse(any(x in str(i['operand']) for i in b
+                                 for x in ('MeleeAttackGoal','NearestAttackableTargetGoal')))
+            self.assertTrue(any('BreedGoal.<init>' in str(i['operand']) for i in b))
+        cs=[c for r in self.batch['effects'] if 'butterfly' in r['id']
+            for c in r['scalable_parameter_candidates']]
+        self.assertFalse(any(c['primitive']=='NATIVE_CONDITIONAL_MELEE' for c in cs))
+
+    def test_cross_clock_destinations_and_order_are_native(self):
+        ordinary={i['offset']:i for i in self.body('ButterflyTickProcedure')}
+        giant={i['offset']:i for i in self.body('ButterflyGiantTickProcedure')}
+        self.assertEqual((ordinary[1390]['operand'],ordinary[1397]['operand']),('yboost','flyboost'))
+        self.assertEqual((giant[998]['operand'],giant[1005]['operand']),('yboost','flyboost'))
+        self.assertIn('.putDouble(',ordinary[1404]['operand'])
+        self.assertIn('.putDouble(',giant[1012]['operand'])
+        self.assertLess(991,1404)  # ordinary boost decrement BEFORE yboost copy
+        self.assertLess(1012,1072) # giant boost decrement AFTER yboost copy
+        for off in (681,1451):
+            self.assertIn('.putDouble(',ordinary[off]['operand'])
+        self.assertEqual((ordinary[1417]['operand'],ordinary[1464]['operand']),(1000.,0.))
+
+    def test_nonempty_food_has_one_live_heal_and_unreachable_duplicate(self):
+        b=self.body('ButterflyBewitcherGiantEntity','isFood')
+        self.assertEqual(sum('Blocks.' in str(i['operand']) for i in b),13)
+        b=self.body('ButterflyBewitcherGiantEntity','mobInteract');by={i['offset']:i for i in b}
+        self.assertEqual([i['offset'] for i in b if '.heal(' in str(i['operand'])],[168,217])
+        self.assertEqual((by[162]['operand'],by[214]['operand']),(1.,4.))
+        # Same false food/health predicates lead directly to their identical retest.
+        self.assertEqual((by[119]['branch_target'],by[131]['branch_target']),(186,186))
+        self.assertEqual(by[116]['operand'],by[188]['operand'])
+        self.assertEqual(by[123]['operand'],by[195]['operand'])
+        self.assertEqual(by[127]['operand'],by[199]['operand'])
+        self.assertFalse(any('.heal(' in str(i['operand']) or '.usePlayerItem(' in str(i['operand'])
+                             for i in b if 186<=i['offset']<206))
+        cs=self.row('giant_butterfly_native_owner_aura_food_heal_and_riding')['scalable_parameter_candidates']
+        self.assertEqual([c['native_consumer']['offset'] for c in cs if c['primitive']=='NATIVE_FOOD_HEAL'],[168])
+
+    def test_regeneration_requires_present_effect_and_native_constructor(self):
+        b=self.body('ButterflyGiantTickProcedure');by={i['offset']:i for i in b}
+        self.assertIn('.hasEffect(',by[1421]['operand'])
+        self.assertEqual((by[1424]['opcode'],by[1424]['branch_target']),('0x99',1472))
+        self.assertEqual((by[1462]['operand'],by[1464]['operand']),(60,0))
+        self.assertTrue(str(by[1465]['operand']).endswith('(Lnet/minecraft/core/Holder;II)V'))
+
+    def test_giant_rider_vector_precedes_owner_ejection(self):
+        b=self.body('ButterflyGiantTickProcedure')
+        own=next(i['offset'] for i in b if '.isOwnedBy(' in str(i['operand']))
+        eject=next(i['offset'] for i in b if '.stopRiding(' in str(i['operand']))
+        self.assertLess(822,own);self.assertLess(own,eject)
+        b=self.body('ButterflyBewitcherGiantEntity','mobInteract')
+        j=next(j for j,i in enumerate(b) if '.startRiding(' in str(i['operand']))
+        self.assertEqual(b[j+1]['opcode'],'0x57')
+        self.assertFalse(self.row('giant_butterfly_native_owner_aura_food_heal_and_riding')['native_actor_context']['no_owner_assignment_in_callbacks'])
+
+    def test_bulwark_parent_goals_and_native_melee_not_replaced(self):
+        b=self.body('BeetleBulwarkEntity','registerGoals')
+        self.assertEqual(b[1]['operand'],'net/minecraft/world/entity/monster/Spider.registerGoals()V')
+        self.assertTrue(any('BeetleTickMiteEntity' in str(i['operand']) for i in b))
+        b=self.body('BeetleBulwarkEntity$1','canPerformAttack')
+        self.assertTrue(any(i['operand']==.49 for i in b))
+        self.assertTrue(any('hasLineOfSight(' in str(i['operand']) for i in b))
+        cs=self.row('bulwark_native_spider_variant_status_flight_and_jockey_lifecycle')['scalable_parameter_candidates']
+        self.assertEqual(sum(c['primitive']=='NATIVE_CONDITIONAL_MELEE' for c in cs),1)
+
+    def test_bulwark_typed_statuses_and_step_override(self):
+        b=self.body('RhinoBeetleEntityTickProcedure');by={i['offset']:i for i in b}
+        self.assertEqual([i['offset'] for i in b if '.addEffect(' in str(i['operand'])],[153,200,290,337,599,668])
+        for off,d,a in [(153,60,0),(200,60,0),(290,60,0),(337,60,1),(599,60,0),(668,60,5)]:
+            j=next(j for j,i in enumerate(b) if i['offset']==off)
+            ctor=j-1
+            nums=[i['operand'] for i in b[ctor-4:ctor]]
+            self.assertEqual(nums,[d,a,0,0])
+        self.assertEqual(by[1064]['operand'],1.)
+        self.assertIn('.setBaseValue(',by[1065]['operand'])
+
+    def test_bulwark_first_passenger_cleanup_latch_not_admission(self):
+        b=self.body('RhinoBeetleEntityTickProcedure');by={i['offset']:i for i in b}
+        self.assertEqual((by[1078]['opcode'],by[1078]['branch_target']),('0x9a',1141))
+        self.assertEqual(by[1102]['operand'],'net/minecraft/world/entity/monster/Skeleton')
+        self.assertIn('.discard(',by[1127]['operand'])
+        self.assertEqual((by[1135]['operand'],by[1137]['operand']),('despawn_skeleton',1))
+        self.assertLess(1127,1138)
+        b=self.body('BeetleBulwarkEntity','finalizeSpawn')
+        parent=next(i['offset'] for i in b if 'Spider.finalizeSpawn(' in str(i['operand']))
+        child=next(i['offset'] for i in b if 'OnInitialEntitySpawnProcedure.execute(' in str(i['operand']))
+        self.assertLess(parent,child)
+
+
 class GroundFlyingNativeTests(NativeContractHarness, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
