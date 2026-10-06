@@ -5,6 +5,111 @@ from promote_combat_batch import validate_batch
 from test_shadow_clone_contracts import NativeContractHarness
 
 
+class TermiteColonyNativeTests(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m5l-termite-colony-native-contracts.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-termite-colony-native-family.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def test_exact_native_consumers_and_six_related_roots(self):
+        validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual((len(self.batch['effects']),len(self.batch['closed_actor_callback_entries'])),(6,6))
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects']
+                             for c in r['scalable_parameter_candidates']),48)
+        self.assertEqual((len(self.native['witnesses']),sum(len(w['methods']) for w in self.native['witnesses'])),(42,220))
+        self.assertFalse(any(r.get('candidate_additions') for r in self.batch['record_refinements']))
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_shared_healing_only_worker_before_admission(self):
+        b=self.body('TermiteTunnelerWorkerEntity','hurt')
+        helper=next(i['offset'] for i in b if 'AntArsonistWorkerEntityIsHurtProcedure.execute(' in str(i['operand']))
+        self.assertLess(helper,next(i['offset'] for i in b if i['operand']=='net/minecraft/world/damagesource/DamageSource.getDirectEntity()Lnet/minecraft/world/entity/Entity;'))
+        for a in ('TermiteTunnelerSoldierEntity','TermiteTunnelerKingEntity','TermiteTunnelerQueenEntity'):
+            self.assertFalse(any('IsHurtProcedure.execute(' in str(i['operand']) for i in self.body(a,'hurt')))
+        candidates=[c for r in self.batch['effects'] for c in r['scalable_parameter_candidates']]
+        self.assertFalse(any(c['primitive']=='MOB_EFFECT_INSTANT_HEALTH' for c in candidates))
+        previous=read_json(OUT/'mod-reviews/arphex.json')
+        consumers=[c for r in previous['effects'] for c in r['scalable_parameter_candidates']
+                   if c['native_consumer']['entry'].endswith('/AntArsonistWorkerEntityIsHurtProcedure.class')]
+        self.assertEqual(len(consumers),1)
+
+    def test_worker_entry_physics_precedes_clock_and_other_recipient_write(self):
+        b=self.body('TermiteTunnelerWorkerOnEntityTickUpdateProcedure');by={i['offset']:i for i in b}
+        self.assertIn('.noPhysicsZ',by[429]['operand'])
+        self.assertIn('.setNoGravity(',by[435]['operand'])
+        self.assertIn('.putBoolean(',by[559]['operand'])
+        self.assertIn('.putBoolean(',by[596]['operand'])
+        # Native writes later target-nearest Worker's tag, not the actor parameter.
+        j=next(j for j,i in enumerate(b) if i['offset']==1853)
+        self.assertTrue(any('Stream.findFirst(' in str(i['operand']) for i in b[j-10:j]))
+        self.assertEqual(b[j-2]['operand'],'tunneling')
+        self.assertEqual(b[j-1]['operand'],0)
+        self.assertFalse(any('.destroyBlock(' in str(i['operand']) or '.setBlock(' in str(i['operand'])
+                             for i in b))
+
+    def test_alate_delayed_vectors_have_no_native_recheck(self):
+        b=self.body('TermiteTunnelerAlateOnEntityTickUpdateProcedure');by={i['offset']:i for i in b}
+        self.assertEqual([i['offset'] for i in b if '.queueServerWork(' in str(i['operand'])],[288,621])
+        self.assertEqual((by[280]['operand'],by[613]['operand']),(10,17))
+        for m in ('lambda$execute$0','lambda$execute$1'):
+            b=self.body('TermiteTunnelerAlateOnEntityTickUpdateProcedure',m)
+            self.assertTrue(any('.setDeltaMovement(' in str(i['operand']) for i in b))
+            self.assertFalse(any(x in str(i['operand']) for i in b
+                                 for x in ('.isAlive(','.level(','.getTarget(','.getBoolean(')))
+        b=self.body('TermiteTunnelerAlateOnEntityTickUpdateProcedure','lambda$execute$0')
+        self.assertTrue(any('.getYRot()' in str(i['operand']) for i in b))
+        self.assertTrue(any('Vec3.y()' in str(i['operand']) for i in b))
+
+    def test_king_native_taming_is_distinct_from_empty_food(self):
+        b=self.body('TermiteTunnelerKingEntity','isFood')
+        self.assertEqual(b[0]['operand'],'java/util/List.of()Ljava/util/List;')
+        self.assertTrue(any('List.contains(' in str(i['operand']) for i in b))
+        b=self.body('TermiteTunnelerKingOnEntityTickUpdateProcedure');by={i['offset']:i for i in b}
+        self.assertIn('DATA_larvae',by[677]['operand'])
+        self.assertIn('.tame(Lnet/minecraft/world/entity/player/Player;)V',by[989]['operand'])
+        self.assertFalse(any('.getOwner(' in str(i['operand']) for i in b if 677<i['offset']<989))
+        b=self.body('TermiteTunnelerKingEntity$5','canPerformAttack')
+        self.assertTrue(any('isTimeToAttack()' in str(i['operand']) for i in b))
+        self.assertFalse(any('DATA_larvae' in str(i['operand']) or 'DATA_following' in str(i['operand']) for i in b))
+
+    def test_queen_has_no_local_attack_goal_or_flag_alias(self):
+        b=self.body('TermiteTunnelerQueenEntity','<init>')
+        j=next(j for j,i in enumerate(b) if '.setNoAi(' in str(i['operand']))
+        self.assertEqual(b[j-1]['operand'],1)
+        w=next(w for w in self.native['witnesses'] if w['entry'].endswith('/TermiteTunnelerQueenEntity.class'))
+        self.assertFalse(any(m['name']=='registerGoals' for m in w['methods']))
+        b=self.body('TermiteTunnelerQueenOnEntityTickUpdateProcedure')
+        self.assertTrue(any('PlayerVariables.totemfatigueZ' in str(i['operand']) for i in b))
+        self.assertFalse(any(i['operand']=='queenslowtotem' for i in b))
+        self.assertTrue(any('MobEffects.DIG_SLOWDOWN' in str(i['operand']) for i in b))  # admission read
+        constructors=[j for j,i in enumerate(b) if 'MobEffectInstance.<init>' in str(i['operand'])]
+        self.assertEqual(len(constructors),1)
+        self.assertTrue(any('MobEffects.REGENERATION' in str(i['operand'])
+                            for i in b[constructors[0]-8:constructors[0]]))
+        r=self.row('termite_queen_native_summon_regeneration_and_flag_delivery')
+        self.assertFalse(any(c['primitive']=='NATIVE_CONDITIONAL_MELEE' for c in r['scalable_parameter_candidates']))
+
+    def test_queen_death_nearest_query_not_spawn_reference(self):
+        b=self.body('TermiteTunnelerQueenEntity','die')
+        self.assertLess(next(i['offset'] for i in b if '.die(' in str(i['operand'])),
+                        next(i['offset'] for i in b if 'TermiteTunnelerQueenEntityDiesProcedure.execute(' in str(i['operand'])))
+        b=self.body('TermiteTunnelerQueenEntityDiesProcedure','lambda$execute$2')
+        self.assertEqual(sum('.getEntitiesOfClass(' in str(i['operand']) for i in b),2)
+        self.assertTrue(any('DATA_larvae' in str(i['operand']) for i in b))
+        self.assertFalse(any('.setOwner(' in str(i['operand']) or '.isAlive(' in str(i['operand']) for i in b))
+
+    def test_replacement_latch_discard_two_distinct_rolls_and_unowned_children(self):
+        b=self.body('RandomTermiteOnEntityTickUpdateProcedure')
+        latch=next(i['offset'] for i in b if '.putBoolean(' in str(i['operand']))
+        discard=next(i['offset'] for i in b if '.discard(' in str(i['operand']))
+        rolls=[i['offset'] for i in b if 'Mth.nextInt(' in str(i['operand'])]
+        self.assertEqual(rolls,[51,118])
+        self.assertLess(latch,discard);self.assertLess(discard,rolls[0])
+        self.assertEqual([i['offset'] for i in b if 'EntityType.spawn(' in str(i['operand'])],[92,215,270])
+        self.assertFalse(any('.setOwner(' in str(i['operand']) or '.tame(' in str(i['operand']) for i in b))
+
+
 class AntColonyNativeTests(NativeContractHarness, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
