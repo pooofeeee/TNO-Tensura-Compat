@@ -62,6 +62,39 @@ def literal_attribute_binding(method,offset):
                 value_offset=value['offset'],native_value=value['operand'])
 
 
+def literal_item_attribute_binding(method, offset):
+    """Bind exact item-modifier literals or native DiggerItem arguments.
+
+    No tier bonus, inherited base value or final attack damage is inferred.
+    The tier declaration/consumer must be supplied separately when relevant.
+    """
+    body = method['instructions']
+    at = next(n for n, i in enumerate(body) if i['offset'] == offset)
+    operand = body[at]['operand']
+    if operand == 'net/minecraft/world/entity/ai/attributes/AttributeModifier.<init>(Lnet/minecraft/resources/ResourceLocation;DLnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;)V':
+        holder, allocation, duplicate, identifier, value, operation = body[at-6:at]
+        slot, consumer = body[at+1:at+3]
+        assert holder['opcode'] == '0xb2' and '/Attributes.' in str(holder['operand'])
+        assert allocation['opcode'] == '0xbb' and allocation['operand'] == 'net/minecraft/world/entity/ai/attributes/AttributeModifier'
+        assert duplicate['opcode'] == '0x59' and identifier['opcode'] == '0xb2'
+        assert value['opcode'] in ('0xe', '0xf', '0x14') and type(value['operand']) in (int, float)
+        assert operation['opcode'] == '0xb2' and '/AttributeModifier$Operation.' in str(operation['operand'])
+        assert slot['opcode'] == '0xb2' and '/EquipmentSlotGroup.' in str(slot['operand'])
+        assert consumer['operand'] == 'net/minecraft/world/item/component/ItemAttributeModifiers$Builder.add(Lnet/minecraft/core/Holder;Lnet/minecraft/world/entity/ai/attributes/AttributeModifier;Lnet/minecraft/world/entity/EquipmentSlotGroup;)Lnet/minecraft/world/item/component/ItemAttributeModifiers$Builder;'
+        return dict(kind='ITEM_ATTRIBUTE_MODIFIER', attribute_symbol=holder['operand'],
+                    modifier_id_symbol=identifier['operand'], native_value=value['operand'],
+                    operation_symbol=operation['operand'], slot_symbol=slot['operand'],
+                    value_offset=value['offset'], builder_offset=consumer['offset'])
+    assert operand == 'net/minecraft/world/item/DiggerItem.createAttributes(Lnet/minecraft/world/item/Tier;FF)Lnet/minecraft/world/item/component/ItemAttributeModifiers;'
+    tier, damage, speed = body[at-3:at]
+    assert tier['opcode'] == '0xb2' and tier['operand'].endswith('Lnet/minecraft/world/item/Tier;')
+    for value in (damage, speed):
+        assert value['opcode'] in ('0xb', '0xc', '0xd', '0x12', '0x13') and type(value['operand']) in (int, float)
+    return dict(kind='DIGGER_ATTRIBUTE_ARGUMENTS', tier_symbol=tier['operand'],
+                attack_bonus=damage['operand'], attack_speed=speed['operand'],
+                damage_offset=damage['offset'], speed_offset=speed['offset'])
+
+
 def literal_command_binding(method,offset):
     """Bind a directly authored command argument; decline computed strings."""
     body=method['instructions'];at=next(n for n,i in enumerate(body) if i['offset']==offset)
@@ -330,6 +363,7 @@ def validate_batch(batch,review,census):
             durability=(candidate['primitive']=='ITEM_DURABILITY_REPAIR' and
                         hit['operand']=='net/minecraft/world/item/ItemStack.setDamageValue(I)V')
             attribute='native_attribute_binding' in candidate
+            item_attribute='native_item_attribute_binding' in candidate
             command='native_command_binding' in candidate
             if command:
                 assert literal_command_binding(m,consumer['offset'])==candidate['native_command_binding'],('wrong native literal command',candidate)
@@ -417,7 +451,17 @@ def validate_batch(batch,review,census):
                 component=next(c for c in row['components'] if c['primitive']==candidate['primitive'])
                 parameter=candidate['parameters'][0]
                 assert component['numerical_parameters'][parameter]==candidate['native_attribute_binding']['native_value'],('component differs from pinned native attribute',candidate)
-            assert hit['opcode']=='0xb5' or rng or terrain or explosion or durability or attribute or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or synched_clock or clock_distribution or vector_scale or registry_spawn or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
+            if item_attribute:
+                binding=literal_item_attribute_binding(m,consumer['offset'])
+                assert binding==candidate['native_item_attribute_binding'],('wrong native item attribute',candidate)
+                assert candidate['primitive']=='NATIVE_WEAPON_ATTRIBUTES'
+                component=next(c for c in row['components'] if c['primitive']==candidate['primitive'])
+                roles=candidate['native_item_attribute_parameter_roles']
+                assert set(roles)==set(candidate['parameters'])
+                allowed={'native_value'} if binding['kind']=='ITEM_ATTRIBUTE_MODIFIER' else {'attack_bonus','attack_speed'}
+                assert set(roles.values())==allowed and len(roles)==len(allowed)
+                assert all(component['numerical_parameters'][parameter]==binding[role] for parameter,role in roles.items()),('component differs from pinned item attribute',candidate)
+            assert hit['opcode']=='0xb5' or rng or terrain or explosion or durability or attribute or item_attribute or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or synched_clock or clock_distribution or vector_scale or registry_spawn or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
             if candidate['primitive'].startswith('MOB_EFFECT_') or 'native_holder_symbol' in candidate:
                 symbol,allocation,load=effect_holder_binding(m,consumer['offset'])
                 assert (symbol,allocation,load)==(candidate['native_holder_symbol'],
@@ -452,6 +496,8 @@ def validate_batch(batch,review,census):
                     assert (other_binding['attribute_symbol'],other_binding['native_value'])==(
                         candidate['native_attribute_binding']['attribute_symbol'],
                         candidate['native_attribute_binding']['native_value']),('auxiliary attribute literal differs',site)
+                if item_attribute:
+                    assert literal_item_attribute_binding(other_method,site['offset'])==candidate['native_item_attribute_binding'],('auxiliary item attribute differs',site)
                 if command:
                     other_command=literal_command_binding(other_method,site['offset'])
                     shared=candidate.get('native_shared_command_tokens')
