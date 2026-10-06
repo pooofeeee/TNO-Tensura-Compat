@@ -1622,3 +1622,109 @@ class NativeCrawlingContainerContracts(NativeContractHarness, unittest.TestCase)
         self.assertEqual(b[2630]['operand'],.5)
         candidates=self.batch['record_refinements'][0]['candidate_additions']
         self.assertFalse(any('pocketdimension' in p or '257'==p for c in candidates for p in c['parameters']))
+
+
+class NativeEggScarabContracts(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m6o-native-egg-and-scarab-entrypoints.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-native-egg-scarab-support.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def test_native_encounter_closure_adds_no_duplicate_actor_numeric_profiles(self):
+        validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual(len(self.batch['effects']),1)
+        self.assertEqual(self.batch['effects'][0]['primary_classification'],'BINARY_MECHANIC')
+        self.assertEqual(self.batch['effects'][0]['scalable_parameter_candidates'],[])
+        self.assertEqual(len(self.batch['closed_item_callback_entries']),76)
+        self.assertEqual(len(self.batch['effects'][0]['native_dynamic_egg_registry_bindings']),57)
+        self.assertEqual(len(self.batch['effects'][0]['native_explicit_egg_registry_bindings']),7)
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_all_64_native_egg_callbacks_discard_parent_result_and_return_success(self):
+        count=0
+        for w in self.native['witnesses']:
+            for m in w['methods']:
+                if '/item/' not in w['entry'] or m['name']!='useOn':continue
+                a=m['instructions'];parent=next(j for j,i in enumerate(a) if 'Item.useOn(' in str(i['operand']))
+                self.assertEqual(a[parent+1]['opcode'],'0x57')
+                self.assertIn('InteractionResult.SUCCESS',a[-2]['operand'])
+                self.assertTrue(any('Procedure.execute(' in str(i['operand']) for i in a[parent+2:]))
+                count+=1
+        self.assertEqual(count,64)
+
+    def test_dynamic_summon_uses_actual_item_registry_and_no_tame_or_material_consumer(self):
+        b=self.body('EggRightClickBlockProcedure')
+        words=[i['operand'] for i in b if i['opcode'] in ['0x12','0x13']]
+        self.assertIn('_egg',words);self.assertIn('',words)
+        self.assertTrue(any('.getKey(' in str(i['operand']) for i in b))
+        self.assertTrue(any('String.replace(' in str(i['operand']) for i in b))
+        self.assertTrue(any('String.strip(' in str(i['operand']) for i in b))
+        for forbidden in ['.shrink(','.setOwner(','.tame(','.hurt(','.addEffect(']:
+            self.assertFalse(any(forbidden in str(i['operand']) for i in b))
+
+    def test_every_dynamic_target_has_exact_registry_key_field_and_native_factory(self):
+        item={i['offset']:i for i in self.body('ArphexModItems','<clinit>')}
+        entity={i['offset']:i for i in self.body('ArphexModEntities','<clinit>')}
+        boot={(b['entry'],b['index']):b for b in self.census['registration_bootstraps']}
+        for r in self.batch['effects'][0]['native_dynamic_egg_registry_bindings']:
+            ib=r['native_item'];eb=r['native_target_registration']
+            self.assertEqual('arphex:'+item[ib['key_offset']]['operand'],ib['key'])
+            self.assertEqual(ib['factory'],r['item_entry'])
+            self.assertEqual(ib['key'].replace('_egg','').strip(),r['native_derived_summon_key'])
+            self.assertEqual('arphex:'+entity[eb['key_offset']]['operand'],r['native_derived_summon_key'])
+            self.assertIn('ArphexModEntities.register(',entity[eb['register_offset']]['operand'])
+            self.assertTrue(eb['factory']);self.assertFalse(eb['native_no_summon'])
+            for packet,binding in [('ArphexModItems',ib),('ArphexModEntities',eb)]:
+                bs=boot[('net/arphex/init/'+packet+'.class',binding['bootstrap'])]
+                self.assertTrue(any(a.startswith(binding['factory'][:-6]+'.<init>(') for a in bs['arguments']))
+            self.assertTrue(r['summonable'])
+
+    def test_explicit_spawn_reason_and_yaw_are_native_not_tooltip_source(self):
+        yaw={'DiabolosDecimatorEggRightclickedOnBlockProcedure','DraconicVoidlasherEggRightclickedOnBlockProcedure','ScorpioidBloodlusterEggRightclickedOnBlockProcedure'}
+        for r in self.batch['effects'][0]['native_explicit_egg_registry_bindings']:
+            name=r['helper_entry'].split('/')[-1][:-6];b=self.body(name)
+            self.assertEqual(sum('EntityType.spawn(' in str(i['operand']) for i in b),1)
+            self.assertTrue(any('MobSpawnType.MOB_SUMMONED' in str(i['operand']) for i in b))
+            self.assertEqual(any('.setYRot(' in str(i['operand']) for i in b),name in yaw)
+            self.assertFalse(any('.setOwner(' in str(i['operand']) or '.addEffect(' in str(i['operand']) or '.hurt(' in str(i['operand']) for i in b))
+
+    def test_cutting_material_and_tormentor_encounter_order_have_separate_native_consumers(self):
+        b=self.body('FlytrapCuttingRightclickedOnBlockProcedure')
+        spawn=next(j for j,i in enumerate(b) if 'EntityType.spawn(' in str(i['operand']))
+        shrink=next(j for j,i in enumerate(b) if '.shrink(' in str(i['operand']))
+        self.assertLess(spawn,shrink)
+        self.assertFalse(any('creativespectator'==i['operand'] for i in b))
+        self.assertTrue(any('ArphexModBlocks.CRAWLING_COMPOST' in str(i['operand']) for i in b))
+        a=self.body('TormentorEggRightclickedOnBlockProcedure')
+        offsets={i['operand']:j for j,i in enumerate(a) if i['opcode']=='0xb5'}
+        health=next(j for k,j in offsets.items() if '.tormentor_healthD' in k)
+        tier=next(j for k,j in offsets.items() if '.tormentor_tierD' in k)
+        spawn=next(j for j,i in enumerate(a) if 'EntityType.spawn(' in str(i['operand']))
+        self.assertEqual(a[health-1]['operand'],1024.)
+        self.assertEqual(a[tier-1]['operand'],1.)
+        self.assertLess(health,spawn);self.assertLess(tier,spawn)
+        self.assertTrue(all(j>spawn for k,j in offsets.items() if any('.tormentor_'+axis+'D' in k for axis in 'xyz')))
+
+    def test_green_gold_is_only_exact_native_scarab_helper_caller(self):
+        from collect_combat_census import decode_sites
+        callers=[(m['entry'],m['method']) for m in self.census['methods']
+                 if any('BrownScarabRightclickedProcedure.execute(' in s['operand'] for s in decode_sites(self.census,m,'calls'))]
+        self.assertEqual(callers,[('net/arphex/item/GreenGoldScarabItem.class','use')])
+        for n in ['Brown','Green','Iridescent','Purple','Golden']:
+            b=self.body(n+'ScarabItem','use')
+            self.assertTrue(any('startUsingItem' in str(i['operand']) for i in b))
+            self.assertFalse(any('/procedures/' in str(i['operand']) for i in b))
+        r=self.batch['record_refinements'][0]
+        self.assertEqual(r['id'],'arphex:bulwark_native_spider_variant_status_flight_and_jockey_lifecycle')
+        self.assertFalse(r.get('candidate_additions'))
+
+    def test_scarab_release_retains_conditional_material_and_native_cooldown_not_new_damage(self):
+        b=self.body('BrownScarabRightclickedProcedure')
+        for forbidden in ['.hurt(','.heal(','.addEffect(','.setOwner(','.tame(']:
+            self.assertFalse(any(forbidden in str(i['operand']) for i in b))
+        cd=next(j for j,i in enumerate(b) if '.addCooldown(' in str(i['operand']))
+        self.assertEqual(b[cd-1]['operand'],10)
+        self.assertEqual(sum('.clearOrCountMatchingItems(' in str(i['operand']) for i in b),6)
+        self.assertTrue(any('BeetleBulwarkEntity.DATA_randsize' in str(i['operand']) for i in b))
+        self.assertTrue(any(i['operand']=='scarabt' for i in b))
