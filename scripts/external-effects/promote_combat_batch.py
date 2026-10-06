@@ -353,7 +353,7 @@ def validate_batch(batch,review,census):
                 assert component['numerical_parameters'][candidate['parameters'][0]]==binding['native_value']
             clock_distribution='native_synched_int_distribution_binding' in candidate
             if clock_distribution:
-                assert candidate['primitive']=='NATIVE_CLOCK_DISTRIBUTION' and candidate['parameters']==['minimum','maximum']
+                assert candidate['primitive'] in ('NATIVE_CLOCK_DISTRIBUTION','NATIVE_AREA_SIZE') and candidate['parameters']==['minimum','maximum']
                 binding=synched_int_distribution_binding(m,consumer['offset'])
                 assert binding==candidate['native_synched_int_distribution_binding']
                 component=next(c for c in row['components'] if c['primitive']==candidate['primitive'])
@@ -449,7 +449,31 @@ def validate_batch(batch,review,census):
                         candidate['native_attribute_binding']['attribute_symbol'],
                         candidate['native_attribute_binding']['native_value']),('auxiliary attribute literal differs',site)
                 if command:
-                    assert literal_command_binding(other_method,site['offset'])['command']==candidate['native_command_binding']['command'],('auxiliary command literal differs',site)
+                    other_command=literal_command_binding(other_method,site['offset'])
+                    shared=candidate.get('native_shared_command_tokens')
+                    if shared:
+                        # Different native commands may consume one explicitly
+                        # authored coefficient. Prove only those numeric tokens;
+                        # preserve every full command and its distinct gates.
+                        assert other_command==site['native_command_binding']
+                        assert set(shared)==set(candidate['parameters'])
+                        primary_tokens=candidate['native_command_binding']['command'].split()
+                        other_tokens=other_command['command'].split()
+                        component=next(c for c in row['components'] if c['primitive']==candidate['primitive'])
+                        for parameter,role in shared.items():
+                            positions=role['indices'];assert positions and all(type(n) is int and n>=0 for n in positions)
+                            tokens=[primary_tokens[n] for n in positions]
+                            assert tokens==[other_tokens[n] for n in positions],('shared command coefficient differs',site,parameter)
+                            assert all(re.fullmatch(r'[~^]?-?(?:\d+(?:\.\d*)?|\.\d+)',t) for t in tokens)
+                            values=[float(t.lstrip('~^')) for t in tokens]
+                            if role.get('absolute',False):
+                                assert candidate['primitive']=='TERRAIN_COMMAND' and parameter=='half_extent'
+                                assert positions==[1,2,3,4,5,6] and primary_tokens[0]=='fill'
+                                assert primary_tokens[7:9]==['air','replace'] and other_tokens[0]=='fill' and other_tokens[7:9]==['air','replace']
+                                values=[abs(v) for v in values]
+                            assert all(v==component['numerical_parameters'][parameter] for v in values)
+                    else:
+                        assert other_command['command']==candidate['native_command_binding']['command'],('auxiliary command literal differs',site)
                 if vector_scale:
                     assert literal_vector_scale_binding(other_method,site['offset'])['native_value']==candidate['native_vector_scale_binding']['native_value'],('auxiliary vector coefficient differs',site)
                 if tag_literal:

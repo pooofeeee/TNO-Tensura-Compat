@@ -8,6 +8,124 @@ from test_shadow_clone_contracts import NativeContractHarness
 
 
 
+class NativeInitialCarrierTests(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m5y-native-initial-tormentor-carriers.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-native-initial-tormentor-carriers.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def test_seven_roots_six_contracts_reuse_protected_callbacks(self):
+        validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual((len(self.batch['effects']),len(self.batch['closed_actor_callback_entries'])),(6,7))
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects'] for c in r['scalable_parameter_candidates']),59)
+        self.assertEqual((len(self.native['witnesses']),sum(len(w['methods']) for w in self.native['witnesses'])),(93,528))
+        for root in ('TormentorLarvaeEntity','TormentorScorpioidSummonEntity','TormentorVoidlasherSummonEntity'):
+            w=next(w for w in self.native['witnesses'] if w['entry'].endswith('/'+root+'.class'))
+            self.assertNotIn('baseTick',{m['name'] for m in w['methods']})
+
+    def test_larva_physical_size_uses_integer_division_before_float_round(self):
+        b=self.body('TormentorLarvaeBoundingBoxScaleProcedure');by={i['offset']:i for i in b}
+        self.assertEqual((by[38]['operand'],by[40]['opcode'],by[41]['opcode']),(10,'0x6c','0x86'))
+        self.assertEqual(by[42]['operand'],'java/lang/Math.round(F)I')
+        self.assertTrue(any('TormentorLarvaeBoundingBoxScaleProcedure.execute(' in str(i['operand']) for i in self.body('TormentorLarvaeEntity','getDefaultDimensions')))
+        b=self.body('TormentorLarvaeOnInitialEntitySpawnProcedure');by={i['offset']:i for i in b}
+        self.assertEqual((by[41]['operand'],by[43]['operand']),(10,50))
+        self.assertIn('.nextInt(',by[45]['operand']);self.assertIn('SynchedEntityData.set(',by[51]['operand'])
+
+    def test_area_distribution_rejects_wrong_literal_bound(self):
+        altered=copy.deepcopy(self.batch)
+        row=next(r for r in altered['effects'] if r['id'].endswith('tormentor_larvae_native_root_melee_and_integer_body_size'))
+        next(c for c in row['components'] if c['primitive']=='NATIVE_AREA_SIZE')['numerical_parameters']['maximum']=51
+        with self.assertRaises(AssertionError):validate_batch(altered,self.prior(),self.census)
+
+    def test_tendril_respite_reads_self_local_seven(self):
+        b=self.body('TormentorTendrilOnEntityTickUpdateProcedure');by={i['offset']:i for i in b}
+        self.assertEqual((by[1635]['opcode'],by[1635]['local_index']),('0x19',7))
+        self.assertIn('.getData(',by[1640]['operand']);self.assertIn('PlayerVariables.tormentor_respiteD',by[1646]['operand'])
+        self.assertIn('.setDeltaMovement(',by[1696]['operand'])
+        self.assertFalse(any('.hurt(' in str(i['operand']) or '.isAlliedTo(' in str(i['operand']) for i in b))
+
+    def test_tendril_beam_contains_native_status_command_and_separate_contact(self):
+        b=self.body('TormentorTendrilOnEntityTickUpdateProcedure')
+        self.assertTrue(any(i['operand']=='effect give @e[type=player,distance=..3] arphex:torment 2 0' for i in b))
+        self.assertTrue(any(i['operand']==100 and i['opcode']=='0x10' for i in b))
+        self.assertTrue(any(i['operand']==.01 for i in b))
+        goal=self.body('TormentorTendrilEntity$1','tick')
+        self.assertTrue(any('.intersects(' in str(i['operand']) for i in goal))
+        self.assertTrue(any('.doHurtTarget(' in str(i['operand']) for i in goal))
+        self.assertFalse(any('isTimeToAttack' in str(i['operand']) for i in goal))
+
+    def test_sun_source_is_self_and_status_follows_ignored_hurt(self):
+        b=self.body('SummonSunBlastOnEntityTickUpdateProcedure');by={i['offset']:i for i in b}
+        self.assertEqual(by[245]['local_index'],7)
+        self.assertIn('DamageSource.<init>(Lnet/minecraft/core/Holder;Lnet/minecraft/world/entity/Entity;)V',by[247]['operand'])
+        self.assertEqual(by[250]['operand'],40.0)
+        for hurt,effect in [(252,299),(328,375)]:
+            j=next(j for j,i in enumerate(b) if i['offset']==hurt)
+            self.assertEqual(b[j+1]['opcode'],'0x57')
+            self.assertIn('.addEffect(',by[effect]['operand'])
+        r=self.row('summon_sun_blast_native_generic_field_motion_and_size')
+        self.assertEqual(sum(c['primitive']=='NATIVE_DAMAGE_REQUEST' for c in r['scalable_parameter_candidates']),1)
+
+    def test_sun_damage_query_precedes_live_size_growth_and_shrink(self):
+        b=self.body('SummonSunBlastOnEntityTickUpdateProcedure');by={i['offset']:i for i in b}
+        self.assertIn('.inflate(',by[116]['operand'])
+        self.assertEqual((by[933]['operand'],by[934]['opcode']),(1,'0x64'))
+        self.assertEqual((by[1022]['operand'],by[1023]['opcode']),(1,'0x60'))
+        self.assertIn('SynchedEntityData.set(',by[938]['operand']);self.assertIn('SynchedEntityData.set(',by[1027]['operand'])
+        self.assertFalse(any('.setOwner(' in str(i['operand']) or '.isAlliedTo(' in str(i['operand']) for i in b))
+
+    def test_initial_hurt_effect_precedes_direct_player_native_rejection(self):
+        b=self.body('TormentorInitialEntity','hurt')
+        helper=next(i['offset'] for i in b if 'TormentorInitialEntityIsHurtProcedure.execute(' in str(i['operand']))
+        player=next(i['offset'] for i in b if i['opcode']=='0xc1' and i['operand']=='net/minecraft/world/entity/player/Player')
+        self.assertLess(helper,player)
+        b=self.body('TormentorSpawnConditionProcedure')
+        self.assertEqual(sum('DWELLERS_FREQUENCY' in str(i['operand']) for i in b),5)
+        self.assertFalse(any(type(i['operand']) is float and i['operand']==4.0 for i in b))
+        self.assertEqual(sum(type(i['operand']) is float and i['operand']==3.0 for i in b),2)
+
+    def test_scorpioid_initial_spawn_status_is_self_not_entity_iterator(self):
+        from promote_combat_batch import effect_receiver_binding
+        w=next(w for w in self.native['witnesses'] if w['entry'].endswith('/ScorpioidInitialOnInitialEntitySpawnProcedure.class'))
+        m=next(m for m in w['methods'] if m['name']=='lambda$execute$15')
+        self.assertEqual(effect_receiver_binding(m,221)['origin_local_index'],0)
+        b=self.body('ScorpioidInitialEntity','hurt');by={i['offset']:i for i in b}
+        self.assertIn('DamageSource.getEntity()',by[18]['operand'])
+        self.assertIn('ScorpioidInitialEntityIsHurtProcedure.execute(',by[21]['operand'])
+        self.assertIn('DamageSource.getDirectEntity()',by[25]['operand'])
+
+    def test_summon_flee_guard_is_goal_gate_and_voidlasher_has_no_melee(self):
+        for n in range(1,8):
+            for method in ('canUse','canContinueToUse'):
+                b=self.body('TormentorScorpioidSummonEntity$'+str(n),method)
+                self.assertTrue(any('GoToTormentorProcedure.execute(' in str(i['operand']) for i in b))
+        b=self.body('TormentorVoidlasherSummonEntity','registerGoals')
+        self.assertFalse(any('MeleeAttackGoal' in str(i['operand']) for i in b))
+        self.assertTrue(any('HurtByTargetGoal' in str(i['operand']) for i in b))
+        r=self.row('tormentor_scorpioid_voidlasher_native_root_setup_and_goal_gates')
+        self.assertEqual(sum(c['primitive']=='NATIVE_CONDITIONAL_MELEE' for c in r['scalable_parameter_candidates']),1)
+
+    def test_shared_command_coefficients_reject_changed_extent_and_wrong_token(self):
+        altered=copy.deepcopy(self.batch)
+        r=next(r for r in altered['effects'] if r['id'].endswith('scorpioid_initial_native_stalking_replacement_and_terrain'))
+        next(c for c in r['components'] if c['primitive']=='TERRAIN_COMMAND')['numerical_parameters']['half_extent']=4.0
+        with self.assertRaises(AssertionError):validate_batch(altered,self.prior(),self.census)
+        altered=copy.deepcopy(self.batch)
+        r=next(r for r in altered['effects'] if r['id'].endswith('scorpioid_initial_native_stalking_replacement_and_terrain'))
+        c=next(c for c in r['scalable_parameter_candidates'] if c['primitive']=='NATIVE_TELEPORT_COMMAND' and c['parameters']==['vertical'])
+        c['native_shared_command_tokens']['vertical']['indices']=[8]
+        with self.assertRaises(AssertionError):validate_batch(altered,self.prior(),self.census)
+
+    def test_current_nearest_blindness_does_not_capture_original_player(self):
+        b=self.body('ScorpioidInitialOnEntityTickUpdateProcedure','lambda$execute$14')
+        self.assertTrue(any('Player' in str(i['operand']) for i in b))
+        self.assertTrue(any(i['operand']==250.0 for i in b))
+        self.assertTrue(any('.getEntitiesOfClass(' in str(i['operand']) for i in b))
+        self.assertFalse(any('getStringUUID' in str(i['operand']) or '.isAlive(' in str(i['operand']) for i in b))
+
+
 class NativeBossRootTests(NativeContractHarness, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
