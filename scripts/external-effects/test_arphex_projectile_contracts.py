@@ -362,6 +362,104 @@ class ProjectileControlTests(unittest.TestCase):
         self.assertEqual(sum(r['id']=='arphex:shared_genesis_projectile_block_explosion' for r in self.batch['effects']),1)
 
 
+class ProjectileAreaFlameTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.native=read_json(OUT/'native-evidence/arphex-remaining-intrinsic-projectiles.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+        cls.batch=read_json(OUT/'arphex-r2m3d-intrinsic-flame-area-and-spark.json')
+
+    def method(self,name,method='execute'):
+        w=next(w for w in self.native['witnesses'] if w['entry'].endswith('/'+name+'.class'))
+        return next(m for m in w['methods'] if m['name']==method)
+
+    def test_four_contracts_cover_five_native_callback_paths_with_exact_scalar_consumers(self):
+        review=read_json(OUT/'mod-reviews/arphex.json');ids={r['id'] for r in self.batch['effects']}
+        review['effects']=[r for r in review['effects'] if r['id'] not in ids]
+        review['paths']=[p for p in review['paths'] if not set(p['effect_ids'])&ids]
+        self.assertEqual(validate_batch(self.batch,review,self.census)['semantic_records'],len(review['effects'])+4)
+        self.assertEqual(len(self.batch['intrinsic_closed_entries']),5)
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects'] for c in r['scalable_parameter_candidates']),45)
+
+    def test_abyss_area_is_owner_free_integer_formula_and_delayed_config_recheck(self):
+        m=self.method('AbyssExplosiveProjectileHitsBlockProcedure');body=m['instructions']
+        self.assertEqual(m['descriptor'],'(Lnet/minecraft/world/level/LevelAccessor;DDD)V')
+        self.assertEqual(sum(i['opcode']=='0x6c' for i in body),2) # integer armor denominator/division
+        self.assertEqual([i['operand'] for i in body if 'DamageSource.<init>' in str(i['operand'])],
+                         ['net/minecraft/world/damagesource/DamageSource.<init>(Lnet/minecraft/core/Holder;)V']*2)
+        delayed=self.method('AbyssExplosiveProjectileHitsBlockProcedure','lambda$execute$2')['instructions']
+        self.assertTrue(any('.ARPHEX_ITEM_GRIEFING' in str(i['operand']) for i in delayed))
+        self.assertTrue(any(i['operand']==6.0 for i in delayed))
+        for b in (body,delayed):
+            self.assertTrue(any('ExplosionInteraction.TNT' in str(i['operand']) for i in b))
+        for name in ('onHitEntity','onHitBlock'):
+            self.assertTrue(any('AbyssExplosiveProjectileHitsBlockProcedure.execute' in str(i['operand'])
+                                for i in self.method('AbyssExplosiveEntity',name)['instructions']))
+
+    def test_flame_fire_has_two_empty_block_tests_without_invented_griefing_or_damage(self):
+        body=self.method('AoEflameProjectileHitsBlockProcedure')['instructions']
+        self.assertEqual(sum('.isEmptyBlock(' in str(i['operand']) for i in body),2)
+        self.assertEqual(sum('.setBlock(' in str(i['operand']) for i in body),2)
+        self.assertEqual(sum('.FIRE' in str(i['operand']) for i in body),2)
+        self.assertFalse(any(any(x in str(i['operand']) for x in ['.hurt(','.igniteForSeconds(','.isClientSide(','.ARPHEX_ITEM_GRIEFING']) for i in body))
+        for helper,maximum in [('AoEflameWhileProjectileFlyingTickProcedure',8),('AoEFlame2TickProcedure',11)]:
+            b=self.method(helper)['instructions'];by={i['offset']:i for i in b}
+            self.assertEqual([by[n]['operand'] for n in (6,68,79)],[3,3,maximum])
+            self.assertTrue(any(i['operand']=='pastsource' for i in b))
+            self.assertTrue(any('.setNoGravity(' in str(i['operand']) for i in b))
+
+    def test_spark_motion_precedes_raw_increment_and_has_no_intrinsic_homing_or_no_gravity(self):
+        body=self.method('SparkWhileFlyingProcedure')['instructions'];by={i['offset']:i for i in body}
+        self.assertIn('.setDeltaMovement(',by[62]['operand'])
+        self.assertIn('.putDouble(',by[84]['operand'])
+        self.assertEqual(by[80]['operand'],.2)
+        self.assertTrue(any(i['operand']==-.8 for i in body))
+        self.assertFalse(any('.getTarget(' in str(i['operand']) or '.setNoGravity(' in str(i['operand']) for i in body))
+        hit=self.method('SparkProjectileHitsLivingEntityProcedure')['instructions']
+        discard=next(i['offset'] for i in hit if '.discard(' in str(i['operand']))
+        hurt=next(i['offset'] for i in hit if '.hurt(' in str(i['operand']))
+        self.assertLess(discard,hurt)
+        self.assertTrue(any('Math.max(FF)' in str(i['operand']) for i in hit))
+
+    def test_dracon_direct_damage_control_then_roll_is_independent_of_hurt_result(self):
+        body=self.method('DraconFireProjectileHitsLivingEntityProcedure')['instructions'];by={i['offset']:i for i in body}
+        at=next(n for n,i in enumerate(body) if i['offset']==123)
+        self.assertEqual(body[at+1]['opcode'],'0x57')
+        self.assertIn('.setDeltaMovement(',by[141]['operand'])
+        self.assertIn('.nextInt(',by[149]['operand'])
+        self.assertEqual([by[n]['operand'] for n in (116,134,147,148)],[20.0,-5.0,1,3])
+        self.assertTrue(any('Math.round(F)I' in str(i['operand']) for i in body))
+        profiles=[[x['operand'] for x in body[n-4:n]] for n,i in enumerate(body) if 'MobEffectInstance.<init>' in str(i['operand'])]
+        self.assertEqual(profiles,[[60,9,0,0],[180,0,0,0]])
+        block=self.method('DraconFireProjectileHitsBlockProcedure')['instructions']
+        self.assertTrue(any(i['operand']=='creativespectator' for i in block))
+        self.assertTrue(any('MobEffectInstance.<init>(Lnet/minecraft/core/Holder;II)' in str(i['operand']) for i in block))
+
+    def test_dracon_area_latches_before_request_and_reflection_reads_projectile(self):
+        body=self.method('DraconFireWhileProjectileFlyingTickProcedure')['instructions']
+        first_hurt=next(i['offset'] for i in body if '.hurt(' in str(i['operand']))
+        writes=[i['offset'] for i in body if '.putBoolean(' in str(i['operand'])]
+        self.assertTrue(any(o<first_hurt for o in writes))
+        self.assertTrue(any(i['operand']=='doneit' for i in body))
+        self.assertTrue(any(i['operand']==380 for i in body))
+        self.assertTrue(any(i['operand']==150 for i in body))
+        self.assertTrue(any(i['operand']==300 for i in body))
+        for key in ('fixedxvel','fixedyvel','fixedzvel'):
+            sites=[(n,i) for n,i in enumerate(body) if i['operand']==key]
+            self.assertEqual(len(sites),4) # two native owner-type arms, write and read
+            for n,i in sites:
+                self.assertEqual(body[n-2].get('local_index'),8) # THIS projectile, not owner(local7)
+        self.assertFalse(any(i['operand']=='uuid_compare_source' for i in body))
+
+    def test_static_generated_defaults_have_no_external_census_callers(self):
+        for entry in self.batch['intrinsic_closed_entries']:
+            prefix=entry[:-6]+'.shoot('
+            self.assertFalse(any(prefix in i['operand'] for m in self.census['methods'] if m['entry']!=entry
+                                 for i in decode_sites(self.census,m,'calls')))
+            self.assertFalse(any(prefix in str(b['arguments']) for b in self.census['registration_bootstraps']))
+
+
 if __name__=='__main__':unittest.main()
+
 
 
