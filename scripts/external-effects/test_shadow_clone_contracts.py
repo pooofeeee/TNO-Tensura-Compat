@@ -371,3 +371,88 @@ class WebSpiderNativeTests(NativeContractHarness, unittest.TestCase):
         r = self.row('funnel_spider_native_web_motion_and_pre_admission_reaction')
         self.assertFalse(any('amplifier' in k for c in r['scalable_parameter_candidates']
                              if c['primitive']=='MOB_EFFECT_SLOWNESS' for k in c['parameters']))
+
+
+class NativeSpiderPetTests(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch = read_json(OUT / 'arphex-r2m5f-flat-jump-native-pet-contracts.json')
+        cls.native = read_json(OUT / 'native-evidence/arphex-spider-pet-family.json')
+        cls.census = read_json(OUT / 'arphex-combat-census.json')
+
+    def test_native_parameter_binding_and_shared_tick_reuse(self):
+        validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual(len(self.batch['effects']),1)
+        r = self.row('shared_flat_jump_native_pet_specific_contract')
+        self.assertEqual(sum(len(c['parameters']) for c in r['scalable_parameter_candidates']),17)
+        self.assertIn('arphex:shared_brood_snatcher_flat_jump_native_spider_callbacks',r['canonical_contract_reuse'])
+        self.assertFalse(any(c['native_consumer']['entry'].endswith('/SpiderBroodOnEntityTickUpdateProcedure.class')
+                             for c in r['scalable_parameter_candidates']))
+        self.assertEqual(len(r['native_actor_variants']),2)
+        self.assertTrue(all(not c['no_owner_assignment_in_callbacks'] for c in r['native_actor_variants']))
+
+    def test_feeding_source_order_and_dead_duplicate_condition(self):
+        for actor in ('SpiderFlatEntity','SpiderJumpEntity'):
+            b=self.body(actor,'mobInteract');by={i['offset']:i for i in b}
+            self.assertIn('.usePlayerItem(',by[138]['operand'])
+            self.assertIn('ItemStack.getFoodProperties(',by[143]['operand'])
+            self.assertIn('.heal(',by[168]['operand'])
+            self.assertEqual((by[111]['opcode'],by[111]['branch_target']),('0x99',357))
+            # Identical pure predicates, with no native mutation along the failed first branch.
+            for a,z in ((116,188),(123,195),(127,199)):
+                self.assertEqual(by[a]['operand'],by[z]['operand'])
+            self.assertEqual((by[119]['branch_target'],by[131]['branch_target']),(186,186))
+            self.assertEqual((by[191]['branch_target'],by[203]['branch_target']),(235,235))
+            self.assertEqual(by[214]['operand'],4.)
+            r=self.row('shared_flat_jump_native_pet_specific_contract')
+            self.assertFalse(any(c['native_consumer']['entry'].endswith('/'+actor+'.class')
+                                 and c['native_consumer']['methods']==['mobInteract']
+                                 and c['native_consumer']['offset']==217
+                                 for c in r['scalable_parameter_candidates']))
+        for item in ('MaggotGrubItem','RoachNymphItem','LocustLarvaeItem'):
+            b=self.body(item,'<init>')
+            j=next(j for j,i in enumerate(b) if 'FoodProperties$Builder.nutrition(' in str(i['operand']))
+            self.assertEqual(b[j-1]['operand'],2)
+            self.assertTrue(any('Item$Properties.food(' in str(i['operand']) for i in b))
+
+    def test_current_owner_damage_after_delay_and_no_snapshot(self):
+        b=self.body('SpiderFlatOnInitialEntitySpawnProcedure','lambda$execute$0')
+        self.assertTrue(any(i['operand']=='arphex:segment' for i in b))
+        self.assertTrue(any('TamableAnimal.isTame()' in str(i['operand']) for i in b))
+        self.assertEqual(sum('TamableAnimal.getOwner()' in str(i['operand']) for i in b),2)
+        self.assertTrue(any('DamageSource.<init>(Lnet/minecraft/core/Holder;Lnet/minecraft/world/entity/Entity;)V'
+                            in str(i['operand']) for i in b))
+        by={i['offset']:i for i in b}
+        self.assertEqual(by[89]['operand'],1.)
+        self.assertEqual(by[93]['opcode'],'0x57')  # hurt return ignored
+        self.assertFalse(any('.isAlive(' in str(i['operand']) for i in b))
+
+    def test_owned_goal_checks_current_target_and_raw_sit(self):
+        b=self.body('CheckOwnedProcedure')
+        self.assertTrue(any('Mob.getTarget()' in str(i['operand']) for i in b))
+        self.assertTrue(any('TamableAnimal.isOwnedBy(' in str(i['operand']) for i in b))
+        self.assertFalse(any('.getLastHurt' in str(i['operand']) for i in b))
+        for actor,sit in (('SpiderFlatEntity','SittingFlatProcedure'),('SpiderJumpEntity','SittingJumpProcedure')):
+            for child in ('$1','$2'):
+                for m in ('canUse','canContinueToUse'):
+                    self.assertTrue(any('CheckOwnedProcedure.execute(' in str(i['operand'])
+                                        for i in self.body(actor+child,m)))
+            b=self.body(sit)
+            self.assertTrue(any(actor+'.DATA_sit' in str(i['operand']) for i in b))
+            self.assertFalse(any('.isOrderedToSit(' in str(i['operand']) for i in b))
+            b=self.body(actor,'mobInteract')
+            self.assertTrue(any('.tame(' in str(i['operand']) for i in b))
+            self.assertFalse(any('.DATA_sit' in str(i['operand']) for i in b))
+
+    def test_variant_incoming_reactions_before_native_filters(self):
+        for actor in ('SpiderFlatEntity','SpiderJumpEntity'):
+            b=self.body(actor,'hurt')
+            helper=next(i['offset'] for i in b if 'EntityIsHurtProcedure.execute(' in str(i['operand']))
+            firstfilter=next(i['offset'] for i in b if 'DamageSource.' in str(i['operand']))
+            self.assertLess(helper,firstfilter)
+        flat=self.body('SpiderFlatEntity','hurt');jump=self.body('SpiderJumpEntity','hurt')
+        self.assertTrue(any('POISON_DAMAGE' in str(i['operand']) for i in flat))
+        self.assertFalse(any('POISON_DAMAGE' in str(i['operand']) for i in jump))
+        for m in ('execute','lambda$execute$1','lambda$execute$0'):
+            self.assertEqual(sum('.setDeltaMovement(' in str(i['operand'])
+                                 for i in self.body('SpiderJumpEntityIsHurtProcedure',m)),1)
