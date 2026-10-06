@@ -122,6 +122,31 @@ def literal_synched_int_binding(method, offset):
                 value_offset=value['offset'],boxing_offset=box['offset'],native_value=value['operand'])
 
 
+def synched_int_distribution_binding(method, offset):
+    """Bind a direct inclusive native RNG result to its exact integer accessor."""
+    body=method['instructions'];at=next(n for n,i in enumerate(body) if i['offset']==offset)
+    assert body[at]['operand']=='net/minecraft/network/syncher/SynchedEntityData.set(Lnet/minecraft/network/syncher/EntityDataAccessor;Ljava/lang/Object;)V'
+    accessor,source,minimum,maximum,rng,box=body[at-6:at]
+    assert accessor['opcode']=='0xb2' and accessor['operand'].endswith('Lnet/minecraft/network/syncher/EntityDataAccessor;')
+    assert source['operand']=='net/minecraft/util/RandomSource.create()Lnet/minecraft/util/RandomSource;'
+    assert rng['operand']=='net/minecraft/util/Mth.nextInt(Lnet/minecraft/util/RandomSource;II)I'
+    assert box['operand']=='java/lang/Integer.valueOf(I)Ljava/lang/Integer;'
+    for value in (minimum,maximum):
+        assert value['opcode'] in ('0x2','0x3','0x4','0x5','0x6','0x7','0x8','0x10','0x11','0x12','0x13') and type(value['operand']) is int
+    return dict(accessor_symbol=accessor['operand'],accessor_offset=accessor['offset'],
+                rng_offset=rng['offset'],boxing_offset=box['offset'],
+                native_minimum=minimum['operand'],native_maximum=maximum['operand'])
+
+
+def literal_vector_scale_binding(method, offset):
+    """Bind one direct double coefficient, without inferring vector semantics."""
+    body=method['instructions'];at=next(n for n,i in enumerate(body) if i['offset']==offset)
+    assert body[at]['operand']=='net/minecraft/world/phys/Vec3.scale(D)Lnet/minecraft/world/phys/Vec3;'
+    value=body[at-1]
+    assert value['opcode'] in ('0xe','0xf','0x14') and type(value['operand']) is float
+    return dict(value_offset=value['offset'],native_value=value['operand'])
+
+
 def native_registry_spawn_binding(method, offset):
     """Identify a direct ArPhEx registry spawn; never assign it an owner."""
     body=method['instructions'];at=next(n for n,i in enumerate(body) if i['offset']==offset)
@@ -307,9 +332,24 @@ def validate_batch(batch,review,census):
             body_dimensions=(candidate['primitive']=='BODY_DIMENSION_SCALE' and hit['operand']=='net/minecraft/world/entity/EntityDimensions.scale(F)Lnet/minecraft/world/entity/EntityDimensions;')
             synched_clock='native_synched_int_binding' in candidate
             if synched_clock:
-                assert candidate['primitive']=='ATTACK_CADENCE' and len(candidate['parameters'])==1
+                assert candidate['primitive'] in ('ATTACK_CADENCE','CONTROL_CADENCE') and len(candidate['parameters'])==1
                 binding=literal_synched_int_binding(m,consumer['offset'])
                 assert binding==candidate['native_synched_int_binding']
+                component=next(c for c in row['components'] if c['primitive']==candidate['primitive'])
+                assert component['numerical_parameters'][candidate['parameters'][0]]==binding['native_value']
+            clock_distribution='native_synched_int_distribution_binding' in candidate
+            if clock_distribution:
+                assert candidate['primitive']=='NATIVE_CLOCK_DISTRIBUTION' and candidate['parameters']==['minimum','maximum']
+                binding=synched_int_distribution_binding(m,consumer['offset'])
+                assert binding==candidate['native_synched_int_distribution_binding']
+                component=next(c for c in row['components'] if c['primitive']==candidate['primitive'])
+                assert component['numerical_parameters']['minimum']==binding['native_minimum']
+                assert component['numerical_parameters']['maximum']==binding['native_maximum']
+            vector_scale='native_vector_scale_binding' in candidate
+            if vector_scale:
+                assert len(candidate['parameters'])==1
+                binding=literal_vector_scale_binding(m,consumer['offset'])
+                assert binding==candidate['native_vector_scale_binding']
                 component=next(c for c in row['components'] if c['primitive']==candidate['primitive'])
                 assert component['numerical_parameters'][candidate['parameters'][0]]==binding['native_value']
             registry_spawn='native_registry_spawn_binding' in candidate
@@ -359,7 +399,7 @@ def validate_batch(batch,review,census):
                         assert any(cm['name']==proof['method'] and cm['descriptor']==proof['descriptor'] and cm['code_sha256']==proof['code_sha256'] for cm in cw['methods'])
             if attribute:
                 assert literal_attribute_binding(m,consumer['offset'])==candidate['native_attribute_binding'],('wrong native attribute literal',candidate)
-            assert hit['opcode']=='0xb5' or rng or terrain or explosion or durability or attribute or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or synched_clock or registry_spawn or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
+            assert hit['opcode']=='0xb5' or rng or terrain or explosion or durability or attribute or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or synched_clock or clock_distribution or vector_scale or registry_spawn or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
             if candidate['primitive'].startswith('MOB_EFFECT_') or 'native_holder_symbol' in candidate:
                 symbol,allocation,load=effect_holder_binding(m,consumer['offset'])
                 assert (symbol,allocation,load)==(candidate['native_holder_symbol'],
@@ -396,6 +436,8 @@ def validate_batch(batch,review,census):
                         candidate['native_attribute_binding']['native_value']),('auxiliary attribute literal differs',site)
                 if command:
                     assert literal_command_binding(other_method,site['offset'])['command']==candidate['native_command_binding']['command'],('auxiliary command literal differs',site)
+                if vector_scale:
+                    assert literal_vector_scale_binding(other_method,site['offset'])['native_value']==candidate['native_vector_scale_binding']['native_value'],('auxiliary vector coefficient differs',site)
                 if tag_literal:
                     other_binding=literal_tag_double_binding(other_method,site['offset'])
                     assert (other_binding['key'],other_binding['value'])==(candidate['native_tag_double_binding']['key'],candidate['native_tag_double_binding']['value']),('auxiliary raw-state literal differs',site)

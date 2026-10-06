@@ -1,8 +1,134 @@
 """Shared harness, independent native facts for bounded small-actor families."""
+import copy
 import unittest
 from catalog_common import OUT, read_json
 from promote_combat_batch import validate_batch
 from test_shadow_clone_contracts import NativeContractHarness
+
+
+class NativeTamedPetTests(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m5p-native-tamed-pet-contracts.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-native-tamed-pet-families.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def legacy_body(self,name):
+        p=read_json(OUT/'native-evidence/arphex-transfer-readers.json')
+        return next(m['instructions'] for w in p['witnesses'] if w['entry'].endswith('/'+name+'.class')
+                    for m in w['methods'] if m['name']=='execute')
+
+    def test_native_consumers_and_six_roots(self):
+        validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual((len(self.batch['effects']),len(self.batch['closed_actor_callback_entries'])),(5,6))
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects']
+                             for c in r['scalable_parameter_candidates']),102)
+        self.assertEqual((len(self.native['witnesses']),sum(len(w['methods']) for w in self.native['witnesses'])),(71,358))
+        self.assertEqual([r['id'] for r in self.batch['record_refinements']],['arphex:arthropleura_segment_damage_transfer'])
+        self.assertFalse(any(r.get('candidate_additions') for r in self.batch['record_refinements']))
+
+    def test_food_predicates_and_duplicate_heal_not_invented(self):
+        for a in ('TamedTarantulaEntity','CrabLarvaeEntity','SegmentedBodyEntity'):
+            b=self.body(a,'isFood')
+            self.assertTrue(any(i['operand']=='java/util/List.of()Ljava/util/List;' for i in b))
+            self.assertFalse(any('ArphexModItems.' in str(i['operand']) for i in b))
+        for a in ('MantisMutilatorEntity','SpiderLungerEntity','ArthropleuraAbominationEntity'):
+            self.assertTrue(any('ArphexModItems.' in str(i['operand']) for i in self.body(a,'isFood')))
+            b=self.body(a,'mobInteract');by={i['offset']:i for i in b}
+            self.assertEqual([i['offset'] for i in b if '.heal(' in str(i['operand'])],[168,217])
+            self.assertEqual((by[119]['branch_target'],by[131]['branch_target']),(186,186))
+            self.assertEqual(by[116]['operand'],by[188]['operand'])
+            self.assertEqual(by[123]['operand'],by[195]['operand'])
+        cs=[c for r in self.batch['effects'] for c in r['scalable_parameter_candidates'] if c['primitive']=='NATIVE_FOOD_HEAL']
+        self.assertEqual(len(cs),3);self.assertTrue(all(c['native_consumer']['offset']==168 for c in cs))
+
+    def test_mantis_head_fixed_strafe_lunger_tarantula_player_strafe(self):
+        for a in ('MantisMutilatorEntity','ArthropleuraAbominationEntity'):
+            self.assertFalse(any('.xxaF' in str(i['operand']) for i in self.body(a,'travel')))
+        for a in ('TamedTarantulaEntity','SpiderLungerEntity'):
+            self.assertTrue(any('.xxaF' in str(i['operand']) for i in self.body(a,'travel')))
+
+    def test_tarantula_rider_status_has_no_owner_gate(self):
+        b=self.body('TamedTarantulaTickProcedure')
+        self.assertFalse(any(x in str(i['operand']) for i in b for x in ('.isOwnedBy(','.stopRiding(')))
+        self.assertTrue(any('getFirstPassenger(' in str(i['operand']) for i in b))
+        self.assertEqual(sum('.addEffect(' in str(i['operand']) for i in b),11)
+        self.assertFalse(any('DATA_variant' in str(i['operand']) for i in self.body('TamedTarantulaOnInitialEntitySpawnProcedure')))
+
+    def test_mantis_noai_commands_restore_same_callback(self):
+        b=self.body('MantisMutilatorOnEntityTickUpdateProcedure')
+        c=[i['operand'] for i in b if isinstance(i['operand'],str) and i['operand'].startswith('data modify entity @s NoAI')]
+        self.assertEqual(c,['data modify entity @s NoAI set value 0b','data modify entity @s NoAI set value 1b','data modify entity @s NoAI set value 0b'])
+        self.assertTrue(any(i['operand']==57.5 for i in b))
+        self.assertFalse(any('wrapDegrees(' in str(i['operand']) for i in b))
+
+    def test_native_clock_distribution_bound_to_accessor(self):
+        from promote_combat_batch import synched_int_distribution_binding
+        m=dict(instructions=self.body('MantisMutilatorOnEntityTickUpdateProcedure'))
+        binding=synched_int_distribution_binding(m,3568)
+        self.assertEqual((binding['native_minimum'],binding['native_maximum']),(2400,3600))
+        self.assertIn('DATA_timeloop',binding['accessor_symbol'])
+        with self.assertRaises(AssertionError):synched_int_distribution_binding(m,3562)
+        changed=copy.deepcopy(self.batch)
+        r=next(r for r in changed['effects'] if 'mantis_native_' in r['id'])
+        next(c for c in r['components'] if c['primitive']=='NATIVE_CLOCK_DISTRIBUTION')['numerical_parameters']['minimum']=2401
+        with self.assertRaises(AssertionError):validate_batch(changed,self.prior(),self.census)
+
+    def test_crab_growth_overwrite_precedes_inactive_weakness(self):
+        from promote_combat_batch import literal_synched_int_binding
+        b=self.body('CrabLarvaeOnEntityTickUpdateProcedure')
+        binding=literal_synched_int_binding(dict(instructions=b),1921)
+        self.assertEqual(binding['native_value'],96002)
+        self.assertIn('DATA_crab_growth',binding['accessor_symbol'])
+        for o in (2465,2613,2761):self.assertLess(1921,o)
+        r=self.row('crab_larva_native_constricted_ray_owner_and_forced_maturity')
+        self.assertFalse(any('WEAKNESS' in c['primitive'] for c in r['scalable_parameter_candidates']))
+        self.assertTrue(any(i['operand']==1.74 for i in self.body('CrabLarvaeHitboxProcedure')))
+
+    def test_ray_three_native_queries_share_proven_literal(self):
+        from promote_combat_batch import literal_vector_scale_binding
+        b=self.body('CrabLarvaeOnEntityTickUpdateProcedure');m=dict(instructions=b)
+        sites=[i['offset'] for i in b if 'Vec3.scale(' in str(i['operand'])]
+        self.assertEqual(len(sites),3)
+        self.assertEqual([literal_vector_scale_binding(m,o)['native_value'] for o in sites],[5.5]*3)
+        with self.assertRaises(AssertionError):literal_vector_scale_binding(m,1456)
+        changed=copy.deepcopy(self.batch)
+        r=next(r for r in changed['effects'] if 'crab_larva_native_' in r['id'])
+        next(c for c in r['components'] if c['primitive']=='NATIVE_RAY_DELIVERY')['numerical_parameters']['range']=6.
+        with self.assertRaises(AssertionError):validate_batch(changed,self.prior(),self.census)
+
+    def test_lunger_clock_updates_and_rejected_hurt_sideeffect(self):
+        b=self.body('SpiderLungerEntity','hurt')
+        self.assertLess(next(i['offset'] for i in b if 'EntityIsHurtProcedure.execute(' in str(i['operand'])),
+                        next(i['offset'] for i in b if '.getDirectEntity(' in str(i['operand'])))
+        from promote_combat_batch import literal_synched_int_binding
+        m=dict(instructions=self.body('SpiderLungerOnEntityTickUpdateProcedure'))
+        self.assertEqual([literal_synched_int_binding(m,o)['native_value'] for o in (458,1060,1521,1741)],[100,1200,1200,0])
+        self.assertLess(1060,1741)
+
+    def test_segment_owner_native_local_indices_not_decompiler_variable(self):
+        b=self.legacy_body('SegmentedBodyOnEntityTickUpdateProcedure');by={i['offset']:i for i in b}
+        self.assertEqual((by[1136]['local_index'],by[1151]['local_index']),(7,28))
+        self.assertEqual((by[1192]['local_index'],by[1194]['local_index']),(35,37))
+        self.assertEqual((by[2758]['local_index'],by[2773]['local_index']),(7,28))
+        self.assertIn('.tame(',by[2818]['operand'])
+        r=self.row('arthropleura_native_head_body_generation_owner_and_control')
+        self.assertIn('arphex:arthropleura_segment_damage_transfer',r['canonical_contract_reuse'])
+
+    def test_segment_init_uuid_copy_precedes_lineage_comparison(self):
+        b=self.body('SegmentedBodyOnInitialEntitySpawnProcedure')
+        eq=next(i['offset'] for i in b if '.equals(' in str(i['operand']))
+        write=next(i['offset'] for i in b if 'SynchedEntityData.set(' in str(i['operand']) and i['offset']>100)
+        self.assertLess(write,eq)
+        self.assertTrue(any(i['operand']==2. for i in b))
+
+    def test_protected_transfer_candidates_not_duplicated(self):
+        r=self.row('arthropleura_native_head_body_generation_owner_and_control')
+        self.assertFalse(any(c['primitive'] in ('NATIVE_DAMAGE_TRANSFER','NATIVE_DAMAGE_NOTIFICATION','NATIVE_IMMUNITY_STATE')
+                             for c in r['scalable_parameter_candidates']))
+        b=self.legacy_body('SegmentedBodyOnEntityTickUpdateProcedure')
+        self.assertTrue(any(i['operand']==15. for i in b))
+        self.assertFalse(any(x in str(i['operand']) for i in b for x in ('Math.max(', 'Vec3.normalize(')))
 
 
 class CentipedeNativeTests(NativeContractHarness, unittest.TestCase):
