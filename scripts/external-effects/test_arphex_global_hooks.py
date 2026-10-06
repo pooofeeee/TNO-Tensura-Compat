@@ -365,5 +365,97 @@ class GlobalHooksTests(unittest.TestCase):
         jar=Path('/workspace/.cache/large-mod-campaign/ArPhEx-5.0.2-neoforge-1.21.1.jar')
         if jar.exists():self.assertEqual(collect(read_json(OUT/'native-specifications/arphex-death-reader-contexts.json'),{'arphex':jar}),native)
 
+    def test_interaction_batch_exact_consumers_and_follow_producer_merge(self):
+        batch=read_json(OUT/'arphex-r2m2n-native-interactions-and-seismic-hazard.json')
+        review=read_json(OUT/'mod-reviews/arphex.json');ids={r['id'] for r in batch['effects']}
+        review['effects']=[r for r in review['effects'] if r['id'] not in ids]
+        review['paths']=[p for p in review['paths'] if not set(p['effect_ids'])&ids]
+        self.assertEqual(validate_batch(batch,review,self.census)['semantic_records'],len(review['effects'])+12)
+        self.assertEqual([r['id'] for r in batch['record_refinements']],['arphex:forced_owner_tick_follow'])
+
+    def test_interaction_event_roles_and_native_stop_use_order(self):
+        left=self.body('HitBlockProcedure','onLeftClickBlock')
+        self.assertTrue(any('getFace()' in str(i['operand']) for i in left))
+        self.assertFalse(any('getHand()' in str(i['operand']) for i in left))
+        right=self.body('RightClickEntityProcedure','onRightClickEntity')
+        self.assertTrue(any('isClientSide()' in str(i['operand']) for i in right))
+        self.assertLess(next(i['offset'] for i in right if 'getTarget()' in str(i['operand'])),
+                        next(i['offset'] for i in right if 'getX()' in str(i['operand'])))
+        body=self.body('RightClickEntityProcedure')
+        self.assertLess(next(i['offset'] for i in body if 'stopUsingItem()' in str(i['operand'])),
+                        next(i['offset'] for i in body if 'isUsingItem()' in str(i['operand'])))
+        self.assertFalse(any('setCanceled' in str(i['operand']) for i in body))
+
+    def test_block_impulse_is_absolute_and_chaos_clear_has_two_independent_literals(self):
+        body=self.body('HitBlockProcedure');by={i['offset']:i for i in body}
+        segment=[i for i in body if 2557<=i['offset']<=3180]
+        self.assertEqual(sum('setDeltaMovement(' in str(i['operand']) for i in segment),4)
+        self.assertEqual(sum(i['operand']==.3 for i in segment),4)
+        self.assertFalse(any(any(s in str(i['operand']) for s in ('knockback(','getOwner','hurt(','normalize(')) for i in segment))
+        from promote_combat_batch import literal_command_binding
+        method=max((m for m in self.witness('HitBlockProcedure')['methods'] if m['name']=='execute'),key=lambda m:len(m['instructions']))
+        self.assertEqual(literal_command_binding(method,3298)['command'],'effect clear @e[distance=..40] arphex:chaos_controlled')
+        self.assertEqual(literal_command_binding(method,3371)['command'],'effect clear @e[distance=..40] arphex:chaos_target')
+        self.assertEqual(by[2554]['operand'],5.0)
+
+    def interaction_witness(self,name):
+        return next(w for w in read_json(OUT/'native-evidence/arphex-interaction-readers.json')['witnesses']
+                    if w['entry'].endswith('/'+name+'.class'))
+
+    def test_blockwave_authored_spawns_and_nested_timing_are_not_idealized_ring(self):
+        wave=self.interaction_witness('BlockwaveProcedure')
+        methods=[m for m in wave['methods'] if m['name']=='execute' or m['name'].startswith('lambda')]
+        counts=[sum('EntityType.spawn(' in str(i['operand']) for i in m['instructions']) for m in methods]
+        self.assertEqual(counts,[1,4,8,12,16,24,36,44,48,52])
+        self.assertEqual(sum(counts),245)
+        intervals=[]
+        for m in methods:
+            b=m['instructions']
+            for n,i in enumerate(b):
+                if '.queueServerWork(' in str(i['operand']):intervals.append(b[n-6]['operand'])
+            self.assertFalse(any(any(s in str(i['operand']) for s in ('setOwner','hurt(','destroyBlock(','setBlock(')) for i in b))
+        self.assertEqual(intervals,[4,4,3,3,3,3,2,2,2])
+        # Two independently emitted requests for the literal (-3,0,-2)
+        # prove this stage is not an idealized unique-point perimeter.
+        ring=next(m['instructions'] for m in methods if m['name']=='lambda$execute$4')
+        points=[]
+        for n,i in enumerate(ring):
+            if 'BlockPos.containing(DDD)' not in str(i['operand']):continue
+            window=ring[n-7:n]
+            if [x['opcode'] for x in window]==['0x27','0x14','0x67','0x29','0x18','0x14','0x67']:
+                if window[1]['operand']==3.0 and window[5]['operand']==2.0:
+                    points.append(i['offset'])
+        self.assertEqual(len(points),2)
+        # Full native method remains the source; canonical metadata must retain
+        # its explicit repeated offsets rather than deduplicating its requests.
+        batch=read_json(OUT/'arphex-r2m2n-native-interactions-and-seismic-hazard.json')
+        row=next(r for r in batch['effects'] if r['id']=='arphex:seismic_blockwave_native_delivery')
+        stage=next(s for c in row['components'] if c['primitive']=='NATIVE_HAZARD_STENCIL'
+                   for s in c['numerical_parameters']['native_stages'] if s['method']=='lambda$execute$4')
+        self.assertIn({'offset':[-3.0,0.0,-2.0],'requests':2},stage['repeated_offsets'])
+
+    def test_blocktest_damage_integer_division_independent_motion_and_zero_melee(self):
+        hazard=self.interaction_witness('BlockTestOnEntityTickUpdateProcedure')
+        body=next(m['instructions'] for m in hazard['methods'] if m['name']=='lambda$execute$11')
+        damage=next(n for n,i in enumerate(body) if i['offset']==479)
+        self.assertIn('0x6c',[i['opcode'] for i in body[damage-25:damage]])
+        self.assertEqual(body[damage+1]['opcode'],'0x57')
+        self.assertTrue(any('DamageSource.<init>(Lnet/minecraft/core/Holder;)V' in str(i['operand']) for i in body[:damage]))
+        self.assertEqual(sum('.setDeltaMovement(' in str(i['operand']) for i in body),5)
+        self.assertFalse(any('setOwner' in str(i['operand']) or 'destroyBlock(' in str(i['operand']) for i in body))
+        from promote_combat_batch import literal_attribute_binding
+        method=next(m for m in self.interaction_witness('BlockTestEntity')['methods'] if m['name']=='createAttributes')
+        bindings=[literal_attribute_binding(method,i['offset']) for i in method['instructions']
+                  if 'AttributeSupplier$Builder.add(' in str(i['operand'])]
+        attack=next(b for b in bindings if '/Attributes.ATTACK_DAMAGE' in b['attribute_symbol'])
+        self.assertEqual(attack['native_value'],0.0)
+
+    def test_interaction_reader_evidence_reproduces_exact_selected_classes(self):
+        from pathlib import Path
+        from native_evidence import collect
+        jar=Path('/workspace/.cache/large-mod-campaign/ArPhEx-5.0.2-neoforge-1.21.1.jar')
+        if jar.exists():self.assertEqual(collect(read_json(OUT/'native-specifications/arphex-interaction-readers.json'),{'arphex':jar}),
+                                       read_json(OUT/'native-evidence/arphex-interaction-readers.json'))
+
 
 if __name__=='__main__':unittest.main()
