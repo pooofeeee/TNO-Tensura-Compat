@@ -6,13 +6,7 @@ from catalog_common import OUT, read_json
 from promote_combat_batch import validate_batch
 
 
-class ShadowCloneTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.batch = read_json(OUT / 'arphex-r2m5c-shadow-clone-native-callbacks.json')
-        cls.native = read_json(OUT / 'native-evidence/arphex-shadow-clone-family.json')
-        cls.census = read_json(OUT / 'arphex-combat-census.json')
-
+class NativeContractHarness:
     def body(self, name, method='execute'):
         return max((m for w in self.native['witnesses']
                     if w['entry'].endswith('/' + name + '.class')
@@ -28,6 +22,14 @@ class ShadowCloneTests(unittest.TestCase):
         r['effects'] = [x for x in r['effects'] if x['id'] not in ids]
         r['paths'] = [x for x in r['paths'] if not set(x['effect_ids']) & ids]
         return r
+
+
+class ShadowCloneTests(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch = read_json(OUT / 'arphex-r2m5c-shadow-clone-native-callbacks.json')
+        cls.native = read_json(OUT / 'native-evidence/arphex-shadow-clone-family.json')
+        cls.census = read_json(OUT / 'arphex-combat-census.json')
 
     def test_shared_contracts_have_unique_native_parameter_identities(self):
         validate_batch(self.batch, self.prior(), self.census)
@@ -149,6 +151,86 @@ class ShadowCloneTests(unittest.TestCase):
         self.assertIn('^ ^0.02 ^10', literal)
         self.assertNotIn('@s', literal)
         self.assertFalse(any('.hurt(' in str(i['operand']) for i in b))
+
+
+class ShadowSpawnedPayloadTests(NativeContractHarness, unittest.TestCase):
+    """Reuse the harness, with only missing native payload invariants as tests."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.batch = read_json(OUT / 'arphex-r2m5d-shadow-summoned-native-payloads.json')
+        cls.native = read_json(OUT / 'native-evidence/arphex-shadow-payload-family.json')
+        cls.census = read_json(OUT / 'arphex-combat-census.json')
+
+    def test_payload_bindings(self):
+        validate_batch(self.batch, self.prior(), self.census)
+        self.assertEqual(len(self.batch['effects']), 3)
+        self.assertEqual(len(self.batch['closed_actor_callback_entries']), 5)
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects']
+                             for c in r['scalable_parameter_candidates']), 84)
+        self.assertEqual((len(self.native['witnesses']),
+                          sum(len(w['methods']) for w in self.native['witnesses'])), (25, 189))
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_larvae_death_flag_is_self_not_loop_recipient(self):
+        b = self.body('SpiderLarvaeEntityDiesProcedure')
+        j = next(j for j, i in enumerate(b) if '.putBoolean(' in str(i['operand']))
+        self.assertEqual(b[j-4]['local_index'], 7)  # native execute entity argument
+        self.assertEqual(b[j-2]['operand'], 'spidergrab')
+        self.assertEqual(b[j-1]['operand'], 0)
+
+    def test_larvae_hurt_side_effect_precedes_native_rejection(self):
+        b = self.body('SpiderLarvaeEntity', 'hurt')
+        call = next(j for j, i in enumerate(b) if 'SpiderLarvaeEntityIsHurtProcedure.execute(' in str(i['operand']))
+        reject = next(j for j, i in enumerate(b) if 'POISON_DAMAGE' in str(i['operand']))
+        self.assertLess(call, reject)
+        tiny = self.body('SpiderLarvaeTinyEntity', 'hurt')
+        self.assertFalse(any('EntityIsHurtProcedure.execute(' in str(i['operand']) for i in tiny))
+        h = self.body('SpiderLarvaeEntityIsHurtProcedure')
+        self.assertTrue(any(i['operand'] == 3.0 for i in h))
+        self.assertTrue(any(i['operand'] == 'spiderwidowmissinglegs' for i in h))
+        tick = self.body('SpiderLarvaeOnEntityTickUpdateProcedure')
+        self.assertFalse(any(i['operand'] == 'spiderwidowmissinglegs' for i in tick))
+
+    def test_larvae_target_shiny_guard_is_self_and_only_normal_player_goal(self):
+        for method in ('canUse', 'canContinueToUse'):
+            b = self.body('SpiderLarvaeEntity$1', method)
+            self.assertTrue(any('NonShinyProcedure.execute(' in str(i['operand']) for i in b))
+        predicate = self.body('NonShinyProcedure')
+        self.assertTrue(any('SpiderLarvaeEntity.DATA_shiny' in str(i['operand']) for i in predicate))
+        tiny = self.body('SpiderLarvaeTinyEntity', 'registerGoals')
+        self.assertFalse(any('NonShinyProcedure' in str(i['operand']) for i in tiny))
+
+    def test_hallucination_contact_clock_is_inside_player_iteration(self):
+        b = self.body('HallucinationScorpioidTickProcedure')
+        by = {i['offset']: i for i in b}
+        self.assertIn('.putDouble(', by[1991]['operand'])
+        self.assertIn('.hurt(', by[2015]['operand'])
+        self.assertIn('.putDouble(', by[2043]['operand'])
+        j = next(j for j, i in enumerate(b) if i['offset'] == 2015)
+        self.assertEqual((b[j-1]['operand'], b[j+1]['opcode']), (7.0, '0x57'))
+        # Both updates are within the native world.players loop back edge.
+        backward = [i for i in b if i.get('branch_target', i['offset']) < i['offset']]
+        self.assertTrue(any(i['offset'] > 2043 and i['branch_target'] < 1969 for i in backward))
+
+    def test_rush_blocking_skips_only_poison(self):
+        b = self.body('RushScareOnEntityTickUpdateProcedure')
+        by = {i['offset']: i for i in b}
+        self.assertIn('.isBlocking(', by[498]['operand'])
+        self.assertEqual((by[501]['opcode'], by[501]['branch_target']), ('0x9a', 692))
+        self.assertIn('.performPrefixedCommand(', by[689]['operand'])
+        # Levitation/Darkness/SlowFalling calls follow the poison block's exit.
+        for offset in (758, 827, 896):
+            self.assertIn('.performPrefixedCommand(', by[offset]['operand'])
+        commands = [i['operand'] for i in b if isinstance(i['operand'], str) and i['operand'].startswith('effect give')]
+        self.assertIn('effect give @p[distance=..6] poison 10 2 true', commands)
+        self.assertIn('effect give @p[distance=..6] levitation 4 0 true', commands)
+
+    def test_rush_delayed_clear_uses_unbounded_current_nearest(self):
+        b = self.body('RushScareOnEntityTickUpdateProcedure', 'lambda$execute$5')
+        self.assertTrue(any(i['operand'] == 'effect clear @p levitation' for i in b))
+        self.assertFalse(any('.isAlive(' in str(i['operand']) for i in b))
+        self.assertFalse(any('.getOwner(' in str(i['operand']) for i in b))
 
 
 if __name__ == '__main__':
