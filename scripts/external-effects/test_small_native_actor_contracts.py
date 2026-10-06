@@ -6,6 +6,93 @@ from promote_combat_batch import validate_batch
 from test_shadow_clone_contracts import NativeContractHarness
 
 
+
+class NativeStalkerCarrierTests(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m5u-native-stalker-ghost-contracts.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-stalker-native-families.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def test_five_roots_four_new_contracts_one_shared_caller(self):
+        validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual((len(self.batch['effects']),len(self.batch['closed_actor_callback_entries'])),(4,5))
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects'] for c in r['scalable_parameter_candidates']),48)
+        self.assertEqual((len(self.native['witnesses']),sum(len(w['methods']) for w in self.native['witnesses'])),(151,721))
+        self.assertEqual(self.batch['record_refinements'][0]['id'],
+                         'arphex:prowler_reaper_native_hanging_terrain_and_shared_incoming_motion')
+        self.assertFalse(self.batch['record_refinements'][0].get('candidate_additions'))
+
+    def test_ghost_nested_target_gate_is_not_a_single_target_read(self):
+        b=self.body('TeleportGhostOnEntityTickUpdateProcedure');by={i['offset']:i for i in b}
+        self.assertIn('.getTarget(',by[1514]['operand'])
+        self.assertEqual(by[1525]['opcode'],'0xc1')
+        self.assertEqual(by[1525]['operand'],'net/minecraft/world/entity/Mob')
+        self.assertIn('.getTarget(',by[1540]['operand'])
+        self.assertEqual(by[1547]['opcode'],'0xc6')
+        self.assertTrue(any('sort=nearest' in str(i['operand']) and '^0.12' in str(i['operand']) for i in b))
+
+    def test_ghost_contact_and_incoming_source_are_native_and_distinct(self):
+        b=self.body('TeleportGhostEntity$1','tick')
+        self.assertTrue(any('.intersects(' in str(i['operand']) for i in b))
+        self.assertTrue(any('.doHurtTarget(' in str(i['operand']) for i in b))
+        b=self.body('TeleportGhostEntity','hurt')
+        causing=next(i['offset'] for i in b if '.getEntity(' in str(i['operand']))
+        helper=next(i['offset'] for i in b if 'TeleportGhostEntityIsHurtProcedure.execute(' in str(i['operand']))
+        rejection=next(i['offset'] for i in b if 'DamageTypes.IN_FIRE' in str(i['operand']))
+        self.assertLess(causing,helper);self.assertLess(helper,rejection)
+        self.assertFalse(any(i['opcode']=='0xc1' and 'AbstractArrow' in str(i['operand']) for i in b))
+
+    def test_pure_spawn_native_delays_and_replacement_continue_after_discard(self):
+        b=self.body('PureStalkingOnInitialEntitySpawnProcedure');by={i['offset']:i for i in b}
+        self.assertEqual([by[o]['operand'] for o in (3219,3309,3327,3345)],[200,180,500,600])
+        q=self.body('PureStalkingOnInitialEntitySpawnProcedure','lambda$execute$83')
+        discard=next(i['offset'] for i in q if '.discard(' in str(i['operand']))
+        spawns=[i['offset'] for i in q if 'EntityType.spawn(' in str(i['operand'])]
+        self.assertEqual(len(spawns),2);self.assertTrue(all(o>discard for o in spawns))
+        self.assertFalse(any('.isAlive(' in str(i['operand']) for i in q))
+
+    def test_invisible_clock_is_updated_before_teleport_and_navigation_after(self):
+        b=self.body('InvisibleStalkerOnEntityTickUpdateProcedure');by={i['offset']:i for i in b}
+        self.assertEqual([by[o]['operand'] for o in (213,215)],[20,1600])
+        self.assertIn('.putDouble(',by[222]['operand'])
+        self.assertIn('.teleportTo(',by[586]['operand'])
+        self.assertIn('.putDouble(',by[1725]['operand'])
+        w=next(w for w in self.native['witnesses'] if w['entry'].endswith('/InvisibleStalkerOnEntityTickUpdateProcedure.class'))
+        removal=[m['instructions'] for m in w['methods'] if m['name'].startswith('lambda$execute$') and any('.discard(' in str(i['operand']) for i in m['instructions'])]
+        self.assertEqual(len(removal),1);q=removal[0]
+        self.assertTrue(any('.nextInt(' in str(i['operand']) for i in q))
+        self.assertFalse(any('.isAlive(' in str(i['operand']) or '.getDouble(' in str(i['operand']) for i in q))
+
+    def test_invisible_incoming_darkness_targets_self_after_discard(self):
+        b=self.body('InvisibleStalkerEntityIsHurtProcedure')
+        discard=next(i['offset'] for i in b if '.discard(' in str(i['operand']))
+        self.assertLess(discard,57)
+        self.assertTrue(any(i['offset']==57 and '.addEffect(' in str(i['operand']) for i in b))
+        r=self.row('invisible_stalker_native_invisibility_clock_teleport_and_admission')
+        c=next(c for c in r['scalable_parameter_candidates'] if c['primitive']=='MOB_EFFECT_INCOMING_SELF_DARKNESS')
+        self.assertEqual(c['native_receiver_role'],'SELFafterdiscard')
+
+    def test_sky_motion_has_independent_x_angle_and_ordered_vertical_overwrite(self):
+        b=self.body('SkyStalkerOnEntityTickUpdateProcedure');by={i['offset']:i for i in b}
+        self.assertEqual([by[o]['operand'] for o in (685,687)],[60,300])
+        self.assertIn('.nextInt(',by[690]['operand'])
+        for off in (729,1144,1615,2096,2154,2713):
+            self.assertIn('.setDeltaMovement(',by[off]['operand'])
+        self.assertFalse(any('.hurt(' in str(i['operand']) for i in b))
+        r=self.row('sky_stalker_native_silk_flight_moth_delivery_and_lifecycle')
+        self.assertFalse(any(c['primitive']=='NATIVE_CONDITIONAL_MELEE' for c in r['scalable_parameter_candidates']))
+
+    def test_giant_calls_locked_helpers_even_though_constructor_disables_ai(self):
+        b=self.body('GiantEnemySpiderEntity','<init>')
+        j=next(j for j,i in enumerate(b) if '.setNoAi(' in str(i['operand']))
+        self.assertEqual(b[j-1]['operand'],1)
+        for meth,helper in [('baseTick','ReaperTickProcedure'),('hurt','SpiderProwlerEntityIsHurtProcedure'),
+                            ('finalizeSpawn','SpiderWanderOnInitialEntitySpawnProcedure')]:
+            self.assertTrue(any(helper+'.execute(' in str(i['operand']) for i in self.body('GiantEnemySpiderEntity',meth)))
+        self.assertFalse(any(w['entry'].endswith('/ReaperTickProcedure.class') for w in self.native['witnesses']))
+
+
 class NativeMothCarrierTests(NativeContractHarness, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
