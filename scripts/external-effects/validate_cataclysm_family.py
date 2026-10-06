@@ -27,6 +27,15 @@ def records(note):
 
 
 def validate_records(note):
+    if read_json(OUT/'mod-reviews/cataclysm.json').get('integrity_checkpoint'):
+        from audit_catalog_integrity import audit_review, EvidenceIndex
+        review=read_json(OUT/'mod-reviews/cataclysm.json')
+        ids={r['id'] for r in review['effects']}
+        aliases={r['original_id'] for r in review.get('semantic_aliases', [])}
+        contexts={r.get('original_id') for r in review.get('native_context_records', [])}
+        assert set(note['mechanic_ids']) <= ids | aliases | contexts
+        audit_review(review,EvidenceIndex())
+        return
     review, rows = records(note)
     assert note['status'] == 'PARTIAL' and review['status'] == 'PARTIAL'
     assert len(set(note['mechanic_ids'])) == len(rows) == note['mechanics_closed']
@@ -112,6 +121,13 @@ def validate_boundaries(note):
 
 
 def validate_protection(note):
+    if read_json(OUT/'mod-reviews/cataclysm.json').get('integrity_checkpoint'):
+        from validate_current_integrity import validate_cataclysm_repairs
+        validate_cataclysm_repairs()
+        for ref in note['reference_files']:
+            if ref['file'].startswith(('native-evidence/','native-specifications/','reference-evidence/','vanilla-evidence/')):
+                assert hashlib.sha256((OUT/ref['file']).read_bytes()).hexdigest()==ref['sha256']
+        return
     review, rows = records(note)
     original = json.loads(at_start(note, OUT / 'mod-reviews/cataclysm.json'))
     current = {r['id']: r for r in review['effects']}

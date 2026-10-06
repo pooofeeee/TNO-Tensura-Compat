@@ -175,7 +175,7 @@ def resolve_combat_blocks(base, review, checkpoint):
     """Advance exactly the eight R2k33b rows; leave the frozen audit untouched."""
     assert base['checkpoint'] == 'R2k33a-cataclysm-coverage-reconciliation-checkpoint'
     assert checkpoint['previous_checkpoint'] == base['checkpoint']
-    assert checkpoint['status'] == review['status'] == 'PARTIAL'
+    assert checkpoint['status']=='PARTIAL' and review['status'] in ('PARTIAL','COMPLETE')
     domain = 'R2k33b_BLOCKS_TRAPS_EMP'
     key = lambda row: (row['entry'], row['method'], row['descriptor'])
     pending = {key(row): row for row in base['residual_methods']
@@ -187,7 +187,8 @@ def resolve_combat_blocks(base, review, checkpoint):
     assert {key(row) for row in bindings} == set(pending)
     records = {row['id']: row for row in review['effects']}
     assert len(records) == len(review['effects'])
-    assert set(checkpoint['mechanic_ids']) <= set(records)
+    context_ids={c.get('original_id') for c in review.get('native_context_records', [])}
+    assert set(checkpoint['mechanic_ids']) <= set(records) | context_ids
     bound = {key(row): row for row in bindings}
     current = copy.deepcopy(base)
     for row in current['residual_methods']:

@@ -6,6 +6,8 @@ from assemble_batch import refresh
 VIEWS=[('effect-catalog.json','effects'),('effect-sources.json','sources'),('delivery-path-matrix.json','paths'),('vanilla-comparison.json','comparisons'),('behavior-primitives.json','primitives')]
 
 def save_section(d,stem,title):
+    if read_json(OUT/'mod-reviews/iceandfire.json').get('integrity_checkpoint'):
+        raise RuntimeError('Completed canonical review is protected from historical Stage-routing publication.')
     d.update(baseline=BASELINE,runtime_tests=0,whole_iceandfire_complete=False,promoted_mechanics=0,promoted_paths=0,**boundary_flags())
     d['reference_files']=[dict(file=f,sha256=sha256(OUT/f)) for f in d.pop('references')]
     write_json(OUT/(stem+'.json'),d)

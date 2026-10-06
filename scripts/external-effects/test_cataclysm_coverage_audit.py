@@ -47,9 +47,13 @@ class CoverageAuditTests(unittest.TestCase):
         self.assertEqual(self.audit['status'],'PARTIAL')
         self.assertEqual(self.audit['exact_next_task'],NEXT_TASK)
 
-    def test_locked_files_and_semantic_records_unchanged(self):
+    def test_locked_native_facts_and_explicit_semantic_repairs(self):
         for item in self.audit['input_files']:
             if item['file']=='mod-reviews/cataclysm.json':
+                if read_json(OUT/item['file']).get('integrity_checkpoint'):
+                    from validate_current_integrity import validate_cataclysm_repairs
+                    validate_cataclysm_repairs()
+                    continue
                 # Only checkpoint/queue metadata changes in this audit.
                 path=(OUT/item['file']).relative_to(ROOT).as_posix()
                 before=json.loads(subprocess.check_output(['git','show',self.audit['source_commit']+':'+path],cwd=ROOT))
@@ -64,7 +68,18 @@ class CoverageAuditTests(unittest.TestCase):
                     self.assertEqual({k:v for k,v in current.items() if k not in metadata},
                                      {k:v for k,v in before.items() if k not in metadata})
             else:
-                self.assertEqual(hashlib.sha256((OUT/item['file']).read_bytes()).hexdigest(),item['sha256'])
+                # This audit is a frozen source-commit snapshot. Later integrity
+                # repairs may update checkpoint classifications/reference hashes;
+                # they must not rewrite the underlying native behavior facts.
+                path=(OUT/item['file']).relative_to(ROOT).as_posix()
+                original=subprocess.check_output(['git','show',self.audit['source_commit']+':'+path],cwd=ROOT)
+                self.assertEqual(hashlib.sha256(original).hexdigest(),item['sha256'])
+                before=json.loads(original)
+                current=read_json(OUT/item['file'])
+                if 'facts' in before:
+                    self.assertEqual(current['facts'],before['facts'])
+                else:
+                    self.assertEqual((OUT/item['file']).read_bytes(),original)
         self.assertEqual(subprocess.check_output(['git','rev-parse','codex/production-continuation'],cwd=ROOT,text=True).strip(),
                          'eb37f0bfc0e7aa863632f163881566c0ae2a8701')
 

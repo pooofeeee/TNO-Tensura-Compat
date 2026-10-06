@@ -24,7 +24,7 @@
   "monstrosity_family_closed": true,
   "protected_r2k4a": {
     "file": "cataclysm-r2k4a-monstrosity-admission.json",
-    "sha256": "5349c1f74363e063d01e25ca8eba9890c20656604f7adcc8e962215447aba432",
+    "sha256": "484b62d06ef5c54035e67d7fb725ca9d6b83bcaadf82f9b8c3e7e4fb07afed6b",
     "usage": "LOCKED_REUSED"
   },
   "whole_mod_complete": false,
@@ -366,10 +366,11 @@
       "hurt_return_dependency": "Sequence selection is independent of hurt return; payload-specific branches are recorded separately."
     },
     {
-      "id": "cataclysm:monstrosity_berserk_quake",
+      "id": "cataclysm:monstrosity_earthquake_payload",
       "primary_classification": "CUSTOM_CONTROL",
       "delivery_paths": [
-        "cataclysm:monstrosity-offense:berserk_quake"
+        "cataclysm:monstrosity-offense:berserk_quake",
+        "cataclysm:monstrosity-offense:smash"
       ],
       "numerical_candidates": [
         {
@@ -378,17 +379,9 @@
             "inflate"
           ],
           "native_value": 6.25,
+          "native_formula": "boss.boundingBox.inflate(area)",
           "units": "blocks",
           "native_boundary": "Monstrosity.EarthQuake query"
-        },
-        {
-          "primitive": "ATTACK_SEQUENCE",
-          "parameters": [
-            "trigger_tick"
-          ],
-          "native_value": 17,
-          "units": "native attack ticks",
-          "native_boundary": "Monstrosity.aiStep"
         },
         {
           "primitive": "BURN",
@@ -396,6 +389,7 @@
             "duration_seconds"
           ],
           "native_value": 6.0,
+          "native_formula": "victim.igniteForSeconds(6.0F)",
           "units": "seconds",
           "native_boundary": "EarthQuake hurttrue and latched berserk"
         },
@@ -405,6 +399,7 @@
             "added_y"
           ],
           "native_value": 0.6,
+          "native_formula": "push(dx/max(dx²+dz²,0.001)*xz,y,dz/max(dx²+dz²,0.001)*xz)",
           "units": "blocks/tick added velocity",
           "native_boundary": "EarthQuake hurttrue -> Monstrosity.launch"
         },
@@ -414,6 +409,7 @@
             "horizontal_coefficient"
           ],
           "native_value": 2.0,
+          "native_formula": "push(dx/max(dx²+dz²,0.001)*xz,y,dz/max(dx²+dz²,0.001)*xz)",
           "units": "native dx/distanceSquared coefficient",
           "native_boundary": "EarthQuake hurttrue -> Monstrosity.launch"
         },
@@ -423,6 +419,7 @@
             "max_hp_fraction"
           ],
           "native_value": 0.08,
+          "native_formula": "float(double(float(A))+min(A,double(targetMaxHP*float(SmashHpdamage))))",
           "units": "target max-HP fraction; installed common config",
           "native_boundary": "Monstrosity.EarthQuake native hurt"
         },
@@ -432,8 +429,29 @@
             "duration_ticks"
           ],
           "native_value": 120,
+          "native_formula": "native used-item cooldown120 then stopUsingItem",
           "units": "ticks",
           "native_boundary": "EarthQuake blocked Player -> reused EntityUtil.disableShield"
+        },
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "parameters": [
+            "state3_trigger_tick"
+          ],
+          "native_value": 19,
+          "native_formula": "aiStep exact native state/tick call",
+          "units": "native attack ticks; separate state gate",
+          "native_boundary": "Monstrosity.aiStep"
+        },
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "parameters": [
+            "state4_trigger_tick"
+          ],
+          "native_value": 17,
+          "native_formula": "aiStep exact native state/tick call",
+          "units": "native attack ticks; separate state gate",
+          "native_boundary": "Monstrosity.aiStep"
         }
       ],
       "binary_gates": [
@@ -444,9 +462,10 @@
         "native source blocked Player; independent of hurt return",
         "hurttrue",
         "getIsBerserk",
-        "native state4"
+        "Native state3/tick19 OR state4/tick17 delivery"
       ],
-      "hurt_return_dependency": "Shield disable ignores hurt return; launch and berserk burn require hurttrue. No added alive-after-hurt check."
+      "hurt_return_dependency": "Shield disable ignores hurt return; launch and berserk burn require hurttrue. No added alive-after-hurt check.",
+      "canonical_reconciliation_file": "catalog-integrity-repairs.json"
     },
     {
       "id": "cataclysm:monstrosity_flame_jet_payload",
@@ -1286,89 +1305,6 @@
       "hurt_return_dependency": "Push and Fracture require hurttrue. No effect-return dependency; movement driver and terrain ignore hurt."
     },
     {
-      "id": "cataclysm:monstrosity_smash",
-      "primary_classification": "CUSTOM_CONTROL",
-      "delivery_paths": [
-        "cataclysm:monstrosity-offense:smash"
-      ],
-      "numerical_candidates": [
-        {
-          "primitive": "AREA_DELIVERY",
-          "parameters": [
-            "inflate"
-          ],
-          "native_value": 6.25,
-          "units": "blocks",
-          "native_boundary": "Monstrosity.EarthQuake query"
-        },
-        {
-          "primitive": "ATTACK_SEQUENCE",
-          "parameters": [
-            "trigger_tick"
-          ],
-          "native_value": 19,
-          "units": "native attack ticks",
-          "native_boundary": "Monstrosity.aiStep"
-        },
-        {
-          "primitive": "BURN",
-          "parameters": [
-            "duration_seconds"
-          ],
-          "native_value": 6.0,
-          "units": "seconds",
-          "native_boundary": "EarthQuake hurttrue and latched berserk"
-        },
-        {
-          "primitive": "FORCED_MOVEMENT",
-          "parameters": [
-            "added_y"
-          ],
-          "native_value": 0.6,
-          "units": "blocks/tick added velocity",
-          "native_boundary": "EarthQuake hurttrue -> Monstrosity.launch"
-        },
-        {
-          "primitive": "FORCED_MOVEMENT",
-          "parameters": [
-            "horizontal_coefficient"
-          ],
-          "native_value": 2.0,
-          "units": "native dx/distanceSquared coefficient",
-          "native_boundary": "EarthQuake hurttrue -> Monstrosity.launch"
-        },
-        {
-          "primitive": "NATIVE_DAMAGE_REQUEST",
-          "parameters": [
-            "max_hp_fraction"
-          ],
-          "native_value": 0.08,
-          "units": "target max-HP fraction; installed common config",
-          "native_boundary": "Monstrosity.EarthQuake native hurt"
-        },
-        {
-          "primitive": "SHIELD_DISABLE",
-          "parameters": [
-            "duration_ticks"
-          ],
-          "native_value": 120,
-          "units": "ticks",
-          "native_boundary": "EarthQuake blocked Player -> reused EntityUtil.disableShield"
-        }
-      ],
-      "binary_gates": [
-        "server",
-        "!boss.isAlliedTo(victim)",
-        "victim not Monstrosity and not self",
-        "hurttrue",
-        "native source blocked Player; independent of hurt return",
-        "hurttrue",
-        "getIsBerserk",
-        "native state3"
-      ],
-      "hurt_return_dependency": "Shield disable ignores hurt return; launch and berserk burn require hurttrue. No added alive-after-hurt check."
-    },
-    {
       "id": "cataclysm:monstrosity_stomp_wave",
       "primary_classification": "CUSTOM_CONTROL",
       "delivery_paths": [
@@ -1865,42 +1801,42 @@
   "reference_files": [
     {
       "file": "cataclysm-r2k4a-monstrosity-admission.json",
-      "sha256": "5349c1f74363e063d01e25ca8eba9890c20656604f7adcc8e962215447aba432",
+      "sha256": "484b62d06ef5c54035e67d7fb725ca9d6b83bcaadf82f9b8c3e7e4fb07afed6b",
       "usage": "LOCKED_REUSED"
     },
     {
       "file": "cataclysm-r2k3a-guardian-admission.json",
-      "sha256": "8a920972afe714d3e69278351e6a84672d9bb6a590d0cc0f6a20f66f8ae2ca7e",
+      "sha256": "e2c45e94cc8aa31e681acb7db0114742dd6a981caa9a12360d48f04d6cc8242f",
       "usage": "LOCKED_REUSED"
     },
     {
       "file": "cataclysm-r2k3b-guardian-offense.json",
-      "sha256": "274e56f41b2dc3cd1ee3196a41e6edc050f700ae36ed602eed054ecfd53b104e",
+      "sha256": "347a1bc2ae674171eec76d5d744850d9aff36280c905375392a98142134fe283",
       "usage": "LOCKED_REUSED"
     },
     {
       "file": "cataclysm-r2k2a-shared-admission.json",
-      "sha256": "3852d7f0950abe786cd9769ea4d64fb02f2cfa4ee1f4e99c06464645218ee9e2",
+      "sha256": "ab165513835c2d95723ff6cc6f0a2e7c8c80e4bc6f5c0ab8fc4e7c64626babce",
       "usage": "LOCKED_REUSED"
     },
     {
       "file": "cataclysm-r2k2b-stun.json",
-      "sha256": "c81fed2de650739f580e106fa4cd9ac907cb7b5a3e7e8161879a0f2a795a4cd9",
+      "sha256": "f46fb965e20aacc40b8ea53488dd634ba118ba49af7f4008e23ce792def85efb",
       "usage": "LOCKED_REUSED"
     },
     {
       "file": "cataclysm-r2k2c-ghost-fear.json",
-      "sha256": "77c977c09003cd0b0be9f0a6261985958610c6847e712cffdc2c17143bb0e75f",
+      "sha256": "4c7d447c75d33a11346aa89ba4721e12ea877bed8ffb9ef61f917a8cc840244f",
       "usage": "LOCKED_REUSED"
     },
     {
       "file": "cataclysm-r2k2d-abyssal-status.json",
-      "sha256": "4f6b1b56e028c1e7c1f5dee6209f9264a3d456a26d0edbafc0f3689ca70fa35c",
+      "sha256": "760bd5aeb8855ebe7e2eabc10d69edcfac8821a551b168a567be7ad065c0aaa3",
       "usage": "LOCKED_REUSED"
     },
     {
       "file": "cataclysm-r2k2e-remaining-status.json",
-      "sha256": "736c5033f74b821f14794a0dcd988056bcf98b12a5222fe5b70ab83d0c77c455",
+      "sha256": "5e63dde022757c61af77c1293916e9be521ebdacca9ef0256a754b87d72dea3b",
       "usage": "LOCKED_REUSED"
     },
     {
@@ -2000,5 +1936,8 @@
   "boss_testing_started": false,
   "l2_testing_started": false,
   "compatibility_fixes_started": false,
-  "phase7_started": false
+  "phase7_started": false,
+  "native_context_packages": [],
+  "canonical_reconciliation_file": "catalog-integrity-repairs.json",
+  "current_canonical_totals_file": "cataclysm-classification-summary.json"
 }

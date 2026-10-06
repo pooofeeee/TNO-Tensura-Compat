@@ -3,6 +3,24 @@ import argparse
 from catalog_common import *
 
 def validate():
+    if (OUT/'catalog-integrity-repairs.json').exists():
+        # Current native facts supersede the old promotion builders. Rebuilding
+        # their policy output would validate the very assumptions we repaired.
+        from audit_catalog_integrity import audit_catalog
+        from validate_current_integrity import validate_cataclysm_repairs
+        from refresh_catalog_views import project
+        report=audit_catalog()
+        validate_cataclysm_repairs()
+        projected=project([read_json(p) for p in sorted((OUT/'mod-reviews').glob('*.json'))])
+        for file,key in [('effect-catalog.json','effects'),('effect-sources.json','sources'),
+                         ('delivery-path-matrix.json','paths'),('vanilla-comparison.json','comparisons'),
+                         ('behavior-primitives.json','primitives')]:
+            assert read_json(OUT/file)[key]==projected[key], 'Stale canonical view: '+file
+        allowed=('docs/external-effects-catalog-research.md','docs/benchmarks/external-effects-catalog/','scripts/external-effects/')
+        for path in git('diff','--name-only',BASELINE).splitlines()+git('ls-files','--others','--exclude-standard').splitlines():
+            assert path.startswith(allowed), 'Out-of-scope change: '+path
+        git('diff','--check',BASELINE)
+        return report
     inventory=read_json(OUT/'jar-inventory.json')
     assert inventory['baseline']==BASELINE
     assert len(inventory['targets'])==23

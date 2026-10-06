@@ -1,6 +1,8 @@
 # External combat effects catalog — separate research track
 
-**Status: PARTIAL overall; Twilight Forest static combat review COMPLETE at R2f-final: 219 distinct mechanics / 640 delivery paths, 40/40 custom DamageTypes USED, 0 REVIEW_REQUIRED/native ambiguities. Five accepted external mod reviews are COMPLETE.** Phase 6/production remain closed; original Phase 7 has not started.
+**Current status: PARTIAL overall; Cataclysm is COMPLETE after R2k34 integrity repair and final coverage reconciliation.** Ten external semantic reviews and the reference-only Tensura scope are complete. Production remains unchanged; Stage policy and runtime work have not started.
+
+Use [mod-completion-ledger.json](benchmarks/external-effects-catalog/mod-completion-ledger.json) for the current queue, [catalog-integrity-audit.json](benchmarks/external-effects-catalog/catalog-integrity-audit.json) for current totals and independent checks, and [catalog-integrity-repairs.json](benchmarks/external-effects-catalog/catalog-integrity-repairs.json) for repairs and superseded historical policy output. Cataclysm's final counts and exclusions are in [cataclysm-classification-summary.json](benchmarks/external-effects-catalog/cataclysm-classification-summary.json). Earlier checkpoints below describe their historical scope; they do not override the repaired canonical reviews or choose future Stage policy.
 
 Baseline: `a5e85e610349120e21d62f4a80f1b607e36607fe`. Branch: `external-effects-catalog-research`. Recovery found a clean working tree and the live readiness remote at this baseline; no earlier external-effects track existed. No applicable `AGENTS.md` was found. The dedicated branch was created from the verified baseline without resetting or discarding work.
 
