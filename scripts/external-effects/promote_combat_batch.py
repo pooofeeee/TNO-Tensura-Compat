@@ -36,6 +36,17 @@ def damage_source_binding(method,offset):
     return holder['operand'],body[start]['offset'],ctor['offset'],ctor['operand']
 
 
+def literal_attribute_binding(method,offset):
+    """Bind a direct native attribute-builder literal; decline expressions."""
+    body=method['instructions'];at=next(n for n,i in enumerate(body) if i['offset']==offset)
+    assert body[at]['operand']=='net/minecraft/world/entity/ai/attributes/AttributeSupplier$Builder.add(Lnet/minecraft/core/Holder;D)Lnet/minecraft/world/entity/ai/attributes/AttributeSupplier$Builder;'
+    holder,value=body[at-2:at]
+    assert holder['opcode']=='0xb2' and '/Attributes.' in str(holder['operand'])
+    assert value['opcode'] in ('0xe','0xf','0x14') and isinstance(value['operand'],(int,float))
+    return dict(attribute_symbol=holder['operand'],holder_offset=holder['offset'],
+                value_offset=value['offset'],native_value=value['operand'])
+
+
 def effect_receiver_binding(method,offset):
     """Trace a simple generated LivingEntity cast/local used by addEffect.
 
@@ -101,7 +112,10 @@ def validate_batch(batch,review,census):
                 'LivingIncomingDamageEvent.setAmount(')
             rng=(candidate['primitive'] in ('ATTACK_SELECTION','SUMMON_DELIVERY','PROC_CHANCE') and
                  'Mth.nextInt(' in str(hit['operand']))
-            assert hit['opcode']=='0xb5' or rng or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
+            attribute='native_attribute_binding' in candidate
+            if attribute:
+                assert literal_attribute_binding(m,consumer['offset'])==candidate['native_attribute_binding'],('wrong native attribute literal',candidate)
+            assert hit['opcode']=='0xb5' or rng or attribute or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
             if candidate['primitive'].startswith('MOB_EFFECT_'):
                 symbol,allocation,load=effect_holder_binding(m,consumer['offset'])
                 assert (symbol,allocation,load)==(candidate['native_holder_symbol'],
@@ -131,6 +145,11 @@ def validate_batch(batch,review,census):
                 if 'native_damage_type_symbol' in candidate:
                     source=damage_source_binding(other_method,site['offset'])
                     assert (source[0],source[3])==(candidate['native_damage_type_symbol'],candidate['native_damage_source_constructor']),('auxiliary source identity differs',site)
+                if attribute:
+                    other_binding=literal_attribute_binding(other_method,site['offset'])
+                    assert (other_binding['attribute_symbol'],other_binding['native_value'])==(
+                        candidate['native_attribute_binding']['attribute_symbol'],
+                        candidate['native_attribute_binding']['native_value']),('auxiliary attribute literal differs',site)
             for parameter in candidate['parameters']:
                 identity=tuple(candidate['native_parameter_identity'][k] for k in ('entry','method','descriptor','offset'))+(candidate['primitive'],parameter)
                 assert identity not in candidates,('same native parameter counted twice',identity)

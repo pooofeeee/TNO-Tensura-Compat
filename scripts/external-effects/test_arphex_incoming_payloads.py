@@ -127,5 +127,112 @@ class IncomingPayloadTest(unittest.TestCase):
             self.assertEqual(next(c for c in row['scalable_parameter_candidates'] if c['primitive'] == primitive)['parameters'], ['duration'])
 
 
+class AreaScarabPayloadTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m2i-area-reactive-scarab.json')
+        cls.evidence=read_json(OUT/'native-evidence/arphex-reactive-scarabs.json')
+        cls.witness=next(w for w in read_json(OUT/'native-evidence/arphex-global-hooks.json')['witnesses']
+                         if w['entry'].endswith('/DwellerLifestealProcedure.class'))
+        cls.method=next(m for m in cls.witness['methods'] if m['name']=='execute' and 'bus/api/Event;' in m['descriptor'])
+        cls.body=cls.method['instructions'];cls.by_offset={i['offset']:i for i in cls.body}
+
+    def native(self,entry,name):
+        return next(m for w in self.evidence['witnesses'] if w['entry'].endswith('/'+entry+'.class')
+                    for m in w['methods'] if m['name']==name)
+
+    def test_area_division_is_integer_before_float_conversion(self):
+        for divide,convert,request,numerator in [(25026,25027,25028,100),(25423,25424,25425,80)]:
+            self.assertEqual(self.by_offset[divide]['opcode'],'0x6c')
+            self.assertEqual(self.by_offset[convert]['opcode'],'0x86')
+            self.assertEqual(self.by_offset[request+3]['opcode'],'0x57')
+            allocation=max(i['offset'] for i in self.body if i['offset']<request and i['operand']=='net/minecraft/world/damagesource/DamageSource')
+            window=[i for i in self.body if allocation<=i['offset']<request]
+            self.assertTrue(any(i['operand']==numerator for i in window))
+            self.assertTrue(any('DamageTypes.FLY_INTO_WALL' in str(i['operand']) for i in window))
+            self.assertTrue(any(i['operand']=='net/minecraft/world/damagesource/DamageSource.<init>(Lnet/minecraft/core/Holder;)V' for i in window))
+
+    def test_area_movement_recipients_and_yaw_are_distinct(self):
+        # Stack receiver immediately preceding each Vec3 allocation; yaw reads
+        # are separate native ALOAD instructions, not decompiler aliases.
+        for receiver,slot in [(25032,9),(25429,48)]:
+            self.assertEqual(self.by_offset[receiver]['local_index'],slot)
+        for yaw in [25038,25062,25435,25457]:
+            self.assertEqual(self.by_offset[yaw]['local_index'],9)
+        self.assertEqual(self.by_offset[25454]['operand'],-.6)
+
+    def test_flag_reset_evidence_contains_the_actual_six_lambda_bodies(self):
+        row=next(r for r in self.batch['effects'] if r['id']=='arphex:scarab_reactive_incoming_summons')
+        methods=row['implementation'][0]['methods']
+        for n,color in zip(range(71,77),['gold','purple','iridescent','greengold','green','brown']):
+            name=f'lambda$execute${n}';self.assertIn(name,methods)
+            m=next(m for m in self.witness['methods'] if m['name']==name)
+            self.assertTrue(any(i['operand']=='justsummoned'+color for i in m['instructions']))
+            self.assertEqual([i['operand'] for i in m['instructions'] if i['opcode']=='0x3'],[0])
+
+    def test_cleanup_compares_highest_color_to_same_synced_color(self):
+        for first,last in [(30651,30741),(30779,30869),(30907,30997),(31035,31125),(31163,31253),(31291,31381)]:
+            window=[i for i in self.body if first<=i['offset']<=last]
+            self.assertTrue(any(i['operand']=='highestscarab' for i in window))
+            self.assertTrue(any('ScarabSummonEntity.DATA_scarab' in str(i['operand']) for i in window))
+            compares=[n for n,i in enumerate(window) if i['operand']=='java/lang/String.equals(Ljava/lang/Object;)Z']
+            self.assertEqual(len(compares),2)
+            for n in compares:self.assertEqual(window[n+1]['opcode'],'0x99') # false skips removal
+            self.assertEqual(window[compares[0]-1]['operand'],window[compares[1]-1]['operand'])
+
+    def test_hurt_discard_is_called_before_all_rejections(self):
+        body=self.native('ScarabSummonEntity','hurt')['instructions']
+        self.assertIn('ScarabSummonEntityIsHurtProcedure.execute',body[1]['operand'])
+        self.assertEqual(body[1]['offset'],1)
+        self.assertGreater(min(i['offset'] for i in body if i['opcode']=='0xac'),1)
+        reject=[i['operand'] for i in body if i['opcode']=='0xb2']
+        for key in ['POISON_DAMAGE','FALL','DROWN','WITHER','WITHER_SKULL']:
+            self.assertTrue(any('.'+key+'L' in s for s in reject))
+        helper=self.native('ScarabSummonEntityIsHurtProcedure','execute')['instructions']
+        self.assertTrue(any('Entity.discard()' in str(i['operand']) for i in helper))
+
+    def test_empty_food_list_makes_food_heal_branches_inactive(self):
+        body=self.native('ScarabSummonEntity','isFood')['instructions']
+        self.assertEqual(body[0]['operand'],'java/util/List.of()Ljava/util/List;')
+        self.assertTrue(any(i['operand']=='java/util/List.contains(Ljava/lang/Object;)Z' for i in body))
+        row=next(r for r in self.batch['effects'] if r['id']=='arphex:scarab_native_family')
+        self.assertFalse(any('.heal(' in c['native_consumer']['operand'] for c in row['scalable_parameter_candidates']))
+
+    def test_native_tick_queues_are_repeated_not_invented_single_receipts(self):
+        body=self.native('ScarabSummonOnEntityTickUpdateProcedure','execute')['instructions']
+        calls=[(n,i) for n,i in enumerate(body) if 'queueServerWork(' in str(i['operand'])]
+        self.assertEqual(len(calls),2)
+        self.assertEqual([body[n-3]['operand'] for n,i in calls],[5,350])
+        self.assertFalse(any('getBoolean' in str(i['operand']) for i in body[:calls[0][0]]))
+
+    def test_melee_goal_ignores_hurt_return_and_has_no_local_cooldown(self):
+        body=self.native('ScarabSummonEntity$1','tick')['instructions']
+        n=next(n for n,i in enumerate(body) if '.doHurtTarget(' in str(i['operand']))
+        self.assertEqual(body[n+1]['opcode'],'0x57')
+        self.assertFalse(any(i['opcode']=='0xb5' for i in body))
+        self.assertTrue(any('AABB.intersects(' in str(i['operand']) for i in body))
+
+    def test_attack_damage_literal_binding_rejects_wrong_attribute(self):
+        from promote_combat_batch import literal_attribute_binding
+        m=self.native('ScarabSummonEntity','createAttributes');binding=literal_attribute_binding(m,44)
+        self.assertIn('.ATTACK_DAMAGE',binding['attribute_symbol']);self.assertEqual(binding['native_value'],3.0)
+        original=read_json(OUT/'mod-reviews/arphex.json')
+        original['effects']=[r for r in original['effects'] if r['id'] not in {r['id'] for r in self.batch['effects']}]
+        original['paths']=[p for p in original['paths'] if p['id'] not in {p['id'] for p in self.batch['paths']}]
+        broken=deepcopy(self.batch)
+        candidate=next(c for r in broken['effects'] for c in r['scalable_parameter_candidates'] if 'native_attribute_binding' in c)
+        candidate['native_attribute_binding']['attribute_symbol']=binding['attribute_symbol'].replace('ATTACK_DAMAGE','MAX_HEALTH')
+        with self.assertRaisesRegex(AssertionError,'wrong native attribute literal'):
+            validate_batch(broken,original,read_json(OUT/'arphex-combat-census.json'))
+
+    def test_new_evidence_reproduces_from_pinned_archive(self):
+        from native_evidence import collect
+        jar='/workspace/.cache/large-mod-campaign/ArPhEx-5.0.2-neoforge-1.21.1.jar'
+        from pathlib import Path
+        if not Path(jar).exists():self.skipTest('Pinned archive not available')
+        spec=read_json(OUT/'native-specifications/arphex-reactive-scarabs.json')
+        self.assertEqual(collect(spec,jar_paths={'arphex':jar}),self.evidence)
+
+
 if __name__ == '__main__':
     unittest.main()
