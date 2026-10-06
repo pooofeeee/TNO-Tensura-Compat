@@ -83,3 +83,83 @@ class SmallInsectNativeTests(NativeContractHarness, unittest.TestCase):
         goal=self.body('MaggotLarvaeEntity$1','canPerformAttack')
         self.assertTrue(any('.hasLineOfSight(' in str(i['operand']) for i in goal))
         self.assertFalse(any('MaggotPlayerCollidesWithThisEntityProcedure' in str(i['operand']) for i in goal))
+
+
+class WebPlantNativeTests(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m5h-web-plant-native-hazards.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-web-plant-hazard-family.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def test_native_bindings_and_explicit_deferred_consumers(self):
+        validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual((len(self.batch['effects']),len(self.batch['closed_actor_callback_entries'])),(4,4))
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects']
+                             for c in r['scalable_parameter_candidates']),14)
+        r=self.row('web_funnel_native_ground_conversion')
+        self.assertEqual(r['primary_classification'],'BINARY_MECHANIC')
+        self.assertEqual(r['scalable_parameter_candidates'],[])
+        self.assertTrue(self.row('cave_web_native_sticking_and_recluse_hang_control')['directly_deferred_consumers'])
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_cave_sticking_is_immediate_after_possible_discard(self):
+        b=self.body('CaveWebOnEntityTickUpdateProcedure')
+        self.assertFalse(any('.queueServerWork(' in str(i['operand']) for i in b))
+        self.assertEqual(sum('.makeStuckInBlock(' in str(i['operand']) for i in b),1)
+        self.assertTrue(any('.discard(' in str(i['operand']) and i['offset']<1090 for i in b))
+        j=next(j for j,i in enumerate(b) if i['offset']==1224)
+        self.assertEqual([i['operand'] for i in b[j-9:j] if i['opcode'] in ('0x12','0x13','0x14')],[.25,.05,.25])
+        self.assertFalse(any('.hurt(' in str(i['operand']) for i in b))
+
+    def test_recluse_hang_control_is_separate_from_web_self_grid(self):
+        b=self.body('CaveWebOnEntityTickUpdateProcedure')
+        by={i['offset']:i for i in b}
+        self.assertIn('.teleportTo(',by[36]['operand'])
+        self.assertIn('.teleportTo(',by[335]['operand'])
+        self.assertTrue(any('SpiderRecluseEntity.DATA_size' in str(i['operand']) for i in b))
+        self.assertTrue(any('SpiderRecluseEntity.DATA_hangweb' in str(i['operand']) for i in b))
+        self.assertTrue(any(i['operand']==30 for i in b))
+        self.assertIn('CompoundTag.putDouble(',by[168]['operand'])
+        self.assertLess(168,335)  # presence resets age before hanging admission/delivery
+        self.assertFalse(any('.setOwner(' in str(i['operand']) for i in b))
+
+    def test_funnel_one_block_conversion_has_no_server_guard(self):
+        b=self.body('FunnelWebOnEntityTickUpdateProcedure')
+        places=[i for i in b if 'LevelAccessor.setBlock(' in str(i['operand'])]
+        self.assertEqual([i['offset'] for i in places],[296])
+        j=next(j for j,i in enumerate(b) if i['offset']==296)
+        self.assertEqual(b[j-1]['operand'],3)
+        self.assertFalse(any(i['opcode']=='0xc1' and i['operand']=='net/minecraft/server/level/ServerLevel' for i in b[:j]))
+        self.assertTrue(any('ArphexModBlocks.FUNNEL_WEB' in str(i['operand']) for i in b[:j]))
+        actor=self.body('WebFunnelEntity','<init>')
+        at=next(j for j,i in enumerate(actor) if '.setNoAi(' in str(i['operand']))
+        self.assertEqual(actor[at-1]['operand'],1)
+
+    def test_prototype_latch_precedes_spawn_and_rename_has_no_spawn_reference(self):
+        b=self.body('FlytrapOnEntityTickUpdateProcedure')
+        self.assertEqual([i['offset'] for i in b if '.queueServerWork(' in str(i['operand'])],[47,69,164])
+        latch=next(i['offset'] for i in b if 'CompoundTag.putBoolean(' in str(i['operand']))
+        self.assertLess(latch,143)
+        w=next(w for w in self.native['witnesses'] if w['entry'].endswith('/FlytrapOnEntityTickUpdateProcedure.class'))
+        m=next(m for m in w['methods'] if m['name']=='lambda$execute$4')
+        self.assertEqual(m['descriptor'],'(Lnet/minecraft/world/level/LevelAccessor;DDD)V')
+        self.assertTrue(any('.setCustomName(' in str(i['operand']) for i in m['instructions']))
+        self.assertTrue(any(i['operand']=='Tamed Flytrap' for i in m['instructions']))
+        self.assertEqual(sum('AABB.ofSize(' in str(i['operand']) for i in m['instructions']),2)
+        self.assertFalse(any('.setOwner(' in str(i['operand']) or '.tame(' in str(i['operand']) for i in b+m['instructions']))
+
+    def test_native_name_goal_and_current_target_clear_are_separate(self):
+        b=self.body('NotNamedProcedure')
+        self.assertTrue(any(i['operand']=='Venus Flytrap' for i in b))
+        j=next(j for j,i in enumerate(b) if 'String.equals(' in str(i['operand']))
+        self.assertEqual(b[j+1]['opcode'],'0xac')  # no inversion of authored predicate
+        for method in ('canUse','canContinueToUse'):
+            self.assertTrue(any('NotNamedProcedure.execute(' in str(i['operand'])
+                                for i in self.body('VenusFlytrapEntity$1',method)))
+        b=self.body('VenusFlytrapOnEntityTickUpdateProcedure')
+        self.assertTrue(any(i['operand']=='Venus Flytrap' for i in b))
+        self.assertTrue(any('.setTarget(' in str(i['operand']) for i in b))
+        goal=self.body('VenusFlytrapEntity','registerGoals')
+        self.assertTrue(any('HurtByTargetGoal.<init>' in str(i['operand']) for i in goal))
+        self.assertFalse(any('.setOwner(' in str(i['operand']) or '.tame(' in str(i['operand']) for i in goal))
