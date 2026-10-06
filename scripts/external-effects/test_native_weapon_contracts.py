@@ -2032,3 +2032,146 @@ class NativeEggScarabContracts(NativeContractHarness, unittest.TestCase):
         self.assertEqual(sum('.clearOrCountMatchingItems(' in str(i['operand']) for i in b),6)
         self.assertTrue(any('BeetleBulwarkEntity.DATA_randsize' in str(i['operand']) for i in b))
         self.assertTrue(any(i['operand']=='scarabt' for i in b))
+
+
+class NativeBlockFieldContracts(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch = read_json(OUT / 'arphex-r2m6s-native-block-field-and-web-contracts.json')
+        cls.native = read_json(OUT / 'native-evidence/arphex-native-block-fields.json')
+        cls.census = read_json(OUT / 'arphex-combat-census.json')
+
+    def test_contracts_validate_without_automatic_mod_completion(self):
+        validate_batch(self.batch, self.prior(), self.census)
+        self.assertEqual(len(self.batch['effects']), 10)
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects']
+                             for c in r['scalable_parameter_candidates']), 41)
+        self.assertEqual((len(self.native['witnesses']), sum(len(w['methods'])
+                         for w in self.native['witnesses'])), (30, 174))
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_declared_motion_properties_are_exact_distinct_native_inputs(self):
+        from promote_combat_batch import literal_block_factor_binding
+        row = self.row('native_crystal_flesh_web_block_motion_profiles')
+        self.assertEqual(len(row['scalable_parameter_candidates']), 10)
+        for candidate in row['scalable_parameter_candidates']:
+            site = candidate['native_consumer']
+            name = site['entry'].split('/')[-1][:-6]
+            binding = literal_block_factor_binding(dict(instructions=self.body(name, '<init>')), site['offset'])
+            self.assertEqual(binding, candidate['native_block_factor_binding'])
+        bad = copy.deepcopy(self.batch)
+        row = next(r for r in bad['effects'] if r['id'].endswith(':native_crystal_flesh_web_block_motion_profiles'))
+        next(c for c in row['components'] if c['primitive'] == 'BLOCK_FRICTION')['numerical_parameters']['reaperweb'] = .71
+        with self.assertRaisesRegex(AssertionError, 'component differs from native block factor'):
+            validate_batch(bad, self.prior(), self.census)
+        body = copy.deepcopy(self.body('ReaperWebBlock', '<init>'))
+        next(i for i in body if i['offset'] == 19)['opcode'] = '0x6a'
+        with self.assertRaises(AssertionError):
+            literal_block_factor_binding(dict(instructions=body), 21)
+
+    def test_scheduled_support_callbacks_have_parent_then_payload_then_repeat(self):
+        for block, ticks in [('BlockOfAbyssalCrystalBlock', 10), ('BlockOfEntropyMatrixBlock', 10),
+                             ('BlockOfFireOpalBlock', 10), ('BlockOfTimePrismBlock', 10),
+                             ('BlockOfVoidGeodeBlock', 10), ('CobwebPassableBlock', 10),
+                             ('FunnelWebBlock', 40), ('TrapdoorDirtBlock', 400)]:
+            for method in ('onPlace', 'tick'):
+                body = self.body(block, method)
+                at = next(j for j, i in enumerate(body) if '.scheduleTick(' in str(i['operand']))
+                self.assertEqual(body[at-1]['operand'], ticks)
+                parent = next(i['offset'] for i in body if i['opcode'] == '0xb7')
+                self.assertLess(parent, body[at]['offset'])
+                if method == 'tick':
+                    helper = next(i['offset'] for i in body if '/procedures/' in str(i['operand']))
+                    self.assertLess(parent, helper)
+                    self.assertLess(helper, body[at]['offset'])
+
+    def test_status_holders_doses_and_constructor_defaults_are_native(self):
+        from promote_combat_batch import effect_holder_binding, literal_effect_arguments
+        cases = [('AbyssalBlockTickProcedure', 249, 'DAMAGE_BOOST', 200, 1),
+                 ('BlockOfEntropyMatrixOnTickUpdateProcedure', 425, 'DAMAGE_RESISTANCE', 200, 1),
+                 ('BlockOfFireOpalUpdateTickProcedure', 221, 'SATURATION', 5, 0),
+                 ('BlockOfVoidGeodeTickProcedure', 391, 'VOID_PROTECTION', 20, 0)]
+        for name, offset, symbol, duration, amplifier in cases:
+            method = dict(instructions=self.body(name))
+            self.assertIn(symbol, effect_holder_binding(method, offset)[0])
+            args = literal_effect_arguments(method, offset)
+            self.assertEqual((args['duration'], args['amplifier']), (duration, amplifier))
+        body = self.body('BlockOfVoidGeodeTickProcedure')
+        remove = next(i['offset'] for i in body if '.removeEffect(' in str(i['operand']))
+        self.assertLess(remove, 391)
+        self.assertTrue(any(i['operand'] == 600 for i in body))
+
+    def test_saturation_status_precedes_reset_and_positive_branch_only_decrements(self):
+        from promote_combat_batch import literal_field_numeric_binding
+        body = self.body('BlockOfFireOpalUpdateTickProcedure')
+        by = {i['offset']: i for i in body}
+        self.assertEqual(literal_field_numeric_binding(dict(instructions=body), 246)['native_value'], 40.)
+        self.assertLess(221, 246)
+        writes = [i for i in body if i['opcode'] == '0xb5' and '.saturationclock' in str(i['operand'])]
+        self.assertEqual([i['offset'] for i in writes], [246, 290])
+        self.assertEqual((by[288]['operand'], by[289]['opcode']), (1., '0x67'))
+
+    def test_time_prism_uses_shared_history_and_direct_sethealth_before_cooldown(self):
+        body = self.body('BlockOfTimePrismOnTickUpdateProcedure')
+        by = {i['offset']: i for i in body}
+        for key in ('bcst1', 'bcst2', 'bcst3', 'bcst4', 'bcst5', 'buffer_cycle_spacetime'):
+            self.assertTrue(any(i['operand'] == key for i in body))
+        self.assertEqual((by[508]['operand'], by[511]['opcode']), (2., '0xb6'))
+        self.assertEqual((by[311]['operand'], by[911]['operand']), (1, 500))
+        self.assertIn('.setHealth(', by[879]['operand'])
+        self.assertIn('.addCooldown(', by[914]['operand'])
+        self.assertEqual(by[315]['branch_target'], 999)  # worn-leg compression skips history
+        self.assertEqual(by[602]['branch_target'], 999)  # recovery's active item cooldown skips restore
+        self.assertFalse(any('.heal(' in str(i['operand']) for i in body))
+        self.assertFalse(any('.isClientSide(' in str(i['operand']) for i in body if i['offset'] < 30))
+
+    def test_passable_cobweb_is_signed_sum_not_speed_or_native_stuck(self):
+        body = self.body('CobwebPassableEntityCollidesInTheBlockProcedure')
+        by = {i['offset']: i for i in body}
+        self.assertEqual((by[218]['opcode'], by[219]['opcode'], by[219]['branch_target']), ('0x97', '0x9e', 266))
+        self.assertEqual(sum(i['opcode'] == '0x63' for i in body), 2)
+        self.assertEqual([i['operand'] for i in body if i['opcode'] == '0x14'], [.9, .9, .9])
+        self.assertTrue(any(i['opcode'] == '0xf' and i['operand'] == 1. for i in body))
+        self.assertFalse(any('makeStuckInBlock' in str(i['operand']) or 'Math.abs' in str(i['operand']) or '.isClientSide(' in str(i['operand']) for i in body))
+
+    def test_reaper_web_uses_registry_string_and_native_stuck_without_fixed_timer(self):
+        body = self.body('ReaperWebEntityCollidesInTheBlockProcedure')
+        by = {i['offset']: i for i in body}
+        self.assertEqual(by[33]['operand'], 'spider')
+        self.assertEqual((by[15]['branch_target'], by[38]['branch_target']), (67, 67))
+        self.assertEqual([by[o]['operand'] for o in (52, 55, 58)], [.25, .05, .25])
+        self.assertIn('Blocks.AIR', by[42]['operand'])
+        self.assertIn('.makeStuckInBlock(', by[64]['operand'])
+        cleanup = self.body('ReaperWebOnTickUpdateProcedure')
+        self.assertTrue(any('.destroyBlock(' in str(i['operand']) for i in cleanup))
+        self.assertFalse(any('queueServerWork' in str(i['operand']) for i in cleanup))
+
+    def test_funnel_latch_once_allows_six_native_spawn_sites_without_owner(self):
+        body = self.body('FunnelWebOnTickUpdateProcedure')
+        self.assertEqual(sum('$1.getValue(' in str(i['operand']) for i in body), 1)
+        self.assertEqual(sum('EntityType.spawn(' in str(i['operand']) for i in body), 6)
+        self.assertEqual(sum('.putBoolean(' in str(i['operand']) for i in body), 6)
+        self.assertFalse(any('.setOwner(' in str(i['operand']) or '.tame(' in str(i['operand']) for i in body))
+        vectors = [j for j, i in enumerate(body) if '.setDeltaMovement(DDD)' in str(i['operand'])]
+        self.assertEqual([[i['operand'] for i in body[j-3:j]] for j in vectors], [[.5, 0., 0.]] * 5 + [[0., .5, 0.]])
+        at = next(j for j, i in enumerate(body) if 'Mth.nextInt(' in str(i['operand']))
+        self.assertEqual([i['operand'] for i in body[at-2:at]], [1, 160])
+        getter = self.body('FunnelWebOnTickUpdateProcedure$1', 'getValue')
+        self.assertEqual(getter[-2]['operand'], 0)  # missing BE defaults false
+
+    def test_delayed_trapdoor_cleanup_only_rechecks_below_not_original_block(self):
+        body = self.body('TrapdoorDirtOnTickUpdateProcedure', 'lambda$execute$0')
+        self.assertEqual(sum('.getBlockState(' in str(i['operand']) for i in body), 2)
+        self.assertEqual(sum('TRAPDOOR_DIRT' in str(i['operand']) for i in body), 1)
+        self.assertFalse(any('TRAPDOOR_GRASS' in str(i['operand']) or '.getEntitiesOfClass(' in str(i['operand']) for i in body))
+        self.assertTrue(any('.setBlock(' in str(i['operand']) for i in body))
+
+    def test_flesh_ticks_only_particles_and_web_geometry_is_not_false_payload(self):
+        for name in ('MangledScorpionFleshOnTickUpdateProcedure', 'MangledSpiderFleshUpdateTickProcedure'):
+            calls = [i['operand'] for i in self.body(name) if i['opcode'] in ('0xb6', '0xb7', '0xb8', '0xb9')]
+            self.assertEqual(len(calls), 1)
+            self.assertIn('.sendParticles(', calls[0])
+        for name in ('WebLineBlock', 'WebWallBlock'):
+            witness = next(w for w in self.native['witnesses'] if w['entry'].endswith('/' + name + '.class'))
+            self.assertNotIn('entityInside', witness['declared_method_names'])
+            self.assertTrue(any('PathType.OPEN' in str(i['operand']) for i in self.body(name, 'getBlockPathType')))

@@ -138,11 +138,11 @@ def literal_attribute_binding(method,offset):
 
 
 def literal_block_factor_binding(method, offset):
-    """Bind a declared block speed/jump factor, without inferring its consumers."""
+    """Bind a declared block motion property, without inferring its consumers."""
     body = method['instructions']
     at = next(n for n, i in enumerate(body) if i['offset'] == offset)
     factors = {f'net/minecraft/world/level/block/state/BlockBehaviour$Properties.{name}(F)Lnet/minecraft/world/level/block/state/BlockBehaviour$Properties;': name
-               for name in ('speedFactor', 'jumpFactor')}
+               for name in ('speedFactor', 'jumpFactor', 'friction')}
     assert at > 0 and body[at]['operand'] in factors
     value = body[at-1]
     assert value['opcode'] in ('0xb', '0xc', '0xd', '0x12', '0x13')
@@ -644,7 +644,8 @@ def validate_batch(batch,review,census):
                 binding = literal_block_factor_binding(m, consumer['offset'])
                 assert binding == candidate['native_block_factor_binding']
                 assert candidate['primitive'] == {'speedFactor': 'BLOCK_SPEED_FACTOR',
-                                                  'jumpFactor': 'BLOCK_JUMP_FACTOR'}[binding['property']]
+                                                  'jumpFactor': 'BLOCK_JUMP_FACTOR',
+                                                  'friction': 'BLOCK_FRICTION'}[binding['property']]
                 assert len(candidate['parameters']) == 1
                 component = next(c for c in row['components'] if c['primitive'] == candidate['primitive'])
                 assert component['numerical_parameters'][candidate['parameters'][0]] == binding['native_value'], \
