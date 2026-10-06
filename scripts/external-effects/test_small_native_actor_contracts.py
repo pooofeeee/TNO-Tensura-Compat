@@ -5,6 +5,102 @@ from promote_combat_batch import validate_batch
 from test_shadow_clone_contracts import NativeContractHarness
 
 
+class CommonInsectNativeTests(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m5j-common-insect-native-families.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-common-insect-native-family.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def test_six_roots_share_one_real_callback_registration(self):
+        validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual((len(self.batch['effects']),len(self.batch['closed_actor_callback_entries'])),(3,6))
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects']
+                             for c in r['scalable_parameter_candidates']),48)
+        for name in ('AntArsonistEntity','BloodWormEntity','StickBugEntity','SilverfishSpectreEntity'):
+            b=self.body(name,'baseTick')
+            self.assertEqual(sum('BloodWormOnEntityTickUpdateProcedure.execute(' in str(i['operand']) for i in b),1)
+        self.assertEqual(len(self.row('shared_ant_bloodworm_stick_silverfish_native_callbacks')['native_actor_variants']),4)
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_queen_presence_two_delays_are_not_owner_transport(self):
+        b=self.body('BloodWormOnEntityTickUpdateProcedure')
+        self.assertEqual([i['offset'] for i in b if '.queueServerWork(' in str(i['operand'])],[29,97])
+        self.assertTrue(any(str(i['operand']).endswith('/AntArsonistAlateQueenEntity') for i in b))
+        flag=self.body('BloodWormOnEntityTickUpdateProcedure','lambda$execute$0')
+        self.assertEqual([i['operand'] for i in flag if i['opcode']=='0x12'],['notfromqueen'])
+        self.assertFalse(any('.level(' in str(i['operand']) or '.isAlive(' in str(i['operand']) for i in flag))
+        discard=self.body('BloodWormOnEntityTickUpdateProcedure','lambda$execute$2')
+        self.assertTrue(any('.discard(' in str(i['operand']) for i in discard))
+        self.assertFalse(any('.getEntities' in str(i['operand']) or '.isAlive(' in str(i['operand']) for i in discard))
+        self.assertFalse(any('.setOwner(' in str(i['operand']) for i in b))
+
+    def test_resistance_skips_only_status_package_then_step_write(self):
+        b=self.body('BloodWormOnEntityTickUpdateProcedure');by={i['offset']:i for i in b}
+        self.assertEqual((by[1927]['opcode'],by[1927]['branch_target']),('0x9a',2081))
+        for off,holder in ((1970,'INVISIBILITY'),(2017,'WEAKNESS'),(2074,'DAMAGE_RESISTANCE')):
+            j=next(j for j,i in enumerate(b) if i['offset']==off)
+            self.assertIn('MobEffectInstance.<init>',b[j]['operand'])
+            self.assertTrue(any('MobEffects.'+holder in str(i['operand']) for i in b[j-10:j]))
+        self.assertIn('AttributeInstance.setBaseValue(D)V',by[2114]['operand'])
+        j=next(j for j,i in enumerate(b) if i['offset']==2114)
+        self.assertEqual(b[j-1]['operand'],1.)
+        self.assertTrue(any('Attributes.STEP_HEIGHT' in str(i['operand']) for i in b[0:j]))
+
+    def test_stick_attribute_does_not_create_offense_and_hurt_helper_is_particles(self):
+        b=self.body('StickBugEntity','registerGoals')
+        self.assertFalse(any('MeleeAttackGoal' in str(i['operand']) or 'TargetGoal' in str(i['operand']) for i in b))
+        self.assertTrue(any('RandomLookAroundGoal' in str(i['operand']) for i in b))
+        candidates=self.row('shared_ant_bloodworm_stick_silverfish_native_callbacks')['scalable_parameter_candidates']
+        self.assertFalse(any(c['native_consumer']['entry'].endswith('/StickBugEntity.class') for c in candidates))
+        b=self.body('BloodWormEntityIsHurtProcedure')
+        self.assertTrue(any('.sendParticles(' in str(i['operand']) for i in b))
+        self.assertFalse(any(t in str(i['operand']) for i in b
+                             for t in ('.hurt(','.setDeltaMovement(','.heal(','.addEffect(')))
+
+    def test_locust_contact_uses_intersection_without_goal_clock_or_los(self):
+        b=self.body('LocustLandscourgeEntity$1','tick');by={i['offset']:i for i in b}
+        self.assertIn('AABB.intersects(',by[19]['operand'])
+        self.assertEqual(by[22]['branch_target'],37)
+        self.assertIn('.doHurtTarget(',by[30]['operand'])
+        self.assertEqual(by[33]['opcode'],'0x57')  # return deliberately ignored
+        self.assertFalse(any('isTimeToAttack' in str(i['operand']) or 'hasLineOfSight' in str(i['operand']) for i in b))
+        goals=self.body('LocustLandscourgeEntity','registerGoals')
+        self.assertFalse(any('MeleeAttackGoal' in str(i['operand']) for i in goals))
+        b=self.body('LocustTickProcedure');by={i['offset']:i for i in b}
+        self.assertIn('.setDeltaMovement(',by[1178]['operand'])
+        self.assertIn('.setDeltaMovement(',by[1251]['operand'])
+        for off in (1178,1251):
+            j=next(j for j,i in enumerate(b) if i['offset']==off)
+            self.assertEqual(sum(i['operand']==8. for i in b[j-24:j]),2)
+
+    def test_silverfish_kill_delivery_uses_killer_not_victim_and_no_owner(self):
+        b=self.body('SilverfishSpectreEntity','awardKillScore')
+        j=next(j for j,i in enumerate(b) if 'SilverfishSpectreThisEntityKillsAnotherOneProcedure.execute(' in str(i['operand']))
+        self.assertIn('(Lnet/minecraft/world/level/LevelAccessor;DDD)V',b[j]['operand'])
+        self.assertTrue(any('Monster.awardKillScore(' in str(i['operand']) for i in b[:j]))
+        for coordinate in ('getX()','getY()','getZ()'):
+            self.assertTrue(any(coordinate in str(i['operand']) for i in b[:j]))
+        b=self.body('SilverfishSpectreThisEntityKillsAnotherOneProcedure')
+        self.assertEqual(sum('EntityType.spawn(' in str(i['operand']) for i in b),1)
+        self.assertTrue(any('ArphexModEntities.SILVERFISH_SPECTRE' in str(i['operand']) for i in b))
+        self.assertFalse(any('.setOwner(' in str(i['operand']) or '.hurt(' in str(i['operand']) for i in b))
+
+    def test_locust_native_hunger_and_independent_griefing_empty_branch(self):
+        b=self.body('LocustTickProcedure');by={i['offset']:i for i in b}
+        j=next(j for j,i in enumerate(b) if i['offset']==191)
+        self.assertEqual([i['operand'] for i in b[j-3:j]],
+                         ['net/minecraft/world/effect/MobEffects.HUNGERLnet/minecraft/core/Holder;',60,1])
+        self.assertTrue(any('GameRules.RULE_MOBGRIEFING' in str(i['operand']) for i in b))
+        self.assertTrue(any('ConfigurationSettingsConfiguration.ARPHEX_GRIEFING' in str(i['operand']) for i in b))
+        self.assertEqual((by[1589]['opcode'],by[1589]['branch_target']),('0x9a',1592))
+        # Branch destination is the immediately following instruction: empty
+        # occlusion body cannot gate the later Grass-to-Dirt conversion.
+        j=next(j for j,i in enumerate(b) if i['offset']==1589)
+        self.assertEqual(b[j+1]['offset'],1592)
+        self.assertEqual([i['offset'] for i in b if 'LevelAccessor.setBlock(' in str(i['operand'])],[1498,1647])
+
+
 class RecluseNativeTests(NativeContractHarness, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
