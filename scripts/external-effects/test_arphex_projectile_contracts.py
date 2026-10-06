@@ -112,4 +112,122 @@ class ProjectileContractsTests(unittest.TestCase):
         self.assertTrue(any('cachedOwner' in str(i['operand']) for i in setter))
 
 
+class ProjectileLifecycleTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.native=read_json(OUT/'native-evidence/arphex-projectile-lifecycle-and-control.json')
+        cls.vanilla=read_json(OUT/'vanilla-evidence/arphex-selector-scope.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+        cls.batch=read_json(OUT/'arphex-r2m3b-projectile-lifecycle-and-control.json')
+
+    def method(self,name,method,descriptor=None,vanilla=False):
+        if vanilla:
+            w=next(w for w in self.vanilla['classes'] if w['class_name'].endswith('/'+name))
+        else:
+            w=next(w for w in self.native['witnesses'] if w['entry'].endswith('/'+name+'.class'))
+        return next(m for m in w['methods'] if m['name']==method and
+                    (descriptor is None or m.get('descriptor')==descriptor))
+
+    def test_exact_consumers_and_five_meaningful_contracts(self):
+        review=read_json(OUT/'mod-reviews/arphex.json');ids={r['id'] for r in self.batch['effects']}
+        review['effects']=[r for r in review['effects'] if r['id'] not in ids]
+        review['paths']=[p for p in review['paths'] if not set(p['effect_ids'])&ids]
+        self.assertEqual(validate_batch(self.batch,review,self.census)['semantic_records'],len(review['effects'])+5)
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects'] for c in r['scalable_parameter_candidates']),15)
+
+    def test_miniature_core_damage_preserves_source_integer_order_and_independent_stuck(self):
+        hit=self.method('MiniatureCoreEntity','onHitEntity')['instructions']
+        self.assertIn('AbstractArrow.onHitEntity(',hit[2]['operand'])
+        self.assertEqual(hit[-3]['operand'],'net/arphex/entity/MiniatureCoreEntity.getOwner()Lnet/minecraft/world/entity/Entity;')
+        self.assertEqual(hit[-2]['offset'],30)
+        self.assertFalse(any(i.get('branch_target') for i in hit))
+        body=self.method('MiniatureCoreProjectileHitsLivingEntityProcedure','execute')['instructions'];by={i['offset']:i for i in body}
+        self.assertEqual([by[n]['operand'] for n in (93,119,121,150,177,203,205,261,280,283,286)],
+                         [15,4,4,100.0,15,4,4,100.0,.25,.05,.25])
+        self.assertEqual(sum(i['opcode']=='0x6c' for i in body),4) # nested INTEGER divisions
+        self.assertEqual(by[24]['branch_target'],32) # server discard does not exit helper
+        for offset in (209,264):
+            at=next(n for n,i in enumerate(body) if i['offset']==offset)
+            self.assertEqual(body[at+1]['opcode'],'0x57') # hurt result discarded
+        self.assertIn('.makeStuckInBlock(',by[292]['operand'])
+        constructors=[i['operand'] for i in body if 'DamageSource.<init>' in str(i['operand'])]
+        self.assertEqual(constructors,['net/minecraft/world/damagesource/DamageSource.<init>(Lnet/minecraft/core/Holder;Lnet/minecraft/world/entity/Entity;)V']*2)
+        self.assertEqual(by[44]['opcode'],'0xa5') # owner == recipient rejects extra payload
+
+    def test_gravity_and_cleanup_use_projectile_and_repeat_only_native_delivery_checks(self):
+        for name,helper,delay in [('InvisibleArrowEntity','InvisibleArrowWhileProjectileFlyingTickProcedure',200),
+                                  ('AscendantArrowEntity','AscendantArrowWhileProjectileFlyingTickProcedure',60),
+                                  ('MiniatureCoreEntity','MiniatureCoreWhileProjectileFlyingTickProcedure',100),
+                                  ('SpinpartitestEntity','SpinpartitestWhileProjectileFlyingTickProcedure',400)]:
+            tick=self.method(name,'tick')['instructions']
+            at=next(n for n,i in enumerate(tick) if helper+'.execute(' in str(i['operand']))
+            self.assertEqual(tick[at-1]['opcode'],'0x2a')
+            self.assertFalse(any('.getOwner(' in str(i['operand']) for i in tick))
+            body=self.method(helper,'execute')['instructions']
+            self.assertTrue(any(i['operand']==delay for i in body))
+            self.assertEqual(sum('queueServerWork(' in str(i['operand']) for i in body),1)
+            delayed=self.method(helper,'lambda$execute$0')['instructions']
+            self.assertEqual([i['operand'] for i in delayed if i['opcode']=='0xb6'],
+                ['net/minecraft/world/entity/Entity.level()Lnet/minecraft/world/level/Level;',
+                 'net/minecraft/world/level/Level.isClientSide()Z','net/minecraft/world/entity/Entity.discard()V'])
+
+    def test_type_and_distance_selectors_have_independent_native_world_scope(self):
+        for helper,literal in [('DisappearInvisibleWhileProjectileFlyingTickProcedure','kill @e[type=arphex:projectile_disappear_invisible]'),
+                               ('WebRopeWhileProjectileFlyingTickProcedure','kill @e[type=arphex:projectile_web_rope,distance=..50]')]:
+            body=self.method(helper,'execute')['instructions'];by={i['offset']:i for i in body}
+            self.assertEqual(by[64]['operand'],literal)
+            self.assertEqual(next(i for i in body if i['offset']==57)['opcode'],'0x1') # NULL entity
+        type_handler=self.method('EntitySelectorOptions','lambda$bootStrap$44',vanilla=True)['instructions']
+        self.assertTrue(any('.limitToType(' in str(i['operand']) for i in type_handler))
+        self.assertFalse(any('.setWorldLimited(' in str(i['operand']) for i in type_handler))
+        for name in ('<init>','parseSelector'):
+            self.assertFalse(any(i['opcode']=='0xb5' and '.worldLimited' in str(i['operand'])
+                                for i in self.method('EntitySelectorParser',name,vanilla=True)['instructions']))
+        distance=self.method('EntitySelectorOptions','lambda$bootStrap$8',vanilla=True)['instructions']
+        self.assertTrue(any('.setWorldLimited(' in str(i['operand']) for i in distance))
+        find=self.method('EntitySelector','findEntities',vanilla=True);by={i['offset']:i for i in find['instructions']}
+        code=bytes.fromhex(find['code_hex'])
+        self.assertEqual(by[235]['opcode'],'0x99')
+        self.assertEqual(235+int.from_bytes(code[236:238],'big',signed=True),254)
+        self.assertIn('.getLevel()',by[242]['operand'])
+        self.assertIn('.getAllLevels()',by[258]['operand'])
+        levels=self.method('MinecraftServer','getAllLevels',vanilla=True)['instructions']
+        self.assertEqual(levels[1]['operand'],'net/minecraft/server/MinecraftServer.levelsLjava/util/Map;')
+        self.assertEqual(levels[2]['operand'],'java/util/Map.values()Ljava/util/Collection;')
+
+    def test_web_rope_real_producers_supply_zero_damage_and_release_on_missing_ammo(self):
+        prefix='net/arphex/entity/WebRopeEntity.shoot('
+        callers=[m for m in self.census['methods'] if m['entry']!='net/arphex/entity/WebRopeEntity.class'
+                 and any(prefix in i['operand'] for i in decode_sites(self.census,m,'calls'))]
+        self.assertEqual({(m['entry'],m['method']) for m in callers},
+                         {(f'net/arphex/item/{name}.class','onUseTick') for name in ('SilkSlingerItem','TarantulaTetherItem')})
+        for name in ('SilkSlingerItem','TarantulaTetherItem'):
+            body=self.method(name,'onUseTick')['instructions'];by={i['offset']:i for i in body}
+            self.assertEqual(by[44]['branch_target'],125)
+            self.assertIn('.releaseUsingItem()',by[126]['operand'])
+            self.assertTrue(by[53]['operand'].endswith('RandomSource;)Lnet/arphex/entity/WebRopeEntity;'))
+            predicate=self.method(name,'lambda$findAmmo$1')['instructions']
+            self.assertEqual(predicate[2]['operand'],'net/arphex/entity/WebRopeEntity.PROJECTILE_ITEMLnet/minecraft/world/item/ItemStack;')
+        desc='(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/util/RandomSource;)Lnet/arphex/entity/WebRopeEntity;'
+        by={i['offset']:i for i in self.method('WebRopeEntity','shoot',desc)['instructions']}
+        self.assertEqual([by[n]['operand'] for n in (3,5,6)],[7.0,0.0,0])
+        full=desc.replace('RandomSource;)', 'RandomSource;FDI)')
+        by={i['offset']:i for i in self.method('WebRopeEntity','shoot',full)['instructions']}
+        self.assertEqual([by[n]['operand'] for n in (48,50)],[2.0,0.0])
+        self.assertIn('.setBaseDamage(D)',by[70]['operand'])
+
+    def test_spin_native_zero_x_gate_and_particles_are_not_scalar_candidates(self):
+        body=self.method('SpinpartitestWhileProjectileFlyingTickProcedure','execute')['instructions']
+        by={i['offset']:i for i in body}
+        self.assertEqual(by[21]['operand'],'deltalockx')
+        self.assertEqual(by[28]['opcode'],'0x9a')
+        self.assertEqual(by[28]['branch_target'],82)
+        self.assertIn('.setDeltaMovement(',by[117]['operand'])
+        commands=[i for i in body if i['opcode']=='0x12' and isinstance(i['operand'],str) and 'run particle' in i['operand']]
+        self.assertEqual(len(commands),16)
+        row=next(r for r in self.batch['effects'] if r['id']=='arphex:spin_projectile_intrinsic_vector_lock')
+        self.assertEqual([c['parameters'] for c in row['scalable_parameter_candidates']],[['discard_delay']])
+
+
 if __name__=='__main__':unittest.main()
+

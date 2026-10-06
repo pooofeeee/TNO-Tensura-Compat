@@ -16,7 +16,11 @@ class MojangNames:
             if not line or line.startswith('#'):continue
             if not line.startswith(' '):
                 named,obfuscated=line[:-1].split(' -> ')
-                named=named.replace('.','/');self.named[named]=obfuscated;self.obfuscated[obfuscated]=named;current=obfuscated
+                # Mojang preserves some full package names (MinecraftServer,
+                # for example). Constant-pool owners/descriptors use JVM
+                # slashes even when such a class is not renamed.
+                named=named.replace('.','/');obfuscated=obfuscated.replace('.','/')
+                self.named[named]=obfuscated;self.obfuscated[obfuscated]=named;current=obfuscated
             else:lines.append((current,line.strip()))
         for owner,line in lines:
             left,name=line.rsplit(' -> ',1)
