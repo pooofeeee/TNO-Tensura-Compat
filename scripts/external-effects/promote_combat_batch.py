@@ -413,6 +413,10 @@ def validate_batch(batch,review,census):
                         assert any(cm['name']==proof['method'] and cm['descriptor']==proof['descriptor'] and cm['code_sha256']==proof['code_sha256'] for cm in cw['methods'])
             if attribute:
                 assert literal_attribute_binding(m,consumer['offset'])==candidate['native_attribute_binding'],('wrong native attribute literal',candidate)
+                assert len(candidate['parameters'])==1,('one native attribute literal is one parameter',candidate)
+                component=next(c for c in row['components'] if c['primitive']==candidate['primitive'])
+                parameter=candidate['parameters'][0]
+                assert component['numerical_parameters'][parameter]==candidate['native_attribute_binding']['native_value'],('component differs from pinned native attribute',candidate)
             assert hit['opcode']=='0xb5' or rng or terrain or explosion or durability or attribute or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or synched_clock or clock_distribution or vector_scale or registry_spawn or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
             if candidate['primitive'].startswith('MOB_EFFECT_') or 'native_holder_symbol' in candidate:
                 symbol,allocation,load=effect_holder_binding(m,consumer['offset'])

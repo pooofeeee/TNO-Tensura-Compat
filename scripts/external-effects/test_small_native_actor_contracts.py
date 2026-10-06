@@ -826,6 +826,19 @@ class NativeSpiderControlTests(NativeContractHarness, unittest.TestCase):
         self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects'] for c in r['scalable_parameter_candidates']),159)
         self.assertEqual((len(self.native['witnesses']),sum(len(w['methods']) for w in self.native['witnesses'])),(68,342))
 
+    def test_infestor_attack_and_knockback_match_pinned_attribute_consumers(self):
+        b=self.body('SpiderInfestorEntity','createAttributes')
+        actual={b[j-2]['operand'].split('.')[-1].split('Lnet/')[0]:b[j-1]['operand'] for j,i in enumerate(b) if 'AttributeSupplier$Builder.add(' in str(i['operand'])}
+        self.assertEqual((actual['ATTACK_DAMAGE'],actual['ATTACK_KNOCKBACK']),(15.,1.))
+        row=self.row('infestor_native_stealth_reveal_crash_and_incoming_motion')
+        values=next(c['numerical_parameters'] for c in row['components'] if c['primitive']=='NATIVE_CONDITIONAL_MELEE')
+        self.assertEqual((values['attack'],values['native_knockback']),(15.,1.))
+        self.assertIn('oneattack15/KB1',row['actual_behavior'])
+        altered=copy.deepcopy(self.batch)
+        row=next(r for r in altered['effects'] if 'infestor_native_' in r['id'])
+        next(c for c in row['components'] if c['primitive']=='NATIVE_CONDITIONAL_MELEE')['numerical_parameters']['attack']=20.
+        with self.assertRaises(AssertionError):validate_batch(altered,self.prior(),self.census)
+
     def test_native_melee_ranges_preserve_actor_distinctions(self):
         expected={'SpiderAmbusherEntity$3':5.76,'SpiderGoliathEntity$1':5.76,
                   'SpiderInfestorEntity$1':16.0,'SpiderObstructerEntity$1':2.25,
