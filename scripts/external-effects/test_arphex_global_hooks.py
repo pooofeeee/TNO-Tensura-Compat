@@ -526,5 +526,63 @@ class GlobalHooksTests(unittest.TestCase):
         goals=[m for m in entity['methods'] if m['name']=='registerGoals']
         self.assertFalse(any('addGoal(' in str(i['operand']) for m in goals for i in m['instructions']))
 
+    def test_dimension_batch_exact_consumers_and_existing_payload_reuse(self):
+        from copy import deepcopy
+        batch=read_json(OUT/'arphex-r2m2p-dimension-weather-and-shield-reader.json')
+        review=read_json(OUT/'mod-reviews/arphex.json');ids={r['id'] for r in batch['effects']}
+        review['effects']=[r for r in review['effects'] if r['id'] not in ids]
+        review['paths']=[p for p in review['paths'] if not set(p['effect_ids'])&ids]
+        self.assertEqual(validate_batch(batch,review,self.census)['semantic_records'],len(review['effects'])+6)
+        self.assertEqual(sum(len(c['parameters']) for r in batch['effects'] for c in r['scalable_parameter_candidates']),9)
+        for row in batch['effects']:
+            for rid in row.get('canonical_contract_reuse',[]):
+                self.assertIn(rid,{r['id'] for r in review['effects']})
+        bad=deepcopy(batch);bad['effects'][0]['canonical_contract_reuse']=['arphex:missing_contract']
+        with self.assertRaisesRegex(AssertionError,'unknown/self canonical reuse'):
+            validate_batch(bad,review,self.census)
+
+    def test_breathless_threshold_is_admission_and_conditional_duration_keeps_recipient(self):
+        body=self.body('DimensionTickProcedure');by={i['offset']:i for i in body}
+        self.assertEqual(by[4460]['operand'],150)
+        self.assertEqual(by[4463]['branch_target'],5055)
+        self.assertEqual([by[n]['local_index'] for n in (4474,4479,4492)],[8,113,113])
+        self.assertEqual(by[4476]['operand'],'net/minecraft/world/entity/LivingEntity')
+        self.assertEqual([by[n]['operand'] for n in (4501,4542,4544)],[3,0,1])
+        self.assertEqual([by[n]['opcode'] for n in (4543,4545)],['0x60','0x60'])
+        self.assertIn('getDuration()',by[4536]['operand'])
+        self.assertIn('addEffect(',by[4552]['operand'])
+        self.assertFalse(any(i.get('branch_target',-1) in range(4474,4500) for i in body))
+        # The only writes to the recipient local precede its allocation/load;
+        # branches for the duration keep that receiver below their own stack.
+        self.assertFalse(any(i.get('local_index')==113 and i['opcode']=='0x3a'
+                             for i in body if 4492<i['offset']<=4552))
+        self.assertEqual(149+3+1,153)
+
+    def test_dimension_damage_has_holder_only_sources_and_paused_native_cadence(self):
+        body=self.body('DimensionTickProcedure');by={i['offset']:i for i in body}
+        self.assertEqual([by[n]['operand'] for n in (293,706,4186)],[10.0,1.0,12.0])
+        for at in (295,707,4189):
+            index=next(n for n,i in enumerate(body) if i['offset']==at)
+            self.assertIn('DamageSource.<init>(Lnet/minecraft/core/Holder;)V',body[index-2]['operand'])
+            self.assertEqual(body[index+1]['opcode'],'0x57')
+        self.assertEqual(by[4162]['operand'],400.0)
+        self.assertIn('putDouble(',by[4165]['operand'])
+        self.assertIn('getDouble(',by[4250]['operand'])
+        self.assertEqual(by[4253]['operand'],1.0)
+        self.assertEqual(by[4254]['opcode'],'0x67')
+
+    def test_shield_writes_absolute_raw_vector_before_projectile_speed_and_uuid(self):
+        body=self.body('DimensionTickProcedure');by={i['offset']:i for i in body}
+        self.assertEqual(by[5578]['operand'],3.0)
+        self.assertEqual(by[6357]['operand'],10.0)
+        motion=[i for i in body if 6510<=i['offset']<=6670]
+        self.assertEqual(sum('setDeltaMovement(' in str(i['operand']) for i in motion),1)
+        vector_fields=[i['operand'] for i in motion if i['operand'] in ('x_lock_shield','y_lock_shield','z_lock_shield')]
+        self.assertEqual(vector_fields,['x_lock_shield','y_lock_shield','z_lock_shield'])
+        after=[i for i in motion if i['offset']>6604]
+        self.assertTrue(any('Vec3.length()' in str(i['operand']) for i in after))
+        self.assertEqual(by[6648]['operand'],'net/minecraft/nbt/CompoundTag.putBoolean(Ljava/lang/String;Z)V')
+        self.assertFalse(any('normalize(' in str(i['operand']) or 'hurt(' in str(i['operand']) for i in motion))
+
 
 if __name__=='__main__':unittest.main()

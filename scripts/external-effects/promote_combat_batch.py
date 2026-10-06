@@ -135,6 +135,10 @@ def validate_batch(batch,review,census):
     candidates=set()
     refined=refined_review(review,batch)
     changes={c['id']:c for c in batch.get('record_refinements',[])}
+    canonical_ids=ids|{r['id'] for r in batch['effects']}
+    for row in refined['effects']+batch['effects']:
+        for reused in row.get('canonical_contract_reuse',[]):
+            assert reused in canonical_ids and reused!=row['id'],('unknown/self canonical reuse',row['id'],reused)
     refined_rows=[dict(r,scalable_parameter_candidates=changes[r['id']].get('candidate_additions',[]))
                   for r in refined['effects'] if r['id'] in changes]
     for row in batch['effects']+refined_rows:
