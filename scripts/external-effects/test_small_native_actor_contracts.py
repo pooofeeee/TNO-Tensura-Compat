@@ -5,6 +5,115 @@ from promote_combat_batch import validate_batch
 from test_shadow_clone_contracts import NativeContractHarness
 
 
+class AntColonyNativeTests(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m5k-ant-colony-native-contracts.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-ant-colony-native-family.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def test_colony_bindings_and_existing_producer_reuse(self):
+        validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual((len(self.batch['effects']),len(self.batch['closed_actor_callback_entries'])),(3,3))
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects']
+                             for c in r['scalable_parameter_candidates']),64)
+        self.assertEqual((len(self.native['witnesses']),sum(len(w['methods']) for w in self.native['witnesses'])),(55,278))
+        self.assertEqual(len(self.batch['record_refinements']),2)
+        self.assertTrue(all(not r.get('candidate_additions') for r in self.batch['record_refinements']))
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_all_empty_food_predicates_disable_generated_feeding(self):
+        for a in ('AntArsonistSoldierEntity','AntArsonistWorkerEntity','AntArsonistAlateQueenEntity'):
+            b=self.body(a,'isFood')
+            self.assertEqual(b[0]['operand'],'java/util/List.of()Ljava/util/List;')
+            self.assertTrue(any('List.contains(' in str(i['operand']) for i in b))
+            self.assertFalse(any('/Items.' in str(i['operand']) or 'ArphexModItems.' in str(i['operand']) for i in b))
+            b=self.body(a,'mobInteract')
+            self.assertEqual(sum('.heal(' in str(i['operand']) for i in b),2)  # present but inactive
+            candidates=[c for r in self.batch['effects'] for c in r['scalable_parameter_candidates']]
+            self.assertFalse(any(c['native_consumer']['entry'].endswith('/'+a+'.class')
+                                 and c['native_consumer']['methods']==['mobInteract'] for c in candidates))
+        global_review=read_json(OUT/'mod-reviews/arphex.json')
+        feed=next(r for r in global_review['effects'] if r['id']=='arphex:interaction_feeding_native_regeneration')
+        self.assertTrue(any(p['entry'].endswith('/RightClickEntityProcedure.class') for p in feed['implementation']))
+
+    def test_pre_admission_reaction_is_not_hurt_return_dependent(self):
+        for actor,helper in [('AntArsonistSoldierEntity','AntArsonistSoldierEntityIsHurtProcedure'),
+                             ('AntArsonistWorkerEntity','AntArsonistWorkerEntityIsHurtProcedure')]:
+            b=self.body(actor,'hurt')
+            call=next(i['offset'] for i in b if helper+'.execute(' in str(i['operand']))
+            self.assertLess(call,next(i['offset'] for i in b if 'DamageTypes.IN_FIRE' in str(i['operand'])))
+        b=self.body('AntArsonistSoldierEntityIsHurtProcedure')
+        self.assertTrue(any('MobEffects.DAMAGE_RESISTANCE' in str(i['operand']) for i in b))
+        self.assertTrue(any('DATA_larvae' in str(i['operand']) for i in b))
+        self.assertTrue(any('ArphexModEntities.ANT_ARSONIST_DRONE' in str(i['operand']) for i in b))
+        self.assertEqual(sum('EntityType.spawn(' in str(i['operand']) for i in b),1)
+        self.assertFalse(any('.setOwner(' in str(i['operand']) for i in b))
+        b=self.body('AntArsonistWorkerEntityIsHurtProcedure')
+        self.assertTrue(any('.isInWall()' in str(i['operand']) for i in b))
+        self.assertTrue(any('MobEffects.HEAL' in str(i['operand']) for i in b))
+        self.assertFalse(any('.heal(' in str(i['operand']) for i in b))
+
+    def test_larvae_queue_clears_only_state_without_lifecycle_recheck(self):
+        for helper in ('AntArsonistSoldierOnEntityTickUpdateProcedure','AntArsonistWorkerOnEntityTickUpdateProcedure'):
+            b=self.body(helper)
+            queues=[j for j,i in enumerate(b) if '.queueServerWork(' in str(i['operand'])]
+            self.assertEqual(len(queues),1)
+            self.assertTrue(any(i['operand']==800 for i in b[queues[0]-5:queues[0]]))
+            delayed=[m for w in self.native['witnesses'] if w['entry'].endswith('/'+helper+'.class')
+                     for m in w['methods'] if 'lambda$execute$' in m['name']
+                     and any('SynchedEntityData.set(' in str(i['operand']) for i in m['instructions'])]
+            self.assertEqual(len(delayed),1)
+            b=delayed[0]['instructions']
+            self.assertTrue(any('DATA_larvae' in str(i['operand']) for i in b))
+            self.assertFalse(any('.isAlive(' in str(i['operand']) or '.level(' in str(i['operand']) for i in b))
+        for a in ('AntArsonistSoldierEntity$1','AntArsonistWorkerEntity$3'):
+            b=self.body(a,'canPerformAttack')
+            self.assertTrue(any('isTimeToAttack()' in str(i['operand']) for i in b))
+            self.assertFalse(any('DATA_larvae' in str(i['operand']) for i in b))
+
+    def test_actual_taming_differs_from_spawn_larvae_marker(self):
+        for helper in ('SoldierSpawnProcedure','AntArsonistWorkerOnInitialEntitySpawnProcedure'):
+            b=self.body(helper)
+            self.assertTrue(any('DATA_larvae' in str(i['operand']) for i in b))
+            self.assertFalse(any('.tame(' in str(i['operand']) for i in b))
+        for helper in ('AntArsonistSoldierOnEntityTickUpdateProcedure','AntArsonistWorkerOnEntityTickUpdateProcedure'):
+            b=self.body(helper)
+            self.assertTrue(any('TamableAnimal.tame(Lnet/minecraft/world/entity/player/Player;)V' in str(i['operand']) for i in b))
+            self.assertTrue(any(i['opcode']=='0xc1' and i['operand']=='net/minecraft/world/entity/player/Player' for i in b))
+        b=self.body('AntOwnedProcedure')
+        self.assertTrue(any('DATA_following' in str(i['operand']) for i in b))
+        self.assertTrue(any('Mob.getTarget(' in str(i['operand']) for i in b))
+
+    def test_queen_shape_strict_boundary_differs_from_aura_inclusive(self):
+        b=self.body('AntQueenHitboxProcedure');by={i['offset']:i for i in b}
+        self.assertEqual((by[40]['operand'],by[42]['opcode']),(36000,'0xa4'))  # <= skips mature
+        self.assertEqual([i['operand'] for i in b if i['opcode']=='0x14'],[2.45,1.95,1.46,.96])
+        b=self.body('AntArsonistQueenOnEntityTickUpdateProcedure');by={i['offset']:i for i in b}
+        self.assertEqual((by[1432]['operand'],by[1435]['opcode']),(36000,'0xa1'))  # < skips mature
+        self.assertLess(122,1795)  # old minspawnwait sampled before current tier binding
+        holders=[i['operand'].split('.')[-1].split('Lnet/')[0] for i in b if 'ArphexModEntities.ANT_' in str(i['operand'])]
+        self.assertEqual(holders,['ANT_ARSONIST','ANT_ARSONIST','ANT_ARSONIST_SOLDIER',
+                                  'ANT_ARSONIST','ANT_ARSONIST','ANT_ARSONIST_WORKER'])
+        self.assertFalse(any('.setOwner(' in str(i['operand']) or '.tame(' in str(i['operand']) for i in b))
+        for r in self.batch['effects']:
+            for c in r['scalable_parameter_candidates']:
+                component=next(x for x in r['components'] if x['primitive']==c['primitive'])
+                self.assertFalse(any(component['numerical_parameters'].get(k)==-1 for k in c['parameters']))
+
+    def test_worker_escape_has_no_invented_griefing_guard(self):
+        b=self.body('AntArsonistWorkerOnEntityTickUpdateProcedure')
+        self.assertFalse(any('GameRules.RULE_MOBGRIEFING' in str(i['operand'])
+                             or 'ConfigurationSettingsConfiguration.ARPHEX_GRIEFING' in str(i['operand']) for i in b))
+        self.assertTrue(any('ArphexModBlocks.ANT_SHIELD_TEMPORARY' in str(i['operand']) for i in b))
+        self.assertEqual([i['offset'] for i in b if i['operand']=='net/minecraft/world/entity/Entity.teleportTo(DDD)V'],
+                         [5574,5791,5990,6189,6388,6544])
+        self.assertTrue(any('.isInWall()' in str(i['operand']) and i['offset']>6388 for i in b))
+        r=self.row('ant_worker_native_larvae_owner_target_and_pre_admission_heal')
+        c=next(c for c in r['scalable_parameter_candidates'] if c['parameters']==['escape_vertical'])
+        self.assertEqual(len(c['additional_consumer_sites']),5)
+
+
 class CommonInsectNativeTests(NativeContractHarness, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
