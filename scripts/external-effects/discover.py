@@ -13,7 +13,7 @@ COMBAT = re.compile(r'MobEffect|MobEffects|Living(?:Damage|IncomingDamage|Heal|D
  r'EntityData|EntityEvent|Projectile|Explosion|[.]setHealth|[.]setAbsorption|'
  r'[.]addEffect|[.]removeEffect|[.]isUsingItem|[.]setSecondsOnFire|[.]igniteFor',re.I)
 
-def scan(target):
+def scan(target, class_observer=None):
     index=[]; candidates=[]; resources={}; failures=[]; resource_errors=[]; nested_archives=[]
     with zipfile.ZipFile(target['path']) as jar:
         for entry in sorted(jar.namelist()):
@@ -22,11 +22,13 @@ def scan(target):
                 try:
                     cls=ClassFile(data)
                     refs=cls.references(); strings=cls.strings()
-                    memberlist=[]; methodhits=[]
+                    memberlist=[]; methodhits=[]; bodies={}
                     for m in cls.methods:
                         row=dict(name=m['name'],descriptor=m['descriptor'],access=m['access'])
                         if 'code' in m:
                             ins=list(cls.instructions(m['code']))
+                            if class_observer is not None:
+                                bodies[(m['name'],m['descriptor'])]=ins
                             row.update(code_sha256=byte_hash(m['code']),code_bytes=len(m['code']))
                             hits=[i for i in ins if isinstance(i['operand'],str) and COMBAT.search(i['operand'])]
                             if hits or COMBAT.search(m['name']+m['descriptor']):
@@ -37,6 +39,8 @@ def scan(target):
                     item=dict(entry=entry,sha256=byte_hash(data),name=cls.name,super=cls.super,
                         interfaces=cls.interfaces,methods=memberlist,fields=fields)
                     index.append(item)
+                    if class_observer is not None:
+                        class_observer(entry, data, cls, bodies)
                     if methodhits or hitrefs or COMBAT.search(cls.name+' '+str(cls.super)):
                         candidates.append(dict(entry=entry,sha256=item['sha256'],name=cls.name,
                             super=cls.super,matched_references=hitrefs,methods=methodhits,
