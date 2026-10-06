@@ -1050,6 +1050,103 @@ class NativeStaffLauncherContracts(NativeContractHarness, unittest.TestCase):
         self.assertTrue(any('arphex:vortex_vanguard_owner_free_spin_delivery' in r.get('canonical_contract_reuse',[]) for r in self.batch['effects']))
 
 
+class NativeAntControlContracts(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch = read_json(OUT / 'arphex-r2m6l-native-ant-control-contracts.json')
+        cls.native = read_json(OUT / 'native-evidence/arphex-residual-native-summoner-utility.json')
+        cls.support = read_json(OUT / 'native-evidence/arphex-native-ant-control-support.json')
+        cls.census = read_json(OUT / 'arphex-combat-census.json')
+
+    def support_body(self, name, method='execute'):
+        return next(m['instructions'] for w in self.support['witnesses']
+                    if w['entry'].endswith('/' + name + '.class')
+                    for m in w['methods'] if m['name'] == method)
+
+    def test_exact_contracts_and_dependent_geometry_not_extra_candidates(self):
+        validate_batch(self.batch, self.prior(), self.census)
+        self.assertEqual(len(self.batch['effects']), 3)
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects']
+                             for c in r['scalable_parameter_candidates']), 10)
+        self.assertEqual((len(self.support['witnesses']), sum(len(w['methods'])
+                         for w in self.support['witnesses'])), (4, 12))
+        context = self.row('ant_commander_native_terrain_sequence_and_worker_reposition')['native_terrain_sequence_context']
+        self.assertEqual(context['native_phase_values'], list(map(float, range(147, 0, -7))))
+        self.assertEqual(len(context['normal_branch_block_writes']), 41)
+        self.assertFalse(context['independent_scalar_candidates'])
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_queen_and_worker_admission_are_native_owner_predicates(self):
+        b = self.body('AntCommanderRightclickedProcedure')
+        self.assertEqual(sum('.isOwnedBy(' in str(i['operand']) for i in b), 2)
+        self.assertEqual(sum('.moveTo(DDDD)' in str(i['operand']) for i in b), 1)
+        self.assertTrue(any('DATA_Xarea' in str(i['operand']) for i in b))
+        self.assertTrue(any('DATA_Yarea' in str(i['operand']) for i in b))
+        self.assertTrue(any('DATA_Zarea' in str(i['operand']) for i in b))
+        self.assertTrue(any(i['operand'] == 180. for i in b))
+        self.assertTrue(any(i['operand'] == 140. for i in b))
+        self.assertEqual(next(i for i in b if i['offset'] == 755)['opcode'], '0x67')
+        self.assertEqual(next(i for i in b if i['offset'] == 893)['opcode'], '0x8e')  # D->I, not rounding
+
+    def test_inventory_clock_is_unconditional_and_phase_test_follows_decrement(self):
+        root = self.body('AntCommanderItem', 'inventoryTick')
+        self.assertFalse(any(i['opcode'] in ('0x99', '0x9a') for i in root))
+        b = self.body('AntCommanderItemInInventoryTickProcedure')
+        first_sub = next(i['offset'] for i in b if i['opcode'] == '0x67')
+        phase_read = next(i['offset'] for j, i in enumerate(b[:-3])
+                          if '.getDouble(' in str(i['operand']) and j and b[j-1]['operand'] == 'antblocktimer'
+                          and b[j+1]['operand'] == 147.)
+        self.assertLess(first_sub, phase_read)
+        self.assertEqual(sum('.setBlock(' in str(i['operand']) for i in b), 41)
+        self.assertEqual(sum('Entity.teleportTo(' in str(i['operand']) for i in b), 40)
+        self.assertEqual(sum('.isOwnedBy(' in str(i['operand']) for i in b), 20)
+        self.assertFalse(any('.hurt(' in str(i['operand']) or '.addEffect(' in str(i['operand']) for i in b))
+
+    def test_each_fixed_geometry_cell_traces_to_native_auxiliary_tag_additions(self):
+        b = self.body('AntCommanderItemInInventoryTickProcedure')
+        row = self.row('ant_commander_native_terrain_sequence_and_worker_reposition')
+        for cell in row['native_terrain_sequence_context']['normal_branch_block_writes']:
+            at = next(j for j, i in enumerate(b) if i['offset'] == cell['block_write_offset'])
+            self.assertIn('LevelAccessor.setBlock(', b[at]['operand'])
+            for axis, value in zip('xyz', cell['relative_xyz']):
+                writes = [j for j in range(8, at) if '.putDouble(' in str(b[j]['operand'])
+                          and b[j-7]['operand'] == 'antbuild_aux_' + axis]
+                j = writes[-1]
+                self.assertEqual(b[j-4]['operand'], 'antbuild' + axis)
+                self.assertEqual((b[j-2]['operand'], b[j-1]['opcode']), (value, '0x63'))
+
+    def test_temporary_shield_exact_registry_constructor_and_no_blockentity(self):
+        entry = 'net/arphex/block/AntShieldTemporaryBlock.class'
+        w = next(w for w in self.support['witnesses'] if w['entry'] == entry)
+        self.assertEqual(w['superclass'], 'net/minecraft/world/level/block/Block')
+        self.assertFalse(any(m['name'] == 'newBlockEntity' for m in w['methods']))
+        boot = next(b for b in self.census['registration_bootstraps']
+                    if b['entry'] == 'net/arphex/init/ArphexModBlocks.class' and b['index'] == 10)
+        self.assertIn('net/arphex/block/AntShieldTemporaryBlock.<init>()V', boot['arguments'])
+        self.assertEqual(self.row('native_temporary_ant_shield_collision_and_conditional_cleanup')
+                         ['native_registry_binding']['bootstrap'], boot)
+
+    def test_shared_cleanup_flag_needs_real_blockentity_and_has_no_fixed_timer(self):
+        helper = self.support_body('TempTickProcedure')
+        self.assertTrue(any(i['operand'] == 12. for i in helper))
+        self.assertTrue(any(i['operand'] == 'breaknow' for i in helper))
+        self.assertFalse(any('.queueServerWork(' in str(i['operand']) or '.scheduleTick(' in str(i['operand']) for i in helper))
+        getter = self.support_body('TempTickProcedure$1', 'getValue')
+        self.assertEqual((getter[-2]['operand'], getter[-1]['opcode']), (0, '0xac'))
+        self.assertTrue(any(i['opcode'] == '0xc6' and i['branch_target'] == 24 for i in getter))
+        self.assertFalse(self.row('native_temporary_ant_shield_collision_and_conditional_cleanup')
+                         ['scalable_parameter_candidates'])
+
+    def test_attack_and_projectile_cleanup_use_distinct_native_parent_rules(self):
+        attack = self.support_body('AntShieldTemporaryBlock', 'attack')
+        projectile = self.support_body('AntShieldTemporaryBlock', 'onProjectileHit')
+        self.assertTrue(any('Block.attack(' in str(i['operand']) for i in attack))
+        self.assertFalse(any('Block.onProjectileHit(' in str(i['operand']) for i in projectile))
+        for body in (attack, projectile):
+            self.assertTrue(any('AntShieldTemporaryOnTickUpdateProcedure.execute(' in str(i['operand']) for i in body))
+            self.assertFalse(any('.hurt(' in str(i['operand']) or '.getOwner(' in str(i['operand']) for i in body))
+
+
 class NativeSummonerItemContracts(NativeContractHarness, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
