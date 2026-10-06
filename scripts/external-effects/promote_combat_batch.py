@@ -77,20 +77,69 @@ def effect_receiver_binding(method,offset):
                 receiver_load_offset=receiver['offset'])
 
 
+def refined_review(review,batch):
+    """Apply explicit additive contracts to their existing mechanic identity."""
+    result=deepcopy(review);by_id={r['id']:r for r in result['effects']};seen=set()
+    for change in batch.get('record_refinements',[]):
+        rid=change['id'];assert rid in by_id and rid not in seen,('unknown/duplicate refinement',rid)
+        assert change['reason'] and change['behavior_append'];seen.add(rid);row=by_id[rid]
+        updates=change.get('field_updates',{})
+        assert set(updates)<= {'display_name','primary_classification','classification_reason','closest_vanilla_equivalent','vanilla_differences'},('unsafe identity refinement',rid)
+        receipt=dict(checkpoint=batch['checkpoint'],reason=change['reason'])
+        if receipt in row.get('contract_refinements',[]):
+            # Published batches can be validated without duplicating their
+            # additions. A changed or incomplete published contract fails.
+            assert change['behavior_append'] in row['actual_behavior'],('missing published behavior',rid)
+            assert all(c in row['scalable_parameter_candidates'] for c in change.get('candidate_additions',[])),('missing published candidate',rid)
+            assert all(p in row['implementation'] for p in change.get('implementation_additions',[])),('missing published proof',rid)
+            for c in change.get('component_additions',[]):
+                target=next(t for t in row['components'] if t['primitive']==c['primitive'])
+                for key,values in c.items():
+                    if key!='primitive':assert all(target[key].get(k)==v for k,v in values.items()),('changed published parameter',rid,key)
+            continue
+        row['actual_behavior']+=' '+change['behavior_append']
+        row.setdefault('contract_refinements',[]).append(receipt)
+        row.update(deepcopy(updates))
+        for component in change.get('component_additions',[]):
+            matches=[c for c in row['components'] if c['primitive']==component['primitive']]
+            assert len(matches)<=1,('ambiguous component refinement',rid,component)
+            if not matches:row['components'].append(deepcopy(component));continue
+            for key,values in component.items():
+                if key=='primitive':continue
+                assert isinstance(values,dict),('non-additive component field',key)
+                old=matches[0].setdefault(key,{})
+                assert not set(old)&set(values),('component parameter would be overwritten',rid,key)
+                old.update(deepcopy(values))
+        row['scalable_parameter_candidates']+=deepcopy(change.get('candidate_additions',[]))
+        for proof in change.get('implementation_additions',[]):
+            if proof not in row['implementation']:row['implementation'].append(deepcopy(proof))
+        row['native_boundary']=[dict(entry=p['entry'],methods=p['methods']) for p in row['implementation']]
+        for pid in change.get('delivery_path_additions',[]):
+            assert pid not in row['delivery_paths'];row['delivery_paths'].append(pid)
+    return result
+
+
 def validate_batch(batch,review,census):
     assert batch['mod_key']==review['mod_key']==census['mod_key']
     native={(r['entry'],r['method'],r['descriptor']):r for r in census['methods']}
     index=EvidenceIndex();ids={r['id'] for r in review['effects']}
     candidates=set()
-    for row in batch['effects']:
-        assert row['id'] not in ids,('existing semantic record must be reused',row['id'])
-        ids.add(row['id'])
+    refined=refined_review(review,batch)
+    changes={c['id']:c for c in batch.get('record_refinements',[])}
+    refined_rows=[dict(r,scalable_parameter_candidates=changes[r['id']].get('candidate_additions',[]))
+                  for r in refined['effects'] if r['id'] in changes]
+    for row in batch['effects']+refined_rows:
+        if row['id'] in changes:
+            assert row['id'] in ids and row not in batch['effects'],('refinement collides with new record',row['id'])
+        else:
+            assert row['id'] not in ids,('existing semantic record must be reused',row['id'])
+            ids.add(row['id'])
         assert row['actual_behavior'] and row['source_actor'] and row['native_boundary']
         for proof in row['implementation']+row.get('shared_contracts',[]):
             _,w=index.witness(proof,row)
             for m in w['methods']:
                 if m['name'] in proof['methods']:
-                    if proof.get('evidence_format')=='VANILLA_COMPARISON':
+                    if proof.get('evidence_format') in ('VANILLA_COMPARISON','SHARED_NATIVE_REFERENCE'):
                         continue
                     key=(proof['entry'],m['name'],m['descriptor'])
                     assert native[key]['code_sha256']==m['code_sha256'],('unindexed native contract',key)
@@ -112,10 +161,12 @@ def validate_batch(batch,review,census):
                 'LivingIncomingDamageEvent.setAmount(')
             rng=(candidate['primitive'] in ('ATTACK_SELECTION','SUMMON_DELIVERY','PROC_CHANCE') and
                  'Mth.nextInt(' in str(hit['operand']))
+            terrain=(candidate['primitive']=='TERRAIN_PLACEMENT' and
+                     hit['operand']=='net/minecraft/world/level/LevelAccessor.setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z')
             attribute='native_attribute_binding' in candidate
             if attribute:
                 assert literal_attribute_binding(m,consumer['offset'])==candidate['native_attribute_binding'],('wrong native attribute literal',candidate)
-            assert hit['opcode']=='0xb5' or rng or attribute or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
+            assert hit['opcode']=='0xb5' or rng or terrain or attribute or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
             if candidate['primitive'].startswith('MOB_EFFECT_'):
                 symbol,allocation,load=effect_holder_binding(m,consumer['offset'])
                 assert (symbol,allocation,load)==(candidate['native_holder_symbol'],
@@ -154,7 +205,7 @@ def validate_batch(batch,review,census):
                 identity=tuple(candidate['native_parameter_identity'][k] for k in ('entry','method','descriptor','offset'))+(candidate['primitive'],parameter)
                 assert identity not in candidates,('same native parameter counted twice',identity)
                 candidates.add(identity)
-    merged=deepcopy(review)
+    merged=refined
     merged['effects']+=batch['effects'];merged['paths']+=batch['paths']
     return audit_review(merged,index)
 
@@ -164,6 +215,7 @@ def promote(batch_path):
     review=read_json(OUT/'mod-reviews'/f'{key}.json')
     census=read_json(OUT/f'{key}-combat-census.json')
     summary=validate_batch(batch,review,census)
+    review=refined_review(review,batch)
     review['effects']=sorted(review['effects']+batch['effects'],key=lambda r:r['id'])
     review['paths']=sorted(review['paths']+batch['paths'],key=lambda r:r['id'])
     review.update(checkpoint=batch['checkpoint'],notes_file=batch_path.name,

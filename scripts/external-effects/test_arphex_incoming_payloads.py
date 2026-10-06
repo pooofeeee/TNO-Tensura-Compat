@@ -234,5 +234,116 @@ class AreaScarabPayloadTest(unittest.TestCase):
         self.assertEqual(collect(spec,jar_paths={'arphex':jar}),self.evidence)
 
 
+class FinalIncomingPayloadTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m2j-incoming-callback-closure.json')
+        cls.witness=next(w for w in read_json(OUT/'native-evidence/arphex-global-hooks.json')['witnesses']
+                         if w['entry'].endswith('/DwellerLifestealProcedure.class'))
+        cls.method=next(m for m in cls.witness['methods'] if m['name']=='execute' and 'bus/api/Event;' in m['descriptor'])
+        cls.b={i['offset']:i for i in cls.method['instructions']}
+
+    def lambda_body(self,n):
+        return next(m['instructions'] for m in self.witness['methods'] if m['name']==f'lambda$execute${n}')
+
+    def test_literal_soldier_owner_equality_is_not_generalized_to_enemy(self):
+        self.assertEqual(self.b[32027]['local_index'],11) # causing actor
+        self.assertEqual(self.b[32029]['local_index'],49) # queried soldier
+        self.assertIn('getOwner()',self.b[32046]['operand'])
+        self.assertEqual(self.b[32053]['opcode'],'0xa6') # != skips setTarget
+        self.assertEqual(self.b[32053]['branch_target'],32093)
+        self.assertIn('setTarget(',self.b[32090]['operand'])
+
+    def test_dagger_requires_current_cooldown_and_preserves_literal_profiles(self):
+        self.assertEqual(self.b[32507]['branch_target'],33484) # not current dagger
+        self.assertEqual(self.b[32515]['branch_target'],33484) # not Player
+        self.assertIn('isOnCooldown(',self.b[32559]['operand'])
+        self.assertEqual(self.b[32562]['opcode'],'0x99') # false skips package
+        self.assertEqual(self.b[32562]['branch_target'],33484)
+        self.assertEqual(self.b[32626]['operand'],100)
+        self.assertEqual(self.b[33222]['operand'],20)
+        self.assertEqual(self.b[33283]['operand'],50) # at3 cooldown differs from effect20
+
+    def test_presence_gates_have_different_native_jump_destinations(self):
+        self.assertEqual(self.b[38881]['branch_target'],38990)
+        self.assertGreater(38990,38983) # Nemesis existing Wither skips Necrosis
+        self.assertEqual(self.b[39021]['branch_target'],39083)
+        self.assertLess(39083,39123) # Hornet existing Poison still reaches Necrosis
+
+    def test_delayed_damage_is_anonymous_and_motion_not_hurt_success_gated(self):
+        for n,amount in [(105,6.0),(106,6.0),(107,2.0),(108,2.0)]:
+            body=self.lambda_body(n)
+            at=next(k for k,i in enumerate(body) if '.hurt(' in str(i['operand']))
+            self.assertEqual(body[at-1]['operand'],amount)
+            self.assertEqual(body[at+1]['opcode'],'0x57')
+            self.assertTrue(any(i['operand']=='net/minecraft/world/damagesource/DamageSource.<init>(Lnet/minecraft/core/Holder;)V' for i in body[:at]))
+            self.assertTrue(any('setDeltaMovement(' in str(i['operand']) for i in body[at+2:]))
+
+    def test_native_container_uuid_is_string_and_player_has_no_numeric_timer_write(self):
+        for n,key in [(101,'playertrackfortp'),(103,'trackfortp')]:
+            m=next(m for m in self.witness['methods'] if m['name']==f'lambda$execute${n}')
+            self.assertEqual(m['descriptor'],'(Ljava/lang/String;Lnet/minecraft/nbt/CompoundTag;)V')
+            self.assertEqual(m['instructions'][1]['operand'],key)
+            self.assertIn('putString(',m['instructions'][3]['operand'])
+        self.assertTrue(any(i['operand']==100.0 for i in self.lambda_body(102)))
+
+    def test_matriarch_missing_effect_starts_at_one_with_native_min_nine(self):
+        self.assertEqual(self.b[39640]['operand'],50)
+        self.assertEqual(self.b[39642]['operand'],9)
+        self.assertEqual(self.b[39684]['operand'],0)
+        self.assertEqual(self.b[39685]['operand'],1)
+        self.assertEqual(self.b[39686]['opcode'],'0x60')
+        self.assertEqual(self.b[39687]['operand'],'java/lang/Math.min(II)I')
+        with self.assertRaises(AssertionError):effect_receiver_binding(self.method,39692)
+
+    def test_six_zero_motion_writes_keep_five_native_nested_queues(self):
+        queues=0
+        for n in range(112,118):
+            body=self.lambda_body(n)
+            self.assertEqual(sum('setDeltaMovement(' in str(i['operand']) for i in body),1)
+            queues+=sum('queueServerWork(' in str(i['operand']) for i in body)
+        self.assertEqual(queues,5)
+
+    def test_terrain_attempts_are_independent_native_writes(self):
+        self.assertIn('nextInt(',self.b[37234]['operand'])
+        self.assertIn('nextInt(',self.b[37403]['operand'])
+        for request in [37392,37561]:
+            self.assertIn('LevelAccessor.setBlock(',self.b[request]['operand'])
+            self.assertEqual(self.b[request+5]['opcode'],'0x57')
+
+    def test_loader_hook_proves_repeated_queries_are_not_const_reads(self):
+        d=read_json(OUT/'reference-evidence/arphex-enchantment-query-244.json')
+        extension=next(m for w in d['witnesses'] if w['entry'].endswith('/IItemStackExtension.class') for m in w['methods'])
+        self.assertTrue(any('getEnchantmentLevelSpecific(' in str(i['operand']) for i in extension['instructions']))
+        hook=next(m for w in d['witnesses'] if w['entry'].endswith('/EventHooks.class') for m in w['methods'])
+        post=next(n for n,i in enumerate(hook['instructions']) if 'IEventBus.post(' in str(i['operand']))
+        result=next(n for n,i in enumerate(hook['instructions']) if 'Mutable.getLevel(' in str(i['operand']))
+        self.assertLess(post,result)
+        event=next(w for w in d['witnesses'] if w['entry'].endswith('/GetEnchantmentLevelEvent.class'))
+        self.assertTrue(any(m['name']=='getEnchantments' and 'Mutable;' in m['descriptor'] for m in event['methods']))
+
+    def test_additive_refinements_preserve_identity_and_are_checked(self):
+        from promote_combat_batch import refined_review
+        base=read_json(OUT/'mod-reviews/arphex.json')
+        ids={r['id'] for r in self.batch['effects']};pids={p['id'] for p in self.batch['paths']}
+        base['effects']=[r for r in base['effects'] if r['id'] not in ids]
+        base['paths']=[p for p in base['paths'] if p['id'] not in pids]
+        refined=refined_review(base,self.batch)
+        self.assertEqual(len(refined['effects']),len(base['effects']))
+        self.assertEqual(refined_review(refined,self.batch),refined)
+        self.assertEqual(validate_batch(self.batch,base,read_json(OUT/'arphex-combat-census.json'))['semantic_records'],len(base['effects'])+len(ids))
+        bad=deepcopy(self.batch);bad['record_refinements'][0]['id']='arphex:missing'
+        with self.assertRaisesRegex(AssertionError,'unknown/duplicate refinement'):refined_review(base,bad)
+        bad=deepcopy(self.batch);bad['record_refinements'][0]['field_updates']={'id':'arphex:renamed'}
+        with self.assertRaisesRegex(AssertionError,'unsafe identity refinement'):refined_review(base,bad)
+
+    def test_selected_loader_evidence_reproduces_without_game_execution(self):
+        from selected_reference import collect
+        from pathlib import Path
+        spec=read_json(OUT/'reference-specifications/arphex-enchantment-query-244.json')
+        if not Path(spec['archives'][0]['path']).exists():self.skipTest('Pinned loader archive not available')
+        self.assertEqual(collect(spec),read_json(OUT/'reference-evidence/arphex-enchantment-query-244.json'))
+
+
 if __name__ == '__main__':
     unittest.main()
