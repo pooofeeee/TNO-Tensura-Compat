@@ -457,5 +457,119 @@ class SmallActorSourceTests(unittest.TestCase):
         self.assertFalse(any('Math.min' in str(i['operand']) for i in body if 711<i['offset']<744))
 
 
+class MediumActorSourceTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m4e-wasp-and-scorpioid-tick-sources.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-medium-actor-projectile-sources.json')
+
+    def witness(self,name):
+        return next(w for w in self.native['witnesses'] if w['entry'].endswith('/'+name+'.class'))
+
+    def method(self,name,method='execute'):
+        return next(m for m in self.witness(name)['methods'] if m['name']==method)
+
+    def test_two_source_records_keep_prior_hurt_reaction_separate(self):
+        review=copy.deepcopy(read_json(OUT/'mod-reviews/arphex.json'))
+        ids={r['id'] for r in self.batch['effects']}
+        review['effects']=[r for r in review['effects'] if r['id'] not in ids]
+        review['paths']=[p for p in review['paths'] if not set(p['effect_ids']) & ids]
+        result=validate_batch(self.batch,review,self.census)
+        self.assertEqual(result['semantic_records'],len(review['effects'])+2)
+        self.assertEqual(len(self.batch['producer_closed_entries']),2)
+        self.assertIn('arphex:scorpioid_native_incoming_reaction',next(r for r in
+                      self.batch['effects'] if 'scorpioid_bloodluster' in r['id'])['canonical_contract_reuse'])
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_wasp_monster_cannot_enter_native_tamable_bypass(self):
+        self.assertEqual(self.witness('WaspNemesisEntity')['superclass'],'net/minecraft/world/entity/monster/Monster')
+        body=self.method('WaspNemesisOnEntityTickUpdateProcedure')['instructions']
+        self.assertTrue(any(i['opcode']=='0xc1' and i['operand']=='net/minecraft/world/entity/TamableAnimal' for i in body))
+
+    def test_physical_dimensions_are_not_renderer_only_or_smooth_division(self):
+        for name in ['WaspNemesisEntity','ScorpioidBloodlusterEntity']:
+            body=self.method(name,'getDefaultDimensions')['instructions']
+            self.assertIn('Monster.getDefaultDimensions(',next(i['operand'] for i in body if i['offset']==27))
+            self.assertEqual(next(i['operand'] for i in body if i['offset']==35),
+                'net/minecraft/world/entity/EntityDimensions.scale(F)Lnet/minecraft/world/entity/EntityDimensions;')
+        by={i['offset']:i for i in self.method('WaspNemesisHitboxProcedure')['instructions']}
+        self.assertEqual(by[6]['operand'],.49)
+        self.assertEqual([by[n]['opcode'] for n in (46,47,82,83)],['0x6c','0x87','0x6c','0x87'])
+        self.assertEqual([by[n]['operand'] for n in (44,80)],[18,18])
+        row=next(r for r in self.batch['effects'] if 'scorpioid_bloodluster' in r['id'])
+        self.assertIn('net/arphex/procedures/ScorpioidBloodlusterEntityVisualScaleProcedure.class',
+                      self.batch['closed_deferred_readers'])
+        self.assertTrue(any(c['primitive']=='BODY_DIMENSION_SCALE' for c in row['scalable_parameter_candidates']))
+
+    def test_delayed_health_write_has_no_delivery_health_or_alive_check(self):
+        body=self.method('WaspNemesisOnEntityTickUpdateProcedure','lambda$execute$0')['instructions']
+        self.assertFalse(any('.getHealth()' in str(i['operand']) or '.isAlive()' in str(i['operand']) for i in body))
+        self.assertTrue(any('.setHealth(F)' in str(i['operand']) for i in body))
+        self.assertTrue(any(i['operand']==60. for i in body))
+
+    def test_wasp_delayed_factories_reuse_profile_without_target_recheck(self):
+        for method in ['lambda$execute$2','lambda$execute$3']:
+            body=self.method('WaspNemesisOnEntityTickUpdateProcedure',method)['instructions']
+            self.assertFalse(any('.getTarget()' in str(i['operand']) or '.isAlive()' in str(i['operand']) or
+                                 'DATA_size' in str(i['operand']) for i in body))
+            self.assertTrue(any('.getLookAngle()' in str(i['operand']) for i in body))
+        row=next(r for r in self.batch['effects'] if 'wasp_nemesis' in r['id'])
+        c=next(c for c in row['scalable_parameter_candidates'] if c['primitive']=='PROJECTILE_BASE_DAMAGE')
+        self.assertEqual({s['method'] for s in c['additional_arrow_factory_sites']},
+                         {'lambda$execute$2','lambda$execute$3'})
+
+    def test_scorpioid_arrow_uses_updated_clock_and_inactive_knockback(self):
+        body=self.method('ScorpioidBloodlusterOnEntityTickUpdateProcedure')['instructions']
+        registry=read_json(OUT/'arphex-projectile-producer-kernel-registry.json')
+        binding=arrow_factory_binding(self.method('ScorpioidBloodlusterOnEntityTickUpdateProcedure'),3555,registry,'PROJECTILE_BASE_DAMAGE')
+        self.assertEqual(binding['base_damage_expression'][-3]['opcode'],'0xa')  # LONG1, not float/double addition
+        self.assertEqual(binding['literal_arguments']['knockback']['value'],0)
+        self.assertLess(3484,3555)
+        row=next(r for r in self.batch['effects'] if 'scorpioid_bloodluster' in r['id'])
+        self.assertFalse(any(c['primitive']=='PROJECTILE_KNOCKBACK' for c in row['scalable_parameter_candidates']))
+
+    def test_terrain_native_config_gates_differ_and_tag_is_pinned(self):
+        wasp=self.method('WaspNemesisOnEntityTickUpdateProcedure')['instructions']
+        scorpioid=self.method('ScorpioidBloodlusterOnEntityTickUpdateProcedure')['instructions']
+        self.assertTrue(any('ARPHEX_GRIEFING' in str(i['operand']) for i in wasp))
+        self.assertFalse(any('ARPHEX_GRIEFING' in str(i['operand']) for i in scorpioid))
+        for body in [wasp,scorpioid]:
+            self.assertTrue(any('RULE_MOBGRIEFING' in str(i['operand']) for i in body))
+        tag=next(w for w in self.native['witnesses'] if w['entry']=='data/arphex/tags/block/breakable_doors.json')
+        self.assertFalse(tag['data']['replace'])
+        self.assertEqual(len(tag['data']['values']),22)
+        self.assertIn('minecraft:bamboo_trapdoor',tag['data']['values'])
+
+    def test_repulsion_creative_flag_is_read_from_carrier(self):
+        body=self.method('ScorpioidBloodlusterOnEntityTickUpdateProcedure')['instructions']
+        by={i['offset']:i for i in body}
+        self.assertEqual(by[5713]['local_index'],7)  # formal entity, not queried recipient
+        self.assertEqual(by[5718]['operand'],'creativespectator')
+        self.assertEqual(by[5724]['branch_target'],5774)
+
+    def test_corrected_actor_carriers_match_pinned_factory_roots(self):
+        small=read_json(OUT/'arphex-r2m4d-small-actor-native-source-contracts.json')
+        review=read_json(OUT/'mod-reviews/arphex.json')
+        by={r['id']:r for r in review['effects']}
+        corrected={
+            'arphex:tormentor_larvae_native_tick_control':(['MiniatureCoreEntity'],['TormentLarvaeArrow']),
+            'arphex:tormentor_scorpioid_native_tick_resource_control':(['BloodthirstyTendrilEntity'],['TormentorScorpioidSpit']),
+            'arphex:tormentor_voidlasher_native_tick_control':(['DraconFireEntity','VoidSpearEntity'],['SphereExplode'])}
+        registry=read_json(OUT/'arphex-projectile-producer-kernel-registry.json')
+        for row in small['effects']:
+            if row['id'] not in corrected:continue
+            self.assertEqual(by[row['id']],row)
+            sources={p['entry'] for p in row['implementation'] if '/procedures/' in p['entry'] and '$' not in p['entry']}
+            roots={k['intrinsic_arrow_root'].split('/')[-1][:-6] for k in registry['rows']
+                   if k['factory']['entry'].split('$')[0]+'.class' in sources}
+            expected,obsolete=corrected[row['id']]
+            self.assertEqual(roots,set(expected))
+            self.assertTrue(all(name in row['actual_behavior'] for name in roots))
+            self.assertTrue(all(name not in row['actual_behavior'] for name in obsolete))
+        row=by['arphex:tormentor_voidlasher_native_tick_control']
+        self.assertIn('arphex:dracon_fire_join_placement',row['canonical_contract_reuse'])
+
+
 if __name__ == '__main__':
     unittest.main()

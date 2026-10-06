@@ -129,7 +129,9 @@ def arrow_factory_binding(method, offset, registry, primitive):
     if configured:
         expression=body[at-10:at-2]
         assert len(expression)==8
-        assert [i['opcode'] for i in expression]==['0xb2','0xb6','0xc0','0xb6','0xb8','0x14','0x61','0x89']
+        assert [i['opcode'] for i in expression[:5]]==['0xb2','0xb6','0xc0','0xb6','0xb8']
+        assert expression[5]['opcode'] in ('0x9','0xa','0x14')
+        assert [i['opcode'] for i in expression[-2:]]==['0x61','0x89']
         assert expression[0]['operand'].startswith('net/arphex/configuration/ConfigurationSettingsConfiguration.')
         assert expression[1]['operand']=='net/neoforged/neoforge/common/ModConfigSpec$ConfigValue.get()Ljava/lang/Object;'
         assert expression[2]['operand']=='java/lang/Double'
@@ -270,6 +272,7 @@ def validate_batch(batch,review,census):
             block_speed=(candidate['primitive']=='BLOCK_SPEED_FACTOR' and hit['operand']=='net/minecraft/world/level/block/state/BlockBehaviour$Properties.speedFactor(F)Lnet/minecraft/world/level/block/state/BlockBehaviour$Properties;')
             hazard_timer=(candidate['primitive']=='NATIVE_HAZARD_LIFECYCLE' and hit['operand'] in ('net/minecraft/world/level/Level.scheduleTick(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/Block;I)V','net/minecraft/server/level/ServerLevel.scheduleTick(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/Block;I)V'))
             projectile_placement=(candidate['primitive']=='PROJECTILE_PLACEMENT' and hit['operand']=='net/minecraft/world/entity/projectile/Projectile.setPos(DDD)V')
+            body_dimensions=(candidate['primitive']=='BODY_DIMENSION_SCALE' and hit['operand']=='net/minecraft/world/entity/EntityDimensions.scale(F)Lnet/minecraft/world/entity/EntityDimensions;')
             handoff='native_callee_binding' in candidate
             if handoff:
                 assert candidate['primitive'] in ('TERRAIN_DELIVERY','SUMMON_DELIVERY','CONTROL_DELIVERY') and hit['opcode']=='0xb8'
@@ -313,7 +316,7 @@ def validate_batch(batch,review,census):
                         assert any(cm['name']==proof['method'] and cm['descriptor']==proof['descriptor'] and cm['code_sha256']==proof['code_sha256'] for cm in cw['methods'])
             if attribute:
                 assert literal_attribute_binding(m,consumer['offset'])==candidate['native_attribute_binding'],('wrong native attribute literal',candidate)
-            assert hit['opcode']=='0xb5' or rng or terrain or explosion or durability or attribute or command or concat or area_state or block_speed or hazard_timer or projectile_placement or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
+            assert hit['opcode']=='0xb5' or rng or terrain or explosion or durability or attribute or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
             if candidate['primitive'].startswith('MOB_EFFECT_') or 'native_holder_symbol' in candidate:
                 symbol,allocation,load=effect_holder_binding(m,consumer['offset'])
                 assert (symbol,allocation,load)==(candidate['native_holder_symbol'],
