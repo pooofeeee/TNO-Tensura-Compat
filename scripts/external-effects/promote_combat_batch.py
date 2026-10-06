@@ -475,6 +475,23 @@ def literal_tag_double_binding(method, offset):
     return dict(key=key['operand'],key_offset=key['offset'],value=value['operand'],value_offset=value['offset'])
 
 
+def literal_field_numeric_binding(method, offset):
+    """Bind a literal primitive field write, refusing computed or flag values."""
+    body = method['instructions']
+    at = next(n for n, i in enumerate(body) if i['offset'] == offset)
+    hit, value = body[at], body[at-1]
+    assert hit['opcode'] in ('0xb3', '0xb5') and isinstance(hit['operand'], str)
+    descriptor = hit['operand'][-1]
+    assert descriptor in ('I', 'F', 'D')
+    opcodes = {'I': ('0x2', '0x3', '0x4', '0x5', '0x6', '0x7', '0x8', '0x10', '0x11', '0x12', '0x13'),
+               'F': ('0xb', '0xc', '0xd', '0x12', '0x13'), 'D': ('0xe', '0xf', '0x14')}
+    assert value['opcode'] in opcodes[descriptor]
+    assert type(value['operand']) is (int if descriptor == 'I' else float)
+    return dict(field=hit['operand'], native_value=value['operand'],
+                value_offset=value['offset'], descriptor=descriptor,
+                write='STATIC' if hit['opcode'] == '0xb3' else 'INSTANCE')
+
+
 def literal_effect_command_arguments(method, offset):
     """Read an explicit effect-give literal; do not infer dynamic commands."""
     command = literal_command_binding(method, offset)['command']
@@ -601,6 +618,13 @@ def validate_batch(batch,review,census):
                 assert component['numerical_parameters'][candidate['parameters'][0]] == binding['divisor']
             food_component = 'native_food_component_binding' in candidate
             literal_numeric = 'native_literal_numeric_input_binding' in candidate
+            field_literal = 'native_literal_field_numeric_binding' in candidate
+            if field_literal:
+                binding = literal_field_numeric_binding(m, consumer['offset'])
+                assert binding == candidate['native_literal_field_numeric_binding']
+                assert len(candidate['parameters']) == 1
+                component = next(c for c in row['components'] if c['primitive'] == candidate['primitive'])
+                assert component['numerical_parameters'][candidate['parameters'][0]] == binding['native_value']
             block_factor = 'native_block_factor_binding' in candidate
             if block_factor:
                 binding = literal_block_factor_binding(m, consumer['offset'])
@@ -749,7 +773,7 @@ def validate_batch(batch,review,census):
                 allowed={'native_value'} if binding['kind']=='ITEM_ATTRIBUTE_MODIFIER' else {'attack_bonus','attack_speed'}
                 assert set(roles.values())==allowed and len(roles)==len(allowed)
                 assert all(component['numerical_parameters'][parameter]==binding[role] for parameter,role in roles.items()),('component differs from pinned item attribute',candidate)
-            assert hit['opcode']=='0xb5' or block_factor or literal_numeric or food_component or rounded_tag or rng or terrain or explosion or durability or attribute or item_attribute or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or synched_clock or clock_distribution or vector_scale or vector_expression or registry_spawn or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
+            assert hit['opcode']=='0xb5' or field_literal or block_factor or literal_numeric or food_component or rounded_tag or rng or terrain or explosion or durability or attribute or item_attribute or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or synched_clock or clock_distribution or vector_scale or vector_expression or registry_spawn or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
             if candidate['primitive'].startswith('MOB_EFFECT_') or 'native_holder_symbol' in candidate:
                 symbol,allocation,load=effect_holder_binding(m,consumer['offset'])
                 assert (symbol,allocation,load)==(candidate['native_holder_symbol'],

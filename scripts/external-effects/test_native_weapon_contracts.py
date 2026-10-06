@@ -1050,6 +1050,120 @@ class NativeStaffLauncherContracts(NativeContractHarness, unittest.TestCase):
         self.assertTrue(any('arphex:vortex_vanguard_owner_free_spin_delivery' in r.get('canonical_contract_reuse',[]) for r in self.batch['effects']))
 
 
+class NativeSummonerItemContracts(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch = read_json(OUT / 'arphex-r2m6k-native-summoner-item-contracts.json')
+        cls.native = read_json(OUT / 'native-evidence/arphex-residual-native-summoner-utility.json')
+        cls.census = read_json(OUT / 'arphex-combat-census.json')
+
+    def test_bounded_native_contracts_extend_existing_jar_identity(self):
+        validate_batch(self.batch, self.prior(), self.census)
+        self.assertEqual((len(self.batch['effects']), len(self.batch['closed_item_callback_entries'])), (5, 6))
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects']
+                             for c in r['scalable_parameter_candidates']), 29)
+        self.assertEqual([r['id'] for r in self.batch['record_refinements']], ['arphex:owned_spider_jar_native_lifecycle'])
+        self.assertFalse(any(r['id'] == 'arphex:owned_spider_jar_native_lifecycle' for r in self.batch['effects']))
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_health_buffer_literals_are_native_field_writes_not_live_heals(self):
+        from promote_combat_batch import literal_field_numeric_binding
+        for name, value, field in [('TormentorSummonerInventoryProcedure', 1024., 'tmshealthD'),
+                                   ('SpiderMothSummonInventoryProcedure', 300., 'smshealthD')]:
+            m = dict(instructions=self.body(name))
+            binding = literal_field_numeric_binding(m, 61)
+            self.assertEqual(binding['native_value'], value)
+            self.assertTrue(binding['field'].endswith(field))
+            self.assertEqual(binding['write'], 'INSTANCE')
+            self.assertFalse(any('.heal(' in str(i['operand']) or '.setHealth(' in str(i['operand'])
+                                 or '.isOnCooldown(' in str(i['operand']) for i in m['instructions']))
+            self.assertEqual(next(i for i in m['instructions'] if i['offset'] == 117)['opcode'], '0x63')
+            bad = copy.deepcopy(m)
+            next(i for i in bad['instructions'] if i['offset'] == 58)['opcode'] = '0x63'
+            with self.assertRaises(AssertionError):
+                literal_field_numeric_binding(bad, 61)
+        batch = copy.deepcopy(self.batch)
+        row = next(r for r in batch['effects'] if r['id'].endswith(':native_summoner_per_stack_attached_health_regeneration'))
+        row['components'][0]['numerical_parameters']['initial_value'] += 1
+        with self.assertRaises(AssertionError):
+            validate_batch(batch, self.prior(), self.census)
+
+    def test_dismissal_checks_ownership_at_delivery_and_lightning_visual_flag(self):
+        for name in ('TormentorPortalRightClixProcedure', 'SpiderMothPortalRightclickedProcedure'):
+            early = self.body(name)
+            self.assertFalse(any('.isOnCooldown(' in str(i['operand']) for i in early))
+            b = self.body(name, 'lambda$execute$2')
+            calls = [i['operand'] for i in b if i['opcode'] in ('0xb6', '0xb9')]
+            for part in ('.isOnCooldown(', '.isOwnedBy(', '.isAlive(', '.discard(', '.setVisualOnly('):
+                self.assertTrue(any(part in c for c in calls))
+            j = next(j for j, i in enumerate(b) if '.setVisualOnly(' in str(i['operand']))
+            self.assertEqual(b[j-1]['operand'], 1)
+            self.assertFalse(any('.hurt(' in c or '.setOwner(' in c for c in calls))
+
+    def test_tormentor_swing_rechecks_native_vehicle_without_owner_assignment(self):
+        b = self.body('TormentorSummonerEntitySwingsItemProcedure', 'lambda$execute$0')
+        self.assertTrue(any('.isPassenger(' in str(i['operand']) for i in b))
+        self.assertTrue(any(i['opcode'] == '0xc1' and i['operand'].endswith('/TormentorSummonEntity') for i in b))
+        self.assertTrue(any('PlayerVariables.killedtormentorD' in str(i['operand']) for i in b))
+        self.assertTrue(any('SUMMON_SUN_BLAST' in str(i['operand']) for i in b))
+        self.assertFalse(any('.setOwner(' in str(i['operand']) or '.isOwnedBy(' in str(i['operand']) for i in b))
+        row = self.row('tormentor_summoner_native_vehicle_sun_blast_trigger')
+        self.assertIn('arphex:summon_sun_blast_native_generic_field_motion_and_size', row['canonical_contract_reuse'])
+        self.assertFalse(any(c['primitive'] == 'NATIVE_DAMAGE_REQUEST' for c in row['scalable_parameter_candidates']))
+
+    def test_moth_later_pulses_preserve_carrier_type_veto_without_mount_recheck(self):
+        first = self.body('SpiderMothSummonerEntitySwingsItemProcedure', 'lambda$execute$12')
+        at = next(j for j, i in enumerate(first) if i['offset'] == 182)
+        self.assertEqual(first[at-1]['opcode'], '0x2a')  # static lambda carrier argument0
+        for method in ('lambda$execute$9', 'lambda$execute$6'):
+            b = self.body('SpiderMothSummonerEntitySwingsItemProcedure', method)
+            at = next(j for j, i in enumerate(b) if i['opcode'] == '0xc1' and i['operand'].endswith('/SpiderMothSummonEntity'))
+            self.assertEqual(b[at-1]['local_index'], 7)  # captured carrier, not query recipient
+            self.assertFalse(any('.isPassenger(' in str(i['operand']) or '.getVehicle(' in str(i['operand'])
+                                 or '.isOnCooldown(' in str(i['operand']) for i in b))
+            self.assertTrue(any('.isOwnedBy(' in str(i['operand']) for i in b))
+        row = self.row('moth_summoner_native_vehicle_three_wither_pulses')
+        self.assertEqual(sum(c['primitive'].startswith('MOB_EFFECT_WITHER_PULSE_') for c in row['components']), 3)
+        times = next(c for c in row['components'] if c['primitive'] == 'DELAYED_NATIVE_PULSES')['numerical_parameters']
+        self.assertEqual(times['initial_delay'], 4)
+        self.assertEqual([v for k, v in times.items() if k != 'initial_delay'], [3]*6)
+        self.assertNotIn(13, times.values())
+        self.assertNotIn(22, times.values())
+
+    def test_jar_regeneration_is_unconditional_stack_resource_not_a_default_pet_heal(self):
+        for name in ('SpiderJarItemInInventoryTickProcedure', 'JumpJarTickProcedure'):
+            b = self.body(name)
+            self.assertTrue(any(i['operand'] == .05 for i in b))
+            self.assertTrue(any(i['opcode'] == '0x63' for i in b))
+            self.assertFalse(any('.setHealth(' in str(i['operand']) or '.heal(' in str(i['operand']) for i in b))
+        b = self.body('SpiderCrabJarRightclickedProcedure', 'lambda$execute$5')
+        self.assertTrue(any(i['operand'] == 'Spider Crab Jar' for i in b))
+        self.assertTrue(any('.setHealth(' in str(i['operand']) for i in b))
+        self.assertGreater(sum('CrabLarvaeEntity' == str(i['operand']).split('/')[-1] for i in b), 1)
+        root = self.body('SpiderCrabJarItem', 'use')
+        self.assertTrue(any('SpiderCrabJarRightclickedProcedure.execute(' in str(i['operand']) for i in root))
+
+    def test_bucket_has_eight_exact_unowned_spawns_and_positive_z_point_five(self):
+        b = self.body('BucketOfWormGrubRightclickedProcedure')
+        self.assertEqual(sum('EntityType.spawn(' in str(i['operand']) for i in b), 8)
+        self.assertFalse(any('.tame(' in str(i['operand']) or '.setOwner(' in str(i['operand'])
+                             or '.hurt(' in str(i['operand']) for i in b))
+        j = next(j for j, i in enumerate(b) if i['offset'] == 475)
+        self.assertEqual([i['operand'] for i in b[j-3:j]], [0., 0., .5])
+        self.assertIn('NATIVE_ENCOUNTER_SETUP_REUSED', {e['disposition'] for e in self.batch['exclusions']})
+
+    def test_native_crab_nearest_comparators_bind_exact_xyz_squared_distance(self):
+        support = read_json(OUT / 'native-evidence/arphex-native-summoner-item-support.json')
+        self.assertEqual(len(support['witnesses']), 3)
+        for witness in support['witnesses']:
+            method = next(m for m in witness['methods'] if m['name'] == 'lambda$compareDistOf$0')
+            self.assertEqual(method['descriptor'], '(DDDLnet/minecraft/world/entity/Entity;)D')
+            b = method['instructions']
+            self.assertEqual(b[-2]['operand'], 'net/minecraft/world/entity/Entity.distanceToSqr(DDD)D')
+            self.assertEqual(b[-1]['opcode'], '0xaf')
+            self.assertEqual(b[0]['local_index'], 6)
+
+
 class NativePassiveUtilityContracts(NativeContractHarness, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
