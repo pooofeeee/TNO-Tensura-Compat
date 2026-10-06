@@ -688,6 +688,9 @@ def validate_batch(batch,review,census):
             tag_literal='native_tag_double_binding' in candidate
             if tag_literal:
                 assert literal_tag_double_binding(m,consumer['offset'])==candidate['native_tag_double_binding'],('wrong native raw-state literal',candidate)
+                assert len(candidate['parameters'])==1
+                component=next(c for c in row['components'] if c['primitive']==candidate['primitive'])
+                assert component['numerical_parameters'][candidate['parameters'][0]]==candidate['native_tag_double_binding']['value'],('component differs from pinned raw-state literal',candidate)
             concat='native_concat_command_binding' in candidate
             if concat:
                 assert concat_command_binding(m,consumer['offset'],census,consumer['entry'])==candidate['native_concat_command_binding'],('wrong native concatenated command',candidate)

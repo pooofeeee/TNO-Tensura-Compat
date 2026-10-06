@@ -378,6 +378,109 @@ class NativePowerInputContracts(NativeContractHarness, unittest.TestCase):
             validate_batch(batch, self.prior(), self.census)
 
 
+class NativeSpatialStoredStateContracts(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch = read_json(OUT / 'arphex-r2m6r-native-tesseract-and-stored-state-contracts.json')
+        cls.packet = read_json(OUT / 'native-evidence/arphex-native-tesseract-support.json')
+        old = read_json(OUT / 'native-evidence/arphex-global-hooks.json')
+        cls.native = dict(witnesses=cls.packet['witnesses'] + [w for w in old['witnesses']
+                         if w['entry'].endswith('/HitBlockProcedure.class')])
+        cls.census = read_json(OUT / 'arphex-combat-census.json')
+
+    def test_one_transit_and_three_refinements_preserve_real_native_identity(self):
+        validate_batch(self.batch, self.prior(), self.census)
+        self.assertEqual(len(self.batch['effects']), 1)
+        self.assertEqual(len(self.batch['record_refinements']), 3)
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects'] for c in r['scalable_parameter_candidates'])
+                         + sum(len(c['parameters']) for r in self.batch['record_refinements'] for c in r['candidate_additions']), 8)
+        self.assertEqual((len(self.packet['witnesses']), sum(len(w['methods']) for w in self.packet['witnesses'])), (35, 124))
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_tesseract_actual_forwarding_and_repeated_five_tick_schedule(self):
+        for callback, helper in [('stepOn', 'EntityWalksOnTheBlock'), ('useWithoutItem', 'OnBlockRightClicked'),
+                                 ('tick', 'OnTickUpdate'), ('onPlace', 'NeighbourBlockChanges')]:
+            b = self.body('TesseractTransporterBlock', callback)
+            parent = next(j for j, i in enumerate(b) if i['opcode'] == '0xb7')
+            own = next(j for j, i in enumerate(b) if 'TesseractTransporter' + helper + 'Procedure.execute(' in str(i['operand']))
+            self.assertLess(parent, own)
+        for name in ('onPlace', 'tick'):
+            b = self.body('TesseractTransporterBlock', name)
+            j = next(j for j, i in enumerate(b) if '.scheduleTick(' in str(i['operand']))
+            self.assertEqual(b[j-1]['operand'], 5)
+        b = self.body('TesseractTransporterBlock', 'neighborChanged')
+        self.assertLess(next(i['offset'] for i in b if 'RedstonePulseProcedure.execute(' in str(i['operand'])),
+                        next(i['offset'] for i in b if 'NeighbourBlockChangesProcedure.execute(' in str(i['operand'])))
+
+    def test_binding_cd_precedes_zero_x_and_three_independent_layer_counts(self):
+        b = self.body('TesseractTransporterOnBlockRightClickedProcedure')
+        cooldown = next(i['offset'] for i in b if '.addCooldown(' in str(i['operand']))
+        key = next(i['offset'] for i in b if i['operand'] == 'portal_lock_x')
+        self.assertLess(cooldown, key)
+        self.assertFalse(any('.getOffhandItem(' in str(i['operand']) for i in b))
+        self.assertEqual(sum(i['operand'] == 'net/minecraft/world/level/block/Blocks.POLISHED_BLACKSTONELnet/minecraft/world/level/block/Block;' for i in b), 4)
+        self.assertEqual(sum('ArphexModBlocks.SCORCHED_GLASS' in str(i['operand']) for i in b), 8)
+        # Each native layer threshold is its own local count, not a column test.
+        self.assertEqual(sum(i['operand'] == 3. and b[j+1]['opcode'] in ('0x97','0x98') for j, i in enumerate(b[:-1])), 3)
+        self.assertEqual(sum(i['opcode'] == '0xb5' and 'owner' in str(i['operand']).lower() for i in b), 0)
+
+    def test_clock_writers_marker_before_command_and_native_invisibility(self):
+        from promote_combat_batch import literal_tag_double_binding, literal_effect_arguments
+        for n, offset, key, value in [('TesseractTransporterOnBlockRightClickedProcedure', 2345, 'teleportation_time', 16.),
+                                     ('TesseractTransporterRedstonePulseProcedure', 861, 'teleportation_time', 16.),
+                                     ('TesseractTransporterEntityWalksOnTheBlockProcedure', 219, 'just_teleported_arphex', 45.)]:
+            binding = literal_tag_double_binding(dict(instructions=self.body(n)), offset)
+            self.assertEqual((binding['key'], binding['value']), (key, value))
+        b = self.body('TesseractTransporterEntityWalksOnTheBlockProcedure')
+        self.assertEqual(literal_effect_arguments(dict(instructions=b), 135)['duration'], 4)
+        self.assertLess(219, next(i['offset'] for i in b if '.performPrefixedCommand(' in str(i['operand'])))
+        self.assertFalse(any('.hurt(' in str(i['operand']) or '.isAlliedTo(' in str(i['operand']) for i in b))
+        boot = [r for r in self.census['registration_bootstraps'] if r['entry'].endswith('/TesseractTransporterEntityWalksOnTheBlockProcedure.class')]
+        self.assertTrue(any('execute in ' in str(r['arguments']) and ' run tp @s ' in str(r['arguments']) for r in boot))
+
+    def test_be_read_helpers_have_native_false_minus_one_and_empty_fallbacks(self):
+        values = {}
+        for number in (1, 2, 6):
+            b = self.body('TesseractTransporterEntityWalksOnTheBlockProcedure$' + str(number), 'getValue')
+            self.assertTrue(any('.getBlockEntity(' in str(i['operand']) for i in b))
+            self.assertTrue(any('.getPersistentData(' in str(i['operand']) for i in b))
+            values[number] = b[-2]['operand']
+        self.assertEqual(values, {1: 0, 2: -1., 6: ''})
+
+    def test_pulse_nearest_sphere_configuration_has_no_spawn_identity_or_black_mode_reset(self):
+        from promote_combat_batch import literal_synched_int_binding
+        b = self.body('TesseractTransporterOnTickUpdateProcedure', 'lambda$execute$3')
+        binding = literal_synched_int_binding(dict(instructions=b), 158)
+        self.assertEqual(binding['native_value'], 50)
+        self.assertIn('DATA_max_size', binding['accessor_symbol'])
+        self.assertTrue(any(i['operand'] == 'purple' for i in b))
+        self.assertEqual(sum('.findFirst(' in str(i['operand']) for i in b), 2)
+        self.assertFalse(any(s in str(i['operand']) for i in b
+                             for s in ('DATA_black_hole', 'DATA_revert', 'isOwnedBy(', 'isAlliedTo(', 'isAlive(')))
+
+    def test_existing_hitblock_writers_use_original_coordinate_inputs_and_native_mode_cd(self):
+        from promote_combat_batch import literal_tag_double_binding
+        b = self.body('HitBlockProcedure')
+        self.assertEqual(literal_tag_double_binding(dict(instructions=b), 859)['value'], 200.)
+        by = {i['offset']: i for i in b}
+        self.assertEqual([by[o]['opcode'] for o in (869, 880, 892)], ['0x28', '0x18', '0x18'])
+        self.assertEqual([by[o]['operand'] for o in (867, 878, 890)], ['oplevx', 'oplevy', 'oplevz'])
+        j = next(j for j, i in enumerate(b) if i['offset'] == 5333)
+        self.assertEqual(b[j-1]['operand'], 10)
+        for name, value in [('lambda$execute$6', 0), ('lambda$execute$7', 1)]:
+            body = self.body('HitBlockProcedure', name)
+            self.assertEqual(body[1]['operand'], 'oblivion_ray_mining_mode')
+            self.assertEqual(body[2]['operand'], value)
+            self.assertIn('.putBoolean(', body[3]['operand'])
+
+    def test_forged_marker_literal_fails_native_parameter_binding(self):
+        batch = copy.deepcopy(self.batch)
+        component = next(c for c in batch['effects'][0]['components'] if c['primitive'] == 'NATIVE_PORTAL_RECIPIENT_REUSE')
+        component['numerical_parameters']['marker_ticks'] = 46.
+        with self.assertRaises(AssertionError):
+            validate_batch(batch, self.prior(), self.census)
+
+
 class NativeForceChaosCrusherContracts(NativeContractHarness, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
