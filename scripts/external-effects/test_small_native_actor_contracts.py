@@ -5,6 +5,106 @@ from promote_combat_batch import validate_batch
 from test_shadow_clone_contracts import NativeContractHarness
 
 
+class GroundFlyingNativeTests(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m5m-common-ground-and-flying-native-contracts.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-common-ground-flying-native-families.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def test_shared_native_consumers_and_ten_roots(self):
+        validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual((len(self.batch['effects']),len(self.batch['closed_actor_callback_entries'])),(5,10))
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects']
+                             for c in r['scalable_parameter_candidates']),75)
+        self.assertEqual((len(self.native['witnesses']),sum(len(w['methods']) for w in self.native['witnesses'])),(44,299))
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_shared_ground_callback_and_zero_base_native_melee(self):
+        for a in ('ScorpionStrikerEntity','ScorpionLarvaeEntity','LongLegsEntity','LongLegsTinyEntity'):
+            self.assertEqual(sum('SunScorpionOnEntityTickUpdateProcedure.execute(' in str(i['operand'])
+                                 for i in self.body(a,'baseTick')),1)
+        b=self.body('LongLegsTinyEntity','createAttributes')
+        j=next(j for j,i in enumerate(b) if 'Attributes.ATTACK_DAMAGE' in str(i['operand']))
+        self.assertEqual(b[j+1]['operand'],0.)
+        b=self.body('LongLegsTinyEntity$1','canPerformAttack')
+        self.assertTrue(any('isTimeToAttack()' in str(i['operand']) for i in b))
+        self.assertTrue(any('hasLineOfSight(' in str(i['operand']) for i in b))
+        # Existing explicit native target-event contribution is reused, not duplicated.
+        self.assertIn('arphex:target_event_small_actor_movement',self.row('shared_scorpion_longlegs_native_climbing_spawn_and_melee')['canonical_contract_reuse'])
+
+    def test_longlegs_silk_has_type_guard_not_scorpion_payload(self):
+        b=self.body('SunScorpionOnEntityTickUpdateProcedure')
+        self.assertEqual([i['operand'] for i in b if i['opcode']=='0xc1' and
+                          str(i['operand']).startswith('net/arphex/entity/')],
+                         ['net/arphex/entity/LongLegsTinyEntity','net/arphex/entity/LongLegsEntity','net/arphex/entity/LongLegsTinyEntity'])
+        self.assertFalse(any('MobEffects.POISON' in str(i['operand']) or '.hurt(' in str(i['operand']) for i in b))
+        self.assertTrue(any('ArphexModMobEffects.SPIDER_SILK_TOUCH' in str(i['operand']) for i in b))
+
+    def test_larva_delayed_strength_separate_from_shade_inheritance(self):
+        b=self.body('SunScorpionTinyOnInitialEntitySpawnProcedure','lambda$execute$2')
+        presence=next(i for i in b if '.isEmpty()' in str(i['operand']))
+        j=b.index(presence)
+        self.assertEqual(b[j+1]['opcode'],'0x9a')  # absent goes to independent random arm
+        self.assertTrue(any('MobEffects.DAMAGE_BOOST' in str(i['operand']) for i in b))
+        ctor=next(j for j,i in enumerate(b) if 'MobEffectInstance.<init>' in str(i['operand']))
+        self.assertEqual([i['operand'] for i in b[ctor-4:ctor]],[99999,0,0,0])
+        self.assertFalse(any('.isAlive(' in str(i['operand']) or '.setOwner(' in str(i['operand']) for i in b))
+
+    def test_millipede_signed_velocity_not_magnitude_and_radius_not_auto_active(self):
+        b=self.body('MillipedeTickProcedure')
+        velocity=[i for i in b if i['operand'] in ('net/minecraft/world/phys/Vec3.x()D','net/minecraft/world/phys/Vec3.z()D')]
+        self.assertEqual(len(velocity),2)
+        self.assertFalse(any('Math.abs(' in str(i['operand']) or 'Vec3.length(' in str(i['operand']) for i in b))
+        r=self.row('millipede_native_asymmetric_motion_resistance_and_melee')
+        self.assertFalse(any(c['primitive']=='SHARED_CLIMB_STATE' for c in r['scalable_parameter_candidates']))
+        self.assertFalse(any(i['operand']=='arphexclimber' for i in b))
+        b=self.body('CentipedeStalkerOnInitialEntitySpawnProcedure')
+        self.assertTrue(any(i['opcode']=='0xc1' and i['operand']=='net/arphex/entity/CentipedeStalkerEntity' for i in b))
+        self.assertFalse(any(i['operand']=='arphexclimber' for i in b))
+
+    def test_hornet_shiny_guard_does_not_follow_texture_only_write(self):
+        b=self.body('HornetShinyProcedure')
+        self.assertTrue(any('DATA_shiny' in str(i['operand']) for i in b))
+        self.assertFalse(any('.getTexture(' in str(i['operand']) for i in b))
+        b=self.body('HornetHarbingerOnInitialEntitySpawnProcedure','lambda$execute$2')
+        self.assertTrue(any('.setTexture(' in str(i['operand']) for i in b))
+        self.assertFalse(any('DATA_shiny' in str(i['operand']) or 'SynchedEntityData.set(' in str(i['operand']) for i in b))
+        b=self.body('GiantHornetHarbingerSpawnProcedure')
+        self.assertEqual(sum('EntityType.spawn(' in str(i['operand']) for i in b),3)
+        self.assertFalse(any('.setOwner(' in str(i['operand']) for i in b))
+
+    def test_longfly_positive_chaos_clock_reads_updated_flyboost(self):
+        b=self.body('LongFlyTickProcedure');by={i['offset']:i for i in b}
+        self.assertEqual((by[785]['operand'],by[792]['operand']),('chaostime','flyboost'))
+        self.assertEqual((by[797]['operand'],by[798]['opcode']),(1.,'0x67'))
+        self.assertIn('.putDouble(',by[799]['operand'])
+        self.assertLess(739,799)  # prior native flyboost decrement
+        self.assertFalse(any('.hurt(' in str(i['operand']) for i in b))
+
+    def test_dragonfly_contact_ignores_return_without_attack_goal_clock(self):
+        b=self.body('DragonflyDreadnoughtEntity$1','tick')
+        self.assertTrue(any('AABB.intersects(' in str(i['operand']) for i in b))
+        j=next(j for j,i in enumerate(b) if '.doHurtTarget(' in str(i['operand']))
+        self.assertEqual(b[j+1]['opcode'],'0x57')
+        self.assertFalse(any(x in str(i['operand']) for i in b for x in ('isTimeToAttack','hasLineOfSight','resetAttackCooldown')))
+        b=self.body('DragonflyDreadnoughtEntity','registerGoals')
+        self.assertFalse(any('MeleeAttackGoal' in str(i['operand']) for i in b))
+        self.assertIn('arphex:dragonfly_dreadnought_source_feedback',self.row('dragonfly_native_contact_flight_and_source_stance')['canonical_contract_reuse'])
+
+    def test_dragonfly_water_is_delayed_and_continuous_phase_precedes_update(self):
+        b=self.body('DragonflyTickProcedure');by={i['offset']:i for i in b}
+        self.assertEqual([i['offset'] for i in b if '.queueServerWork(' in str(i['operand'])],[29,1247])
+        self.assertIn('.setDeltaMovement(',by[1227]['operand'])
+        self.assertIn('.putDouble(',by[1275]['operand'])
+        self.assertFalse(any('.setDeltaMovement(' in str(i['operand']) for i in b if 1230<=i['offset']<=1250))
+        b=self.body('DragonflyTickProcedure','lambda$execute$1')
+        self.assertTrue(any('.getDeltaMovement(' in str(i['operand']) for i in b))
+        self.assertFalse(any(x in str(i['operand']) for i in b for x in ('.isInWater(','.isAlive(','.level(')))
+        r=self.row('dragonfly_native_contact_flight_and_source_stance')
+        self.assertEqual(sum(c['primitive']=='CONTINUOUS_FLIGHT_MOVEMENT' for c in r['scalable_parameter_candidates']),1)
+
+
 class TermiteColonyNativeTests(NativeContractHarness, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
