@@ -8,7 +8,7 @@
     {
       "id": "arphex:ab_flight",
       "mod_key": "arphex",
-      "display_name": "Ab Flight",
+      "display_name": "Abyssal Mobility",
       "registry_ids": [
         "arphex:ab_flight"
       ],
@@ -332,7 +332,7 @@
     {
       "id": "arphex:chaos_controlled",
       "mod_key": "arphex",
-      "display_name": "Chaos Controlled",
+      "display_name": "Chaos Control",
       "registry_ids": [
         "arphex:chaos_controlled"
       ],
@@ -1187,7 +1187,7 @@
     {
       "id": "arphex:force_lift",
       "mod_key": "arphex",
-      "display_name": "Force Lift",
+      "display_name": "Force Lifted",
       "registry_ids": [
         "arphex:force_lift"
       ],
@@ -1412,7 +1412,7 @@
     {
       "id": "arphex:invincibility_temp",
       "mod_key": "arphex",
-      "display_name": "Invincibility Temp",
+      "display_name": "Invincible",
       "registry_ids": [
         "arphex:invincibility_temp"
       ],
@@ -1518,7 +1518,7 @@
     {
       "id": "arphex:moth_curse",
       "mod_key": "arphex",
-      "display_name": "Moth Curse",
+      "display_name": "Terror",
       "registry_ids": [
         "arphex:moth_curse"
       ],
@@ -1879,7 +1879,7 @@
       "registry_ids": [
         "arphex:repulsion"
       ],
-      "primary_classification": "VANILLA_COMPOSITE",
+      "primary_classification": "CUSTOM_CONTROL",
       "inspection_status": "VERIFIED_NATIVE_CORE",
       "scope": "Registered MobEffect core and its direct procedures; external producers/readers remain independently queued.",
       "actual_behavior": "Bloodluster present in side15 box, recipient neither Bloodluster nor Clone and raw creativespectator=false: overwrite velocity(cos(nearestYaw+90)/4,.2,sin(nearestYaw+90)/4), then anonymous GENERIC1 only when health>2. Else Repellant side35 plus native ARTHROPOD tag: nearest queried in side60 box; if its SpiderSilkTouch duration>200 or Repellant in side15, request Wither60/0 only when absent and Slowness60 with amp0/1/2/3/4/5 for maxHP>199/>99/>50/>40/>30/otherwise. Movement does not depend on hurt return. No team or caster entity is supplied to damage.",
@@ -2273,7 +2273,8 @@
         }
       ],
       "lifecycle": "Retains native MobEffect admission, expiry, updates and remove/expired listeners. Delayed procedures retain captured entity references and only their explicit execution-time gates.",
-      "unresolved_ambiguities": []
+      "unresolved_ambiguities": [],
+      "classification_reason": "Species/NPC-conditioned absolute velocity is custom control; native hurt and effect requests remain distinct components."
     },
     {
       "id": "arphex:splintered_sanity",
@@ -3566,10 +3567,10 @@
       "primary_classification": "CUSTOM_CONTROL",
       "inspection_status": "VERIFIED_NATIVE_CORE",
       "scope": "Registered MobEffect core and its direct procedures; external producers/readers remain independently queued.",
-      "actual_behavior": "Each tick requests Glowing5/0 on server LivingEntity. When SpiderMothDweller exists in side100 box, repeated closest-to-recipient lookups read its NBT xver/zver. Four strict sign-quadrant branches write outward X/Z=(-anchorDelta)*(float(300/(200+maxHP))/1.5), each clamped[-.9,.9], and absolute Y=.3. An exactly zero X or Z anchor delta matches no motion branch. No damage, knockback, team or applier-ownership source is invented.",
+      "actual_behavior": "Every tick requests Glowing5/0 on server LivingEntity. With SpiderMothDweller in side100 box, repeated nearest-recipient lookups read NPC NBT xver/zver. Let dx=anchorX-x,dz=anchorZ-z,k=double(float(300F/(200F+maxHP)))/1.5. Strict (+,+) uses (-dx*k,-dz*k); (-,-) uses (abs(dx)*k,abs(dz)*k), both standard[-.9,.9] clamp. (+,-) uses (-dx*k,abs(dz)*k) but x<-.8 writes-.9 and z>.9 writes.8; other limits retain .9. ELSE uses (abs(dx)*k,-dz*k) with standard clamp, including zero-axis cases. All four branches overwrite Y=.3, including dx=dz=0. No damage, knockback or damage-applier ownership is supplied.",
       "closest_vanilla_equivalent": "custom NPC-anchor-relative absolute velocity",
       "vanilla_similarities": "Uses the named native APIs/components below; native admission, stacking and defenses remain authoritative.",
-      "vanilla_differences": "Each tick requests Glowing5/0 on server LivingEntity. When SpiderMothDweller exists in side100 box, repeated closest-to-recipient lookups read its NBT xver/zver. Four strict sign-quadrant branches write outward X/Z=(-anchorDelta)*(float(300/(200+maxHP))/1.5), each clamped[-.9,.9], and absolute Y=.3. An exactly zero X or Z anchor delta matches no motion branch. No damage, knockback, team or applier-ownership source is invented.",
+      "vanilla_differences": "Every tick requests Glowing5/0 on server LivingEntity. With SpiderMothDweller in side100 box, repeated nearest-recipient lookups read NPC NBT xver/zver. Let dx=anchorX-x,dz=anchorZ-z,k=double(float(300F/(200F+maxHP)))/1.5. Strict (+,+) uses (-dx*k,-dz*k); (-,-) uses (abs(dx)*k,abs(dz)*k), both standard[-.9,.9] clamp. (+,-) uses (-dx*k,abs(dz)*k) but x<-.8 writes-.9 and z>.9 writes.8; other limits retain .9. ELSE uses (abs(dx)*k,-dz*k) with standard clamp, including zero-axis cases. All four branches overwrite Y=.3, including dx=dz=0. No damage, knockback or damage-applier ownership is supplied.",
       "components": [
         {
           "primitive": "MOB_EFFECT_GLOWING",
@@ -3583,9 +3584,20 @@
           "primitive": "FORCED_MOVEMENT",
           "numerical_parameters": {},
           "parameter_formulas": {
-            "velocity_x": "clamp(-(anchorX-x)*(float(300F/(200F+maxHP))/1.5D),-.9,.9)",
-            "velocity_y": "0.3",
-            "velocity_z": "clamp(-(anchorZ-z)*(float(300F/(200F+maxHP))/1.5D),-.9,.9)"
+            "velocity_x": {
+              "dx>0,dz>0": "clamp(-dx*k,-.9,.9)",
+              "dx<0,dz<0": "clamp(abs(dx)*k,-.9,.9)",
+              "dx>0,dz<0": "v=-dx*k; v>.9 ? .9 : v<-.8 ? -.9 : v",
+              "else_including_zero_axes": "clamp(abs(dx)*k,-.9,.9)"
+            },
+            "velocity_y": "0.3 in every branch",
+            "velocity_z": {
+              "dx>0,dz>0": "clamp(-dz*k,-.9,.9)",
+              "dx<0,dz<0": "clamp(abs(dz)*k,-.9,.9)",
+              "dx>0,dz<0": "v=abs(dz)*k; v>.9 ? .8 : v<-.9 ? -.9 : v",
+              "else_including_zero_axes": "clamp(-dz*k,-.9,.9)"
+            },
+            "native_force_factor": "double(float(300F/(200F+maxHP)))/1.5D"
           }
         }
       ],
@@ -3674,12 +3686,10 @@
           100,
           100
         ],
-        "strict_nonzero_quadrant_gates": true,
-        "native_motion_clamp": [
-          -0.9,
-          0.9
-        ],
-        "NPC_reference_not_damage_owner": true
+        "three_strict_sign_tests_then_else": true,
+        "zero_axes_enter_else": true,
+        "NPC_reference_not_damage_owner": true,
+        "asymmetric_native_limits_preserved": true
       },
       "source_actor": "The native callback recipient. No generic MobEffect-applier owner is invented. DamageSource constructors without entity arguments remain anonymous; geometric NPC lookups do not create damage ownership.",
       "native_boundary": [
@@ -4010,12 +4020,13 @@
         }
       ],
       "lifecycle": "Retains native MobEffect admission, expiry, updates and remove/expired listeners. Delayed procedures retain captured entity references and only their explicit execution-time gates.",
-      "unresolved_ambiguities": []
+      "unresolved_ambiguities": [],
+      "mapping_integrity_note": "Entire fourth branch inspected. No uniform radial/clamp or axis-zero omission is substituted for native conditions."
     },
     {
       "id": "arphex:voidlasher_chaos_control",
       "mod_key": "arphex",
-      "display_name": "Voidlasher Chaos Control",
+      "display_name": "Chaos Controlled",
       "registry_ids": [
         "arphex:voidlasher_chaos_control"
       ],
@@ -5740,5 +5751,10 @@
     "TormentorPrimaryTargetOnEffectActiveTickProcedure"
   ],
   "stage_policy_decided": false,
-  "runtime_tests": 0
+  "runtime_tests": 0,
+  "integrity_corrections": [
+    "Void Repulsion retains asymmetric third-branch limits and zero-axis ELSE motion; original uniform simplification removed.",
+    "Repulsion classified CUSTOM_CONTROL from actual NPC-conditioned absolute velocity, preserving native damage/effect companions.",
+    "Effect display names copied from pinned native en_us data rather than synthesized from IDs."
+  ]
 }

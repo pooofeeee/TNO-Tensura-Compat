@@ -629,9 +629,20 @@
       "primitive": "FORCED_MOVEMENT",
       "numerical_parameters": {},
       "parameter_formulas": {
-        "velocity_x": "clamp(-(anchorX-x)*(float(300F/(200F+maxHP))/1.5D),-.9,.9)",
-        "velocity_y": "0.3",
-        "velocity_z": "clamp(-(anchorZ-z)*(float(300F/(200F+maxHP))/1.5D),-.9,.9)"
+        "velocity_x": {
+          "dx>0,dz>0": "clamp(-dx*k,-.9,.9)",
+          "dx<0,dz<0": "clamp(abs(dx)*k,-.9,.9)",
+          "dx>0,dz<0": "v=-dx*k; v>.9 ? .9 : v<-.8 ? -.9 : v",
+          "else_including_zero_axes": "clamp(abs(dx)*k,-.9,.9)"
+        },
+        "velocity_y": "0.3 in every branch",
+        "velocity_z": {
+          "dx>0,dz>0": "clamp(-dz*k,-.9,.9)",
+          "dx<0,dz<0": "clamp(abs(dz)*k,-.9,.9)",
+          "dx>0,dz<0": "v=abs(dz)*k; v>.9 ? .8 : v<-.9 ? -.9 : v",
+          "else_including_zero_axes": "clamp(-dz*k,-.9,.9)"
+        },
+        "native_force_factor": "double(float(300F/(200F+maxHP)))/1.5D"
       },
       "id": "arphex:void_repulsion:component:1",
       "effect_id": "arphex:void_repulsion",

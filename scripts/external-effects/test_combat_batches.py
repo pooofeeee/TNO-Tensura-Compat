@@ -67,5 +67,18 @@ class BatchTests(unittest.TestCase):
         self.assertEqual(body[at+1]['opcode'],'0x57')
         self.assertTrue(any('MobEffects.HUNGER' in str(i['operand']) for i in body[at+1:]))
 
+    def test_void_motion_keeps_actual_asymmetric_native_limits(self):
+        w=next(w for w in self.evidence['witnesses'] if w['entry'].endswith('/VoidRepulsionOnEffectActiveTickProcedure.class'))
+        body=next(m['instructions'] for m in w['methods'] if m['name']=='execute')
+        negative=next(n for n,i in enumerate(body) if i['operand']==-0.8)
+        self.assertTrue(any(i['operand']=='xvelos' for i in body[max(0,negative-7):negative]))
+        self.assertTrue(any(i['operand']==-0.9 for i in body[negative+1:negative+12]))
+        positive=next(n for n,i in enumerate(body) if i['operand']==0.8)
+        self.assertTrue(any(i['operand']=='zvelos' for i in body[max(0,positive-8):positive]))
+        record=next(r for r in self.batch['effects'] if r['id']=='arphex:void_repulsion')
+        self.assertTrue(record['binary_parameters']['zero_axes_enter_else'])
+        motion=next(c for c in record['components'] if c['primitive']=='FORCED_MOVEMENT')
+        self.assertIn('abs(dx)',motion['parameter_formulas']['velocity_x']['else_including_zero_axes'])
+
 
 if __name__=='__main__':unittest.main()

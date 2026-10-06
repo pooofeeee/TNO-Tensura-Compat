@@ -310,7 +310,7 @@
     {
       "effect_id": "arphex:repulsion",
       "mod_key": "arphex",
-      "primary_classification": "VANILLA_COMPOSITE",
+      "primary_classification": "CUSTOM_CONTROL",
       "closest_vanilla": "native damage + Wither/Slowness + direct custom motion composition",
       "similarities": "Uses the named native APIs/components below; native admission, stacking and defenses remain authoritative.",
       "differences": "Bloodluster present in side15 box, recipient neither Bloodluster nor Clone and raw creativespectator=false: overwrite velocity(cos(nearestYaw+90)/4,.2,sin(nearestYaw+90)/4), then anonymous GENERIC1 only when health>2. Else Repellant side35 plus native ARTHROPOD tag: nearest queried in side60 box; if its SpiderSilkTouch duration>200 or Repellant in side15, request Wither60/0 only when absent and Slowness60 with amp0/1/2/3/4/5 for maxHP>199/>99/>50/>40/>30/otherwise. Movement does not depend on hurt return. No team or caster entity is supplied to damage.",
@@ -585,7 +585,7 @@
       "primary_classification": "CUSTOM_CONTROL",
       "closest_vanilla": "custom NPC-anchor-relative absolute velocity",
       "similarities": "Uses the named native APIs/components below; native admission, stacking and defenses remain authoritative.",
-      "differences": "Each tick requests Glowing5/0 on server LivingEntity. When SpiderMothDweller exists in side100 box, repeated closest-to-recipient lookups read its NBT xver/zver. Four strict sign-quadrant branches write outward X/Z=(-anchorDelta)*(float(300/(200+maxHP))/1.5), each clamped[-.9,.9], and absolute Y=.3. An exactly zero X or Z anchor delta matches no motion branch. No damage, knockback, team or applier-ownership source is invented.",
+      "differences": "Every tick requests Glowing5/0 on server LivingEntity. With SpiderMothDweller in side100 box, repeated nearest-recipient lookups read NPC NBT xver/zver. Let dx=anchorX-x,dz=anchorZ-z,k=double(float(300F/(200F+maxHP)))/1.5. Strict (+,+) uses (-dx*k,-dz*k); (-,-) uses (abs(dx)*k,abs(dz)*k), both standard[-.9,.9] clamp. (+,-) uses (-dx*k,abs(dz)*k) but x<-.8 writes-.9 and z>.9 writes.8; other limits retain .9. ELSE uses (abs(dx)*k,-dz*k) with standard clamp, including zero-axis cases. All four branches overwrite Y=.3, including dx=dz=0. No damage, knockback or damage-applier ownership is supplied.",
       "components": [
         {
           "primitive": "MOB_EFFECT_GLOWING",
@@ -599,9 +599,20 @@
           "primitive": "FORCED_MOVEMENT",
           "numerical_parameters": {},
           "parameter_formulas": {
-            "velocity_x": "clamp(-(anchorX-x)*(float(300F/(200F+maxHP))/1.5D),-.9,.9)",
-            "velocity_y": "0.3",
-            "velocity_z": "clamp(-(anchorZ-z)*(float(300F/(200F+maxHP))/1.5D),-.9,.9)"
+            "velocity_x": {
+              "dx>0,dz>0": "clamp(-dx*k,-.9,.9)",
+              "dx<0,dz<0": "clamp(abs(dx)*k,-.9,.9)",
+              "dx>0,dz<0": "v=-dx*k; v>.9 ? .9 : v<-.8 ? -.9 : v",
+              "else_including_zero_axes": "clamp(abs(dx)*k,-.9,.9)"
+            },
+            "velocity_y": "0.3 in every branch",
+            "velocity_z": {
+              "dx>0,dz>0": "clamp(-dz*k,-.9,.9)",
+              "dx<0,dz<0": "clamp(abs(dz)*k,-.9,.9)",
+              "dx>0,dz<0": "v=abs(dz)*k; v>.9 ? .8 : v<-.9 ? -.9 : v",
+              "else_including_zero_axes": "clamp(-dz*k,-.9,.9)"
+            },
+            "native_force_factor": "double(float(300F/(200F+maxHP)))/1.5D"
           }
         }
       ]
