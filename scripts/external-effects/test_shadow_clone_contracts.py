@@ -6,6 +6,12 @@ from catalog_common import OUT, read_json
 from promote_combat_batch import validate_batch
 
 
+def native_short_branch(method, offset):
+    """Decode the existing pinned bytes when an old packet lacks branch metadata."""
+    raw = bytes.fromhex(method['code_hex'])
+    return offset + int.from_bytes(raw[offset+1:offset+3], 'big', signed=True)
+
+
 class NativeContractHarness:
     def body(self, name, method='execute'):
         return max((m for w in self.native['witnesses']
@@ -235,3 +241,133 @@ class ShadowSpawnedPayloadTests(NativeContractHarness, unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class WebSpiderNativeTests(NativeContractHarness, unittest.TestCase):
+    """Independent exact callback, recipient, RNG and native lifecycle checks."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.batch = read_json(OUT / 'arphex-r2m5e-web-spider-native-family.json')
+        cls.native = read_json(OUT / 'native-evidence/arphex-spider-web-family.json')
+        cls.census = read_json(OUT / 'arphex-combat-census.json')
+
+    def test_shared_registration_and_exact_partial_pet_scope(self):
+        validate_batch(self.batch, self.prior(), self.census)
+        self.assertEqual(len(self.batch['effects']), 4)
+        self.assertEqual(len(self.batch['closed_actor_callback_entries']), 5)
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects']
+                             for c in r['scalable_parameter_candidates']), 75)
+        for a in ('SpiderBroodEntity', 'SpiderSnatcherEntity', 'SpiderFlatEntity', 'SpiderJumpEntity'):
+            self.assertTrue(any('SpiderBroodOnEntityTickUpdateProcedure.execute(' in str(i['operand'])
+                                for i in self.body(a, 'baseTick')))
+        for a in ('SpiderFlatEntity', 'SpiderJumpEntity'):
+            w = next(w for w in self.native['witnesses'] if w['entry'].endswith('/'+a+'.class'))
+            self.assertEqual([m['name'] for m in w['methods']], ['baseTick'])
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_small_web_both_loops_capture_current_recipient(self):
+        b = self.body('SmallWebTickProcedure')
+        self.assertEqual([i['offset'] for i in b if '.queueServerWork(' in str(i['operand'])], [555, 736])
+        for offset in (481, 662):
+            i = next(i for i in b if i['offset'] == offset)
+            self.assertEqual((i['opcode'], i['local_index']), ('0x3a', 17))
+        for offset in (555, 736):
+            j = next(j for j,i in enumerate(b) if i['offset'] == offset)
+            self.assertEqual((b[j-2]['opcode'], b[j-2]['local_index']), ('0x19', 17))
+        for m in ('lambda$execute$2', 'lambda$execute$5'):
+            bb = self.body('SmallWebTickProcedure', m)
+            self.assertTrue(any('.makeStuckInBlock(' in str(i['operand']) for i in bb))
+            self.assertEqual([i['operand'] for i in bb if i['opcode'] in ('0x12','0x13','0x14')], [.25,.05,.25])
+            self.assertFalse(any('.isAlive(' in str(i['operand']) for i in bb))
+
+    def test_giant_web_reversed_rng_bounds_use_existing_vanilla_contract(self):
+        b = self.body('GiantWebOnEntityTickUpdateProcedure')
+        for offset, values in ((1111,[-10,-28]),(1152,[-10,-28]),(1127,[10,28]),(1168,[10,28])):
+            j = next(j for j,i in enumerate(b) if i['offset']==offset)
+            self.assertIn('Mth.nextInt(', b[j]['operand'])
+            self.assertEqual([i['operand'] for i in b[j-2:j]], values)
+        p = read_json(OUT / 'vanilla-evidence/twilight-multiplayer.json')
+        w = next(w for w in p['classes'] if w.get('raw_entry')=='ayo.class')
+        mm = next(m for m in w['methods'] if m['name']=='nextInt')
+        bb = mm['instructions']
+        by = {i['offset']:i for i in bb}
+        self.assertEqual((by[2]['opcode'],native_short_branch(mm,2)),('0xa1',7))
+        self.assertEqual([by[o]['opcode'] for o in (5,6)], ['0x1b','0xac'])
+        r = self.row('giant_web_native_contact_hatching_and_snatcher_delivery')
+        keys = {k for c in r['scalable_parameter_candidates'] for k in c['parameters']}
+        self.assertFalse({'unused_random_y','native_negative_unused_max'} & keys)
+
+    def test_giant_web_removal_precedes_late_silk_check_and_is_cancellable(self):
+        b = self.body('GiantWebOnEntityTickUpdateProcedure')
+        remove = next(i['offset'] for i in b if '.removeAllEffects(' in str(i['operand']))
+        silk = [i['offset'] for i in b if 'ArphexModMobEffects.SPIDER_SILK_TOUCH' in str(i['operand'])]
+        self.assertEqual(remove,1472)
+        self.assertTrue(any(o>remove for o in silk))
+        p = read_json(OUT / 'reference-evidence/cult-loader-244.json')
+        w = next(w for w in p['witnesses'] if w['entry']=='net/minecraft/world/entity/LivingEntity.class')
+        mm = next(m for m in w['methods'] if m['name']=='removeAllEffects')
+        bb = mm['instructions']
+        j = next(j for j,i in enumerate(bb) if 'EventHooks.onEffectRemoved(' in str(i['operand']))
+        self.assertEqual(bb[j+1]['opcode'],'0x99')
+        self.assertEqual(native_short_branch(mm,54),60)  # false hook permits removal
+        self.assertEqual(native_short_branch(mm,57),71)  # true hook skips native removal
+        self.assertTrue(any('.discard(' in str(i['operand']) and i['offset']<remove for i in b))
+
+    def test_native_brood_and_giant_death_spawn_attempts(self):
+        for name, method, count in (('SpiderBroodEntityDiesProcedure','execute',5),
+                                    ('SpiderBroodEntityDiesProcedure','lambda$execute$0',5),
+                                    ('GiantWebEntityDiesProcedure','execute',7)):
+            b = self.body(name,method)
+            self.assertEqual(sum('EntityType.spawn(' in str(i['operand']) for i in b), count)
+            self.assertFalse(any('.setOwner(' in str(i['operand']) for i in b))
+        for actor, helper in (('SpiderBroodEntity','SpiderBroodEntityDiesProcedure'),
+                              ('GiantWebEntity','GiantWebEntityDiesProcedure')):
+            b = self.body(actor,'die')
+            parent = next(j for j,i in enumerate(b) if i['opcode']=='0xb7' and '.die(' in str(i['operand']))
+            payload = next(j for j,i in enumerate(b) if helper+'.execute(' in str(i['operand']))
+            self.assertLess(parent,payload)
+
+    def test_incoming_helpers_precede_filters_and_ignore_hurt_return(self):
+        for actor,helper in (('SpiderBroodEntity','SpiderBroodEntityIsHurtProcedure'),
+                            ('SpiderSnatcherEntity','SpiderWidowEntityIsHurtProcedure'),
+                            ('SpiderFunnelEntity','SpiderFunnelEntityIsHurtProcedure')):
+            b = self.body(actor,'hurt')
+            payload = next(j for j,i in enumerate(b) if helper+'.execute(' in str(i['operand']))
+            filter_site = next(j for j,i in enumerate(b) if 'DamageSource.getDirectEntity()' in str(i['operand']))
+            parent = next(j for j,i in enumerate(b) if i['opcode']=='0xb7' and '.hurt(' in str(i['operand']))
+            self.assertLess(payload,filter_site)
+            self.assertLess(payload,parent)
+        b = self.body('SpiderWidowEntityIsHurtProcedure','lambda$execute$2')
+        cmd = next(i['operand'] for i in b if isinstance(i['operand'],str) and i['operand'].startswith('effect give'))
+        self.assertEqual(cmd,'effect give @e[type=!arphex:spider_snatcher,distance=..5] arphex:webbed 4 0')
+        self.assertFalse(any('.isAlive(' in str(i['operand']) for i in b))
+
+    def test_live_pet_sit_status_and_curse_order_are_distinct(self):
+        b = self.body('SpiderBroodOnEntityTickUpdateProcedure')
+        by = {i['offset']:i for i in b}
+        for offset in (2237,3504):
+            self.assertIn('LivingEntity.addEffect(',by[offset]['operand'])
+        self.assertIn('SynchedEntityData.set(',by[950]['operand'])
+        self.assertLess(950,995)
+        self.assertLess(995,1043)
+        for name,mode in (('SpiderBroodOnEntityTickUpdateProcedure$1','SURVIVAL'),
+                          ('SpiderBroodOnEntityTickUpdateProcedure$2','ADVENTURE')):
+            self.assertTrue(any('GameType.'+mode in str(i['operand']) for i in self.body(name,'checkGamemode')))
+        r = self.row('shared_brood_snatcher_flat_jump_native_spider_callbacks')
+        self.assertFalse(any(c['primitive']=='MOB_EFFECT_FATIGUE_SHOW' for c in r['scalable_parameter_candidates']))
+
+    def test_funnel_wander_marker_and_three_native_velocity_writes(self):
+        b = self.body('ProwlMoveProcedure')
+        self.assertTrue(any(i['operand']==20 for i in b))
+        self.assertTrue(any('MobEffectInstance.getAmplifier(' in str(i['operand']) for i in b))
+        b = self.body('SpiderFunnelEntity$3','canUse')
+        self.assertTrue(any('RandomStrollGoal.canUse(' in str(i['operand']) for i in b))
+        self.assertTrue(any('ProwlMoveProcedure.execute(' in str(i['operand']) for i in b))
+        for m in ('execute','lambda$execute$1','lambda$execute$0'):
+            b = self.body('SpiderFunnelEntityIsHurtProcedure',m)
+            self.assertEqual(sum('.setDeltaMovement(' in str(i['operand']) for i in b),1)
+            self.assertFalse(any('.isAlive(' in str(i['operand']) for i in b))
+        r = self.row('funnel_spider_native_web_motion_and_pre_admission_reaction')
+        self.assertFalse(any('amplifier' in k for c in r['scalable_parameter_candidates']
+                             if c['primitive']=='MOB_EFFECT_SLOWNESS' for k in c['parameters']))
