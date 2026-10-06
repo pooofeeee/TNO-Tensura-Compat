@@ -902,5 +902,106 @@ class DraconicNativeSourceTests(unittest.TestCase):
         self.assertEqual(sum(len(w['methods']) for w in self.native['witnesses']),70)
 
 
+class TranscendentalNativeSourceTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m4i-transcendental-native-source-controller.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-transcendental-source-projectile-sources.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def method(self, name='execute', tail='TranscendentalTormentorOnEntityTickUpdateProcedure'):
+        return next(m for w in self.native['witnesses'] if w['entry'].endswith('/'+tail+'.class')
+                    for m in w['methods'] if m['name']==name)
+
+    def prior(self):
+        review=copy.deepcopy(read_json(OUT/'mod-reviews/arphex.json'))
+        ids={r['id'] for r in self.batch['effects']}
+        review['effects']=[r for r in review['effects'] if r['id'] not in ids]
+        review['paths']=[p for p in review['paths'] if not set(p['effect_ids'])&ids]
+        return review
+
+    def test_five_distinct_contracts_and_exact_bound_parameters(self):
+        result=validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual(result['semantic_records'],len(self.prior()['effects'])+5)
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects'] for c in r['scalable_parameter_candidates']),71)
+        self.assertFalse(self.batch['whole_mod_complete'])
+        self.assertEqual((len(self.native['witnesses']),sum(len(w['methods']) for w in self.native['witnesses'])),(6,23))
+
+    def test_zero_native_profiles_retain_intrinsic_payloads(self):
+        rows=[k for k in read_json(OUT/'arphex-projectile-producer-kernel-registry.json')['rows']
+              if '/TranscendentalTormentorOnEntityTickUpdateProcedure$' in k['factory']['entry']]
+        self.assertEqual(len(rows),23)
+        self.assertEqual({k['intrinsic_arrow_root'].split('/')[-1] for k in rows},
+                         {'TormentBlastEntity.class','TormentRifleEntity.class'})
+        body=self.method()
+        calls=[i for i in body['instructions'] if '.getArrow(' in str(i['operand'])]
+        self.assertEqual(len(calls),23)
+        for i in calls:
+            binding=arrow_factory_binding(body,i['offset'],read_json(OUT/'arphex-projectile-producer-kernel-registry.json'),'PROJECTILE_BASE_DAMAGE')
+            self.assertEqual([binding['literal_arguments'][k]['value'] for k in ('base_damage','knockback','piercing')],[0.0,0,0])
+        self.assertFalse(any(c['primitive'] in ('PROJECTILE_BASE_DAMAGE','PROJECTILE_KNOCKBACK')
+                             for r in self.batch['effects'] for c in r['scalable_parameter_candidates']))
+
+    def test_native_map_health_adds_amplifiers_without_increment(self):
+        by={i['offset']:i for i in self.method()['instructions']}
+        for amp,default,convert,add,store in [(681,687,688,689,690),(746,752,753,754,755)]:
+            self.assertIn('.getAmplifier(',by[amp]['operand'])
+            self.assertEqual(by[default]['operand'],0)
+            self.assertEqual((by[convert]['opcode'],by[add]['opcode']),('0x87','0x63'))
+            self.assertIn('tormentor_healthD',by[store]['operand'])
+        self.assertIn('.setHealth(',by[833]['operand'])
+        self.assertIn('.isAlive(',by[1342]['operand'])
+        self.assertEqual(by[865]['operand'],0)
+        self.assertIn('DATA_time_since_attacked',by[862]['operand'])
+        self.assertIn('DATA_time_since_attacked',by[9621]['operand'])
+        self.assertEqual((by[9637]['operand'],by[9638]['opcode']),(1,'0x60'))
+
+    def test_first_marked_latch_and_exact_status_receiver(self):
+        from promote_combat_batch import effect_receiver_binding
+        by={i['offset']:i for i in self.method()['instructions']}
+        self.assertEqual((by[2799]['operand'],by[2800]['opcode']),(1,'0x36'))
+        self.assertLess(2800,4357)  # latch set before native cone/map rotation expression
+        self.assertEqual(effect_receiver_binding(self.method(),2647)['origin_local_index'],7)
+        changed=copy.deepcopy(self.batch)
+        c=next(c for r in changed['effects'] for c in r['scalable_parameter_candidates'] if c['primitive']=='MOB_EFFECT_TORMENT')
+        c['native_receiver_binding']['origin_local_index']=63
+        with self.assertRaises(AssertionError):validate_batch(changed,self.prior(),self.census)
+
+    def test_shared_aim_latch_angle_and_denominator_stay_native(self):
+        body=self.method(tail='TormentorAimProcedure')['instructions'];by={i['offset']:i for i in body}
+        self.assertEqual([by[o]['operand'].split('.')[-1] for o in [50,57,64]],['tormentor_xD','tormentor_yD','tormentor_zD'])
+        self.assertFalse(any('.getOwner(' in str(i['operand']) or '.isAlive(' in str(i['operand']) for i in body))
+        self.assertEqual((by[255]['operand'],by[578]['operand']),(1,1))
+        self.assertIn('.putBoolean(',by[256]['operand']);self.assertIn('.putBoolean(',by[579]['operand'])
+        self.assertEqual(by[280]['operand'],.6)
+        self.assertEqual((by[362]['operand'],by[365]['opcode']),(90.0,'0x67'))
+        self.assertIn('toDegrees(',by[366]['operand'])
+        self.assertEqual((by[471]['operand'],by[479]['operand']),(2.5,1.9))
+        self.assertEqual([i['offset'] for i in body if 'Math.sqrt(' in str(i['operand'])],[312,635])
+        self.assertLess(635,670)  # rifle distance computed before independent random spread
+
+    def test_spiral_field_is_real_command_not_particle_only(self):
+        from promote_combat_batch import literal_command_binding
+        self.assertEqual(literal_command_binding(self.method(),11461)['command'],
+                         'effect give @e[distance=..30] arphex:torment_spiral 1 1 true')
+        tail=[i for i in self.method()['instructions'] if 10770<=i['offset']<=11485]
+        self.assertFalse(any('TORMENTOR_PARTICLES' in str(i['operand']) or 'SPECIAL_RENDERING' in str(i['operand']) for i in tail))
+
+    def test_real_lightning_has_no_visual_only_or_cause_write(self):
+        body=self.method()['instructions'];tail=[i for i in body if 8235<=i['offset']<=8340]
+        self.assertTrue(any('EntityType.LIGHTNING_BOLT' in str(i['operand']) for i in tail))
+        self.assertFalse(any('.setVisualOnly(' in str(i['operand']) or '.setCause(' in str(i['operand']) for i in body))
+        self.assertFalse(any('.isAlive(' in str(i['operand']) for i in tail))
+        self.assertEqual([i['operand'] for i in tail if i['opcode'] in ('0x10','0x11')],[300,-100,100,-100,40,-100,100])
+
+    def test_void_scan_and_reload_render_have_material_lifecycle(self):
+        by={i['offset']:i for i in self.method()['instructions']}
+        self.assertEqual(by[9185]['operand'],400.0)
+        self.assertIn('.putDouble(',by[9188]['operand'])
+        self.assertEqual(by[9207]['operand'],'scandown')  # later clearance rereads already-reset value
+        self.assertIn('reload_render',by[9460]['operand'])
+        self.assertIn('.discard(',by[9479]['operand'])
+
+
 if __name__ == '__main__':
     unittest.main()
