@@ -664,5 +664,76 @@ class GlobalHooksTests(unittest.TestCase):
         spec['evidence_specifications']=[s for s in spec['evidence_specifications'] if s['entry'] in entries]
         self.assertEqual(collect(spec,{'arphex':jar})['witnesses'],[self.witness('GameModeDetectorProcedure')])
 
+    def test_equipment_batch_unique_native_consumer_profiles_and_state_merge(self):
+        batch=read_json(OUT/'arphex-r2m2r-player-armor-sweep-and-owned-population.json')
+        review=read_json(OUT/'mod-reviews/arphex.json');ids={r['id'] for r in batch['effects']}
+        review['effects']=[r for r in review['effects'] if r['id'] not in ids]
+        review['paths']=[p for p in review['paths'] if not set(p['effect_ids'])&ids]
+        self.assertEqual(validate_batch(batch,review,self.census)['semantic_records'],len(review['effects'])+5)
+        self.assertEqual(sum(len(c['parameters']) for r in batch['effects'] for c in r['scalable_parameter_candidates']),20)
+        self.assertEqual([r['id'] for r in batch['record_refinements']],['arphex:player_shared_native_admission_state'])
+
+    def test_sweep_native_integer_division_phase_factors_and_explicit_damage_actor(self):
+        body=self.body('GameModeDetectorProcedure');by={i['offset']:i for i in body}
+        self.assertEqual(by[13218]['operand'],5.0)
+        self.assertEqual(by[12435]['operand'],25.0)
+        for hurt,actor in ((13699,13664),(14516,14481)):
+            at=next(n for n,i in enumerate(body) if i['offset']==hurt)
+            self.assertEqual([i['opcode'] for i in body[at-3:at]],['0x60','0x6c','0x86'])
+            self.assertEqual(by[actor]['local_index'],8)
+            self.assertIn('DamageSource.<init>(Lnet/minecraft/core/Holder;Lnet/minecraft/world/entity/Entity;)V',by[actor+2]['operand'])
+            self.assertEqual(body[at+1]['opcode'],'0x57')
+        for offset,factor in ((13936,10),(14082,10),(14227,10),(14347,10),
+                              (14753,20),(14899,20),(15044,20),(15164,20)):
+            at=next(n for n,i in enumerate(body) if i['offset']==offset)
+            start=max(n for n,i in enumerate(body[:at]) if i['opcode']=='0xbb' and i['operand']=='net/minecraft/world/phys/Vec3')
+            vector=body[start:at]
+            factors=[i['operand'] for n,i in enumerate(vector[:-1]) if i['opcode']=='0x10' and vector[n+1]['opcode']=='0x68']
+            self.assertEqual(factors,[factor,factor])
+            self.assertEqual(sum(i['opcode']=='0x6c' for i in vector),2)
+            self.assertIn(.3,[i['operand'] for i in vector])
+        self.assertEqual(16//(12+5),0)
+        self.assertEqual(300//(200+11*10),0)
+        self.assertEqual(300//(200+6*20),0)
+
+    def test_ant_typed_key_collision_and_queen_flag_consumption_are_native(self):
+        body=self.body('GameModeDetectorProcedure');by={i['offset']:i for i in body}
+        self.assertEqual(by[15576]['operand'],'furthest_ant')
+        self.assertIn('putDouble(',by[15580]['operand'])
+        interval=[i for i in body if 15710<=i['offset']<=15820]
+        self.assertTrue(any(i['operand']=='furthest_ant' for i in interval))
+        writes=[i for i in interval if any(s in str(i['operand']) for s in ('CompoundTag.putDouble(','CompoundTag.putString('))]
+        self.assertEqual(len(writes),2)
+        self.assertIn('putDouble(',writes[0]['operand'])
+        self.assertIn('putString(',writes[1]['operand'])
+        self.assertEqual(by[15960]['operand'],'queenslowtotem')
+        self.assertEqual(by[15963]['operand'],0)
+        self.assertLess(15964,16084)
+        native=read_json(OUT/'vanilla-evidence/arphex-typed-nbt-reads.json')['classes'][0]
+        double=next(m for m in native['methods'] if m['name']=='getDouble')
+        self.assertEqual(double['instructions'][2]['operand'],99)
+        code=bytes.fromhex(double['code_hex'])
+        miss=7+int.from_bytes(code[8:10],'big',signed=True)
+        self.assertEqual(miss,27)
+        self.assertEqual(miss+int.from_bytes(code[miss+1:miss+3],'big',signed=True),31)
+        self.assertEqual(next(i for i in double['instructions'] if i['offset']==31)['operand'],0.0)
+        typed=next(m for m in native['methods'] if m['name']=='contains' and m['obfuscated_descriptor']=='(Ljava/lang/String;I)Z')
+        # Numeric wildcard accepts native numeric IDs1..6, never String ID8.
+        kinds=[i['operand'] for i in typed['instructions'] if i['opcode'] in ('0x4','0x5','0x6','0x7','0x8','0x10') and i['offset'] in (20,25,30,35,40,45)]
+        self.assertEqual(kinds,[1,2,3,4,5,6])
+        string=next(w for w in read_json(OUT/'vanilla-evidence/arphex-typed-nbt-reads.json')['classes']
+                    if w['class_name']=='net/minecraft/nbt/StringTag')
+        self.assertEqual(string['methods'][0]['name'],'getId')
+        self.assertEqual(string['methods'][0]['instructions'][0]['operand'],8)
+
+    def test_typed_nbt_reference_reproduces_only_selected_pinned_methods(self):
+        from pathlib import Path
+        from vanilla_reference import prepare_raw
+        cached=Path('/workspace/.cache/large-mod-campaign/vanilla')
+        if not (cached/'client.jar').exists():self.skipTest('pinned Vanilla artifact unavailable')
+        self.assertEqual(prepare_raw(read_json(OUT/'vanilla-specifications/arphex-typed-nbt-reads.json'),
+                                    cached/'client.jar',cached/'client_mappings.txt',cached/'version.json'),
+                         read_json(OUT/'vanilla-evidence/arphex-typed-nbt-reads.json'))
+
 
 if __name__=='__main__':unittest.main()
