@@ -792,5 +792,115 @@ class DiabolosNativeSourceTests(unittest.TestCase):
         self.assertIn('laser_emitter_near',str(shell['deferred_readers']))
 
 
+class DraconicNativeSourceTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m4h-draconic-native-source-controller.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-draconic-source-projectile-sources.json')
+
+    def method(self,name='execute',suffix=''):
+        w=next(w for w in self.native['witnesses'] if w['entry'].endswith('/DraconicTickProcedure'+suffix+'.class'))
+        return next(m for m in w['methods'] if m['name']==name)
+
+    def prior(self):
+        review=copy.deepcopy(read_json(OUT/'mod-reviews/arphex.json'))
+        ids={r['id'] for r in self.batch['effects']}
+        review['effects']=[r for r in review['effects'] if r['id'] not in ids]
+        review['paths']=[p for p in review['paths'] if not set(p['effect_ids'])&ids]
+        return review
+
+    def test_five_contracts_and_93_distinct_bound_parameters(self):
+        result=validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual(result['semantic_records'],len(self.prior()['effects'])+5)
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects'] for c in r['scalable_parameter_candidates']),93)
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_native_source_actor_and_carriers_do_not_follow_helper_names(self):
+        callback=next(m for w in self.native['witnesses'] if w['entry'].endswith('/SpiderMothDwellerEntity.class') for m in w['methods'] if m['name']=='baseTick')
+        operands=[str(i['operand']) for i in callback['instructions']]
+        self.assertLess(next(j for j,s in enumerate(operands) if '.baseTick(' in s),next(j for j,s in enumerate(operands) if 'DraconicTickProcedure.execute(' in s))
+        registry=read_json(OUT/'arphex-projectile-producer-kernel-registry.json')
+        roots={k['factory']['entry'].split('$')[-1]:k['intrinsic_arrow_root'].split('/')[-1] for k in registry['rows'] if '/DraconicTickProcedure$' in k['factory']['entry']}
+        self.assertEqual(roots,{'6.class':'DraconFireEntity.class','7.class':'DraconFireEntity.class','13.class':'VoidSpearEntity.class'})
+        self.assertFalse(any(c['primitive']=='PROJECTILE_BASE_DAMAGE' and 'shield' in str(c['parameters']) for r in self.batch['effects'] for c in r['scalable_parameter_candidates']))
+
+    def test_two_native_timer_writers_and_decrements_share_accessor(self):
+        by={i['offset']:i for i in self.method()['instructions']}
+        for off in [2390,8981]:self.assertIn('DATA_attacktimer',by[off]['operand'])
+        self.assertEqual([by[o]['operand'] for o in [2396,2398,8987,8989]],[100,350,100,400])
+        self.assertEqual([by[o]['opcode'] for o in [2473,9064]],['0x64','0x64'])
+        for off in [2477,9068]:self.assertIn('SynchedEntityData.set(',by[off]['operand'])
+        # Both exact first-selector player predicates test Survival; later priming allows Adventure.
+        for suffix,mode in [('$2','SURVIVAL'),('$4','SURVIVAL'),('$15','SURVIVAL'),('$16','ADVENTURE')]:
+            symbols=[i['operand'] for i in self.method('checkGamemode',suffix)['instructions'] if 'GameType.' in str(i['operand'])]
+            self.assertTrue(symbols)
+            self.assertTrue(all('GameType.'+mode in s for s in symbols))
+
+    def test_charge_delivery_guards_and_repeated_queue_are_native(self):
+        first=self.method('lambda$execute$8')['instructions'];second=self.method('lambda$execute$7')['instructions']
+        self.assertTrue(any('.isAlive(' in str(i['operand']) for i in first))
+        self.assertTrue(any('.getTarget(' in str(i['operand']) for i in first))
+        self.assertFalse(any('DATA_currentattack' in str(i['operand']) for i in first))
+        self.assertTrue(any('.isAlive(' in str(i['operand']) for i in second))
+        self.assertFalse(any('.getTarget(' in str(i['operand']) for i in second))
+        self.assertTrue(any(i['operand']=='forcecharge' for i in second))
+        by={i['offset']:i for i in first};self.assertEqual(by[121]['operand'],100)
+        self.assertIn('.queueServerWork(',by[129]['operand'])
+
+    def test_pull_hurts_caster_before_recipient_status_and_movement(self):
+        by={i['offset']:i for i in self.method()['instructions']}
+        self.assertEqual(by[5005]['local_index'],7)  # native caster parameter
+        self.assertEqual(by[5020]['local_index'],7)  # source entity argument
+        self.assertEqual(by[5031]['opcode'],'0x57')  # return ignored
+        self.assertIn('Wither'.lower(),by[5064]['operand'].lower())
+        self.assertLess(5028,5075);self.assertLess(5075,5184)
+        self.assertEqual(by[5755]['opcode'],'0x27')  # callback X
+        self.assertEqual(by[5808]['opcode'],'0x27')  # repeated X in Z output
+        self.assertIn('.getX(',by[5758]['operand']);self.assertIn('.getX(',by[5811]['operand'])
+
+    def test_ring_integer_damage_and_exact_caster_recipient_bindings(self):
+        from promote_combat_batch import effect_receiver_binding
+        by={i['offset']:i for i in self.method()['instructions']}
+        self.assertEqual([by[o]['opcode'] for o in [6643,6644,6645]],['0x6c','0x6c','0x86'])
+        self.assertEqual([by[o]['operand'] for o in [6613,6639,6641]],[15,3,6])
+        for off in [6690,6737]:self.assertEqual(effect_receiver_binding(self.method(),off)['origin_local_index'],7)
+        self.assertEqual(effect_receiver_binding(self.method(),7011)['origin_local_index'],44)
+        self.assertEqual(by[6325]['operand'],2.0)
+        self.assertEqual(by[6155]['operand'],'net/minecraft/nbt/CompoundTag.putDouble(Ljava/lang/String;D)V')
+        self.assertEqual(by[11762]['operand'],80.0)
+        changed=copy.deepcopy(self.batch)
+        c=next(c for r in changed['effects'] for c in r['scalable_parameter_candidates'] if c.get('native_receiver_binding',{}).get('origin_local_index')==44)
+        c['native_receiver_binding']['origin_local_index']=7
+        with self.assertRaises(AssertionError):validate_batch(changed,self.prior(),self.census)
+
+    def test_levitation_clock_polarity_and_saved_z_swap_typo(self):
+        by={i['offset']:i for i in self.method()['instructions']}
+        self.assertEqual((by[185]['opcode'],by[185]['branch_target']),('0x9d',210))
+        self.assertEqual(by[206]['opcode'],'0x67')
+        self.assertEqual([by[o]['operand'] for o in [16166,16177,16188]],['prevswapz','prevswapy','prevswapz'])
+        self.assertIn('.teleportTo(',by[16194]['operand'])
+        body=self.method()['instructions']
+        self.assertEqual([(i['opcode'],i.get('branch_target')) for i in body[:3]],[('0x19',None),('0xc7',6),('0xb1',None)])
+        for at,i in enumerate(body):
+            if '.isAlive(' in str(i['operand']):
+                self.assertTrue(any('Mob.getTarget(' in str(x['operand']) for x in body[at-4:at]))
+
+    def test_absence_query_uses_captured_world_and_coordinates(self):
+        body=self.method('lambda$execute$42')['instructions'];by={i['offset']:i for i in body}
+        self.assertEqual([by[o]['opcode'] for o in [0,7,8,9]],['0x2a','0x27','0x29','0x18'])
+        self.assertEqual(by[9]['local_index'],5)
+        self.assertFalse(any('.isAlive(' in str(i['operand']) or '.getX(' in str(i['operand']) or '.level(' in str(i['operand']) for i in body))
+        self.assertEqual(by[14]['operand'],200.0)
+        self.assertEqual(by[64]['opcode'],'0x63')
+
+    def test_last_cobweb_command_has_no_griefing_config_or_gamerule_gate(self):
+        from promote_combat_batch import literal_command_binding
+        self.assertEqual(literal_command_binding(self.method(),17420)['command'],'fill ~-3 ~-3 ~-3 ~3 ~3 ~3 arphex:cobweb_passable replace cobweb')
+        self.assertFalse(any('RULE_MOBGRIEFING' in str(i['operand']) or 'ARPHEX_GRIEFING' in str(i['operand']) for i in self.method()['instructions']))
+        self.assertEqual(len(self.native['witnesses']),17)
+        self.assertEqual(sum(len(w['methods']) for w in self.native['witnesses']),70)
+
+
 if __name__ == '__main__':
     unittest.main()
