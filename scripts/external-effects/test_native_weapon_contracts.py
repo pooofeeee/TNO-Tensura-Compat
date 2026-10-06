@@ -177,6 +177,106 @@ if __name__ == '__main__':
     unittest.main()
 
 
+class NativeSpatialMenuContracts(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch = read_json(OUT / 'arphex-r2m6p-native-spatial-menu-and-portal-contracts.json')
+        cls.native = read_json(OUT / 'native-evidence/arphex-native-spatial-menu-support.json')
+        cls.census = read_json(OUT / 'arphex-combat-census.json')
+
+    def test_bounded_native_contracts_validate(self):
+        validate_batch(self.batch, self.prior(), self.census)
+        self.assertEqual(len(self.batch['effects']), 3)
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects']
+                             for c in r['scalable_parameter_candidates']), 8)
+        self.assertEqual((len(self.native['witnesses']), sum(len(w['methods'])
+                         for w in self.native['witnesses'])), (12, 97))
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_actual_serverbound_handler_uses_player_chunk_and_six_exact_helpers(self):
+        b = self.body('WayfinderButtonMessage', 'handleData')
+        self.assertIn('SERVERBOUND', b[2]['operand'])
+        self.assertEqual((b[3]['opcode'], b[3]['branch_target']), ('0xa6', 35))
+        b = self.body('WayfinderButtonMessage', 'handleButtonAction')
+        self.assertIn('hasChunkAt', next(i['operand'] for i in b if i['offset'] == 24))
+        calls = [i['operand'] for i in b if '/procedures/' in str(i['operand'])]
+        self.assertEqual([s.split('/')[3].split('.')[0] for s in calls],
+                         ['Coord1tpProcedure', 'Coord1deleteProcedure', 'Coord2tpProcedure',
+                          'Coord2deleteProcedure', 'Coord3tpProcedure', 'Coord3deleteProcedure'])
+        self.assertFalse(any(s in str(i['operand']) for i in b
+                             for s in ('containerMenu', 'stillValid(', 'distanceTo(', 'hasPermissions(')))
+        actual = self.body('WayfinderButtonMessage', 'lambda$handleData$2')
+        self.assertTrue(any('IPayloadContext.player()' in str(i['operand']) for i in actual))
+
+    def test_waypoints_never_read_dimension_or_native_item_cooldown(self):
+        from promote_combat_batch import literal_field_numeric_binding
+        for index in (1, 2, 3):
+            b = self.body('Coord' + str(index) + 'tpProcedure')
+            self.assertEqual(sum('.teleportTo(' in str(i['operand']) for i in b), 2)
+            self.assertEqual(sum('ServerGamePacketListenerImpl.teleport(' in str(i['operand']) for i in b), 2)
+            self.assertFalse(any('dimension' in str(i['operand']) or '.isOnCooldown(' in str(i['operand'])
+                                 or '.getString(' in str(i['operand']) for i in b))
+            writes = [i for i in b if i['opcode'] == '0xb5' and '.track_warp_cooldownD' in str(i['operand'])]
+            self.assertEqual([literal_field_numeric_binding(dict(instructions=b), i['offset'])['native_value']
+                              for i in writes], [12000., 12000.])
+            cooldowns = [j for j, i in enumerate(b) if '.addCooldown(' in str(i['operand'])]
+            self.assertEqual([b[j-1]['operand'] for j in cooldowns], [20, 20])
+            self.assertLess(writes[0]['offset'], b[cooldowns[0]]['offset'])
+            if index == 1:
+                self.assertGreater(writes[1]['offset'], b[cooldowns[1]]['offset'])
+            else:
+                self.assertLess(writes[1]['offset'], b[cooldowns[1]]['offset'])
+
+    def test_portal_charge_and_order_are_not_hurt_or_success_dependent(self):
+        from promote_combat_batch import literal_effect_arguments
+        b = self.body('CrawlingPortalEntityCollidesInTheBlockProcedure')
+        by = {i['offset']: i for i in b}
+        self.assertEqual(by[335]['operand'], 80.)
+        self.assertEqual((by[339]['opcode'], by[339]['branch_target']), ('0x9d', 350))
+        self.assertEqual(by[344]['operand'], 'net/minecraft/world/entity/player/Player')
+        self.assertEqual(by[347]['branch_target'], 2081)
+        self.assertEqual([(literal_effect_arguments(dict(instructions=b), o)['duration'],
+                           literal_effect_arguments(dict(instructions=b), o)['amplifier'])
+                          for o in (273, 436, 829, 2074)], [(5, 0), (60, 1), (200, 0), (600, 4)])
+        self.assertLess(273, 311)  # status before charge increment
+        self.assertLess(436, 485)  # invincibility before config read
+        self.assertLess(785, 829)  # exit commands before Slow Falling
+        self.assertLess(2030, 2074)  # queued entry before Resistance
+        self.assertFalse(any('.hurt(' in str(i['operand']) or '.isAlliedTo(' in str(i['operand']) for i in b))
+
+    def test_delayed_transit_exact_body_does_not_recheck_contact_or_health(self):
+        for name in ('lambda$execute$16', 'lambda$execute$17'):
+            b = self.body('CrawlingPortalEntityCollidesInTheBlockProcedure', name)
+            self.assertTrue(any(i['operand'] == 'execute in arphex:the_crawling run tp 0 231 0' for i in b))
+            self.assertFalse(any(s in str(i['operand']) for i in b
+                                 for s in ('isAlive(', 'getBlockState(', '.addEffect(', '.dimension(', 'isAlliedTo(')))
+        self.assertEqual(self.body('CrawlingPortalEntityCollidesInTheBlockProcedure', 'lambda$execute$16'),
+                         self.body('CrawlingPortalEntityCollidesInTheBlockProcedure', 'lambda$execute$17'))
+
+    def test_banishment_map_reset_discard_effect_and_kill_order_and_visual_lightning(self):
+        b = self.body('CrawlingPortalEntityCollidesInTheBlockProcedure')
+        reset = next(i['offset'] for i in b if i['opcode'] == '0xb5' and '.tormentor_healthD' in str(i['operand']))
+        discard = next(i['offset'] for i in b if '.discard(' in str(i['operand']))
+        glow = next(i['offset'] for i in b if i['operand'] == 'effect give @e[type=arphex:tormentor] glowing')
+        kill = next(i['offset'] for i in b if i['operand'] == 'kill @e[type=arphex:tormentor]')
+        self.assertLess(reset, discard); self.assertLess(discard, glow); self.assertLess(glow, kill)
+        final = self.body('CrawlingPortalEntityCollidesInTheBlockProcedure', 'lambda$execute$2')
+        j = next(j for j, i in enumerate(final) if '.setVisualOnly(' in str(i['operand']))
+        self.assertEqual(final[j-1]['operand'], 1)
+        self.assertTrue(any('.addFreshEntity(' in str(i['operand']) for i in final[j+1:]))
+        self.assertEqual(self.row('crawling_portal_native_tormentor_banishment')['scalable_parameter_candidates'], [])
+
+    def test_false_status_or_cooldown_values_fail_independent_binding(self):
+        for suffix, primitive, key in [('wayfinder_native_button_current_dimension_transit', 'NATIVE_WAYPOINT_REUSE_CLOCK', 'reset'),
+                                      ('crawling_portal_native_collision_transit', 'MOB_EFFECT_ENTRY_RESISTANCE', 'duration')]:
+            batch = copy.deepcopy(self.batch)
+            row = next(r for r in batch['effects'] if r['id'] == 'arphex:' + suffix)
+            component = next(c for c in row['components'] if c['primitive'] == primitive)
+            component['numerical_parameters'][key] += 1
+            with self.assertRaises(AssertionError):
+                validate_batch(batch, self.prior(), self.census)
+
+
 class NativeForceChaosCrusherContracts(NativeContractHarness, unittest.TestCase):
     @classmethod
     def setUpClass(cls):

@@ -1,9 +1,10 @@
 """Index exact existing contracts against a finite census; never infer exclusions.
 
 Capture alone does not establish coverage. Only methods explicitly cited by a
-canonical contract, or by its referenced shared equivalence/kernel registry,
-enter this index. Every remaining method stays pending, including bridges,
-accessors and methods without a broad combat-keyword hit.
+canonical contract, its referenced shared equivalence/kernel registry, or a
+structured reviewed exclusion enter this index. Exclusions retain their own
+provenance and do not create semantic records. Every remaining method stays
+pending, including bridges, accessors and methods without a combat-keyword hit.
 """
 import argparse
 from collections import Counter, defaultdict
@@ -48,23 +49,43 @@ def reconcile(review, census, read=read_json, root=OUT):
         return value
 
     shared = defaultdict(set)
+    def cite(p, record_ids, metadata):
+        filename = p.get('evidence_file', '')
+        entry = p.get('entry')
+        if not filename.startswith('native-evidence/') or entry not in classes or not p.get('methods'):
+            return
+        w = witness(filename, entry=entry, witness_id=p.get('witness_id'))
+        for name in p['methods']:
+            matches = [m for m in w['methods'] if m['name'] == name]
+            assert matches, ('Cited method missing', filename, entry, name)
+            for m in matches:
+                add((entry, name, m['descriptor']), m['code_sha256'], record_ids,
+                    dict(metadata, evidence_file=filename, witness_id=w['id']))
+
     for row in review['effects']:
         for p in row.get('implementation', []) + row.get('shared_contracts', []):
-            filename = p.get('evidence_file', '')
-            entry = p.get('entry')
-            if not filename.startswith('native-evidence/') or entry not in classes or not p.get('methods'):
-                continue
-            w = witness(filename, entry=entry, witness_id=p.get('witness_id'))
-            for name in p['methods']:
-                matches = [m for m in w['methods'] if m['name'] == name]
-                assert matches, ('Cited method missing', filename, entry, name)
-                for m in matches:
-                    add((entry, name, m['descriptor']), m['code_sha256'], [row['id']],
-                        dict(kind='CANONICAL_CONTRACT', evidence_file=filename,
-                             witness_id=w['id']))
+            cite(p, [row['id']], dict(kind='CANONICAL_CONTRACT'))
         for field in ('shared_native_method_equivalence', 'shared_kernel_registry_file'):
             if row.get(field):
                 shared[row[field]].add(row['id'])
+
+    for filename in sorted(set(review.get('reviewed_batches', []))):
+        batch = packet(filename)
+        assert batch['schema'] == 'tno.external_effects.reviewed_combat_batch.v1'
+        assert batch['mod_key'] == census['mod_key']
+        exclusions = batch.get('exclusions', [])
+        # Legacy prose or unscoped name lists cannot close native methods.
+        if not isinstance(exclusions, list):
+            continue
+        for exclusion in exclusions:
+            if not isinstance(exclusion, dict) or not all(exclusion.get(k)
+                    for k in ('entry', 'reason', 'implementation')):
+                continue
+            assert exclusion['entry'] in classes, ('Excluded entry missing', filename, exclusion['entry'])
+            for p in exclusion['implementation']:
+                cite(p, [], dict(kind='REVIEWED_EXCLUSION', reviewed_batch=filename,
+                     excluded_entry=exclusion['entry'], reason=exclusion['reason'],
+                     disposition=exclusion.get('disposition', 'REVIEWED_EXCLUSION')))
 
     for filename, record_ids in sorted(shared.items()):
         document = packet(filename)
@@ -104,11 +125,14 @@ def reconcile(review, census, read=read_json, root=OUT):
                          code_sha256=native[key]['code_sha256'],
                          record_ids=sorted(value['record_ids']),
                          proofs=sorted(value['proofs'], key=lambda p: tuple(sorted(p.items())))))
+    contracts = sum(any(p['kind'] != 'REVIEWED_EXCLUSION' for p in r['proofs']) for r in rows)
     return dict(schema='tno.external_effects.exact_native_contract_index.v1',
                 mod_key=census['mod_key'], jar_sha256=census['jar_sha256'],
                 whole_mod_complete=False,
-                scope='Exact methods of canonical/shared contracts only. Pending context, bridge and accessor methods remain undispositioned; no exclusions, new semantics, reachability or whole-mod closure inferred.',
-                summary=dict(total_census_methods=len(native), exact_contract_methods=len(rows),
+                scope='Exact canonical/shared references and explicitly cited reviewed exclusions only. A method reference does not prove every branch closed. Pending context, bridge and accessor methods remain undispositioned; no new semantics, reachability or whole-mod closure inferred.',
+                summary=dict(total_census_methods=len(native), exact_contract_methods=contracts,
+                             explicit_exclusion_methods=len(rows)-contracts,
+                             exact_dispositioned_methods=len(rows),
                              pending_methods=len(pending),
                              pending_by_census_role=dict(sorted(Counter(m['disposition'] for m in pending).items())),
                              pending_by_package=dict(sorted(Counter(m['entry'].rsplit('/', 1)[0] for m in pending).items()))),

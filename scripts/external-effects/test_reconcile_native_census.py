@@ -76,6 +76,68 @@ class ExactContractIndexTests(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, 'Unsupported shared registry'):
             self.run_fixture(review, census, files)
 
+    def exclusion_fixture(self):
+        review, census, files = self.fixture()
+        review['reviewed_batches'] = ['batch.json']
+        files['batch.json'] = dict(schema='tno.external_effects.reviewed_combat_batch.v1',
+            mod_key='test', exclusions=[dict(entry='test/Actor.class',
+            reason='Exact readonly getter previously reviewed.', disposition='READONLY_CONTEXT',
+            implementation=[dict(evidence_file='native-evidence/actor.json',
+                entry='test/Actor.class', witness_id='actor', methods=['getState'])])])
+        return review, census, files
+
+    def test_reviewed_exclusion_uses_independent_hash_without_creating_semantic_record(self):
+        review, census, files = self.exclusion_fixture()
+        index, pending = self.run_fixture(review, census, files)
+        self.assertEqual(index['summary']['exact_contract_methods'], 1)
+        self.assertEqual(index['summary']['explicit_exclusion_methods'], 1)
+        self.assertEqual(index['summary']['exact_dispositioned_methods'], 2)
+        getter = next(m for m in index['methods'] if m['method'] == 'getState')
+        self.assertEqual(getter['record_ids'], [])
+        self.assertEqual(getter['proofs'][0]['kind'], 'REVIEWED_EXCLUSION')
+        self.assertEqual(getter['proofs'][0]['reviewed_batch'], 'batch.json')
+        self.assertEqual([m['method'] for m in pending], ['bridge'])
+        self.assertEqual(len(review['effects']), 1)
+
+    def test_legacy_prose_or_names_without_exact_proof_remain_pending(self):
+        for exclusions in (['getState is utility'], {'utility': ['getState']},
+                           [dict(entry='test/Actor.class', reason='Utility')]):
+            review, census, files = self.exclusion_fixture()
+            files['batch.json']['exclusions'] = exclusions
+            _, pending = self.run_fixture(review, census, files)
+            self.assertEqual({m['method'] for m in pending}, {'getState', 'bridge'})
+
+    def test_wrong_exclusion_method_hash_is_rejected(self):
+        review, census, files = self.exclusion_fixture()
+        files['native-evidence/actor.json']['witnesses'][0]['methods'][1]['code_sha256'] = 'wrong'
+        with self.assertRaisesRegex(AssertionError, 'Method hash mismatch'):
+            self.run_fixture(review, census, files)
+
+    def test_missing_method_or_entry_cannot_close_excluded_context(self):
+        for field, value in [('entry', 'test/Missing.class'), ('methods', ['missing'])]:
+            review, census, files = self.exclusion_fixture()
+            exclusion = files['batch.json']['exclusions'][0]
+            if field == 'entry': exclusion[field] = value
+            else: exclusion['implementation'][0][field] = value
+            with self.subTest(field=field), self.assertRaises(AssertionError):
+                self.run_fixture(review, census, files)
+
+    def test_other_mod_batch_cannot_supply_exclusions(self):
+        review, census, files = self.exclusion_fixture()
+        files['batch.json']['mod_key'] = 'other'
+        with self.assertRaises(AssertionError):
+            self.run_fixture(review, census, files)
+
+    def test_overlap_preserves_both_proofs_and_counts_one_method(self):
+        review, census, files = self.exclusion_fixture()
+        files['batch.json']['exclusions'][0]['implementation'][0]['methods'] = ['tick']
+        index, pending = self.run_fixture(review, census, files)
+        self.assertEqual(len(index['methods']), 1)
+        self.assertEqual(index['summary']['explicit_exclusion_methods'], 0)
+        self.assertEqual({p['kind'] for p in index['methods'][0]['proofs']},
+                         {'CANONICAL_CONTRACT', 'REVIEWED_EXCLUSION'})
+        self.assertEqual(len(pending), 2)
+
     def test_arphex_existing_proofs_match_original_finite_census(self):
         review = read_json(OUT / 'mod-reviews/arphex.json')
         census = read_json(OUT / 'arphex-combat-census.json')

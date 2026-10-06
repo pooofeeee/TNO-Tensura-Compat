@@ -519,11 +519,19 @@ def refined_review(review,batch):
         assert change['reason'] and change['behavior_append'];seen.add(rid);row=by_id[rid]
         updates=change.get('field_updates',{})
         assert set(updates)<= {'display_name','primary_classification','classification_reason','closest_vanilla_equivalent','vanilla_differences'},('unsafe identity refinement',rid)
+        replacements=change.get('behavior_replacements',[])
+        gates=change.get('binary_parameter_updates',{})
+        assert isinstance(replacements,list) and isinstance(gates,dict)
+        assert set(gates)<=set(row['binary_parameters']),('unknown native gate refinement',rid)
         receipt=dict(checkpoint=batch['checkpoint'],reason=change['reason'])
         if receipt in row.get('contract_refinements',[]):
             # Published batches can be validated without duplicating their
             # additions. A changed or incomplete published contract fails.
             assert change['behavior_append'] in row['actual_behavior'],('missing published behavior',rid)
+            assert all(row.get(k)==v for k,v in updates.items()),('changed published field',rid)
+            assert all(row['binary_parameters'][k]==v for k,v in gates.items()),('changed published gate',rid)
+            for replacement in replacements:
+                assert replacement['before'] not in row['actual_behavior'] and replacement['after'] in row['actual_behavior'],('stale published behavior',rid)
             assert all(c in row['scalable_parameter_candidates'] for c in change.get('candidate_additions',[])),('missing published candidate',rid)
             assert all(p in row['implementation'] for p in change.get('implementation_additions',[])),('missing published proof',rid)
             for c in change.get('component_additions',[]):
@@ -531,9 +539,15 @@ def refined_review(review,batch):
                 for key,values in c.items():
                     if key!='primitive':assert all(target[key].get(k)==v for k,v in values.items()),('changed published parameter',rid,key)
             continue
+        for replacement in replacements:
+            before,after=replacement['before'],replacement['after']
+            assert before and after and before!=after
+            assert row['actual_behavior'].count(before)==1,('missing/ambiguous behavior replacement',rid)
+            row['actual_behavior']=row['actual_behavior'].replace(before,after,1)
         row['actual_behavior']+=' '+change['behavior_append']
         row.setdefault('contract_refinements',[]).append(receipt)
         row.update(deepcopy(updates))
+        row['binary_parameters'].update(deepcopy(gates))
         for component in change.get('component_additions',[]):
             matches=[c for c in row['components'] if c['primitive']==component['primitive']]
             assert len(matches)<=1,('ambiguous component refinement',rid,component)

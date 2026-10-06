@@ -5,6 +5,50 @@ from catalog_common import OUT,read_json
 from promote_combat_batch import validate_batch
 
 
+class RefinementStateTests(unittest.TestCase):
+    def fixture(self):
+        review = dict(effects=[dict(id='test:portal', actual_behavior='Protected setup. Consumer pending.',
+                      binary_parameters=dict(consumer_pending=True), components=[],
+                      scalable_parameter_candidates=[], implementation=[], native_boundary=[], delivery_paths=[])])
+        batch = dict(checkpoint='consumer-closed', record_refinements=[dict(id='test:portal', reason='Exact consumer closed.',
+                     behavior_append='Exact consumer contract referenced.',
+                     behavior_replacements=[dict(before='Consumer pending.', after='Consumer closed.')],
+                     binary_parameter_updates=dict(consumer_pending=False))])
+        return review, batch
+
+    def test_exact_scope_replacement_and_gate_are_idempotent(self):
+        from promote_combat_batch import refined_review
+        review, batch = self.fixture()
+        result = refined_review(review, batch)
+        row = result['effects'][0]
+        self.assertEqual(row['actual_behavior'], 'Protected setup. Consumer closed. Exact consumer contract referenced.')
+        self.assertFalse(row['binary_parameters']['consumer_pending'])
+        self.assertEqual(refined_review(result, batch), result)
+        self.assertTrue(review['effects'][0]['binary_parameters']['consumer_pending'])
+
+    def test_missing_ambiguous_or_unknown_scope_changes_fail(self):
+        from promote_combat_batch import refined_review
+        for text in ('Protected setup.', 'Consumer pending. Consumer pending.'):
+            review, batch = self.fixture(); review['effects'][0]['actual_behavior'] = text
+            with self.assertRaisesRegex(AssertionError, 'behavior replacement'):
+                refined_review(review, batch)
+        review, batch = self.fixture()
+        batch['record_refinements'][0]['binary_parameter_updates']['unknown_gate'] = False
+        with self.assertRaisesRegex(AssertionError, 'unknown native gate'):
+            refined_review(review, batch)
+
+    def test_stale_published_gate_and_scope_fail(self):
+        from promote_combat_batch import refined_review
+        review, batch = self.fixture(); result = refined_review(review, batch)
+        result['effects'][0]['binary_parameters']['consumer_pending'] = True
+        with self.assertRaisesRegex(AssertionError, 'published gate'):
+            refined_review(result, batch)
+        result = refined_review(review, batch)
+        result['effects'][0]['actual_behavior'] += ' Consumer pending.'
+        with self.assertRaisesRegex(AssertionError, 'stale published behavior'):
+            refined_review(result, batch)
+
+
 class BatchTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
