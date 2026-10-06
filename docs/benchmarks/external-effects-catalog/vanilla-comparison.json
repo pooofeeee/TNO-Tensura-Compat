@@ -1,7 +1,7 @@
 {
   "schema": "tno.external_effects.vanilla_comparison.v1",
   "status": "PARTIAL",
-  "checkpoint": "R2m3e-arphex-owner-homing-and-owned-hazards",
+  "checkpoint": "R2m3f-arphex-final-intrinsic-arrow-transactions",
   "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
   "note": "Deterministic projection of canonical mod reviews,including explicit PARTIAL scope. The ledger alone tracks per-mod completeness. No Stage eligibility or policy decision.",
   "comparisons": [
@@ -1184,6 +1184,13 @@
         {
           "primitive": "NATIVE_SPHERE_PRESENTATION",
           "numerical_parameters": {},
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_AREA_SIZE",
+          "numerical_parameters": {
+            "sphere_max_size": 50
+          },
           "parameter_formulas": {}
         }
       ]
@@ -5606,6 +5613,30 @@
       ]
     },
     {
+      "effect_id": "arphex:shared_delayed_native_block_explosion",
+      "mod_key": "arphex",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "Native TNT explosion with independently queued random native delay",
+      "similarities": "Uses the explicit native API primitives below with their native admission and lifecycle.",
+      "differences": "Native TNT explosion with independently queued random native delay; exact ordering, source and gates in actual_behavior.",
+      "components": [
+        {
+          "primitive": "DELAYED_DELIVERY",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "delay_ticks": "Mth.nextInt(RandomSource.create(),1,15)"
+          }
+        },
+        {
+          "primitive": "NATIVE_EXPLOSION",
+          "numerical_parameters": {
+            "power": 6
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
       "effect_id": "arphex:shared_entity_tick_native_admission",
       "mod_key": "arphex",
       "primary_classification": "BINARY_MECHANIC",
@@ -7567,6 +7598,102 @@
       ]
     },
     {
+      "effect_id": "arphex:torment_blast_intrinsic_native_transactions",
+      "mod_key": "arphex",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "closest_vanilla": "Custom tier/armor/native health transactions with distinct native explosions, projectile locks and shared Sphere consumer",
+      "similarities": "Uses the explicit native API primitives below with their native admission and lifecycle.",
+      "differences": "Custom tier/armor/native health transactions with distinct native explosions, projectile locks and shared Sphere consumer; exact ordering, source and gates in actual_behavior.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "terminal_request": 99999
+          },
+          "parameter_formulas": {
+            "direct_tier_damage": "float(round(native tier_scale*.8)); exact ordered tier formulas and float/double arithmetic above",
+            "large_health_armor_request": "float((40+mapTier*10)/((armor+3)/1.2))",
+            "small_integer_request": "float(int(70/int((armor+3)/16))*(1.9+mapTier/2))"
+          }
+        },
+        {
+          "primitive": "DIRECT_HEALTH_WRITE",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "health_drain": "currentHealth - maxHealth/10F after hurt attempt; native else floor1 before terminalrequest"
+          }
+        },
+        {
+          "primitive": "SUMMON_DELIVERY",
+          "numerical_parameters": {
+            "hit_setup_delay": 2,
+            "block_setup_delay": 2
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_AREA_SIZE",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "hit_sphere_size": 200,
+            "block_sphere_size": "int(randomInt250..400 + currentMapTier*80)"
+          }
+        },
+        {
+          "primitive": "NATIVE_EXPLOSION",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "block_power": "float(17+currentMapTier*3)",
+            "contact_power": 10,
+            "owner_obstruction_power": 20
+          }
+        },
+        {
+          "primitive": "PROJECTILE_HOMING",
+          "numerical_parameters": {
+            "velocity_snapshot_delay": 5,
+            "no_gravity_delay": 2,
+            "reflected_speed": 2
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_PROJECTILE_LIFECYCLE",
+          "numerical_parameters": {
+            "discard_delay": 450
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_ATTACK_STATE",
+          "numerical_parameters": {
+            "selfharm_enable_delay": 80
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "AREA_DELIVERY",
+          "numerical_parameters": {
+            "inflate": 10
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_SELF_ADMISSION",
+          "numerical_parameters": {
+            "direct_able_to_harm_self": 5,
+            "area_able_to_harm_self": 20
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "COMMAND_REMOVAL",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
       "effect_id": "arphex:torment_burn_native_reader",
       "mod_key": "arphex",
       "primary_classification": "CUSTOM_DAMAGE",
@@ -7602,6 +7729,187 @@
             "attack_only_postdecrement_timer_gt": 30,
             "player_portal_write": 5
           },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:torment_explosive_intrinsic_charge_transactions",
+      "mod_key": "arphex",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "closest_vanilla": "Custom native owner-charge damage/map transactions and terrain handoff with shared delayed native explosion and Sphere consumers",
+      "similarities": "Uses the explicit native API primitives below with their native admission and lifecycle.",
+      "differences": "Custom native owner-charge damage/map transactions and terrain handoff with shared delayed native explosion and Sphere consumers; exact ordering, source and gates in actual_behavior.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "direct_charge_request": "damage_size=round((ownerCharge-20)*.4747474747+60-int(hitArmor/2)); >0 ? float(damage_size):1F",
+            "direct_tormentor_arrow": 10,
+            "block_charge_request": "float(60L+round(floor(ownerCharge/20))*4L - OWNERarmor)",
+            "flight_arrow_request": 60,
+            "terminal_arrow_request": 1000
+          }
+        },
+        {
+          "primitive": "BOSS_HEALTH_TRANSACTION",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "direct_map_health": "round(mapHealth-ownerCharge/40.8)",
+            "flight_map_drain": "mapHealth-round(ownerCharge/44.5); native branch gates in actual_behavior"
+          }
+        },
+        {
+          "primitive": "AREA_DELIVERY",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "block_inflate": "double((5L+round(floor(ownerCharge/20*1)))*2L)/2.0",
+            "tormentor_inflate": 5
+          }
+        },
+        {
+          "primitive": "TERRAIN_DELIVERY",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "terrain_radius": "int(5L+round(floor(ownerCharge/20/1)))-1 peraxis; integer-square normalized ellipsoid",
+            "eligible_cell_skip": "first eligible then skip20eligiblecells before next"
+          }
+        },
+        {
+          "primitive": "SUMMON_DELIVERY",
+          "numerical_parameters": {
+            "direct_sphere_setup_delay": 1,
+            "block_sphere_setup_delay": 1,
+            "flight_sphere_setup_delay": 1
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_AREA_SIZE",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "direct_sphere_size": "int(round(CURRENTownerCharge/5))",
+            "block_sphere_size": "int(CURRENTownerCharge*2)",
+            "flight_sphere_size": "int(10L*round(CURRENTownerCharge/5))"
+          }
+        },
+        {
+          "primitive": "NATIVE_PROJECTILE_LIFECYCLE",
+          "numerical_parameters": {
+            "discard_delay": 110
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "PROJECTILE_RAW_LOCK",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_OWNER_UUID_STATE",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_ADMISSION",
+          "numerical_parameters": {
+            "map_threshold": 51,
+            "map_terminal_value": 1
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:torment_rifle_intrinsic_native_profiles",
+      "mod_key": "arphex",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "closest_vanilla": "Custom native collision/owner area armor formulas, marker/stuck and separately gated native explosions",
+      "similarities": "Uses the explicit native API primitives below with their native admission and lifecycle.",
+      "differences": "Custom native collision/owner area armor formulas, marker/stuck and separately gated native explosions; exact ordering, source and gates in actual_behavior.",
+      "components": [
+        {
+          "primitive": "MOB_EFFECT_TORMENT",
+          "numerical_parameters": {
+            "collision_duration": 20,
+            "collision_native_amplifier": 0,
+            "tick_duration": 20,
+            "tick_native_amplifier": 0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "collision_request": "tier>0 ? greater((50+tier*50)/double(int((armor+4)/4)),H/(20/tier)) : no request",
+            "near_request": "greater(float(int(100/int((armor+4)/4))), H/20F)",
+            "far_request": "float(int(50/int((armor+4)/4)))>H/20F ? integer armor request : H/40F"
+          }
+        },
+        {
+          "primitive": "NATIVE_EXPLOSION",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "collision_power": "float(4+mapTier)",
+            "near_power": 7,
+            "far_power": 12
+          }
+        },
+        {
+          "primitive": "AREA_DELIVERY",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "collision_inflate": "(5+mapTier*3)/2",
+            "presence_full_side": 40,
+            "near_inflate": 4,
+            "far_inflate": 20
+          }
+        },
+        {
+          "primitive": "STUCK_MOVEMENT_MULTIPLIER",
+          "numerical_parameters": {
+            "collision_horizontal": 0.25,
+            "collision_vertical": 0.05,
+            "near_horizontal": 0.25,
+            "near_vertical": 0.05
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "PROJECTILE_HOMING",
+          "numerical_parameters": {
+            "snapshot_delay": 5,
+            "no_gravity_delay": 2,
+            "reflected_speed": 2
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_PROJECTILE_LIFECYCLE",
+          "numerical_parameters": {
+            "discard_delay": 450
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "PROC_CHANCE",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "far_roll": "inclusiveMth.nextInt(1,60)==1"
+          }
+        },
+        {
+          "primitive": "NATIVE_SELF_ADMISSION",
+          "numerical_parameters": {
+            "able_to_harm_self": 5
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "COMMAND_REMOVAL",
+          "numerical_parameters": {},
           "parameter_formulas": {}
         }
       ]
@@ -8526,6 +8834,64 @@
       ]
     },
     {
+      "effect_id": "arphex:void_spear_intrinsic_owner_profiles",
+      "mod_key": "arphex",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "closest_vanilla": "Custom native hit formulas with initial random placement/motion, reflected native projectile control and distinct owner-type area request",
+      "similarities": "Uses the explicit native API primitives below with their native admission and lifecycle.",
+      "differences": "Custom native hit formulas with initial random placement/motion, reflected native projectile control and distinct owner-type area request; exact ordering, source and gates in actual_behavior.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "summon_victim_request": "H/18F+5F-float(int(armor/5))+10F",
+            "ordinary_victim_request": "float(5-int(armor/5)+10)",
+            "summon_area_request": "H/10F > float(50-int(armor/10)) ? H/10F : float(50-int(armor/10))"
+          }
+        },
+        {
+          "primitive": "NATIVE_OWNER_STATE",
+          "numerical_parameters": {
+            "firedaway_delay": 8
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "PROJECTILE_HOMING",
+          "numerical_parameters": {
+            "no_gravity_delay": 2,
+            "reflected_speed": 2
+          },
+          "parameter_formulas": {
+            "summon_initial_motion": "native randomized numerator / targetY+.6 denominator *3, exact ranges in actual_behavior",
+            "ordinary_initial_motion": "targetY+.2 numerator / targetY+.6 denominator *.9"
+          }
+        },
+        {
+          "primitive": "PROJECTILE_PLACEMENT",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "initial_placement": "callbackXYZ + (integer[-2,2],2.5,independentinteger[-2,2])"
+          }
+        },
+        {
+          "primitive": "AREA_DELIVERY",
+          "numerical_parameters": {
+            "summon_inflate": 4
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_PROJECTILE_LIFECYCLE",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "discard_delay": "fresh inclusive Mth.nextInt(150,300) eachcallback"
+          }
+        }
+      ]
+    },
+    {
       "effect_id": "arphex:voidlasher_chaos_control",
       "mod_key": "arphex",
       "primary_classification": "CUSTOM_CONTROL",
@@ -8626,6 +8992,70 @@
         {
           "primitive": "NATIVE_PROJECTILE_GRAVITY",
           "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:vortex_arrow_intrinsic_native_control",
+      "mod_key": "arphex",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "Reused custom ChaosControl marker with native area request/stuck, deferred raw motion and distinct owner-motion fallback",
+      "similarities": "Uses the explicit native API primitives below with their native admission and lifecycle.",
+      "differences": "Reused custom ChaosControl marker with native area request/stuck, deferred raw motion and distinct owner-motion fallback; exact ordering, source and gates in actual_behavior.",
+      "components": [
+        {
+          "primitive": "MOB_EFFECT_VOIDLASHER_CHAOS_CONTROL",
+          "numerical_parameters": {
+            "collision_inner_duration": 120,
+            "collision_inner_native_amplifier": 0,
+            "collision_outer_duration": 60,
+            "collision_outer_native_amplifier": 0,
+            "primed_area_duration": 40,
+            "primed_area_native_amplifier": 0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "AREA_DELIVERY",
+          "numerical_parameters": {
+            "collision_inner_inflate": 1.5,
+            "collision_outer_inflate": 2.5,
+            "presence_full_side": 4,
+            "primed_inflate": 3
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "PROJECTILE_HOMING",
+          "numerical_parameters": {
+            "snapshot_prime_delay": 5,
+            "reflected_speed": 2
+          },
+          "parameter_formulas": {
+            "low_motion_owner_copy": "if strict Manhattan projectilevelocity<.8, absoluteOWNERdeltaXYZ*1.4"
+          }
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "primed_request": 40
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "STUCK_MOVEMENT_MULTIPLIER",
+          "numerical_parameters": {
+            "horizontal": 0.25,
+            "vertical": 0.05
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_PROJECTILE_LIFECYCLE",
+          "numerical_parameters": {
+            "discard_delay": 300
+          },
           "parameter_formulas": {}
         }
       ]

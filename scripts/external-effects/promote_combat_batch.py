@@ -213,9 +213,20 @@ def validate_batch(batch,review,census):
             area_state=(candidate['primitive']=='NATIVE_AREA_SIZE' and hit['operand']=='net/minecraft/network/syncher/SynchedEntityData.set(Lnet/minecraft/network/syncher/EntityDataAccessor;Ljava/lang/Object;)V')
             block_speed=(candidate['primitive']=='BLOCK_SPEED_FACTOR' and hit['operand']=='net/minecraft/world/level/block/state/BlockBehaviour$Properties.speedFactor(F)Lnet/minecraft/world/level/block/state/BlockBehaviour$Properties;')
             hazard_timer=(candidate['primitive']=='NATIVE_HAZARD_LIFECYCLE' and hit['operand'] in ('net/minecraft/world/level/Level.scheduleTick(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/Block;I)V','net/minecraft/server/level/ServerLevel.scheduleTick(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/Block;I)V'))
+            handoff='native_callee_binding' in candidate
+            if handoff:
+                assert candidate['primitive'] in ('TERRAIN_DELIVERY','SUMMON_DELIVERY','CONTROL_DELIVERY') and hit['opcode']=='0xb8'
+                callee=candidate['native_callee_binding']
+                assert hit['operand']==callee['entry'][:-6]+'.'+callee['method']+callee['descriptor']
+                assert callee['descriptor'].endswith(')V') and callee['entry'].startswith(consumer['entry'].split('/')[0]+'/'+consumer['entry'].split('/')[1]+'/')
+                assert native[(callee['entry'],callee['method'],callee['descriptor'])]['code_sha256']==callee['code_sha256']
+                proofs=[p for p in row['implementation']+row.get('shared_contracts',[]) if p['entry']==callee['entry'] and callee['method'] in p['methods']]
+                assert proofs,('owned handoff has no independent callee witness',callee)
+                _,cw=index.witness(proofs[0],row)
+                assert any(cm['name']==callee['method'] and cm['descriptor']==callee['descriptor'] and cm['code_sha256']==callee['code_sha256'] for cm in cw['methods'])
             if attribute:
                 assert literal_attribute_binding(m,consumer['offset'])==candidate['native_attribute_binding'],('wrong native attribute literal',candidate)
-            assert hit['opcode']=='0xb5' or rng or terrain or explosion or durability or attribute or command or concat or area_state or block_speed or hazard_timer or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
+            assert hit['opcode']=='0xb5' or rng or terrain or explosion or durability or attribute or command or concat or area_state or block_speed or hazard_timer or handoff or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
             if candidate['primitive'].startswith('MOB_EFFECT_') or 'native_holder_symbol' in candidate:
                 symbol,allocation,load=effect_holder_binding(m,consumer['offset'])
                 assert (symbol,allocation,load)==(candidate['native_holder_symbol'],

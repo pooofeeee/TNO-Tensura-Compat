@@ -600,6 +600,130 @@ class ProjectileOwnerAndHazardTests(unittest.TestCase):
         self.assertTrue(commands);self.assertEqual(set(commands),{'kill @e[type=arphex:projectile_spider_brood]'})
 
 
+class FinalIntrinsicArrowTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.native=read_json(OUT/'native-evidence/arphex-remaining-intrinsic-projectiles.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+        cls.batch=read_json(OUT/'arphex-r2m3f-final-intrinsic-arrow-transactions.json')
+    method=ProjectileContractsTests.method
+
+    def test_final_five_and_shared_helper_have_native_consumers(self):
+        review=read_json(OUT/'mod-reviews/arphex.json');ids={r['id'] for r in self.batch['effects']}
+        review['effects']=[r for r in review['effects'] if r['id'] not in ids];review['paths']=[p for p in review['paths'] if not set(p['effect_ids'])&ids]
+        self.assertEqual(len(ids),6);self.assertEqual(len(self.batch['intrinsic_closed_entries']),5)
+        self.assertEqual(validate_batch(self.batch,review,self.census)['semantic_records'],len(review['effects'])+6)
+
+    def test_rifle_hit_context_is_victim_and_block_context_is_owner(self):
+        hit=self.method('TormentRifleEntity','onHitEntity')['instructions']
+        block=self.method('TormentRifleEntity','onHitBlock')['instructions']
+        self.assertTrue(any('EntityHitResult.getEntity(' in str(i['operand']) for i in hit))
+        self.assertFalse(any('.getOwner(' in str(i['operand']) for i in hit))
+        self.assertTrue(any('.getOwner(' in str(i['operand']) for i in block))
+        for body in (hit,block):
+            self.assertEqual(sum('TormentRifleHitsBlockProcedure.execute(' in str(i['operand']) for i in body),1)
+            self.assertLess(next(i['offset'] for i in body if 'AbstractArrow.onHit' in str(i['operand'])),next(i['offset'] for i in body if '/procedures/' in str(i['operand'])))
+
+    def test_rifle_far_compare_and_request_divisors_are_distinct(self):
+        body=self.method('TormentRifleWhileProjectileFlyingTickProcedure','execute')['instructions'];by={i['offset']:i for i in body}
+        self.assertTrue(any(i['operand']==20.0 and 800<i['offset']<1050 for i in body))
+        self.assertEqual(by[1146]['operand'],40.0)
+        self.assertTrue(any(i['opcode']=='0x6c' and 1064<i['offset']<1096 for i in body))
+        self.assertEqual(by[1061]['operand'],'net/minecraft/world/damagesource/DamageSource.<init>(Lnet/minecraft/core/Holder;)V')
+        self.assertTrue(any('DamageSource.<init>(Lnet/minecraft/core/Holder;Lnet/minecraft/world/entity/Entity;)' in str(i['operand']) and i['offset']<637 for i in body))
+
+    def test_blast_health_write_is_after_attempt_and_before_terminal_hurt(self):
+        body=self.method('TormentBlastTickProcedure','execute')['instructions'];by={i['offset']:i for i in body}
+        self.assertIn('.hurt(',by[896]['operand']);self.assertIn('.setHealth(',by[1032]['operand'])
+        self.assertEqual(by[1055]['operand'],1.0);self.assertIn('.setHealth(',by[1056]['operand'])
+        self.assertEqual(by[1081]['operand'],99999.0);self.assertIn('.hurt(',by[1084]['operand'])
+        at=next(n for n,i in enumerate(body) if i['offset']==896);self.assertEqual(body[at+1]['opcode'],'0x57')
+        self.assertTrue(any('DamageSource.<init>(Lnet/minecraft/core/Holder;Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/entity/Entity;)' in str(i['operand']) for i in body))
+
+    def test_explosive_direct_map_rounding_and_flight_map_subtraction_differ(self):
+        direct=self.method('TormentExplosiveProjectileHitsLivingEntityProcedure','execute')['instructions']
+        flying=self.method('TormentedExplosiveFlyingProcedure','execute')['instructions']
+        self.assertTrue(any(i['operand']==40.8 for i in direct));self.assertTrue(any(i['operand']==44.5 for i in flying))
+        dwrite=next(n for n,i in enumerate(direct) if i['opcode']=='0xb5' and '.tormentor_healthD' in str(i['operand']))
+        fwrite=next(n for n,i in enumerate(flying) if i['opcode']=='0xb5' and '.tormentor_healthD' in str(i['operand']))
+        self.assertEqual(direct[dwrite-1]['opcode'],'0x8a') # long->double after round(full subtraction)
+        self.assertEqual(flying[fwrite-1]['opcode'],'0x67') # dsub after rounded charge
+        self.assertFalse(any('damaged_tormentor'==i['operand'] and '.putBoolean(' in str(direct[n+2]['operand']) for n,i in enumerate(direct[:-2])))
+        checks=[i['offset'] for i in flying if i['operand']=='damaged_tormentor']
+        self.assertEqual(len(checks),2) # one loop-entry read and one inside-loop write
+        self.assertLess(checks[0],467);self.assertGreater(checks[1],1001)
+
+    def test_explosive_block_armor_reads_owner_and_terrain_skip_is_cell_count(self):
+        body=self.method('TormentExplosiveProjectileHitsBlockProcedure','execute')['instructions'];by={i['offset']:i for i in body}
+        armor=next(n for n,i in enumerate(body) if '.getArmorValue(' in str(i['operand']))
+        cast=next(n for n in range(armor-1,-1,-1) if body[n]['opcode']=='0xc0' and body[n]['operand']=='net/minecraft/world/entity/LivingEntity')
+        self.assertEqual(body[cast-1].get('local_index'),7) # OWNER helper argument, not areaiterator
+        self.assertIn('WaitExplodeProcedure.execute(',by[554]['operand'])
+        self.assertEqual(by[557]['operand'],20.0);self.assertEqual(by[567]['operand'],1.0)
+        self.assertFalse(any('.explode(' in str(i['operand']) for i in body))
+
+    def test_delayed_explosion_has_no_config_or_block_recheck(self):
+        e=read_json(OUT/'native-evidence/arphex-delayed-block-explosion.json');w=e['witnesses'][0]
+        body=next(m for m in w['methods'] if m['name']=='execute')['instructions']
+        self.assertEqual([i['operand'] for i in body if i['offset'] in (3,4)],[1,15])
+        delayed=next(m for m in w['methods'] if m['name']=='lambda$execute$0')['instructions']
+        self.assertTrue(any(i['operand']==6.0 for i in delayed));self.assertTrue(any('ExplosionInteraction.TNT' in str(i['operand']) for i in delayed))
+        self.assertFalse(any('ConfigurationSettings' in str(i['operand']) or '.getBlockState(' in str(i['operand']) for i in delayed))
+        self.assertEqual(next(i for i in delayed if i['offset']==23)['opcode'],'0x1')
+
+    def test_vortex_collision_helpers_are_exact_identical_and_overlapping(self):
+        hit=self.method('VortexBlastProjectileHitsLivingEntityProcedure','execute')
+        block=self.method('VortexBlockProcedure','execute')
+        self.assertEqual(hit['code_sha256'],block['code_sha256']);self.assertEqual(hit['instructions'],block['instructions'])
+        body=hit['instructions'];profiles=[]
+        for n,i in enumerate(body):
+            if 'MobEffectInstance.<init>' in str(i['operand']):profiles.append([x['operand'] for x in body[n-2:n]])
+        self.assertEqual(profiles,[[120,0],[60,0]])
+        self.assertFalse(any('.hurt(' in str(i['operand']) or '.explode(' in str(i['operand']) for i in body))
+        row=next(r for r in self.batch['effects'] if r['id']=='arphex:vortex_arrow_intrinsic_native_control')
+        cs=[c for c in row['scalable_parameter_candidates'] if c['parameters'][0].startswith('collision_')]
+        self.assertEqual(len(cs),4);self.assertTrue(all(len(c['additional_consumer_sites'])==1 for c in cs))
+
+    def test_vortex_last_motion_copies_owner_after_status_and_hurt(self):
+        body=self.method('VortexBlastWhileProjectileFlyingTickProcedure','execute')['instructions'];by={i['offset']:i for i in body}
+        self.assertIn('MobEffectInstance.<init>',by[665]['operand']);self.assertIn('.hurt(',by[827]['operand'])
+        self.assertIn('.makeStuckInBlock(',by[855]['operand']);self.assertIn('.setDeltaMovement(',by[977]['operand'])
+        self.assertEqual(by[925]['operand'],.8)
+        for off in (940,952,964):
+            at=next(n for n,i in enumerate(body) if i['offset']==off)
+            self.assertEqual(body[at-1].get('local_index'),7) # OWNER motion, not projectile
+        self.assertFalse(any('.setBlock(' in str(i['operand']) or '.explode(' in str(i['operand']) for i in body))
+
+    def test_void_spear_homing_is_in_native_gravity_enabled_branch(self):
+        body=self.method('VoidSpearWhileProjectileFlyingTickProcedure','execute')['instructions'];by={i['offset']:i for i in body}
+        ng=next(n for n,i in enumerate(body) if '.isNoGravity(' in str(i['operand']))
+        self.assertEqual(body[ng+1]['opcode'],'0x99');self.assertEqual(body[ng+1]['branch_target'],273)
+        self.assertIn('.teleportTo(',by[309]['operand']);self.assertIn('.setDeltaMovement(',by[723]['operand'])
+        self.assertTrue(any('Mob.getTarget(' in str(i['operand']) for i in body))
+        self.assertEqual(by[1294]['operand'],150);self.assertEqual(by[1297]['operand'],300)
+        hit=self.method('VoidSpearProjectileHitsLivingEntityProcedure','execute')['instructions']
+        self.assertTrue(any(i['operand']=='net/arphex/entity/TormentorVoidlasherSummonEntity' for i in hit)) # recipient instance test
+
+    def test_owned_handoff_rejects_changed_callee_hash(self):
+        import copy
+        b=copy.deepcopy(self.batch);c=next(c for r in b['effects'] for c in r['scalable_parameter_candidates'] if 'native_callee_binding' in c)
+        c['native_callee_binding']['code_sha256']='0'*64
+        review=read_json(OUT/'mod-reviews/arphex.json');ids={r['id'] for r in b['effects']}
+        review['effects']=[r for r in review['effects'] if r['id'] not in ids];review['paths']=[p for p in review['paths'] if not set(p['effect_ids'])&ids]
+        with self.assertRaises(AssertionError):validate_batch(b,review,self.census)
+
+    def test_static_generated_defaults_are_uncalled_and_sphere_refinement_bound(self):
+        for entry in self.batch['intrinsic_closed_entries']:
+            prefix=entry[:-6]+'.shoot('
+            self.assertFalse(any(prefix in i['operand'] for m in self.census['methods'] if m['entry']!=entry for i in decode_sites(self.census,m,'calls')))
+        change=self.batch['record_refinements'][0];self.assertEqual(len(change['candidate_additions']),1)
+        c=change['candidate_additions'][0];self.assertEqual(c['native_consumer']['offset'],248)
+        self.assertEqual(c['primitive'],'NATIVE_AREA_SIZE')
+        m=self.method('ChronoShotProjectileHitsLivingEntityProcedure','lambda$execute$3')
+        body=m['instructions'];at=next(n for n,i in enumerate(body) if i['offset']==248)
+        self.assertEqual(body[at-2]['operand'],50)
+
+
 if __name__=='__main__':unittest.main()
 
 
