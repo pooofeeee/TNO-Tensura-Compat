@@ -135,6 +135,16 @@ def arrow_factory_binding(method, offset, registry, primitive):
                 literal_arguments=literal_arguments)
 
 
+def literal_tag_double_binding(method, offset):
+    """Bind a directly authored raw key/value write, refusing computed values."""
+    body=method['instructions'];at=next(n for n,i in enumerate(body) if i['offset']==offset)
+    assert body[at]['operand']=='net/minecraft/nbt/CompoundTag.putDouble(Ljava/lang/String;D)V'
+    key,value=body[at-2:at]
+    assert key['opcode'] in ('0x12','0x13') and isinstance(key['operand'],str)
+    assert value['opcode'] in ('0xe','0xf','0x14') and isinstance(value['operand'],(int,float))
+    return dict(key=key['operand'],key_offset=key['offset'],value=value['operand'],value_offset=value['offset'])
+
+
 def refined_review(review,batch):
     """Apply explicit additive contracts to their existing mechanic identity."""
     result=deepcopy(review);by_id={r['id']:r for r in result['effects']};seen=set()
@@ -235,6 +245,9 @@ def validate_batch(batch,review,census):
             command='native_command_binding' in candidate
             if command:
                 assert literal_command_binding(m,consumer['offset'])==candidate['native_command_binding'],('wrong native literal command',candidate)
+            tag_literal='native_tag_double_binding' in candidate
+            if tag_literal:
+                assert literal_tag_double_binding(m,consumer['offset'])==candidate['native_tag_double_binding'],('wrong native raw-state literal',candidate)
             concat='native_concat_command_binding' in candidate
             if concat:
                 assert concat_command_binding(m,consumer['offset'],census,consumer['entry'])==candidate['native_concat_command_binding'],('wrong native concatenated command',candidate)
@@ -255,20 +268,22 @@ def validate_batch(batch,review,census):
                 assert any(cm['name']==callee['method'] and cm['descriptor']==callee['descriptor'] and cm['code_sha256']==callee['code_sha256'] for cm in cw['methods'])
             arrow_factory='native_arrow_factory_binding' in candidate
             if arrow_factory:
-                binding=candidate['native_arrow_factory_binding']
-                registry=read_json(OUT/binding['registry_file'])
-                expected_binding=arrow_factory_binding(m,consumer['offset'],registry,candidate['primitive'])
-                assert binding==dict(registry_file=binding['registry_file'],**expected_binding),('wrong native arrow factory binding',candidate)
                 assert len(candidate['parameters'])==1,('one literal factory argument is one parameter',candidate)
                 component=next(c for c in row['components'] if c['primitive']==candidate['primitive'])
-                assert component['numerical_parameters'][candidate['parameters'][0]]==binding['literal_arguments'][binding['parameter_role']]['value'],('wrong factory argument value',candidate)
-                for proof in (binding['factory'],binding['kernel']):
-                    key=(proof['entry'],proof['method'],proof['descriptor'])
-                    assert native[key]['code_sha256']==proof['code_sha256']
-                    matches=[p for p in row['implementation']+row.get('shared_contracts',[]) if p['entry']==proof['entry'] and proof['method'] in p['methods']]
-                    assert matches,('factory scalar sink lacks independent witness',proof)
-                    _,cw=index.witness(matches[0],row)
-                    assert any(cm['name']==proof['method'] and cm['descriptor']==proof['descriptor'] and cm['code_sha256']==proof['code_sha256'] for cm in cw['methods'])
+                sites=[dict(offset=consumer['offset'],binding=candidate['native_arrow_factory_binding'])]+candidate.get('additional_arrow_factory_sites',[])
+                assert len({s['offset'] for s in sites})==len(sites),('duplicate factory argument site',candidate)
+                for site in sites:
+                    binding=site['binding'];registry=read_json(OUT/binding['registry_file'])
+                    expected_binding=arrow_factory_binding(m,site['offset'],registry,candidate['primitive'])
+                    assert binding==dict(registry_file=binding['registry_file'],**expected_binding),('wrong native arrow factory binding',candidate)
+                    assert component['numerical_parameters'][candidate['parameters'][0]]==binding['literal_arguments'][binding['parameter_role']]['value'],('wrong factory argument value',candidate)
+                    for proof in (binding['factory'],binding['kernel']):
+                        key=(proof['entry'],proof['method'],proof['descriptor'])
+                        assert native[key]['code_sha256']==proof['code_sha256']
+                        matches=[p for p in row['implementation']+row.get('shared_contracts',[]) if p['entry']==proof['entry'] and proof['method'] in p['methods']]
+                        assert matches,('factory scalar sink lacks independent witness',proof)
+                        _,cw=index.witness(matches[0],row)
+                        assert any(cm['name']==proof['method'] and cm['descriptor']==proof['descriptor'] and cm['code_sha256']==proof['code_sha256'] for cm in cw['methods'])
             if attribute:
                 assert literal_attribute_binding(m,consumer['offset'])==candidate['native_attribute_binding'],('wrong native attribute literal',candidate)
             assert hit['opcode']=='0xb5' or rng or terrain or explosion or durability or attribute or command or concat or area_state or block_speed or hazard_timer or projectile_placement or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
@@ -308,6 +323,9 @@ def validate_batch(batch,review,census):
                         candidate['native_attribute_binding']['native_value']),('auxiliary attribute literal differs',site)
                 if command:
                     assert literal_command_binding(other_method,site['offset'])['command']==candidate['native_command_binding']['command'],('auxiliary command literal differs',site)
+                if tag_literal:
+                    other_binding=literal_tag_double_binding(other_method,site['offset'])
+                    assert (other_binding['key'],other_binding['value'])==(candidate['native_tag_double_binding']['key'],candidate['native_tag_double_binding']['value']),('auxiliary raw-state literal differs',site)
                 if concat:
                     assert concat_command_binding(other_method,site['offset'],census,site['entry'])['template']==candidate['native_concat_command_binding']['template'],('auxiliary command recipe differs',site)
             for parameter in candidate['parameters']:
