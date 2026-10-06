@@ -289,7 +289,7 @@ class NativeMethodEquivalenceSafety(unittest.TestCase):
         implicit = annotate_local_operands([{'offset': 0}], bytes.fromhex('2d'))
         self.assertEqual(implicit[0]['local_index'], 3)
 
-    def test_23_query_kernels_reproduce_including_actual_lambda_bootstraps(self):
+    def test_query_kernels_reproduce_including_actual_lambda_bootstraps(self):
         from pathlib import Path
         from compare_native_methods import collect
         jar = Path('/workspace/.cache/large-mod-campaign/ArPhEx-5.0.2-neoforge-1.21.1.jar')
@@ -297,7 +297,13 @@ class NativeMethodEquivalenceSafety(unittest.TestCase):
         spec = read_json(OUT / 'native-specifications/arphex-held-query-comparator-method-equivalence.json')
         registry = read_json(OUT / 'arphex-held-query-comparator-method-equivalence.json')
         self.assertEqual(collect(spec, jar), registry)
-        self.assertEqual((len(spec['entries']), len(registry['rows'])), (23, 46))
+        self.assertEqual(len(registry['rows']), 2 * len(spec['entries']))
+        original = {m['entry'] for m in read_json(OUT / 'arphex-combat-census.json')['methods']
+                    if m['method'] == 'compareDistOf' and any(m['entry'].split('/')[-1].startswith(prefix)
+                    for prefix in ('ForceGauntletToolInHandTickProcedure$', 'ChaosGauntletHeldProcedure$',
+                                   'CrusherClawItemInHandTickProcedure$'))}
+        self.assertEqual(len(original), 23)
+        self.assertTrue(original <= set(spec['entries']))
 
     def test_same_body_but_wrong_bootstrap_handle_kind_is_rejected(self):
         from pathlib import Path
@@ -318,3 +324,128 @@ class NativeMethodEquivalenceSafety(unittest.TestCase):
         with patch.object(compare_native_methods, 'ClassFile', side_effect=altered_class):
             with self.assertRaisesRegex(AssertionError, 'non-equivalent bootstrap'):
                 compare_native_methods.collect(spec, jar)
+
+
+class NativeScytheSpearContracts(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch = read_json(OUT / 'arphex-r2m6d-native-scythe-spear-contracts.json')
+        cls.native = read_json(OUT / 'native-evidence/arphex-residual-scythe-spears.json')
+        cls.census = read_json(OUT / 'arphex-combat-census.json')
+
+    def test_six_item_roots_four_contracts_validate_without_assuming_mod_closure(self):
+        validate_batch(self.batch, self.prior(), self.census)
+        self.assertEqual((len(self.batch['closed_item_callback_entries']), len(self.batch['effects'])), (6, 4))
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects']
+                             for c in r['scalable_parameter_candidates']), 47)
+        self.assertEqual((len(self.native['witnesses']), sum(len(w['methods'])
+                         for w in self.native['witnesses'])), (15, 76))
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_native_attribute_profiles_and_plain_constructor_contexts(self):
+        for name, value in [('SingularityScytheItem', 50.), ('SpearOfParalysisItem', 12.),
+                            ('VisionarySpearItem', 29.), ('OversizedStingerItem', 7.)]:
+            m = dict(instructions=self.body(name, '<init>'))
+            offset = next(i['offset'] for i in m['instructions'] if 'AttributeModifier.<init>(' in str(i['operand']))
+            self.assertEqual(literal_item_attribute_binding(m, offset)['native_value'], value)
+        for name in ('NecroticFangItem', 'VoidSpearItemItem'):
+            self.assertFalse(any('AttributeModifier' in str(i['operand']) for i in self.body(name, '<init>')))
+        self.assertEqual(self.body('SingularityScytheOnPlayerStoppedUsingProcedure'),
+                         [dict(offset=0, opcode='0xb1', operand=None)])
+
+    def test_scythe_earlier_tormentor_tests_recipient_later_tests_carrier(self):
+        b = self.body('SingularityScytheItemInHandTickProcedure')
+        gates = [(i['offset'], b[j-1]['local_index']) for j, i in enumerate(b)
+                 if i['opcode'] == '0xc1' and i['operand'] == 'net/arphex/entity/TORMENTOREntity']
+        self.assertEqual(gates, [(638, 30), (1479, 32), (2229, 1), (2983, 1)])
+        from promote_combat_batch import direct_damage_actor_local
+        offsets = (666, 695, 1507, 1536, 2257, 2286, 3011, 3040, 3928)
+        self.assertEqual([direct_damage_actor_local(dict(instructions=b), o) for o in offsets], [1] * 9)
+        self.assertEqual(sum('.hurt(' in str(i['operand']) for i in b), 9)
+
+    def test_computed_ray_arguments_retain_current_state_and_separate_axis_sites(self):
+        from promote_combat_batch import subtract_tag_vector_scale_binding
+        m = dict(instructions=self.body('SingularityScytheItemInHandTickProcedure'))
+        for offset, value in ((134, 10.), (883, 20.), (1638, 30.), (2388, 40.)):
+            binding = subtract_tag_vector_scale_binding(m, offset)
+            self.assertEqual((binding['native_value'], binding['tag_key'], binding['entity_local_index']),
+                             (value, 'sing_scythe_anim', 1))
+        row = self.row('singularity_scythe_native_swing_rays_shield_and_owned_source')
+        rays = [c for c in row['scalable_parameter_candidates'] if c['primitive'] == 'NATIVE_RAY_DELIVERY']
+        self.assertEqual([len(c['additional_consumer_sites']) for c in rays], [2, 2, 2, 2])
+
+    def test_false_ray_coefficient_or_operation_is_rejected(self):
+        from promote_combat_batch import subtract_tag_vector_scale_binding
+        batch = copy.deepcopy(self.batch)
+        row = next(r for r in batch['effects'] if r['id'].endswith(':singularity_scythe_native_swing_rays_shield_and_owned_source'))
+        component = next(c for c in row['components'] if c['primitive'] == 'NATIVE_RAY_DELIVERY')
+        component['numerical_parameters']['ordinary_base'] = 11.
+        with self.assertRaisesRegex(AssertionError, 'pinned ray base'):
+            validate_batch(batch, self.prior(), self.census)
+        m = dict(instructions=copy.deepcopy(self.body('SingularityScytheItemInHandTickProcedure')))
+        next(i for i in m['instructions'] if i['offset'] == 133)['opcode'] = '0x63'
+        with self.assertRaises(AssertionError): subtract_tag_vector_scale_binding(m, 134)
+
+    def test_scythe_sphere_queue_captures_world_and_mutable_stack_not_spawned_entity(self):
+        b = self.body('SingularityScytheItemInHandTickProcedure')
+        by = {i['offset']: i for i in b}
+        self.assertEqual(by[4061]['operand'],
+                         'bootstrap#14:run(Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/world/item/ItemStack;)Ljava/lang/Runnable;')
+        delayed = self.body('SingularityScytheItemInHandTickProcedure', 'lambda$execute$17')
+        d = {i['offset']: i for i in delayed}
+        self.assertIn('SphereAnimEntity.DATA_max_size', d[327]['operand'])
+        self.assertEqual(d[330]['operand'], 200)
+        self.assertIn('SphereAnimEntity.DATA_color', d[557]['operand'])
+        self.assertEqual(d[560]['operand'], 'black')
+        self.assertEqual(sum('AABB.ofSize(' in str(i['operand']) for i in delayed), 3)
+        self.assertFalse(any('.setOwner(' in str(i['operand']) for i in b + delayed))
+        self.assertFalse(any('DATA_black_hole' in str(i['operand']) for i in b + delayed))
+
+    def test_scythe_swing_uuid_reset_and_native_posthit_victim_forwarding(self):
+        b = self.body('SingularityScytheLivingEntityIsHitWithItemProcedure')
+        self.assertTrue(any('Entity.getStringUUID()' in str(i['operand']) for i in b))
+        b = self.body('SingularityScytheItem', 'hurtEnemy')
+        at = next(j for j, i in enumerate(b) if 'SingularityScytheLivingEntityIsHitWithItemProcedure.execute(' in str(i['operand']))
+        self.assertEqual([i['opcode'] for i in b[at-2:at]], ['0x2c', '0x2b'])
+        b = self.body('SingularityScytheEntitySwingsItemProcedure', 'lambda$execute$0')
+        self.assertTrue(any(i['operand'] == 'prevent_double_uuid' for i in b))
+        self.assertTrue(any(i['operand'] == '' for i in b))
+
+    def test_paralysis_captures_actual_area_recipient_and_repeats_native_anonymous_requests(self):
+        from promote_combat_batch import damage_source_binding
+        b = self.body('SpearOfParalysisItemInHandTickProcedure')
+        m = dict(instructions=b)
+        _, allocation, _, ctor = damage_source_binding(m, 514)
+        at = next(j for j, i in enumerate(b) if i['offset'] == allocation)
+        self.assertEqual(b[at-1]['local_index'], 14)
+        self.assertTrue(ctor.endswith('(Lnet/minecraft/core/Holder;)V'))
+        by = {i['offset']: i for i in b}
+        self.assertEqual(by[535]['local_index'], 14)
+        for name in ('lambda$execute$3', 'lambda$execute$2'):
+            body = self.body('SpearOfParalysisItemInHandTickProcedure', name)
+            self.assertEqual(sum('.hurt(' in str(i['operand']) for i in body), 1)
+            self.assertEqual(sum('.setDeltaMovement(' in str(i['operand']) for i in body), 1)
+            self.assertFalse(any('.isAlive(' in str(i['operand']) for i in body))
+        self.assertFalse(any('MobEffectInstance.<init>' in str(i['operand']) for i in b))
+
+    def test_visionary_root_invokes_held_helper_not_paralysis_root(self):
+        b = self.body('VisionarySpearItem', 'inventoryTick')
+        self.assertTrue(any('SpearOfParalysisRightclickedProcedure.execute(' in str(i['operand']) for i in b))
+        b = self.body('SpearOfParalysisItem', 'inventoryTick')
+        self.assertTrue(any('SpearOfParalysisItemInHandTickProcedure.execute(' in str(i['operand']) for i in b))
+        self.assertFalse(any('SpearOfParalysisRightclickedProcedure.execute(' in str(i['operand']) for i in b))
+
+    def test_visionary_native_command_seconds_and_fallback_regen_are_distinct(self):
+        row = self.row('visionary_spear_native_held_freeze_regeneration_and_overcharge')
+        command = next(c for c in row['scalable_parameter_candidates'] if c['primitive'] == 'NATIVE_TIME_FREEZE_COMMAND')
+        self.assertEqual(command['native_concat_command_binding']['template'], 'effect give @s arphex:time_freeze 2 \u0001')
+        b = self.body('SpearOfParalysisRightclickedProcedure'); by = {i['offset']: i for i in b}
+        self.assertFalse(any('.hurt(' in str(i['operand']) for i in b))
+        self.assertEqual(by[1188]['operand'], 320)
+        self.assertLess(1191, 1260)
+        self.assertEqual((by[205]['opcode'], by[205]['branch_target']), ('0x9a', 1194))
+        self.assertEqual((by[277]['opcode'], by[277]['branch_target']), ('0x9e', 1194))
+        at = next(j for j, i in enumerate(b) if i['offset'] == 1068)
+        self.assertEqual([i['operand'] for i in b[at-4:at-2]], [5, 1])
+        at = next(j for j, i in enumerate(b) if i['offset'] == 1260)
+        self.assertEqual([i['operand'] for i in b[at-4:at-2]], [30, 0])

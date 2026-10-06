@@ -205,6 +205,24 @@ def literal_vector_scale_binding(method, offset):
     return dict(value_offset=value['offset'],native_value=value['operand'])
 
 
+def subtract_tag_vector_scale_binding(method, offset):
+    """Prove exactly literal - Entity persistent double; decline other formulas."""
+    body = method['instructions']
+    at = next(n for n, instruction in enumerate(body) if instruction['offset'] == offset)
+    assert body[at]['operand'] == 'net/minecraft/world/phys/Vec3.scale(D)Lnet/minecraft/world/phys/Vec3;'
+    value, entity, tag, key, read, subtract = body[at-6:at]
+    assert value['opcode'] in ('0xe', '0xf', '0x14') and type(value['operand']) is float
+    assert entity['opcode'] in ('0x19', '0x2a', '0x2b', '0x2c', '0x2d')
+    assert tag['operand'] == 'net/minecraft/world/entity/Entity.getPersistentData()Lnet/minecraft/nbt/CompoundTag;'
+    assert key['opcode'] in ('0x12', '0x13') and isinstance(key['operand'], str)
+    assert read['operand'] == 'net/minecraft/nbt/CompoundTag.getDouble(Ljava/lang/String;)D'
+    assert subtract['opcode'] == '0x67'
+    return dict(native_value=value['operand'], value_offset=value['offset'],
+                entity_local_index=entity['local_index'], tag_key=key['operand'],
+                key_offset=key['offset'], read_offset=read['offset'],
+                operation='NATIVE_DOUBLE_LITERAL_MINUS_CURRENT_PERSISTENT_DOUBLE')
+
+
 def native_registry_spawn_binding(method, offset):
     """Identify a direct ArPhEx registry spawn; never assign it an owner."""
     body=method['instructions'];at=next(n for n,i in enumerate(body) if i['offset']==offset)
@@ -391,7 +409,7 @@ def validate_batch(batch,review,census):
             body_dimensions=(candidate['primitive']=='BODY_DIMENSION_SCALE' and hit['operand']=='net/minecraft/world/entity/EntityDimensions.scale(F)Lnet/minecraft/world/entity/EntityDimensions;')
             synched_clock='native_synched_int_binding' in candidate
             if synched_clock:
-                assert candidate['primitive'] in ('ATTACK_CADENCE','CONTROL_CADENCE') and len(candidate['parameters'])==1
+                assert candidate['primitive'] in ('ATTACK_CADENCE','CONTROL_CADENCE','NATIVE_HAZARD_MAX_SIZE') and len(candidate['parameters'])==1
                 binding=literal_synched_int_binding(m,consumer['offset'])
                 assert binding==candidate['native_synched_int_binding']
                 component=next(c for c in row['components'] if c['primitive']==candidate['primitive'])
@@ -411,6 +429,14 @@ def validate_batch(batch,review,census):
                 assert binding==candidate['native_vector_scale_binding']
                 component=next(c for c in row['components'] if c['primitive']==candidate['primitive'])
                 assert component['numerical_parameters'][candidate['parameters'][0]]==binding['native_value']
+            vector_expression = 'native_subtract_tag_vector_binding' in candidate
+            if vector_expression:
+                assert candidate['primitive'] == 'NATIVE_RAY_DELIVERY' and len(candidate['parameters']) == 1
+                binding = subtract_tag_vector_scale_binding(m, consumer['offset'])
+                assert binding == candidate['native_subtract_tag_vector_binding']
+                component = next(c for c in row['components'] if c['primitive'] == candidate['primitive'])
+                assert component['numerical_parameters'][candidate['parameters'][0]] == binding['native_value'], \
+                    ('component differs from pinned ray base', candidate)
             registry_spawn='native_registry_spawn_binding' in candidate
             if registry_spawn:
                 assert candidate['primitive']=='SUMMON_DELIVERY'
@@ -472,7 +498,7 @@ def validate_batch(batch,review,census):
                 allowed={'native_value'} if binding['kind']=='ITEM_ATTRIBUTE_MODIFIER' else {'attack_bonus','attack_speed'}
                 assert set(roles.values())==allowed and len(roles)==len(allowed)
                 assert all(component['numerical_parameters'][parameter]==binding[role] for parameter,role in roles.items()),('component differs from pinned item attribute',candidate)
-            assert hit['opcode']=='0xb5' or rng or terrain or explosion or durability or attribute or item_attribute or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or synched_clock or clock_distribution or vector_scale or registry_spawn or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
+            assert hit['opcode']=='0xb5' or rng or terrain or explosion or durability or attribute or item_attribute or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or synched_clock or clock_distribution or vector_scale or vector_expression or registry_spawn or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
             if candidate['primitive'].startswith('MOB_EFFECT_') or 'native_holder_symbol' in candidate:
                 symbol,allocation,load=effect_holder_binding(m,consumer['offset'])
                 assert (symbol,allocation,load)==(candidate['native_holder_symbol'],
@@ -544,6 +570,11 @@ def validate_batch(batch,review,census):
                         assert other_command['command']==candidate['native_command_binding']['command'],('auxiliary command literal differs',site)
                 if vector_scale:
                     assert literal_vector_scale_binding(other_method,site['offset'])['native_value']==candidate['native_vector_scale_binding']['native_value'],('auxiliary vector coefficient differs',site)
+                if vector_expression:
+                    binding = subtract_tag_vector_scale_binding(other_method, site['offset'])
+                    expected = candidate['native_subtract_tag_vector_binding']
+                    assert all(binding[key] == expected[key] for key in ('native_value', 'entity_local_index', 'tag_key', 'operation')), \
+                        ('auxiliary ray expression differs', site)
                 if tag_literal:
                     other_binding=literal_tag_double_binding(other_method,site['offset'])
                     assert (other_binding['key'],other_binding['value'])==(candidate['native_tag_double_binding']['key'],candidate['native_tag_double_binding']['value']),('auxiliary raw-state literal differs',site)
