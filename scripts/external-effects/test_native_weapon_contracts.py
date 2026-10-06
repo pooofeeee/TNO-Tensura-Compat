@@ -1542,3 +1542,83 @@ class NativeViewfinderScorchContracts(NativeContractHarness, unittest.TestCase):
             c['numerical_parameters'][param]=99.
             with self.subTest(parameter=param),self.assertRaisesRegex(AssertionError,'component differs from native numeric input'):
                 validate_batch(b,self.prior(),self.census)
+
+
+class NativeCrawlingContainerContracts(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m6n-native-crawling-container-contract.json')
+        cls.native={'witnesses':read_json(OUT/'native-evidence/arphex-residual-native-summoner-utility.json')['witnesses']+read_json(OUT/'native-evidence/arphex-global-hooks.json')['witnesses']}
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def test_one_existing_control_identity_is_refined_without_new_mechanic(self):
+        validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual(self.batch['effects'],[])
+        changes=self.batch['record_refinements']
+        self.assertEqual([c['id'] for c in changes],['arphex:crawling_container_incoming_commands'])
+        self.assertEqual(sum(len(c['parameters']) for c in changes[0]['candidate_additions']),6)
+        self.assertEqual(self.batch['paths'][0]['effect_ids'],['arphex:crawling_container_incoming_commands'])
+        self.assertFalse(self.batch['new_native_evidence_generated'])
+
+    def test_inventory_callback_is_per_stack_without_selected_branch(self):
+        b=self.body('CrawlingContainerItem','inventoryTick')
+        self.assertFalse(any(i.get('branch_target') is not None for i in b))
+        self.assertIn('Item.inventoryTick(',b[6]['operand'])
+        self.assertIn('ItemInInventoryTickProcedure.execute',b[-2]['operand'])
+        b=self.body('CrawlingContainerItem','use')
+        self.assertTrue(any('startUsingItem' in str(i['operand']) for i in b))
+        self.assertTrue(any('RightclickedProcedure.execute' in str(i['operand']) for i in b))
+
+    def test_native_dimensions_query_and_both_horizontal_coordinates_are_exact(self):
+        b=self.body('PocketDimensionItemTestRightclickedProcedure')
+        by={i['offset']:i for i in b}
+        for offset in (1618,1632,1761,1775,2174,2188,2317,2331):
+            self.assertIn('PlayerVariables.pocketdimensionxD',by[offset]['operand'])
+        self.assertEqual(sum('.inflate(' in str(i['operand']) for i in b),2)
+        for off in [1402,1958]:
+            at=next(j for j,i in enumerate(b) if i['offset']==off)
+            self.assertEqual(b[at-1]['operand'],10.)
+        self.assertEqual(sum('ServerPlayer.teleportTo(' in str(i['operand']) for i in b),1)
+        recipes=[a for r in self.census['registration_bootstraps']
+                 if r['entry'].endswith('/PocketDimensionItemTestRightclickedProcedure.class')
+                 for a in r['arguments'] if isinstance(a,str)]
+        self.assertTrue(any(r.startswith('execute in arphex:the_crawling run tp ') and ' 257 ' in r for r in recipes))
+        self.assertFalse(any('.hurt(' in str(i['operand']) or '.setBlock(' in str(i['operand']) for i in b))
+
+    def test_native_cooldowns_and_independent_slow_fall_dose(self):
+        from promote_combat_batch import literal_effect_arguments
+        b=self.body('PocketDimensionItemTestRightclickedProcedure')
+        actual=[]
+        for j,i in enumerate(b):
+            if '.addCooldown(' in str(i['operand']):actual.append(b[j-1]['operand'])
+        self.assertEqual(actual,[20,400,800,60])
+        m=dict(instructions=self.body('PocketDimensionItemTestItemInInventoryTickProcedure'))
+        dose=literal_effect_arguments(m,65)
+        self.assertIn('SLOW_FALLING',dose['holder'])
+        self.assertEqual((dose['duration'],dose['amplifier'],dose['explicit_flags']),(5,0,[0,0]))
+        self.assertTrue(any(i['operand']=='none' for i in m['instructions']))
+        reset=self.body('PocketDimensionItemTestItemInInventoryTickProcedure','lambda$execute$0')
+        self.assertEqual(reset[1]['operand'],'fiveseconds');self.assertEqual(reset[2]['operand'],100.)
+
+    def test_acceptance_updates_clicked_host_main_stack_without_refreshing_clock(self):
+        event=self.body('RightClickEntityProcedure','onRightClickEntity')
+        self.assertTrue(any('EntityInteract.getTarget' in str(i['operand']) for i in event))
+        self.assertTrue(any('EntityInteract.getEntity' in str(i['operand']) for i in event))
+        b={i['offset']:i for i in self.body('RightClickEntityProcedure')}
+        self.assertEqual(b[7924]['operand'],'playertrackfortp')
+        self.assertEqual(b[7930]['local_index'],9)
+        self.assertIn('.getStringUUID(',b[7932]['operand'])
+        self.assertEqual(b[7938]['branch_target'],8113)
+        self.assertEqual(b[8032]['local_index'],8)
+        self.assertIn('.getMainHandItem(',b[8049]['operand'])
+        self.assertEqual(b[8068]['operand'],'activated')
+        branch=[str(i['operand']) for off,i in b.items() if 7800<=off<=8113]
+        self.assertFalse(any('.addCooldown(' in op or op=='fiveseconds' for op in branch))
+
+    def test_coordinate_allocator_is_context_not_an_invented_damage_or_range_scalar(self):
+        b={i['offset']:i for i in self.body('PocketDimensionItemTestRightclickedProcedure')}
+        self.assertIn('MapVariables.pocket_dimension_countD',b[2623]['operand'])
+        self.assertIn('PlayerVariables.pocketdimensionxD',b[2634]['operand'])
+        self.assertEqual(b[2630]['operand'],.5)
+        candidates=self.batch['record_refinements'][0]['candidate_additions']
+        self.assertFalse(any('pocketdimension' in p or '257'==p for c in candidates for p in c['parameters']))
