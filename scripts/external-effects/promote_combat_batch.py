@@ -274,6 +274,7 @@ def validate_batch(batch,review,census):
                           descriptor=consumer['descriptor'],offset=consumer['offset'])
             assert candidate['native_parameter_identity']==expected,('identity differs from consumer',candidate)
             scalar_sinks=('MobEffectInstance.<init>(','.hurt(','.heal(','.setHealth(',
+                'AttributeInstance.setBaseValue(D)V',
                 '.addEffect(','.setDeltaMovement(','.setYRot(','.setXRot(',
                 '.makeStuckInBlock(','.putDouble(','.queueServerWork(','.inflate(',
                 'ItemCooldowns.addCooldown(','.teleportTo(',
