@@ -107,6 +107,34 @@ def effect_receiver_binding(method,offset):
                 receiver_load_offset=receiver['offset'])
 
 
+def arrow_factory_binding(method, offset, registry, primitive):
+    """Bind a real factory call to its independently verified native scalar sink.
+
+    The binding proves the argument role, not its value, trigger or eligibility.
+    Factory kernels are validated separately against native bodies and census.
+    """
+    role = {'PROJECTILE_BASE_DAMAGE': 'base_damage',
+            'PROJECTILE_KNOCKBACK': 'knockback'}[primitive]
+    body = method['instructions']
+    at = next(n for n, i in enumerate(body) if i['offset'] == offset)
+    hit = body[at]
+    assert hit['opcode'] == '0xb6'
+    row = next(r for r in registry['rows'] if hit['operand'] ==
+               r['factory']['entry'][:-6] + '.getArrow' + r['factory']['descriptor'])
+    # This initial boundary deliberately supports direct literal F/I/B arguments
+    # only; computed actor/charge formulas need their own explicit evidence.
+    arguments = body[at-3:at]
+    assert arguments[0]['opcode'] in ('0xb','0xc','0xd','0x12','0x13') and isinstance(arguments[0]['operand'],(int,float))
+    assert all(i['opcode'] in ('0x2','0x3','0x4','0x5','0x6','0x7','0x8','0x10','0x11','0x12','0x13')
+               and isinstance(i['operand'],int) for i in arguments[1:])
+    literal_arguments = {name: dict(offset=i['offset'], opcode=i['opcode'], value=i['operand'])
+                         for name,i in zip(('base_damage','knockback','piercing'),arguments)}
+    return dict(factory=row['factory'], owned_arrow_entry=row['owned_arrow_entry'],
+                intrinsic_arrow_root=row['intrinsic_arrow_root'], parameter_role=role,
+                kernel=row['factory'] if role == 'base_damage' else row['constructor'],
+                literal_arguments=literal_arguments)
+
+
 def refined_review(review,batch):
     """Apply explicit additive contracts to their existing mechanic identity."""
     result=deepcopy(review);by_id={r['id']:r for r in result['effects']};seen=set()
@@ -213,6 +241,7 @@ def validate_batch(batch,review,census):
             area_state=(candidate['primitive']=='NATIVE_AREA_SIZE' and hit['operand']=='net/minecraft/network/syncher/SynchedEntityData.set(Lnet/minecraft/network/syncher/EntityDataAccessor;Ljava/lang/Object;)V')
             block_speed=(candidate['primitive']=='BLOCK_SPEED_FACTOR' and hit['operand']=='net/minecraft/world/level/block/state/BlockBehaviour$Properties.speedFactor(F)Lnet/minecraft/world/level/block/state/BlockBehaviour$Properties;')
             hazard_timer=(candidate['primitive']=='NATIVE_HAZARD_LIFECYCLE' and hit['operand'] in ('net/minecraft/world/level/Level.scheduleTick(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/Block;I)V','net/minecraft/server/level/ServerLevel.scheduleTick(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/Block;I)V'))
+            projectile_placement=(candidate['primitive']=='PROJECTILE_PLACEMENT' and hit['operand']=='net/minecraft/world/entity/projectile/Projectile.setPos(DDD)V')
             handoff='native_callee_binding' in candidate
             if handoff:
                 assert candidate['primitive'] in ('TERRAIN_DELIVERY','SUMMON_DELIVERY','CONTROL_DELIVERY') and hit['opcode']=='0xb8'
@@ -224,9 +253,25 @@ def validate_batch(batch,review,census):
                 assert proofs,('owned handoff has no independent callee witness',callee)
                 _,cw=index.witness(proofs[0],row)
                 assert any(cm['name']==callee['method'] and cm['descriptor']==callee['descriptor'] and cm['code_sha256']==callee['code_sha256'] for cm in cw['methods'])
+            arrow_factory='native_arrow_factory_binding' in candidate
+            if arrow_factory:
+                binding=candidate['native_arrow_factory_binding']
+                registry=read_json(OUT/binding['registry_file'])
+                expected_binding=arrow_factory_binding(m,consumer['offset'],registry,candidate['primitive'])
+                assert binding==dict(registry_file=binding['registry_file'],**expected_binding),('wrong native arrow factory binding',candidate)
+                assert len(candidate['parameters'])==1,('one literal factory argument is one parameter',candidate)
+                component=next(c for c in row['components'] if c['primitive']==candidate['primitive'])
+                assert component['numerical_parameters'][candidate['parameters'][0]]==binding['literal_arguments'][binding['parameter_role']]['value'],('wrong factory argument value',candidate)
+                for proof in (binding['factory'],binding['kernel']):
+                    key=(proof['entry'],proof['method'],proof['descriptor'])
+                    assert native[key]['code_sha256']==proof['code_sha256']
+                    matches=[p for p in row['implementation']+row.get('shared_contracts',[]) if p['entry']==proof['entry'] and proof['method'] in p['methods']]
+                    assert matches,('factory scalar sink lacks independent witness',proof)
+                    _,cw=index.witness(matches[0],row)
+                    assert any(cm['name']==proof['method'] and cm['descriptor']==proof['descriptor'] and cm['code_sha256']==proof['code_sha256'] for cm in cw['methods'])
             if attribute:
                 assert literal_attribute_binding(m,consumer['offset'])==candidate['native_attribute_binding'],('wrong native attribute literal',candidate)
-            assert hit['opcode']=='0xb5' or rng or terrain or explosion or durability or attribute or command or concat or area_state or block_speed or hazard_timer or handoff or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
+            assert hit['opcode']=='0xb5' or rng or terrain or explosion or durability or attribute or command or concat or area_state or block_speed or hazard_timer or projectile_placement or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
             if candidate['primitive'].startswith('MOB_EFFECT_') or 'native_holder_symbol' in candidate:
                 symbol,allocation,load=effect_holder_binding(m,consumer['offset'])
                 assert (symbol,allocation,load)==(candidate['native_holder_symbol'],
