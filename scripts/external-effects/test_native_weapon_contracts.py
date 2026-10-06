@@ -1460,3 +1460,85 @@ class NativeSpatialItemContracts(NativeContractHarness, unittest.TestCase):
         menu=self.body('WarpWayfinderItem$1','createMenu')
         self.assertTrue(any('WayfinderMenu.<init>' in str(i['operand']) for i in menu))
         self.assertTrue(any('button' in p.lower() for p in self.batch['pending_shared_contexts']))
+
+
+class NativeViewfinderScorchContracts(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m6m-native-viewfinder-and-scorch-contracts.json')
+        cls.native={'witnesses':read_json(OUT/'native-evidence/arphex-residual-native-summoner-utility.json')['witnesses']+read_json(OUT/'native-evidence/arphex-native-viewfinder-scorch-support.json')['witnesses']}
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def test_bounded_native_contract_and_shared_hazard_validate(self):
+        validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual(len(self.batch['effects']),1)
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects'] for c in r['scalable_parameter_candidates']),7)
+        self.assertEqual([r['id'] for r in self.batch['record_refinements']],['arphex:scorch_native_collision_and_terrain'])
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_selected_scan_precedes_unconditional_inventory_and_swing_ignores_parent_result(self):
+        b={i['offset']:i for i in self.body('VitalityViewfinderItem','inventoryTick')}
+        self.assertEqual(b[13]['branch_target'],34)
+        self.assertIn('ItemInHandTickProcedure.execute',b[31]['operand'])
+        self.assertIn('ItemInInventoryTickProcedure.execute',b[36]['operand'])
+        b=self.body('VitalityViewfinderItem','onEntitySwing')
+        self.assertFalse(any(i.get('branch_target') is not None for i in b))
+        self.assertIn('Item.onEntitySwing',b[4]['operand'])
+
+    def test_native_recipient_doses_and_holder_height_are_independent(self):
+        from promote_combat_batch import literal_effect_arguments,effect_receiver_binding
+        m=dict(instructions=self.body('VitalityViewfinderItemInHandTickProcedure'))
+        for o,holder,local in [(753,'HEALTH_ANALYSIS',21),(800,'GLOWING',21),(847,'ZOOM',7)]:
+            dose=literal_effect_arguments(m,o)
+            self.assertIn(holder,dose['holder']);self.assertEqual((dose['duration'],dose['amplifier'],dose['explicit_flags']),(8,0,[0,0]))
+            self.assertEqual(effect_receiver_binding(m,o)['origin_local_index'],local)
+        b={i['offset']:i for i in m['instructions']}
+        self.assertEqual(b[899]['local_index'],7)
+        self.assertIn('.getBbHeight(',b[901]['operand'])
+        self.assertEqual((b[904]['operand'],b[905]['opcode']),(2.,'0x6e'))
+        self.assertIn('.lookAt(',b[916]['operand'])
+        self.assertFalse(any('.hurt(' in str(i['operand']) or '.heal(' in str(i['operand']) for i in m['instructions']))
+
+    def test_native_marker_gate_and_range_write_after_scan_are_preserved(self):
+        b={i['offset']:i for i in self.body('VitalityViewfinderItemInHandTickProcedure')}
+        # Fresh marker admission is independent of ignored addEffect booleans.
+        self.assertEqual(b[877]['branch_target'],6247)
+        self.assertEqual(b[756+3]['opcode'],'0x57')
+        self.assertEqual(b[6312]['branch_target'],6395)
+        self.assertEqual(b[6325]['operand'],20.)
+        self.assertEqual(b[6342]['operand'],200.)
+        self.assertEqual((b[6374]['operand'],b[6377]['opcode']),(3.,'0x63'))
+        self.assertIn('.putDouble(',b[6378]['operand'])
+        self.assertGreater(6286,5855)
+
+    def test_scorch_charge_callback_parent_result_is_discarded_and_success_is_literal(self):
+        for name in ['ScorchChargeItem','ScorchTorchItem']:
+            b=self.body(name,'useOn')
+            at=next(j for j,i in enumerate(b) if 'Item.useOn(' in str(i['operand']))
+            self.assertEqual(b[at+1]['opcode'],'0x57')
+            self.assertIn('InteractionResult.SUCCESS',b[-2]['operand'])
+            self.assertTrue(any('RightclickedOnBlockProcedure.execute' in str(i['operand']) for i in b[at+2:]))
+        b=self.body('ScorchChargeRightclickedOnBlockProcedure')
+        self.assertFalse(any('setOwner' in str(i['operand']) or 'ItemGriefing' in str(i['operand']) for i in b))
+        self.assertEqual(sum('.setBlock(' in str(i['operand']) for i in b),1)
+        self.assertTrue(any('ArphexModBlocks.SCORCH' in str(i['operand']) for i in b))
+
+    def test_torch_ticks_and_readonly_direction_helpers_do_not_create_combat_payloads(self):
+        names=['ScorchTorchGroundOnTickUpdateProcedure','ScorchTorchWallTickProcedure','ScorchTorchNeighbourBlockChangesProcedure']
+        forbidden=['.hurt(','.heal(','.addEffect(','.igniteForSeconds(','.setDeltaMovement(','.setBlock(','.setTarget(']
+        for w in self.native['witnesses']:
+            if not any(w['entry'].endswith('/'+n+'.class') or ('/'+n+'$') in w['entry'] for n in names):continue
+            calls=[str(i['operand']) for m in w['methods'] for i in m['instructions']]
+            self.assertFalse(any(any(s in call for s in forbidden) for call in calls),w['entry'])
+        for name in names[:2]:
+            b=self.body(name)
+            self.assertTrue(any('.sendParticles(' in str(i['operand']) for i in b))
+        self.assertEqual(self.body(names[2]),[{'offset':0,'opcode':'0xb1','operand':None}])
+
+    def test_false_forced_facing_divisor_or_range_increment_fails_validation(self):
+        for primitive,param in [('FORCED_FACING','carrier_height_divisor'),('NATIVE_SCAN_RANGE_STATE','increment')]:
+            b=copy.deepcopy(self.batch)
+            c=next(c for c in b['effects'][0]['components'] if c['primitive']==primitive)
+            c['numerical_parameters'][param]=99.
+            with self.subTest(parameter=param),self.assertRaisesRegex(AssertionError,'component differs from native numeric input'):
+                validate_batch(b,self.prior(),self.census)
