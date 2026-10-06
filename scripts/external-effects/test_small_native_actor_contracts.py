@@ -8,6 +8,120 @@ from test_shadow_clone_contracts import NativeContractHarness
 
 
 
+class NativeAISpawnerTests(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m6a-final-native-ai-spawner-carriers.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-native-ai-spawner-carriers.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def test_six_missing_contracts_nine_roots_and_complete_repellant_reuse(self):
+        validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual((len(self.batch['effects']),len(self.batch['closed_actor_callback_entries'])),(6,9))
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects'] for c in r['scalable_parameter_candidates']),14)
+        self.assertEqual((len(self.native['witnesses']),sum(len(w['methods']) for w in self.native['witnesses'])),(36,188))
+        self.assertFalse(any(w['entry'].endswith('/RepellantEntity.class') for w in self.native['witnesses']))
+        self.assertEqual(self.batch['reused_closed_actor_contracts'][0]['canonical_contract'],'arphex:repellant_native_family')
+
+    def test_all_146_attribute_actor_roots_have_exact_callback_disposition(self):
+        review=read_json(OUT/'mod-reviews/arphex.json')
+        closed={e for f in review['reviewed_batches'] for e in read_json(OUT/f).get('closed_actor_callback_entries',[])}|set(self.batch['closed_actor_callback_entries'])
+        roots={m['entry'] for m in self.census['methods'] if m['method']=='createAttributes'}
+        self.assertEqual(len(roots),146);self.assertFalse(roots-closed)
+        self.assertFalse(self.batch['whole_mod_complete']) # actor closure alone never proves census closure
+
+    def test_ai_roots_share_helper_but_keep_distinct_native_attack_attributes(self):
+        r=self.row('shared_ai_controller_ride_native_goliath_proxy_and_melee')
+        cs=[c for c in r['scalable_parameter_candidates'] if c['primitive']=='NATIVE_CONDITIONAL_MELEE']
+        self.assertEqual({c['native_parameter_identity']['entry'] for c in cs},{'net/arphex/entity/AiControllerEntity.class','net/arphex/entity/AiToRideEntity.class'})
+        for name in ('AiControllerEntity','AiToRideEntity'):
+            self.assertTrue(any('AiToRideOnEntityTickUpdateProcedure.execute(' in str(i['operand']) for i in self.body(name,'baseTick')))
+            self.assertTrue(any(w['entry'].startswith('net/arphex/entity/'+name+'$') and w['superclass']=='net/minecraft/world/entity/ai/goal/MeleeAttackGoal' for w in self.native['witnesses']))
+        b=self.body('AiToRideOnEntityTickUpdateProcedure')
+        self.assertTrue(any(i['operand']=='data merge entity @s {NoAI:1}' for i in b))
+        self.assertFalse(any('.setOwner(' in str(i['operand']) for i in b))
+        self.assertEqual(sum('.putDouble(' in str(i['operand']) for i in b),1) # only positive spawnlimit decrement, no reset
+
+    def test_sleep_replacement_executes_before_native_rejection(self):
+        b=self.body('DwellerSleepSpawnerEntity','hurt')
+        helper=next(i['offset'] for i in b if 'DwellerSleepSpawnerEntityIsHurtProcedure.execute(' in str(i['operand']))
+        filters=[i['offset'] for i in b if '/DamageTypes.' in str(i['operand']) or '/DamageSource.getDirectEntity(' in str(i['operand'])]
+        self.assertLess(helper,min(filters))
+        b=self.body('DwellerSleepSpawnerEntityIsHurtProcedure')
+        self.assertTrue(any('ArphexModEntities.SPIDER_MOTH' in str(i['operand']) for i in b))
+        self.assertFalse(any('.getEntity(' in str(i['operand']) or '.getDirectEntity(' in str(i['operand']) for i in b))
+
+    def test_sleep_immediate_true_delayed_false_native_flag_guards(self):
+        b=self.body('DwellerSleepSpawnerOnEntityTickUpdateProcedure');by={i['offset']:i for i in b}
+        self.assertEqual((by[263]['operand'],by[268]['opcode']),('donespawn','0x99')) # false skips immediate
+        w=next(w for w in self.native['witnesses'] if w['entry'].endswith('/DwellerSleepSpawnerOnEntityTickUpdateProcedure.class'))
+        delivery=next(m['instructions'] for m in w['methods'] if m['name'].startswith('lambda') and any('.spawn(' in str(i['operand']) for i in m['instructions']))
+        j=next(j for j,i in enumerate(delivery) if '.getBoolean(' in str(i['operand']) and delivery[j-1]['operand']=='donespawn')
+        self.assertEqual(delivery[j+1]['opcode'],'0x9a') # true skips delayed
+        self.assertFalse(any(i['operand']=='creativespectator' or '.isAlive(' in str(i['operand']) for i in delivery))
+        self.assertTrue(any('.isShiftKeyDown(' in str(i['operand']) for i in delivery))
+
+    def test_sleep_motion_is_absolute_and_keeps_native_xz_y_distinct(self):
+        by={i['offset']:i for i in self.body('DwellerSleepSpawnerOnEntityTickUpdateProcedure')}
+        self.assertEqual((by[116]['operand'],by[119]['operand'],by[122]['operand']),(10.,5.,10.))
+        self.assertIn('.setDeltaMovement(',by[128]['operand'])
+        self.assertEqual(by[477]['operand'],100)
+
+    def test_crawling_done_write_is_not_one_shot_admission(self):
+        b=self.body('RandomCrawlingSpawnsProcedure')
+        self.assertFalse(any('.getBoolean(' in str(i['operand']) for i in b))
+        self.assertEqual(sum('.putBoolean(' in str(i['operand']) for i in b),25)
+        self.assertEqual(sum('EntityType.spawn(' in str(i['operand']) for i in b),237)
+        r=self.row('crawling_random_native_carrier_melee_and_layer_encounters')
+        self.assertTrue(r['binary_parameters']['raw_done_not_read'])
+        self.assertEqual(r['native_encounter_context'][0]['native_spawn_sites'],237)
+
+    def test_ambient_selectors_do_not_duplicate_child_damage_status_ownership(self):
+        for name in ('RandomArPhExOnEntityTickUpdateProcedure','RandomCrawlingSpawnsProcedure','InsaneModeSpawnsOnEntityTickUpdateProcedure','TrySectorProcedure','TryAbolosProcedure'):
+            body=[i for w in self.native['witnesses'] if w['entry'].endswith('/'+name+'.class') for m in w['methods'] for i in m['instructions']]
+            self.assertFalse(any(any(s in str(i['operand']) for s in ['.hurt(','.addEffect(','.heal(','.setHealth(','.setOwner(','.setTarget(','.isAlliedTo(']) for i in body),name)
+            self.assertTrue(any('EntityType.spawn(' in str(i['operand']) for i in body),name)
+        for suffix in ('shared_random_arphex_native_carrier_melee_and_encounter_selection','crawling_random_native_carrier_melee_and_layer_encounters','insane_mode_native_carrier_melee_and_independent_encounter_branches'):
+            self.assertTrue(all(c['primitive'] in ('NATIVE_CONDITIONAL_MELEE','DELAYED_NATIVE_CARRIER_REMOVAL') for c in self.row(suffix)['scalable_parameter_candidates']))
+
+    def test_random_selector_roll_and_repeated_cleanup_precede_done_guard(self):
+        b=self.body('RandomArPhExOnEntityTickUpdateProcedure')
+        queue=next(i['offset'] for i in b if '.queueServerWork(' in str(i['operand']))
+        write=next(i['offset'] for i in b if '.putDouble(' in str(i['operand']))
+        wall=next(i['offset'] for i in b if '.isInWall(' in str(i['operand']))
+        done=next(i['offset'] for i in b if '.getBoolean(' in str(i['operand']))
+        self.assertLess(queue,write);self.assertLess(write,wall);self.assertLess(wall,done)
+        self.assertFalse(any('.setOwner(' in str(i['operand']) for i in b))
+
+    def test_ambient_roots_have_real_native_melee_despite_transient_lifecycle(self):
+        for name in ('AnyDimensionSpawnerEntity','RandomArPhExEntity','CrawlingRandomEntity','InsaneModeSpawnsEntity','DwellerSleepSpawnerEntity'):
+            self.assertTrue(any(w['entry'].startswith('net/arphex/entity/'+name+'$') and w['superclass']=='net/minecraft/world/entity/ai/goal/MeleeAttackGoal' for w in self.native['witnesses']),name)
+        for r in self.batch['effects']:
+            for c in r['scalable_parameter_candidates']:
+                if c['primitive']=='NATIVE_CONDITIONAL_MELEE':self.assertEqual(c['native_attribute_binding']['native_value'],3.0)
+
+    def test_dungeon_trigger_current_block_is_not_guessed_as_attack(self):
+        b=self.body('DungeonTriggerOnEntityTickUpdateProcedure');by={i['offset']:i for i in b}
+        self.assertEqual(by[34]['operand'],0);self.assertIn('.scheduleTick(',by[35]['operand']);self.assertEqual(by[40]['operand'],2000)
+        self.assertTrue(any('.getBlock(' in str(i['operand']) for i in b))
+        self.assertFalse(any('.hurt(' in str(i['operand']) or '.addEffect(' in str(i['operand']) or '.spawn(' in str(i['operand']) for i in b))
+        r=self.row('dungeon_trigger_native_block_tick_and_cleanup_boundary')
+        self.assertEqual((r['primary_classification'],r['scalable_parameter_candidates']),('BINARY_MECHANIC',[]))
+
+    def test_failed_native_boss_clearance_returns_without_shadow_fallback(self):
+        for name,count in [('TrySectorProcedure',36),('TryAbolosProcedure',72)]:
+            b=self.body(name);by={i['offset']:i for i in b}
+            guards=[b[j+1] for j,i in enumerate(b) if '.isEmptyBlock(' in str(i['operand'])]
+            self.assertEqual(len(guards),count)
+            self.assertTrue(all(i['opcode']=='0x99' and by[i['branch_target']]['opcode']=='0xb1' for i in guards))
+
+    def test_native_numeric_mutation_wrong_attribute_is_rejected(self):
+        altered=copy.deepcopy(self.batch)
+        r=next(r for r in altered['effects'] if r['id'].endswith('shared_ai_controller_ride_native_goliath_proxy_and_melee'))
+        next(c for c in r['components'] if c['primitive']=='NATIVE_CONDITIONAL_MELEE')['numerical_parameters']['controller_attack']=4.
+        with self.assertRaises(AssertionError):validate_batch(altered,self.prior(),self.census)
+
+
 class NativeCrabHarnessTests(NativeContractHarness, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
