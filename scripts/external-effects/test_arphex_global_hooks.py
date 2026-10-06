@@ -584,5 +584,85 @@ class GlobalHooksTests(unittest.TestCase):
         self.assertEqual(by[6648]['operand'],'net/minecraft/nbt/CompoundTag.putBoolean(Ljava/lang/String;Z)V')
         self.assertFalse(any('normalize(' in str(i['operand']) or 'hurt(' in str(i['operand']) for i in motion))
 
+    def test_player_control_batch_exact_consumers_without_claiming_remaining_method_closed(self):
+        batch=read_json(OUT/'arphex-r2m2q-player-gaze-grab-mount-and-flight.json')
+        review=read_json(OUT/'mod-reviews/arphex.json');ids={r['id'] for r in batch['effects']}
+        review['effects']=[r for r in review['effects'] if r['id'] not in ids]
+        review['paths']=[p for p in review['paths'] if not set(p['effect_ids'])&ids]
+        self.assertEqual(validate_batch(batch,review,self.census)['semantic_records'],len(review['effects'])+12)
+        self.assertEqual(sum(len(c['parameters']) for r in batch['effects'] for c in r['scalable_parameter_candidates']),68)
+        self.assertFalse(batch['whole_mod_complete'])
+        self.assertIn('10721',batch['exact_next_task'])
+        for row in batch['effects']:
+            for candidate in row['scalable_parameter_candidates']:
+                if candidate['primitive'] in ('MOB_EFFECT_MOTH_CURSE','MOB_EFFECT_REPULSION','MOB_EFFECT_BLINDNESS'):
+                    self.assertFalse(any('amplifier' in p for p in candidate['parameters']))
+
+    def test_grab_early_normal_larvae_gate_and_post_payload_cleanup_order(self):
+        body=self.body('GameModeDetectorProcedure');by={i['offset']:i for i in body}
+        first=[i for i in body if 2585<=i['offset']<=2656]
+        self.assertTrue(any(i['operand']=='net/arphex/entity/SpiderLarvaeEntity' for i in first))
+        self.assertFalse(any('SpiderLarvaeTiny' in str(i['operand']) for i in first))
+        self.assertIn('putBoolean(',by[2653]['operand'])
+        self.assertLess(2653,2785) # clear before raw creative-mode update
+        self.assertLess(4071,4218) # request before near-family cleanup
+        self.assertLess(4071,4245) # request before creative cleanup
+        self.assertEqual(by[4046]['operand'],30.0)
+        self.assertEqual(by[4070]['operand'],1.0)
+        self.assertEqual(by[4074]['opcode'],'0x57')
+        from promote_combat_batch import literal_command_binding
+        method=max((m for m in self.witness('GameModeDetectorProcedure')['methods'] if m['name']=='execute'),key=lambda m:len(m['instructions']))
+        for offset in (3859,3930):
+            command=literal_command_binding(method,offset)['command']
+            self.assertIn('regeneration 1 1 true',command)
+            self.assertNotIn('distance=',command)
+        self.assertIn('distance=..8',literal_command_binding(method,3717)['command'])
+        self.assertIn('distance=..4',literal_command_binding(method,3788)['command'])
+
+    def test_mount_recipient_alias_proofs_match_native_getter_cast_and_load(self):
+        witness=self.witness('GameModeDetectorProcedure')
+        batch=read_json(OUT/'arphex-r2m2q-player-gaze-grab-mount-and-flight.json')
+        checked=0
+        for row in batch['effects']:
+            for candidate in row['scalable_parameter_candidates']:
+                proof=candidate.get('native_recipient_evidence')
+                if not proof:continue
+                checked+=1;consumer=candidate['native_consumer']
+                method=next(m for m in witness['methods'] if m['name']==consumer['methods'][0] and m['descriptor']==consumer['descriptor'])
+                by={i['offset']:i for i in method['instructions']}
+                self.assertIn('Entity.getVehicle()',by[proof['vehicle_getter_offset']]['operand'])
+                self.assertEqual(by[proof['cast_offset']]['operand'],'net/minecraft/world/entity/LivingEntity')
+                self.assertIn('LivingEntity.addEffect(',by[proof['add_effect_offset']]['operand'])
+                self.assertLess(proof['vehicle_getter_offset'],proof['cast_offset'])
+                self.assertLess(proof['cast_offset'],proof['receiver_load_offset'])
+        self.assertEqual(checked,5)
+        for name in ('lambda$execute$29','lambda$execute$30','lambda$execute$32'):
+            delivery=self.body('GameModeDetectorProcedure',name)
+            self.assertTrue(any('getVehicle()' in str(i['operand']) for i in delivery))
+            self.assertFalse(any('/entity/SpiderMothSummonEntity' in str(i['operand']) or '/entity/TamedTarantulaEntity' in str(i['operand'])
+                                 for i in delivery))
+
+    def test_glide_absolute_velocity_reset_and_wrong_void_clear_are_not_corrected_by_prose(self):
+        body=self.body('GameModeDetectorProcedure');by={i['offset']:i for i in body}
+        self.assertEqual(by[10714]['operand'],'voidnearvoidnear')
+        self.assertEqual(by[10717]['operand'],0)
+        glide=[i for i in body if 7790<=i['offset']<8100]
+        self.assertEqual(sum('.setDeltaMovement(' in str(i['operand']) for i in glide),2)
+        self.assertFalse(any(i['operand']=='crafted' or 'bosskills' in str(i['operand']) for i in glide))
+        self.assertTrue(any(i['operand']==52000.0 for i in glide))
+        self.assertEqual(by[8304]['operand'],.25)
+        self.assertEqual(by[8307]['operand'],.05)
+        self.assertEqual(by[8310]['operand'],.25)
+
+    def test_player_native_root_reproduces_exact_pinned_method_hashes(self):
+        from pathlib import Path
+        from native_evidence import collect
+        jar=Path('/workspace/.cache/large-mod-campaign/ArPhEx-5.0.2-neoforge-1.21.1.jar')
+        if not jar.exists():self.skipTest('pinned artifact not installed in this validation workspace')
+        spec=read_json(OUT/'native-specifications/arphex-global-hooks.json')
+        entries={'net/arphex/procedures/GameModeDetectorProcedure.class'}
+        spec['evidence_specifications']=[s for s in spec['evidence_specifications'] if s['entry'] in entries]
+        self.assertEqual(collect(spec,{'arphex':jar})['witnesses'],[self.witness('GameModeDetectorProcedure')])
+
 
 if __name__=='__main__':unittest.main()
