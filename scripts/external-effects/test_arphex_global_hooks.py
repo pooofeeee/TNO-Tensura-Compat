@@ -6,6 +6,77 @@ from promote_combat_batch import validate_batch
 
 
 class GlobalHooksTests(unittest.TestCase):
+    def test_final_player_batch_validates_exact_native_consumers(self):
+        batch=read_json(OUT/'arphex-r2m2t-player-reach-aim-and-floating.json')
+        review=read_json(OUT/'mod-reviews/arphex.json');ids={r['id'] for r in batch['effects']}
+        review['effects']=[r for r in review['effects'] if r['id'] not in ids]
+        review['paths']=[p for p in review['paths'] if not set(p['effect_ids'])&ids]
+        self.assertEqual(validate_batch(batch,review,self.census)['semantic_records'],len(review['effects'])+3)
+        self.assertEqual(sum(len(c['parameters']) for r in batch['effects'] for c in r['scalable_parameter_candidates']),22)
+
+    def test_equipment_reach_requests_keep_modern_values_and_legacy_syntax_distinct(self):
+        body=self.body('GameModeDetectorProcedure');by={i['offset']:i for i in body}
+        modern={26251:('entity',1),27174:('entity',4),28203:('entity',2),28309:('block',2),29232:('block',2),30049:('block',6),30866:('entity',150)}
+        for offset,(kind,value) in modern.items():
+            at=next(n for n,i in enumerate(body) if i['offset']==offset);tokens=body[at-1]['operand'].split()
+            self.assertEqual(tokens[2],f'minecraft:player.{kind}_interaction_range')
+            self.assertEqual(tokens[6:],[str(value),'add_value'])
+        legacy=next(n for n,i in enumerate(body) if i['offset']==25933)
+        self.assertEqual(body[legacy-1]['operand'].split()[6:],['arphexreach','1','add'])
+        grammar=read_json(OUT/'vanilla-evidence/arphex-attribute-command.json')['classes'][0]['methods'][0]['instructions']
+        words=[i['operand'] for i in grammar if i['opcode'] in ('0x12','0x13')]
+        at=words.index('modifier');self.assertEqual(words[at:at+5],['modifier','add','id','value','add_value'])
+        self.assertTrue(any('ResourceLocationArgument.id()' in str(i['operand']) for i in grammar))
+        self.assertEqual(by[26474]['operand'],'paralysis')
+        self.assertIn('.putString(',by[26477]['operand']) # latch outside server command path
+
+    def test_raw_recoil_controls_pitch_not_a_damage_request(self):
+        body=self.body('GameModeDetectorProcedure');by={i['offset']:i for i in body}
+        self.assertEqual(by[31729]['operand'],7.0)
+        self.assertEqual([by[n]['opcode'] for n in (31732,31733,31734)],['0x6f','0x67','0x90'])
+        self.assertIn('.setXRot(',by[31735]['operand'])
+        self.assertFalse(any('.hurt(' in str(i['operand']) for i in body if 31667<=i['offset']<=31834))
+
+    def test_floating_latch_and_resource_updates_are_not_post_clamped(self):
+        body=self.body('GameModeDetectorProcedure');by={i['offset']:i for i in body}
+        self.assertEqual(by[31910]['branch_target'],33696)
+        self.assertEqual(by[33589]['operand'],'allow_floatingsequence')
+        at=next(n for n,i in enumerate(body) if i['offset']==33589)
+        self.assertEqual(body[at+1]['operand'],40.0)
+        self.assertIn('.putDouble(',body[at+2]['operand'])
+        self.assertEqual(by[32554]['operand'],2.0)
+        self.assertEqual([by[n]['opcode'] for n in (32557,32558)],['0x63','0xb6'])
+        self.assertEqual(by[32969]['operand'],.05)
+        self.assertEqual([by[n]['opcode'] for n in (32972,32973)],['0x63','0xb6'])
+        self.assertEqual(by[33127]['operand'],.05)
+        self.assertEqual([by[n]['opcode'] for n in (33130,33131)],['0x67','0xb6'])
+        self.assertEqual([by[n]['opcode'] for n in (32857,32858)],['0x6e','0x8d']) # float divide then widen
+
+    def test_floating_floor_native_grid_has_repeated_corner(self):
+        body=self.body('GameModeDetectorProcedure')
+        sites=[n for n,i in enumerate(body) if 33300<=i['offset']<=33490 and 'BlockPos.containing(' in str(i['operand'])]
+        self.assertEqual(len(sites),9)
+        # Last three corner expressions have three explicit dconst_1 values.
+        arithmetic=[[i['opcode'] for i in body[n-11:n] if i['opcode'] in ('0x63','0x67')] for n in sites[-3:]]
+        self.assertEqual(arithmetic,[['0x63','0x67','0x67'],['0x63','0x67','0x63'],['0x63','0x67','0x67']])
+        self.assertNotIn(['0x67','0x67','0x63'],arithmetic) # omitted negative-X/positive-Z corner
+        by={i['offset']:i for i in body}
+        self.assertEqual([by[n]['operand'] for n in (33243,33277,33506,33540)],[.02,.04,-.02,.02])
+
+    def test_durability_repair_requires_its_exact_typed_native_sink(self):
+        import copy
+        batch=read_json(OUT/'arphex-r2m2t-player-reach-aim-and-floating.json')
+        review=read_json(OUT/'mod-reviews/arphex.json');ids={r['id'] for r in batch['effects']}
+        review['effects']=[r for r in review['effects'] if r['id'] not in ids]
+        review['paths']=[p for p in review['paths'] if not set(p['effect_ids'])&ids]
+        invalid=copy.deepcopy(batch)
+        row=next(r for r in invalid['effects'] if r['id']=='arphex:player_raw_float_motion_control')
+        c=next(c for c in row['scalable_parameter_candidates'] if c['primitive']=='ITEM_DURABILITY_REPAIR')
+        self.assertEqual(c['native_consumer']['operand'],'net/minecraft/world/item/ItemStack.setDamageValue(I)V')
+        c['primitive']='UNRELATED_DAMAGE'
+        component=next(c for c in row['components'] if c['primitive']=='ITEM_DURABILITY_REPAIR');component['primitive']='UNRELATED_DAMAGE'
+        with self.assertRaisesRegex(AssertionError,'not a native scalar consumer'):validate_batch(invalid,review,self.census)
+
     def test_tormentor_player_batch_reuses_status_and_counts_native_parameters(self):
         batch=read_json(OUT/'arphex-r2m2s-player-tormentor-state-and-placement.json')
         review=read_json(OUT/'mod-reviews/arphex.json');ids={r['id'] for r in batch['effects']}
