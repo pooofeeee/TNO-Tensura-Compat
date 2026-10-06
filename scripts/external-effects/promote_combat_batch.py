@@ -31,10 +31,24 @@ def damage_source_binding(method,offset):
     start=max(n for n,i in enumerate(body[:at]) if i['opcode']=='0xbb' and
               i['operand']=='net/minecraft/world/damagesource/DamageSource')
     ctor=next(i for i in body[start:at] if 'DamageSource.<init>(' in str(i['operand']))
-    holder=next(i for i in body[start:at] if i['opcode']=='0xb2' and
-                '/DamageTypes.' in str(i['operand']))
+    holder=next((i for i in body[start:at] if i['opcode']=='0xb2' and
+                 '/DamageTypes.' in str(i['operand'])),None)
+    if holder is None:
+        # Custom keys must use the exact contiguous DAMAGE_TYPE/literal/parse/
+        # ResourceKey.create/holderOrThrow chain, rather than a nearby string.
+        key_at=next(n for n in range(start,at) if body[n]['operand']==
+                    'net/minecraft/core/registries/Registries.DAMAGE_TYPELnet/minecraft/resources/ResourceKey;')
+        key=body[key_at+1]
+        assert key['opcode'] in ('0x12','0x13') and isinstance(key['operand'],str)
+        assert [i['operand'] for i in body[key_at+2:key_at+5]]==[
+            'net/minecraft/resources/ResourceLocation.parse(Ljava/lang/String;)Lnet/minecraft/resources/ResourceLocation;',
+            'net/minecraft/resources/ResourceKey.create(Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/resources/ResourceKey;',
+            'net/minecraft/world/level/LevelAccessor.holderOrThrow(Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/core/Holder;']
+        symbol='RESOURCE_LOCATION:'+key['operand']
+    else:
+        symbol=holder['operand']
     assert not any('.hurt(' in str(i['operand']) for i in body[start:at])
-    return holder['operand'],body[start]['offset'],ctor['offset'],ctor['operand']
+    return symbol,body[start]['offset'],ctor['offset'],ctor['operand']
 
 
 def literal_attribute_binding(method,offset):

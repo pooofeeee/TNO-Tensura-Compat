@@ -6,6 +6,128 @@ from promote_combat_batch import validate_batch
 from test_shadow_clone_contracts import NativeContractHarness
 
 
+class NativeSummonCarrierTests(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m5q-native-summon-carrier-contracts.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-summon-carrier-native-families.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def test_exact_native_consumers_and_reused_scarab(self):
+        validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual((len(self.batch['effects']),len(self.batch['closed_actor_callback_entries'])),(6,8))
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects'] for c in r['scalable_parameter_candidates']),115)
+        self.assertEqual((len(self.native['witnesses']),sum(len(w['methods']) for w in self.native['witnesses'])),(63,402))
+        self.assertFalse(any('/ScarabSummonEntity' in w['entry'] for w in self.native['witnesses']))
+        self.assertEqual(self.batch['reused_closed_actor_contracts'][0]['mechanic_id'],'arphex:scarab_native_family')
+        self.assertFalse(any('scarab' in r['id'] for r in self.batch['effects']))
+
+    def test_moontracker_yboost_reads_updated_flyboost(self):
+        b=self.body('MothTickProcedure');span=[i for i in b if 1945<=i['offset']<=1966]
+        self.assertEqual([i['operand'] for i in span if i['opcode'] in ('0x12','0x13')],['yboost','flyboost'])
+        self.assertTrue(any(i['opcode']=='0x67' for i in span))
+        self.assertTrue(any(i['offset']==1902 and '.putDouble(' in str(i['operand']) for i in b))
+
+    def test_moontracker_has_real_food_but_no_attack_goal(self):
+        b=self.body('MothMoontrackerEntity','registerGoals')
+        self.assertFalse(any('AttackGoal' in str(i['operand']) for i in b))
+        self.assertTrue(any('BreedGoal' in str(i['operand']) for i in b))
+        self.assertTrue(any('Blocks.MOSS_CARPET' in str(i['operand']) for i in self.body('MothMoontrackerEntity','isFood')))
+        r=self.row('moontracker_native_silk_light_flight_owner_and_lifecycle')
+        self.assertFalse(any(c['primitive']=='NATIVE_CONDITIONAL_MELEE' for c in r['scalable_parameter_candidates']))
+
+    def test_hornet_lifetime_is_zero_or_increment_not_initialised(self):
+        b=self.body('HornetProjectileOnInitialEntitySpawnProcedure')
+        self.assertEqual([i['operand'] for i in b if i['opcode'] in ('0x12','0x13')],['boostlim_wasp'])
+        b=self.body('HornetProjectileOnEntityTickUpdateProcedure')
+        zero=[i for i in b if 1055<=i['offset']<=1067]
+        self.assertTrue(any(i['opcode']=='0xe' and i['operand']==0.0 for i in zero))
+        increment=[i for i in b if 1070<=i['offset']<=1094]
+        self.assertTrue(any(i['opcode']=='0x63' for i in increment))
+        self.assertTrue(any(i['operand']==400.0 for i in b))
+
+    def test_hornet_uuid_contains_and_living_actor_parent(self):
+        b=self.body('HornetProjectileOnEntityTickUpdateProcedure')
+        self.assertEqual(sum('java/lang/String.contains(' in str(i['operand']) for i in b),2)
+        self.assertFalse(any('.isAlliedTo(' in str(i['operand']) for i in b))
+        for a in ('HornetProjectileEntity','NemesisProjectileEntity'):
+            w=next(w for w in self.native['witnesses'] if w['entry'].endswith('/'+a+'.class'))
+            self.assertEqual(w['superclass'],'net/minecraft/world/entity/TamableAnimal')
+            b=self.body(a,'getDefaultDimensions')
+            self.assertFalse(any('DATA_scale_switch' in str(i['operand']) for i in b))
+            self.assertTrue(any(i['operand']==0.800000011920929 for i in b))
+
+    def test_moth_incoming_summon_precedes_native_exclusions(self):
+        b=self.body('SpiderMothSummonEntity','hurt')
+        helper=next(i['offset'] for i in b if 'SpiderMothSummonEntityIsHurtProcedure.execute' in str(i['operand']))
+        first_type=next(i['offset'] for i in b if 'DamageTypes.' in str(i['operand']))
+        self.assertLess(helper,first_type)
+        b=self.body('SpiderMothSummonEntityIsHurtProcedure')
+        self.assertEqual(sum('EntityType.spawn(' in str(i['operand']) for i in b),1)
+        self.assertTrue(any(i['operand']==40 for i in b))
+
+    def test_moth_same_callback_noai_restore_and_stuck_factor(self):
+        b=self.body('SpiderMothSummonOnEntityTickUpdateProcedure')
+        self.assertEqual([i['operand'] for i in b if isinstance(i['operand'],str) and i['operand'].startswith('data modify entity @s NoAI')],
+                         ['data modify entity @s NoAI set value 0b','data modify entity @s NoAI set value 1b','data modify entity @s NoAI set value 0b'])
+        self.assertEqual([i['operand'] for i in b if 2449<=i['offset']<=2455],[2.0,3.0,2.0])
+
+    def test_larva_native_parent_and_blood_factory_no_payload_duplicate(self):
+        b=self.body('SpiderMothSummonLarvaeEntity','registerGoals')
+        self.assertTrue(any('Spider.registerGoals(' in str(i['operand']) for i in b))
+        b=self.body('SpiderMothSummonLarvaeEntity','performRangedAttack')
+        self.assertEqual(sum('BloodProjectileEntity.shoot(' in str(i['operand']) for i in b),1)
+        r=self.row('moth_summon_larva_native_target_copy_contact_and_ranged')
+        self.assertIn('arphex:blood_arrow_intrinsic_combat',r['canonical_contract_reuse'])
+        self.assertEqual([c['primitive'] for c in r['scalable_parameter_candidates']],['NATIVE_CONDITIONAL_MELEE','DELAYED_LIFECYCLE'])
+
+    def test_tormentor_active_writes_preserve_native_order(self):
+        b=self.body('TormentorSummonTickProcedure');vals=[]
+        for j,i in enumerate(b):
+            if 'PlayerVariables.tormentor_summon_activeD' in str(i['operand']) and i['opcode']=='0xb5':vals.append(b[j-1]['operand'])
+        self.assertEqual(vals,[160.0,150.0])
+        r=self.row('tormentor_summon_native_owner_levels_status_motion_and_transport')
+        self.assertFalse(any('active' in p or p=='attack' for c in r['scalable_parameter_candidates'] for p in c['parameters']))
+        self.assertIn('arphex:tormentor_summon_incoming_attack_replacement',r['canonical_contract_reuse'])
+
+    def test_tormentor_owner_homing_preserves_signed_z(self):
+        b=self.body('TormentorSummonTickProcedure');sqrt_at=next(j for j,i in enumerate(b) if 'Math.sqrt(' in str(i['operand']))
+        span=b[sqrt_at-30:sqrt_at]
+        self.assertEqual(sum('Math.pow(' in str(i['operand']) for i in span),1)
+        self.assertTrue(any(i['opcode']=='0x6b' for i in span))
+        self.assertEqual(span[-1]['opcode'],'0x63')
+
+    def test_custom_segment_source_exact_literal_key_chain(self):
+        from promote_combat_batch import damage_source_binding
+        b=self.body('SpiderMothSummonOnInitialEntitySpawnProcedure','lambda$execute$0')
+        source=damage_source_binding(dict(instructions=b),90)
+        self.assertEqual(source,('RESOURCE_LOCATION:arphex:segment',43,86,
+             'net/minecraft/world/damagesource/DamageSource.<init>(Lnet/minecraft/core/Holder;Lnet/minecraft/world/entity/Entity;)V'))
+        mutated=copy.deepcopy(b);next(i for i in mutated if i['offset']==56)['operand']='unrelated.create()V'
+        with self.assertRaises(AssertionError):damage_source_binding(dict(instructions=mutated),90)
+        changed=copy.deepcopy(self.batch)
+        r=next(r for r in changed['effects'] if 'tormentor_summon_native_owner_' in r['id'])
+        c=next(c for c in r['scalable_parameter_candidates'] if c['primitive']=='NATIVE_DAMAGE_REQUEST')
+        c['native_damage_type_symbol']='RESOURCE_LOCATION:arphex:unrelated'
+        with self.assertRaises(AssertionError):validate_batch(changed,self.prior(),self.census)
+
+    def test_tormentor_moth_stuck_receivers_are_distinct(self):
+        b=self.body('TormentorMothSummonOnEntityTickUpdateProcedure')
+        by={i['offset']:i for i in b}
+        self.assertEqual((by[358]['local_index'],by[393]['local_index']),(7,13))
+        self.assertEqual((by[358]['opcode'],by[393]['opcode']),('0x19','0x19'))
+        self.assertEqual(sum('.hurt(' in str(i['operand']) for i in b),2)
+        self.assertFalse(any('.isAlliedTo(' in str(i['operand']) for i in b))
+
+    def test_tormentor_moth_incoming_uses_causing_source_before_filters(self):
+        b=self.body('TormentorMothSummonEntity','hurt')
+        causes=next(i['offset'] for i in b if 'DamageSource.getEntity(' in str(i['operand']))
+        helper=next(i['offset'] for i in b if 'TormentorVoidlasherSummonEntityIsHurtProcedure.execute' in str(i['operand']))
+        direct=next(i['offset'] for i in b if 'DamageSource.getDirectEntity(' in str(i['operand']))
+        self.assertLess(causes,helper);self.assertLess(helper,direct)
+        self.assertFalse(any('MeleeAttackGoal' in str(i['operand']) for i in self.body('TormentorMothSummonEntity','registerGoals')))
+
+
 class NativeTamedPetTests(NativeContractHarness, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
