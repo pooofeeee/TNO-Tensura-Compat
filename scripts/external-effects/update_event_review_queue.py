@@ -36,6 +36,7 @@ def generate():
         'SpiderShieldProcedure':'CLOSED_SOURCEFUL_REACTIVE_SHIELD_LENS_READER_PENDING',
         'CriticalHitProcedure':'CLOSED_NATIVE_CRITICAL_CONTROL_AXE_STATE_PRODUCER_PENDING',
         'Lifesteal2Procedure':'CLOSED_DIRECT_CAUSING_HIT_GATES_ACTOR_STATE_READERS_PENDING',
+        'DwellerLifestealProcedure':'SHARED_ADMISSION_TRANSFER_FEEDBACK_CLOSED_OTHER_INCOMING_CONTRIBUTIONS_PENDING',
     }
     roots=[]
     for w in evidence['witnesses']:

@@ -3,7 +3,7 @@ from copy import deepcopy
 import unittest
 
 from catalog_common import OUT,read_json
-from promote_combat_batch import validate_batch
+from promote_combat_batch import validate_batch,damage_source_binding
 
 
 class IncomingContractsTest(unittest.TestCase):
@@ -110,6 +110,145 @@ class IncomingContractsTest(unittest.TestCase):
         row['scalable_parameter_candidates'][0]['native_consumer']['offset']=1058
         with self.assertRaisesRegex(AssertionError,'identity differs from consumer'):
             validate_batch(bad,review,self.census)
+
+
+class SharedIncomingTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m2e-shared-incoming-transfer.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-global-hooks.json')
+        cls.witness=next(w for w in cls.native['witnesses'] if w['entry'].endswith('/DwellerLifestealProcedure.class'))
+        cls.transfer=read_json(OUT/'native-evidence/arphex-transfer-readers.json')
+
+    def method(self,name='execute'):
+        return next(m for m in self.witness['methods'] if m['name']==name and
+                    (name!='execute' or 'Lnet/neoforged/bus/api/Event;' in m['descriptor']))
+
+    def row(self,name):
+        return next(r for r in self.batch['effects'] if r['id']=='arphex:'+name)
+
+    def test_custom_marker_preserves_distinct_actor_presence_admission(self):
+        body=self.method()['instructions']
+        gate=[i for i in body if 23600<=i['offset']<=23625]
+        self.assertIn('INVINCIBILITY_TEMP',str(gate))
+        self.assertIn('LivingEntity.hasEffect(',str(gate))
+        self.assertEqual(gate[-1]['operand'],'net/neoforged/bus/api/ICancellableEvent.setCanceled(Z)V')
+        self.assertFalse(any(i['opcode']=='0x18' for i in gate)) # no amount threshold
+        marker=next(r for r in read_json(OUT/'mod-reviews/arphex.json')['effects'] if r['id']=='arphex:invincibility_temp')
+        self.assertEqual(marker['primary_classification'],'CUSTOM_STATUS')
+        self.assertEqual(marker['scalable_parameter_candidates'],[])
+        self.assertTrue(marker['binary_parameters']['null_direct_with_nonnull_causing_not_covered_by_these_two_readers'])
+
+    def test_config_native_default_beats_stale_comment(self):
+        w=next(w for w in self.native['witnesses'] if w['entry'].endswith('/ConfigurationSettingsConfiguration.class'))
+        body=w['methods'][0]['instructions'];at=next(n for n,i in enumerate(body) if 'TORMENTOR_HIT_SPEED' in str(i['operand']))
+        self.assertIn('default 25 ticks',body[at-6]['operand'])
+        self.assertEqual(body[at-3]['operand'],20.0)
+        c=next(c for c in self.row('tormentor_incoming_map_transaction')['components'] if c['primitive']=='NATIVE_ADMISSION_STATE')
+        self.assertEqual(c['numerical_parameters']['damage_speed_default_ticks'],body[at-3]['operand'])
+
+    def test_execution_keeps_two_source_types_and_all_retries(self):
+        row=self.row('infinite_torment_native_execution')
+        damage=[c for c in row['scalable_parameter_candidates'] if c['primitive']=='NATIVE_DAMAGE_REQUEST']
+        self.assertEqual(len(damage),2)
+        self.assertIn('DamageTypes.MAGIC',damage[0]['native_damage_type_symbol'])
+        self.assertIn('DamageTypes.GENERIC',damage[1]['native_damage_type_symbol'])
+        for c in damage:
+            consumer=c['native_consumer'];method=self.method(consumer['methods'][0]);body=method['instructions']
+            at=next(n for n,i in enumerate(body) if i['offset']==consumer['offset'])
+            self.assertEqual(body[at-2]['operand'],100.0)
+            self.assertEqual(body[at+1]['opcode'],'0x57')
+            self.assertEqual(len(c['additional_consumer_sites']),3)
+            for site in c['additional_consumer_sites']:
+                binding=damage_source_binding(self.method(site['method']),site['offset'])
+                self.assertEqual(binding[0],c['native_damage_type_symbol'])
+                self.assertEqual(binding[3],c['native_damage_source_constructor'])
+        self.assertEqual(len([c for c in row['scalable_parameter_candidates'] if c['primitive']=='DELAYED_DELIVERY']),4)
+
+    def test_anonymous_summon_formula_and_attributed_followup_stay_distinct(self):
+        row=self.row('tormentor_summon_incoming_attack_replacement')
+        damage=[c for c in row['scalable_parameter_candidates'] if c['primitive']=='NATIVE_DAMAGE_REQUEST']
+        self.assertEqual(damage[0]['native_damage_source_constructor'],
+                         'net/minecraft/world/damagesource/DamageSource.<init>(Lnet/minecraft/core/Holder;)V')
+        self.assertEqual(damage[1]['native_damage_source_constructor'],
+                         'net/minecraft/world/damagesource/DamageSource.<init>(Lnet/minecraft/core/Holder;Lnet/minecraft/world/entity/Entity;)V')
+        body=self.method()['instructions'];at=next(n for n,i in enumerate(body) if i['offset']==4233)
+        self.assertIn('Math.round(F)I',str(body[at-6:at]))
+        self.assertEqual(body[at+1]['opcode'],'0x57')
+
+    def test_transfer_rounding_and_reset_are_native_not_independent_damage(self):
+        body=self.method()['instructions']
+        self.assertEqual(next(i['operand'] for i in body if i['offset']==35471),'java/lang/Math.round(D)J')
+        self.assertEqual(self.row('arthropleura_segment_damage_transfer')['scalable_parameter_candidates'],[])
+        w=next(w for w in self.transfer['witnesses'] if w['entry'].endswith('/SegmentedBodyOnEntityTickUpdateProcedure.class'))
+        body=next(m['instructions'] for m in w['methods'] if m['name']=='execute')
+        for offset,name in [(3708,'segdamagetransfer'),(3720,'segupwardstransfer')]:
+            at=next(n for n,i in enumerate(body) if i['offset']==offset)
+            self.assertEqual(body[at-2]['operand'],name)
+            self.assertEqual(body[at-1]['operand'],0.0)
+        at=next(n for n,i in enumerate(body) if i['offset']==1395)
+        self.assertIn('DamageTypes.MOB_ATTACK',str(body[at-15:at]))
+        self.assertIn('DamageSource.<init>(Lnet/minecraft/core/Holder;)V',str(body[at-15:at]))
+        resource=next(w for w in self.transfer['witnesses'] if w['entry']=='data/arphex/damage_type/segment.json')
+        self.assertEqual(resource['data'],{'exhaustion':.1,'message_id':'segment','scaling':'never'})
+
+    def test_tame_gate_compares_victim_and_source_despite_wrong_decompiler_name(self):
+        # Decoded local-variable operands are not inferred from names. Read only
+        # this already-selected class and check its native operand bytes.
+        import hashlib,zipfile
+        from classfile import ClassFile
+        with zipfile.ZipFile('/workspace/.cache/large-mod-campaign/ArPhEx-5.0.2-neoforge-1.21.1.jar') as jar:
+            data=jar.read(self.witness['entry'])
+        self.assertEqual(hashlib.sha256(data).hexdigest(),self.witness['entry_sha256'])
+        parsed=ClassFile(data)
+        method=next(m for m in parsed.methods if m['name']=='execute' and 'Lnet/neoforged/bus/api/Event;' in m['descriptor'])
+        code=method['code']
+        self.assertEqual(code[35807:35809],bytes([0x19,9]))
+        self.assertEqual(code[35831:35833],bytes([0x19,11]))
+        self.assertEqual(code[35855],0xa6)
+        self.assertTrue(self.row('arthropleura_segment_damage_transfer')['binary_parameters']['same_native_owner_required'])
+
+    def test_source_healing_recipients_use_native_causing_local(self):
+        body={i['offset']:i for i in self.method()['instructions']}
+        # Casts bind causing entity local11 to separate LivingEntity temporaries;
+        # later addEffect operates on those same temporaries.
+        for before,store,load in [(1690,1695,1708),(7615,7620,7633)]:
+            self.assertEqual(body[before]['local_index'],11)
+            self.assertEqual(body[store]['local_index'],body[load]['local_index'])
+
+    def test_exact_transfer_callers_and_visual_only_ward_lightning(self):
+        for actor,procedure in [('ArthropleuraAbominationEntity','SegmentedHeadOnEntityTickUpdateProcedure'),('SegmentedBodyEntity','SegmentedBodyOnEntityTickUpdateProcedure')]:
+            w=next(w for w in self.transfer['witnesses'] if w['entry'].endswith('/'+actor+'.class'))
+            body=w['methods'][0]['instructions']
+            self.assertTrue(any(i['offset']==21 and procedure+'.execute(' in str(i['operand']) for i in body))
+        body=self.method()['instructions']
+        calls=[i for i in body if 'LightningBolt.setVisualOnly(Z)' in str(i['operand'])]
+        self.assertEqual(len(calls),3)
+        for i in calls:
+            at=body.index(i);self.assertEqual(body[at-1]['operand'],1)
+        self.assertTrue(self.row('spider_moth_incoming_feedback')['binary_parameters']['lightning_is_visual_only'])
+
+    def test_batch_and_source_profile_mutation_rejection(self):
+        review=deepcopy(read_json(OUT/'mod-reviews/arphex.json'))
+        ids={r['id'] for r in self.batch['effects']};paths={p['id'] for p in self.batch['paths']}
+        review['effects']=[r for r in review['effects'] if r['id'] not in ids]
+        review['paths']=[p for p in review['paths'] if p['id'] not in paths]
+        census=read_json(OUT/'arphex-combat-census.json')
+        validate_batch(self.batch,review,census)
+        bad=deepcopy(self.batch)
+        row=next(r for r in bad['effects'] if r['id']=='arphex:infinite_torment_native_execution')
+        # The same hurt API is not enough: replace a MAGIC retry by GENERIC.
+        row['scalable_parameter_candidates'][0]['additional_consumer_sites'][0]['offset']=114
+        with self.assertRaisesRegex(AssertionError,'auxiliary source identity differs'):
+            validate_batch(bad,review,census)
+
+        bad=deepcopy(self.batch)
+        row=next(r for r in bad['effects'] if r['id']=='arphex:arthropleura_segment_damage_transfer')
+        # An existing class witness must not masquerade as damage-type data.
+        row['native_resource_evidence']=[dict(evidence_file='native-evidence/arphex-transfer-readers.json',
+            witness_id='arphex-transfer-caller-SegmentedBodyEntity',entry='net/arphex/entity/SegmentedBodyEntity.class')]
+        with self.assertRaisesRegex(AssertionError,'not a native JSON resource'):
+            validate_batch(bad,review,census)
 
 
 if __name__=='__main__':unittest.main()

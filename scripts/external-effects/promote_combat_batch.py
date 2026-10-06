@@ -19,6 +19,23 @@ def effect_holder_binding(method,offset):
     return holder['operand'],body[start]['offset'],holder['offset']
 
 
+def damage_source_binding(method,offset):
+    """Bind an explicitly allocated native source to its following hurt call.
+
+    This helper supports direct allocation sites only. It does not infer the
+    provenance of a source local, field, factory result or an inherited source.
+    """
+    body=method['instructions'];at=next(n for n,i in enumerate(body) if i['offset']==offset)
+    assert '.hurt(' in str(body[at]['operand'])
+    start=max(n for n,i in enumerate(body[:at]) if i['opcode']=='0xbb' and
+              i['operand']=='net/minecraft/world/damagesource/DamageSource')
+    ctor=next(i for i in body[start:at] if 'DamageSource.<init>(' in str(i['operand']))
+    holder=next(i for i in body[start:at] if i['opcode']=='0xb2' and
+                '/DamageTypes.' in str(i['operand']))
+    assert not any('.hurt(' in str(i['operand']) for i in body[start:at])
+    return holder['operand'],body[start]['offset'],ctor['offset'],ctor['operand']
+
+
 def validate_batch(batch,review,census):
     assert batch['mod_key']==review['mod_key']==census['mod_key']
     native={(r['entry'],r['method'],r['descriptor']):r for r in census['methods']}
@@ -58,6 +75,10 @@ def validate_batch(batch,review,census):
                 symbol,allocation,load=effect_holder_binding(m,consumer['offset'])
                 assert (symbol,allocation,load)==(candidate['native_holder_symbol'],
                     candidate['native_holder_allocation_offset'],candidate['native_holder_load_offset'])
+            if 'native_damage_type_symbol' in candidate:
+                assert damage_source_binding(m,consumer['offset'])==(
+                    candidate['native_damage_type_symbol'],candidate['native_damage_source_allocation_offset'],
+                    candidate['native_damage_source_constructor_offset'],candidate['native_damage_source_constructor'])
             seen={tuple(expected[k] for k in ('entry','method','descriptor','offset'))}
             for site in candidate.get('additional_consumer_sites',[]):
                 identity=tuple(site[k] for k in ('entry','method','descriptor','offset'))
@@ -69,6 +90,9 @@ def validate_batch(batch,review,census):
                 assert other_hit['operand']==hit['operand'],('auxiliary site uses a different consumer',site)
                 if candidate['primitive'].startswith('MOB_EFFECT_'):
                     assert effect_holder_binding(other_method,site['offset'])[0]==candidate['native_holder_symbol']
+                if 'native_damage_type_symbol' in candidate:
+                    source=damage_source_binding(other_method,site['offset'])
+                    assert (source[0],source[3])==(candidate['native_damage_type_symbol'],candidate['native_damage_source_constructor']),('auxiliary source identity differs',site)
             for parameter in candidate['parameters']:
                 identity=tuple(candidate['native_parameter_identity'][k] for k in ('entry','method','descriptor','offset'))+(candidate['primitive'],parameter)
                 assert identity not in candidates,('same native parameter counted twice',identity)

@@ -3,7 +3,7 @@
   "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
   "mod_key": "arphex",
   "checkpoint": "R2m2a-arphex-active-status-cores",
-  "closed_scope": "Twenty registered native status/control/resource cores and their direct callback payloads; no full mod or external-reader completion claim.",
+  "closed_scope": "Twenty registered native status/control/resource contracts, initially core-only. R2m2e incorporates the proven InvincibilityTemp global admission readers; other external producers/readers remain pending.",
   "effects": [
     {
       "id": "arphex:ab_flight",
@@ -1418,13 +1418,13 @@
       "registry_ids": [
         "arphex:invincibility_temp"
       ],
-      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "primary_classification": "CUSTOM_STATUS",
       "inspection_status": "VERIFIED_NATIVE_CORE",
-      "scope": "Registered MobEffect core and its direct procedures; external producers/readers remain independently queued.",
-      "actual_behavior": "Every admitted tick requests native Resistance(duration2,amplifier4,false,false) on server LivingEntity. It does not write invulnerable state; native Resistance defenses/admission and ignored addEffect result remain separate from custom invulnerability gates elsewhere.",
-      "closest_vanilla_equivalent": "minecraft:resistance",
+      "scope": "Registered Resistance refresh plus the two proven global incoming-admission readers. External marker producers and actor-specific suppression branches remain individually queued.",
+      "actual_behavior": "Every admitted marker tick requests server LivingEntity native Resistance2/amplifier4,false,false; addEffect result ignored. The marker also drives CUSTOM native incoming cancellation: EntityHurtWithoutSource cancels when causing entity is null and amount<=999999999, regardless of whether a direct entity exists; DwellerLifesteal cancels without an amount threshold when both causing AND direct entities are nonnull. With nonnull causing but null direct entity, neither of these specific cancellation branches applies. No Entity invulnerable flag is written. Resistance defenses remain native, including damage-type bypasses. Earlier incoming handler branches can run before marker cancellation, so this is not a guarantee that every raw health/control side effect is suppressed.",
+      "closest_vanilla_equivalent": "minecraft:resistance plus custom MobEffect-presence incoming-admission gates",
       "vanilla_similarities": "Uses the named native APIs/components below; native admission, stacking and defenses remain authoritative.",
-      "vanilla_differences": "Every admitted tick requests native Resistance(duration2,amplifier4,false,false) on server LivingEntity. It does not write invulnerable state; native Resistance defenses/admission and ignored addEffect result remain separate from custom invulnerability gates elsewhere.",
+      "vanilla_differences": "Every admitted marker tick requests server LivingEntity native Resistance2/amplifier4,false,false; addEffect result ignored. The marker also drives CUSTOM native incoming cancellation: EntityHurtWithoutSource cancels when causing entity is null and amount<=999999999, regardless of whether a direct entity exists; DwellerLifesteal cancels without an amount threshold when both causing AND direct entities are nonnull. With nonnull causing but null direct entity, neither of these specific cancellation branches applies. No Entity invulnerable flag is written. Resistance defenses remain native, including damage-type bypasses. Earlier incoming handler branches can run before marker cancellation, so this is not a guarantee that every raw health/control side effect is suppressed.",
       "components": [
         {
           "primitive": "MOB_EFFECT_RESISTANCE",
@@ -1433,42 +1433,22 @@
             "amplifier": 4
           },
           "parameter_formulas": {}
-        }
-      ],
-      "scalable_parameter_candidates": [
+        },
         {
-          "primitive": "MOB_EFFECT_RESISTANCE",
-          "parameters": [
-            "duration",
-            "amplifier"
-          ],
-          "units": "ticks / native effect amplifier",
-          "native_parameter_identity": {
-            "entry": "net/arphex/procedures/InvincibilityTempOnEffectActiveTickProcedure.class",
-            "method": "execute",
-            "descriptor": "(Lnet/minecraft/world/entity/Entity;)V",
-            "offset": 39
+          "primitive": "NATIVE_DAMAGE_ADMISSION",
+          "numerical_parameters": {
+            "causing_null_threshold": 999999999
           },
-          "native_consumer": {
-            "evidence_file": "native-evidence/arphex-status-core.json",
-            "witness_id": "arphex:status-core:net/arphex/procedures/InvincibilityTempOnEffectActiveTickProcedure.class",
-            "entry": "net/arphex/procedures/InvincibilityTempOnEffectActiveTickProcedure.class",
-            "methods": [
-              "execute"
-            ],
-            "descriptor": "(Lnet/minecraft/world/entity/Entity;)V",
-            "offset": 39,
-            "operand": "net/minecraft/world/effect/MobEffectInstance.<init>(Lnet/minecraft/core/Holder;IIZZ)V",
-            "opcode": "0xb7"
-          },
-          "observation_only": true,
-          "native_holder_symbol": "net/minecraft/world/effect/MobEffects.DAMAGE_RESISTANCELnet/minecraft/core/Holder;",
-          "native_holder_allocation_offset": 28,
-          "native_holder_load_offset": 32
+          "parameter_formulas": {}
         }
       ],
+      "scalable_parameter_candidates": [],
       "binary_parameters": {
-        "server_living_recipient": true
+        "server_living_recipient": true,
+        "causing_null_damage_le_threshold_cancels": true,
+        "nonnull_direct_and_causing_damage_cancels": true,
+        "null_direct_with_nonnull_causing_not_covered_by_these_two_readers": true,
+        "immunity_parameters_not_automatic_stage_candidates": true
       },
       "source_actor": "The native callback recipient. No generic MobEffect-applier owner is invented. DamageSource constructors without entity arguments remain anonymous; geometric NPC lookups do not create damage ownership.",
       "native_boundary": [
@@ -1476,6 +1456,20 @@
           "entry": "net/arphex/procedures/InvincibilityTempOnEffectActiveTickProcedure.class",
           "methods": [
             "<init>",
+            "execute"
+          ]
+        },
+        {
+          "entry": "net/arphex/procedures/EntityHurtWithoutSourceProcedure.class",
+          "methods": [
+            "onEntityAttacked",
+            "execute"
+          ]
+        },
+        {
+          "entry": "net/arphex/procedures/DwellerLifestealProcedure.class",
+          "methods": [
+            "onEntityAttacked",
             "execute"
           ]
         }
@@ -1514,10 +1508,29 @@
             "onEffectExpired",
             "onEffectRemoved"
           ]
+        },
+        {
+          "evidence_file": "native-evidence/arphex-global-hooks.json",
+          "witness_id": "arphex-global-EntityHurtWithoutSourceProcedure",
+          "entry": "net/arphex/procedures/EntityHurtWithoutSourceProcedure.class",
+          "methods": [
+            "onEntityAttacked",
+            "execute"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/arphex-global-hooks.json",
+          "witness_id": "arphex-global-DwellerLifestealProcedure",
+          "entry": "net/arphex/procedures/DwellerLifestealProcedure.class",
+          "methods": [
+            "onEntityAttacked",
+            "execute"
+          ]
         }
       ],
       "lifecycle": "Retains native MobEffect admission, expiry, updates and remove/expired listeners. Delayed procedures retain captured entity references and only their explicit execution-time gates.",
-      "unresolved_ambiguities": []
+      "unresolved_ambiguities": [],
+      "classification_reason": "Native MobEffect-presence cancellation is custom status admission beyond Vanilla Resistance; binary immunity/gates remain native."
     },
     {
       "id": "arphex:moth_curse",

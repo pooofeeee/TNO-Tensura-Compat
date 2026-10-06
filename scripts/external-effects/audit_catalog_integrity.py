@@ -142,6 +142,9 @@ def audit_review(review, index):
             assert path in by_path and row['id'] in by_path[path]['effect_ids'], ('broken reciprocal path', row['id'], path)
         for proof in row['implementation']:
             index.witness(proof, row)
+        for proof in row.get('native_resource_evidence', []):
+            _,witness=index.witness(proof,row)
+            assert proof['entry'].endswith('.json') and 'data' in witness, ('not a native JSON resource',row['id'],proof)
         for fact in row.get('fact_references', []):
             assert fact['key'] in index.read(fact['file'])['facts']
         for component in row['components']:
