@@ -209,7 +209,7 @@ def validate_batch(batch,review,census):
         assert row['actual_behavior'] and row['source_actor'] and row['native_boundary']
         for proof in row['implementation']+row.get('shared_contracts',[]):
             _,w=index.witness(proof,row)
-            for m in w['methods']:
+            for m in w.get('methods',[]):
                 if m['name'] in proof['methods']:
                     if proof.get('evidence_format') in ('VANILLA_COMPARISON','SHARED_NATIVE_REFERENCE'):
                         continue
@@ -271,10 +271,18 @@ def validate_batch(batch,review,census):
                 assert len(candidate['parameters'])==1,('one literal factory argument is one parameter',candidate)
                 component=next(c for c in row['components'] if c['primitive']==candidate['primitive'])
                 sites=[dict(offset=consumer['offset'],binding=candidate['native_arrow_factory_binding'])]+candidate.get('additional_arrow_factory_sites',[])
-                assert len({s['offset'] for s in sites})==len(sites),('duplicate factory argument site',candidate)
+                assert len({(s.get('method',m['name']),s.get('descriptor',m['descriptor']),s['offset']) for s in sites})==len(sites),('duplicate factory argument site',candidate)
                 for site in sites:
+                    source_method=m
+                    if 'method' in site or 'descriptor' in site:
+                        # Additional sites stay in the independently witnessed source
+                        # class. A captured lambda is not interchangeable with its caller.
+                        assert 'method' in site and 'descriptor' in site
+                        source_method=next(sm for sm in w['methods'] if
+                            (sm['name'],sm['descriptor'])==(site['method'],site['descriptor']))
+                        assert native[(consumer['entry'],source_method['name'],source_method['descriptor'])]['code_sha256']==source_method['code_sha256']
                     binding=site['binding'];registry=read_json(OUT/binding['registry_file'])
-                    expected_binding=arrow_factory_binding(m,site['offset'],registry,candidate['primitive'])
+                    expected_binding=arrow_factory_binding(source_method,site['offset'],registry,candidate['primitive'])
                     assert binding==dict(registry_file=binding['registry_file'],**expected_binding),('wrong native arrow factory binding',candidate)
                     assert component['numerical_parameters'][candidate['parameters'][0]]==binding['literal_arguments'][binding['parameter_role']]['value'],('wrong factory argument value',candidate)
                     for proof in (binding['factory'],binding['kernel']):

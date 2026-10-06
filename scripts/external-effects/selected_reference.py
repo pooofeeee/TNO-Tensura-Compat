@@ -26,10 +26,18 @@ def collect(spec,source_aids=False):
                     dest=folder/'source';dest.mkdir(parents=True,exist_ok=True)
                     with (folder/(cls.name.replace('/','_')+'.log')).open('w',encoding='utf-8') as log:
                         subprocess.run([str(JAVA),'-Xmx2G','-jar',str(VINE),'--folder','--log-level=warn','--thread-count=1',str(file),str(dest)],stdout=log,stderr=subprocess.STDOUT,check=True)
-            for entry in archive.get('resources',[]):
+            for resource in archive.get('resources',[]):
+                entry=resource['entry'] if isinstance(resource,dict) else resource
                 data=jar.read(entry)
                 row=dict(archive_sha256=archive['sha256'],entry=entry,entry_sha256=byte_hash(data))
-                if entry.endswith('.json'):row['data']=json.loads(data)
+                if isinstance(resource,dict):
+                    lines=data.decode('utf-8').splitlines(keepends=True)
+                    ranges=resource['line_ranges']
+                    assert ranges,('empty selected resource scope',entry)
+                    assert all(1<=a<=b<=len(lines) for a,b in ranges)
+                    assert all(ranges[n-1][1]<ranges[n][0] for n in range(1,len(ranges)))
+                    row['text_sections']=[dict(first_line=a,last_line=b,text=''.join(lines[a-1:b])) for a,b in ranges]
+                elif entry.endswith('.json'):row['data']=json.loads(data)
                 else:row['text']=data.decode('utf-8')
                 result.append(row)
     return dict(schema='tno.external_effects.selected_reference.v1',id=spec['id'],baseline=BASELINE,
