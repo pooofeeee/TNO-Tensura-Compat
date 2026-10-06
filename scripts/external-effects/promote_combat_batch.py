@@ -8,6 +8,17 @@ from audit_catalog_integrity import EvidenceIndex,audit_review
 from refresh_catalog_views import refresh
 
 
+def effect_holder_binding(method,offset):
+    """Read the holder argument of this allocation, not a nearby effect query."""
+    body=method['instructions'];at=next(n for n,i in enumerate(body) if i['offset']==offset)
+    assert 'MobEffectInstance.<init>(' in str(body[at]['operand'])
+    start=max(n for n,i in enumerate(body[:at]) if i['opcode']=='0xbb' and
+              i['operand']=='net/minecraft/world/effect/MobEffectInstance')
+    holder=next(i for i in body[start:at] if i['opcode']=='0xb2' and
+                ('/MobEffects.' in str(i['operand']) or '/ArphexModMobEffects.' in str(i['operand'])))
+    return holder['operand'],body[start]['offset'],holder['offset']
+
+
 def validate_batch(batch,review,census):
     assert batch['mod_key']==review['mod_key']==census['mod_key']
     native={(r['entry'],r['method'],r['descriptor']):r for r in census['methods']}
@@ -17,7 +28,7 @@ def validate_batch(batch,review,census):
         assert row['id'] not in ids,('existing semantic record must be reused',row['id'])
         ids.add(row['id'])
         assert row['actual_behavior'] and row['source_actor'] and row['native_boundary']
-        for proof in row['implementation']:
+        for proof in row['implementation']+row.get('shared_contracts',[]):
             _,w=index.witness(proof,row)
             for m in w['methods']:
                 if m['name'] in proof['methods']:
@@ -32,14 +43,31 @@ def validate_batch(batch,review,census):
             hit=next(i for i in m['instructions'] if i['offset']==consumer['offset'])
             assert hit['operand']==consumer['operand'],('detached native parameter',row['id'],candidate)
             assert hit['opcode']==consumer['opcode']
+            expected=dict(entry=consumer['entry'],method=consumer['methods'][0],
+                          descriptor=consumer['descriptor'],offset=consumer['offset'])
+            assert candidate['native_parameter_identity']==expected,('identity differs from consumer',candidate)
             scalar_sinks=('MobEffectInstance.<init>(','.hurt(','.heal(','.setHealth(',
                 '.addEffect(','.setDeltaMovement(','.setYRot(','.setXRot(',
                 '.makeStuckInBlock(','.putDouble(','.queueServerWork(','.inflate(',
-                'ItemCooldowns.addCooldown(')
+                'ItemCooldowns.addCooldown(','.teleportTo(')
             rng=(candidate['primitive'] in ('ATTACK_SELECTION','SUMMON_DELIVERY') and
                  'Mth.nextInt(' in str(hit['operand']))
             assert hit['opcode']=='0xb5' or rng or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
-            assert consumer['entry']==candidate['native_parameter_identity']['entry']
+            if candidate['primitive'].startswith('MOB_EFFECT_'):
+                symbol,allocation,load=effect_holder_binding(m,consumer['offset'])
+                assert (symbol,allocation,load)==(candidate['native_holder_symbol'],
+                    candidate['native_holder_allocation_offset'],candidate['native_holder_load_offset'])
+            seen={tuple(expected[k] for k in ('entry','method','descriptor','offset'))}
+            for site in candidate.get('additional_consumer_sites',[]):
+                identity=tuple(site[k] for k in ('entry','method','descriptor','offset'))
+                assert identity not in seen,('duplicate auxiliary site',identity)
+                seen.add(identity)
+                _,other=index.witness(dict(consumer,entry=site['entry'],methods=[site['method']]),row)
+                other_method=next(x for x in other['methods'] if x['name']==site['method'] and x['descriptor']==site['descriptor'])
+                other_hit=next(i for i in other_method['instructions'] if i['offset']==site['offset'])
+                assert other_hit['operand']==hit['operand'],('auxiliary site uses a different consumer',site)
+                if candidate['primitive'].startswith('MOB_EFFECT_'):
+                    assert effect_holder_binding(other_method,site['offset'])[0]==candidate['native_holder_symbol']
             for parameter in candidate['parameters']:
                 identity=tuple(candidate['native_parameter_identity'][k] for k in ('entry','method','descriptor','offset'))+(candidate['primitive'],parameter)
                 assert identity not in candidates,('same native parameter counted twice',identity)

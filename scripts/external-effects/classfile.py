@@ -17,7 +17,8 @@ class Reader:
     def u4(self): return int.from_bytes(self.take(4),'big')
 
 class ClassFile:
-    def __init__(self,data):
+    def __init__(self,data,retain_annotations=False):
+        self.retain_annotations=retain_annotations
         r=Reader(data)
         assert r.u4()==0xcafebabe
         self.minor=r.u2(); self.major=r.u2(); count=r.u2(); self.cp=[None]*count
@@ -56,8 +57,34 @@ class ClassFile:
                 if attr=='Code':
                     cr=Reader(data); item['max_stack']=cr.u2();item['max_locals']=cr.u2();item['code']=cr.take(cr.u4())
                 elif attr=='ConstantValue': item['constant']=self.resolve(int.from_bytes(data,'big'))
+            if self.retain_annotations:
+                item['annotations']=self.annotations(attrs)
             values.append(item)
         return values
+    def annotations(self,attrs):
+        """Decode explicit annotation values; do not invent annotation defaults."""
+        def element(r):
+            tag=chr(r.u1())
+            if tag in 'BCDFIJSZs':
+                value=self.resolve(r.u2())
+                return bool(value) if tag=='Z' else value
+            if tag=='e':return {'enum_type':self.resolve(r.u2()),'constant':self.resolve(r.u2())}
+            if tag=='c':return {'class':self.resolve(r.u2())}
+            if tag=='@':return annotation(r)
+            if tag=='[':return [element(r) for _ in range(r.u2())]
+            raise ValueError('Unknown annotation element tag '+tag)
+        def annotation(r):
+            descriptor=self.resolve(r.u2());values={}
+            for _ in range(r.u2()):
+                key=self.resolve(r.u2());values[key]=element(r)
+            return {'descriptor':descriptor,'values':values}
+        result=[]
+        for name,data in attrs:
+            if name not in ('RuntimeVisibleAnnotations','RuntimeInvisibleAnnotations'):continue
+            r=Reader(data)
+            result.extend(dict(annotation(r),visibility=name) for _ in range(r.u2()))
+            assert r.pos==len(data)
+        return result
     def references(self):
         return sorted({self.resolve(i) for i,x in enumerate(self.cp) if x and x[0] in (9,10,11)})
     def strings(self):

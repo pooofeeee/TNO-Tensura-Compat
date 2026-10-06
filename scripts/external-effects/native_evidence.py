@@ -17,8 +17,10 @@ def collect(document, jar_paths=None):
             witness=dict(id=specification['id'],mod_key=target['key'],jar_sha256=target['sha256'],
                          entry=entry,entry_sha256=byte_hash(data))
             if entry.endswith('.class'):
-                parsed=ClassFile(data)
+                annotated=specification.get('include_annotations',False)
+                parsed=ClassFile(data,retain_annotations=annotated)
                 witness.update(class_name=parsed.name,superclass=parsed.super,interfaces=parsed.interfaces,methods=[])
+                if annotated:witness['annotations']=parsed.annotations(parsed.attributes)
                 if specification.get('include_declared_methods'):
                     witness['declared_method_names']=sorted({m['name'] for m in parsed.methods})
                 for selection in specification['methods']:
@@ -38,6 +40,7 @@ def collect(document, jar_paths=None):
                             assert all(any(i['offset']==point for i in body) for span in ranges for point in span)
                         witness['methods'].append(dict(name=name,descriptor=m['descriptor'],
                             code_sha256=byte_hash(m.get('code',b'')),instructions=body,
+                            **({'annotations':m['annotations']} if annotated else {}),
                             **({'instruction_offset_ranges':ranges} if ranges else {})))
             elif entry.endswith('.json'):
                 witness['data']=json.loads(data)

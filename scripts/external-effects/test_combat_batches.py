@@ -86,7 +86,8 @@ class BatchTests(unittest.TestCase):
         review=read_json(OUT/'mod-reviews/arphex.json');ids={r['id'] for r in batch['effects']}
         review['effects']=[r for r in review['effects'] if r['id'] not in ids]
         review['paths']=[p for p in review['paths'] if not set(p['effect_ids'])&ids]
-        self.assertEqual(validate_batch(batch,review,self.census)['semantic_records'],21)
+        self.assertEqual(validate_batch(batch,review,self.census)['semantic_records'],
+                         len(review['effects'])+len(batch['effects']))
 
     def test_enemy_summon_else_is_unreachable_after_guaranteed_roll(self):
         w=next(w for w in self.evidence['witnesses'] if w['entry'].endswith('/TormentorPrimaryTargetOnEffectActiveTickProcedure.class'))
@@ -108,6 +109,46 @@ class BatchTests(unittest.TestCase):
                  if b['entry']==entry and 'StringConcatFactory.' in b['handle']]
         self.assertTrue(recipes)
         self.assertTrue(all(r.startswith('particle arphex:') for r in recipes))
+
+    def test_distinct_parameters_bind_distinct_argument_writes(self):
+        rows={r['id']:r for r in self.batch['effects']}
+        for rid,parameters,expected in (
+            ('arphex:moth_curse',('yaw_delta','pitch_delta'),('Entity.setYRot(','Entity.setXRot(')),
+            ('arphex:breathless',('moving_gain','rest_drain'),(1.0,3.0))):
+            consumers=[]
+            for parameter,want in zip(parameters,expected):
+                candidate=next(c for c in rows[rid]['scalable_parameter_candidates'] if parameter in c['parameters'])
+                self.assertEqual(candidate['parameters'],[parameter])
+                consumer=candidate['native_consumer'];consumers.append(consumer['offset'])
+                witness=next(w for w in self.evidence['witnesses'] if w['entry']==consumer['entry'])
+                body=next(m['instructions'] for m in witness['methods'] if m['name']==consumer['methods'][0] and m['descriptor']==consumer['descriptor'])
+                at=next(n for n,i in enumerate(body) if i['offset']==consumer['offset'])
+                if isinstance(want,str):self.assertIn(want,body[at]['operand'])
+                else:
+                    self.assertEqual(body[at-2]['operand'],want)
+                    self.assertEqual(body[at-1]['opcode'],'0x63' if parameter=='moving_gain' else '0x67')
+            self.assertEqual(len(set(consumers)),2)
+
+    def test_timer_profiles_do_not_claim_countdown_or_anchor_writes(self):
+        row=next(r for r in self.batch['effects'] if r['id']=='arphex:time_freeze')
+        c=next(c for c in row['scalable_parameter_candidates'] if c['primitive']=='CONTROL_CADENCE')
+        self.assertEqual(c['native_consumer']['offset'],695)
+        self.assertEqual([s['offset'] for s in c['additional_consumer_sites']],[713])
+        w=next(w for w in self.evidence['witnesses'] if w['entry']==c['native_consumer']['entry'])
+        body=next(m['instructions'] for m in w['methods'] if m['name']=='execute')
+        for offset,value in ((695,30.0),(713,20.0)):
+            at=next(n for n,i in enumerate(body) if i['offset']==offset)
+            self.assertEqual(body[at-3]['operand'],value)
+            self.assertEqual(body[at-1]['opcode'],'0x67') # reset value minus A
+
+    def test_reject_incorrect_effect_holder_and_duplicate_auxiliary_site(self):
+        for defect in ('holder','duplicate_site'):
+            batch=copy.deepcopy(self.batch)
+            c=next(c for r in batch['effects'] for c in r['scalable_parameter_candidates'] if c['primitive'].startswith('MOB_EFFECT_'))
+            if defect=='holder':c['native_holder_symbol']='invented holder'
+            else:c.setdefault('additional_consumer_sites',[]).append(copy.deepcopy(c['native_parameter_identity']))
+            with self.subTest(defect=defect),self.assertRaises(AssertionError):
+                validate_batch(batch,self.review,self.census)
 
 
 if __name__=='__main__':unittest.main()
