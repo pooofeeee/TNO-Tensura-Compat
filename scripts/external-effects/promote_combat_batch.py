@@ -34,8 +34,11 @@ def validate_batch(batch,review,census):
             assert hit['opcode']==consumer['opcode']
             scalar_sinks=('MobEffectInstance.<init>(','.hurt(','.heal(','.setHealth(',
                 '.addEffect(','.setDeltaMovement(','.setYRot(','.setXRot(',
-                '.makeStuckInBlock(','.putDouble(','.queueServerWork(','.inflate(')
-            assert hit['opcode']=='0xb5' or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
+                '.makeStuckInBlock(','.putDouble(','.queueServerWork(','.inflate(',
+                'ItemCooldowns.addCooldown(')
+            rng=(candidate['primitive'] in ('ATTACK_SELECTION','SUMMON_DELIVERY') and
+                 'Mth.nextInt(' in str(hit['operand']))
+            assert hit['opcode']=='0xb5' or rng or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
             assert consumer['entry']==candidate['native_parameter_identity']['entry']
             for parameter in candidate['parameters']:
                 identity=tuple(candidate['native_parameter_identity'][k] for k in ('entry','method','descriptor','offset'))+(candidate['primitive'],parameter)

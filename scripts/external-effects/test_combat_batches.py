@@ -18,7 +18,8 @@ class BatchTests(unittest.TestCase):
         cls.evidence=read_json(OUT/'native-evidence/arphex-status-core.json')
 
     def test_reviewed_batch_references_real_native_consumers(self):
-        self.assertEqual(validate_batch(self.batch,self.review,self.census)['semantic_records'],20)
+        self.assertEqual(validate_batch(self.batch,self.review,self.census)['semantic_records'],
+                         len(self.review['effects'])+len(self.batch['effects']))
 
     def test_reject_duplicate_native_parameter_identity(self):
         batch=copy.deepcopy(self.batch)
@@ -79,6 +80,34 @@ class BatchTests(unittest.TestCase):
         self.assertTrue(record['binary_parameters']['zero_axes_enter_else'])
         motion=next(c for c in record['components'] if c['primitive']=='FORCED_MOVEMENT')
         self.assertIn('abs(dx)',motion['parameter_formulas']['velocity_x']['else_including_zero_axes'])
+
+    def test_primary_target_batch_has_native_consumers(self):
+        batch=read_json(OUT/'arphex-r2m2b-primary-target.json')
+        review=read_json(OUT/'mod-reviews/arphex.json');ids={r['id'] for r in batch['effects']}
+        review['effects']=[r for r in review['effects'] if r['id'] not in ids]
+        review['paths']=[p for p in review['paths'] if not set(p['effect_ids'])&ids]
+        self.assertEqual(validate_batch(batch,review,self.census)['semantic_records'],21)
+
+    def test_enemy_summon_else_is_unreachable_after_guaranteed_roll(self):
+        w=next(w for w in self.evidence['witnesses'] if w['entry'].endswith('/TormentorPrimaryTargetOnEffectActiveTickProcedure.class'))
+        body=next(m['instructions'] for m in w['methods'] if m['name']=='execute')
+        at=next(n for n,i in enumerate(body) if i['offset']==2172)
+        self.assertEqual([i['operand'] for i in body[at-2:at]],[1,1])
+        self.assertIn('Mth.nextInt(',body[at]['operand'])
+        self.assertEqual(body[at+1]['operand'],1)
+        self.assertEqual(body[at+2]['opcode'],'0xa0') # if_icmpne: impossible for inclusive 1..1
+        self.assertEqual(body[at+2]['branch_target'],2681)
+
+    def test_enhanced_senses_commands_are_display_only(self):
+        entry='net/arphex/procedures/EnhancedSensesOnEffectActiveTickProcedure.class'
+        w=next(w for w in self.evidence['witnesses'] if w['entry']==entry)
+        calls=[str(i['operand']) for m in w['methods'] for i in m['instructions']]
+        for mutator in ('.hurt(','.addEffect(','.setTarget(','.setDeltaMovement(','.putDouble('):
+            self.assertFalse(any(mutator in call for call in calls))
+        recipes=[b['arguments'][0] for b in self.census['registration_bootstraps']
+                 if b['entry']==entry and 'StringConcatFactory.' in b['handle']]
+        self.assertTrue(recipes)
+        self.assertTrue(all(r.startswith('particle arphex:') for r in recipes))
 
 
 if __name__=='__main__':unittest.main()
