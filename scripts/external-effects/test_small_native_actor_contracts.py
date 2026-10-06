@@ -8,6 +8,91 @@ from test_shadow_clone_contracts import NativeContractHarness
 
 
 
+class NativeBossRootTests(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m5x-native-boss-root-carriers.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-native-boss-root-carriers.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def test_four_roots_reuse_protected_controller_and_incoming_methods(self):
+        validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual((len(self.batch['effects']),len(self.batch['closed_actor_callback_entries'])),(4,4))
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects'] for c in r['scalable_parameter_candidates']),17)
+        self.assertEqual((len(self.native['witnesses']),sum(len(w['methods']) for w in self.native['witnesses'])),(29,188))
+        for w in self.native['witnesses']:
+            if w['entry'].endswith('Entity.class'):
+                self.assertNotIn('baseTick',{m['name'] for m in w['methods']})
+        sc=next(w for w in self.native['witnesses'] if w['entry'].endswith('/ScorpioidBloodlusterEntity.class'))
+        self.assertFalse({'hurt','getDefaultDimensions'} & {m['name'] for m in sc['methods']})
+        for suffix in ('arachnoid','diabolos'):
+            r=self.row(suffix+'_native_root_melee_spawn_and_defeated_status')
+            self.assertEqual(r['primary_classification'],'CUSTOM_CONTROL')
+            self.assertIn('arphex:moth_curse',r['canonical_contract_reuse'])
+
+    def test_kill_helpers_receive_defeated_local_one_and_not_killer(self):
+        for a,n in [('ArachnoidTrisectorEntity','ArachnoidKillsEntityProcedure'),('DiabolosDecimatorEntity','DiabolosKillsEntityProcedure'),('ScorpioidBloodlusterEntity','ScorpioidKillProcedure')]:
+            b=self.body(a,'awardKillScore');j=next(j for j,i in enumerate(b) if n+'.execute(' in str(i['operand']))
+            self.assertEqual(b[j-1]['opcode'],'0x2b')
+        for n in ('ArachnoidKillsEntityProcedure','DiabolosKillsEntityProcedure'):
+            b=self.body(n);j=next(j for j,i in enumerate(b) if '.addEffect(' in str(i['operand']))
+            self.assertEqual(b[j-3]['operand'],60);self.assertEqual(b[j-2]['operand'],1)
+            self.assertTrue(any('MobEffects.REGENERATION' in str(i['operand']) for i in b[:j]))
+
+    def test_spawn_custom_moth_curse_recipient_is_self_for_each_player(self):
+        from promote_combat_batch import effect_receiver_binding
+        for n,amp in [('ArachnoidTrisectorOnInitialEntitySpawnProcedure',3),('DiabolosSpawnProcedure',4)]:
+            w=next(w for w in self.native['witnesses'] if w['entry'].endswith('/'+n+'.class'));m=next(m for m in w['methods'] if m['name']=='execute');b=m['instructions'];j=next(j for j,i in enumerate(b) if i['offset']==157)
+            self.assertEqual((b[j-3]['operand'],b[j-2]['operand']),(200,amp))
+            binding=effect_receiver_binding(m,b[j-1]['offset'])
+            self.assertEqual(binding['origin_local_index'],7)
+            self.assertTrue(any('.setVisualOnly(' in str(i['operand']) for i in b))
+
+    def test_diabolos_two_melee_goals_share_one_damage_attribute(self):
+        b=self.body('DiabolosDecimatorEntity','registerGoals')
+        self.assertTrue(any('DiabolosDecimatorEntity$1.<init>' in str(i['operand']) for i in b))
+        self.assertTrue(any('DiabolosDecimatorEntity$2.<init>' in str(i['operand']) for i in b))
+        for suffix,limit in [('$1',225.0),('$2',64.0)]:
+            b=self.body('DiabolosDecimatorEntity'+suffix,'canPerformAttack')
+            self.assertTrue(any(i['operand']==limit for i in b))
+            self.assertTrue(any('.hasLineOfSight(' in str(i['operand']) for i in b))
+        for name in ('canUse','canContinueToUse'):
+            self.assertTrue(any('GiantModeDiabolosProcedure.execute(' in str(i['operand']) for i in self.body('DiabolosDecimatorEntity$1',name)))
+        cs=self.row('diabolos_native_root_melee_spawn_and_defeated_status')['scalable_parameter_candidates']
+        self.assertEqual(sum(c['primitive']=='NATIVE_CONDITIONAL_MELEE' for c in cs),1)
+
+    def test_scorpioid_abort_delivery_checks_current_immunity_without_spawn_recheck(self):
+        for name in ('lambda$execute$5','lambda$execute$9'):
+            b=self.body('ScorpioidBloodlusterOnInitialEntitySpawnProcedure',name)
+            self.assertTrue(any('DESPAWN_IMMUNITY' in str(i['operand']) for i in b))
+            self.assertTrue(any('.discard(' in str(i['operand']) for i in b))
+            self.assertFalse(any('.getEntitiesOfClass(' in str(i['operand']) or '.isAlive(' in str(i['operand']) for i in b))
+        b=self.body('ScorpioidBloodlusterOnInitialEntitySpawnProcedure')
+        self.assertEqual([i['offset'] for i in b if '.queueServerWork(' in str(i['operand'])],[150,372,560])
+        self.assertTrue(any(i['operand']=='spawnedawayfromplayer' for i in b))
+
+    def test_wasp_initial_flight_distribution_is_distinct_from_tick_reset(self):
+        b=self.body('WaspNemesisOnInitialEntitySpawnProcedure');j=next(j for j,i in enumerate(b) if '.nextInt(' in str(i['operand']))
+        self.assertEqual((b[j-2]['operand'],b[j-1]['operand']),(600,1200))
+        self.assertTrue(any(i['operand']=='eagletickslow' for i in b))
+        self.assertFalse(any('.setPersistenceRequired(' in str(i['operand']) or 'FlyingMoveControl' in str(i['operand']) for i in self.body('WaspNemesisEntity','<init>')))
+
+    def test_native_death_protection_is_item_bound_not_boss_attack(self):
+        for n,item in [('TrisectorDiesProcedure','TIME_PRISM'),('DiabolosDiesProcedure','ENTROPY_MATRIX'),('ScorpioidBloodlusterEntityDiesProcedure','FIRE_OPAL')]:
+            b=self.body(n,'lambda$execute$2')
+            self.assertTrue(any('ArphexModItems.'+item in str(i['operand']) for i in b))
+            self.assertTrue(any(i['operand']=='data merge entity @s {Glowing:1b,Invulnerable:1b}' for i in b))
+            self.assertFalse(any('.hurt(' in str(i['operand']) or '.setOwner(' in str(i['operand']) for i in b))
+
+    def test_ai_facing_repetitions_do_not_duplicate_native_attacks(self):
+        for a in ('ArachnoidTrisectorEntity','DiabolosDecimatorEntity'):
+            b=self.body(a,'aiStep')
+            self.assertEqual(sum('.updateSwingTime(' in str(i['operand']) for i in b),8)
+            self.assertFalse(any('.hurt(' in str(i['operand']) or '.doHurtTarget(' in str(i['operand']) for i in b))
+            scale=next(i['operand'] for i in self.body(a,'getDefaultDimensions') if i['opcode']=='0x13')
+            self.assertAlmostEqual(scale,1.49,places=6)
+
+
 class NativeTormentorRootTests(NativeContractHarness, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
