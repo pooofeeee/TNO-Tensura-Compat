@@ -5,6 +5,106 @@ from promote_combat_batch import validate_batch
 from test_shadow_clone_contracts import NativeContractHarness
 
 
+class CentipedeNativeTests(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m5o-centipede-native-contracts.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-centipede-native-families.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def test_exact_shared_consumers_and_four_roots(self):
+        validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual((len(self.batch['effects']),len(self.batch['closed_actor_callback_entries'])),(3,4))
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects']
+                             for c in r['scalable_parameter_candidates']),59)
+        self.assertEqual((len(self.native['witnesses']),sum(len(w['methods']) for w in self.native['witnesses'])),(34,197))
+        for a in ('CentipedeEvictorEntity','CentipedeEvictorLarvaeEntity'):
+            self.assertEqual(sum('CentipedeEvictorOnEntityTickUpdateProcedure.execute(' in str(i['operand'])
+                                 for i in self.body(a,'baseTick')),1)
+
+    def test_evictor_incoming_sideeffects_precede_native_rejection(self):
+        b=self.body('CentipedeEvictorEntity','hurt')
+        causing=next(i['offset'] for i in b if '.getEntity()' in str(i['operand']))
+        helper=next(i['offset'] for i in b if 'EntityIsHurtProcedure.execute(' in str(i['operand']))
+        direct=next(i['offset'] for i in b if '.getDirectEntity()' in str(i['operand']))
+        self.assertLess(causing,helper);self.assertLess(helper,direct)
+        b=self.body('CentipedeEvictorEntityIsHurtProcedure')
+        self.assertEqual([i['offset'] for i in b if 'EntityType.spawn(' in str(i['operand'])],[157])
+        self.assertFalse(any('.hurt(' in str(i['operand']) or '.setOwner(' in str(i['operand']) for i in b))
+
+    def test_big_missing_regen_gate_contains_stepheight(self):
+        b=self.body('CentipedeEvictorOnEntityTickUpdateProcedure');by={i['offset']:i for i in b}
+        self.assertIn('.hasEffect(',by[2212]['operand'])
+        self.assertEqual((by[2215]['opcode'],by[2215]['branch_target']),('0x9a',2358))
+        self.assertTrue(2215<2308<2358)
+        self.assertEqual(by[2305]['operand'],2.)
+        self.assertEqual([i['offset'] for i in b if '.setBaseValue(' in str(i['operand'])],[2308])
+
+    def test_player_range_is_target_type_not_distance(self):
+        b=self.body('PlayerRangeProcedure')
+        self.assertTrue(any(i['opcode']=='0xc1' and i['operand']=='net/minecraft/world/entity/player/Player' for i in b))
+        self.assertFalse(any('distance' in str(i['operand']) for i in b))
+        self.assertTrue(any('PlayerRangeProcedure.execute(' in str(i['operand']) for i in self.body('CentipedeEvictorEntity$1','canUse')))
+        self.assertFalse(any('PlayerRangeProcedure.execute(' in str(i['operand']) for i in self.body('CentipedeEvictorEntity$2','canPerformAttack')))
+
+    def test_larva_shiny_guard_keeps_parent_spider_goals(self):
+        b=self.body('CentipedeEvictorLarvaeEntity','registerGoals')
+        self.assertEqual(b[1]['operand'],'net/minecraft/world/entity/monster/Spider.registerGoals()V')
+        for a in ('CentipedeEvictorLarvaeEntity$1','CentipedeEvictorLarvaeEntity$2'):
+            self.assertTrue(any('NotShinyProcedure.execute(' in str(i['operand']) for i in self.body(a,'canUse')))
+        b=self.body('NotShinyProcedure')
+        self.assertTrue(any('DATA_shinier' in str(i['operand']) for i in b))
+        b=self.body('CentipedeEvictorLarvaeEntityIsHurtProcedure')
+        self.assertTrue(any(i['operand']=='stronger' for i in b))
+        self.assertFalse(any('DATA_stronger' in str(i['operand']) for i in b))
+
+    def test_death_summon_delayed_and_lightning_visual_only(self):
+        b=self.body('CentipedeEvictorLarvaeEntityDiesProcedure')
+        self.assertTrue(any('DATA_stronger' in str(i['operand']) for i in b))
+        j=next(j for j,i in enumerate(b) if '.setVisualOnly(' in str(i['operand']))
+        self.assertEqual(b[j-1]['operand'],1)
+        self.assertFalse(any('EntityType.spawn(' in str(i['operand']) for i in b))
+        b=self.body('CentipedeEvictorLarvaeEntityDiesProcedure','lambda$execute$7')
+        self.assertTrue(any('ArphexModEntities.CENTIPEDE_EVICTOR' in str(i['operand']) for i in b))
+        self.assertFalse(any(x in str(i['operand']) for i in b for x in ('.getArmorValue(','.canOcclude(','.isAlive(','.setOwner(')))
+
+    def test_stalker_duplicate_stepwrites_and_facing_not_duplicate_scalars(self):
+        b=self.body('CentipedeStalkerOnEntityTickUpdateProcedure')
+        self.assertEqual([i['offset'] for i in b if '.setBaseValue(' in str(i['operand'])],[609,1438])
+        cs=self.row('centipede_stalker_native_silk_vertical_control_and_ai_commands')['scalable_parameter_candidates']
+        self.assertEqual(sum(c['primitive']=='NATIVE_STEP_HEIGHT' for c in cs),1)
+        b=self.body('CentipedeStalkerEntity','aiStep')
+        self.assertEqual(sum('.updateSwingTime(' in str(i['operand']) for i in b),8)
+        self.assertFalse(any('.doHurtTarget(' in str(i['operand']) for i in b))
+
+    def test_stalker_delayed_noai_can_outlive_admission(self):
+        b=self.body('CentipedeStalkerOnEntityTickUpdateProcedure');by={i['offset']:i for i in b}
+        self.assertEqual((by[1607]['operand'],by[1619]['branch_target']),(10,1728))
+        self.assertEqual(by[1722]['operand'],'data merge entity @s {NoAI:0}')
+        b=self.body('CentipedeStalkerOnEntityTickUpdateProcedure','lambda$execute$13')
+        self.assertTrue(any(i['operand']=='data merge entity @s {NoAI:1}' for i in b))
+        self.assertFalse(any(x in str(i['operand']) for i in b for x in ('.hasEffect(','.isAlive(','.isEmptyBlock(')))
+
+    def test_breacher_contact_and_melee_share_one_attribute(self):
+        b=self.body('TinyCentipedeBreacherEntity$1','tick')
+        self.assertTrue(any('AABB.intersects(' in str(i['operand']) for i in b))
+        j=next(j for j,i in enumerate(b) if '.doHurtTarget(' in str(i['operand']))
+        self.assertEqual(b[j+1]['opcode'],'0x57')
+        self.assertFalse(any(x in str(i['operand']) for i in b for x in ('isTimeToAttack','hasLineOfSight')))
+        b=self.body('TinyCentipedeBreacherEntity$2','canPerformAttack')
+        self.assertTrue(any('isTimeToAttack(' in str(i['operand']) for i in b))
+        cs=self.row('tiny_centipede_breacher_native_contact_target_and_lifecycle')['scalable_parameter_candidates']
+        self.assertEqual(sum(c['primitive']=='NATIVE_CONTACT_AND_CONDITIONAL_MELEE' for c in cs),1)
+
+    def test_breacher_nearest_command_is_not_owner_or_actor_link(self):
+        b=self.body('TinyCentipedeBreacherOnEntityTickUpdateProcedure')
+        commands=[i['operand'] for i in b if isinstance(i['operand'],str) and i['operand'].startswith('execute as @e')]
+        self.assertEqual(len(commands),2)
+        self.assertTrue(all('limit=1,sort=nearest' in s for s in commands))
+        self.assertTrue(any(i['operand']=='arphex' for i in b))
+        self.assertFalse(any(i['operand']=='arphexclimber' or '.setOwner(' in str(i['operand']) for i in b))
+
+
 class ButterflyBulwarkNativeTests(NativeContractHarness, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
