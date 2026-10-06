@@ -1050,6 +1050,109 @@ class NativeStaffLauncherContracts(NativeContractHarness, unittest.TestCase):
         self.assertTrue(any('arphex:vortex_vanguard_owner_free_spin_delivery' in r.get('canonical_contract_reuse',[]) for r in self.batch['effects']))
 
 
+class NativePassiveUtilityContracts(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch = read_json(OUT / 'arphex-r2m6j-native-passive-utility-contracts.json')
+        cls.native = read_json(OUT / 'native-evidence/arphex-residual-native-summoner-utility.json')
+        cls.census = read_json(OUT / 'arphex-combat-census.json')
+
+    def test_bounded_scope_keeps_captured_control_callbacks_pending(self):
+        validate_batch(self.batch, self.prior(), self.census)
+        self.assertEqual((len(self.batch['effects']), len(self.batch['closed_item_callback_entries'])), (9, 14))
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects']
+                             for c in r['scalable_parameter_candidates']), 42)
+        self.assertEqual((len(self.native['witnesses']), sum(len(w['methods'])
+                         for w in self.native['witnesses'])), (69, 379))
+        pending = self.batch['captured_but_unreviewed_entries']
+        for name in ('AntCommanderItem', 'TormentorSummonerItem', 'VitalityViewfinderItem',
+                     'CrawlingContainerItem', 'ScorchChargeItem'):
+            self.assertTrue(any(e.endswith('/' + name + '.class') for e in pending))
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_core_selected_forwarding_and_ordered_native_payload(self):
+        root = self.body('CoreOfEternalSufferingItem', 'inventoryTick')
+        call = next(j for j, i in enumerate(root) if 'CoreOfEternalSufferingItemInInventoryTickProcedure.execute(' in str(i['operand']))
+        self.assertTrue(any(i['opcode'] == '0x99' for i in root[:call]))
+        b = self.body('CoreOfEternalSufferingItemInInventoryTickProcedure')
+        requests = [(i['offset'], i['operand']) for i in b if '.igniteForSeconds(' in str(i['operand'])
+                    or 'MobEffectInstance.<init>(' in str(i['operand'])]
+        self.assertEqual([o for o, _ in requests], [147, 190, 237, 284, 331, 378])
+        holders = [i['operand'] for i in b if 'MobEffects.' in str(i['operand']) and i['opcode'] == '0xb2']
+        self.assertEqual([x.split('.')[-1].split('Lnet/')[0] for x in holders],
+                         ['WITHER', 'BLINDNESS', 'NECROSIS', 'INVISIBILITY', 'MOTH_CURSE'])
+        for j, i in enumerate(b):
+            if '.addEffect(' in str(i['operand']):
+                self.assertEqual(b[j+1]['opcode'], '0x57')
+
+    def test_mantle_removal_is_ordered_and_has_no_immunity_or_heal(self):
+        b = self.body('MantleOfVitalityItemInInventoryTickProcedure')
+        holders = [i['operand'] for i in b if i['opcode'] == '0xb2' and 'MobEffects.' in str(i['operand'])]
+        self.assertEqual([x.split('.')[-1].split('Lnet/')[0] for x in holders], ['WITHER', 'POISON', 'NECROSIS'])
+        self.assertEqual(sum('.removeEffect(' in str(i['operand']) for i in b), 3)
+        self.assertFalse(any('.addEffect(' in str(i['operand']) or '.heal(' in str(i['operand']) for i in b))
+        self.assertFalse(self.row('mantle_and_native_satchel_status_removal')['scalable_parameter_candidates'])
+
+    def test_bane_command_arguments_bind_to_native_literal_and_reject_false_values(self):
+        from promote_combat_batch import literal_effect_command_arguments
+        m = dict(instructions=self.body('BaneOfTheDarknessItemInInventoryTickProcedure'))
+        args = literal_effect_command_arguments(m, 116)
+        self.assertEqual((args['selector_distance_max'], args['duration_seconds'], args['amplifier']), (30., 1, 1))
+        for parameter in ('radius', 'duration_seconds', 'amplifier'):
+            batch = copy.deepcopy(self.batch)
+            row = next(r for r in batch['effects'] if r['id'].endswith(':bane_and_native_satchel_darkness_removal_and_status_delivery'))
+            component = next(c for c in row['components'] if c['primitive'] == 'NATIVE_STATUS_COMMAND')
+            component['numerical_parameters'][parameter] += 1
+            with self.assertRaisesRegex(AssertionError, 'component differs from native command arguments'):
+                validate_batch(batch, self.prior(), self.census)
+        bad = copy.deepcopy(m)
+        next(i for i in bad['instructions'] if i['offset'] == 114)['opcode'] = '0xba'
+        with self.assertRaises(AssertionError):
+            literal_effect_command_arguments(bad, 116)
+
+    def test_satchel_consumes_distinct_slots_and_native_boolean_lens_read(self):
+        b = self.body('ProwlerPackItemInInventoryTickProcedure')
+        self.assertTrue(any(i['operand'] == 90 for i in b))
+        self.assertTrue(any(i['operand'] == 91 for i in b))
+        self.assertEqual(sum(i['operand'] == 92 for i in b), 2)
+        j = next(j for j, i in enumerate(b) if i['operand'] == 'lensmode')
+        self.assertIn('CompoundTag.getBoolean(', b[j+1]['operand'])
+        self.assertFalse(any('.hurt(' in str(i['operand']) for i in b))
+        motion = next(j for j, i in enumerate(b) if '.setDeltaMovement(' in str(i['operand']))
+        self.assertTrue(any(i['opcode'] == '0xc1' and i['operand'].endswith('/ItemEntity') for i in b[:motion]))
+
+    def test_spray_has_three_combat_rays_and_hurt_result_does_not_gate_slowness(self):
+        b = self.body('BugSprayRightclickedProcedure')
+        scales = [b[j-1]['operand'] for j, i in enumerate(b) if '.scale(' in str(i['operand'])]
+        self.assertEqual(scales, [2., 2., 2., 3., 3., 3.])
+        j = next(j for j, i in enumerate(b) if i['offset'] == 528)
+        self.assertEqual(b[j+1]['opcode'], '0x57')
+        self.assertTrue(any('DamageSource.<init>(Lnet/minecraft/core/Holder;)V' in str(i['operand']) for i in b))
+        row = self.row('bug_spray_native_arthropod_area_damage_and_slowness')
+        ranges = next(c for c in row['components'] if c['primitive'] == 'NATIVE_RAY_DELIVERY')
+        self.assertEqual(set(ranges['numerical_parameters'].values()), {3.})
+
+    def test_parachute_absolute_y_and_inventory_status_have_separate_gates(self):
+        b = self.body('ProwlerParachuteRightclickedProcedure')
+        self.assertTrue(any('.isOnCooldown(' in str(i['operand']) for i in b))
+        self.assertTrue(any(i['operand'] == .6 for i in b))
+        self.assertFalse(any('.onGround(' in str(i['operand']) or '.isPassenger(' in str(i['operand']) for i in b))
+        held = self.body('ProwlerParachuteItemInHandTickProcedure')
+        self.assertFalse(any('.isOnCooldown(' in str(i['operand']) for i in held))
+        self.assertEqual(sum('.addEffect(' in str(i['operand']) for i in held), 2)
+
+    def test_cooldown_override_has_no_creative_gate_and_uses_replacement_not_removal(self):
+        b = self.body('CreativeCooldownResetRightclickedProcedure')
+        calls = [i for i in b if '.addCooldown(' in str(i['operand'])]
+        self.assertEqual(len(calls), 5)
+        self.assertFalse(any('.removeCooldown(' in str(i['operand']) or 'GameType' in str(i['operand'])
+                             or '.isCreative(' in str(i['operand']) for i in b))
+        for j, i in enumerate(b):
+            if '.addCooldown(' in str(i['operand']):
+                self.assertEqual(b[j-1]['operand'], 1)
+        self.assertTrue(any('PlayerVariables.inherent_power_cooldown' in str(i['operand']) for i in b))
+
+
 class NativeSpatialItemContracts(NativeContractHarness, unittest.TestCase):
     @classmethod
     def setUpClass(cls):

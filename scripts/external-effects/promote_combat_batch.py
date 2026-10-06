@@ -475,6 +475,25 @@ def literal_tag_double_binding(method, offset):
     return dict(key=key['operand'],key_offset=key['offset'],value=value['operand'],value_offset=value['offset'])
 
 
+def literal_effect_command_arguments(method, offset):
+    """Read an explicit effect-give literal; do not infer dynamic commands."""
+    command = literal_command_binding(method, offset)['command']
+    match = re.fullmatch(r'effect give (\S+) ([a-z0-9_:.]+) ([0-9]+) ([0-9]+)(?: (true|false))?', command)
+    assert match, ('not an explicit literal effect-give command', offset)
+    selector, effect, duration, amplifier, hidden = match.groups()
+    result = dict(effect=effect, duration_seconds=int(duration), amplifier=int(amplifier),
+                  hide_particles=hidden == 'true')
+    if selector.startswith('@e[') and selector.endswith(']'):
+        distances = [v.split('=', 1)[1] for v in selector[3:-1].split(',')
+                     if v.startswith('distance=')]
+        if distances:
+            assert len(distances) == 1
+            radius = re.fullmatch(r'\.\.([0-9]+(?:\.[0-9]+)?)', distances[0])
+            assert radius, ('unsupported literal distance bound', selector)
+            result['selector_distance_max'] = float(radius.group(1))
+    return result
+
+
 def refined_review(review,batch):
     """Apply explicit additive contracts to their existing mechanic identity."""
     result=deepcopy(review);by_id={r['id']:r for r in result['effects']};seen=set()
@@ -619,6 +638,15 @@ def validate_batch(batch,review,census):
             command='native_command_binding' in candidate
             if command:
                 assert literal_command_binding(m,consumer['offset'])==candidate['native_command_binding'],('wrong native literal command',candidate)
+                roles = candidate.get('native_literal_command_argument_roles')
+                if roles:
+                    assert candidate['primitive'] == 'NATIVE_STATUS_COMMAND'
+                    assert set(roles) == set(candidate['parameters'])
+                    arguments = literal_effect_command_arguments(m, consumer['offset'])
+                    component = next(c for c in row['components'] if c['primitive'] == candidate['primitive'])
+                    assert all(role in ('selector_distance_max', 'duration_seconds', 'amplifier')
+                               and component['numerical_parameters'][parameter] == arguments[role]
+                               for parameter, role in roles.items()), ('component differs from native command arguments', candidate)
             tag_literal='native_tag_double_binding' in candidate
             if tag_literal:
                 assert literal_tag_double_binding(m,consumer['offset'])==candidate['native_tag_double_binding'],('wrong native raw-state literal',candidate)
