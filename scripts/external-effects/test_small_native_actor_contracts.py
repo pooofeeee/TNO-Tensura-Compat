@@ -6,6 +6,125 @@ from promote_combat_batch import validate_batch
 from test_shadow_clone_contracts import NativeContractHarness
 
 
+class NativeMothCarrierTests(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m5t-native-moth-hitbox-contracts.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-moth-native-families.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def test_four_roots_and_unique_consumers_reuse_existing_payloads(self):
+        validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual((len(self.batch['effects']),len(self.batch['closed_actor_callback_entries'])),(4,4))
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects'] for c in r['scalable_parameter_candidates']),134)
+        self.assertEqual((len(self.native['witnesses']),sum(len(w['methods']) for w in self.native['witnesses'])),(56,357))
+        self.assertFalse(any(w['entry'].endswith('/DraconicTickProcedure.class') or
+                             w['entry'].endswith('/BloodProjectileEntity.class') for w in self.native['witnesses']))
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_native_kill_score_helpers_receive_victim_not_killer(self):
+        for actor in ('SpiderMothEntity','SpiderMothDwellerEntity'):
+            b=self.body(actor,'awardKillScore')
+            j=next(j for j,i in enumerate(b) if 'KillsAnother' in str(i['operand']))
+            self.assertEqual(b[j-1]['opcode'],'0x2b')  # parameter local1, not SELF local0
+            self.assertTrue(any('Monster.awardKillScore(' in str(i['operand']) for i in b[:j]))
+        b=self.body('SpiderMothLarvaeEntity','awardKillScore')
+        j=next(j for j,i in enumerate(b) if 'KillsAnother' in str(i['operand']))
+        self.assertEqual([i['opcode'] for i in b[j-2:j]],['0x2b','0x2a'])
+        b=self.body('SpiderMothLarvaeThisEntityKillsAnotherOneProcedure')
+        self.assertTrue(any(i['opcode']=='0xc1' and i['operand']=='net/minecraft/world/entity/player/Player' for i in b))
+        j=next(j for j,i in enumerate(b) if '.discard(' in str(i['operand']))
+        self.assertEqual(b[j-1]['opcode'],'0x2b')  # sourceentity/killer helper parameter1
+
+    def test_native_melee_and_ranged_delivery_are_distinct(self):
+        for name,value in [('SpiderMothEntity$1',5.76),('SpiderMothDwellerEntity$1',16.)]:
+            b=self.body(name,'canPerformAttack')
+            self.assertEqual([i['operand'] for i in b if i['opcode']=='0x14'],[value])
+            self.assertTrue(any('.isTimeToAttack(' in str(i['operand']) for i in b))
+        b=self.body('SpiderMothLarvaeEntity','performRangedAttack')
+        self.assertTrue(any('BloodProjectileEntity.shoot(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/entity/LivingEntity;)' in str(i['operand']) for i in b))
+        r=self.row('moth_larva_native_parent_target_contact_and_kill_lifecycle')
+        self.assertEqual([c['primitive'] for c in r['scalable_parameter_candidates']],['NATIVE_CONDITIONAL_MELEE'])
+        self.assertIn('arphex:blood_arrow_intrinsic_combat',r['canonical_contract_reuse'])
+
+    def test_hurt_callback_uses_fresh_holder_only_sources_before_filters(self):
+        b=self.body('SpiderMothEntity','hurt')
+        helper=next(i['offset'] for i in b if 'SpiderMothDwellerEntityIsHurtProcedure.execute(' in str(i['operand']))
+        exclusion=next(i['offset'] for i in b if '/DamageTypes.IN_FIRE' in str(i['operand']))
+        self.assertLess(helper,exclusion)
+        b=self.body('SpiderMothDwellerEntityIsHurtProcedure')
+        self.assertEqual(sum('.isDirect()Z' in str(i['operand']) for i in b),2)
+        self.assertEqual(sum('DamageSource.<init>(Lnet/minecraft/core/Holder;)V' in str(i['operand']) for i in b),2)
+        self.assertFalse(any('.hurt(' in str(i['operand']) for i in b))
+
+    def test_raw_and_synched_grow_flags_are_independent_native_stores(self):
+        b=self.body('SpiderMothDwellerEntityIsHurtProcedure')
+        self.assertTrue(any(i['operand']=='growattack' for i in b))
+        q=self.body('SpiderMothDwellerEntityIsHurtProcedure','lambda$execute$13')
+        self.assertTrue(any('SpiderMothEntity.DATA_growattack' in str(i['operand']) for i in q))
+        self.assertFalse(any(i['operand']=='growattack' for i in q))
+        q=self.body('SpiderMothDwellerEntityIsHurtProcedure','lambda$execute$16')
+        self.assertTrue(any('SpiderMothEntity.DATA_growattack' in str(i['operand']) for i in q))
+        b=self.body('SpiderMothTickProcedure')
+        self.assertTrue(any(i['operand']=='growattack' for i in b))
+        self.assertTrue(any('SpiderMothEntity.DATA_growattack' in str(i['operand']) for i in b))
+
+    def test_flight_delays_use_cached_native_time_but_delivery_checks_current_effect(self):
+        b=self.body('SpiderMothDwellerEntityIsHurtProcedure');by={i['offset']:i for i in b}
+        self.assertEqual([by[off]['operand'] for off in (848,851,929,955,981,1007)],[200,600,4.,2.,100.,20.])
+        for name in ('lambda$execute$5','lambda$execute$6','lambda$execute$7',
+                     'lambda$execute$8','lambda$execute$9','lambda$execute$10','lambda$execute$11'):
+            q=self.body('SpiderMothDwellerEntityIsHurtProcedure',name)
+            self.assertTrue(any('ArphexModMobEffects.FORCE_POWER' in str(i['operand']) for i in q))
+            self.assertTrue(any('.hasEffect(' in str(i['operand']) for i in q))
+        r=self.row('moth_native_stare_flight_counterattack_setup_and_control')
+        fly=next(c for c in r['components'] if c['primitive']=='FORCE_POWER_FLYTIME')
+        self.assertEqual(fly['numerical_parameters'],{'minimum':200,'maximum':600})
+
+    def test_moth_command_selectors_do_not_imply_callback_actor_or_query_recipient(self):
+        b=self.body('SpiderMothTickProcedure')
+        commands=[i['operand'] for i in b if isinstance(i['operand'],str)]
+        self.assertIn('attribute @e[type=arphex:spider_moth,limit=1] minecraft:generic.attack_knockback base set 500',commands)
+        self.assertIn('effect give @p darkness 8 1 true',commands)
+        self.assertIn('effect give @p[gamemode=survival] darkness 5 0',commands)
+        self.assertIn('effect give @p[gamemode=survival,distance=..2] darkness 1 0',commands)
+        self.assertIn('execute as @e[type=arphex:spider_moth,limit=1,sort=nearest] run data merge entity @s {Invulnerable:1}',commands)
+        self.assertFalse(any('.hurt(' in str(i['operand']) for i in b))
+
+    def test_moth_spawn_has_no_local_spawnedaway_writer(self):
+        b=self.body('SpiderMothDwellerOnInitialEntitySpawnProcedure')
+        self.assertFalse(any(i['operand']=='spawnedawayfromplayer' for i in b))
+        self.assertTrue(any(i['operand']=='minimumlifetime' for i in b))
+        b=self.body('SpiderMothTickProcedure')
+        self.assertTrue(any(i['operand']=='spawnedawayfromplayer' for i in b))
+        self.assertTrue(any('PlayerVariables.mothsurvivalsD' in str(i['operand']) for i in b))
+        self.assertTrue(any(i['operand']=='mothsurvivals' for i in b))
+
+    def test_voidlasher_spawn_immunity_delivery_does_not_clear_native_despawning_flag(self):
+        b=self.body('VoidlasherSpawnProcedure')
+        self.assertEqual(sum(i['operand']=='despawning' for i in b),3)
+        w=next(w for w in self.native['witnesses'] if w['entry'].endswith('/VoidlasherSpawnProcedure.class'))
+        q=[m for m in w['methods'] if any('.discard(' in str(i['operand']) for i in m['instructions'])]
+        self.assertEqual(len(q),3)
+        for m in q:
+            self.assertTrue(any('ArphexModMobEffects.DESPAWN_IMMUNITY' in str(i['operand']) for i in m['instructions']))
+            self.assertFalse(any(i['operand']=='despawning' for i in m['instructions']))
+        r=self.row('voidlasher_native_root_spawn_status_and_victim_regen')
+        self.assertIn('arphex:draconic_native_teleport_and_lifecycle',r['canonical_contract_reuse'])
+
+    def test_hitbox_copies_vehicle_health_without_creating_authored_health_scalar(self):
+        b=self.body('ExpandHitboxProcedure')
+        self.assertTrue(any('.getVehicle(' in str(i['operand']) for i in b))
+        self.assertTrue(any(i['offset']==74 and '.setHealth(F)V' in str(i['operand']) for i in b))
+        self.assertFalse(any('.heal(' in str(i['operand']) or '.hurt(' in str(i['operand']) for i in b))
+        self.assertFalse(any('.setOwner(' in str(i['operand']) for i in b))
+        r=self.row('moth_hitbox_native_rider_health_mirror_and_admission')
+        self.assertEqual({c['primitive'] for c in r['scalable_parameter_candidates']},
+                         {'MOB_EFFECT_UNMOUNTED_MOTH_INVISIBILITY','DELAYED_UNMOUNTED_REMOVAL'})
+        j=next(j for j,i in enumerate(b) if '.startRiding(' in str(i['operand']))
+        self.assertEqual(b[j+1]['opcode'],'0x57')
+
+
 class NativeMatriarchHallucinationTests(NativeContractHarness, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
