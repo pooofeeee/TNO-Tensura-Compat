@@ -6,6 +6,135 @@ from promote_combat_batch import validate_batch
 from test_shadow_clone_contracts import NativeContractHarness
 
 
+class NativeSpiderControlTests(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m5r-native-spider-control-contracts.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-spider-control-native-families.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def test_unique_consumers_and_eight_closed_roots(self):
+        validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual((len(self.batch['effects']),len(self.batch['closed_actor_callback_entries'])),(7,8))
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects'] for c in r['scalable_parameter_candidates']),159)
+        self.assertEqual((len(self.native['witnesses']),sum(len(w['methods']) for w in self.native['witnesses'])),(68,342))
+
+    def test_native_melee_ranges_preserve_actor_distinctions(self):
+        expected={'SpiderAmbusherEntity$3':5.76,'SpiderGoliathEntity$1':5.76,
+                  'SpiderInfestorEntity$1':16.0,'SpiderObstructerEntity$1':2.25,
+                  'SpiderProwlerEntity$1':5.29,'SpiderReaperEntity$1':16.0,'SpiderSinkerEntity$1':1.0}
+        for name,value in expected.items():
+            b=self.body(name,'canPerformAttack')
+            self.assertEqual([i['operand'] for i in b if i['opcode'] in ('0xe','0xf','0x14')],[value])
+            self.assertTrue(any('.hasLineOfSight(' in str(i['operand']) for i in b))
+            self.assertTrue(any('.isTimeToAttack(' in str(i['operand']) for i in b))
+        r=self.row('prowler_reaper_native_hanging_terrain_and_shared_incoming_motion')
+        self.assertIn('Prowler5.29/Reaper16',r['actual_behavior'])
+        self.assertIn('strictSq<16',self.row('infestor_native_stealth_reveal_crash_and_incoming_motion')['actual_behavior'])
+        self.assertIn('strictSq<1',self.row('sinker_native_aquatic_pose_target_navigation_and_melee')['actual_behavior'])
+
+    def test_goliath_positive_state_skips_decrement(self):
+        b=self.body('SpiderGoliathOnEntityTickUpdateProcedure');by={i['offset']:i for i in b}
+        self.assertEqual((by[53]['opcode'],by[53]['branch_target']),('0x9d',123))
+        self.assertEqual(by[116]['opcode'],'0x64')
+        self.assertEqual(by[120]['operand'],'net/minecraft/network/syncher/SynchedEntityData.set(Lnet/minecraft/network/syncher/EntityDataAccessor;Ljava/lang/Object;)V')
+        self.assertEqual(by[577]['operand'],5000)
+        r=self.row('goliath_native_texture_aura_climbing_and_incoming_motion')
+        self.assertFalse(any(c['primitive']=='CONTROL_CADENCE' for c in r['scalable_parameter_candidates']))
+
+    def test_ambusher_target_volumes_and_hurt_reset(self):
+        b=self.body('SpiderAmbusherOnEntityTickUpdateProcedure')
+        self.assertEqual(sum('.inflate(' in str(i['operand']) for i in b),4)
+        self.assertEqual(sum(i['operand']==5.5 for i in b),4)
+        r=self.row('ambusher_native_hanging_silk_strength_and_dive')
+        self.assertFalse(any(c['primitive']=='NATIVE_DAMAGE_REQUEST' for c in r['scalable_parameter_candidates']))
+        b=self.body('SpiderAmbusherEntity','hurt')
+        reset=next(i['offset'] for i in b if 'SpiderAmbusherEntityIsHurtProcedure.execute(' in str(i['operand']))
+        exclusion=next(i['offset'] for i in b if i['opcode']=='0xc1')
+        self.assertLess(reset,exclusion)
+
+    def test_lurker_delivery_checks_phase_but_not_water(self):
+        b=self.body('SpiderLurkerOnEntityTickUpdateProcedure','lambda$execute$0')
+        self.assertTrue(any(i['operand']=='drowntime' for i in b))
+        self.assertTrue(any(i['operand']==10.0 for i in b))
+        self.assertFalse(any(x in str(i['operand']) for i in b for x in ('.isInWater(','.isAlive(','.isClientSide(')))
+        self.assertEqual(sum('.hurt(' in str(i['operand']) for i in b),1)
+        self.assertTrue(any('/DamageTypes.GENERIC' in str(i['operand']) for i in b))
+
+    def test_sinker_exact_native_clocks(self):
+        from promote_combat_batch import literal_synched_int_binding
+        m=dict(instructions=self.body('SpiderSinkerOnEntityTickUpdateProcedure'))
+        for off,value,field in [(71,200,'DATA_float_time'),(488,50,'DATA_float_time'),(772,300,'DATA_limnav')]:
+            binding=literal_synched_int_binding(m,off)
+            self.assertEqual(binding['native_value'],value);self.assertIn(field,binding['accessor_symbol'])
+        b=self.body('SpiderSinkerOnEntityTickUpdateProcedure')
+        self.assertTrue(any(i['opcode']=='0xc1' and i['operand']=='net/minecraft/world/entity/animal/Squid' for i in b))
+
+    def test_shared_prowler_reaper_incoming_is_one_parameter_set(self):
+        r=self.row('prowler_reaper_native_hanging_terrain_and_shared_incoming_motion')
+        self.assertEqual(len(r['native_actor_variants']),2)
+        for a in ('SpiderProwlerEntity','SpiderReaperEntity'):
+            self.assertTrue(any('SpiderProwlerEntityIsHurtProcedure.execute(' in str(i['operand']) for i in self.body(a,'hurt')))
+        b=self.body('SpiderProwlerEntityIsHurtProcedure')
+        self.assertTrue(any(i['opcode']=='0xc1' and i['operand']=='net/arphex/entity/SpiderProwlerEntity' for i in b))
+        cs=[c for c in r['scalable_parameter_candidates'] if c['primitive']=='SHARED_INCOMING_OBSTACLE_DESCENT']
+        self.assertEqual(len(cs),1);self.assertEqual(len(cs[0]['additional_consumer_sites']),2)
+
+    def test_reaper_client_server_status_is_not_active_candidate(self):
+        b=self.body('ReaperTickProcedure')
+        self.assertTrue(any('LevelAccessor.isClientSide(' in str(i['operand']) and i['offset']<866 for i in b))
+        self.assertTrue(any('Level.isClientSide(' in str(i['operand']) and 709<i['offset']<866 for i in b))
+        r=self.row('prowler_reaper_native_hanging_terrain_and_shared_incoming_motion')
+        self.assertFalse(any(c['native_consumer']['entry'].endswith('/ReaperTickProcedure.class')
+                             and c['native_consumer']['offset']==863 for c in r['scalable_parameter_candidates']))
+
+    def test_infestor_native_explosion_and_anonymous_area_are_distinct(self):
+        b=self.body('SpiderInfestorOnEntityTickUpdateProcedure');by={i['offset']:i for i in b}
+        self.assertEqual(by[2470]['opcode'],'0x1');self.assertEqual(by[2475]['operand'],8.0)
+        self.assertIn('ExplosionInteraction.MOB',by[2478]['operand'])
+        self.assertIn('.explode(',by[2481]['operand']);self.assertIn('.hurt(',by[2664]['operand'])
+        r=self.row('infestor_native_stealth_reveal_crash_and_incoming_motion')
+        cs=[c for c in r['scalable_parameter_candidates'] if c['primitive'] in ('NATIVE_EXPLOSION','NATIVE_DAMAGE_REQUEST')]
+        self.assertEqual(len(cs),2)
+        self.assertTrue(any('/DamageTypes.GENERIC' in c.get('native_damage_type_symbol','')
+                            and c['native_damage_source_constructor'].endswith('(Lnet/minecraft/core/Holder;)V') for c in cs))
+        self.assertEqual(next(c for c in r['components'] if c['primitive']=='NATIVE_DAMAGE_REQUEST')['numerical_parameters']['crash_area_request'],20.)
+
+    def test_infestor_clock_is_bound_to_real_distribution(self):
+        from promote_combat_batch import synched_int_distribution_binding
+        m=dict(instructions=self.body('SpiderInfestorOnEntityTickUpdateProcedure'))
+        b=synched_int_distribution_binding(m,195)
+        self.assertEqual((b['native_minimum'],b['native_maximum']),(600,2400))
+        self.assertIn('DATA_ontheprowl',b['accessor_symbol'])
+        changed=copy.deepcopy(self.batch);r=next(r for r in changed['effects'] if 'infestor_native_' in r['id'])
+        next(c for c in r['components'] if c['primitive']=='NATIVE_CLOCK_DISTRIBUTION')['numerical_parameters']['maximum']=2401
+        with self.assertRaises(AssertionError):validate_batch(changed,self.prior(),self.census)
+
+    def test_obstructer_helper_names_do_not_define_their_meaning(self):
+        b=self.body('BeingRiddenProcedure')
+        self.assertTrue(any('.isVehicle(' in str(i['operand']) for i in b))
+        self.assertEqual(b[-1]['opcode'],'0xac')
+        b=self.body('AttackTargetReturnProcedure')
+        self.assertTrue(any('.getTarget(' in str(i['operand']) for i in b))
+        b=self.body('ObstructMoveProcedure')
+        self.assertTrue(any(i['operand']==1.55 for i in b))
+        self.assertTrue(any('TRAPDOOR_GRASS' in str(i['operand']) for i in b))
+
+    def test_obstructer_build_and_release_native_gates(self):
+        b=self.body('SpiderObstructerOnEntityTickUpdateProcedure')
+        self.assertFalse(any('RULE_MOBGRIEFING' in str(i['operand']) or 'ARPHEX_GRIEFING' in str(i['operand']) for i in b))
+        self.assertEqual(sum('.setBlock(' in str(i['operand']) for i in b),5)
+        q=self.body('SpiderObstructerOnEntityTickUpdateProcedure','lambda$execute$11')
+        self.assertTrue(any('.stopRiding(' in str(i['operand']) for i in q))
+        self.assertFalse(any('isAlive(' in str(i['operand']) for i in q))
+        self.assertEqual(sum(i['operand']=='target_in_burrow' for i in q),2)
+        self.assertTrue(any(i['opcode']=='0x67' for i in q))
+        r=self.row('obstructer_native_burrow_admission_capture_motion_and_release')
+        home=next(c for c in r['scalable_parameter_candidates'] if c['primitive']=='IDLE_HOME_TELEPORT')
+        self.assertEqual(home['native_consumer']['offset'],2997)
+        self.assertEqual([s['offset'] for s in home['additional_consumer_sites']],[4415,5521,7632])
+
+
 class NativeSummonCarrierTests(NativeContractHarness, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
