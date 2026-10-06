@@ -8,6 +8,11 @@ def generate():
     index={(m['entry'],m['method'],m['descriptor']):m for m in census['methods']}
     # Explicitly reviewed contributions, not conclusions derived from method names.
     dispositions={
+        'ClimbingProcedure':'CLOSED_SHARED_NATIVE_CLIMBING_READER_ACTOR_INITIALIZERS_PENDING',
+        'WorldTickProcedure':'CLOSED_NATIVE_SHARED_WORLD_STATE',
+        'PlayerChatTormentorProcedure':'CLOSED_COMBAT_FLAG_PRODUCER_MESSAGE_ADMIN_UTILITY',
+        'SpiderMothDwellerEntityVisualScaleProcedure':'EXCLUDED_RENDER_ONLY_RETURN_IGNORED',
+        'GameModeDetectorProcedure':'OVERLAY_DARKNESS_CLOSED_REMAINING_PLAYER_ROOT_PENDING',
         'AnyItemUsedProcedure':'CLOSED_NATIVE_ACTION_GATE',
         'EntityJumpsProcedure':'CLOSED_NATIVE_STATUS_DELIVERY',
         'DiesWithoutSourceProcedure':'CLOSED_NATIVE_ADMISSION_RESET',
