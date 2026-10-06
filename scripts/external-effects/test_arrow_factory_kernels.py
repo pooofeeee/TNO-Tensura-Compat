@@ -6,7 +6,7 @@ from pathlib import Path
 
 from catalog_common import OUT, read_json, sha256
 from validate_arrow_factory_kernels import validate
-from promote_combat_batch import validate_batch
+from promote_combat_batch import validate_batch, arrow_factory_binding
 from update_arrow_producer_queue import update
 from selected_reference import collect as collect_reference
 
@@ -364,6 +364,97 @@ class SelectedReferenceScopeTests(unittest.TestCase):
                 spec['archives'][0]['resources'][0]['line_ranges']=ranges
                 with self.assertRaises(AssertionError):
                     collect_reference(spec)
+
+
+class SmallActorSourceTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m4d-small-actor-native-source-contracts.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-small-actor-projectile-sources.json')
+
+    def method(self,name,method='execute'):
+        witness=next(w for w in self.native['witnesses'] if w['entry'].endswith('/'+name+'.class'))
+        return next(m for m in witness['methods'] if m['name']==method)
+
+    def prior_review(self):
+        review=copy.deepcopy(read_json(OUT/'mod-reviews/arphex.json'))
+        ids={r['id'] for r in self.batch['effects']}
+        review['effects']=[r for r in review['effects'] if r['id'] not in ids]
+        review['paths']=[p for p in review['paths'] if not set(p['effect_ids']) & ids]
+        return review
+
+    def test_four_owned_sources_do_not_close_other_actor_callbacks(self):
+        result=validate_batch(self.batch,self.prior_review(),self.census)
+        self.assertEqual(result['semantic_records'],len(self.prior_review()['effects'])+4)
+        self.assertEqual(len(self.batch['producer_closed_entries']),4)
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_scorpioid_causing_actor_reaction_precedes_native_rejections(self):
+        body=self.method('ScorpioidBloodlusterEntity','hurt')['instructions'];by={i['offset']:i for i in body}
+        self.assertIn('DamageSource.getEntity()',by[18]['operand'])
+        self.assertIn('EntityIsHurtProcedure.execute(',by[21]['operand'])
+        self.assertIn('DamageSource.getDirectEntity()',by[25]['operand'])
+        self.assertIn('DamageTypes.IN_FIRE',by[30]['operand'])
+        self.assertIn('Monster.hurt(',by[173]['operand'])
+        self.assertEqual(body[-1]['opcode'],'0xac')
+        self.assertFalse(any('DamageSource.getEntity()' in str(i['operand']) for i in body if i['offset']>21))
+
+    def test_config_base_preserves_double_round_long_add_float_conversion(self):
+        body=self.method('ScorpioidBloodlusterEntityIsHurtProcedure')
+        registry=read_json(OUT/'arphex-projectile-producer-kernel-registry.json')
+        binding=arrow_factory_binding(body,921,registry,'PROJECTILE_BASE_DAMAGE')
+        self.assertEqual(binding['base_damage_expression'][-3]['operand'],5)
+        self.assertEqual([i['opcode'] for i in binding['base_damage_expression'][-2:]],['0x61','0x89'])
+        self.assertNotIn('base_damage',binding['literal_arguments'])
+        changed=copy.deepcopy(self.batch)
+        c=next(c for r in changed['effects'] for c in r['scalable_parameter_candidates']
+               if c.get('native_arrow_factory_binding',{}).get('base_damage_expression'))
+        c['native_arrow_factory_binding']['base_damage_expression'][-3]['operand']=6
+        with self.assertRaises(AssertionError):
+            validate_batch(changed,self.prior_review(),self.census)
+        changed=copy.deepcopy(body)
+        next(i for i in changed['instructions'] if i['offset']==911)['operand']='java/lang/Math.floor(D)D'
+        with self.assertRaises(AssertionError):
+            arrow_factory_binding(changed,921,registry,'PROJECTILE_BASE_DAMAGE')
+
+    def test_larvae_readiness_is_queued_before_ready_check_each_native_tick(self):
+        body=self.method('TormentLarvaeTickProcedure')['instructions'];by={i['offset']:i for i in body}
+        self.assertEqual(by[6]['operand'],100)
+        self.assertIn('.queueServerWork(',by[15]['operand'])
+        self.assertEqual(by[96]['operand'],'ready')
+        self.assertLess(15,98)
+        native=self.method('TormentorLarvaeEntity','baseTick')['instructions']
+        self.assertIn('Monster.baseTick()',native[1]['operand'])
+        self.assertIn('TormentLarvaeTickProcedure.execute(',next(i['operand'] for i in native if i['offset']==21))
+        self.assertFalse(any('.isAlive()' in str(i['operand']) for i in
+                             self.method('TormentLarvaeTickProcedure','lambda$execute$3')['instructions']))
+
+    def test_voidlasher_dead_window_cannot_be_an_active_scalar_site(self):
+        body=self.method('TormentorVoidlasherSummonOnEntityTickUpdateProcedure')['instructions']
+        by={i['offset']:i for i in body}
+        self.assertEqual(by[946]['operand'],970.)
+        self.assertEqual(by[950]['opcode'],'0x9e')  # excludes <=970
+        second=next(n for n,i in enumerate(body) if i['offset']>950 and i['operand']==900.)
+        self.assertEqual(body[second+1]['opcode'],'0x98')
+        self.assertEqual(body[second+2]['opcode'],'0x9c')  # excludes >=900
+        self.assertFalse(any('.putDouble(' in str(i['operand']) for i in body if 943<i['offset']<body[second]['offset']))
+        row=next(r for r in self.batch['effects'] if 'voidlasher_native_tick' in r['id'])
+        for c in row['scalable_parameter_candidates']:
+            for s in [dict(binding=c.get('native_arrow_factory_binding',{}))]+c.get('additional_arrow_factory_sites',[]):
+                self.assertFalse(s['binding'].get('factory',{}).get('entry','').endswith('$3.class'))
+        self.assertEqual(self.batch['exclusions'][0]['disposition'],'UNREACHABLE_CONTRADICTORY_PHASE_WINDOW')
+
+    def test_map_heal_is_precheck_then_unclamped_resource_increment(self):
+        body=self.method('TormentorScorpioidSummonOnEntityTickUpdateProcedure')['instructions']
+        by={i['offset']:i for i in body}
+        self.assertEqual(by[711]['operand'],1010.)
+        self.assertEqual(by[715]['opcode'],'0x9c')
+        self.assertEqual(by[729]['operand'],6.)
+        self.assertEqual(by[732]['opcode'],'0x63')
+        self.assertIn('MapVariables.tormentor_healthD',by[733]['operand'])
+        self.assertFalse(any('.heal(' in str(i['operand']) for i in body))
+        self.assertFalse(any('Math.min' in str(i['operand']) for i in body if 711<i['offset']<744))
 
 
 if __name__ == '__main__':

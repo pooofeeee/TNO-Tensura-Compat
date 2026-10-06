@@ -121,18 +121,33 @@ def arrow_factory_binding(method, offset, registry, primitive):
     assert hit['opcode'] == '0xb6'
     row = next(r for r in registry['rows'] if hit['operand'] ==
                r['factory']['entry'][:-6] + '.getArrow' + r['factory']['descriptor'])
-    # This initial boundary deliberately supports direct literal F/I/B arguments
-    # only; computed actor/charge formulas need their own explicit evidence.
+    # Accept literals or the explicitly proven round(configDouble)+long pattern.
+    # Other computed actor/charge expressions require their own native proof.
     arguments = body[at-3:at]
-    assert arguments[0]['opcode'] in ('0xb','0xc','0xd','0x12','0x13') and isinstance(arguments[0]['operand'],(int,float))
+    configured = arguments[0]['opcode']=='0x89'  # long-to-float after native addition
+    expression=None
+    if configured:
+        expression=body[at-10:at-2]
+        assert len(expression)==8
+        assert [i['opcode'] for i in expression]==['0xb2','0xb6','0xc0','0xb6','0xb8','0x14','0x61','0x89']
+        assert expression[0]['operand'].startswith('net/arphex/configuration/ConfigurationSettingsConfiguration.')
+        assert expression[1]['operand']=='net/neoforged/neoforge/common/ModConfigSpec$ConfigValue.get()Ljava/lang/Object;'
+        assert expression[2]['operand']=='java/lang/Double'
+        assert expression[3]['operand']=='java/lang/Double.doubleValue()D'
+        assert expression[4]['operand']=='java/lang/Math.round(D)J'
+        assert isinstance(expression[5]['operand'],int)
+    else:
+        assert arguments[0]['opcode'] in ('0xb','0xc','0xd','0x12','0x13') and isinstance(arguments[0]['operand'],(int,float))
     assert all(i['opcode'] in ('0x2','0x3','0x4','0x5','0x6','0x7','0x8','0x10','0x11','0x12','0x13')
                and isinstance(i['operand'],int) for i in arguments[1:])
     literal_arguments = {name: dict(offset=i['offset'], opcode=i['opcode'], value=i['operand'])
-                         for name,i in zip(('base_damage','knockback','piercing'),arguments)}
+                         for name,i in zip(('base_damage','knockback','piercing'),arguments)
+                         if not (configured and name=='base_damage')}
     return dict(factory=row['factory'], owned_arrow_entry=row['owned_arrow_entry'],
                 intrinsic_arrow_root=row['intrinsic_arrow_root'], parameter_role=role,
                 kernel=row['factory'] if role == 'base_damage' else row['constructor'],
-                literal_arguments=literal_arguments)
+                literal_arguments=literal_arguments,
+                **(dict(base_damage_expression=expression) if configured else {}))
 
 
 def literal_tag_double_binding(method, offset):
@@ -284,7 +299,11 @@ def validate_batch(batch,review,census):
                     binding=site['binding'];registry=read_json(OUT/binding['registry_file'])
                     expected_binding=arrow_factory_binding(source_method,site['offset'],registry,candidate['primitive'])
                     assert binding==dict(registry_file=binding['registry_file'],**expected_binding),('wrong native arrow factory binding',candidate)
-                    assert component['numerical_parameters'][candidate['parameters'][0]]==binding['literal_arguments'][binding['parameter_role']]['value'],('wrong factory argument value',candidate)
+                    parameter=candidate['parameters'][0]
+                    if binding['parameter_role']=='base_damage' and 'base_damage_expression' in binding:
+                        assert parameter in component['parameter_formulas'],('computed factory argument lacks native formula',candidate)
+                    else:
+                        assert component['numerical_parameters'][parameter]==binding['literal_arguments'][binding['parameter_role']]['value'],('wrong factory argument value',candidate)
                     for proof in (binding['factory'],binding['kernel']):
                         key=(proof['entry'],proof['method'],proof['descriptor'])
                         assert native[key]['code_sha256']==proof['code_sha256']
