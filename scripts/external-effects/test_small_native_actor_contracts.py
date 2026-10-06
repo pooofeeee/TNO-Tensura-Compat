@@ -8,6 +8,137 @@ from test_shadow_clone_contracts import NativeContractHarness
 
 
 
+class NativeCrabHarnessTests(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m5z-native-crab-solifuge-harness.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-native-crab-solifuge-harness.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def test_three_new_contracts_four_roots_and_old_harness_reuse(self):
+        validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual((len(self.batch['effects']),len(self.batch['closed_actor_callback_entries'])),(3,4))
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects'] for c in r['scalable_parameter_candidates']),60)
+        self.assertEqual((len(self.native['witnesses']),sum(len(w['methods']) for w in self.native['witnesses'])),(33,168))
+        self.assertFalse(any(w['entry'].endswith('/WebHarnessEntity.class') for w in self.native['witnesses']))
+        self.assertEqual(self.batch['reused_closed_actor_contracts'][0]['canonical_contract'],'arphex:hook_harness_native_anchor_control')
+
+    def test_crab_melee_guard_and_native_damage_independent_of_grab(self):
+        for name in ('canUse','canContinueToUse'):
+            b=self.body('CrabConstrictorEntity$1',name)
+            self.assertTrue(any('ConstrictingUpwardsProcedure.execute(' in str(i['operand']) for i in b))
+        b=self.body('CrabConstrictorEntity$1','canPerformAttack')
+        self.assertTrue(any(i['operand']==169.0 for i in b))
+        self.assertTrue(any('.hasLineOfSight(' in str(i['operand']) for i in b))
+        b=self.body('CrabConstrictorOnEntityTickUpdateProcedure')
+        self.assertFalse(any('.hurt(' in str(i['operand']) or '.isAlliedTo(' in str(i['operand']) for i in b))
+
+    def test_crab_terrain_counter_is_not_periodic_fifteen_ticks(self):
+        b=self.body('CrabConstrictorOnEntityTickUpdateProcedure');by={i['offset']:i for i in b}
+        self.assertEqual(by[2686]['operand'],0.0)
+        self.assertEqual(by[2687]['opcode'],'0x98') # dcmpg: >=0 takes reset path
+        self.assertEqual(by[2688]['opcode'],'0x9b') # negative skips reset15
+        self.assertEqual((by[2699]['operand'],by[2702]['operand'].split('.')[-1].split('(')[0]),(15.0,'putDouble'))
+        self.assertEqual(by[3032]['opcode'],'0x67')
+        row=self.row('crab_constrictor_native_grab_pose_melee_and_terrain')
+        self.assertFalse(any(c['primitive']=='TERRAIN_CADENCE' for c in row['scalable_parameter_candidates']))
+
+    def test_crab_raw_wait_is_distinct_from_synched_wait(self):
+        from promote_combat_batch import literal_synched_int_binding
+        b=self.body('CrabConstrictorOnEntityTickUpdateProcedure');by={i['offset']:i for i in b}
+        self.assertEqual((by[4425]['operand'],by[4428]['operand']),('grabwait',150.0))
+        w=next(w for w in self.native['witnesses'] if w['entry'].endswith('/CrabConstrictorOnEntityTickUpdateProcedure.class'))
+        m=next(m for m in w['methods'] if m['name']=='execute')
+        for off,value in [(2616,400),(7112,200)]:
+            bound=literal_synched_int_binding(m,off)
+            self.assertEqual(bound['native_value'],value)
+            self.assertIn('DATA_grabwait',str(bound))
+        self.assertFalse(any(c.get('native_tag_double_binding',{}).get('tag')=='grabwait' for c in self.row('crab_constrictor_native_grab_pose_melee_and_terrain')['scalable_parameter_candidates']))
+
+    def test_crab_distance_update_occurs_between_sprint_and_crouch_consumers(self):
+        b=self.body('CrabConstrictorOnEntityTickUpdateProcedure');by={i['offset']:i for i in b}
+        for off in (4411,6035,7035):self.assertIn('.setDeltaMovement(',by[off]['operand'])
+        for off in (4537,4596,4670):self.assertIn('.putDouble(',by[off]['operand'])
+        self.assertLess(4411,4537);self.assertLess(4670,6035)
+        self.assertEqual((by[4484]['operand'],by[4487]['operand'],by[4528]['operand'],by[4532]['operand']),(3.3,.165,.66,.8))
+        self.assertEqual((by[4593]['operand'],by[4660]['operand']),(16.5,100))
+        row=self.row('crab_constrictor_native_grab_pose_melee_and_terrain')
+        c=next(c for c in row['scalable_parameter_candidates'] if c['parameters']==['rising_factor'])
+        self.assertFalse(c.get('additional_consumer_sites'))
+
+    def test_crab_constricted_recipient_differs_from_self_status_receiver(self):
+        row=self.row('crab_constrictor_native_grab_pose_melee_and_terrain')
+        cs=[c for c in row['scalable_parameter_candidates'] if 'native_receiver_binding' in c]
+        self.assertEqual(next(c for c in cs if c['primitive']=='MOB_EFFECT_RECIPIENT_CONSTRICTED')['native_receiver_binding']['origin_local_index'],15)
+        self.assertTrue(all(c['native_receiver_binding']['origin_local_index']==7 for c in cs if c['primitive']!='MOB_EFFECT_RECIPIENT_CONSTRICTED'))
+        b=self.body('CrabConstrictorOnEntityTickUpdateProcedure')
+        self.assertLess(next(i['offset'] for i in b if '.removeEffect(' in str(i['operand'])),304)
+
+    def test_solifuge_only_native_caller_excludes_centipede_branch(self):
+        from collect_combat_census import decode_sites
+        callers=[(m['entry'],m['method'],s['offset']) for m in self.census['methods'] for s in decode_sites(self.census,m,'calls') if 'SolfTickProcedure.execute(' in str(s['operand'])]
+        self.assertEqual(callers,[('net/arphex/entity/SolifugeSkulkerEntity.class','baseTick',21)])
+        by={i['offset']:i for i in self.body('SolfTickProcedure')}
+        self.assertEqual(by[2960]['operand'],'net/arphex/entity/CentipedeEvictorEntity')
+        row=self.row('solifuge_native_melee_shadow_climb_leap_and_terrain')
+        sites=[c['native_consumer']['offset'] for c in row['scalable_parameter_candidates']]
+        self.assertNotIn(3001,sites);self.assertNotIn(3044,sites)
+
+    def test_solifuge_two_southward_guards_compare_identical_native_arguments(self):
+        b=self.body('SolfTickProcedure');fingerprint=lambda a:[(i['opcode'],i['operand'],i.get('local_index')) for i in a]
+        for first,second,value in [(1312,1329,5.0),(2304,2321,10.0)]:
+            a=next(j for j,i in enumerate(b) if i['offset']==first);z=next(j for j,i in enumerate(b) if i['offset']==second)
+            self.assertEqual(fingerprint(b[a-7:a+1]),fingerprint(b[z-7:z+1]))
+            self.assertEqual((b[z-3]['operand'],b[z-2]['opcode'],b[z+1]['opcode']),(value,'0x67','0xa2'))
+        r=self.row('solifuge_native_melee_shadow_climb_leap_and_terrain')
+        sites={c['native_consumer']['offset'] for c in r['scalable_parameter_candidates']}|{a['offset'] for c in r['scalable_parameter_candidates'] for a in c.get('additional_consumer_sites',[])}
+        self.assertTrue({1456,2448,1501,2493}.isdisjoint(sites))
+
+    def test_solifuge_navigation_near_far_and_speed_consumers_stay_distinct(self):
+        r=self.row('solifuge_native_melee_shadow_climb_leap_and_terrain')
+        expected={'near_offset':{712,960,1208},'far_offset':{1704,1952,2200},'speed':{712,960,1208,1704,1952,2200}}
+        b=self.body('SolfTickProcedure')
+        for parameter,offsets in expected.items():
+            c=next(c for c in r['scalable_parameter_candidates'] if c['primitive']=='NATIVE_SHADOW_NAVIGATION' and c['parameters']==[parameter])
+            self.assertEqual({c['native_consumer']['offset']}|{x['offset'] for x in c.get('additional_consumer_sites',[])},offsets)
+            for off in offsets:
+                j=next(j for j,i in enumerate(b) if i['offset']==off)
+                self.assertEqual(b[j-1]['operand'],1.0)
+                self.assertIn(5.0 if parameter=='near_offset' else 10.0 if parameter=='far_offset' else 1.0,[i['operand'] for i in b[j-9:j]])
+
+    def test_common_status_durations_not_counted_per_branch(self):
+        for suffix,primitive,sites in [('solifuge_native_melee_shadow_climb_leap_and_terrain','MOB_EFFECT_INJURED_SELF_SPEED',4),('crab_constrictor_native_grab_pose_melee_and_terrain','MOB_EFFECT_SELF_SPEED',4)]:
+            cs=[c for c in self.row(suffix)['scalable_parameter_candidates'] if c['primitive']==primitive and 'duration' in c['parameters']]
+            self.assertEqual(len(cs),1);self.assertEqual(len(cs[0].get('additional_consumer_sites',[]))+1,sites)
+
+    def test_hanging_harness_motion_shared_horizontal_does_not_alias_verticals(self):
+        r=self.row('hook_hanging_harness_native_anchor_mount_and_motion')
+        c=next(c for c in r['scalable_parameter_candidates'] if c['parameters']==['return_horizontal_divisor'])
+        self.assertEqual(c['additional_consumer_sites'][0]['offset'],657)
+        c=next(c for c in r['scalable_parameter_candidates'] if c['parameters']==['low_return_y'])
+        self.assertFalse(c.get('additional_consumer_sites'))
+        by={i['offset']:i for i in self.body('WebHarnessDownTickProcedure')}
+        self.assertEqual((by[573]['operand'],by[631]['operand']),(.4,.05))
+        self.assertLess(78,599)
+
+    def test_hanging_harness_unowned_mount_discard_and_native_lifecycle(self):
+        b=self.body('WebHarnessDownSpawnProcedure')
+        self.assertTrue(any('.startRiding(' in str(i['operand']) for i in b))
+        self.assertFalse(any('.setOwner(' in str(i['operand']) for i in b))
+        self.assertLess(next(i['offset'] for i in b if '.discard(' in str(i['operand'])),171)
+        b=self.body('WebHarnessDownTickProcedure')
+        self.assertLess(max(i['offset'] for i in b if '.discard(' in str(i['operand'])),1345)
+        b=self.body('WebHarnessDownTickProcedure','lambda$execute$1')
+        self.assertTrue(any('.isVehicle(' in str(i['operand']) for i in b))
+        self.assertFalse(any('.isAlive(' in str(i['operand']) or '.getOwner(' in str(i['operand']) for i in b))
+
+    def test_terrain_shared_extent_mutant_is_rejected(self):
+        altered=copy.deepcopy(self.batch)
+        r=next(r for r in altered['effects'] if r['id'].endswith('solifuge_native_melee_shadow_climb_leap_and_terrain'))
+        next(c for c in r['components'] if c['primitive']=='TERRAIN_COMMAND')['numerical_parameters']['half_extent']=3.0
+        with self.assertRaises(AssertionError):validate_batch(altered,self.prior(),self.census)
+
+
 class NativeInitialCarrierTests(NativeContractHarness, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
