@@ -175,3 +175,146 @@ class NativeAbyssItemContracts(NativeContractHarness, unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class NativeForceChaosCrusherContracts(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch = read_json(OUT / 'arphex-r2m6c-native-force-chaos-crusher-contracts.json')
+        cls.native = read_json(OUT / 'native-evidence/arphex-residual-force-chaos-crusher.json')
+        cls.census = read_json(OUT / 'arphex-combat-census.json')
+
+    def test_bounded_native_contracts_validate(self):
+        validate_batch(self.batch, self.prior(), self.census)
+        self.assertEqual(len(self.batch['effects']), 5)
+        self.assertEqual(len(self.batch['closed_item_callback_entries']), 3)
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects']
+                             for c in r['scalable_parameter_candidates']), 58)
+        self.assertEqual((len(self.native['witnesses']), sum(len(w['methods'])
+                         for w in self.native['witnesses'])), (12, 78))
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_force_source_actor_slot_changes_only_in_unarmored_selected_request(self):
+        from promote_combat_batch import direct_damage_actor_local
+        m = dict(instructions=self.body('ForceGauntletToolInHandTickProcedure'))
+        self.assertEqual([direct_damage_actor_local(m, offset)
+                          for offset in (2291, 2331, 2622, 2652)], [7, 7, 7, 17])
+        b = m['instructions']
+        self.assertEqual(sum('.hurt(' in str(i['operand']) for i in b), 4)
+        for offset in (2291, 2622):
+            at = next(j for j, i in enumerate(b) if i['offset'] == offset)
+            self.assertEqual([i['opcode'] for i in b[at-4:at]], ['0x6c', '0x86', '0xb8', '0x86'])
+            self.assertIn('Math.round(F)I', b[at-2]['operand'])
+
+    def test_wrong_primary_or_auxiliary_actor_slot_is_rejected(self):
+        for auxiliary in (False, True):
+            batch = copy.deepcopy(self.batch)
+            row = next(r for r in batch['effects'] if r['id'].endswith(':force_gauntlet_native_selected_lift_damage_and_motion'))
+            candidate = next(c for c in row['scalable_parameter_candidates']
+                             if c['parameters'] == ['selected_damage_base'])
+            target = candidate['additional_consumer_sites'][0] if auxiliary else candidate
+            target['native_damage_actor_local_index'] = 7 if auxiliary else 17
+            with self.assertRaisesRegex(AssertionError, 'damage actor slot'):
+                validate_batch(batch, self.prior(), self.census)
+
+    def test_force_lift_request_precedes_strike_and_is_outside_force_power_block(self):
+        b = self.body('ForceGauntletToolInHandTickProcedure')
+        by = {i['offset']: i for i in b}
+        self.assertIn('FORCE_LIFT', by[1776]['operand'])
+        self.assertEqual((by[1779]['operand'], by[1780]['operand']), (3, 1))
+        self.assertLess(1783, 2291)
+        # The next ForcePower presence read is after the entire strike arm.
+        self.assertFalse(any('FORCE_POWER' in str(i['operand']) for i in b
+                             if 782 < i['offset'] < 2991))
+        self.assertFalse(any('.isAlliedTo(' in str(i['operand']) for i in b))
+
+    def test_swing_excludes_spectator_and_delivery_checks_only_using_flag(self):
+        b = self.body('ForceGauntletEntitySwingsItemProcedure$1', 'checkGamemode')
+        self.assertEqual(sum('.SPECTATOR' in str(i['operand']) for i in b), 2)
+        self.assertFalse(any('.CREATIVE' in str(i['operand']) for i in b))
+        b = self.body('ForceGauntletEntitySwingsItemProcedure', 'lambda$execute$0')
+        strings = [i['operand'] for i in b if isinstance(i['operand'], str)]
+        self.assertIn('usinggauntlet', strings); self.assertIn('firegauntlet', strings)
+        self.assertFalse(any('.isAlive(' in value or '.isOnCooldown(' in value or
+                             '.getMainHandItem(' in value for value in strings))
+
+    def test_two_gauntlet_roots_forward_shared_callbacks_and_selected_distinct_actions(self):
+        for root, selected in [('ForceGauntletItem', 'ForceGauntletToolInHandTickProcedure'),
+                               ('ChaosGauntletItem', 'ChaosGauntletHeldProcedure')]:
+            b = self.body(root, 'inventoryTick')
+            self.assertEqual(sum(selected + '.execute(' in str(i['operand']) for i in b), 1)
+            self.assertEqual(sum('ForceGauntletItemInInventoryTickProcedure.execute(' in str(i['operand']) for i in b), 1)
+            self.assertTrue(any('ForceGauntletEntitySwingsItemProcedure.execute(' in str(i['operand'])
+                                for i in self.body(root, 'onEntitySwing')))
+        r = self.row('force_chaos_native_use_swing_and_charge_state')
+        power = next(c for c in r['scalable_parameter_candidates'] if c['primitive'] == 'MOB_EFFECT_FORCE_POWER')
+        self.assertEqual(len(power['additional_consumer_sites']), 1)
+
+    def test_chaos_status_profiles_preserve_float_subtraction_and_distinct_mark_durations(self):
+        b = self.body('ChaosGauntletHeldProcedure'); by = {i['offset']: i for i in b}
+        self.assertEqual((by[5034]['operand'], by[9492]['operand'], by[10451]['operand']), (120000, 120000, 300))
+        at = next(j for j, i in enumerate(b) if i['offset'] == 6477)
+        self.assertEqual([i['opcode'] for i in b[at-5:at-3]], ['0x66', '0x8b'])
+        self.assertFalse(any('.hurt(' in str(i['operand']) or '.setDeltaMovement(' in str(i['operand'])
+                             or '.setOwner(' in str(i['operand']) for i in b))
+        self.assertEqual(sum('CHAOS_CONTROLLED' in str(i['operand']) and i['opcode'] == '0xb2' for i in b), 5)
+        self.assertEqual(sum('AABB.ofSize(' in str(i['operand']) for i in b), 21)
+
+    def test_crusher_status_precedes_health_gate_and_cooldown_is_outside_grab_branch(self):
+        b = self.body('CrusherClawItemInHandTickProcedure'); by = {i['offset']: i for i in b}
+        self.assertIn('CONSTRICTED', by[592]['operand'])
+        self.assertEqual((by[595]['operand'], by[596]['operand']), (5, 0))
+        hp = next(i['offset'] for i in b if '.getMaxHealth(' in str(i['operand']))
+        self.assertLess(600, hp); self.assertLess(hp, 772); self.assertLess(772, 900)
+        self.assertEqual(by[898]['operand'], 100)
+        self.assertFalse(any('.hurt(' in str(i['operand']) or '.getUseItem(' in str(i['operand']) for i in b))
+        candidates = self.row('crusher_claw_native_selected_hold_and_constricted')['scalable_parameter_candidates']
+        self.assertFalse(any('crabcool' in parameter for c in candidates for parameter in c['parameters']))
+
+    def test_unused_chaos_pullspeed_is_not_mapped_as_a_consumed_parameter(self):
+        b = self.body('ChaosGauntletHeldProcedure')
+        self.assertEqual(sum(i['operand'] == 'pullspeed' for i in b), 1)
+        row = self.row('chaos_gauntlet_native_selected_mark_and_control')
+        self.assertFalse(any('pullspeed' in parameter for c in row['scalable_parameter_candidates'] for parameter in c['parameters']))
+
+
+class NativeMethodEquivalenceSafety(unittest.TestCase):
+    def test_local_operand_capture_retains_implicit_explicit_wide_and_signed_increment(self):
+        from native_evidence import annotate_local_operands
+        raw = bytes.fromhex('19073a118411ffc419012cc484012cff38')
+        body = [{'offset': offset} for offset in (0, 2, 4, 7, 11)]
+        annotate_local_operands(body, raw)
+        self.assertEqual([i['local_index'] for i in body], [7, 17, 17, 300, 300])
+        self.assertEqual((body[2]['increment'], body[4]['increment']), (-1, -200))
+        implicit = annotate_local_operands([{'offset': 0}], bytes.fromhex('2d'))
+        self.assertEqual(implicit[0]['local_index'], 3)
+
+    def test_23_query_kernels_reproduce_including_actual_lambda_bootstraps(self):
+        from pathlib import Path
+        from compare_native_methods import collect
+        jar = Path('/workspace/.cache/large-mod-campaign/ArPhEx-5.0.2-neoforge-1.21.1.jar')
+        if not jar.is_file(): self.skipTest('Pinned artifact reproduction requires the campaign cache')
+        spec = read_json(OUT / 'native-specifications/arphex-held-query-comparator-method-equivalence.json')
+        registry = read_json(OUT / 'arphex-held-query-comparator-method-equivalence.json')
+        self.assertEqual(collect(spec, jar), registry)
+        self.assertEqual((len(spec['entries']), len(registry['rows'])), (23, 46))
+
+    def test_same_body_but_wrong_bootstrap_handle_kind_is_rejected(self):
+        from pathlib import Path
+        from unittest.mock import patch
+        import compare_native_methods
+        from classfile import ClassFile
+        jar = Path('/workspace/.cache/large-mod-campaign/ArPhEx-5.0.2-neoforge-1.21.1.jar')
+        if not jar.is_file(): self.skipTest('Pinned artifact reproduction requires the campaign cache')
+        spec = read_json(OUT / 'native-specifications/arphex-held-query-comparator-method-equivalence.json')
+        def altered_class(raw):
+            cls = ClassFile(raw)
+            if cls.name == 'net/arphex/procedures/ChaosGauntletHeldProcedure$1':
+                at = next(i for i, item in enumerate(cls.cp) if item and item[0] == 15
+                          and '.lambda$compareDistOf$0(' in cls.resolve(i))
+                tag, (kind, reference) = cls.cp[at]
+                cls.cp[at] = (tag, (kind - 1, reference))
+            return cls
+        with patch.object(compare_native_methods, 'ClassFile', side_effect=altered_class):
+            with self.assertRaisesRegex(AssertionError, 'non-equivalent bootstrap'):
+                compare_native_methods.collect(spec, jar)

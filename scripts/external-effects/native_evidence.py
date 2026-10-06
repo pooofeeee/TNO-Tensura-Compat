@@ -2,6 +2,27 @@
 from classfile import ClassFile
 from catalog_common import *
 
+
+def annotate_local_operands(body, code):
+    """Retain exact variable slots where actor identity needs independent proof."""
+    for instruction in body:
+        offset = instruction['offset']
+        opcode = code[offset]
+        if opcode in range(0x15, 0x1a) or opcode in range(0x36, 0x3b) or opcode in (0x84, 0xa9):
+            instruction['local_index'] = code[offset + 1]
+            if opcode == 0x84:
+                instruction['increment'] = int.from_bytes(code[offset+2:offset+3], 'big', signed=True)
+        elif 0x1a <= opcode <= 0x2d:
+            instruction['local_index'] = (opcode - 0x1a) % 4
+        elif 0x3b <= opcode <= 0x4e:
+            instruction['local_index'] = (opcode - 0x3b) % 4
+        elif opcode == 0xc4:
+            instruction['local_opcode'] = hex(code[offset + 1])
+            instruction['local_index'] = int.from_bytes(code[offset+2:offset+4], 'big')
+            if code[offset + 1] == 0x84:
+                instruction['increment'] = int.from_bytes(code[offset+4:offset+6], 'big', signed=True)
+    return body
+
 def collect(document, jar_paths=None):
     inventory=read_json(OUT/'jar-inventory.json')
     targets={x['key']:x for x in inventory['targets']+inventory['compat_candidates']}
@@ -35,6 +56,8 @@ def collect(document, jar_paths=None):
                             body=instructions(parsed,m.get('code',b''))
                         else:
                             body=list(parsed.instructions(m.get('code',b'')))
+                        if isinstance(selection, dict) and selection.get('include_local_operands'):
+                            annotate_local_operands(body, m.get('code', b''))
                         if ranges:
                             body=[i for i in body if any(a<=i['offset']<=b for a,b in ranges)]
                             assert all(any(i['offset']==point for i in body) for span in ranges for point in span)

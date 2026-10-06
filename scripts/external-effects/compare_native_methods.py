@@ -4,7 +4,7 @@ import re
 import zipfile
 
 from catalog_common import OUT, byte_hash, read_json, sha256, write_json
-from classfile import ClassFile
+from classfile import ClassFile, Reader
 from collect_cataclysm_ignited_revenant_offense import instructions
 
 
@@ -12,6 +12,40 @@ def normalized(body, owner):
     pattern = re.compile(re.escape(owner) + r'(?=[.;]|$)')
     return [dict(i, operand=pattern.sub('SELF', i['operand'])
                  if isinstance(i.get('operand'), str) else i.get('operand')) for i in body]
+
+
+def bootstrap_signature(cls, index, visiting=()):
+    """Resolve the actual bootstrap and typed arguments, including handle kinds."""
+    assert index not in visiting, 'cyclic bootstrap argument'
+    data = next(data for name, data in cls.attributes if name == 'BootstrapMethods')
+    reader = Reader(data)
+    table = []
+    for _ in range(reader.u2()):
+        handle = reader.u2()
+        args = [reader.u2() for _ in range(reader.u2())]
+        table.append((handle, args))
+    assert reader.pos == len(data)
+    handle, args = table[index]
+
+    def value(cp_index):
+        tag, raw = cls.cp[cp_index]
+        resolved = cls.resolve(cp_index)
+        if isinstance(resolved, str):
+            resolved = re.sub(re.escape(cls.name) + r'(?=[.;]|$)', 'SELF', resolved)
+        result = dict(tag=tag, value=resolved)
+        if tag == 15:
+            result['reference_kind'] = raw[0]
+        if tag in (17, 18):
+            result['bootstrap'] = bootstrap_signature(cls, raw[0], visiting + (index,))
+        return result
+
+    return dict(handle=value(handle), arguments=[value(arg) for arg in args])
+
+
+def referenced_bootstraps(body):
+    return sorted({int(match.group(1)) for instruction in body
+                   for match in [re.search(r'bootstrap#(\d+):', str(instruction.get('operand')))]
+                   if match})
 
 
 def collect(spec, jar_path):
@@ -24,6 +58,7 @@ def collect(spec, jar_path):
     rows = []
     with zipfile.ZipFile(jar_path) as jar:
         assert byte_hash(jar.read(witness['entry'])) == witness['entry_sha256']
+        template_class = ClassFile(jar.read(witness['entry']))
         for entry in sorted(spec['entries']):
             raw = jar.read(entry)
             cls = ClassFile(raw)
@@ -36,6 +71,9 @@ def collect(spec, jar_path):
                 body = normalized(instructions(cls, code), cls.name)
                 expected = normalized(template[key]['instructions'], witness['class_name'])
                 assert body == expected, ('non-equivalent method', entry, key)
+                for index in referenced_bootstraps(body):
+                    assert bootstrap_signature(cls, index) == bootstrap_signature(template_class, index), \
+                        ('non-equivalent bootstrap', entry, key, index)
                 rows.append(dict(entry=entry, entry_sha256=byte_hash(raw), method=key[0],
                                  descriptor=key[1], code_sha256=byte_hash(code),
                                  template_code_sha256=template[key]['code_sha256'],

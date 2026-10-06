@@ -51,6 +51,17 @@ def damage_source_binding(method,offset):
     return symbol,body[start]['offset'],ctor['offset'],ctor['operand']
 
 
+def direct_damage_actor_local(method, offset):
+    """Prove the direct Entity argument slot of an explicit source allocation."""
+    _, _, ctor, descriptor = damage_source_binding(method, offset)
+    assert descriptor.endswith('(Lnet/minecraft/core/Holder;Lnet/minecraft/world/entity/Entity;)V')
+    body = method['instructions']
+    at = next(n for n, instruction in enumerate(body) if instruction['offset'] == ctor)
+    load = body[at - 1]
+    assert load['opcode'] in ('0x19', '0x2a', '0x2b', '0x2c', '0x2d')
+    return load['local_index']
+
+
 def literal_attribute_binding(method,offset):
     """Bind a direct native attribute-builder literal; decline expressions."""
     body=method['instructions'];at=next(n for n,i in enumerate(body) if i['offset']==offset)
@@ -470,6 +481,9 @@ def validate_batch(batch,review,census):
                 assert damage_source_binding(m,consumer['offset'])==(
                     candidate['native_damage_type_symbol'],candidate['native_damage_source_allocation_offset'],
                     candidate['native_damage_source_constructor_offset'],candidate['native_damage_source_constructor'])
+            if 'native_damage_actor_local_index' in candidate:
+                assert direct_damage_actor_local(m, consumer['offset']) == candidate['native_damage_actor_local_index'], \
+                    ('wrong native damage actor slot', candidate)
             if 'native_receiver_binding' in candidate:
                 assert effect_receiver_binding(m,consumer['offset'])==candidate['native_receiver_binding'],('wrong native recipient binding',candidate)
             seen={tuple(expected[k] for k in ('entry','method','descriptor','offset'))}
@@ -491,6 +505,10 @@ def validate_batch(batch,review,census):
                 if 'native_damage_type_symbol' in candidate:
                     source=damage_source_binding(other_method,site['offset'])
                     assert (source[0],source[3])==(candidate['native_damage_type_symbol'],candidate['native_damage_source_constructor']),('auxiliary source identity differs',site)
+                if 'native_damage_actor_local_index' in candidate:
+                    assert 'native_damage_actor_local_index' in site
+                    assert direct_damage_actor_local(other_method, site['offset']) == site['native_damage_actor_local_index'], \
+                        ('wrong auxiliary damage actor slot', site)
                 if attribute:
                     other_binding=literal_attribute_binding(other_method,site['offset'])
                     assert (other_binding['attribute_symbol'],other_binding['native_value'])==(
