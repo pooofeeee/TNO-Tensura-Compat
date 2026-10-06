@@ -122,6 +122,22 @@ def literal_synched_int_binding(method, offset):
                 value_offset=value['offset'],boxing_offset=box['offset'],native_value=value['operand'])
 
 
+def native_registry_spawn_binding(method, offset):
+    """Identify a direct ArPhEx registry spawn; never assign it an owner."""
+    body=method['instructions'];at=next(n for n,i in enumerate(body) if i['offset']==offset)
+    assert body[at]['operand']=='net/minecraft/world/entity/EntityType.spawn(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/entity/MobSpawnType;)Lnet/minecraft/world/entity/Entity;'
+    start=max(n for n,i in enumerate(body[:at]) if i['opcode']=='0xb2' and
+              str(i['operand']).startswith('net/arphex/init/ArphexModEntities.'))
+    holder,read,cast=body[start:start+3]
+    assert read['operand']=='net/neoforged/neoforge/registries/DeferredHolder.get()Ljava/lang/Object;'
+    assert cast['opcode']=='0xc0' and cast['operand']=='net/minecraft/world/entity/EntityType'
+    assert not any('EntityType.spawn(' in str(i['operand']) for i in body[start:at])
+    reason=body[at-1]
+    assert reason['opcode']=='0xb2' and reason['operand'].startswith('net/minecraft/world/entity/MobSpawnType.')
+    return dict(registry_symbol=holder['operand'],registry_offset=holder['offset'],
+                cast_offset=cast['offset'],spawn_reason=reason['operand'])
+
+
 def arrow_factory_binding(method, offset, registry, primitive):
     """Bind a real factory call to its independently verified native scalar sink.
 
@@ -295,6 +311,10 @@ def validate_batch(batch,review,census):
                 assert binding==candidate['native_synched_int_binding']
                 component=next(c for c in row['components'] if c['primitive']==candidate['primitive'])
                 assert component['numerical_parameters'][candidate['parameters'][0]]==binding['native_value']
+            registry_spawn='native_registry_spawn_binding' in candidate
+            if registry_spawn:
+                assert candidate['primitive']=='SUMMON_DELIVERY'
+                assert native_registry_spawn_binding(m,consumer['offset'])==candidate['native_registry_spawn_binding']
             handoff='native_callee_binding' in candidate
             if handoff:
                 assert candidate['primitive'] in ('TERRAIN_DELIVERY','SUMMON_DELIVERY','CONTROL_DELIVERY') and hit['opcode']=='0xb8'
@@ -338,7 +358,7 @@ def validate_batch(batch,review,census):
                         assert any(cm['name']==proof['method'] and cm['descriptor']==proof['descriptor'] and cm['code_sha256']==proof['code_sha256'] for cm in cw['methods'])
             if attribute:
                 assert literal_attribute_binding(m,consumer['offset'])==candidate['native_attribute_binding'],('wrong native attribute literal',candidate)
-            assert hit['opcode']=='0xb5' or rng or terrain or explosion or durability or attribute or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or synched_clock or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
+            assert hit['opcode']=='0xb5' or rng or terrain or explosion or durability or attribute or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or synched_clock or registry_spawn or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
             if candidate['primitive'].startswith('MOB_EFFECT_') or 'native_holder_symbol' in candidate:
                 symbol,allocation,load=effect_holder_binding(m,consumer['offset'])
                 assert (symbol,allocation,load)==(candidate['native_holder_symbol'],

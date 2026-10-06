@@ -674,5 +674,123 @@ class ArachnoidNativeSourceTests(unittest.TestCase):
         self.assertFalse(any(c['primitive']=='NATIVE_HEALTH_RETENTION' for c in retention['scalable_parameter_candidates']))
 
 
+class DiabolosNativeSourceTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m4g-diabolos-native-source-controller.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-diabolos-source-projectile-sources.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def method(self,name='execute'):
+        return next(m for w in self.native['witnesses'] if w['entry']=='net/arphex/procedures/DiabolosTickProcedure.class'
+                    for m in w['methods'] if m['name']==name)
+
+    def prior(self):
+        review=copy.deepcopy(read_json(OUT/'mod-reviews/arphex.json'));ids={r['id'] for r in self.batch['effects']}
+        review['effects']=[r for r in review['effects'] if r['id'] not in ids]
+        review['paths']=[p for p in review['paths'] if not set(p['effect_ids']) & ids]
+        return review
+
+    def test_four_contracts_and_97_unique_native_observations(self):
+        result=validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual(result['semantic_records'],len(self.prior()['effects'])+4)
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects'] for c in r['scalable_parameter_candidates']),97)
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_all_44_factory_carriers_match_registry(self):
+        registry=read_json(OUT/'arphex-projectile-producer-kernel-registry.json')
+        rows=[r for r in registry['rows'] if 'DiabolosTickProcedure$' in r['factory']['entry']]
+        self.assertEqual(len(rows),44)
+        for root,count in [('HomingSparkEntity',2),('GravitonShotEntity',12),('GenesisShotEntity',30)]:
+            self.assertEqual(sum(r['intrinsic_arrow_root'].endswith('/'+root+'.class') for r in rows),count)
+
+    def test_real_supergravity_command_prevents_cosmetic_shell_exclusion(self):
+        by={i['offset']:i for i in self.method()['instructions']}
+        self.assertEqual(by[3193]['operand'],'effect give @e[type=!arphex:diabolos_decimator,distance=..5] arphex:supergravity 20 0 true')
+        self.assertIn('performPrefixedCommand',by[3196]['operand'])
+        self.assertEqual(by[3186]['opcode'],'0x1')  # command source entity is null
+        self.assertEqual(by[2329]['operand'],.5)
+        self.assertEqual(by[2171]['operand'],1.5)
+        shell=next(r for r in self.batch['effects'] if 'supergravity_shell' in r['id'])
+        c=next(c for c in shell['components'] if c['primitive']=='NATIVE_EFFECT_COMMAND')
+        self.assertEqual(c['numerical_parameters']['duration_seconds'],20)
+        self.assertTrue(shell['binary_parameters']['shell_geometry_consumed_by_real_effect_command'])
+        native=read_json(OUT/'vanilla-evidence/arphex-instant-marker-command.json')['classes'][0]['methods'][0]['instructions']
+        self.assertTrue(any(i['opcode']=='0x68' for i in native))  # ordinary duration seconds multiplied into ticks
+
+    def test_native_shell_clock_and_recipient_clock_are_separate(self):
+        by={i['offset']:i for i in self.method()['instructions']}
+        self.assertEqual(by[3401]['operand'],4.)
+        self.assertEqual(by[3997]['operand'],1.)
+        self.assertEqual(by[3998]['opcode'],'0x67')
+        self.assertEqual(by[14993]['operand'],22.)
+        self.assertEqual(by[15078]['operand'],1.)
+        self.assertEqual(by[15079]['opcode'],'0x67')
+        self.assertEqual(by[15055]['opcode'],'0x57')
+        self.assertTrue(any(i['offset']>15720 and i.get('branch_target',30000)<14900 for i in self.method()['instructions']))
+
+    def test_damage_request_precedes_actor_invincibility_and_ignores_return(self):
+        body=self.method()['instructions'];at=next(n for n,i in enumerate(body) if i['offset']==15052)
+        self.assertEqual(body[at+1]['opcode'],'0x57')
+        after=next(i for i in body[at+1:] if 'LivingEntity.hasEffect' in str(i['operand']))
+        self.assertGreater(after['offset'],15052)
+        source=next(c for r in self.batch['effects'] if 'local_temporal' in r['id']
+                    for c in r['scalable_parameter_candidates'] if c['primitive']=='NATIVE_DAMAGE_REQUEST')
+        self.assertIn('DamageTypes.MAGIC',source['native_damage_type_symbol'])
+        self.assertEqual(source['native_damage_source_constructor'],'net/minecraft/world/damagesource/DamageSource.<init>(Lnet/minecraft/core/Holder;)V')
+
+    def test_delayed_genesis_health_checks_and_current_target_rechecks(self):
+        expected_y={'lambda$execute$8':16.,'lambda$execute$7':-3.5,'lambda$execute$6':3.,'lambda$execute$5':9.,'lambda$execute$4':15.,'lambda$execute$3':21.}
+        for name,value in expected_y.items():
+            body=self.method(name)['instructions']
+            self.assertEqual(next(i['operand'] for i in body if i['offset']==86),value)
+            self.assertEqual(sum('LivingEntity.getHealth(' in str(i['operand']) for i in body),1 if name in ['lambda$execute$8','lambda$execute$5'] else 0)
+            self.assertTrue(any('LevelAccessor.isClientSide()' in str(i['operand']) for i in body))
+            self.assertTrue(any('Mob.getTarget()' in str(i['operand']) for i in body))
+            self.assertFalse(any('.isAlive(' in str(i['operand']) or 'DATA_current_final' in str(i['operand']) for i in body))
+
+    def test_each_velocity_profile_preserves_literal_inaccuracy(self):
+        row=next(r for r in self.batch['effects'] if 'phase_projectile' in r['id'])
+        for c in row['scalable_parameter_candidates']:
+            if c['primitive']!='PROJECTILE_DELIVERY':continue
+            methods={m['name']:m for w in self.native['witnesses'] if w['entry']==c['native_parameter_identity']['entry'] for m in w['methods']}
+            sites=[c['native_parameter_identity']]+c.get('additional_consumer_sites',[])
+            pairs=[]
+            for site in sites:
+                b=methods[site['method']]['instructions'];at=next(n for n,i in enumerate(b) if i['offset']==site['offset'])
+                pairs.append([i['operand'] for i in b[at-2:at]])
+            self.assertTrue(all(pair==pairs[0] for pair in pairs))
+        body=self.method('lambda$execute$6')['instructions'];at=next(n for n,i in enumerate(body) if i['offset']==296)
+        self.assertEqual([i['operand'] for i in body[at-2:at]],[5.,0.])
+
+    def test_wide_rain_count_does_not_claim_narrow_one_shot(self):
+        row=next(r for r in self.batch['effects'] if 'supergravity_shell' in r['id'])
+        count=next(c for c in row['scalable_parameter_candidates'] if c['parameters']==['wide_attempts'])
+        self.assertEqual(count['native_parameter_identity']['offset'],3780)
+        self.assertFalse(count.get('additional_consumer_sites'))
+        velocity=next(c for c in row['scalable_parameter_candidates'] if c['parameters']==['spark_velocity'])
+        self.assertEqual([s['offset'] for s in velocity['additional_consumer_sites']],[3964])
+
+    def test_registry_spawn_binding_is_native_and_does_not_assign_owner(self):
+        from promote_combat_batch import native_registry_spawn_binding
+        b=native_registry_spawn_binding(self.method(),9667)
+        self.assertIn('ENTROPY_CONDUIT',b['registry_symbol'])
+        self.assertIn('MOB_SUMMONED',b['spawn_reason'])
+        changed=copy.deepcopy(self.batch)
+        c=next(c for r in changed['effects'] for c in r['scalable_parameter_candidates'] if 'native_registry_spawn_binding' in c)
+        c['native_registry_spawn_binding']['registry_symbol']='invented:owner'
+        with self.assertRaises(AssertionError):validate_batch(changed,self.prior(),self.census)
+        by={i['offset']:i for i in self.method()['instructions']}
+        self.assertEqual(by[9434]['operand'],2)
+        self.assertEqual(by[9435]['branch_target'],9703)
+
+    def test_size_state_not_promoted_from_its_name_or_source_capture(self):
+        self.assertFalse(any(c['primitive']=='NATIVE_RAW_MODE_SIZE' for r in self.batch['effects'] for c in r['scalable_parameter_candidates']))
+        controller=next(r for r in self.batch['effects'] if 'phase_projectile' in r['id'])
+        self.assertEqual(len(controller['deferred_payload_actors']),3)
+        shell=next(r for r in self.batch['effects'] if 'supergravity_shell' in r['id'])
+        self.assertIn('laser_emitter_near',str(shell['deferred_readers']))
+
+
 if __name__ == '__main__':
     unittest.main()
