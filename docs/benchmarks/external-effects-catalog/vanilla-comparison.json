@@ -1,7 +1,7 @@
 {
   "schema": "tno.external_effects.vanilla_comparison.v1",
   "status": "PARTIAL",
-  "checkpoint": "R2m2c-arphex-small-global-deliveries",
+  "checkpoint": "R2m2d-arphex-incoming-critical-contracts",
   "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
   "note": "Deterministic projection of canonical mod reviews,including explicit PARTIAL scope. The ledger alone tracks per-mod completeness. No Stage eligibility or policy decision.",
   "comparisons": [
@@ -20,6 +20,58 @@
             "native_amplifier": 4
           },
           "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:abyssal_axe_native_critical_payload",
+      "mod_key": "arphex",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "custom absolute motion composition with independent native Regeneration, Slowness and Wither",
+      "similarities": "Uses the explicit native API primitives below with their native admission and lifecycle.",
+      "differences": "CriticalHitEvent uses isVanillaCritical (not final critical result) and causing Player main-hand AbyssalAxe. Before any hurt-return success, target absolute velocity=(0,-1,0), attacker fallDistance=0, server attacker Regeneration8/4 and server victim Slowness10/5. Let delta=attacker axefallcheck-currentY. If delta>2 target and other server Living entities receive Wither30,int(20L+round(delta/3)); otherwise Wither30/20. Query is AABB inflate10 or inflate5 centered on ATTACKER event coordinates, includes all Entity types sorted by distance, excludes only attacker and direct victim. Each other entity receives absolute movement, with maxHP fallback -1 for nonliving: k=double(float(300F/(200F+maxHP)))/1.5; dx=centerX-recipientX,dz=centerZ-recipientZ. ++ uses(-dx*k,.3,-dz*k); -- uses(abs(dx)*k,.3,abs(dz)*k); +- uses(-dx*k,.3,abs(dz)*k); ELSE including either zero axis uses(abs(dx)*k,.3,-dz*k). There is NO clamp; do not reuse VoidRepulsion limits or flatten this to uniform outward knockback. Wither admission/addEffect is server Living-only; movement is all Entity without that guard. No native hurt, actual explosion, owner assignment, team, immunity, line-of-sight or hurt-result check is introduced; explosion particles/sound are presentation. axefallcheck producer remains queued with the weapon/state family.",
+      "components": [
+        {
+          "primitive": "MOB_EFFECT_REGENERATION",
+          "numerical_parameters": {
+            "duration": 8,
+            "amplifier": 4
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_SLOWNESS",
+          "numerical_parameters": {
+            "duration": 10,
+            "amplifier": 5
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_WITHER",
+          "numerical_parameters": {
+            "duration": 30
+          },
+          "parameter_formulas": {
+            "amplifier": "delta>2 ? int(20L+round(delta/3D)) : 20"
+          }
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "direct_target_y": -1,
+            "area_y": 0.3
+          },
+          "parameter_formulas": {
+            "horizontal_formula": "double(float(300F/(200F+maxHP)))/1.5; quadrant/zero-axis branches preserved"
+          }
+        },
+        {
+          "primitive": "AREA_DELIVERY",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "query_inflate": "delta>2 ? 10D : 5D"
+          }
         }
       ]
     },
@@ -475,6 +527,106 @@
       ]
     },
     {
+      "effect_id": "arphex:sourceful_incoming_shield_response",
+      "mod_key": "arphex",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "closest_vanilla": "custom incoming raw-health/event-damage transformation with native admission and separately preserved motion/spawn",
+      "similarities": "Uses the explicit native API primitives below with their native admission and lifecycle.",
+      "differences": "Requires nonnull source, recipient and causing entity. Player lensmode>0, distinct victim and victim health>stored source_damage snapshots current victim health, not damage amount; the later Dweller lens consumer remains queued. SpiderMoth hit by Larvae cancels (two identical native tests represent one gate). Moth/Centipede amount in(25,250) and HP>26 cancels then RAW setHealth(HP-25), bypassing the original hurt return/defenses; later checks continue. Moth redglow, SkyStalker, TormentorSphere cancel; TeleportGhost/TinyCentipedeBreacher cancel when actual source.isDirect is false. Fresh holder-only IN_WALL isDirect is true, so the additional negated fresh-source TeleportGhost test never cancels. MothLarvae 1/8 picks absolute X/Z uniform[-1,1],Y0 then cancels. SpiderBrood amount>0 spawns two TinyLarvae at victim block with independent initial(+.3,0,0)/(-.3,0,0), only successful spawn guarded; no owner assignment or hurt-success gate. Rear checks use literal atan2(causerX-victimX,causerZ-victimZ)*57.5+victimYaw outside[-120,120], with no angle normalization. Full Chitin T1 current event amount*.9; full T2 *.8; boots T3 OR Juggernaut plus complete leg/chest/head T3 OR complete Juggernaut *.6 (boots can mix). Finally Player causing actor inherent_power_cooldown>10800 doubles the current event amount. Each modifier freshly reads event amount; earlier amount thresholds use the entry snapshot. No order relative to other default-priority handlers is imposed.",
+      "components": [
+        {
+          "primitive": "RAW_HEALTH_DRAIN",
+          "numerical_parameters": {
+            "request": 25
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_REAR_ARMOR_ADMISSION",
+          "numerical_parameters": {
+            "tier1_factor": 0.9,
+            "tier2_factor": 0.8,
+            "tier3_juggernaut_factor": 0.6,
+            "angle_conversion": 57.5,
+            "rear_threshold": 120
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_MODIFIER",
+          "numerical_parameters": {
+            "inherent_power_factor": 2
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "larva_horizontal_random_bounds": [
+              -1,
+              1
+            ],
+            "larva_vertical": 0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "SUMMON_INITIAL_MOTION",
+          "numerical_parameters": {
+            "first_horizontal": 0.3,
+            "second_horizontal": -0.3,
+            "vertical": 0,
+            "z": 0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_SOURCE_HEALTH_SNAPSHOT",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:sourceful_native_hit_gates",
+      "mod_key": "arphex",
+      "primary_classification": "BINARY_MECHANIC",
+      "closest_vanilla": "binary native incoming admission, explicit item cooldown and native invincibility-marker producers",
+      "similarities": "Uses the explicit native API primitives below with their native admission and lifecycle.",
+      "differences": "LivingIncomingDamageEvent supplies source, victim, direct entity and causing entity; ALL must be nonnull. No heal exists despite the helper name. For SpiderFlat, TamedTarantula and TormentorSummon, native owner identity and tame state plus causing actor shift OR arphex:segment cancel BEFORE Patreon entitlement checks; unauthorized customization still cancels. Native skin/animation branches write presentation fields, not damage; other entity readers remain in their family queue. Non-ChronoShot/non-ChronoSpearShot direct entity plus Player causing actor holding VisionarySpear applies item cooldown2; chrono branch instead cancels owned tame victim or self. ArachnoidTrisector self-hit cancels unless direct entity reverse_mirror_attack, and clone victims cancel. SpiderSinker writes DATA_float_time400 (consumer pending). EntropyConduit queues1 then server Living victim gets InvincibilityTemp10/0 with no delivery recheck; Diabolos causing actor independently cancels. GravitonShot direct entity rejects non-GENERIC type. Player causing actor AbyssalDagger ON cooldown and immunity_cooldown_dagger<=0 writes20 and immediately requests server InvincibilityTemp10/0. No hurt-success, ally-generalization or automatic effect-applier attribution is inferred.",
+      "components": [
+        {
+          "primitive": "NATIVE_HIT_ADMISSION",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "ITEM_COOLDOWN",
+          "numerical_parameters": {
+            "visionary_ticks": 2
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_IMMUNITY_STATE",
+          "numerical_parameters": {
+            "entropy_delay": 1,
+            "marker_duration": 10,
+            "amplifier": 0,
+            "dagger_immunity_clock": 20
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_ACTOR_STATE",
+          "numerical_parameters": {
+            "sinker_float_time": 400
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
       "effect_id": "arphex:spider_flat_join_owner_inheritance",
       "mod_key": "arphex",
       "primary_classification": "BINARY_MECHANIC",
@@ -908,6 +1060,53 @@
             "duration": 20,
             "native_amplifier": 1
           },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:unattributed_incoming_admission",
+      "mod_key": "arphex",
+      "primary_classification": "BINARY_MECHANIC",
+      "closest_vanilla": "native cancellation and re-entrant hurt admission with custom marker/encounter/segment state",
+      "similarities": "Uses the explicit native API primitives below with their native admission and lifecycle.",
+      "differences": "LivingIncomingDamageEvent enters only when DamageSource.getEntity()==null: the causing actor is absent, but a direct entity need not be absent. Independent branches continue after cancellation. TormentorShield/HitboxExpander cancel; TormentorTest/T2/T3/T4/T5 cancel except arphex:segment. Player either-hand TormentedWrath blocks EXPLOSION/PLAYER_EXPLOSION; IN_WALL blocks either-hand EtherealStaff or riding TormentorSummon. Diabolos: amount>20 and amount<=999999999 cancels original and synchronously calls hurt(originalSource,20), ignoring its result; the new event is re-entrant and preserves original direct/source actors. If InvincibilityTemp is absent, queues1 then server Living recipient gets that marker40/0 with no delivery recheck; inner and outer invocations can both enqueue before it exists. ANY Living InvincibilityTemp cancels amount<=999999999. TORMENTOR/TormentorHitbox: amount>999999999 runs the exact despawn command, discards server recipient, clears/syncs map health, initializes seal limit2000 only if nonpositive, and discards CoreOfEternalSuffering items within inflate2; otherwise cancels. IN_WALL also blocks Moth/Scorpioid/Voidlasher summons, TeleportGhost and AntWorker. EternalChestplate blocks FLY_INTO_WALL. TormentorSphere/SummonSunBlast/SmallTormentSphere cancel amount<999999999 (strictly less). SegmentedBody IN_WALL cancels; other non-segment requests cancel, store original unrounded amount in segdamagetransfer and reissue holder-only arphex:segment0. Arthropleura stores segupwardstransfer=1. Transfer readers remain explicitly queued; no health-transfer semantics are guessed.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_ADMISSION",
+          "numerical_parameters": {
+            "diabolos_request_limit": 20,
+            "override_threshold": 999999999
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REROUTE",
+          "numerical_parameters": {
+            "segment_request": 0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_IMMUNITY_STATE",
+          "numerical_parameters": {
+            "diabolos_marker_duration": 40,
+            "amplifier": 0,
+            "delivery_delay": 1
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_ENCOUNTER_STATE",
+          "numerical_parameters": {
+            "seal_limit": 2000,
+            "item_cleanup_inflate": 2
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_TRANSFER_STATE",
+          "numerical_parameters": {},
           "parameter_formulas": {}
         }
       ]

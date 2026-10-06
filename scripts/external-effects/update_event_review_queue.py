@@ -32,6 +32,10 @@ def generate():
         'BloodWormOnInitialEntitySpawnProcedure':'RESISTANCE_CLOSED_SHARED_STATE_CONSUMERS_PENDING',
         'EntityJoinsWorldProcedure':'PROJECTILE_CLEANUP_OWNER_INHERITANCE_CLOSED_CRAB_ENCOUNTER_LOCATOR_PENDING',
         'WorldLoadProcedure':'INITIALIZED_RENDER_PATRON_FOREIGN_MOD_FLAGS_CONTEXT',
+        'EntityHurtWithoutSourceProcedure':'CLOSED_CAUSING_NULL_ADMISSION_TRANSFER_READERS_PENDING',
+        'SpiderShieldProcedure':'CLOSED_SOURCEFUL_REACTIVE_SHIELD_LENS_READER_PENDING',
+        'CriticalHitProcedure':'CLOSED_NATIVE_CRITICAL_CONTROL_AXE_STATE_PRODUCER_PENDING',
+        'Lifesteal2Procedure':'CLOSED_DIRECT_CAUSING_HIT_GATES_ACTOR_STATE_READERS_PENDING',
     }
     roots=[]
     for w in evidence['witnesses']:
@@ -48,7 +52,7 @@ def generate():
                 evidence_file='native-evidence/arphex-global-hooks.json',witness_id=w['id']))
     roots.sort(key=lambda r:(r['entry'],r['method'],r['descriptor']))
     result=dict(schema='tno.external_effects.event_review_queue.v1',mod_key='arphex',
-        checkpoint='R2m2c-arphex-small-global-deliveries',finite_census_file='arphex-combat-census.json',
+        checkpoint=read_json(OUT/'mod-completion-ledger.json')['checkpoint'],finite_census_file='arphex-combat-census.json',
         finite_census_sha256=sha256(OUT/'arphex-combat-census.json'),
         roots=roots,whole_mod_complete=False,
         note='This tracks reviewed event contributions only. Ignored event returns do not exclude other live getter consumers. Evidence capture and partial method dispositions do not prove family or mod completion.',

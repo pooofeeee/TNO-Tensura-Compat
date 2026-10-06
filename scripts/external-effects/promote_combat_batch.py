@@ -49,7 +49,8 @@ def validate_batch(batch,review,census):
             scalar_sinks=('MobEffectInstance.<init>(','.hurt(','.heal(','.setHealth(',
                 '.addEffect(','.setDeltaMovement(','.setYRot(','.setXRot(',
                 '.makeStuckInBlock(','.putDouble(','.queueServerWork(','.inflate(',
-                'ItemCooldowns.addCooldown(','.teleportTo(')
+                'ItemCooldowns.addCooldown(','.teleportTo(',
+                'LivingIncomingDamageEvent.setAmount(')
             rng=(candidate['primitive'] in ('ATTACK_SELECTION','SUMMON_DELIVERY') and
                  'Mth.nextInt(' in str(hit['operand']))
             assert hit['opcode']=='0xb5' or rng or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
