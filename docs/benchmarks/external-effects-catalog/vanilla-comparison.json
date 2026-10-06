@@ -1,7 +1,7 @@
 {
   "schema": "tno.external_effects.vanilla_comparison.v1",
   "status": "PARTIAL",
-  "checkpoint": "R2m4e-arphex-wasp-and-scorpioid-tick-sources",
+  "checkpoint": "R2m4f-arphex-arachnoid-native-source-controller",
   "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
   "note": "Deterministic projection of canonical mod reviews,including explicit PARTIAL scope. The ledger alone tracks per-mod completeness. No Stage eligibility or policy decision.",
   "comparisons": [
@@ -769,6 +769,327 @@
         {
           "primitive": "NATIVE_DAMAGE_ADMISSION",
           "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:arachnoid_native_phase_projectile_controller",
+      "mod_key": "arphex",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "Custom raw mode/timer controller, absolute motion, status/summon/explosion and distinct native projectile deliveries",
+      "similarities": "Uses the explicit native API primitives below with their native admission and lifecycle.",
+      "differences": "Alive tick uses a once-read Mob target snapshot and integer-truncated Euclidean store_target_distance. Before primed controller, mode!=4 and integerDistance in1..7 and not CrawlingY>245 writes ABSOLUTE repulsion XZ=(self-target)/integerDistance*.3 clamped each to[-20,20], retaining Y. DATA_primed gates modes. Mode1 lunge_time<=0: target nonnull resets600; raw noai_reset cleared. Positive timer with distance<=20 and landingClock<=398 clears noai_reset; else at599 with target refreshes distance, and nonzero .5*integerDistance stores (target-self)/(.3*integerDistance), Y numerator targetY+.5; stores own XYZ and reversal flags, which are not consumed by this helper. Low health<Max/2 at390 writes timer10 before later windows. Timer>540: subwindow<580 with storedX and storedZ both nonzero writes clamped stored XZ/currentY; if target, at560 recalculates stored XZ with existing integerDistance (no new zero guard), then server InvincibilityTemp10/0 and Strength20/1. ARPHEX_GRIEFING AND native MobGriefing AND timer%7==0 AND Health>50 requests server NULL-source MOB explosion7 at currentXYZ,Y+2; independently queues1 current actor Y=-.1 retaining currentXZ, no delivery state/alive check. Window sets noai_reset=true; outside clears it. Timer>540 and nonzero .6*distance independently requests Strength5/1 after earlier Strength20/1; native merge decides result. Positive lunge timer is decremented1 after its body. Mode2 increments float_time first; flash<=0 requests InvincibilityTemp20/0 and lowHealth plus UPDATEDfloatTime>40 plus target emits five ChronoShot native arrows, then flash10; otherwise decrementsflash1. Mode2 target-null disables noPhysics/chrono_effects; target present: updatedTime<40 sets absolute(0,1.5,0), enables chrono_effects/noPhysics, sets onGroundfalse, and integerDistance>8 overrides with clamped 3D (target+(0,11,0)-self)/integerDistance*.3. Mode3 target present crouches; flash<=0 resets20 and emits same five ChronoShot arrows; else flash-1. Both volleys use actor owner, floatbase5,KB1,BYTE0,silenttrue,pos currentX/Y+3.4/Z, shoot speed1/0 with vectors [0,0,0],[-.3,.3,0],[.3,.3,0],[0,.3,.3],[0,.3,-.3]; native shoot normalizes nonzero vectors. Mode4 always zeros XZ/currentY and requests Slowness5/999, even target-null; flash<=0, target snapshot and attackSwitchTime>100 queue60, resetflash60. Delivery current-level server creates SpacetimeAnchor owneractor, base5/KB1/BYTE0/silenttrue,currentX/eyeY-.1/Z/currentlook speed1/0. Nested5 delays give deliveries60/65/70. ONLY at third delivery, currentHealth<Max/2 admits three more nested5 deliveries75/80/85. No later primed/mode/target/alive/original-world checks; nested queues proceed even if server spawn branch skips. Other modes with target: flash<=0/onGround/noTimeClone full-side50 requests MobSummoned clone at flooredcurrentposition and copies rotations, NOownerassignment; flash200. Other positiveflash-1. Mode!=1 resetslunge0. Mode!=2 resetsfloatTime0 and chrono_effectsfalse; non-VOID_AIR and notinwall clears noPhysics, else absolute(0,.5,0)/noPhysics true. Non3 clearscrouch. LandingClock<400 increments1; lowHealth and lunge in4..299 writes1 afterward. Finally passedworldserver attackSwitchTime>0 decrements1; else reset300 and computes bounded five-mode shuffle. ShuffleNumber<=1 resets5, samples unique numbers1..5 for at most100 trials (not guaranteed complete), else decreases1. Native DecimalFormat/string replace extraction and Double.parseDouble(trim) with exception=>0 set integercurrent_final, which may use fallback clone branch. Mode update is AFTER attack arms but BEFORE temporal aura. Cosmetic flash texture/animation, unused storedY/reversal reads here, and particle-only cannon_cycle/angle_increment are not independent numeric contributions.",
+      "components": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "separation_speed": 0.3,
+            "lunge_distance_coefficient": 0.3,
+            "hover_speed": 0.3,
+            "hover_target_y_offset": 11.0,
+            "initial_float_up": 1.5,
+            "void_air_up": 0.5,
+            "explosion_followup_y": -0.1,
+            "native_velocity_bound": 20.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_INVINCIBILITY_TEMP",
+          "numerical_parameters": {
+            "lunge_duration": 10,
+            "float_duration": 20,
+            "native_amplifier": 0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_STRENGTH",
+          "numerical_parameters": {
+            "lunge_duration": 20,
+            "short_duration": 5,
+            "amplifier": 1
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_SLOWNESS",
+          "numerical_parameters": {
+            "duration": 5,
+            "native_amplifier": 999
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "PROJECTILE_BASE_DAMAGE",
+          "numerical_parameters": {
+            "chrono_base_damage": 5.0,
+            "anchor_base_damage": 5.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "PROJECTILE_KNOCKBACK",
+          "numerical_parameters": {
+            "chrono_knockback": 1,
+            "anchor_knockback": 1
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "PROJECTILE_PLACEMENT",
+          "numerical_parameters": {
+            "chrono_y_offset": 3.4,
+            "anchor_eye_height_subtract": 0.1
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "numerical_parameters": {
+            "chrono_velocity": 1.0,
+            "anchor_velocity": 1.0,
+            "native_inaccuracy": 0,
+            "native_piercing": 0,
+            "chrono_vectors": [
+              [
+                0,
+                0,
+                0
+              ],
+              [
+                -0.3,
+                0.3,
+                0
+              ],
+              [
+                0.3,
+                0.3,
+                0
+              ],
+              [
+                0,
+                0.3,
+                0.3
+              ],
+              [
+                0,
+                0.3,
+                -0.3
+              ]
+            ]
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "DELAYED_DELIVERY",
+          "numerical_parameters": {
+            "anchor_initial_delay": 60,
+            "anchor_followup_delay": 5,
+            "explosion_motion_delay": 1
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_EXPLOSION",
+          "numerical_parameters": {
+            "power": 7.0,
+            "y_offset": 2.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "ATTACK_CADENCE",
+          "numerical_parameters": {
+            "lunge_reset": 600,
+            "float_flash_reset": 10,
+            "range_flash_reset": 20,
+            "anchor_flash_reset": 60,
+            "clone_flash_reset": 200,
+            "mode_reset": 300,
+            "native_decrement": 1,
+            "landing_limit": 400
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "SUMMON_DELIVERY",
+          "numerical_parameters": {
+            "native_clone_presence_full_side": 50.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_MODE_ADMISSION",
+          "numerical_parameters": {
+            "lunge_motion_window": [
+              540,
+              580
+            ],
+            "lunge_retarget_clock": 560,
+            "lunge_store_clock": 599,
+            "low_health_fraction": 0.5,
+            "low_health_first_clock": 390,
+            "anchor_attack_switch_gt": 100,
+            "time_aura_low_health_min_clock": 40,
+            "phase_ids": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "shuffle_size": 5,
+            "shuffle_max_trials": 100,
+            "terrain_health_gt": 50.0,
+            "terrain_clock_modulus": 7
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:arachnoid_native_temporal_fields",
+      "mod_key": "arphex",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "Custom escalating TimeFreeze field and independent native MAGIC request/projectile-motion/local damping primitives",
+      "similarities": "Uses the explicit native API primitives below with their native admission and lifecycle.",
+      "differences": "FIRST alive primed+rawchrono_effects arm uses PREUPDATE float_time>40 and modulo4==0. Entity query currentXYZ inflated (24+float_expand*2)/2 then strict Euclidean radius<12+float_expand, excludes only ArachnoidTrisector type, no team/creative/ArmorStand filter. Living recipient existingTimeFreezeamp(default0)<20 requests server TimeFreeze60/(currentamp+1), ambient/visiblefalse, ignored effect result: absent starts1, native admission/merge retained. AFTER query, positivefloatTime>180 changes expansion +1 through240, -1 when>240; <=180 resets0. Expansion has no clamp; 15+expand sphere geometry is presentation only, whereas 12+expand is actual fieldradius. Neither geometry/cannon_cycle nor angle_increment is the damage aura radius. After mode/controller/health/servermode updates, INDEPENDENT alive Entityinflate10 at original callbackXYZ, distance sorted. Excludes ChronoShot,AscendantArrow,SpacetimeAnchor,Arachnoid,ItemEntity and recipient rawcreativespectator. If recipient type is native minecraft:impact_projectiles OR WebbedArrow OR BloodProjectile: absolute(0,-.1,0) irrespective actor invincibility or rawslowtime; it is not a damage/status request. Other recipients: UPDATEDmode==2, CURRENTMobtargetnonnull, LivingnotArmorStand and UPDATEDflash==5 requests anonymous MAGIC maxRecipientHealth/5 with NO direct/causing source entity, hurt result ignored. This request is BEFORE checking ACTOR InvincibilityTemp; invincible actor can still request damage but then skips the ordinary damping arm. Noninvincible actor and (rawslowtime==5 OR recipient notPlayer): nativeY *=.5 only above absY threshold. No-target or non-current-target use .003; currenttarget .006. XZ *=.25 if either axis exceeds threshold .00045 for ordinary vs .001 for currenttarget. Y preserved in XZ write, XZ preserved in Y write; requests can occur without hurt success. No spherical distance gate here: inflate10 cubic box only, no primed/mode gate for movement, no added team/owner predicate. Native impact_projectiles membership is a pack-resolved admission gate rather than guessed exact members; excluded/custom projectile lifecycle contracts are reused.",
+      "components": [
+        {
+          "primitive": "MOB_EFFECT_TIME_FREEZE",
+          "numerical_parameters": {
+            "duration": 60,
+            "amplifier_increment": 1,
+            "native_max_existing_amplifier_exclusive": 20
+          },
+          "parameter_formulas": {
+            "requested_amplifier": "existing amplifier or 0, then integer+1"
+          }
+        },
+        {
+          "primitive": "AREA_DELIVERY",
+          "numerical_parameters": {
+            "freeze_radius_base": 12.0,
+            "local_inflate": 10.0
+          },
+          "parameter_formulas": {
+            "freeze_query": "(24 + raw float_expand*2)/2 then distance < 12+raw float_expand",
+            "local_query": "native AABB.inflate(10), no spherical distance guard"
+          }
+        },
+        {
+          "primitive": "NATIVE_AREA_EXPANSION",
+          "numerical_parameters": {
+            "expand_step": 1.0,
+            "contract_step": 1.0,
+            "native_reset": 0.0,
+            "grow_clock_gt": 180,
+            "contract_clock_gt": 240
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "max_health_divisor": 5.0
+          },
+          "parameter_formulas": {
+            "amount": "native float recipientMaxHealth/5.0F; anonymous MAGIC source"
+          }
+        },
+        {
+          "primitive": "FORCED_MOVEMENT_MULTIPLIER",
+          "numerical_parameters": {
+            "vertical_multiplier": 0.5,
+            "horizontal_multiplier": 0.25,
+            "ordinary_vertical_threshold": 0.003,
+            "target_vertical_threshold": 0.006,
+            "ordinary_horizontal_threshold": 0.00045,
+            "target_horizontal_threshold": 0.001
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "PROJECTILE_CONTROL",
+          "numerical_parameters": {
+            "absolute_down": -0.1,
+            "native_horizontal_off": 0.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_TIME_ADMISSION",
+          "numerical_parameters": {
+            "freeze_period_modulus": 4,
+            "freeze_clock_gt": 40,
+            "damage_flash_eq": 5,
+            "player_slowtime_eq": 5.0
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:arachnoid_native_tick_retention_and_priming",
+      "mod_key": "arphex",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "Custom raw priming/retention/environment control composed with separate native effects and teleport/terrain requests",
+      "similarities": "Uses the explicit native API primitives below with their native admission and lifecycle.",
+      "differences": "Nonnull native actor: all main helper behavior requires isAlive. First removes Levitation, Weakness, Slowness, Necrosis, TimeFreeze, Paralysis, Repulsion, Supergravity and Webbed from Living actor, without a server guard. Absent Regeneration requests server duration60/amplifier0, ambient=false,visible=false. DWELLER_HEALTH and currentHealth>60 writes native health60; DWELLERS_INCLUSION=false writes/syncs map last_despawn_reasons=arachnoid-bosses-disabled then current-server discard, WITHOUT returning from helper. Near end, raw health_loss_limit minus10 > currentHealth: only if currentHealth>0 native setHealth(float(previousLimit-10)), then raw limit-=10 regardless; else raw limit=currentHealth. This is a post-callback loss-retention overwrite, not an incoming damage cap/hurt gate, and it uses native setHealth bounds. Target snapshot is read once before phase controller. Nearest Player in full-side250 native box is selected BEFORE survival/adventure check; target-null arm may setTarget to this Player, but local attack snapshot remains null until next callback. Existing snapshot updates integer(truncated Euclidean) store_target_distance. At end creative/spectator or dead snapshot clears current Mob target with caught exception; that does not undo earlier attacks/aura. Native game-mode helpers use ServerPlayer gameMode, else client PlayerInfo when present. If any Player in250, nearest Player80 survival/adventure primes previously unprimed DATA_primed=true, creates visual-only lightning (no damage candidate), applies server Blindness60/1 to that nearest Player, then UI overlay via separate nearest reads. In-wall actor teleports to original callback X,Y+1,Z. Same Player250 presence invokes NULL-entity, suppressed permission4 command at original callback XYZ: fill +-3 arphex:cobweb_passable replace cobweb, with NO config or MobGriefing gate and ignored command return. Outside the alive block, Crawling dimension Y>250 teleports original callback X,Y-2,Z even if actor no longer alive. Native ServerPlayer connection branches cannot apply to concrete Monster. Overlay, particles, sounds and visual lightning are excluded from scalar observations.",
+      "components": [
+        {
+          "primitive": "NATIVE_STATUS_REMOVAL",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_REGENERATION",
+          "numerical_parameters": {
+            "duration": 60,
+            "native_amplifier": 0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_BLINDNESS",
+          "numerical_parameters": {
+            "duration": 60,
+            "amplifier": 1
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_HEALTH_RETENTION",
+          "numerical_parameters": {
+            "configured_health_write": 60.0,
+            "per_callback_loss_retention": 10.0
+          },
+          "parameter_formulas": {
+            "retention": "if previousLimit-10>currentHealth: health>0 => setHealth(float(previousLimit-10)); rawLimit-=10; else rawLimit=currentHealth"
+          }
+        },
+        {
+          "primitive": "NATIVE_TARGET_PRIMING",
+          "numerical_parameters": {
+            "nearest_player_full_side": 250.0,
+            "priming_full_side": 80.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_TELEPORT",
+          "numerical_parameters": {
+            "inwall_up": 1.0,
+            "crawling_down": -2.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "TERRAIN_COMMAND",
+          "numerical_parameters": {
+            "half_extent": 3
+          },
           "parameter_formulas": {}
         }
       ]

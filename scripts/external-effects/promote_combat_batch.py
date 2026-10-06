@@ -100,11 +100,26 @@ def effect_receiver_binding(method,offset):
     store=stores[-1];cast=body[store-1];origin=body[store-2]
     assert cast['opcode']=='0xc0' and cast['operand'] in (
         'net/minecraft/world/entity/LivingEntity','net/minecraft/server/level/ServerPlayer')
-    assert not any(origin['offset']<i.get('branch_target',-1)<=offset for i in body),('recipient cast is not a closed straight-line binding',origin)
+    # Parameter expressions may branch after the recipient is already loaded
+    # on the operand stack (for example, an existing amplifier plus one).
+    # Entry into the guarded cast/load itself is still unsafe to infer.
+    assert not any(origin['offset']<i.get('branch_target',-1)<=receiver['offset'] for i in body),('recipient cast/load is not a closed straight-line binding',origin)
     return dict(origin_local_index=local(origin),origin_load_offset=origin['offset'],
                 cast_offset=cast['offset'],cast_type=cast['operand'],
                 receiver_local_index=receiver_local,store_offset=body[store]['offset'],
                 receiver_load_offset=receiver['offset'])
+
+
+def literal_synched_int_binding(method, offset):
+    """Bind only a direct boxed integer literal to its exact data accessor."""
+    body=method['instructions'];at=next(n for n,i in enumerate(body) if i['offset']==offset)
+    assert body[at]['operand']=='net/minecraft/network/syncher/SynchedEntityData.set(Lnet/minecraft/network/syncher/EntityDataAccessor;Ljava/lang/Object;)V'
+    accessor,value,box=body[at-3:at]
+    assert accessor['opcode']=='0xb2' and accessor['operand'].endswith('Lnet/minecraft/network/syncher/EntityDataAccessor;')
+    assert box['operand']=='java/lang/Integer.valueOf(I)Ljava/lang/Integer;'
+    assert value['opcode'] in ('0x2','0x3','0x4','0x5','0x6','0x7','0x8','0x10','0x11','0x12','0x13') and type(value['operand']) is int
+    return dict(accessor_symbol=accessor['operand'],accessor_offset=accessor['offset'],
+                value_offset=value['offset'],boxing_offset=box['offset'],native_value=value['operand'])
 
 
 def arrow_factory_binding(method, offset, registry, primitive):
@@ -273,6 +288,13 @@ def validate_batch(batch,review,census):
             hazard_timer=(candidate['primitive']=='NATIVE_HAZARD_LIFECYCLE' and hit['operand'] in ('net/minecraft/world/level/Level.scheduleTick(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/Block;I)V','net/minecraft/server/level/ServerLevel.scheduleTick(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/Block;I)V'))
             projectile_placement=(candidate['primitive']=='PROJECTILE_PLACEMENT' and hit['operand']=='net/minecraft/world/entity/projectile/Projectile.setPos(DDD)V')
             body_dimensions=(candidate['primitive']=='BODY_DIMENSION_SCALE' and hit['operand']=='net/minecraft/world/entity/EntityDimensions.scale(F)Lnet/minecraft/world/entity/EntityDimensions;')
+            synched_clock='native_synched_int_binding' in candidate
+            if synched_clock:
+                assert candidate['primitive']=='ATTACK_CADENCE' and len(candidate['parameters'])==1
+                binding=literal_synched_int_binding(m,consumer['offset'])
+                assert binding==candidate['native_synched_int_binding']
+                component=next(c for c in row['components'] if c['primitive']==candidate['primitive'])
+                assert component['numerical_parameters'][candidate['parameters'][0]]==binding['native_value']
             handoff='native_callee_binding' in candidate
             if handoff:
                 assert candidate['primitive'] in ('TERRAIN_DELIVERY','SUMMON_DELIVERY','CONTROL_DELIVERY') and hit['opcode']=='0xb8'
@@ -316,7 +338,7 @@ def validate_batch(batch,review,census):
                         assert any(cm['name']==proof['method'] and cm['descriptor']==proof['descriptor'] and cm['code_sha256']==proof['code_sha256'] for cm in cw['methods'])
             if attribute:
                 assert literal_attribute_binding(m,consumer['offset'])==candidate['native_attribute_binding'],('wrong native attribute literal',candidate)
-            assert hit['opcode']=='0xb5' or rng or terrain or explosion or durability or attribute or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
+            assert hit['opcode']=='0xb5' or rng or terrain or explosion or durability or attribute or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or synched_clock or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
             if candidate['primitive'].startswith('MOB_EFFECT_') or 'native_holder_symbol' in candidate:
                 symbol,allocation,load=effect_holder_binding(m,consumer['offset'])
                 assert (symbol,allocation,load)==(candidate['native_holder_symbol'],

@@ -571,5 +571,108 @@ class MediumActorSourceTests(unittest.TestCase):
         self.assertIn('arphex:dracon_fire_join_placement',row['canonical_contract_reuse'])
 
 
+class ArachnoidNativeSourceTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m4f-arachnoid-native-source-controller.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-arachnoid-source-projectile-sources.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def method(self, method='execute', suffix=''):
+        entry='net/arphex/procedures/ArachnoidTrisectorOnEntityTickUpdateProcedure'+suffix+'.class'
+        return next(m for w in self.native['witnesses'] if w['entry']==entry
+                    for m in w['methods'] if m['name']==method)
+
+    def prior(self):
+        review=copy.deepcopy(read_json(OUT/'mod-reviews/arphex.json'))
+        ids={r['id'] for r in self.batch['effects']}
+        review['effects']=[r for r in review['effects'] if r['id'] not in ids]
+        review['paths']=[p for p in review['paths'] if not set(p['effect_ids']) & ids]
+        return review
+
+    def test_three_records_and_48_native_observations(self):
+        result=validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual(result['semantic_records'],len(self.prior()['effects'])+3)
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects'] for c in r['scalable_parameter_candidates']),48)
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_factory_profiles_reuse_exact_chrono_and_anchor_roots(self):
+        registry=read_json(OUT/'arphex-projectile-producer-kernel-registry.json')
+        rows=[r for r in registry['rows'] if 'ArachnoidTrisectorOnEntityTickUpdateProcedure$' in r['factory']['entry']]
+        self.assertEqual(len(rows),16)
+        self.assertEqual(sum(r['intrinsic_arrow_root'].endswith('/ChronoShotEntity.class') for r in rows),10)
+        self.assertEqual(sum(r['intrinsic_arrow_root'].endswith('/SpacetimeAnchorEntity.class') for r in rows),6)
+        body=self.method()['instructions'];at=next(n for n,i in enumerate(body) if i['offset']==4657)
+        self.assertEqual([i['operand'] for i in body[at-5:at]],[0.,0.,0.,1.,0.])
+
+    def test_freeze_amplifier_increment_and_recipient_are_native(self):
+        from promote_combat_batch import effect_receiver_binding
+        m=self.method();by={i['offset']:i for i in m['instructions']}
+        self.assertEqual([by[n]['operand'] for n in [962,1004,1005]],[60,0,1])
+        self.assertEqual(by[1006]['opcode'],'0x60')
+        self.assertEqual(effect_receiver_binding(m,1009)['origin_local_index'],68)
+        self.assertEqual(effect_receiver_binding(m,1009)['receiver_local_index'],70)
+        changed=copy.deepcopy(m);next(i for i in changed['instructions'] if i['offset']==969)['branch_target']=942
+        with self.assertRaises(AssertionError):effect_receiver_binding(changed,1009)
+
+    def test_aura_damage_precedes_actor_invincibility_skip(self):
+        by={i['offset']:i for i in self.method()['instructions']}
+        self.assertIn('.hurt(',by[9123]['operand'])
+        self.assertEqual(by[9126]['opcode'],'0x57')  # native return ignored
+        self.assertIn('LivingEntity.hasEffect',by[9147]['operand'])
+        self.assertEqual(by[9150]['branch_target'],9823)
+        self.assertEqual(by[9153]['local_index'],7)  # raw slowtime is actor, not recipient
+        self.assertEqual(by[9171]['local_index'],65)  # recipient Player gate
+        self.assertEqual(by[8950]['branch_target'],9823)  # projectile motion bypasses ordinary arm
+
+    def test_field_query_uses_prior_expansion_and_native_cube_radius(self):
+        body=self.method()['instructions'];by={i['offset']:i for i in body}
+        self.assertIn('.inflate(',by[710]['operand'])
+        self.assertLess(1012,1161)  # effect request before expansion writes
+        self.assertEqual(by[1159]['operand'],1.)
+        self.assertEqual(by[1160]['opcode'],'0x67')
+        self.assertEqual(by[1185]['opcode'],'0x63')
+        self.assertEqual(by[8766]['operand'],10.)
+        field=next(r for r in self.batch['effects'] if r['id'].endswith('temporal_fields'))
+        self.assertFalse(any('cannon_cycle' in str(c) or 'angle_increment' in str(c) for c in field['scalable_parameter_candidates']))
+
+    def test_nested_anchor_delivery_has_one_midchain_health_check(self):
+        for name in ['lambda$execute$9','lambda$execute$8','lambda$execute$7','lambda$execute$6','lambda$execute$5','lambda$execute$4']:
+            body=self.method(name)['instructions']
+            health=[i for i in body if 'LivingEntity.getHealth(' in str(i['operand'])]
+            self.assertEqual(len(health),1 if name=='lambda$execute$7' else 0)
+            self.assertFalse(any('isAlive(' in str(i['operand']) or 'DATA_current_final' in str(i['operand']) for i in body))
+            self.assertTrue(any('.getArrow(' in str(i['operand']) for i in body))
+        self.assertEqual([i['operand'] for i in self.method('lambda$execute$9')['instructions'] if i['offset']==85],[5])
+
+    def test_boxed_literal_clock_is_not_a_phase_reader_or_formula(self):
+        from promote_combat_batch import literal_synched_int_binding
+        self.assertEqual(literal_synched_int_binding(self.method(),2581)['native_value'],600)
+        with self.assertRaises(AssertionError):literal_synched_int_binding(self.method(),8736)
+        changed=copy.deepcopy(self.batch)
+        c=next(c for r in changed['effects'] for c in r['scalable_parameter_candidates'] if 'native_synched_int_binding' in c)
+        c['native_synched_int_binding']['accessor_symbol']=c['native_synched_int_binding']['accessor_symbol'].replace('DATA_lunge_time','DATA_current_final')
+        with self.assertRaises(AssertionError):validate_batch(changed,self.prior(),self.census)
+
+    def test_survival_adventure_and_creative_spectator_are_distinct(self):
+        for suffix,mode in [('$2','SURVIVAL'),('$3','ADVENTURE'),('$23','CREATIVE'),('$24','SPECTATOR'),('$26','SURVIVAL'),('$27','ADVENTURE')]:
+            body=self.method('checkGamemode',suffix)['instructions']
+            self.assertTrue(any('GameType.'+mode in str(i['operand']) for i in body))
+        for suffix in ['$20','$21','$22']:
+            m=self.method('convert',suffix)
+            self.assertTrue(any('Double.parseDouble(' in str(i['operand']) for i in m['instructions']))
+            self.assertEqual(m['instructions'][-2]['operand'],0.)
+
+    def test_health_retention_and_cobweb_command_are_not_hurt_caps(self):
+        by={i['offset']:i for i in self.method()['instructions']}
+        self.assertEqual(by[7869]['operand'],10.)
+        self.assertEqual(by[7872]['opcode'],'0x67')
+        self.assertEqual(by[7873]['opcode'],'0x90')  # double-to-float then native setHealth
+        self.assertIn('setHealth',by[7874]['operand'])
+        self.assertEqual(by[10806]['operand'],'fill ~-3 ~-3 ~-3 ~3 ~3 ~3 arphex:cobweb_passable replace cobweb')
+        retention=next(r for r in self.batch['effects'] if 'retention' in r['id'])
+        self.assertFalse(any(c['primitive']=='NATIVE_HEALTH_RETENTION' for c in retention['scalable_parameter_candidates']))
+
+
 if __name__ == '__main__':
     unittest.main()
