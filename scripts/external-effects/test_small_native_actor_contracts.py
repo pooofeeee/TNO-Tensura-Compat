@@ -5,6 +5,102 @@ from promote_combat_batch import validate_batch
 from test_shadow_clone_contracts import NativeContractHarness
 
 
+class RecluseNativeTests(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m5i-recluse-native-family.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-recluse-native-family.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def test_bindings_and_explicit_inheritance_refinements(self):
+        validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual(len(self.batch['effects']),2)
+        self.assertEqual(len(self.batch['record_refinements']),3)
+        self.assertTrue(all(not r.get('candidate_additions') for r in self.batch['record_refinements']))
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects']
+                             for c in r['scalable_parameter_candidates']),7)
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_concrete_spider_parent_and_independent_parent_goals(self):
+        actors={c['entry']:c for c in self.census['classes']}
+        for name in ('SpiderRecluseEntity','SpiderRecluseDisplayEntity','SpiderLarvaeEntity',
+                     'SpiderLarvaeTinyEntity','SpiderBroodEntity','SpiderFunnelEntity'):
+            self.assertEqual(actors['net/arphex/entity/'+name+'.class']['superclass'],
+                             'net/minecraft/world/entity/monster/Spider')
+        for name in ('SpiderRecluseEntity','SpiderRecluseDisplayEntity'):
+            b=self.body(name,'registerGoals')
+            self.assertIn('Spider.registerGoals()',b[1]['operand'])
+            self.assertEqual(b[1]['opcode'],'0xb7')
+        vanilla=read_json(OUT/'vanilla-evidence/twilight-arthropods.json')
+        root=next(c for c in vanilla['classes'] if c['raw_entry']=='cko.class')
+        b=next(m['instructions'] for m in root['methods'] if m['name']=='registerGoals')
+        for symbol in ('Spider$SpiderAttackGoal.<init>','Spider$SpiderTargetGoal.<init>',
+                       'EntityType', 'IronGolem', 'Player'):
+            if symbol=='EntityType':continue
+            self.assertTrue(any(symbol in str(i['operand']) for i in b),symbol)
+        target=next(c for c in vanilla['classes'] if c['raw_entry']=='cko$c.class')
+        b=next(m['instructions'] for m in target['methods'] if m['name']=='canUse')
+        self.assertTrue(any(i['operand']==.5 for i in b))
+        self.assertFalse(any('NonShiny' in str(i['operand']) for i in b))
+
+    def test_physical_shape_is_integer_then_double_not_continuous_random(self):
+        b=self.body('RecluseHitboxScaleProcedure')
+        divs=[j for j,i in enumerate(b) if i['opcode']=='0x6c']
+        self.assertEqual(len(divs),4)
+        for j in divs:
+            self.assertEqual((b[j-1]['operand'],b[j+1]['opcode']),(15,'0x87'))
+        self.assertFalse(any(i['opcode']=='0x6f' for i in b))  # no ddiv
+        b=self.body('SpiderRecluseEntity','getDefaultDimensions')
+        self.assertTrue(any('RecluseHitboxScaleProcedure.execute(' in str(i['operand']) for i in b))
+        self.assertTrue(any('EntityDimensions.scale(F)' in str(i['operand']) for i in b))
+        from test_shadow_clone_contracts import native_short_branch
+        v=read_json(OUT/'vanilla-evidence/arphex-recluse-math.json')['classes'][0]['methods'][0]
+        self.assertEqual(native_short_branch(v,3),8)
+        by={i['offset']:i for i in v['instructions']}
+        self.assertEqual((by[6]['opcode'],by[7]['opcode']),('0x27','0xaf'))
+        self.assertIn('RandomSource.nextDouble()',by[9]['operand'])
+
+    def test_first_web_branch_latches_before_only_presence_query(self):
+        b=self.body('SpiderRecluseTickProcedure')
+        spawn=[i['offset'] for i in b if 'EntityType.spawn(' in str(i['operand'])]
+        self.assertEqual(spawn,[979,1190,1405,1620,1831,2042])
+        self.assertEqual(sum('AABB.ofSize(' in str(i['operand']) for i in b),1)
+        self.assertIn('CompoundTag.putBoolean(',next(i['operand'] for i in b if i['offset']==837))
+        self.assertLess(837,863)
+        self.assertEqual(sum('ArphexModEntities.CAVE_WEB' in str(i['operand']) for i in b),6)
+        self.assertFalse(any('.setOwner(' in str(i['operand']) for i in b))
+        reset=next(j for j,i in enumerate(b) if i['offset']==2082)
+        self.assertEqual([i['operand'] for i in b[reset-2:reset]],['slow_web_check',5.])
+
+    def test_hang_reader_decrements_before_pose_and_weakness_is_separate(self):
+        b=self.body('SpiderRecluseTickProcedure')
+        self.assertTrue(any('SpiderRecluseEntity.DATA_hangweb' in str(i['operand']) for i in b))
+        write=next(i['offset'] for i in b if 'SynchedEntityData.set(' in str(i['operand']))
+        self.assertLess(write,next(i['offset'] for i in b if 'ModList.isLoaded(' in str(i['operand'])))
+        self.assertTrue(any('MobEffects.WEAKNESS' in str(i['operand']) for i in b))
+        self.assertTrue(any('.setHealth(' in str(i['operand']) and i['offset']==103 for i in b))
+        self.assertFalse(any('.heal(' in str(i['operand']) for i in b))
+        keys={k for c in self.row('recluse_native_hang_shape_web_and_melee')['scalable_parameter_candidates']
+              for k in c['parameters']}
+        self.assertFalse(any('health' in k or 'hang' in k for k in keys))
+
+    def test_display_enabled_ai_discard_and_typed_hang_fallback(self):
+        b=self.body('SpiderRecluseDisplayEntity','<init>')
+        j=next(j for j,i in enumerate(b) if '.setNoAi(' in str(i['operand']))
+        self.assertEqual(b[j-1]['operand'],0)
+        b=self.body('RecluseAnim1OnEntityTickUpdateProcedure')
+        self.assertTrue(any('.isClientSide()' in str(i['operand']) for i in b))
+        self.assertEqual(sum('.discard(' in str(i['operand']) for i in b),1)
+        b=self.body('LooklimRecluseProcedure')
+        self.assertIn('net/arphex/entity/SpiderRecluseEntity',[i['operand'] for i in b if i['opcode']=='0xc1'])
+        self.assertNotIn('net/arphex/entity/SpiderRecluseDisplayEntity',[i['operand'] for i in b if i['opcode']=='0xc1'])
+        b=self.body('SpiderRecluseDisplayEntity','hurt')
+        self.assertFalse(any('SpiderFunnelEntityIsHurtProcedure' in str(i['operand']) for i in b))
+        b=self.body('SpiderRecluseEntity','hurt')
+        helper=next(i['offset'] for i in b if 'SpiderFunnelEntityIsHurtProcedure' in str(i['operand']))
+        self.assertLess(helper,next(i['offset'] for i in b if '.getDirectEntity(' in str(i['operand'])))
+
+
 class SmallInsectNativeTests(NativeContractHarness, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
