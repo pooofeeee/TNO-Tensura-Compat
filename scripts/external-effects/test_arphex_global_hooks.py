@@ -6,6 +6,79 @@ from promote_combat_batch import validate_batch
 
 
 class GlobalHooksTests(unittest.TestCase):
+    def test_tormentor_player_batch_reuses_status_and_counts_native_parameters(self):
+        batch=read_json(OUT/'arphex-r2m2s-player-tormentor-state-and-placement.json')
+        review=read_json(OUT/'mod-reviews/arphex.json');ids={r['id'] for r in batch['effects']}
+        review['effects']=[r for r in review['effects'] if r['id'] not in ids]
+        review['paths']=[p for p in review['paths'] if not set(p['effect_ids'])&ids]
+        self.assertEqual(validate_batch(batch,review,self.census)['semantic_records'],len(review['effects'])+2)
+        self.assertEqual(len(batch['effects']),2)
+        self.assertEqual(sum(len(c['parameters']) for r in batch['effects'] for c in r['scalable_parameter_candidates']),3)
+        target=next(r for r in batch['record_refinements'] if r['id']=='arphex:tormentor_primary_target')
+        self.assertEqual(target['candidate_additions'][0]['native_receiver_binding']['origin_local_index'],8)
+
+    def test_projecte_window_is_exact_acquisition_command_requests(self):
+        body=self.body('GameModeDetectorProcedure')
+        requests=[n for n,i in enumerate(body) if 16226<=i['offset']<=18452 and '.performPrefixedCommand(' in str(i['operand'])]
+        self.assertEqual(len(requests),31)
+        for n in requests:
+            self.assertIn(body[n-1]['opcode'],('0x12','0x13'))
+            self.assertTrue(body[n-1]['operand'].startswith('projecte setemc '))
+        self.assertFalse(any('.hurt(' in str(i['operand']) for i in body if 16226<=i['offset']<=18452))
+
+    def test_tormentor_chunk_recipes_preserve_malformed_requests(self):
+        entry=self.witness('GameModeDetectorProcedure')['entry']
+        recipes={b['index']:b['arguments'][0] for b in self.census['registration_bootstraps'] if b['entry']==entry and b['arguments']}
+        self.assertEqual(recipes[64],'execute in \x01 run execute positioned \x01 \x01 \x01run forceload remove ~ ~')
+        self.assertEqual(recipes[69],'execute in \x01 run execute positioned \x01 \x01 run forceload remove ~ ~')
+        self.assertEqual(recipes[76],'execute in \x01 run execute positioned \x01 \x01 \x01 run forceload remove ~ ~')
+        self.assertEqual(recipes[71],'tp @e[type=arphex:tormentor,sort=nearest,limit=1] \x01 \x01 \x01')
+        body=self.body('GameModeDetectorProcedure');by={i['offset']:i for i in body}
+        for offset in (19988,20712,21158,22804,24039,24555):
+            self.assertTrue(by[offset]['operand'].endswith('Ljava/lang/String;)V')) # no success result
+
+    def test_tormentor_integer_timer_and_live_follow_formula_are_native(self):
+        body=self.body('GameModeDetectorProcedure');by={i['offset']:i for i in body}
+        self.assertEqual([by[n]['opcode'] for n in (22497,22498,22499,22500)],['0x6c','0x87','0x67','0xb5'])
+        self.assertEqual(1//2,0)
+        for offset in (20477,20519,20538,20578,23477,23645,23664,23704):
+            self.assertIn('TORMENTOR_FOLLOW_SPEED',by[offset]['operand'])
+        self.assertEqual(by[20550]['operand'],2.0)
+        self.assertEqual(by[20555]['local_index'],78)
+        for n in (21182,24194):self.assertEqual(by[n]['local_index'],78)
+        self.assertIn('tormentor_yD',by[21184]['operand'])
+        self.assertIn('tormentor_yD',by[24196]['operand'])
+        self.assertEqual(by[23230]['operand'],'torteletime')
+        self.assertEqual(by[23233]['operand'],60.0)
+        self.assertIn('.putDouble(',by[23236]['operand'])
+        config=next(w for w in self.native['witnesses'] if w['entry'].endswith('/ConfigurationSettingsConfiguration.class'))['methods'][0]['instructions']
+        defaults={i['offset']:i for i in config}
+        self.assertEqual(defaults[488]['operand'],25.0)
+        self.assertIn('.define(',defaults[494]['operand']) # comment range is not defineInRange
+
+    def test_tormentor_entry_guards_do_not_exit_after_native_disable_writes(self):
+        body=self.body('GameModeDetectorProcedure');by={i['offset']:i for i in body}
+        self.assertEqual(by[19420]['branch_target'],19868)
+        self.assertEqual(by[19472]['operand'],0.0)
+        self.assertEqual(by[19473]['opcode'],'0xb5')
+        self.assertEqual(by[19536]['opcode'],'0xb5')
+        self.assertIn('EntityType.spawn(',by[19835]['operand'])
+        self.assertEqual(by[24800]['branch_target'],25032)
+        self.assertEqual(by[24822]['operand'],0.0)
+        self.assertEqual(by[24823]['opcode'],'0xb5')
+        self.assertEqual(by[21521]['opcode'],'0xb5') # clear follow UUID first
+        self.assertEqual([by[n]['operand'] for n in (21567,21569,21570,21571)],[60,0,0,0])
+        self.assertIn('TORMENTOR_PRIMARY_TARGET',by[21564]['operand'])
+        self.assertIn('removeEffect(',by[18513]['operand'])
+        self.assertFalse(any('isClientSide' in str(i['operand']) for i in body if 18453<=i['offset']<18513))
+
+    def test_tormentor_reward_item_protection_has_bound_item_actor(self):
+        body=self.body('GameModeDetectorProcedure');at=next(n for n,i in enumerate(body) if i['offset']==19405)
+        self.assertEqual(body[at-1]['operand'],'data merge entity @s {Glowing:1b,Invulnerable:1b}')
+        ctor=next(n for n,i in enumerate(body[:at]) if i['offset']==19399)
+        self.assertEqual(body[ctor-1]['local_index'],139) # queried item, not Player local8
+        self.assertEqual(body[ctor-1]['opcode'],'0x19')
+
     @classmethod
     def setUpClass(cls):
         cls.census=read_json(OUT/'arphex-combat-census.json')

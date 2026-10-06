@@ -1,7 +1,7 @@
 {
   "schema": "tno.external_effects.vanilla_comparison.v1",
   "status": "PARTIAL",
-  "checkpoint": "R2m2r-arphex-player-armor-sweep-and-owned-population",
+  "checkpoint": "R2m2s-arphex-player-tormentor-state-and-placement",
   "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
   "note": "Deterministic projection of canonical mod reviews,including explicit PARTIAL scope. The ledger alone tracks per-mod completeness. No Stage eligibility or policy decision.",
   "comparisons": [
@@ -6533,6 +6533,96 @@
       ]
     },
     {
+      "effect_id": "arphex:tormentor_player_native_encounter_tracking",
+      "mod_key": "arphex",
+      "primary_classification": "BINARY_MECHANIC",
+      "closest_vanilla": "Custom binary encounter/target state and native configured health admission, separate from offense magnitude",
+      "similarities": "Uses the explicit native API primitives below with their native admission and lifecycle.",
+      "differences": "Custom binary encounter/target state and native configured health admission, separate from offense magnitude; exact native requests, state ordering and source predicates are described in actual_behavior.",
+      "components": [
+        {
+          "primitive": "NATIVE_ENCOUNTER_ADMISSION",
+          "numerical_parameters": {
+            "player_absence_full_side": 50,
+            "failure_threshold_gt": 10,
+            "low_health_binding": 60,
+            "max_health_config_default": 1024
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_FOLLOW_TARGET_STATE",
+          "numerical_parameters": {
+            "online_reset": 200
+          },
+          "parameter_formulas": {
+            "entity_loaded_decrement": "double(int(1/onlinePlayerCount)) when health>0, loaded>0 and count>0"
+          }
+        },
+        {
+          "primitive": "NATIVE_SUMMON_ADMISSION",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_RESPITE_STATE",
+          "numerical_parameters": {
+            "idle_respite_reset": 5
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "arphex:tormentor_player_native_follow_placement",
+      "mod_key": "arphex",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "Custom computed entity-placement request with independent tracked-position and chunk lifecycle writes",
+      "similarities": "Uses the explicit native API primitives below with their native admission and lifecycle.",
+      "differences": "Custom computed entity-placement request with independent tracked-position and chunk lifecycle writes; exact native requests, state ordering and source predicates are described in actual_behavior.",
+      "components": [
+        {
+          "primitive": "NATIVE_FOLLOW_PLACEMENT",
+          "numerical_parameters": {
+            "follow_percentage": 25,
+            "vertical_bias_factor": 2
+          },
+          "parameter_formulas": {
+            "xz": "PlayerAxis+(mapAxis-PlayerAxis)*(100-liveF)/100",
+            "y": "PlayerY+(mapY-PlayerY)*(100-liveF)/100+liveF*2"
+          }
+        },
+        {
+          "primitive": "NATIVE_FOLLOW_CADENCE",
+          "numerical_parameters": {
+            "normal_reset_ticks": 60
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_CHUNK_REQUEST_LIFECYCLE",
+          "numerical_parameters": {
+            "unload_repeats_reset": 10,
+            "alternate_queue_ticks": 200
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_FOLLOW_ADMISSION",
+          "numerical_parameters": {
+            "player_absence_full_side": 600,
+            "map_presence_full_side": 64,
+            "alternate_distance_gt": 550,
+            "normal_distance_gt": 400,
+            "normal_random_min": 1,
+            "normal_random_max": 20,
+            "normal_random_match": 5
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
       "effect_id": "arphex:tormentor_player_native_materialization",
       "mod_key": "arphex",
       "primary_classification": "BINARY_MECHANIC",
@@ -6701,6 +6791,14 @@
             "spider_rain": "cycle < uniformInt(1,1000); Brood1/10 else LongLegs1/5 else Larvae",
             "locust_rain": "cycle > uniformInt(1,1000)"
           }
+        },
+        {
+          "primitive": "MOB_EFFECT_TORMENTOR_PRIMARY_TARGET",
+          "numerical_parameters": {
+            "player_follow_duration": 60,
+            "native_amplifier": 0
+          },
+          "parameter_formulas": {}
         }
       ]
     },
@@ -6785,6 +6883,13 @@
           "primitive": "NATIVE_ITEM_REMOVAL",
           "numerical_parameters": {
             "fallback_inflate": 5
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_REWARD_ITEM_PROTECTION",
+          "numerical_parameters": {
+            "query_inflate": 100
           },
           "parameter_formulas": {}
         }
