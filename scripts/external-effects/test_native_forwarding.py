@@ -103,6 +103,47 @@ class QueryFixture {
             self.assertEqual(accepted,['lambda$constant$0'])
 
 
+class PresentationLeafShapeTests(unittest.TestCase):
+    def test_sound_query_is_exact_registry_return_not_hurt_payload(self):
+        b=[ins('0xb2','net/minecraft/core/registries/BuiltInRegistries.SOUND_EVENTLnet/minecraft/core/Registry;'),
+           ins('0x12','example:hurt'),ins('0xb8','net/minecraft/resources/ResourceLocation.parse(Ljava/lang/String;)Lnet/minecraft/resources/ResourceLocation;'),
+           ins('0xb9','net/minecraft/core/Registry.get(Lnet/minecraft/resources/ResourceLocation;)Ljava/lang/Object;'),
+           ins('0xc0','net/minecraft/sounds/SoundEvent'),ins('0xb0')]
+        shape=lambda b:forwarding_shape('x/Actor.class','getHurtSound','(Lnet/minecraft/world/damagesource/DamageSource;)Lnet/minecraft/sounds/SoundEvent;',1,b)
+        self.assertEqual(shape(b),dict(kind='EXACT_NATIVE_SOUND_REGISTRY_QUERY',sound_identifier='example:hurt'))
+        for extra in (ins('0xb6','x/Actor.hurt()Z'),ins('0xb5','x/Actor.healthF')):
+            self.assertIsNone(shape([extra]+b))
+        bad=copy.deepcopy(b);bad[0]['operand']='x/Actor.GAMEPLAY_REGISTRYLnet/minecraft/core/Registry;';self.assertIsNone(shape(bad))
+
+    def test_cache_query_requires_own_field_exact_gecko_type(self):
+        t='Lsoftware/bernie/geckolib/animatable/instance/AnimatableInstanceCache;'
+        b=[ins('0x2a'),ins('0xb4','x/Actor.cache'+t),ins('0xb0')]
+        shape=lambda b:forwarding_shape('x/Actor.class','getAnimatableInstanceCache','()'+t,1,b)
+        self.assertEqual(shape(b),dict(kind='EXACT_GECKO_ANIMATION_CACHE_QUERY',cache_field='x/Actor.cache'+t))
+        for value in ('x/Other.cache'+t,'x/Actor.attackStateI'):
+            bad=copy.deepcopy(b);bad[1]['operand']=value;self.assertIsNone(shape(bad))
+
+    def test_death_rotation_requires_literal_renderer_api_not_physical_getter(self):
+        b=[ins('0xb',0.0),ins('0xae')];parent='software/bernie/geckolib/renderer/GeoEntityRenderer'
+        self.assertEqual(forwarding_shape('x/R.class','getDeathMaxRotation','(Lx/Actor;)F',1,b,superclass=parent),
+                         dict(kind='EXACT_GECKO_DEATH_RENDER_ROTATION',render_degrees=0.0))
+        self.assertIsNone(forwarding_shape('x/R.class','getDeathMaxRotation','(Lx/Actor;)F',1,b,superclass='x/Combat'))
+        self.assertIsNone(forwarding_shape('x/R.class','getRotation','(Lx/Actor;)F',1,b,superclass=parent))
+
+    def test_literal_tooltip_preserves_native_parent_and_only_mutates_text_list(self):
+        desc='(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/Item$TooltipContext;Ljava/util/List;Lnet/minecraft/world/item/TooltipFlag;)V'
+        parent='net/minecraft/world/item/Item'
+        b=[ins(op,local_index=n) for n,op in enumerate(('0x2a','0x2b','0x2c','0x2d','0x19'))]
+        b += [ins('0xb7',parent+'.appendHoverText'+desc),ins('0x2d',local_index=3),ins('0x12','Tooltip claim is not evidence of damage'),
+              ins('0xb8','net/minecraft/network/chat/Component.literal(Ljava/lang/String;)Lnet/minecraft/network/chat/MutableComponent;'),
+              ins('0xb9','java/util/List.add(Ljava/lang/Object;)Z'),ins('0x57'),ins('0xb1')]
+        shape=lambda b:forwarding_shape('x/I.class','appendHoverText',desc,1,b,superclass=parent)
+        # One parent call and one five-instruction literal line, then return.
+        self.assertEqual(shape(b),dict(kind='EXACT_NATIVE_LITERAL_TOOLTIP',tooltip_lines=['Tooltip claim is not evidence of damage']))
+        bad=copy.deepcopy(b);bad[6]['local_index']=1;self.assertIsNone(shape(bad))
+        bad=copy.deepcopy(b);bad[8]['operand']='x/Item.damage(Ljava/lang/String;)Lnet/minecraft/network/chat/MutableComponent;';self.assertIsNone(shape(bad))
+
+
 class DistanceQueryShapeTests(unittest.TestCase):
     def query(self):
         return [ins('0x19',local_index=6),ins('0x26',local_index=0),

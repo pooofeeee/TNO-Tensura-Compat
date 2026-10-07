@@ -79,6 +79,50 @@ def asset_query_shape(name, descriptor, access, body, superclass):
     return dict(kind='EXACT_GECKO_MODEL_ASSET_QUERY',asset_identifier=identifier)
 
 
+def presentation_leaf_shape(entry, name, descriptor, access, body, superclass):
+    """Exact public API leaves, not arbitrary constant gates or field getters."""
+    if access & 8:return None
+    ops=[i['opcode'] for i in body]
+    sounds={'getAmbientSound':'()Lnet/minecraft/sounds/SoundEvent;',
+            'getDeathSound':'()Lnet/minecraft/sounds/SoundEvent;',
+            'getHurtSound':'(Lnet/minecraft/world/damagesource/DamageSource;)Lnet/minecraft/sounds/SoundEvent;'}
+    if sounds.get(name)==descriptor and ops[:1]==['0xb2'] and len(body)==6 \
+            and body[1]['opcode'] in ('0x12','0x13') and ops[2:]==['0xb8','0xb9','0xc0','0xb0'] \
+            and body[0]['operand']=='net/minecraft/core/registries/BuiltInRegistries.SOUND_EVENTLnet/minecraft/core/Registry;' \
+            and body[2]['operand']=='net/minecraft/resources/ResourceLocation.parse(Ljava/lang/String;)Lnet/minecraft/resources/ResourceLocation;' \
+            and body[3]['operand']=='net/minecraft/core/Registry.get(Lnet/minecraft/resources/ResourceLocation;)Ljava/lang/Object;' \
+            and body[4]['operand']=='net/minecraft/sounds/SoundEvent' \
+            and isinstance(body[1]['operand'],str) \
+            and re.fullmatch(r'(?:[a-z0-9_.-]+:)?[a-z0-9_./-]+',body[1]['operand']):
+        return dict(kind='EXACT_NATIVE_SOUND_REGISTRY_QUERY',sound_identifier=body[1]['operand'])
+    cache='Lsoftware/bernie/geckolib/animatable/instance/AnimatableInstanceCache;'
+    if name=='getAnimatableInstanceCache' and descriptor=='()'+cache and ops==['0x2a','0xb4','0xb0'] \
+            and re.fullmatch(re.escape(entry[:-6])+r'\.[^.]+?'+re.escape(cache),str(body[1]['operand'])):
+        return dict(kind='EXACT_GECKO_ANIMATION_CACHE_QUERY',cache_field=body[1]['operand'])
+    args,ret=signature(descriptor)
+    if superclass=='software/bernie/geckolib/renderer/GeoEntityRenderer' and name=='getDeathMaxRotation' \
+            and len(args)==1 and kind(args[0])=='A' and ret=='F' and len(body)==2 \
+            and body[0]['opcode'] in ('0xb','0xc','0xd','0x12','0x13') and body[1]['opcode']=='0xae' \
+            and type(body[0]['operand']) in (int,float):
+        return dict(kind='EXACT_GECKO_DEATH_RENDER_ROTATION',render_degrees=body[0]['operand'])
+    tooltip='(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/Item$TooltipContext;Ljava/util/List;Lnet/minecraft/world/item/TooltipFlag;)V'
+    parents={'net/minecraft/world/level/block/Block'}|{'net/minecraft/world/item/'+n for n in
+        ('Item','SwordItem','ArmorItem','BowItem','CrossbowItem','TridentItem','ShieldItem','TieredItem','PickaxeItem')}
+    if name=='appendHoverText' and descriptor==tooltip and superclass in parents and len(body)>=12 \
+            and ops[:6]==['0x2a','0x2b','0x2c','0x2d','0x19','0xb7'] \
+            and [body[j].get('local_index') for j in range(5)]==list(range(5)) \
+            and body[5]['operand']==superclass+'.appendHoverText'+tooltip and ops[-1]=='0xb1':
+        tail=body[6:-1]
+        if len(tail)%5==0 and all(
+                chunk[0]['opcode']=='0x2d' and chunk[0].get('local_index')==3 \
+                and chunk[1]['opcode'] in ('0x12','0x13') and isinstance(chunk[1]['operand'],str) \
+                and chunk[2]['opcode']=='0xb8' and chunk[2]['operand']=='net/minecraft/network/chat/Component.literal(Ljava/lang/String;)Lnet/minecraft/network/chat/MutableComponent;' \
+                and chunk[3]['opcode']=='0xb9' and chunk[3]['operand']=='java/util/List.add(Ljava/lang/Object;)Z' \
+                and chunk[4]['opcode']=='0x57' for chunk in (tail[j:j+5] for j in range(0,len(tail),5))):
+            return dict(kind='EXACT_NATIVE_LITERAL_TOOLTIP',tooltip_lines=[tail[j+1]['operand'] for j in range(0,len(tail),5)])
+    return None
+
+
 def forwarding_shape(entry, name, descriptor, access, body, exception_handlers=(), bootstraps=None, superclass=None):
     """Return an exact proof shape or None; do not establish target coverage."""
     if exception_handlers:return None
@@ -97,6 +141,8 @@ def forwarding_shape(entry, name, descriptor, access, body, exception_handlers=(
         return dict(kind='EXACT_NATIVE_VEC3_DISTANCE_QUERY')
     asset=asset_query_shape(name,descriptor,access,body,superclass)
     if asset:return asset
+    presentation=presentation_leaf_shape(entry,name,descriptor,access,body,superclass)
+    if presentation:return presentation
     query=distance_query_shape(entry,descriptor,access,body,bootstraps or {})
     if query:return query
     ops=[i['opcode'] for i in body]
@@ -153,6 +199,10 @@ def collect(census, index, jar, selection=None):
                  (m['access'] & 8 and m['descriptor'].endswith(')V') and m['code_bytes']==1) or
                  (m['method']=='<init>' and m['descriptor']=='()V' and m['code_bytes']==5) or
                  (classes[m['entry']]['superclass']=='software/bernie/geckolib/model/GeoModel' and m['method'] in ('getAnimationResource','getModelResource','getTextureResource') and m['code_bytes'] in (6,7)) or
+                 (m['method'] in ('getAmbientSound','getHurtSound','getDeathSound') and m['code_bytes'] in (17,18)) or
+                 (m['method']=='getAnimatableInstanceCache' and m['code_bytes']==5) or
+                 (m['method']=='appendHoverText') or
+                 (classes[m['entry']]['superclass']=='software/bernie/geckolib/renderer/GeoEntityRenderer' and m['method']=='getDeathMaxRotation' and m['code_bytes'] in (2,3,4)) or
                  (m['access'] & 0x1008 == 0x1008 and m['descriptor'].endswith(')Z') and m['code_bytes']==2) or
                  (m['access'] & 8 and m['descriptor']=='(Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/entity/Entity;)D' and m['code_bytes']==6) or
                  (m['descriptor'] in ('(DDD)Ljava/util/Comparator;','(DDDLnet/minecraft/world/entity/Entity;)D') and m['code_bytes'] in (10,13)))]
@@ -172,7 +222,7 @@ def collect(census, index, jar, selection=None):
             if not shape:continue
             waiting.append(dict(entry=entry,entry_sha256=classes[entry]['entry_sha256'],method=m['method'],descriptor=m['descriptor'],
                 access=m['access'],code_sha256=m['code_sha256'],code_hex=code.hex(),instructions=body,exception_handlers=[],
-                **(dict(superclass=cls.super) if shape['kind']=='EXACT_GECKO_MODEL_ASSET_QUERY' else {}),
+                **(dict(superclass=cls.super) if shape['kind'] in ('EXACT_GECKO_MODEL_ASSET_QUERY','EXACT_GECKO_DEATH_RENDER_ROTATION','EXACT_NATIVE_LITERAL_TOOLTIP') else {}),
                 **(dict(bootstraps=bootstraps) if bootstraps else {}),**shape))
     query_keys={(r['entry'],r['method'],r['descriptor']) for r in waiting if r['kind']=='EXACT_NATIVE_DISTANCE_QUERY'}
     while waiting:
@@ -201,6 +251,10 @@ def collect(census, index, jar, selection=None):
         scope+=' Constant GeckoLib model asset queries require exact superclass/API/asset path shape; renderer/actor/input state and computed selectors remain separate.'
     if any(r['kind'] in ('EXACT_SYNTHETIC_TRUE_PREDICATE','EXACT_NATIVE_VEC3_DISTANCE_QUERY') for r in rows):
         scope+=' Exact synthetic true predicates and current native Vec3 distance queries contribute no separate scalar/payload; caller selection, admission and ordering are retained, not excluded.'
+    if any(r['kind'] in ('EXACT_NATIVE_SOUND_REGISTRY_QUERY','EXACT_GECKO_ANIMATION_CACHE_QUERY','EXACT_GECKO_DEATH_RENDER_ROTATION','EXACT_NATIVE_LITERAL_TOOLTIP') for r in rows):
+        scope+=' Exact sound registry returns, GeckoLib animation-cache queries and literal renderer death rotations are presentation API leaves; actor death/hurt, animation state writers and physical transforms remain separate.'
+        if any(r['kind']=='EXACT_NATIVE_LITERAL_TOOLTIP' for r in rows):
+            scope+=' Literal tooltip additions mutate only the supplied text list after the exact native parent call; tooltip claims do not establish actual combat values or active mechanics.'
     return dict(schema='tno.external_effects.exact_native_forwarding.v1',mod_key=census['mod_key'],jar_sha256=census['jar_sha256'],
         scope=scope,
         summary=dict(methods=len(rows),counts_by_kind=dict(sorted(Counter(r['kind'] for r in rows).items()))),
@@ -224,7 +278,8 @@ def validate(document,census,covered):
         if 'superclass' in r:assert r['superclass']==classes[r['entry']]['superclass']
         shape=forwarding_shape(r['entry'],r['method'],r['descriptor'],r['access'],templates[r['instruction_template']],r['exception_handlers'],r.get('bootstraps'),r.get('superclass'))
         assert shape and shape['kind']==r['kind']
-        if 'asset_identifier' in shape:assert r['asset_identifier']==shape['asset_identifier']
+        for field,value in shape.items():
+            if field not in ('kind','target'):assert r[field]==value
         if 'target' in shape:
             assert all(r['target'][k]==v for k,v in shape['target'].items())
             t=r['target'];assert t['code_sha256']==native[(t['entry'],t['method'],t['descriptor'])]['code_sha256']
