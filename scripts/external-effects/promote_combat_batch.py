@@ -224,6 +224,64 @@ def literal_attribute_binding(method,offset):
                 value_offset=value['offset'],native_value=value['operand'])
 
 
+def literal_constructor_argument_binding(method, offset, argument_index):
+    """Prove one original numeric literal in a linear constructor expression.
+
+    Unknown arguments stay opaque; no call is evaluated. Branches, stores,
+    arithmetic, casts and unsupported stack operations fail closed. Binding an
+    argument proves neither constructor reachability nor its combat meaning.
+    """
+    import re
+    from native_forwarding import signature
+    body=method['instructions'];at=next(n for n,i in enumerate(body) if i['offset']==offset)
+    hit=body[at]
+    match=re.fullmatch(r'(.+)\.<init>(\(.*\)V)',str(hit['operand']))
+    assert hit['opcode']=='0xb7' and match
+    owner,descriptor=match.groups();args,_=signature(descriptor)
+    assert type(argument_index) is int and 0<=argument_index<len(args)
+    assert args[argument_index] in ('B','C','S','I','J','F','D')
+    start=max(n for n in range(at) if body[n]['opcode']=='0xbb' and body[n]['operand']==owner)
+    stack=[]
+    def pop(count):
+        assert len(stack)>=count, 'Unproven constructor expression stack'
+        values=stack[-count:] if count else []
+        if count:del stack[-count:]
+        return values
+    for instruction in body[start:at+1]:
+        op=int(instruction['opcode'],16);value=instruction['operand']
+        if op==0xbb:stack.append(dict(new=value,allocation_offset=instruction['offset']))
+        elif op==0x59:
+            assert stack and 'new' in stack[-1], 'Only allocation DUP is supported'
+            stack.append(stack[-1])
+        elif op==0x01:stack.append({})
+        elif 0x02<=op<=0x14:
+            primitive='J' if op in (0x09,0x0a) else 'F' if 0x0b<=op<=0x0d else 'D' if op in (0x0e,0x0f) else None
+            if op in (0x12,0x13,0x14):
+                # LDC type is only unequivocal for int versus floating value;
+                # LDC2_W floating is double, ordinary LDC floating is float.
+                primitive=('D' if op==0x14 else 'F') if type(value) is float else ('J' if op==0x14 else 'I') if type(value) is int else None
+            elif primitive is None and 0x02<=op<=0x11:primitive='I'
+            stack.append(dict(literal=type(value) in (int,float),primitive=primitive,
+                              value=value,value_offset=instruction['offset']))
+        elif 0x15<=op<=0x2d:stack.append({})
+        elif op==0xb2:stack.append({})
+        elif op==0xb4:pop(1);stack.append({})
+        elif op in (0xb6,0xb7,0xb8,0xb9):
+            call=re.fullmatch(r'(.+)\.([^.(]+)(\(.*)',str(value));assert call
+            _,name,desc=call.groups();inputs,result=signature(desc)
+            values=pop(len(inputs));receiver=pop(1)[0] if op!=0xb8 else None
+            if instruction['offset']==offset:
+                assert name=='<init>' and receiver.get('new')==owner and receiver.get('allocation_offset')==body[start]['offset']
+                selected=values[argument_index]
+                assert selected.get('literal') and selected['primitive']==args[argument_index]
+                return dict(kind='LITERAL_NATIVE_CONSTRUCTOR_ARGUMENT',constructor=hit['operand'],
+                    allocation_offset=body[start]['offset'],argument_index=argument_index,
+                    argument_descriptor=args[argument_index],value_offset=selected['value_offset'],native_value=selected['value'])
+            if result!='V':stack.append({})
+        else:raise AssertionError(('Unsupported constructor expression instruction',instruction))
+    raise AssertionError('Missing constructor consumer')
+
+
 def literal_block_factor_binding(method, offset):
     """Bind a declared block motion property, without inferring its consumers."""
     body = method['instructions']
@@ -884,6 +942,13 @@ def validate_batch(batch,review,census):
             durability=(candidate['primitive']=='ITEM_DURABILITY_REPAIR' and
                         hit['operand']=='net/minecraft/world/item/ItemStack.setDamageValue(I)V')
             attribute='native_attribute_binding' in candidate
+            constructor_argument='native_literal_constructor_argument_binding' in candidate
+            if constructor_argument:
+                binding=candidate['native_literal_constructor_argument_binding']
+                assert literal_constructor_argument_binding(m,consumer['offset'],binding['argument_index'])==binding
+                assert len(candidate['parameters'])==1
+                component=next(c for c in row['components'] if c['primitive']==candidate['primitive'])
+                assert component['numerical_parameters'][candidate['parameters'][0]]==binding['native_value']
             item_attribute='native_item_attribute_binding' in candidate
             item_wear='native_item_wear_binding' in candidate
             numeric_return='native_numeric_return_binding' in candidate
@@ -1016,7 +1081,7 @@ def validate_batch(batch,review,census):
                 allowed={'native_value'} if binding['kind']=='ITEM_ATTRIBUTE_MODIFIER' else {'attack_bonus','attack_speed'}
                 assert set(roles.values())==allowed and len(roles)==len(allowed)
                 assert all(component['numerical_parameters'][parameter]==binding[role] for parameter,role in roles.items()),('component differs from pinned item attribute',candidate)
-            assert hit['opcode']=='0xb5' or field_literal or block_factor or literal_numeric or last_numeric_argument or vector_components or effect_attribute or integer_dividend or food_component or rounded_tag or rng or terrain or explosion or durability or attribute or item_attribute or item_wear or numeric_return or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or synched_clock or clock_distribution or vector_scale or vector_expression or registry_spawn or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
+            assert hit['opcode']=='0xb5' or field_literal or block_factor or literal_numeric or last_numeric_argument or vector_components or effect_attribute or integer_dividend or food_component or rounded_tag or rng or terrain or explosion or durability or attribute or constructor_argument or item_attribute or item_wear or numeric_return or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or synched_clock or clock_distribution or vector_scale or vector_expression or registry_spawn or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
             if candidate['primitive'].startswith('MOB_EFFECT_') or 'native_holder_symbol' in candidate:
                 symbol,allocation,load=effect_holder_binding(m,consumer['offset'])
                 assert (symbol,allocation,load)==(candidate['native_holder_symbol'],

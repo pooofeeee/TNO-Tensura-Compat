@@ -1,10 +1,83 @@
 {
   "schema": "tno.external_effects.vanilla_comparison.v1",
   "status": "PARTIAL",
-  "checkpoint": "R2m8g-alexscaves-exact-state-transport",
+  "checkpoint": "R2m8h-alexscaves-magnetic-actors-owned-payloads-and-control",
   "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
   "note": "Deterministic projection of canonical mod reviews,including explicit PARTIAL scope. The ledger alone tracks per-mod completeness. No Stage eligibility or policy decision.",
   "comparisons": [
+    {
+      "effect_id": "alexscaves:boundroid_slam",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "Native damage/effect/goal APIs; the explicit differences below retain original semantics",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Server tick creates missing linked winch and retains UUID/ID link. Live target horizontal distance<1.2 and stopSlammingFor==0 admits slam. Slam writes Y velocity -1 while retaining X/Z; on ground clears flag, ground stay10, cooldown30+rand20, then bbox[-1.5,-2,-1.5;1.5,1,1.5] requests mobAttack(self)5F to non-allied living entities excluding both Boundroid types. Damage returns ignored. Cooldowns decrement later that tick. onClimbable is parent OR horizontal collision and draggedClimable. Parent or IN_WALL immunity, own fall callback empty, Magnetizing rejected in addition to parent. Raw stopGravity and REMOVE_GRAVITY_MODIFIER are not treated as effective gravity control: finite field index has only stopGravity writes and no reader. Winch actual gravity/noPhysics/chain control is separate.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "slam_damage": 5.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "slam_y": -1.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_ATTACK_SEQUENCE",
+          "numerical_parameters": {
+            "ground_stay": 10,
+            "cooldown_base": 30,
+            "cooldown_random_bound": 20,
+            "target_horizontal_gate": 1.2,
+            "bbox_half_width": 1.5,
+            "bbox_lower_y": -2.0,
+            "bbox_upper_y": 1.0
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:boundroid_winch_chain_and_admission",
+      "mod_key": "alexscaves",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "Native damage/effect/goal APIs; the explicit differences below retain original semantics",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Winch delegates incoming original source/amount to linked head when winch is not invulnerable and head exists/not invulnerable; only successful head hurt assigns noLatchCooldown60+rand60 and returns head result; otherwise uses parent hurt. Server link/chain tick pulls head when distance>latched(1.25+sin(tick*.1F)*.25) or unlatched3.5 and not stopPullingUp. Normalize only vector length>1; disRem=min(distance-distanceGoal,1), pull speed target?.3F:.1F, head velocity=old*(.95F,.7F,.95F)+vector*disRem*speed. Blocked LOS and distance>7 admits head noPhysics only when pulling not stopped. draggedClimable is separate, raw stopGravity has no reader. Latched own noGravity true, velocity=(old+(0,.14,0))*.85F, lost ceiling/alive/cooldown gate changes state after counter>5. Unlatched returns own gravity, proximity<2.9 or upper collision and no cooldown admits latch after>5; rising writes Y1.5, start only grounded alive cooldown0 rand30==0 and overhead block. Melee goal derives head target, pursues its ceiling when latched, otherwise retreats and sets scared. Missing head server removes KILLED. hurt/death timers mirror head. Save key BodyUUID differs from read HeadUUID; preserve native mismatch.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_RELAY",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "target_pull_speed": 0.30000001192092896,
+            "idle_pull_speed": 0.10000000149011612,
+            "latch_upward_add": 0.14,
+            "latched_velocity_factor": 0.8500000238418579,
+            "rising_y": 1.5
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_LATCH_ADMISSION",
+          "numerical_parameters": {
+            "ceiling_threshold": 2.9000000953674316,
+            "state_change_counter_gate": 5,
+            "hurt_cooldown_base": 60,
+            "hurt_cooldown_random_bound": 60
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
     {
       "effect_id": "alexscaves:bubbled",
       "mod_key": "alexscaves",
@@ -130,6 +203,82 @@
           "primitive": "NETWORK_ADMISSION",
           "numerical_parameters": {
             "source_distance_strict_max": 32
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:ferrouslime_heads_merge_split",
+      "mod_key": "alexscaves",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "closest_vanilla": "Native damage/effect/goal APIs; the explicit differences below retain original semantics",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "HEADS starts1, natural spawn assigns1+rand2. After count change and mergeProgress reaches5: MAX_HEALTH=clamp(heads*10,10,100), ATTACK_DAMAGE=clamp(heads*2,2,10); if HP below actual MAX_HEALTH and heads>0 requests ceil(max-health) heal, not guaranteed assignment. Dimensions use min((log((heads-1)+normalized mergeProgress)+1)*1.2F,3.2F). Form goal requires alive and mergeCooldown<=0; polls100 targetless/20 with target, searches bbox30 nearest other eligible same species, continues<32; close contact sums heads, discards donor, sets survivor cooldown600. Split with heads>=2 divides integer halves and creates two fresh native slimes with position/name/noAi/invulnerability/yaw and cooldown1200, discards original. split supplied cooldown is ignored; literal1200 is used. Stalled live target with velocity length<.1 for>40 also splits. remove separately spawns halves when heads>=2 and dead/dying with no explicit side gate. No target/owner transfer is added. NoGravity, empty own fall callback, Magnetizing rejection retained; exact external Citadel navigation internals are not inferred from its constructor.",
+      "components": [
+        {
+          "primitive": "NATIVE_ENTITY_MERGE_SPLIT",
+          "numerical_parameters": {
+            "merge_cooldown": 600,
+            "split_cooldown": 1200,
+            "max_hp_per_head": 10,
+            "native_hp_min": 10,
+            "native_hp_max": 100,
+            "attribute_attack_per_head": 2,
+            "native_attack_min": 2,
+            "native_attack_max": 10
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_HEALING",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "requested_heal": "ceil(actual MAX_HEALTH - current health), if heads>0 and current health lower"
+          }
+        },
+        {
+          "primitive": "NATIVE_BODY_DIMENSIONS",
+          "numerical_parameters": {
+            "dimension_factor": 1.2000000476837158,
+            "dimension_maximum": 3.200000047683716
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:ferrouslime_native_bite",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "Native damage/effect/goal APIs; the explicit differences below retain original semantics",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "doHurtTarget writes ATTACK_TICK10 then immediately delegates parent melee and returns its boolean. Tick decrements positive clock while raising attackProgress to5; otherwise while progress>=3 and target non-null/in current slime-size range, requests native mobAttack(self) (4F + heads*2) and decreases progress. This can request damage on several declining-progress ticks, separately from immediate parent melee; no explicit server/live/allied gate in delayed branch. Requested formula has no clamp, unlike native ATTACK_DAMAGE attribute. Melee goal requires live target, native LOS, distance<1+slimeSize and cooldown0; requests doHurtTarget, sets10 then same tick decrements. stop resets cooldown.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "delayed_base_damage": 4.0,
+            "delayed_damage_per_head": 2
+          },
+          "parameter_formulas": {
+            "delayed_request": "4F + float(heads*2); unclamped; original mobAttack(self)"
+          }
+        },
+        {
+          "primitive": "NATIVE_MELEE_DAMAGE",
+          "numerical_parameters": {
+            "initial_attack_attribute": 2.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_ATTACK_SEQUENCE",
+          "numerical_parameters": {
+            "attack_tick": 10,
+            "declining_progress_damage_gate": 3,
+            "progress_max": 5,
+            "goal_cooldown": 10
           },
           "parameter_formulas": {}
         }
@@ -281,6 +430,64 @@
       ]
     },
     {
+      "effect_id": "alexscaves:magnetic_weapon_native_payload",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "Native damage/effect/goal APIs; the explicit differences below retain original semantics",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Native held-stack entity supports linked Teletor and Player using original Galena Gauntlet. Target acquisition, attack stride and return differ: Teletor copies its live target ID, charge below target width+1, strikeProgress+.35F until>=1 then hurtEntity and return; range>32 returns, idle when controller distance<2.5 and above controller. Player uses original view hit up to30+FIELD_EXTENSION*5, entity strike within width+1.5 then cooldown haste3/else5+rand5, later same tick decrement; owner alive/use-item/returnFlag gate controls return. Both finish moveSELF and velocity*.9F. hurtEntity damage=float(holder ATTACK_DAMAGE)+float(sum stack ATTACK_DAMAGE modifier amounts); ignores modifier operation and slot, does not apply enchantment damage computation. FIRE_ASPECT level*4 seconds is requested BEFORE hurt. Only successful hurt wears stack1 and, if positive holder ATTACK_KNOCKBACK plus stack KNOCKBACK enchant level and living target, applies native knockback* .5F and self horizontal*.6. Independently, burning weapon requests ignite5 seconds; holder Player/target Living runs native stack.hurtEnemy and lastHurtByPlayer even after unsuccessful hurt. No additional allied/team test. Ordinary mining/drop/return uses original item wear/inventory/creative and success flags, no extra damage or Stage primitive. Missing controller after20 or empty stack server removes; had-player plop and spawnedItem prevent duplicate native item return. NBT stores original stack and controller UUID only.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "requested_damage": "float(holder ATTACK_DAMAGE) + float(sum ATTACK_DAMAGE modifier amounts, without operation/slot handling)"
+          }
+        },
+        {
+          "primitive": "BURN",
+          "numerical_parameters": {
+            "fire_aspect_seconds_per_level": 4,
+            "burning_weapon_seconds": 5.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_KNOCKBACK",
+          "numerical_parameters": {
+            "knockback_factor": 0.5
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_ITEM_DURABILITY",
+          "numerical_parameters": {
+            "successful_attack_wear": 1
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "numerical_parameters": {
+            "npc_speed": 0.10000000149011612,
+            "player_attack_speed": 0.20000000298023224,
+            "native_velocity_retention": 0.8999999761581421,
+            "strike_step": 0.3499999940395355
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_ATTACK_CADENCE",
+          "numerical_parameters": {
+            "haste_cooldown": 3,
+            "normal_cooldown_base": 5,
+            "normal_cooldown_random_bound": 5
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
       "effect_id": "alexscaves:magnetizing",
       "mod_key": "alexscaves",
       "primary_classification": "CUSTOM_CONTROL",
@@ -298,6 +505,203 @@
           "numerical_parameters": {},
           "parameter_formulas": {
             "duration": "original remaining native effect duration; packet type2"
+          }
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:magnetron_body_formation_and_parts",
+      "mod_key": "alexscaves",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "Native damage/effect/goal APIs; the explicit differences below retain original semantics",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Server forms near live Player<8, on successful parent hurt from causing non-creative Player while unformed/noAi false, or melee goal horizontal distanceSquared<10. Searches terrain Y4 down to>-4, width0..<15, native weapon/magnetic/fallback tags and random admission; return once list size>maxCount is preserved. Regardless of enough blocks, sets Formed true. If enough (ten joints=5 enum joints*2 sides), hands use first two positions, remainder other parts; saves original positions/states, destroys selected blocks only with MOBGRIEFING (native destroy return ignored). NBT stores Formed/Blockstates/BlockPoses without own parent save/load delegation. Form progress40 and physical part positioning use original joint/attack-pose interpolation; boxes fixed .9x.9, not cosmetic-only. Formed attributes once: MAX_HEALTH80/KNOCKBACK_RESISTANCE1/heal80; unformed non-baby once resets30/0/heal30, no explicit side gate on these branches. Native part-relative-ground hover retains horizontal .98 and vertical .7F plus diffY*.25; attack pose zeros horizontal motion. Death source/direct/last player eligibility drops original blocks and Heart via native FallingBlock; no damage flag is assigned to debris here. Native parts hurt returns false and optionally sends client packet; actual parent request is the shared multipart handler. No extra native attack is inferred from part hitboxes.",
+      "components": [
+        {
+          "primitive": "TERRAIN_BODY_FORMATION",
+          "numerical_parameters": {
+            "part_count": 10,
+            "formation_time": 40
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_ENTITY_STATE",
+          "numerical_parameters": {
+            "formed_max_health": 80.0,
+            "unformed_max_health": 30.0,
+            "formed_knockback_resistance": 1.0,
+            "unformed_knockback_resistance": 0.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_HEALING",
+          "numerical_parameters": {
+            "formed_heal": 80.0,
+            "unformed_heal": 30.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MULTIPART_PHYSICAL_BODY",
+          "numerical_parameters": {
+            "part_width": 0.8999999761581421,
+            "part_height": 0.8999999761581421
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_ADMISSION",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:magnetron_hand_attacks",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "Native damage/effect/goal APIs; the explicit differences below retain original semantics",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Melee live-target goal pursues/aims; formed progress>=1 admits pose selection within trueDist<5 and cooldown0 (slam15/punch10); active pose at progress>=.9 and distance<7.5 calls damage each native tick, no new once-only dedup. Hand addend Anvil6/Stonecutter4/tagged weapon2/else0. BOTH leftDmg and rightDmg call getHandDamageValueAdd(true) in damage and selection; preserve left-hand alias bug rather than correcting it. Slam ground-offset bbox[-5,-1,-5;5,2,5] requests mobAttack(self)(2+left+right) to non-allied living excluding Magnetron, then launches regardless of hurt return. Punch requests target(2+corresponding stored addend), then launches with actual left/right hand magnet bool. launch only onGround: push dx/max(dx²+dz²,.001)*(.5F or1F), Y(.2F or.5), analogousZ; not native knockback resistance. Native RNG .4 dual/.6 otherwise chooses punch branch, else slam; dual/right tests use same true-side addend. No armor/cancel/status ordering is added.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "base_damage": 2,
+            "anvil_addend": 6,
+            "stonecutter_addend": 4,
+            "tagged_weapon_addend": 2
+          },
+          "parameter_formulas": {
+            "slam": "2+leftDmg+rightDmg",
+            "punch": "2+stored side addend; both addends read true-side"
+          }
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "small_horizontal": 0.5,
+            "large_horizontal": 1.0,
+            "small_y": 0.20000000298023224,
+            "large_y": 0.5,
+            "distance_squared_floor": 0.001
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_ATTACK_SEQUENCE",
+          "numerical_parameters": {
+            "slam_cooldown": 15,
+            "punch_cooldown": 10,
+            "pose_damage_progress": 0.8999999761581421,
+            "pose_distance": 5.0,
+            "damage_distance": 7.5,
+            "dual_branch_chance": 0.4000000059604645,
+            "other_branch_chance": 0.6000000238418579
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:mine_guardian_anchor_control",
+      "mod_key": "alexscaves",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "Native damage/effect/goal APIs; the explicit differences below retain original semantics",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Guardian server creates missing anchor, sets chain7+rand6 and original UUID/ID linkage. Anchor self falls -.08Y when airborne, movesSELF velocity*.9F then retains*.9F. Server missing guardian after20 discards. Linked Guardian distance goal: water chainLength+sin(tick*.1F+chain*.5F)*.25 else5, plus live-target?5:0. Water and no live target adds bob-follow vector*min(waterHeight,1)*.005F. Over goal distance pulls toward chain endpoint: normalize only length>1, factor min(distance-goal,1)*.1F, old velocity retains1 with target/.8F otherwise. No damage/effect is emitted by anchor. Original collisions/pushability/attackability require not removed. UUID persists; neither targeting nor damage ownership is created by a chain link.",
+      "components": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "chain_pull_factor": 0.10000000149011612,
+            "water_bob_factor": 0.004999999888241291,
+            "idle_velocity_retention": 0.800000011920929,
+            "target_extra_length": 5
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_LINK_LIFECYCLE",
+          "numerical_parameters": {
+            "missing_guardian_grace": 20,
+            "chain_base": 7,
+            "chain_random_bound": 6
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:mine_guardian_custom_explosion",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "Native damage/effect/goal APIs; the explicit differences below retain original semantics",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Goal admits non-null target (no own live test), detonates distance<=2; timer>300 resets eye/target/last hurt state. Exploding progress+.5F to10; at>=10 KILLED removal followed by own MineExplosion(radius5) explode then finalize(true), with no explicit side gate around that outer branch. Block mode comes from loader canEntityGrief and native mob explosion drop decay. MineExplosion emits EXPLODE game event, boundary rays16³, strength radius*(.7F+rand*.6F), march .3, decay .22500001F, ignores resistance for nonempty fluid, stops at bounds/UNMOVEABLE. Native entity bbox uses f2=radius*2; ignores source and ignoreExplosion(null), within normalized radius<=1/nonzero direction: density d10=(1-normalized distance)*seen percent, damage float(int((d10²+d10)/2*7*f2+1)). Hurt return discarded; unconditional delta += normalized direction*d10. Own named dampener simply returns input (no Blast Protection or knockback resistance). No allied/team test. Finalization drops/removes fluid-empty affected blocks, retaining fluid blocks; no vanilla Explosion object/onExplosionHit callback or Forge detonation hook is invented. Native DamageSources.explosion(direct source, causing source) identities preserved; Guardian is both for this caller. Stored damage calculator is not consulted by explode. Constructor underwaterSound argument is not assigned, so supplied water boolean is a default/reporting artifact for actual sound, not an independent runtime value. Scan/sleep/eye native state uses range8 clip, endpoint bbox inflated3, player-only validity plus both allied directions/LOS; scan every5 when progress5, max100+rand100; sleep200+rand100 and native hurt/target/water predicates. Anchor and reputation callbacks remain separate.",
+      "components": [
+        {
+          "primitive": "CUSTOM_EXPLOSION",
+          "numerical_parameters": {
+            "radius": 5.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_EXPLOSION_DAMAGE",
+          "numerical_parameters": {
+            "damage_coefficient": 7.0
+          },
+          "parameter_formulas": {
+            "requested_damage": "float(int((density²+density)/2*7*(radius*2)+1))"
+          }
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "velocity_add": "normalized direction * density; named dampener is identity; independent of hurt return"
+          }
+        },
+        {
+          "primitive": "TERRAIN_DESTRUCTION",
+          "numerical_parameters": {
+            "ray_axis_points": 16,
+            "ray_step": 0.30000001192092896,
+            "ray_decay": 0.22500000894069672
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_ATTACK_SEQUENCE",
+          "numerical_parameters": {
+            "exploding_progress_step": 0.5,
+            "explode_at_progress": 10.0,
+            "goal_target_distance": 2.0,
+            "goal_timeout": 300
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:mine_guardian_native_death_reputation",
+      "mod_key": "alexscaves",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "closest_vanilla": "Native damage/effect/goal APIs; the explicit differences below retain original semantics",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "After parent dropAllDeathLoot, server only and original damageSource.getEntity() is Player: reads that player UUID DeepOne reputation; if negative writes original+random.nextInt(3)+1. This is native reputation consumed by separate DeepOne combat admission, not EP or new progression. Acquisition/drop utility itself is excluded; actual native combat-affecting reputation delta is retained.",
+      "components": [
+        {
+          "primitive": "NATIVE_REPUTATION",
+          "numerical_parameters": {
+            "gain_random_exclusive_bound": 3,
+            "gain_offset": 1
+          },
+          "parameter_formulas": {
+            "new_value": "original negative reputation + random.nextInt(3)+1"
           }
         }
       ]
@@ -359,6 +763,95 @@
             "retry_base": 5,
             "retry_random_bound": 10
           },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:multipart_native_parent_damage_protocol",
+      "mod_key": "alexscaves",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "closest_vanilla": "Native damage/effect/goal APIs; the explicit differences below retain original semantics",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Handler enqueues context work. Uses original context player world to look up supplied parentId AND independently supplied playerId; no equality with context player ID is checked. Requires both entities, parent.isMultipartEntity and interacter distance<16. interactionType0 only when interacter Player forwards parent.interact with original getUsedItemHand. type1 requests parent.hurt(parent.damageSources().generic(), float(message.damage)), ignoring return. Generic source has no client causing/attacking entity attached, even if original part received an attributed source. Codec/registration transport stays independently queued; no server authorization or semantic ownership is invented.",
+      "components": [
+        {
+          "primitive": "NATIVE_GENERIC_DAMAGE_REQUEST",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "requested_amount": "float(original packet double damage)"
+          }
+        },
+        {
+          "primitive": "NATIVE_INTERACTION_FORWARDING",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:native_citadel_path_update_gate",
+      "mod_key": "alexscaves",
+      "primary_classification": "BINARY_MECHANIC",
+      "closest_vanilla": "Native navigation construction and binary path-update admission; external routefinding remains original",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Own AdvancedPathNavigateNoTeleport constructs the native Citadel AdvancedPathNavigate with original Mob/Level/MovementType, original current bounding width/height and PathingStuckHandler.createStuckHandler(). Two-argument overload supplies WALKING. Own canUpdatePath returns true. The class name does not prove teleport is disabled; no teleport configuration call exists in these bodies. Ordinary external pathfinding/stuck handling is delegated, not reimplemented or classified as an attack scalar.",
+      "components": [
+        {
+          "primitive": "NATIVE_NAVIGATION_ADMISSION",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:native_three_axis_target_search",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "Native damage/effect/goal APIs; the explicit differences below retain original semantics",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "MobTarget3DGoal retains the exact native NearestAttackableTargetGoal constructors (target class/chance/sight/reach/predicate supplied by original caller); only getTargetSearchArea replaces native search box by bbox.inflate(distance,distance,distance). No target is forcibly acquired by this helper and no hard-coded range or ownership is created. All subclass/caller target eligibility remains independent.",
+      "components": [
+        {
+          "primitive": "NATIVE_TARGET_SEARCH",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "query_box": "original mob bbox inflated on all axes by original supplied distance"
+          }
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:notor_scan_hologram_aggro_control",
+      "mod_key": "alexscaves",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "Native damage/effect/goal APIs; the explicit differences below retain original semantics",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "No own damaging attack/target selector. Scan target alive/not NOTOR_IGNORES/not invisible; when (rand300==0 OR worldTime%10==0), no hologram UUID and cooldown<=0 searches bbox25. Nearest/LOS branch OR preferred Player branch is preserved: priority branch can select Player without that LOS predicate; continuation independently enforces LOS/live/distance<=40, scan<40 peaceful/100 otherwise and no hologram. Within8 stops nav, stores ID/increments; farther approaches, clears ID only if>15. Successful elapsed scan stop stores original target UUID and cooldown300+rand300, clears scan ID. Hologram finds nearest non-spectator Enemy Mob with no live target, not hologram, distance>5, not passenger, bbox30/12/30. While within8/LOS and hologramTime<100, native selected position LOS attempts15; looks both actors at hologram and stops monster nav. At100 hides; if hologram original noncreative Player, drives monster toward Notor and Notor toward Player then setTarget(Player). Clear-UUID comparison named distMonsterToPlayer actually measures monster.distanceTo(notor); no allied/team gate is added. stop clears showing/position/scan and adds100+rand100 to cooldown. Own native flight/noGravity switching and data NBT are preserved; hologram does not clone/spawn a combat entity or change player body.",
+      "components": [
+        {
+          "primitive": "NATIVE_SCAN_DELIVERY",
+          "numerical_parameters": {
+            "scan_bbox_range": 25.0,
+            "peaceful_scan_time": 40,
+            "other_scan_time": 100,
+            "scan_start_cooldown_base": 300,
+            "scan_start_cooldown_random_bound": 300
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "FORCED_FACING_AND_NAVIGATION",
+          "numerical_parameters": {
+            "monster_search_xz": 30.0,
+            "monster_search_y": 12.0,
+            "hologram_attention_ticks": 100
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "AGGRO_REDIRECTION",
+          "numerical_parameters": {},
           "parameter_formulas": {}
         }
       ]
@@ -660,6 +1153,36 @@
           "numerical_parameters": {
             "combat_owner_distance": 30
           },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:teletor_owned_weapon_delivery",
+      "mod_key": "alexscaves",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "Native damage/effect/goal APIs; the explicit differences below retain original semantics",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Native four-argument spawn creates MagneticWeapon, chooses tagged item/default Iron Sword (fallback when empty or rand<.3), difficulty enchanting gate rand<.25F*(f+.5F), enchant level int(5F+f*rand18), binds both UUIDs and native placement/spawn before parent finalizeSpawn. Own tick syncs weapon/controller ID/UUID, and applies self velocity*.98F, no direct damage. Native target goals HurtByTarget and Player target; own goal strafes within16 with sin/cos geometry and looks at target, else navigates. Own noGravity/fall response and Magnetizing rejection retained. Death equipment drop handles native vanishing/chance/wear and removes linked weapon KILLED. Weapon stack/payload remains one shared contract for NPC and player deliveries, not duplicated.",
+      "components": [
+        {
+          "primitive": "OWNED_WEAPON_DELIVERY",
+          "numerical_parameters": {
+            "weapon_idle_y_offset": 1.399999976158142,
+            "weapon_idle_y_amplitude": 0.20000000298023224
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_MELEE_ATTRIBUTES",
+          "numerical_parameters": {
+            "base_attack_damage": 2.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_TARGET_CONTROL",
+          "numerical_parameters": {},
           "parameter_formulas": {}
         }
       ]
