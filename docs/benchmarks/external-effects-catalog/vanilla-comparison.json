@@ -1,7 +1,7 @@
 {
   "schema": "tno.external_effects.vanilla_comparison.v1",
   "status": "PARTIAL",
-  "checkpoint": "R2m8j-alexscaves-dinosaur-native-contracts",
+  "checkpoint": "R2m8k-alexscaves-shared-native-body-pickup-and-presentation",
   "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
   "note": "Deterministic projection of canonical mod reviews,including explicit PARTIAL scope. The ledger alone tracks per-mod completeness. No Stage eligibility or policy decision.",
   "comparisons": [
@@ -590,7 +590,8 @@
           "numerical_parameters": {
             "jump_factor": 0.155,
             "retained_factor": 0.2,
-            "fall_y_subtract": 0.2
+            "fall_y_subtract": 0.2,
+            "contact_push_coefficient": 0.05000000074505806
           },
           "parameter_formulas": {}
         },
@@ -1137,6 +1138,88 @@
         {
           "primitive": "NATIVE_NAVIGATION_ADMISSION",
           "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:native_dropped_item_selection_and_callback",
+      "mod_key": "alexscaves",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "closest_vanilla": "Original native Mob/TamableAnimal, damage, effect, movement and terrain APIs; compound behavior and differences remain explicit.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Original MobTargetItemGoal storeshunter TargetsDroppedItems, executionChance/tickThreshold/radius/offhand. Supplied targetSelector formal is ignored: ownpredicate stacknonempty AND hunter.canTargetItem AND item.tickCount>threshold. Start admission notpassenger/notcontrolledvehicle/notorderedSit/selectedhandempty; unlessmustUpdate: time%10 andnoAction>=100/RNGchances. Sameoriginalworld bbox+/-radius movedto actorposition+.5XYZ, sorted squared distance, nearest stored andoriginalhunter.onFindTarget. FollowDistance32 formal ignored bytargetarea. Walkrecheck30+rand40/speed1, movement/aim; tick largeactor>2/ground/LOS mayrequestwanted1; pickup onlylive, squaredDistance<hunter.getMaxDistToItem (not square itagain), handempty, calloriginalonGetItem thenstop. Continuewidth>2ORpathnotdone pluslive original item. Damage/healing/ownership are only actual callback contracts alreadyrecorded peractor, never newgenericpickup effect. Default TargetsDroppedItems.onFindTarget is empty/getMaxDistToItem2; callback API no globalentitycache.",
+      "components": [
+        {
+          "primitive": "ITEM_TARGET_DELIVERY",
+          "numerical_parameters": {
+            "default_radius": 9,
+            "default_execution_chance": 10,
+            "default_follow_distance_unused_in_area": 32,
+            "walk_base": 30,
+            "walk_random_bound": 40,
+            "default_pickup_squared_threshold": 2
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:native_ground_waypoint_and_look_control",
+      "mod_key": "alexscaves",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "Original native Mob/TamableAnimal, damage, effect, movement and terrain APIs; compound behavior and differences remain explicit.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "GroundPathNavigatorNoSpin actualmaxDistanceToWaypoint=mobwidth*originaldistancemodifier(default.75). Eachfollowpath checksXYZ near nextnode XZwithinmaxdistance/Y<1, advances ifnear ORcutcorner andnative nextdirection check. Directioncheck onlynextnodeexists/current<2 fromnextcenter anddot(next-next,current-next)>0; stuckdetectionretained. No extra damage/effect and no generalteleportdisabled claim fromname. LookForwardsGoal setsLOOK/alwayscanUse/tick headyaw=ownbodyY. Ordinary idle/randomroute destinations are navigation utility afteractorcombat/startstop gates retained, not newattack.",
+      "components": [
+        {
+          "primitive": "NATIVE_PATH_FOLLOW",
+          "numerical_parameters": {
+            "default_waypoint_width_factor": 0.75,
+            "vertical_tolerance": 1,
+            "direction_check_distance": 2
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "FORCED_FACING",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:native_moving_block_body_debris_and_placement",
+      "mod_key": "alexscaves",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "Original native Mob/TamableAnimal, damage, effect, movement and terrain APIs; compound behavior and differences remain explicit.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "AbstractMovingBlockEntity original syncedBlockData tag rebuildsoriginalMovingBlockData state/shape/offset/tiletag and boundinggeometry. If subclassmovesEntities andvelocitynonzero, nativebbox+Y.01 NO_SPECTATORS/notsharedvehicle findsothers notnoPhysics/notMovingMetal; movesMoverType.SHULKER byownvelocity (float conversion), ifownY>=0adds nativegravity (zero noGravity default.08;Living GRAVITY attr overrides whenpresent). No hurt/addEffect/inferredfallingblockdamage. OwnmoveSELF, serverplacement onlycanBePlaced andcooldown(default40)expires: replaceablecellsdestroy/drop beforeclearance check; anynonreplaceableblocks forbids placement/retry5+rand10. Clearplacesoriginalstate/tiledata copy/loadWithComponents(setChanged), KILLED; retainedvelocity*.98 aftertick. canAttack/collide false; originalBlockData NBT persists, cooldown notserialized. FallingTree andCrushed override canBePlaced false ANDmovesEntities false, so parentplacement/passengercarry are NOT active for these payloads. FallingTree incrementfallprogress.05 tomax1; oncecomplete serverdrops eachnonzerooffsetrotatedoriginalblock data onfirst ground, thenDISCARDED. Crushed whenonground progress+.334, elseaddsY-1; completion dropsoriginalblockswithnativeDropChance, no explicitdamage. Sharedoriginaldrops onlyloot/SpawnAfterBreak; data shape serialization hasno gameplay scalarproducer.",
+      "components": [
+        {
+          "primitive": "MOVING_BODY_CONTROL",
+          "numerical_parameters": {
+            "retained_velocity": 0.98,
+            "default_nonliving_gravity": 0.08
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "TERRAIN_RELOCATION",
+          "numerical_parameters": {
+            "default_placement_ticks": 40,
+            "failed_retry_base": 5,
+            "failed_retry_random_bound": 10
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "DEBRIS_LIFECYCLE",
+          "numerical_parameters": {
+            "tree_fall_step": 0.05,
+            "crush_ground_step": 0.334,
+            "crush_air_y_add": -1
+          },
           "parameter_formulas": {}
         }
       ]
@@ -1979,7 +2062,8 @@
             "elder_transition_heal": 36.0,
             "nonelder_transition_heal": 28.0,
             "periodic_heal": 2.0,
-            "food_heal": 5.0
+            "food_heal": 5.0,
+            "taming_feed_heal": 5.0
           },
           "parameter_formulas": {}
         },

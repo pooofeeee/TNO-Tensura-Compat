@@ -52,5 +52,25 @@ class ContextGraphTests(unittest.TestCase):
         rows=prove(c)['rows'];self.assertEqual(len(rows),2)
         self.assertFalse(any(r['entry']==e for r in rows))
 
+    def test_typed_sound_return_only_in_explicit_new_profile(self):
+        c=fixture();m=c['methods'][0];m['entry']='example/server/Actor.class'
+        c['classes'].append(dict(entry=m['entry'],name=m['entry'][:-6],
+            superclass='java/lang/Object',entry_sha256='actor'))
+        m['descriptor']='()Lnet/minecraft/sounds/SoundEvent;';m['calls']=[]
+        self.assertFalse(any(r['entry']==m['entry'] for r in prove(c)['rows']))
+        self.assertTrue(any(r['entry']==m['entry'] for r in prove(c,'presentation-audio-ui-v2')['rows']))
+        m['calls']=[[0,182,4]]  # hurt remains disallowed, even with sound return.
+        self.assertFalse(any(r['entry']==m['entry'] for r in prove(c,'presentation-audio-ui-v2')['rows']))
+
+    def test_new_audio_ui_roots_cannot_write_game_state(self):
+        c=fixture();old=c['classes'][0]['name'];new='example/client/gui/Test'
+        c['classes'][0].update(name=new,entry=new+'.class')
+        c['symbols']=[s.replace(old,new) for s in c['symbols']]
+        for m in c['methods']:m['entry']=new+'.class'
+        self.assertEqual(prove(c,'presentation-audio-ui-v2')['summary']['methods'],2)
+        c['symbols'].append('net/minecraft/world/entity/Entity.fallDistanceF')
+        c['methods'][1]['hits']=[[5,181,5]]
+        self.assertEqual(prove(c,'presentation-audio-ui-v2')['summary']['methods'],0)
+
 
 if __name__=='__main__':unittest.main()

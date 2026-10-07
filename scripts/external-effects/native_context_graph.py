@@ -16,6 +16,8 @@ from classfile import ClassFile
 from reconcile_native_census import method_key
 
 ROOTS=('/client/model/', '/client/render/', '/client/particle/')
+EXTRA_ROOTS=('/client/sound/', '/client/gui/')
+PROFILES=('visual-v1','presentation-audio-ui-v2')
 VISUAL=('net/minecraft/client/model/', 'net/minecraft/client/renderer/',
         'net/minecraft/client/particle/', 'net/minecraft/client/resources/',
         'net/minecraft/client/gui/Font', 'com/mojang/blaze3d/', 'com/mojang/math/',
@@ -85,21 +87,30 @@ def parts(symbol):
     return match.groups() if match else None
 
 
-def external_allowed(symbol):
+def external_allowed(symbol, profile='visual-v1'):
     p=parts(symbol)
     if not p:return False
     owner,name,_=p
+    if profile=='presentation-audio-ui-v2' and owner.startswith('net/minecraft/client/sounds/'):
+        return True
     if any(owner.startswith(x) for x in VISUAL+VALUES):return True
     if owner.startswith('[') and name=='clone':return True
     if owner.startswith('net/minecraft/world/entity/') and name in ENTITY_READ:return True
     return name in QUERY.get(owner,set())
 
 
-def visual_entry(entry):
-    return any(root in entry for root in ROOTS)
+def visual_entry(entry, profile='visual-v1'):
+    return any(root in entry for root in ROOTS + (EXTRA_ROOTS if profile=='presentation-audio-ui-v2' else ()))
 
 
-def prove(census):
+def typed_presentation_return(method):
+    # A sound value carries no native combat contribution. The same strict
+    # side-effect/API graph checks still apply; a getter name proves nothing.
+    return method['descriptor'].endswith(')Lnet/minecraft/sounds/SoundEvent;')
+
+
+def prove(census, profile='visual-v1'):
+    assert profile in PROFILES
     classes={c['name']:c for c in census['classes']}
     native={method_key(m):m for m in census['methods']}
     boot={(b['entry'],b['index']):b for b in census.get('registration_bootstraps',[])}
@@ -121,16 +132,16 @@ def prove(census):
         if len(r)==3:
             deps.add(r)
             return True
-        return external_allowed(r[1]+'.'+name+desc)
+        return external_allowed(r[1]+'.'+name+desc,profile)
 
     for key,m in native.items():
-        entry=m['entry'];is_visual=visual_entry(entry);deps=set()
+        entry=m['entry'];is_visual=visual_entry(entry,profile);deps=set()
         valid=not m['access'] & (0x100|0x400)
         for hit in decode_sites(census,m,'hits'):
             op=hit['opcode'];symbol=str(hit['operand'])
             if op in ('0xb3','0xb5'):
                 owner=symbol.rsplit('.',1)[0]
-                if not is_visual or not (visual_entry(owner) or any(owner.startswith(x) for x in VISUAL)):
+                if not is_visual or not (visual_entry(owner,profile) or any(owner.startswith(x) for x in VISUAL)):
                     valid=False;break
         for hit in decode_sites(census,m,'calls'):
             symbol=str(hit['operand'])
@@ -152,7 +163,7 @@ def prove(census):
         rejected={k for k in safe if not dependencies[k] <= safe}
         if not rejected:break
         safe-=rejected
-    roots={k for k in native if visual_entry(k[0])}
+    roots={k for k in native if visual_entry(k[0],profile) or (profile=='presentation-audio-ui-v2' and typed_presentation_return(native[k]))}
     accepted=roots & safe
     rows=[dict(entry=k[0],method=k[1],descriptor=k[2],code_sha256=native[k]['code_sha256'],
                entry_sha256=classes[k[0][:-6]]['entry_sha256'],
@@ -160,15 +171,18 @@ def prove(census):
                reason='Exact typed visual body and transitive calls write only presentation '
                       'state. Game readers are side-effect checked but not dispositioned.')
           for k in sorted(accepted)]
-    return dict(schema='tno.external_effects.native_context_graph.v1',mod_key=census['mod_key'],
+    result=dict(schema='tno.external_effects.native_context_graph.v1',mod_key=census['mod_key'],
         jar_sha256=census['jar_sha256'],scope='Typed presentation roots only; unknown/native '
         'dispatch, game writes, inputs/network and mixed consumers stay pending. '
         'External Citadel model/render APIs are visual dependencies, not proof of time-controller semantics.',
         rows=rows,summary=dict(methods=len(rows),remaining_presentation_methods=len(roots)-len(rows)))
+    if profile!='visual-v1':
+        result['context_profile']=profile
+    return result
 
 
 def validate(doc,census):
-    assert doc==prove(census),'Context graph differs from independent finite call/field facts'
+    assert doc==prove(census,doc.get('context_profile','visual-v1')),'Context graph differs from independent finite call/field facts'
     return doc['rows']
 
 
@@ -189,6 +203,7 @@ def reproduce(doc,census,jar):
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('mod_key')
     p.add_argument('--output',type=Path,required=True);p.add_argument('--jar',type=Path)
-    a=p.parse_args();c=read_json(OUT/f'{a.mod_key}-combat-census.json');d=prove(c)
+    p.add_argument('--profile',choices=PROFILES,default='visual-v1')
+    a=p.parse_args();c=read_json(OUT/f'{a.mod_key}-combat-census.json');d=prove(c,a.profile)
     if a.jar:reproduce(d,c,a.jar)
     write_json(a.output,d);print(d['summary'])

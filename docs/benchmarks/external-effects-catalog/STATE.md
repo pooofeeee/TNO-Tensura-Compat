@@ -3,19 +3,19 @@
 - Active campaign: `CAMPAIGN.md`; Alex's Caves only, then STOP.
 - Branch: `external-effects-catalog-research`.
 - Latest verified research ref: `origin/external-effects-catalog-research`.
-- Last verified anchor before this checkpoint: `40b93ca8655c45673d094af08f3a6d1238c99f9b`. Resolve the current ref with Git; never reset to an older anchor.
+- Last verified anchor before this checkpoint: `ecae921733bf7a5082a9bec68f98776c81b468c9`. Resolve the current ref with Git; never reset to an older anchor.
 - Protected production HEAD: `eb37f0bfc0e7aa863632f163881566c0ae2a8701`; production/source gameplay unchanged.
 - Current mod/status: `alexscaves` / PARTIAL.
 - Locked COMPLETE targets: cultofazazel, variantsandventures, royalvariations, friendsandfoes, twilightforest, iceandfire, eternalstarlight, block_factorys_bosses, bosses_of_mass_destruction, cataclysm, arphex, tensura.
-- Canonical records: 49; numeric candidates: 95.
-- Classifications: {'BINARY_MECHANIC': 2, 'CUSTOM_CONTROL': 20, 'CUSTOM_DAMAGE': 1, 'CUSTOM_RESOURCE': 2, 'CUSTOM_STATUS': 3, 'VANILLA_COMPOSITE': 14, 'VANILLA_LIKE_EXTENDED': 7}.
+- Canonical records: 52; numeric candidates: 96.
+- Classifications: {'BINARY_MECHANIC': 2, 'CUSTOM_CONTROL': 22, 'CUSTOM_DAMAGE': 1, 'CUSTOM_RESOURCE': 3, 'CUSTOM_STATUS': 3, 'VANILLA_COMPOSITE': 14, 'VANILLA_LIKE_EXTENDED': 7}.
 - Census: `alexscaves-combat-census.json` (existing pin; do not rediscover).
 - Queue: `alexscaves-unresolved-queue.json`; ordinals refer to that exact census/hash.
-- Coverage: 4436 / 11764 dispositioned; 7328 pending.
-- Remaining semantic-role methods: 4523 (routing, not a mechanic count).
+- Coverage: 4764 / 11764 dispositioned; 7000 pending.
+- Remaining semantic-role methods: 4411 (routing, not a mechanic count).
 - Canonical authorities: `mod-reviews/alexscaves.json`, `mod-completion-ledger.json`, `large-mod-campaign.json`.
 - Native source/indexes: existing census, field-use index and reviewed-batch pointers; consult cold bodies only for exact unresolved boundaries.
 - Known blockers: alexscaves:sugar_rush:citadel_tick_controller_pin
 - Citadel: only minimum >=2.6.0 is recorded; exact installed artifact/version/hash is absent. Never substitute an arbitrary release.
-- Exact next action: AlexCaves R2m8k: finish selected dinosaur utility/debris and registry reachability, then grouped nuclear actors and directly owned payloads; continue remaining AlexCaves only.
+- Exact next action: AlexCaves R2m8l: Nuclear actor and owned payload contracts (Brainiac, Gammaroach, Nucleeper, Tremorzilla); use finite census only, then remaining AlexCaves domains. Later mods remain parked.
 - Continue after intermediate checkpoints/context compaction. Do not load Legendary Monsters or any later mod.

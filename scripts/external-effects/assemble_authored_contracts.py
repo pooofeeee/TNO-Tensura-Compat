@@ -85,11 +85,17 @@ def render(spec):
         exclusion=dict(authored)
         exclusion['implementation']=[proof(s)[0] for s in authored['implementation']]
         exclusions.append(exclusion)
+    refinements=deepcopy(spec.get('record_refinements',[]))
+    for change in refinements:
+        change['implementation_additions']=[proof(s)[0]
+            for s in change.get('implementation_additions',[])]
     return dict(schema='tno.external_effects.reviewed_combat_batch.v1',baseline=BASELINE,
         mod_key=spec['mod_key'],checkpoint=spec['checkpoint'],closed_scope=spec['closed_scope'],
         effects=sorted(rows,key=lambda r:r['id']),paths=sorted(paths,key=lambda r:r['id']),exclusions=exclusions,
-        record_refinements=spec.get('record_refinements',[]),
+        record_refinements=refinements,
         exact_next_task=spec['exact_next_task'],stage_policy_decided=False,runtime_tests=0,
+        **({key:spec[key] for key in ('native_context_graph_registry_file',)
+            if key in spec}),
         **({'validation':deepcopy(spec['validation'])} if spec.get('validation') else {}))
 
 
