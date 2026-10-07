@@ -151,6 +151,22 @@ def literal_block_factor_binding(method, offset):
                 value_offset=value['offset'])
 
 
+def literal_rng_bounds_binding(method, offset):
+    """Pin two literal inclusive Mth.nextInt bounds; prove no reachability claim."""
+    body = method['instructions']
+    at = next(n for n, i in enumerate(body) if i['offset'] == offset)
+    assert body[at]['operand'] == 'net/minecraft/util/Mth.nextInt(Lnet/minecraft/util/RandomSource;II)I'
+    assert at >= 2
+    low, high = body[at-2:at]
+    integer_ops = {'0x2', '0x3', '0x4', '0x5', '0x6', '0x7', '0x8',
+                   '0x10', '0x11', '0x12', '0x13'}
+    assert all(i['opcode'] in integer_ops and type(i['operand']) is int
+               for i in (low, high))
+    assert low['operand'] <= high['operand']
+    return dict(minimum=low['operand'], maximum=high['operand'],
+                minimum_offset=low['offset'], maximum_offset=high['offset'])
+
+
 def literal_numeric_input_binding(method, offset):
     """Pin a literal scalar input to arithmetic or a subsequently read local.
 
@@ -650,6 +666,16 @@ def validate_batch(batch,review,census):
                 component = next(c for c in row['components'] if c['primitive'] == candidate['primitive'])
                 assert component['numerical_parameters'][candidate['parameters'][0]] == binding['native_value'], \
                     ('component differs from native block factor', candidate)
+            if 'native_literal_rng_bounds_binding' in candidate:
+                assert rng
+                binding = literal_rng_bounds_binding(m, consumer['offset'])
+                assert binding == candidate['native_literal_rng_bounds_binding']
+                roles = candidate['native_rng_parameter_roles']
+                assert set(roles) == set(candidate['parameters'])
+                assert set(roles.values()) <= {'minimum', 'maximum'}
+                component = next(c for c in row['components'] if c['primitive'] == candidate['primitive'])
+                assert all(component['numerical_parameters'][p] == binding[role]
+                           for p, role in roles.items()), ('component differs from native RNG bound', candidate)
             if literal_numeric:
                 binding = literal_numeric_input_binding(m, consumer['offset'])
                 assert binding == candidate['native_literal_numeric_input_binding']

@@ -2286,3 +2286,159 @@ class NativeCocoonPlantContracts(NativeContractHarness, unittest.TestCase):
         for name in ('BaneBlossomOnTickUpdateProcedure', 'BaneBlossomNeighbourBlockChangesProcedure'):
             body = self.body(name)
             self.assertFalse(any('.hurt(' in str(i['operand']) or '.addEffect(' in str(i['operand']) or 'EntityType.spawn(' in str(i['operand']) for i in body))
+
+
+class NativeResidualBlockContracts(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch = read_json(OUT / 'arphex-r2m6u-native-residual-block-contracts.json')
+        cls.native = read_json(OUT / 'native-evidence/arphex-native-residual-blocks.json')
+        cls.census = read_json(OUT / 'arphex-combat-census.json')
+
+    def test_contracts_validate_and_template_contents_remain_pending(self):
+        validate_batch(self.batch, self.prior(), self.census)
+        self.assertEqual(len(self.batch['effects']), 6)
+        count = lambda rows, key: sum(len(c['parameters']) for r in rows for c in r.get(key, []))
+        self.assertEqual(count(self.batch['effects'], 'scalable_parameter_candidates') +
+                         count(self.batch['record_refinements'], 'candidate_additions'), 21)
+        self.assertEqual((len(self.native['witnesses']), sum(len(w['methods'])
+                         for w in self.native['witnesses'])), (36, 175))
+        self.assertEqual(len(self.batch['pending_native_assets']), 7)
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_forged_rng_bound_and_computed_literal_fail_closed(self):
+        from promote_combat_batch import literal_rng_bounds_binding
+        bad = copy.deepcopy(self.batch)
+        row = next(r for r in bad['effects'] if r['id'].endswith(':ant_nest_native_one_shot_species_spawn'))
+        row['components'][0]['numerical_parameters']['activation_max'] = 11
+        with self.assertRaisesRegex(AssertionError, 'component differs from native RNG bound'):
+            validate_batch(bad, self.prior(), self.census)
+        body = copy.deepcopy(self.body('AntNestOnTickUpdateProcedure'))
+        next(i for i in body if i['offset'] == 13)['opcode'] = '0x60'
+        with self.assertRaises(AssertionError):
+            literal_rng_bounds_binding(dict(instructions=body), 15)
+        body = copy.deepcopy(self.body('AntNestOnTickUpdateProcedure'))
+        next(i for i in body if i['offset'] == 12)['operand'] = 11
+        with self.assertRaises(AssertionError):
+            literal_rng_bounds_binding(dict(instructions=body), 15)
+
+    def test_ant_nest_removal_follows_air_branch_and_all_spawns_are_unowned(self):
+        body = self.body('AntNestOnTickUpdateProcedure')
+        species = [i['operand'] for i in body if 'ArphexModEntities.' in str(i['operand'])]
+        self.assertEqual(len(species), 4)
+        self.assertTrue(any('ALATE_QUEEN' in s for s in species))
+        self.assertTrue(any('WORKER' in s for s in species))
+        self.assertTrue(any('DRONE' in s for s in species))
+        setblock = next(i['offset'] for i in body if '.setBlock(' in str(i['operand']))
+        self.assertGreater(setblock, max(i['offset'] for i in body if 'EntityType.spawn(' in str(i['operand'])))
+        self.assertFalse(any('.setOwner(' in str(i['operand']) or 'player/Player' in str(i['operand']) for i in body))
+        self.assertTrue(any('Blocks.DIRT' in str(i['operand']) for i in body))
+
+    def test_termite_near_removal_is_outside_literal_rng_range(self):
+        from promote_combat_batch import literal_rng_bounds_binding
+        body = self.body('TermiteMoundOnTickUpdateProcedure')
+        by = {i['offset']: i for i in body}
+        near = literal_rng_bounds_binding(dict(instructions=body), 155)
+        self.assertEqual((near['minimum'], near['maximum'], by[158]['operand']), (1, 4, 5))
+        self.assertEqual(by[159]['branch_target'], 304)
+        live = literal_rng_bounds_binding(dict(instructions=body), 276)
+        self.assertEqual((live['minimum'], live['maximum']), (1, 4))
+        row = self.row('termite_mound_native_random_spawn_and_conditional_removal')
+        self.assertNotIn(155, [c['native_consumer']['offset'] for c in row['scalable_parameter_candidates']])
+        self.assertEqual(sum('EntityType.spawn(' in str(i['operand']) for i in body), 2)
+
+    def test_material_break_has_one_shared_helper_without_parent_success_gate(self):
+        for name in ('ChitinBlockBlock', 'HeavyChitinBlockBlock', 'CrawlingCompostBlock'):
+            body = self.body(name, 'onDestroyedByPlayer')
+            self.assertTrue(any('CrawlingCompostBlockDestroyedByPlayerProcedure.execute(' in str(i['operand']) for i in body))
+            self.assertFalse(any(i.get('branch_target') is not None for i in body))
+        body = self.body('CrawlingCompostBlockDestroyedByPlayerProcedure')
+        self.assertEqual(sum('EntityType.spawn(' in str(i['operand']) for i in body), 5)
+        self.assertFalse(any('.setOwner(' in str(i['operand']) or '.isEmptyBlock(' in str(i['operand']) for i in body))
+
+    def test_cube_contact_is_marker_before_anonymous_damage_without_owner_binding(self):
+        from promote_combat_batch import effect_holder_binding, literal_effect_arguments, damage_source_binding
+        body = self.body('CrawlingBarrierEntityWalksOnTheBlockProcedure')
+        method = dict(instructions=body)
+        self.assertIn('CRAWLING', effect_holder_binding(method, 133)[0])
+        args = literal_effect_arguments(method, 133)
+        self.assertEqual((args['duration'], args['amplifier']), (10, 1))
+        self.assertIn('GENERIC', damage_source_binding(method, 242)[0])
+        self.assertIn('DamageSource.<init>(Lnet/minecraft/core/Holder;)V', damage_source_binding(method, 242)[3])
+        self.assertFalse(any('ascendedowner' in str(i['operand']) for i in body))
+        self.assertTrue(any(i['operand'] == 4. for i in body))
+        from collect_combat_census import decode_sites
+        callers = [(m['entry'], m['method']) for m in self.census['methods']
+                   if any('CrawlingBarrierEntityWalksOnTheBlockProcedure.execute(' in str(s['operand'])
+                          for s in decode_sites(self.census, m, 'calls'))]
+        self.assertEqual(callers, [('net/arphex/block/AscendedCubeBlock.class', 'stepOn')])
+
+    def test_detector_tier_precedes_config_and_discard_precedes_health_guard(self):
+        body = self.body('InvisibleDetectorBlockEntityCollidesInTheBlockProcedure')
+        by = {i['offset']: i for i in body}
+        self.assertIn('ABYSSAL_CRYSTAL', by[50]['operand'])
+        self.assertIn('FIRE_OPAL', by[88]['operand'])
+        self.assertEqual((by[56]['branch_target'], by[94]['branch_target']), (97, 2072))
+        self.assertEqual([i['offset'] for i in body if i['opcode'] == '0xb5' and '.tormentor_tier' in str(i['operand'])], [140, 199, 258, 317, 338])
+        self.assertIn('DWELLERS_INCLUSION', by[349]['operand'])
+        self.assertIn('.discard(', by[377]['operand'])
+        first_health = next(i['offset'] for i in body if '.tormentor_health' in str(i['operand']))
+        self.assertGreater(first_health, 377)
+        self.assertIn('setVisualOnly', next(i['operand'] for i in body if '.setVisualOnly(' in str(i['operand'])))
+
+    def test_detector_status_commands_and_clock_have_exact_native_order(self):
+        from promote_combat_batch import literal_effect_command_arguments, literal_field_numeric_binding
+        body = self.body('InvisibleDetectorBlockEntityCollidesInTheBlockProcedure')
+        method = dict(instructions=body)
+        self.assertEqual(literal_effect_command_arguments(method, 1718)['duration_seconds'], 60)
+        self.assertEqual(literal_effect_command_arguments(method, 1806)['duration_seconds'], 5)
+        self.assertEqual(literal_field_numeric_binding(method, 1728)['native_value'], 3600.)
+        self.assertLess(1718, 1728)
+        self.assertLess(1728, 1806)
+        self.assertFalse(any(i['operand'].startswith('execute in ') for i in body if isinstance(i['operand'], str)))
+
+    def test_cube_attack_mining_fatigue_is_bound_to_actual_block_owner_string(self):
+        body = self.body('AscendedCubePlayerStartsToDestroyProcedure')
+        self.assertTrue(any(i['operand'] == 'ascendedowner' for i in body))
+        self.assertTrue(any('.getStringUUID(' in str(i['operand']) for i in body))
+        from promote_combat_batch import literal_effect_arguments
+        args = literal_effect_arguments(dict(instructions=body), 78)
+        self.assertEqual((args['duration'], args['amplifier']), (1200, 2))
+        getter = self.body('AscendedCubePlayerStartsToDestroyProcedure$1', 'getValue')
+        self.assertEqual(getter[-2]['operand'], '')
+        self.assertFalse(any('.setOwner(' in str(i['operand']) for i in body))
+
+    def test_jigsaw_latch_precedes_config_and_templates_are_not_cosmetic_exclusions(self):
+        body = self.body('ArphexJigsawOnTickUpdateProcedure')
+        done = next(i['offset'] for i in body if '.putBoolean(' in str(i['operand']))
+        config = next(i['offset'] for i in body if '.STRUCTURE_GENERATION' in str(i['operand']))
+        self.assertLess(done, config)
+        template_names = {'anthill_undervoid', 'anthill_upside', 'crawling_castle_portal',
+                          'cryptic_building_giant', 'final_layer_dungeon', 'layer_one_bypass', 'spider_cave'}
+        self.assertEqual({i['operand'] for i in body if isinstance(i['operand'], str)} & template_names, template_names)
+        self.assertEqual(set(self.batch['pending_native_assets']),
+                         {'data/arphex/structure/' + n + '.nbt' for n in template_names})
+        settings = [j for j, i in enumerate(body) if '.setIgnoreEntities(' in str(i['operand'])]
+        self.assertEqual(len(settings), 10)
+        self.assertTrue(all(body[j-1]['operand'] == 0 for j in settings))
+        self.assertEqual(sum(i['operand'] == 'kill @e[type=arphex:dungeon_trigger,distance=..5]' for i in body), 5)
+        self.assertFalse(any(e['entry'].endswith('/ArphexJigsawOnTickUpdateProcedure.class') for e in self.batch['exclusions']))
+
+    def test_scorched_glass_has_eight_separate_checks_and_not_direct_portal_call(self):
+        body = self.body('ScorchedGlassNeighbourBlockChangesProcedure', 'lambda$execute$0')
+        self.assertEqual(sum('.updateNeighborsAt(' in str(i['operand']) for i in body), 8)
+        self.assertFalse(any('TesseractTransporterNeighbourBlockChangesProcedure.execute(' in str(i['operand']) for i in body))
+        slab = self.body('InvisibleHalfSlabNeighbourBlockChangesProcedure')
+        self.assertTrue(any(i['operand'] == .6 for i in slab))
+        self.assertTrue(any('BlockPos.containing(DDD)' in str(i['operand']) for i in slab))
+        self.assertEqual(sum('.setBlock(' in str(i['operand']) for i in slab), 1)
+
+    def test_temp_tick_has_one_direct_native_caller_and_trophy_helpers_are_empty_or_visual(self):
+        from collect_combat_census import decode_sites
+        callers = [(m['entry'], m['method']) for m in self.census['methods']
+                   if any('TempTickProcedure.execute(' in str(s['operand']) for s in decode_sites(self.census, m, 'calls'))]
+        self.assertEqual(callers, [('net/arphex/block/AntShieldTemporaryBlock.class', 'randomTick')])
+        body = self.body('MobTrophyBlockDestroyedByPlayerProcedure')
+        self.assertFalse(any(i['opcode'] in ('0xb6', '0xb7', '0xb8', '0xb9', '0xb5') for i in body))
+        body = self.body('MobTrophyOnTickUpdateProcedure')
+        self.assertFalse(any('.hurt(' in str(i['operand']) or '.addEffect(' in str(i['operand']) or '.setBlock(' in str(i['operand']) for i in body))
