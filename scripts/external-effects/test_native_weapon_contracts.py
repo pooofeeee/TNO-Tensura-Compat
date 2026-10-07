@@ -2175,3 +2175,114 @@ class NativeBlockFieldContracts(NativeContractHarness, unittest.TestCase):
             witness = next(w for w in self.native['witnesses'] if w['entry'].endswith('/' + name + '.class'))
             self.assertNotIn('entityInside', witness['declared_method_names'])
             self.assertTrue(any('PathType.OPEN' in str(i['operand']) for i in self.body(name, 'getBlockPathType')))
+
+
+class NativeCocoonPlantContracts(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch = read_json(OUT / 'arphex-r2m6t-native-cocoon-egg-and-plant-contracts.json')
+        cls.native = read_json(OUT / 'native-evidence/arphex-native-cocoon-plant.json')
+        cls.census = read_json(OUT / 'arphex-combat-census.json')
+
+    def test_shared_contracts_validate_without_promoting_native_state_gates(self):
+        validate_batch(self.batch, self.prior(), self.census)
+        self.assertEqual(len(self.batch['effects']), 4)
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects']
+                             for c in r['scalable_parameter_candidates']), 11)
+        self.assertEqual((len(self.native['witnesses']), sum(len(w['methods'])
+                         for w in self.native['witnesses'])), (21, 127))
+        self.assertFalse(self.batch['whole_mod_complete'])
+        self.assertFalse(any(c['primitive'] == 'NATIVE_LARVA_GROWTH_SETUP'
+                             for r in self.batch['effects'] for c in r['scalable_parameter_candidates']))
+
+    def test_four_visual_variants_share_real_hatch_and_break_helpers(self):
+        for name in ['SpiderCocoonBlock', 'SpiderCocoonCreeperBlock',
+                     'SpiderCocoonSkeletonBlock', 'SpiderCocoonVillagerBlock']:
+            body = self.body(name, 'randomTick')
+            self.assertTrue(any('SpiderCocoonOnTickUpdateProcedure.execute(' in str(i['operand']) for i in body))
+            body = self.body(name, 'onDestroyedByPlayer')
+            self.assertTrue(any('SpiderCocoonBlockDestroyedByPlayerProcedure.execute(' in str(i['operand']) for i in body))
+            self.assertFalse(any(i.get('branch_target') is not None for i in body))
+            projectile = self.body(name, 'onProjectileHit')
+            self.assertFalse(any(i['opcode'] == '0xb7' for i in projectile))
+            self.assertTrue(any('SpiderCocoonPlayerNeighbourBlockChangesProcedure.execute(' in str(i['operand']) for i in projectile))
+        creeper = next(w for w in self.native['witnesses'] if w['entry'].endswith('/SpiderCocoonCreeperBlock.class'))
+        self.assertNotIn('wasExploded', creeper['declared_method_names'])
+
+    def test_random_cocoon_spawn_does_not_remove_block_or_assign_owner(self):
+        body = self.body('SpiderCocoonOnTickUpdateProcedure')
+        self.assertTrue(any('matlarave_spawncap_exceeded_toggle' in str(i['operand']) for i in body))
+        self.assertTrue(any('SPIDER_MATRIARCH_LARVAE' in str(i['operand']) for i in body))
+        self.assertTrue(any(i['operand'] == 40. for i in body))
+        self.assertEqual(sum('EntityType.spawn(' in str(i['operand']) for i in body), 1)
+        self.assertFalse(any(any(s in str(i['operand']) for s in ('.destroyBlock(', '.setBlock(', '.setOwner(', '.tame(', '.setTarget(')) for i in body))
+
+    def test_projectile_destruction_precedes_population_cap_and_ignores_result(self):
+        body = self.body('SpiderCocoonPlayerNeighbourBlockChangesProcedure')
+        by = {i['offset']: i for i in body}
+        self.assertIn('.destroyBlock(', by[18]['operand'])
+        self.assertIn('matlarave_spawncap_exceeded_toggle', by[28]['operand'])
+        at = next(j for j, i in enumerate(body) if i['offset'] == 18)
+        self.assertEqual(body[at+1]['opcode'], '0x57')
+        self.assertEqual(by[31]['branch_target'], 111)
+        self.assertIn('queueServerWork', by[108]['operand'])
+        self.assertFalse(any('.isEmptyBlock(' in str(i['operand']) or '.setOwner(' in str(i['operand']) for i in body))
+
+    def test_three_delayed_growth_seeds_target_existing_nearest_larva(self):
+        for name, method, value in [('SpiderCocoonBlockDestroyedByPlayerProcedure', 'lambda$execute$3', 7000),
+                                    ('SpiderCocoonPlayerNeighbourBlockChangesProcedure', 'lambda$execute$2', 6000),
+                                    ('SpiderEggOnTickUpdateProcedure', 'lambda$execute$3', 6500)]:
+            body = self.body(name, method)
+            self.assertEqual(sum('.getEntitiesOfClass(' in str(i['operand']) for i in body), 2)
+            self.assertTrue(any('.findFirst(' in str(i['operand']) for i in body))
+            at = next(j for j, i in enumerate(body) if 'DATA_grow' in str(i['operand']))
+            self.assertEqual(body[at+1]['operand'], value)
+            self.assertFalse(any('.isClientSide(' in str(i['operand']) or 'spawncap' in str(i['operand']) or '.setOwner(' in str(i['operand']) for i in body))
+
+    def test_egg_uses_nearest_player_and_cleanup_remains_outside_hatch_admission(self):
+        body = self.body('SpiderEggOnTickUpdateProcedure')
+        by = {i['offset']: i for i in body}
+        self.assertTrue(any('.findFirst(' in str(i['operand']) for i in body))
+        self.assertEqual((by[10]['branch_target'], by[107]['branch_target'], by[120]['branch_target']), (430, 430, 430))
+        self.assertEqual((by[443]['operand'], by[449]['branch_target']), (10, 467))
+        self.assertIn('.destroyBlock(', by[461]['operand'])
+        self.assertTrue(any('CRAWLING_CLAY' in str(i['operand']) for i in body))
+        self.assertFalse(any('.setOwner(' in str(i['operand']) for i in body))
+
+    def test_player_cocoon_controls_actual_collider_before_cleanup_without_player_gate(self):
+        body = self.body('SpiderCocoonPlayerOnTickUpdateProcedure')
+        by = {i['offset']: i for i in body}
+        self.assertIn('.setDeltaMovement(', by[49]['operand'])
+        self.assertIn('.makeStuckInBlock(', by[76]['operand'])
+        self.assertEqual(sum('Math.round(D)' in str(i['operand']) for i in body), 2)
+        self.assertFalse(any('Player' in str(i['operand']) or '.isClientSide(' in str(i['operand']) for i in body if i['offset'] < 76))
+        cleanup = self.body('SpiderCocoonPlayerOnTickUpdateProcedure', 'lambda$execute$2')
+        self.assertTrue(any('net/minecraft/world/entity/player/Player' == i['operand'] for i in cleanup))
+        self.assertFalse(any('.getBlockState(' in str(i['operand']) for i in cleanup))
+        random = self.body('SpiderCocoonPlayerTickProcedure')
+        self.assertTrue(any('net/minecraft/world/entity/LivingEntity' == i['operand'] for i in random))
+
+    def test_breaker_slow_falling_uses_native_breaker_argument_not_capture_victim(self):
+        body = self.body('SpiderCocoonPlayerBlock', 'onDestroyedByPlayer')
+        at = next(j for j, i in enumerate(body) if 'SpiderCocoonPlayerBlockDestroyedByPlayerProcedure.execute(' in str(i['operand']))
+        self.assertEqual((body[at-1]['opcode'], body[at-1]['local_index']), ('0x19', 4))
+        self.assertFalse(any(i.get('branch_target') is not None for i in body))
+        body = self.body('SpiderCocoonPlayerBlockDestroyedByPlayerProcedure')
+        from promote_combat_batch import effect_holder_binding, literal_effect_arguments
+        method = dict(instructions=body)
+        self.assertIn('SLOW_FALLING', effect_holder_binding(method, 40)[0])
+        args = literal_effect_arguments(method, 40)
+        self.assertEqual((args['duration'], args['amplifier']), (100, 0))
+        self.assertFalse(any('.removeEffect(' in str(i['operand']) for i in body))
+
+    def test_tall_bane_plant_owns_only_proven_native_night_vision(self):
+        body = self.body('BaneBlossomMobplayerCollidesWithPlantProcedure')
+        self.assertEqual(sum('ArphexModBlocks.BANE_BLOSSOM' in str(i['operand']) for i in body), 3)
+        from promote_combat_batch import effect_holder_binding, literal_effect_arguments
+        method = dict(instructions=body)
+        self.assertIn('NIGHT_VISION', effect_holder_binding(method, 129)[0])
+        args = literal_effect_arguments(method, 129)
+        self.assertEqual((args['duration'], args['amplifier']), (60, 1))
+        for name in ('BaneBlossomOnTickUpdateProcedure', 'BaneBlossomNeighbourBlockChangesProcedure'):
+            body = self.body(name)
+            self.assertFalse(any('.hurt(' in str(i['operand']) or '.addEffect(' in str(i['operand']) or 'EntityType.spawn(' in str(i['operand']) for i in body))
