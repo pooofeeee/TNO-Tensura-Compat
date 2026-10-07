@@ -248,6 +248,43 @@ def literal_item_attribute_binding(method, offset):
                 damage_offset=damage['offset'], speed_offset=speed['offset'])
 
 
+def literal_item_wear_binding(method, offset):
+    """Pin an item wear request and its actual entity/used-hand inputs.
+
+    Local identities are native bytes, not proof that the entity owns the stack.
+    In particular, a victim parameter must not be silently called the attacker.
+    """
+    body=method['instructions'];at=next(n for n,i in enumerate(body) if i['offset']==offset)
+    assert at>=6 and body[at]['operand']=='net/minecraft/world/item/ItemStack.hurtAndBreak(ILnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/entity/EquipmentSlot;)V'
+    stack,value,entity,hand_entity,hand,slot=body[at-6:at]
+    assert all(i['opcode'] in ('0x19','0x2a','0x2b','0x2c','0x2d') and type(i.get('local_index')) is int
+               for i in (stack,entity,hand_entity))
+    assert entity['local_index']==hand_entity['local_index']
+    assert value['opcode'] in ('0x2','0x3','0x4','0x5','0x6','0x7','0x8','0x10','0x11','0x12','0x13') and type(value['operand']) is int
+    assert hand['opcode']=='0xb6' and hand['operand']=='net/minecraft/world/entity/LivingEntity.getUsedItemHand()Lnet/minecraft/world/InteractionHand;'
+    assert slot['opcode']=='0xb8' and slot['operand']=='net/minecraft/world/entity/LivingEntity.getSlotForHand(Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/entity/EquipmentSlot;'
+    return dict(native_value=value['operand'],value_offset=value['offset'],
+                stack_local_index=stack['local_index'],entity_local_index=entity['local_index'],
+                hand_entity_local_index=hand_entity['local_index'],slot_source='NATIVE_CURRENT_USED_HAND')
+
+
+def literal_numeric_return_binding(method, offset):
+    """Pin a complete constant numeric API body; never accept boolean gates.
+
+    Caller/reachability and combat meaning require separate reviewed evidence.
+    """
+    body=method['instructions'];assert len(body)==2 and body[-1]['offset']==offset
+    kind=method['descriptor'].rsplit(')',1)[1]
+    returns={'I':'0xac','J':'0xad','F':'0xae','D':'0xaf'}
+    assert kind in returns and body[-1]['opcode']==returns[kind]
+    value=body[0]
+    literals={'I':{'0x2','0x3','0x4','0x5','0x6','0x7','0x8','0x10','0x11','0x12','0x13'},
+        'J':{'0x9','0xa','0x14'},'F':{'0xb','0xc','0xd','0x12','0x13'},'D':{'0xe','0xf','0x14'}}
+    assert value['opcode'] in literals[kind]
+    assert type(value['operand']) is (int if kind in ('I','J') else float)
+    return dict(native_value=value['operand'],value_offset=value['offset'],return_descriptor=kind)
+
+
 def registered_armor_material_binding(witness, census):
     """Read a pinned literal material registration, including its actual lambdas."""
     assert witness['superclass'] == 'net/minecraft/world/item/ArmorItem'
@@ -729,6 +766,20 @@ def validate_batch(batch,review,census):
                         hit['operand']=='net/minecraft/world/item/ItemStack.setDamageValue(I)V')
             attribute='native_attribute_binding' in candidate
             item_attribute='native_item_attribute_binding' in candidate
+            item_wear='native_item_wear_binding' in candidate
+            numeric_return='native_numeric_return_binding' in candidate
+            if numeric_return:
+                binding=literal_numeric_return_binding(m,consumer['offset'])
+                assert binding==candidate['native_numeric_return_binding'],('wrong native numeric return',candidate)
+                assert len(candidate['parameters'])==1
+                component=next(c for c in row['components'] if c['primitive']==candidate['primitive'])
+                assert component['numerical_parameters'][candidate['parameters'][0]]==binding['native_value'],('component differs from native numeric return',candidate)
+            if item_wear:
+                binding=literal_item_wear_binding(m,consumer['offset'])
+                assert binding==candidate['native_item_wear_binding'],('wrong native item wear inputs',candidate)
+                assert candidate['primitive']=='ITEM_DURABILITY_COST' and len(candidate['parameters'])==1
+                component=next(c for c in row['components'] if c['primitive']==candidate['primitive'])
+                assert component['numerical_parameters'][candidate['parameters'][0]]==binding['native_value'],('component differs from native item wear',candidate)
             command='native_command_binding' in candidate
             if command:
                 assert literal_command_binding(m,consumer['offset'])==candidate['native_command_binding'],('wrong native literal command',candidate)
@@ -846,7 +897,7 @@ def validate_batch(batch,review,census):
                 allowed={'native_value'} if binding['kind']=='ITEM_ATTRIBUTE_MODIFIER' else {'attack_bonus','attack_speed'}
                 assert set(roles.values())==allowed and len(roles)==len(allowed)
                 assert all(component['numerical_parameters'][parameter]==binding[role] for parameter,role in roles.items()),('component differs from pinned item attribute',candidate)
-            assert hit['opcode']=='0xb5' or field_literal or block_factor or literal_numeric or food_component or rounded_tag or rng or terrain or explosion or durability or attribute or item_attribute or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or synched_clock or clock_distribution or vector_scale or vector_expression or registry_spawn or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
+            assert hit['opcode']=='0xb5' or field_literal or block_factor or literal_numeric or food_component or rounded_tag or rng or terrain or explosion or durability or attribute or item_attribute or item_wear or numeric_return or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or synched_clock or clock_distribution or vector_scale or vector_expression or registry_spawn or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
             if candidate['primitive'].startswith('MOB_EFFECT_') or 'native_holder_symbol' in candidate:
                 symbol,allocation,load=effect_holder_binding(m,consumer['offset'])
                 assert (symbol,allocation,load)==(candidate['native_holder_symbol'],
@@ -970,13 +1021,19 @@ def promote(batch_path):
     review.update(checkpoint=batch['checkpoint'],notes_file=batch_path.name,
         scope=batch['closed_scope'],exact_next_task=batch['exact_next_task'])
     review.setdefault('reviewed_batches',[]).append(batch_path.name)
+    # Pending counts describe this checkpoint, not the original census size.
+    # Reconcile against independent pinned hashes before publishing progress.
+    from reconcile_native_census import reconcile
+    native_progress,_=reconcile(review,census)
     write_json(OUT/'mod-reviews'/f'{key}.json',review)
     ledger=read_json(OUT/'mod-completion-ledger.json')
     ledger.update(checkpoint=batch['checkpoint'],exact_next_task=batch['exact_next_task'])
     target=next(t for t in ledger['targets'] if t['mod_key']==key)
     target.update(state='PARTIAL',detail=batch['closed_scope']+' Other finite census contracts remain pending.',
         exact_next_task=batch['exact_next_task'],semantic_effect_count=summary['semantic_records'],
-        numeric_candidate_count=summary['numeric_candidate_entries'])
+        numeric_candidate_count=summary['numeric_candidate_entries'],
+        pending_native_method_count=native_progress['summary']['pending_methods'],
+        pending_semantic_method_count=native_progress['summary']['pending_by_census_role'].get('PENDING_SEMANTIC_REVIEW',0))
     write_json(OUT/'mod-completion-ledger.json',ledger)
     campaign=read_json(OUT/'large-mod-campaign.json')
     campaign.update(checkpoint=batch['checkpoint'],exact_next_task=batch['exact_next_task'])
