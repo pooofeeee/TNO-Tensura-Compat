@@ -601,7 +601,17 @@ def validate_batch(batch,review,census):
     if batch.get('native_forwarding_registry_file'):
         from reconcile_native_census import reconcile
         from native_forwarding import validate as validate_forwarding
-        prior,_=reconcile(review,census)
+        # A bridge may use an independently cited native exclusion closed in
+        # this batch. Index those exact proofs before checking the bridge; do
+        # not let the pending forwarding registry supply its own target proof.
+        context_name='__pending_native_exclusion_validation__.json'
+        context=dict(schema=batch['schema'],mod_key=batch['mod_key'],
+                     exclusions=batch.get('exclusions',[]))
+        context_review=deepcopy(review)
+        context_review.setdefault('reviewed_batches',[]).append(context_name)
+        def context_read(path):
+            return context if path.name==context_name else index.read(path.relative_to(OUT).as_posix())
+        prior,_=reconcile(context_review,census,read=context_read)
         registry=index.read(batch['native_forwarding_registry_file'])
         validate_forwarding(registry,census,
             {(r['entry'],r['method'],r['descriptor']) for r in prior['methods']},
