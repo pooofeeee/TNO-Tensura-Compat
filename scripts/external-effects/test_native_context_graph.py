@@ -108,3 +108,34 @@ class NativeValueAndGenerationTests(unittest.TestCase):
     def test_generation_terrain_write_does_not_authorize_block_entity_mutation(self):
         self.assertTrue(external_allowed('net/minecraft/world/level/WorldGenLevel.setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z','generation-layout-v4'))
         self.assertFalse(external_allowed('net/minecraft/world/level/block/entity/SpawnerBlockEntity.setEntityId()V','generation-layout-v4'))
+
+class NativeQueryTests(unittest.TestCase):
+    def query(self):
+        from catalog_common import byte_hash
+        c=fixture();raw=bytes.fromhex('034fac')
+        # A query writing an array alias must fail despite no field/call sites.
+        m=c['methods'][0];m.update(descriptor='()I',calls=[],code_sha256=byte_hash(raw))
+        key=(m['entry'],m['method'],m['descriptor'])
+        return c,key,raw
+    def test_complete_bytecode_rejects_array_alias_and_checks_operand_boundaries(self):
+        from native_context_graph import opcode_read_only
+        self.assertFalse(opcode_read_only(bytes.fromhex('034fac')))
+        self.assertTrue(opcode_read_only(bytes.fromhex('104fac')))  # 0x4f is an operand, not IASTORE.
+        self.assertFalse(opcode_read_only(bytes.fromhex('2ac2c303ac')))
+    def test_query_context_requires_exact_hash_and_no_heap_mutation(self):
+        from catalog_common import byte_hash
+        c,k,raw=self.query();self.assertEqual(prove(c,'native-query-context-v5',{k:raw},{k})['summary']['methods'],0)
+        safe=bytes.fromhex('104fac');c['methods'][0]['code_sha256']=byte_hash(safe)
+        self.assertEqual(prove(c,'native-query-context-v5',{k:safe},{k})['summary']['methods'],1)
+        self.assertEqual(prove(c,'native-query-context-v5',{k:raw},{k})['summary']['methods'],0)
+        c['methods'][0]['access']|=0x20
+        self.assertEqual(prove(c,'native-query-context-v5',{k:safe},{k})['summary']['methods'],0)
+    def test_query_does_not_authorize_randomness_or_opaque_callbacks(self):
+        for symbol in ('java/lang/Math.random()D','net/minecraft/util/Mth.wobble(D)D',
+                       'net/minecraft/util/RandomSource.nextFloat()F',
+                       'java/util/Optional.map(Ljava/util/function/Function;)Ljava/util/Optional;',
+                       'java/lang/String.valueOf(Ljava/lang/Object;)Ljava/lang/String;',
+                       'net/minecraft/world/phys/Vec3.offsetRandom(Lnet/minecraft/util/RandomSource;F)Lnet/minecraft/world/phys/Vec3;',
+                       'net/minecraft/world/level/Level.addParticle()V'):
+            self.assertFalse(external_allowed(symbol,'native-query-context-v5'),symbol)
+        self.assertTrue(external_allowed('net/minecraft/world/entity/Entity.distanceToSqr(DDD)D','native-query-context-v5'))

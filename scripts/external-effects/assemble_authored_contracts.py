@@ -99,7 +99,9 @@ def render(spec):
         **({key:spec[key] for key in ('native_context_graph_registry_file','native_context_graph_registry_files',
                                     'native_forwarding_registry_file')
             if key in spec}),
-        **({'validation':deepcopy(spec['validation'])} if spec.get('validation') else {}))
+        **({'validation':deepcopy(spec['validation'])} if spec.get('validation') else {}),
+        **({'deterministic_leverage':deepcopy(spec['deterministic_leverage'])}
+           if spec.get('deterministic_leverage') else {}))
 
 
 if __name__=='__main__':

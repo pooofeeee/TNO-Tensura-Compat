@@ -8,17 +8,22 @@ from catalog_common import OUT, read_json, write_json, sha256
 from native_evidence import collect
 
 
-def prepare(key, label, entries, jar, work=None, decompiler=None, java='java'):
+def prepare(key, label, entries, jar, work=None, decompiler=None, java='java', selection=None):
     census = read_json(OUT / f'{key}-combat-census.json')
     assert sha256(jar) == census['jar_sha256']
     entries = sorted(set(entries))
     known = {c['entry'] for c in census['classes']}
     assert entries and set(entries) <= known, 'Scope must come from existing census'
+    selected={(m['entry'],m['method'],m['descriptor']) for m in selection} if selection is not None else None
+    if selected is not None:
+        assert selected and {m[0] for m in selected}==set(entries)
+        assert selected <= {(m['entry'],m['method'],m['descriptor']) for m in census['methods']}, 'Unknown selected native boundary'
     specifications = []
     for entry in entries:
         methods = [dict(name=m['method'], descriptor=m['descriptor'],
                         include_local_operands=True, include_exception_handlers=True)
-                   for m in census['methods'] if m['entry'] == entry]
+                   for m in census['methods'] if m['entry'] == entry and
+                   (selected is None or (m['entry'],m['method'],m['descriptor']) in selected)]
         specifications.append(dict(id=f'{key}:{label}:{entry}', mod_key=key,
             entry=entry, include_declared_methods=True, include_annotations=True, methods=methods))
     document = dict(schema='tno.external_effects.native_specification.v1',
@@ -50,6 +55,8 @@ if __name__ == '__main__':
     p.add_argument('--jar', type=Path, required=True)
     p.add_argument('--work', type=Path); p.add_argument('--decompiler', type=Path)
     p.add_argument('--java', default='java')
+    p.add_argument('--selection',type=Path)
     a = p.parse_args()
     entries = [s.strip() for s in a.entries.read_text().splitlines() if s.strip()]
-    print(prepare(a.mod_key, a.label, entries, a.jar, a.work, a.decompiler, a.java))
+    selection=read_json(a.selection)['methods'] if a.selection else None
+    print(prepare(a.mod_key, a.label, entries, a.jar, a.work, a.decompiler, a.java, selection))

@@ -27,7 +27,8 @@ def build(review, census):
         for site in decode_sites(census, method, 'calls'):
             operand = site['operand']
             for marker in ('.hurt(', '.addEffect(', '.setDeltaMovement(', '.heal(',
-                           '.setTarget(', '.addFreshEntity(', '.explode('):
+                           '.setTarget(', '.addFreshEntity(',
+                           '.addFreshEntityWithPassengers(', '.explode('):
                 if marker in operand:
                     consumers[marker] += 1
     return dict(

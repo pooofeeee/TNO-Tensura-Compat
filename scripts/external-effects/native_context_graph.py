@@ -1,8 +1,9 @@
-"""Prove visual-only call graphs from an existing pinned census, fail closed.
+"""Prove explicit native context graphs from an existing pinned census.
 
-Only typed presentation roots are dispositioned. Read-only game dependencies
-are checked for side effects but remain independently pending; neither names nor
-raw code hashes grant semantic equivalence or Stage eligibility.
+Profiles constrain roots and native operations; unknown dispatch fails closed.
+Query proofs reject writes in the selected native bodies. Metadata factories
+retain their native API behavior. No profile decides Stage eligibility, and
+names or raw hashes alone grant neither equivalence nor coverage.
 """
 import argparse
 from collections import Counter
@@ -17,7 +18,7 @@ from reconcile_native_census import method_key
 
 ROOTS=('/client/model/', '/client/render/', '/client/particle/')
 EXTRA_ROOTS=('/client/sound/', '/client/gui/')
-PROFILES=('visual-v1','presentation-audio-ui-v2','native-value-metadata-v3','generation-layout-v4')
+PROFILES=('visual-v1','presentation-audio-ui-v2','native-value-metadata-v3','generation-layout-v4','native-query-context-v5')
 GEN_ROOTS=('/server/level/feature/','/server/level/carver/',
     '/server/level/surface/','/server/level/structure/')
 GEN_VALUES=('net/minecraft/world/level/levelgen/synth/',
@@ -57,6 +58,9 @@ VALUE_RETURNS=('Lnet/minecraft/world/phys/shapes/VoxelShape;',
     'Lnet/minecraft/resources/ResourceLocation;',
     'Lnet/minecraft/world/item/UseAnim;',
     'Lnet/minecraft/world/level/material/MapColor;')
+QUERY_RETURNS=('Z','B','C','S','I','J','F','D','Lnet/minecraft/world/phys/Vec3;',
+    'Lnet/minecraft/world/phys/AABB;','Lnet/minecraft/world/level/block/state/BlockState;',
+    'Lnet/minecraft/core/BlockPos;','Lnet/minecraft/world/item/ItemStack;')
 VALUE_QUERY={
  'net/minecraft/world/level/block/Block': {'box','getShape','getCollisionShape','getBlockSupportShape','getVisualShape'},
  'net/minecraft/world/level/block/SnowLayerBlock': {'getCollisionShape'},
@@ -139,6 +143,29 @@ def external_allowed(symbol, profile='visual-v1'):
     p=parts(symbol)
     if not p:return False
     owner,name,_=p
+    if profile=='native-query-context-v5':
+        # Sampling changes RNG state; builders/collection aliases and particle
+        # APIs are not read-only, even when their result is a native value.
+        if owner.startswith(('net/minecraft/util/RandomSource','java/util/Random','java/lang/StringBuilder')):return False
+        if owner in ('java/lang/Math','java/lang/StrictMath') and name=='random':return False
+        if owner=='net/minecraft/util/Mth' and name in (
+                'randomBetween','randomBetweenInclusive','nextInt','nextFloat','nextDouble','wobble','createInsecureUUID'):
+            return False
+        if owner=='java/lang/Object' and name not in ('<init>','getClass'):return False
+        if owner=='java/util/Objects' and name not in ('requireNonNull','requireNonNullElse','isNull','nonNull'):return False
+        if owner=='org/slf4j/Logger':return False
+        if owner.startswith(('java/util/','com/google/common/collect/','it/unimi/dsi/fastutil/')) and name in (
+                'map','flatMap','filter','collect','orElseGet','equals','hashCode','toString'):
+            return False  # Opaque callback/element dispatch is not proven pure.
+        if owner=='java/lang/String' and name=='valueOf' and '(Ljava/lang/Object;)' in symbol:return False
+        if owner=='net/minecraft/world/phys/Vec3' and name=='offsetRandom':return False
+        if owner.startswith('net/minecraft/world/phys/') and owner not in (
+                'net/minecraft/world/phys/Vec3','net/minecraft/world/phys/AABB',
+                'net/minecraft/world/phys/shapes/Shapes','net/minecraft/world/phys/shapes/VoxelShape',
+                'net/minecraft/world/phys/shapes/CollisionContext','net/minecraft/world/phys/shapes/EntityCollisionContext'):
+            return False
+        if name=='addParticle':return False
+        return external_allowed(symbol,'native-value-metadata-v3')
     if profile=='generation-layout-v4':
         if any(owner.startswith(x) for x in GEN_VALUES):return True
         if name in GEN_QUERY.get(owner,set()):return True
@@ -172,7 +199,14 @@ def typed_presentation_return(method):
     return method['descriptor'].endswith(')Lnet/minecraft/sounds/SoundEvent;')
 
 
-def prove(census, profile='visual-v1'):
+def opcode_read_only(code):
+    """Decode complete bytecode, not a byte substring or sparse field index."""
+    parser=object.__new__(ClassFile);parser.resolve=lambda index:None
+    ops={int(i['opcode'],16) for i in parser.instructions(code)}
+    return not (ops & (set(range(0x4f,0x57)) | {0xb3,0xb5,0xc2,0xc3,0xa8,0xa9,0xc9}))
+
+
+def prove(census, profile='visual-v1', bytecodes=None, selection=None):
     assert profile in PROFILES
     classes={c['name']:c for c in census['classes']}
     native={method_key(m):m for m in census['methods']}
@@ -198,8 +232,11 @@ def prove(census, profile='visual-v1'):
         return external_allowed(r[1]+'.'+name+desc,profile)
 
     for key,m in native.items():
-        entry=m['entry'];is_visual=profile not in ('native-value-metadata-v3','generation-layout-v4') and visual_entry(entry,profile);deps=set()
+        entry=m['entry'];is_visual=profile not in ('native-value-metadata-v3','generation-layout-v4','native-query-context-v5') and visual_entry(entry,profile);deps=set()
         valid=not m['access'] & (0x100|0x400)
+        if profile=='native-query-context-v5':
+            raw=(bytecodes or {}).get(key)
+            valid=valid and not m['access'] & 0x20 and raw is not None and byte_hash(raw)==m['code_sha256'] and opcode_read_only(raw)
         for hit in decode_sites(census,m,'hits'):
             op=hit['opcode'];symbol=str(hit['operand'])
             if op in ('0xb3','0xb5'):
@@ -227,7 +264,9 @@ def prove(census, profile='visual-v1'):
         rejected={k for k in safe if not dependencies[k] <= safe}
         if not rejected:break
         safe-=rejected
-    roots=({k for k in native if any(root in k[0] for root in GEN_ROOTS)} if profile=='generation-layout-v4' else
+    roots=({k for k in native if k in set(selection or ()) and
+             native[k]['descriptor'].split(')')[1] in QUERY_RETURNS} if profile=='native-query-context-v5' else
+           {k for k in native if any(root in k[0] for root in GEN_ROOTS)} if profile=='generation-layout-v4' else
            {k for k in native if any(native[k]['descriptor'].endswith(')'+t) for t in VALUE_RETURNS)}
            if profile=='native-value-metadata-v3' else
            {k for k in native if visual_entry(k[0],profile) or (profile=='presentation-audio-ui-v2' and typed_presentation_return(native[k]))})
@@ -253,27 +292,81 @@ def prove(census, profile='visual-v1'):
         for row in rows:
             row.update(disposition='NATIVE_GENERATION_LAYOUT_CONTEXT',reason='Bounded world-generation geometry/terrain layout; transitive graph contains no actor or blockentity mutation. Native runtime block mechanics and encounter producers remain separate.')
         result['summary']={'methods':len(rows),'remaining_generation_methods':len(roots)-len(rows)}
+    if profile=='native-query-context-v5':
+        result['scope']='Exact finite selected native read-only query/formula context. Complete bytecodes and transitive call graph reject RNG, heap/array writes, monitor operations and unknown dispatch. Original values and gates are retained; caller contributions and eligibility are not inferred.'
+        for row in rows:
+            row.update(disposition='NATIVE_QUERY_FORMULA_CONTEXT',reason='Original query/formula and native gates retained as exact context; no new payload or Stage policy inferred. Side-effecting consumers remain independently dispositioned.')
+        result['selection']=[dict(entry=k[0],method=k[1],descriptor=k[2]) for k in sorted(selection or ())]
+        result['bytecodes']=[dict(entry=k[0],method=k[1],descriptor=k[2],code_hex=v.hex()) for k,v in sorted((bytecodes or {}).items())]
+        result['summary']={'methods':len(rows),'remaining_query_methods':len(roots)-len(rows)}
     if profile!='visual-v1':
         result['context_profile']=profile
     return result
 
 
 def validate(doc,census):
-    assert doc==prove(census,doc.get('context_profile','visual-v1')),'Context graph differs from independent finite call/field facts'
+    profile=doc.get('context_profile','visual-v1')
+    codes={method_key(r):bytes.fromhex(r['code_hex']) for r in doc.get('bytecodes',[])}
+    selection={method_key(r) for r in doc.get('selection',[])}
+    assert doc==prove(census,profile,codes,selection),'Context graph differs from independent finite call/field facts'
     return doc['rows']
+
+
+def collect_queries(census,selection,jar):
+    """Read only selected query roots and exact internal call dependencies."""
+    assert sha256(jar)==census['jar_sha256']
+    native={method_key(m):m for m in census['methods']}
+    assert selection <= set(native)
+    classes={c['name']:c for c in census['classes']}
+    boot={(b['entry'],b['index']):b for b in census.get('registration_bootstraps',[])}
+    roots={k for k in selection if native[k]['descriptor'].split(')')[1] in QUERY_RETURNS}
+    todo=list(roots);needed=set()
+    while todo:
+        key=todo.pop()
+        if key in needed:continue
+        needed.add(key)
+        symbols=[]
+        for hit in decode_sites(census,native[key],'calls'):
+            symbol=str(hit['operand'])
+            if hit['opcode']=='0xba':
+                number=int(re.match(r'bootstrap#(\d+):',symbol).group(1))
+                b=boot.get((key[0],number),{})
+                symbols += [s for s in b.get('arguments',[]) if isinstance(s,str)]
+            else:symbols.append(symbol)
+        for symbol in symbols:
+            p=parts(symbol)
+            if not p:continue
+            owner,name,desc=p;seen=set()
+            while owner in classes and owner not in seen:
+                seen.add(owner);target=(owner+'.class',name,desc)
+                if target in native:todo.append(target);break
+                owner=classes[owner]['superclass']
+    codes={}
+    with zipfile.ZipFile(jar) as z:
+        for entry in sorted({k[0] for k in needed}):
+            raw=z.read(entry);assert byte_hash(raw)==classes[entry[:-6]]['entry_sha256']
+            c=ClassFile(raw)
+            for m in c.methods:
+                key=(entry,m['name'],m['descriptor'])
+                if key in needed:
+                    code=m.get('code',b'');assert byte_hash(code)==native[key]['code_sha256'];codes[key]=code
+    assert set(codes)==needed
+    return prove(census,'native-query-context-v5',codes,roots)
 
 
 def reproduce(doc,census,jar):
     assert sha256(jar)==census['jar_sha256']
     classes={c['entry']:c for c in census['classes']};parsed={}
     with zipfile.ZipFile(jar) as z:
-        for row in doc['rows']:
+        for row in doc['rows']+doc.get('bytecodes',[]):
             if row['entry'] not in parsed:
                 raw=z.read(row['entry']);assert byte_hash(raw)==classes[row['entry']]['entry_sha256']
                 parsed[row['entry']]=ClassFile(raw)
             c=parsed[row['entry']]
             m=next(m for m in c.methods if (m['name'],m['descriptor'])==(row['method'],row['descriptor']))
-            assert byte_hash(m.get('code',b''))==row['code_sha256']
+            code=m.get('code',b'')
+            if 'code_hex' in row:assert code.hex()==row['code_hex']
+            else:assert byte_hash(code)==row['code_sha256']
     return len(doc['rows'])
 
 
@@ -281,6 +374,12 @@ if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('mod_key')
     p.add_argument('--output',type=Path,required=True);p.add_argument('--jar',type=Path)
     p.add_argument('--profile',choices=PROFILES,default='visual-v1')
-    a=p.parse_args();c=read_json(OUT/f'{a.mod_key}-combat-census.json');d=prove(c,a.profile)
+    p.add_argument('--selection',type=Path)
+    a=p.parse_args();c=read_json(OUT/f'{a.mod_key}-combat-census.json')
+    if a.profile=='native-query-context-v5':
+        assert a.jar and a.selection,'Query context requires an exact finite selection and pinned JAR'
+        selected={method_key(r) for r in read_json(a.selection)['methods']}
+        d=collect_queries(c,selected,a.jar)
+    else:d=prove(c,a.profile)
     if a.jar:reproduce(d,c,a.jar)
     write_json(a.output,d);print(d['summary'])
