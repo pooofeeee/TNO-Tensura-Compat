@@ -16,6 +16,8 @@ def collect(spec,source_aids=False):
                 assert wanted==['*'] or set(wanted)<={m['name'] for m in methods},entry
                 result.append(dict(archive_sha256=archive['sha256'],entry=entry,entry_sha256=byte_hash(data),
                     class_name=cls.name,superclass=cls.super,interfaces=cls.interfaces,
+                    **({'declared_methods': [dict(name=m['name'], descriptor=m['descriptor'], access=m['access'])
+                                             for m in cls.methods]} if archive.get('include_declarations') else {}),
                     methods=[dict(name=m['name'],descriptor=m['descriptor'],code_sha256=byte_hash(m.get('code',b'')),
                         code_hex=m.get('code',b'').hex(),instructions=list(cls.instructions(m.get('code',b'')))) for m in methods]))
                 if source_aids:

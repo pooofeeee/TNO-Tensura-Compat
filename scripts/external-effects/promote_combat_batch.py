@@ -346,10 +346,10 @@ def literal_call_argument_binding(method, offset, argument_index):
             pop(2); stack.append({})
         elif 0x74 <= op <= 0x77 or 0x85 <= op <= 0x93:
             pop(1); stack.append({})
-        elif op in (0xb6, 0xb7, 0xb8, 0xb9):
+        elif op in (0xb6, 0xb7, 0xb8, 0xb9, 0xba):
             inputs, result = signature('(' + str(value).split('(', 1)[1])
             values = pop(len(inputs))
-            if op != 0xb8:
+            if op not in (0xb8, 0xba):
                 pop(1)
             if instruction['offset'] == offset:
                 selected = values[argument_index]

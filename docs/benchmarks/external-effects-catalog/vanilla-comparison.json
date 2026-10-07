@@ -1,7 +1,7 @@
 {
   "schema": "tno.external_effects.vanilla_comparison.v1",
   "status": "PARTIAL",
-  "checkpoint": "R2m8p-alexscaves-item-payload-contracts-complete",
+  "checkpoint": "R2m8q-alexscaves-equipped-food-consumers-complete",
   "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
   "note": "Deterministic projection of canonical mod reviews,including explicit PARTIAL scope. The ledger alone tracks per-mod completeness. No Stage eligibility or policy decision.",
   "comparisons": [
@@ -558,6 +558,37 @@
       ]
     },
     {
+      "effect_id": "alexscaves:darkness_cloak_native_charge_activation",
+      "mod_key": "alexscaves",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Server Player chest cloak increments CloakCharge only below configured maximum and cached CanCharge true. Cache initially false, refreshed when timestamp<=0 or >10 ticks. Eligibility native Living not in light11 OR creative flag for creativePlayer, requires hood/no DarknessIncarnate. Client charged meter/key2 sends packet and local callback. Native onKeyPacket only checks Living+canChargeUp(false); DOES NOT check current charge, key, or cloak equipped. Clears charge then adds configured DarknessIncarnate duration. Defaults charge1000/flight200, native config bounds20..Integer.MAX_VALUE; effect contract stays canonical.",
+      "components": [
+        {
+          "primitive": "RESOURCE_GAIN",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "charge": "min(nativeMaxCharge,old+1) only native eligibility/cache gates"
+          }
+        },
+        {
+          "primitive": "MOB_EFFECT_DARKNESS_INCARNATE",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "duration": "COMMON_CONFIG.darknessCloakFlightTime"
+          }
+        },
+        {
+          "primitive": "NATIVE_LIGHT_ADMISSION",
+          "numerical_parameters": {
+            "threshold": 11
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
       "effect_id": "alexscaves:darkness_incarnate",
       "mod_key": "alexscaves",
       "primary_classification": "CUSTOM_CONTROL",
@@ -819,6 +850,42 @@
       ]
     },
     {
+      "effect_id": "alexscaves:destroyed_radioactive_block_native_cloud_explosion",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Parent onDestroyed first. Noncreative damage source and ItemEntity not already removed: discard then create OWNERLESS AreaEffectCloud WATER potion +IRRADIATED9600 amplifier1, radius2/lifetime12000/wait0/radiusPerTick=-radius/lifetime; native Level.explode(NULL,radius1.8,BLOCK). No own server guard. Cloud is native potion admission/lifecycle, no synthetic owner or nuclear entity substitution.",
+      "components": [
+        {
+          "primitive": "MOB_EFFECT_IRRADIATED",
+          "numerical_parameters": {
+            "duration": 9600,
+            "amplifier": 1
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "CLOUD_DELIVERY",
+          "numerical_parameters": {
+            "radius": 2.0,
+            "duration": 12000,
+            "wait": 0
+          },
+          "parameter_formulas": {
+            "radius_per_tick": "-radius/duration"
+          }
+        },
+        {
+          "primitive": "NATIVE_EXPLOSION",
+          "numerical_parameters": {
+            "radius": 1.8
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
       "effect_id": "alexscaves:dinosaur_egg_native_hatch_aggro",
       "mod_key": "alexscaves",
       "primary_classification": "CUSTOM_CONTROL",
@@ -919,6 +986,41 @@
       ]
     },
     {
+      "effect_id": "alexscaves:diving_equipment_native_water_air_swim",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Active CommonEvents LivingTick Post helmet adds WATER_BREATHING810; PlayerTick Post adds210. Both refill maxair when eyeWater or riding Submarine, no own server guard. Player callback removes original DIVING_SWIM_SPEED_MODIFIER then LEGS adds transient SWIM_SPEED+.5 ADD_VALUE. LivingEntityMixin breathing HEAD true for helmet or Submarine. DivingArmorItem legacy Multimap modifiers and onArmorTick(220) are NOT current pinned hooks and inactive; do not add their cached swim .5 or duration220 to live behavior.",
+      "components": [
+        {
+          "primitive": "MOB_EFFECT_WATER_BREATHING",
+          "numerical_parameters": {
+            "living_duration": 810,
+            "player_duration": 210
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "SWIM_SPEED_ATTRIBUTE",
+          "numerical_parameters": {
+            "add": 0.5
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "AIR_REFILL",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_BREATH_ADMISSION",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
       "effect_id": "alexscaves:dreadbow_native_volley_shadow_payload",
       "mod_key": "alexscaves",
       "primary_classification": "CUSTOM_DAMAGE",
@@ -994,7 +1096,7 @@
       "primary_classification": "VANILLA_COMPOSITE",
       "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
       "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
-      "differences": "SpearItem melee add8/speed-3. Player release f>.1 wears item, owned stack-carrying arrow speed f*3.5/inaccuracy1, creative pickup else consumes; no own side guard. Initial onUseTick creates3+HERD_PHALANX Grottoceratops spirits with source UUID and distributed angle, release marks them fading. Native hurtEnemy sets exact fire ticks100, delayed5 Tremorsaurus spirit at midpoint, playerUUID/targetID/CHOMPING_SPIRIT, then parent wear. Projectile one-hit flag; ignites5seconds BEFORE custom SpiritDinosaur damage10 regardless acceptance. Accepted Enderman early returns; accepted Living post-effects; accepted owner present spawns Subterranodon spirit with owner UUID/target rawID, even nonplayer owner later fails player lookup. Native rebound after request; owner-specific pickup. Block hit sets wiggling; ground/noPhysics native acceptable alive non-spectator owner waits postincrement>20 then locked TephraExplosion source owner/radius1.5 KEEP, then returns via normalize(ownerEye-delta)*.3+old*.95. Invalid owner drops if allowed/server then discard. No invented additional area damage.",
+      "differences": "SpearItem legacy Multimap attribute hook is inactive; advertised melee8/speed-3 are not active. Registry properties supply no attribute component; Player release f>.1 wears item, owned stack-carrying arrow speed f*3.5/inaccuracy1, creative pickup else consumes; no own side guard. Initial onUseTick creates3+HERD_PHALANX Grottoceratops spirits with source UUID and distributed angle, release marks them fading. Native hurtEnemy sets exact fire ticks100, delayed5 Tremorsaurus spirit at midpoint, playerUUID/targetID/CHOMPING_SPIRIT, then parent wear. Projectile one-hit flag; ignites5seconds BEFORE custom SpiritDinosaur damage10 regardless acceptance. Accepted Enderman early returns; accepted Living post-effects; accepted owner present spawns Subterranodon spirit with owner UUID/target rawID, even nonplayer owner later fails player lookup. Native rebound after request; owner-specific pickup. Block hit sets wiggling; ground/noPhysics native acceptable alive non-spectator owner waits postincrement>20 then locked TephraExplosion source owner/radius1.5 KEEP, then returns via normalize(ownerEye-delta)*.3+old*.95. Invalid owner drops if allowed/server then discard. No invented additional area damage.",
       "components": [
         {
           "primitive": "CUSTOM_DAMAGE_REQUEST",
@@ -1295,7 +1397,7 @@
       "primary_classification": "VANILLA_COMPOSITE",
       "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
       "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
-      "differences": "SpearItem MAINHAND melee add5/speed-3; player release power>.1 produces original owner, speedpower*2.5/inaccuracy1/creativepickup else consumes1/noownserverguard. Item hurtEnemy assigns freeze requiredTicks+200 and native accessorflag then wear irrespective native damage return. Arrow one-hit gate; trident(projectile,owner else self)6. Accepted Enderman earlyreturn; accepted Living postHurtEffects assigns same gauge/flag. Entity onHit if !exploded&&tickCount>1 sets exploded then constructs FrostmintExplosion(source getOwner,radius2,KEEP,fromSpeartrue), BEFORE parent.onHit, no own side guard; parent determines entity-hit dispatch. Owner ID synced client only fallback parent. Custom explosion native block rays radius*(.7+.6*RNG), UNMOVEABLE/worldbounds stops, resistance only emptyfluid, step.3/energy-.225. Actor radius2*R/exposure z rays; ignoreExplosion(null)/Enderman exclusion/nonzero direction. Request int((impact^2+impact)/2*7*(2R)+1), skip ItemEntity hurt only for spear, then velocity+normalized(jittered XZ/eyeY)*impact independent accepted; Living knockback helper returns impact unchanged, NOT enchantment dampening. All eligible Living gauge required+200/flag independent hurt acceptance. Constructor source attribution direct supplied source; indirect TNTowner/Living/sourceProjectileLivingOwner. Frostmint finalize KEEP leaves blocks; other interaction directly sets AIR only fluidempty, native drop/decay metadata and not generic explosion event. FallingFrostmint gravity-.04/drag.98, purple soda contact radius4 DESTROY_WITH_DECAY/fromSpearfalse server thendiscard; onland slabstack nativeplacement/NBT preserved. Accessor flag only snowflake/clear logic in LivingEntity tick (partial shared callback), no hidden freeze damage override or caller of isFreezingFromFrostmint in finite index.",
+      "differences": "SpearItem legacy Multimap attribute hook is inactive; advertised melee5/speed-3 are not active. Registry supplies no attribute component; player release power>.1 produces original owner, speedpower*2.5/inaccuracy1/creativepickup else consumes1/noownserverguard. Item hurtEnemy assigns freeze requiredTicks+200 and native accessorflag then wear irrespective native damage return. Arrow one-hit gate; trident(projectile,owner else self)6. Accepted Enderman earlyreturn; accepted Living postHurtEffects assigns same gauge/flag. Entity onHit if !exploded&&tickCount>1 sets exploded then constructs FrostmintExplosion(source getOwner,radius2,KEEP,fromSpeartrue), BEFORE parent.onHit, no own side guard; parent determines entity-hit dispatch. Owner ID synced client only fallback parent. Custom explosion native block rays radius*(.7+.6*RNG), UNMOVEABLE/worldbounds stops, resistance only emptyfluid, step.3/energy-.225. Actor radius2*R/exposure z rays; ignoreExplosion(null)/Enderman exclusion/nonzero direction. Request int((impact^2+impact)/2*7*(2R)+1), skip ItemEntity hurt only for spear, then velocity+normalized(jittered XZ/eyeY)*impact independent accepted; Living knockback helper returns impact unchanged, NOT enchantment dampening. All eligible Living gauge required+200/flag independent hurt acceptance. Constructor source attribution direct supplied source; indirect TNTowner/Living/sourceProjectileLivingOwner. Frostmint finalize KEEP leaves blocks; other interaction directly sets AIR only fluidempty, native drop/decay metadata and not generic explosion event. FallingFrostmint gravity-.04/drag.98, purple soda contact radius4 DESTROY_WITH_DECAY/fromSpearfalse server thendiscard; onland slabstack nativeplacement/NBT preserved. Accessor flag only snowflake/clear logic in LivingEntity tick (partial shared callback), no hidden freeze damage override or caller of isFreezingFromFrostmint in finite index.",
       "components": [
         {
           "primitive": "NATIVE_DAMAGE_REQUEST",
@@ -1903,6 +2005,30 @@
       ]
     },
     {
+      "effect_id": "alexscaves:inventory_radioactive_native_proc",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "RadioactiveItem and RadioactiveBlockItem share original inventoryTick behavior with different parent Item/BlockItem. Server Living/noncreative/not already Irradiated: each stack slot RNG<count*constructorChance*(1-HazmatWorn/4) adds IRRADIATED1800. Ignores effect return and always sends visual packet. Item registry chances .001 uranium/shard/fissile and .0005 charred-remnant; block constructor constants preserved by registry evidence rather than guessed. Native immunity/stacking remain effect-owned.",
+      "components": [
+        {
+          "primitive": "MOB_EFFECT_IRRADIATED",
+          "numerical_parameters": {
+            "duration": 1800
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "PROC_CHANCE",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "probability": "stackCount*constructorChance*(1-HazmatPieces/4)"
+          }
+        }
+      ]
+    },
+    {
       "effect_id": "alexscaves:irradiated",
       "mod_key": "alexscaves",
       "primary_classification": "CUSTOM_STATUS",
@@ -2020,20 +2146,12 @@
       "primary_classification": "VANILLA_COMPOSITE",
       "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
       "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
-      "differences": "Shared SpearItem MAINHAND ADD_VALUE damage field and speed -3; item damage value3, wear1 hit/2 mining; native charge min(1,(t/20)^2/3+2*(t/20)/3), use72000. Player release charge>.1 creates owner spear with count1 stack, velocity charge*2.5/inaccuracy1, creative pickup else consumes one; no own server guard. Arrow entity retains pickup stack and one-hit dealtDamage gate. Requests native trident(projectile,owner else self), amount4. Accepted Enderman returns before rebound; accepted Living runs server post-enchantment if living owner then postHurtEffects. Otherwise rebound components(-.01,-.1,-.01) irrespective hurt acceptance; no invented loyalty.",
+      "differences": "SpearItem legacy getAttributeModifiers(EquipmentSlot,ItemStack):Multimap is not a pinned 1.21.1/NeoForge item hook and has no native caller; its advertised melee3/speed-3 do not contribute. Registry properties supply no attribute component. Original wear1 hit/2 mining; native charge min(1,(t/20)^2/3+2*(t/20)/3), use72000. Player release charge>.1 creates owner spear with count1 stack, velocity charge*2.5/inaccuracy1, creative pickup else consumes one; no own server guard. Arrow entity retains pickup stack and one-hit dealtDamage gate. Requests native trident(projectile,owner else self), amount4. Accepted Enderman returns before rebound; accepted Living runs server post-enchantment if living owner then postHurtEffects. Otherwise rebound components(-.01,-.1,-.01) irrespective hurt acceptance; no invented loyalty.",
       "components": [
         {
           "primitive": "NATIVE_DAMAGE_REQUEST",
           "numerical_parameters": {
-            "melee_add": 3,
             "projectile_amount": 4.0
-          },
-          "parameter_formulas": {}
-        },
-        {
-          "primitive": "ATTACK_SPEED",
-          "numerical_parameters": {
-            "mainhand_add": -3
           },
           "parameter_formulas": {}
         },
@@ -2605,6 +2723,29 @@
       ]
     },
     {
+      "effect_id": "alexscaves:moth_dust_native_aggro_redirection",
+      "mod_key": "alexscaves",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Player release native bow charge min(1,((t/20)^2+2*t/20)/3), view distance5*strength. Eligible Living hit canBeSeenAsEnemy; box ±32 around hit, projectile-hit eligible entities, nottarget/bothalliesfalse/notsharedvehicle/MOTH_DUST_ENRAGES Mob receive setTarget(target) and setLastHurtByMob(target). No own server guard; noncreative consume1. No damage/effect, target is native victim not using-player owner; particles do not supply payload.",
+      "components": [
+        {
+          "primitive": "AGGRO_REDIRECTION",
+          "numerical_parameters": {
+            "search_extent": 32,
+            "maximum_view": 5
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_TARGET_ADMISSION",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
       "effect_id": "alexscaves:moving_metal_blocks",
       "mod_key": "alexscaves",
       "primary_classification": "CUSTOM_CONTROL",
@@ -2727,6 +2868,262 @@
             "walk_random_bound": 40,
             "default_pickup_squared_threshold": 2
           },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:native_food_definition_status_packages",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Native FoodProperties definitions preserve per-food nutrition/saturation/flags and MobEffectInstance duration/holder plus stored proc probability. Native ordinary food consumption checks stored probability; PrehistoricMixture native generic feed intentionally applies every listed effect. Block consumers remain separate native eating callbacks. Distinct MobEffects are not collapsed; food builder is delivery metadata, not an independent effect implementation. JellyBean custom finish bypasses parent food. No Stage eligibility or policy inferred.",
+      "components": [
+        {
+          "primitive": "MOB_EFFECT_RAGE",
+          "numerical_parameters": {
+            "seething_stew_duration": 2200
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "FOOD_PROC_CHANCE_RAGE",
+          "numerical_parameters": {
+            "seething_stew_chance": 1.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_DIG_SPEED",
+          "numerical_parameters": {
+            "primordial_soup_duration": 800
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "FOOD_PROC_CHANCE_DIG_SPEED",
+          "numerical_parameters": {
+            "primordial_soup_chance": 1.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_IRRADIATED",
+          "numerical_parameters": {
+            "radgill_duration": 2000,
+            "radgill_cooked_duration": 1000
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "FOOD_PROC_CHANCE_IRRADIATED",
+          "numerical_parameters": {
+            "radgill_chance": 1.0,
+            "radgill_cooked_chance": 0.10000000149011612
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_DAMAGE_BOOST",
+          "numerical_parameters": {
+            "slam_duration": 400
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "FOOD_PROC_CHANCE_DAMAGE_BOOST",
+          "numerical_parameters": {
+            "slam_chance": 1.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_HUNGER",
+          "numerical_parameters": {
+            "sea_pig_duration": 1200,
+            "vesper_wing_duration": 1200
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "FOOD_PROC_CHANCE_HUNGER",
+          "numerical_parameters": {
+            "sea_pig_chance": 0.699999988079071,
+            "vesper_wing_chance": 1.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_STUNNED",
+          "numerical_parameters": {
+            "stinky_fish_duration": 100
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "FOOD_PROC_CHANCE_STUNNED",
+          "numerical_parameters": {
+            "stinky_fish_chance": 1.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_NIGHT_VISION",
+          "numerical_parameters": {
+            "vesper_soup_duration": 2400
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "FOOD_PROC_CHANCE_NIGHT_VISION",
+          "numerical_parameters": {
+            "vesper_soup_chance": 1.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_SUGAR_RUSH",
+          "numerical_parameters": {
+            "block_of_chocolate_duration": 200,
+            "block_of_frosting_duration": 200,
+            "sweet_puff_duration": 200,
+            "cake_layer_duration": 200,
+            "cookie_duration": 200,
+            "cookie_half_duration": 200,
+            "dough_duration": 200,
+            "small_peppermint_duration": 200,
+            "large_peppermint_duration": 200,
+            "vanilla_ice_cream_duration": 200,
+            "chocolate_ice_cream_duration": 200,
+            "sweetberry_ice_cream_duration": 200,
+            "sundae_duration": 400,
+            "sprinkles_duration": 200,
+            "candy_cane_duration": 200,
+            "candy_cane_pole_duration": 200,
+            "lollipop_bunch_duration": 200,
+            "frostmint_duration": 200,
+            "sugar_glass_duration": 200,
+            "sundrop_duration": 200,
+            "gummy_ring_duration": 200,
+            "rock_candy_duration": 200,
+            "gingerbread_duration": 200,
+            "gingerbread_half_duration": 200,
+            "gingerbread_crumbs_duration": 200,
+            "purple_soda_bottle_duration": 200,
+            "sweetish_fish_duration": 200,
+            "gelatin_duration": 200,
+            "hot_chocolate_bottle_duration": 200,
+            "peppermint_powder_duration": 200,
+            "caramel_duration": 200,
+            "caramel_apple_duration": 200,
+            "gumball_pile_duration": 200
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "FOOD_PROC_CHANCE_SUGAR_RUSH",
+          "numerical_parameters": {
+            "block_of_chocolate_chance": 0.009999999776482582,
+            "block_of_frosting_chance": 0.019999999552965164,
+            "sweet_puff_chance": 0.019999999552965164,
+            "cake_layer_chance": 0.019999999552965164,
+            "cookie_chance": 0.009999999776482582,
+            "cookie_half_chance": 0.009999999776482582,
+            "dough_chance": 0.009999999776482582,
+            "small_peppermint_chance": 0.009999999776482582,
+            "large_peppermint_chance": 0.009999999776482582,
+            "vanilla_ice_cream_chance": 0.029999999329447746,
+            "chocolate_ice_cream_chance": 0.029999999329447746,
+            "sweetberry_ice_cream_chance": 0.029999999329447746,
+            "sundae_chance": 0.20000000298023224,
+            "sprinkles_chance": 0.009999999776482582,
+            "candy_cane_chance": 0.009999999776482582,
+            "candy_cane_pole_chance": 0.009999999776482582,
+            "lollipop_bunch_chance": 0.009999999776482582,
+            "frostmint_chance": 0.009999999776482582,
+            "sugar_glass_chance": 0.009999999776482582,
+            "sundrop_chance": 0.05000000074505806,
+            "gummy_ring_chance": 0.009999999776482582,
+            "rock_candy_chance": 0.009999999776482582,
+            "gingerbread_chance": 0.009999999776482582,
+            "gingerbread_half_chance": 0.009999999776482582,
+            "gingerbread_crumbs_chance": 0.009999999776482582,
+            "purple_soda_bottle_chance": 0.009999999776482582,
+            "sweetish_fish_chance": 0.009999999776482582,
+            "gelatin_chance": 0.009999999776482582,
+            "hot_chocolate_bottle_chance": 0.019999999552965164,
+            "peppermint_powder_chance": 0.009999999776482582,
+            "caramel_chance": 0.03999999910593033,
+            "caramel_apple_chance": 0.019999999552965164,
+            "gumball_pile_chance": 0.009999999776482582
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_CONFUSION",
+          "numerical_parameters": {
+            "licoroot_duration": 200,
+            "licoroot_vine_duration": 200,
+            "alex_meal_duration": 200
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "FOOD_PROC_CHANCE_CONFUSION",
+          "numerical_parameters": {
+            "licoroot_chance": 0.10000000149011612,
+            "licoroot_vine_chance": 0.10000000149011612,
+            "alex_meal_chance": 1.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_BAD_OMEN",
+          "numerical_parameters": {
+            "alex_meal_duration": 48000
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "FOOD_PROC_CHANCE_BAD_OMEN",
+          "numerical_parameters": {
+            "alex_meal_chance": 1.0
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:native_food_wrapper_effects",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "JellyBean finishUsing does NOT call parent: server PotionContents effects, instant applyInstant(player,player,recipient,amp,1), others copy/addEffect; Player stats/noncreative shrink, nonplayer does NOT shrink. No parent nutrition in this override. RadiationRemovingFood DOES NOT remove Irradiated: if already Irradiated/food, setHealth min(max,old+ceil(nutrition*1.5+1)) BEFORE parent, no own side guard. DarkenedApple only extends EXISTING DarknessIncarnate by600 via forceAddEffect(same amplifier,NULLsource), then parent food; never initial grant. HotChocolate parent then server resets TIME_SINCE_REST native phantom admission. Bottled food parent/conversion/duration40; meal parent/bowl remains original.",
+      "components": [
+        {
+          "primitive": "POTION_CONTENTS_DELIVERY",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "HEALTH_WRITE",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "gain": "ceil(nutrition*1.5+1) when already Irradiated"
+          }
+        },
+        {
+          "primitive": "STATUS_DURATION_EXTENSION",
+          "numerical_parameters": {
+            "duration_extension": 600
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_REST_ADMISSION",
+          "numerical_parameters": {},
           "parameter_formulas": {}
         }
       ]
@@ -2990,7 +3387,7 @@
       "primary_classification": "VANILLA_COMPOSITE",
       "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
       "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
-      "differences": "MAINHAND ADD_VALUE damage5/speed-2.4, durability admission. Release charged clamp0..60: f=.1*i+.1*FLINGING, adds normalized look*f with Y*.15 and finalgroundY.2+FLINGING*.1. At i>=10/server wears1 then native owned Waves; ordinary pairs i/5 with life3+int((1-wave/max)*3), +/-60-15*index; SECOND_WAVE extra pairs max(1,maxWaves-1) wait8. TSUNAMI instead one wave scale5/life20/wait2 and maxWaves5 used by damage box. Locked Wave payload unchanged. Native direct mobAttack(actor)5 requests in path AABB inflated1, notself/not actor-allied/LOS then ALWAYS stopRiding ignoring accepted. SEA_SWING item hurtEnemy creates one owned Wave life5/no own side guard. Miningwear2; final lunge outside server guard. Numeric native delivery/kinematics kept separate from repeated Wave damage.",
+      "differences": "Legacy Multimap attribute hook is inactive; advertised melee5/speed-2.4 are not active. Registry supplies no attribute component. Direct release hurt5 below remains real; native durability admission. Release charged clamp0..60: f=.1*i+.1*FLINGING, adds normalized look*f with Y*.15 and finalgroundY.2+FLINGING*.1. At i>=10/server wears1 then native owned Waves; ordinary pairs i/5 with life3+int((1-wave/max)*3), +/-60-15*index; SECOND_WAVE extra pairs max(1,maxWaves-1) wait8. TSUNAMI instead one wave scale5/life20/wait2 and maxWaves5 used by damage box. Locked Wave payload unchanged. Native direct mobAttack(actor)5 requests in path AABB inflated1, notself/not actor-allied/LOS then ALWAYS stopRiding ignoring accepted. SEA_SWING item hurtEnemy creates one owned Wave life5/no own side guard. Miningwear2; final lunge outside server guard. Numeric native delivery/kinematics kept separate from repeated Wave damage.",
       "components": [
         {
           "primitive": "NATIVE_DAMAGE_REQUEST",
@@ -3066,6 +3463,107 @@
       ]
     },
     {
+      "effect_id": "alexscaves:prehistoric_mixture_native_feed",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Self finishUsing delegates parent food then SERENE_SALAD removes STUNNED and Player gets bowl. Server Mob feeding requires food/canFeed; heals nutrition BEFORE Dinosaur.onFeedMixture. Successful dinosaur callback skips generic effects and salad-clear; otherwise every food possible effect is added WITHOUT checking stored proc probability, and salad clears Stunned. Consumes one/bowl unless creative. CanFeed permits stunned Tremorsaurus+salad; rejects soup while Relicheirus pushes tree; otherwise target absent or target not feedingPlayer. Locked dinosaur owner/tame callbacks remain separate.",
+      "components": [
+        {
+          "primitive": "HEALING",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "amount": "food.nutrition()"
+          }
+        },
+        {
+          "primitive": "FOOD_EFFECT_DELIVERY",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "EFFECT_REMOVAL",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_FEED_ADMISSION",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:primitive_club_native_stun_sweep",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Registry supplies current ATTRIBUTE_MODIFIERS via PrimitiveClubItem.createAttributes: MAINHAND ADD_VALUE damage8 and attackSpeed-3.75, unlike inactive legacy Multimap hooks. Item hurtEnemy wears1; server RNG<.8 applies STUNNED150+nextInt150 amplifier0. Accepted addEffect alone sends visual and triggers DAZING_SWEEP. Level>0 sweep box ofSize(level+1.2), distance<=same, notvictim/not entity-allied-toactor: mobAttack(actor)1 then STUNNED80+nextInt80 regardless hurt acceptance. Native leftclick canceled if attackStrength<.95 or attackAnim!=0; swing/inventory timing preserved. Main melee hurt remains original caller, not added here.",
+      "components": [
+        {
+          "primitive": "ATTACK_DAMAGE_ATTRIBUTE",
+          "numerical_parameters": {
+            "add": 8
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "ATTACK_SPEED",
+          "numerical_parameters": {
+            "add": -3.75
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_STUNNED",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "duration": "primary150+nextInt150; sweep80+nextInt80"
+          }
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "sweep_amount": 1
+          },
+          "parameter_formulas": {
+            "sweep_amount": "1"
+          }
+        },
+        {
+          "primitive": "ATTACK_ADMISSION",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:primordial_equipment_native_raw_food_gain",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Primordial pieces HEAD/CHEST/LEGS each count1, boots excluded. PlayerMixin ac_eat RETURN for RAW_MEATS calls FoodData.eat(pieceCount,pieceCount*.125); second argument is SATURATION MODIFIER, not direct saturation+.125. Raw DinosaurChopBlock eat uses foodAmount+pieces/satAmount+pieces*.125; cooked chop omits pieces. Native block4 bites then ThinBone, hunger/use gates retained. Armor defense remains native ArmorMaterial; extra food does not alter item effect admission.",
+      "components": [
+        {
+          "primitive": "FOOD_NUTRITION",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "extra": "equipped head+chest+legs count"
+          }
+        },
+        {
+          "primitive": "FOOD_SATURATION_MODIFIER",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "extra": "pieceCount*.125"
+          }
+        }
+      ]
+    },
+    {
       "effect_id": "alexscaves:rage",
       "mod_key": "alexscaves",
       "primary_classification": "CUSTOM_CONTROL",
@@ -3106,6 +3604,30 @@
             "scan": "RandomSource.nextInt(scan_rng_bound)==0",
             "replace": "only for strictly closer candidate; nextInt(nearer_choice_rng_bound)==0"
           }
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:rainbounce_native_fall_movement",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "EntityMixin ac_move inject AFTER Block.updateEntityAfterFallOn invokes onEntityLand for Living FEET boots. Not suppressingBounce, originalY<0 and abs>.2: factor original magnitude>.42?1.05:.7; REDUCE bounce multiplies Y .15; XZ factor SUGAR_RUSH?1.2:1.9. Adds abs(originalY)*factor to CURRENT velocity, zeros fallDistance. CommonEvents Pre fall damage for Player boots setsNewDamage0/fallDistance0, does not cancel event. Native ArmorMaterial remains; no generic knockback substitution.",
+      "components": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "vertical": "abs(originalY)*(abs>.42?1.05:.7)*(reduce?.15:1)",
+            "horizontal": "currentXZ*(SugarRush?1.2:1.9)",
+            "bounce": "currentXZ*(SugarRush?1.2:1.9), currentY+abs(originalY)*factor"
+          }
+        },
+        {
+          "primitive": "FALL_ADMISSION",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
         }
       ]
     },
@@ -3163,6 +3685,47 @@
       ]
     },
     {
+      "effect_id": "alexscaves:raygun_native_beam_radiation",
+      "mod_key": "alexscaves",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Native Used charge defaults0 and is exhausted at1000. Empty use reloads creative or consumes UraniumRod and sets0, returning FAIL; charged use starts. Server SOLAR idle RNG<.02, sky/day/nonfixed time, fraction<.259 or>.74 and charge>0 decrements1. Beam ramps15 to range25; X_RAY segmented entity search ignores blocks, ordinary ray endpoint obeys block hit. Server cadence (usedTicks-15)%3==0 has NO full-ramp gate. Endpoint box±1 requires canBeHitByProjectile/notuser/bothalliedfalse/notsharedvehicle. Custom raygun damage gamma2 else1.5; Tremorzilla bypasses hurt and counts success. Successful flag plus Living/not radiation-resist adds IRRADIATED800 amp gamma4 else0; effect visual packet only when addEffect accepts. Client noncreative energy increments at full ramp every2+floor(EFFICIENCY*1.5) used ticks; cap1000. Native CustomData persists charge/use flags, no separate projectile.",
+      "components": [
+        {
+          "primitive": "CUSTOM_DAMAGE_REQUEST",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "amount": "GAMMA_RAY>0?2:1.5"
+          }
+        },
+        {
+          "primitive": "MOB_EFFECT_IRRADIATED",
+          "numerical_parameters": {
+            "duration": 800,
+            "gamma_amplifier": 4
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "BEAM_DELIVERY",
+          "numerical_parameters": {
+            "max_range": 25,
+            "ramp": 15,
+            "cadence": 3
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "RESOURCE_DRAIN",
+          "numerical_parameters": {
+            "capacity": 1000
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
       "effect_id": "alexscaves:relicheirus_native_slash_prey_and_tree_control",
       "mod_key": "alexscaves",
       "primary_classification": "VANILLA_COMPOSITE",
@@ -3207,6 +3770,86 @@
             "max_blocks": 300,
             "native_spread_squared_bound": 12,
             "feed_ticks": 1200
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:resistor_shield_native_pulse",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Native ShieldItem blocking remains inherited. Shift use toggles polarity in CustomData. onUseTick used>=10 and divisible5 selects box inflate(5,1,5), distance<=5, notuser/not user-allied. First pulse i10 requests mobAttack(user)6+3*HEAVY_SLAM; later pulses2. Hurt return ignored, native knockback .5 first/.2 later always follows. Scarlet x=victimX-userX,z=victimZ-userZ; Azure native x=userX-userX==0,z=userZ-victimZ, not corrected. Damage/knockback have no own server guard; server wear1 only first pulse. Empty CommonEvents blocking-arrow branch performs no reflection.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "amount": "first?6+3*HEAVY_SLAM:2"
+          }
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "first_strength": 0.5,
+            "later_strength": 0.2
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "numerical_parameters": {
+            "first": 10,
+            "cadence": 5,
+            "radius": 5
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:sack_native_food_store_feed_nuclear_delivery",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Secondary inventory food insertion, not restricted tag, stores nutrition*stackCount (not effects), empties food and converts containers. EXPLODES tag sets native flag. Server inventory Player/noninvulnerable stored>0, tick%100==0/canEat/timestamp absent or >40: FoodData.eat(1,.05), store-1/newtimestamp. Independently exploding flag server creates OWNERLESS locked NuclearExplosion at carrierY+4,size.5/intentionalGameDesign true, clears flag and consumes sack. No new damage formula; original locked nuclear payload unchanged.",
+      "components": [
+        {
+          "primitive": "RESOURCE_STORE",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "stored_hunger": "old+food.nutrition()*stackCount"
+          }
+        },
+        {
+          "primitive": "FOOD_NUTRITION",
+          "numerical_parameters": {
+            "per_feed": 1
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "FOOD_SATURATION_MODIFIER",
+          "numerical_parameters": {
+            "modifier": 0.05
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "numerical_parameters": {
+            "feed_cadence": 100,
+            "min_elapsed": 40
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NUCLEAR_DELIVERY",
+          "numerical_parameters": {
+            "size": 0.5
           },
           "parameter_formulas": {}
         }
@@ -3353,22 +3996,8 @@
       "primary_classification": "VANILLA_COMPOSITE",
       "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
       "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
-      "differences": "MAINHAND ADD_VALUE attackDamage3 and attackSpeed4; native item hurtEnemy consumes one for noncreative Player, always applies knockback .15 irrespective any damage-return value (no hurt call here), then returns true. Native melee damage remains original caller; particles server-only. No added projectile or damage callback.",
+      "differences": "Legacy Multimap attribute method is inactive against the pinned current ItemAttributeModifiers hook; advertised melee3/speed4 are not active. Registry properties supply no attribute component. native item hurtEnemy consumes one for noncreative Player, always applies knockback .15 irrespective any damage-return value (no hurt call here), then returns true. Native melee damage remains original caller; particles server-only. No added projectile or damage callback.",
       "components": [
-        {
-          "primitive": "ATTACK_DAMAGE_ATTRIBUTE",
-          "numerical_parameters": {
-            "mainhand_add": 3
-          },
-          "parameter_formulas": {}
-        },
-        {
-          "primitive": "ATTACK_SPEED",
-          "numerical_parameters": {
-            "mainhand_add": 4
-          },
-          "parameter_formulas": {}
-        },
         {
           "primitive": "FORCED_MOVEMENT",
           "numerical_parameters": {
@@ -3799,7 +4428,7 @@
       "primary_classification": "CUSTOM_CONTROL",
       "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
       "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
-      "differences": "Native MAINHAND ADD_VALUE attack2/speed-2.4; item hurtEnemy binds UUID/snapshotNBT and sets victim PersistentData TotemPossessed unless resistance tag or disabled player config; returns true without own sideguard/native hurt request. Server resolves UUID/current-level, client raw ControllingEntityID; use resets dead/missing bound server; gaze degree5*(1+.1distance), LOS or SIGHTLESS, maxuse72000/wear1000. onUseTick ramps15tick ray32*time, speed1.25+.35*RAPID_POSSESSION. Mobs pathTo(ray,time*speed); nonmobs set oldVelocity*.8+direction*.15*speed and groundcollision jumpY.6, serverrotation. Server boxinflate3 excludes user/control/bothallies/sharedvehicle, Mob target+lastHurtBy victim; every4 usedTicks ASTRAL_TRANSFERRING may rebind strictly healthier nonresistant victim without clearing old TotemPossessed. Controlled Player instead native attack(target) then resetAttackStrengthTicker per recipient. Client wears1 every2 except creative; releasesglow/resetstackbreak. Disabled player control gate applies useTick, original transfer gate not extended. Invalid/dead/exhausted else DETONATING_DEATH creates TotemExplosion(source USER, at controlled position,radius2+floor(width),KEEP) then clears only current possessed/reset/stop; NO own server guard on explosion. TotemExplosion native exposure request int((impact^2+impact)/2*7*(2R)+1), Luxtructosaurus/ignoreExplosion(null)/zero vector excluded, impulse independent hurt/no dampener (identity); geometry rays halve Y before normalization but finalize ONLY sound/particles, never applies toBlow or terrain damage. makeDamageCalculator/toBlow/addBlockDrops have no active destruction consumer. AbstractIllager isAlliedTo HEAD returnsfalse if self or nonnull other is TotemPossessed; Living lastHurtBy TAIL sets Mobtarget to possessed Raider for Raider/Illager self; no universal ally owner map.",
+      "differences": "Legacy Multimap attribute hook is inactive; advertised melee2/speed-2.4 are not active. Registry supplies no attribute component; item hurtEnemy binds UUID/snapshotNBT and sets victim PersistentData TotemPossessed unless resistance tag or disabled player config; returns true without own sideguard/native hurt request. Server resolves UUID/current-level, client raw ControllingEntityID; use resets dead/missing bound server; gaze degree5*(1+.1distance), LOS or SIGHTLESS, maxuse72000/wear1000. onUseTick ramps15tick ray32*time, speed1.25+.35*RAPID_POSSESSION. Mobs pathTo(ray,time*speed); nonmobs set oldVelocity*.8+direction*.15*speed and groundcollision jumpY.6, serverrotation. Server boxinflate3 excludes user/control/bothallies/sharedvehicle, Mob target+lastHurtBy victim; every4 usedTicks ASTRAL_TRANSFERRING may rebind strictly healthier nonresistant victim without clearing old TotemPossessed. Controlled Player instead native attack(target) then resetAttackStrengthTicker per recipient. Client wears1 every2 except creative; releasesglow/resetstackbreak. Disabled player control gate applies useTick, original transfer gate not extended. Invalid/dead/exhausted else DETONATING_DEATH creates TotemExplosion(source USER, at controlled position,radius2+floor(width),KEEP) then clears only current possessed/reset/stop; NO own server guard on explosion. TotemExplosion native exposure request int((impact^2+impact)/2*7*(2R)+1), Luxtructosaurus/ignoreExplosion(null)/zero vector excluded, impulse independent hurt/no dampener (identity); geometry rays halve Y before normalization but finalize ONLY sound/particles, never applies toBlow or terrain damage. makeDamageCalculator/toBlow/addBlockDrops have no active destruction consumer. AbstractIllager isAlliedTo HEAD returnsfalse if self or nonnull other is TotemPossessed; Living lastHurtBy TAIL sets Mobtarget to possessed Raider for Raider/Illager self; no universal ally owner map.",
       "components": [
         {
           "primitive": "AI_CONTROL",

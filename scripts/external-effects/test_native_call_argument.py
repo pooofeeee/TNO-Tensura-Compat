@@ -44,6 +44,21 @@ class NativeCallArgumentTests(unittest.TestCase):
         with self.assertRaises(AssertionError):
             literal_call_argument_binding(m, 702, 1)
 
+    def test_dynamic_supplier_is_opaque_but_does_not_hide_literal_chance(self):
+        m = {'instructions': [
+            {'offset': 0, 'opcode': '0xba', 'operand': 'bootstrap#0:get()Ljava/util/function/Supplier;'},
+            {'offset': 5, 'opcode': '0x12', 'operand': 0.25},
+            {'offset': 7, 'opcode': '0xb8', 'operand': 'example/Builder.effect(Ljava/util/function/Supplier;F)V'},
+        ]}
+        self.assertEqual(literal_call_argument_binding(m, 7, 1)['native_value'], 0.25)
+        # A numeric bootstrap result is never promoted to a proven literal.
+        m = {'instructions': [
+            {'offset': 0, 'opcode': '0xba', 'operand': 'bootstrap#0:value()F'},
+            {'offset': 5, 'opcode': '0xb8', 'operand': 'example/Builder.amount(F)V'},
+        ]}
+        with self.assertRaises(AssertionError):
+            literal_call_argument_binding(m, 5, 0)
+
 
 if __name__ == '__main__':
     unittest.main()
