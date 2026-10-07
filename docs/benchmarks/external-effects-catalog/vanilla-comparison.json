@@ -1,10 +1,50 @@
 {
   "schema": "tno.external_effects.vanilla_comparison.v1",
   "status": "PARTIAL",
-  "checkpoint": "R2m8q-alexscaves-equipped-food-consumers-complete",
+  "checkpoint": "R2m8r-alexscaves-native-combat-blocks-complete",
   "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
   "note": "Deterministic projection of canonical mod reviews,including explicit PARTIAL scope. The ledger alone tracks per-mod completeness. No Stage eligibility or policy decision.",
   "comparisons": [
+    {
+      "effect_id": "alexscaves:acid_native_contact_corrosion_fluid_motion",
+      "mod_key": "alexscaves",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "AcidBlock excludes RESISTS_ACID and requires fluid height>.1. Living scans armor: damageable nonHazmat pieces mark armor, RNG<.05 wears1 unless creative; protection multiplier1-HazmatPieces/4. RNG<multiplier admits OWNERLESS custom acid damage multiplier*(armor?.01:1)+(WEAK_TO_ACID?10:0). Hurt acceptance only gates sound, not prior wear. No own server guard. Horizontal neighbor onPlace/neighborChanged corrosion converts exact existing block map, copies shared state properties; no invented actor owner. AcidFluidType move implements water-like input .02*SWIM_SPEED, drag(.8,.8,.8), DolphinsGrace horizontal .96, climb collisionY.2, native fluid gravity adjustment .08, free collision-stepY.3. f6 depth-strider local0 is dead branch, not a live candidate; ignores supplied gravity argument. Entity ordinary native defenses/status admission retained.",
+      "components": [
+        {
+          "primitive": "CUSTOM_DAMAGE_REQUEST",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "amount": "multiplier*(armor?.01:1)+(WEAK_TO_ACID?10:0)"
+          }
+        },
+        {
+          "primitive": "ARMOR_WEAR",
+          "numerical_parameters": {
+            "chance": 0.05,
+            "amount": 1
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "FLUID_MOTION",
+          "numerical_parameters": {
+            "input": 0.02,
+            "drag": 0.8,
+            "grace_drag": 0.96,
+            "gravity_argument": 0.08
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "TERRAIN_TRANSFORM",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
     {
       "effect_id": "alexscaves:atlatitan_native_attack_and_mount_sequence",
       "mod_key": "alexscaves",
@@ -1660,6 +1700,37 @@
             "window_start_exclusive": 10,
             "window_end_inclusive": 12
           },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:guano_muck_native_collision_movement",
+      "mod_key": "alexscaves",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Guano/full-layer entityInside only (notLiving OR blockStateOn==this) AND entity is Bat multipliesXZ.9/Y1. Own collision recognizes same Bat predicate, original sink/support shape. Muck same nonLiving/onblock admission; SEAFLOOR_DENIZENS tag OR Living divingBoots setsPosY=blockY+1 thenvelocity+Y.1; other recipients multiplyXZ.85/Y1. No damage/status/team/owner. Original dynamic collision/native terrain remains distinct from generic movement knockback.",
+      "components": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "guano_horizontal": 0.9,
+            "muck_horizontal": 0.85,
+            "muck_lift": 0.1
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "ABSOLUTE_POSITION",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "muck_y": "blockY+1"
+          }
+        },
+        {
+          "primitive": "NATIVE_COLLISION_GATE",
+          "numerical_parameters": {},
           "parameter_formulas": {}
         }
       ]
@@ -3346,6 +3417,56 @@
       ]
     },
     {
+      "effect_id": "alexscaves:nuclear_furnace_native_hazard_meltdown",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "NuclearFurnaceComponent ACTIVE requires furnace corner exactlyY-1 and undergoingFission; Living/notradiationresist adds IRRADIATED2000 amplifier3 without own server guard. Server furnace waste scale thresholds .35/.6/.8 givescriticality1/2/3; criticality>=3 RNG.2 spreadsfire range6; ==2 RNG.05 range2, at most5 tries/firstempty BaseFireBlock. Native fissionTime decrements; rods/cooking generate waste, barrel withdrawal reduces it, maxWaste triggers destroyWhileCritical(true). Destruction resetswaste/destroys2x2x2structure, spawns MAX_WASTE/getWastePerBarrel=10 FallingBlocks with unrefinedWaste and normalize outward*.75. Nuke true creates OWNERLESS locked NuclearExplosion size.75 at exhaustY-1.5. False creates OWNERLESS IRRADIATED cloud9600 amplifiercriticality afterreset (native getCriticality, normally0),R8/life12000/wait3/radiusPerTick=-R/life. No invented player lastInteracted damage owner, no direct furnace hurt.",
+      "components": [
+        {
+          "primitive": "IRRADIATED_DELIVERY",
+          "numerical_parameters": {
+            "contact_duration": 2000,
+            "contact_amplifier": 3,
+            "cloud_duration": 9600
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "CLOUD_DELIVERY",
+          "numerical_parameters": {
+            "radius": 8.0,
+            "duration": 12000,
+            "wait": 3
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NUCLEAR_DELIVERY",
+          "numerical_parameters": {
+            "size": 0.75
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "TERRAIN_FIRE",
+          "numerical_parameters": {
+            "high_chance": 0.2,
+            "medium_chance": 0.05,
+            "high_range": 6,
+            "medium_range": 2
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_FISSION_ADMISSION",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
       "effect_id": "alexscaves:nucleeper_native_fuse_charge_scare_and_delivery",
       "mod_key": "alexscaves",
       "primary_classification": "CUSTOM_CONTROL",
@@ -3489,6 +3610,51 @@
         },
         {
           "primitive": "NATIVE_FEED_ADMISSION",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:primal_magma_core_native_contact_and_state",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "PrimalMagma stepOn notcareful/Living/noFireResistance invokes hotFloor1 then ignite3 irrespective accepted before parent. entityInside excludes Lux: ACTIVE/nonItem oldVelocity*(.9,.1,.9), hotFloor1/ignite3 without Living/careful/effect checks; inactive anynonLux oldVelocity+Y.1. Active collision Lux parent, Item empty, otherEntity sink shape height2/16. ACTIVE syncs native world PrimordialBoss state when !PERMANENT, scheduled2 ticks; permanent leavesstate. VolcanicCore stepOn notcareful/Living hotFloor1 then ignite3 WITHOUT explicit FireResistance gate; native defenses remain. Core lava geometry/spawn remains encounter callback, no terrain actor owner inferred.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "amount": 1,
+            "step_amount": 1.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "BURN",
+          "numerical_parameters": {
+            "seconds": 3,
+            "step_seconds": 3.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "active_horizontal": 0.9,
+            "active_vertical": 0.1,
+            "inactive_y": 0.1
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_COLLISION_GATE",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_ENCOUNTER_STATE",
           "numerical_parameters": {},
           "parameter_formulas": {}
         }
@@ -4293,6 +4459,30 @@
       ]
     },
     {
+      "effect_id": "alexscaves:sundrop_native_fall_bounce",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "If suppressBounce delegates parent fall/update; otherwise causeFallDamage(originalFallAmount,0,nativefall) then downward velocity flipsY with Living factor1 else.8; no additional impulse/damage event. Parent step unchanged. RandomTick range30 POI sends SundropRainbowMessage only presentation, not healing/projectile. Native fall result/admission preserved, no owner actor.",
+      "components": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "vertical": "-oldY*(Living?1:.8), downward only"
+          }
+        },
+        {
+          "primitive": "FALL_ADMISSION",
+          "numerical_parameters": {
+            "multiplier": 0
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
       "effect_id": "alexscaves:tamed_native_follow_combat_gate",
       "mod_key": "alexscaves",
       "primary_classification": "VANILLA_LIKE_EXTENDED",
@@ -4385,6 +4575,43 @@
           "primitive": "TERRAIN_IGNITION",
           "numerical_parameters": {
             "random_bound": 3
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:tesla_bulb_native_lightning_explosion",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Block attack or projectileHit calls blockentity.explode sets native Exploding true; no own side guard. Tick progresses .5 toward10. At10 setsAIR bothsides then server Level.explode(NULL,radius7,noFire,BLOCK), returns. Before10 server each integralprogress calls Living.thunderHit with unspawned visualOnly LightningBolt whose damage set1, then clears fireTicks0 independent hurt; ±5 block box. Idle server strikeTime positive-- then random .4 at0 sets-5/strikePos with offsets5-nextInt10; when counter reaches-1 applies same lightning callback in±1 box and clearsfire. VisualOnly does NOT suppress manually invoked thunderHit. Pinned shared Entity.thunderHit incrementsfire, ignite8 if reaches0, lightning source hurt(bolt.getDamage), ignoresreturn; native overrides/conversions remain recipient-owned. NBT only Exploding; progress/timers/dummyBolt transient. No player/attacking-projectile owner is transferred into bolt or explosion.",
+      "components": [
+        {
+          "primitive": "LIGHTNING_CALLBACK",
+          "numerical_parameters": {
+            "damage": 1,
+            "damage_1": 1.0,
+            "damage_2": 1.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_EXPLOSION",
+          "numerical_parameters": {
+            "radius": 7
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "numerical_parameters": {
+            "progress_step": 0.5,
+            "maximum": 10,
+            "idle_wait": 15,
+            "strike_wait": 5,
+            "chance": 0.4
           },
           "parameter_formulas": {}
         }
@@ -4879,6 +5106,30 @@
       ]
     },
     {
+      "effect_id": "alexscaves:unrefined_waste_native_contact",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Living/not RESISTS_RADIATION receives oldVelocity*(.9,1,.9) then IRRADIATED4000 amplifier0 independent native effect admission. No own server guard, no damage request or causing actor. Shape/sound/ordinary block definitions remain native.",
+      "components": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "horizontal_fraction": 0.9
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "IRRADIATED_DELIVERY",
+          "numerical_parameters": {
+            "duration": 4000
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
       "effect_id": "alexscaves:vallumraptor_native_pack_attack_hide_and_food",
       "mod_key": "alexscaves",
       "primary_classification": "VANILLA_COMPOSITE",
@@ -4938,6 +5189,37 @@
             "food_relax_base": 200,
             "food_relax_bound": 200
           },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:vanilla_actor_native_global_spawn_adjustments",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Native FinalizeSpawnEvent try/catch adds Creeper targetSelector AvoidEntityGoal(priority3,Raycat,range10,speed1/1.2). AbyssalDrowned withallfourarmorslotsEMPTY checkedonce: fourindependent RNG<config divingGearSpawnChance equip native pieces/dropChance.5; stateadmission, notcombat procscaling. Fox targetSelector nearest Gingerbread priority7/interval40/mustSee=false/mustReach=false. No generic hostility rewrite or team alias; failures logged/native goal scheduling preserved.",
+      "components": [
+        {
+          "primitive": "AI_TARGET_AVOIDANCE",
+          "numerical_parameters": {
+            "range": 10,
+            "walk": 1,
+            "sprint": 1.2
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "AI_TARGET_SELECTION",
+          "numerical_parameters": {
+            "interval": 40
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_EQUIPMENT_ADMISSION",
+          "numerical_parameters": {},
           "parameter_formulas": {}
         }
       ]
