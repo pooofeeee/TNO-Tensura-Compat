@@ -128,9 +128,10 @@ class EvidenceIndex:
 
 
 def audit_review(review, index):
-    forwarding_batches=[f for f in review.get('reviewed_batches',[])
-                        if index.read(f).get('native_forwarding_registry_file')]
-    if forwarding_batches:
+    context_batches=[f for f in review.get('reviewed_batches',[])
+                     if any(index.read(f).get(k) for k in
+                            ('native_forwarding_registry_file','native_uncalled_registry_file'))]
+    if context_batches:
         from reconcile_native_census import reconcile
         # Recheck every exact wrapper shape and its independent prior target;
         # a manifest count or family completion label cannot grant coverage.

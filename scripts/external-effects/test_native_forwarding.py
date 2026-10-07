@@ -123,6 +123,66 @@ class DistanceQueryShapeTests(unittest.TestCase):
             self.assertIsNone(next(v for k,v in shapes.items() if k.startswith('lambda$harmful$')))
 
 
+class ModelAssetShapeTests(unittest.TestCase):
+    def body(self):
+        return [ins('0x12','arphex:geo/native_actor.geo.json'),
+                ins('0xb8','net/minecraft/resources/ResourceLocation.parse(Ljava/lang/String;)Lnet/minecraft/resources/ResourceLocation;'),ins('0xb0')]
+
+    def shape(self,body=None,name='getModelResource',superclass='software/bernie/geckolib/model/GeoModel'):
+        return forwarding_shape('x/Model.class',name,'(Lx/Actor;)Lnet/minecraft/resources/ResourceLocation;',1,body or self.body(),superclass=superclass)
+
+    def test_exact_constant_asset_selector_requires_native_api_superclass(self):
+        self.assertEqual(self.shape(),dict(kind='EXACT_GECKO_MODEL_ASSET_QUERY',asset_identifier='arphex:geo/native_actor.geo.json'))
+        self.assertIsNone(self.shape(superclass='x/Combat'))
+        self.assertIsNone(self.shape(name='getDamageType'))
+
+    def test_stateful_missing_namespace_or_nonasset_queries_remain_pending(self):
+        for identifier in ['arphex:damage_type/attack.json','arphex:geo/../attack.geo.json','geo/native_actor.geo.json']:
+            b=self.body();b[0]['operand']=identifier;self.assertIsNone(self.shape(b))
+        b=self.body();b.insert(0,ins('0xb5','x/Actor.stateI'));self.assertIsNone(self.shape(b))
+        b=self.body();b[1]['operand']='x/Combat.registry(Ljava/lang/String;)Lnet/minecraft/resources/ResourceLocation;';self.assertIsNone(self.shape(b))
+
+    def test_independent_compiled_selector_has_no_actor_or_state_access(self):
+        from native_evidence import annotate_local_operands
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);r=root/'net/minecraft/resources/ResourceLocation.java';r.parent.mkdir(parents=True)
+            r.write_text('package net.minecraft.resources; public class ResourceLocation { public static ResourceLocation parse(String s) { return new ResourceLocation(); } }')
+            g=root/'software/bernie/geckolib/model/GeoModel.java';g.parent.mkdir(parents=True)
+            g.write_text('package software.bernie.geckolib.model; public abstract class GeoModel<T> { public abstract net.minecraft.resources.ResourceLocation getModelResource(T t); }')
+            m=root/'AssetFixture.java';m.write_text('import software.bernie.geckolib.model.GeoModel; import net.minecraft.resources.ResourceLocation; public class AssetFixture extends GeoModel<String> { public ResourceLocation getModelResource(String t) { return ResourceLocation.parse("fixture:geo/actor.geo.json"); } }')
+            subprocess.run([shutil.which('javac'),str(r),str(g),str(m)],check=True,capture_output=True)
+            c=ClassFile(m.with_suffix('.class').read_bytes(),retain_code_metadata=True)
+            method=next(m for m in c.methods if m['name']=='getModelResource' and not m['access']&0x40)
+            b=annotate_local_operands(list(c.instructions(method['code'])),method['code'])
+            shape=forwarding_shape('AssetFixture.class',method['name'],method['descriptor'],method['access'],b,method['exception_handlers'],superclass=c.super)
+            self.assertEqual(shape['asset_identifier'],'fixture:geo/actor.geo.json')
+
+
+class NativeModelAssetRegistryTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+        cls.document=read_json(OUT/'arphex-native-model-asset-registry.json')
+
+    def test_exact_selector_and_bridge_counts_without_native_payloads(self):
+        rows=validate(self.document,self.census,set())
+        self.assertEqual(self.document['summary']['counts_by_kind'],
+                         {'EXACT_COMPILER_BRIDGE':251,'EXACT_GECKO_MODEL_ASSET_QUERY':251})
+        self.assertEqual(len(rows),502)
+        self.assertFalse(any('scalable_parameter_candidates' in r for r in rows))
+
+    def test_forged_asset_identity_or_parent_is_rejected(self):
+        for field,value in [('asset_identifier','arphex:geo/other.geo.json'),('superclass','x/Combat')]:
+            d=copy.deepcopy(self.document);r=next(r for r in d['rows'] if r['kind']=='EXACT_GECKO_MODEL_ASSET_QUERY');r[field]=value
+            with self.assertRaises(AssertionError):validate(d,self.census,set())
+
+    def test_bridge_requires_its_actual_selector_not_a_capture_label(self):
+        d=copy.deepcopy(self.document);r=next(r for r in d['rows'] if r['kind']=='EXACT_GECKO_MODEL_ASSET_QUERY');d['rows'].remove(r)
+        remaining={r['instruction_template'] for r in d['rows']};d['instruction_templates']={k:v for k,v in d['instruction_templates'].items() if k in remaining}
+        with self.assertRaisesRegex(AssertionError,'Bridge target lacks prior'):
+            validate(d,self.census,set())
+
+
 class NativeForwardingRegistryTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

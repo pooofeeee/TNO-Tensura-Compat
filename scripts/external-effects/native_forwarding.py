@@ -61,9 +61,29 @@ def distance_query_shape(entry, descriptor, access, body, bootstraps):
     return dict(kind='EXACT_NATIVE_DISTANCE_COMPARATOR_FACTORY',target=dict(entry=entry,method=method[1],descriptor=query_descriptor))
 
 
-def forwarding_shape(entry, name, descriptor, access, body, exception_handlers=(), bootstraps=None):
+def asset_query_shape(name, descriptor, access, body, superclass):
+    """Exact constant GeckoLib model assets, not arbitrary resource/gate queries."""
+    if superclass!='software/bernie/geckolib/model/GeoModel':return None
+    roots={'getAnimationResource':('animations/','.animation.json'),
+           'getModelResource':('geo/','.geo.json'),
+           'getTextureResource':('textures/','.png')}
+    if name not in roots or access & 8:return None
+    args,ret=signature(descriptor)
+    if len(args)!=1 or kind(args[0])!='A' or ret!='Lnet/minecraft/resources/ResourceLocation;':return None
+    if len(body)!=3 or body[0]['opcode'] not in ('0x12','0x13') or body[1]['opcode']!='0xb8' or body[2]['opcode']!='0xb0':return None
+    if body[1]['operand']!='net/minecraft/resources/ResourceLocation.parse(Ljava/lang/String;)Lnet/minecraft/resources/ResourceLocation;':return None
+    identifier=body[0]['operand']
+    if not isinstance(identifier,str) or not re.fullmatch(r'[a-z0-9_.-]+:[a-z0-9_./-]+',identifier):return None
+    namespace,path=identifier.split(':',1);prefix,suffix=roots[name]
+    if not path.startswith(prefix) or not path.endswith(suffix) or '..' in path.split('/'):return None
+    return dict(kind='EXACT_GECKO_MODEL_ASSET_QUERY',asset_identifier=identifier)
+
+
+def forwarding_shape(entry, name, descriptor, access, body, exception_handlers=(), bootstraps=None, superclass=None):
     """Return an exact proof shape or None; do not establish target coverage."""
     if exception_handlers:return None
+    asset=asset_query_shape(name,descriptor,access,body,superclass)
+    if asset:return asset
     query=distance_query_shape(entry,descriptor,access,body,bootstraps or {})
     if query:return query
     ops=[i['opcode'] for i in body]
@@ -119,6 +139,7 @@ def collect(census, index, jar, selection=None):
                 (m['access'] & 0x1040==0x1040 or
                  (m['access'] & 8 and m['descriptor'].endswith(')V') and m['code_bytes']==1) or
                  (m['method']=='<init>' and m['descriptor']=='()V' and m['code_bytes']==5) or
+                 (classes[m['entry']]['superclass']=='software/bernie/geckolib/model/GeoModel' and m['method'] in ('getAnimationResource','getModelResource','getTextureResource') and m['code_bytes'] in (6,7)) or
                  (m['descriptor'] in ('(DDD)Ljava/util/Comparator;','(DDDLnet/minecraft/world/entity/Entity;)D') and m['code_bytes'] in (10,13)))]
     parsed={};waiting=[];rows=[]
     with zipfile.ZipFile(jar) as z:
@@ -132,10 +153,11 @@ def collect(census, index, jar, selection=None):
             body=annotate_local_operands(list(cls.instructions(code)),code)
             from compare_native_methods import bootstrap_signature,referenced_bootstraps
             bootstraps={str(n):bootstrap_signature(cls,n) for n in referenced_bootstraps(body)}
-            shape=forwarding_shape(entry,m['method'],m['descriptor'],m['access'],body,method.get('exception_handlers',[]),bootstraps)
+            shape=forwarding_shape(entry,m['method'],m['descriptor'],m['access'],body,method.get('exception_handlers',[]),bootstraps,cls.super)
             if not shape:continue
             waiting.append(dict(entry=entry,entry_sha256=classes[entry]['entry_sha256'],method=m['method'],descriptor=m['descriptor'],
                 access=m['access'],code_sha256=m['code_sha256'],code_hex=code.hex(),instructions=body,exception_handlers=[],
+                **(dict(superclass=cls.super) if shape['kind']=='EXACT_GECKO_MODEL_ASSET_QUERY' else {}),
                 **(dict(bootstraps=bootstraps) if bootstraps else {}),**shape))
     query_keys={(r['entry'],r['method'],r['descriptor']) for r in waiting if r['kind']=='EXACT_NATIVE_DISTANCE_QUERY'}
     while waiting:
@@ -160,6 +182,8 @@ def collect(census, index, jar, selection=None):
     scope='Exact unresolved finite-census methods only. No new semantics from constructor defaults; fields/readers remain queued. Virtual subclass dispatch and checkcast failure remain native. No bridge target closes from capture alone.'
     if query_keys:
         scope+=' Distance comparator factories require exact pure target-query proof; native ordering and caller combat gates/payloads remain separate.'
+    if any(r['kind']=='EXACT_GECKO_MODEL_ASSET_QUERY' for r in rows):
+        scope+=' Constant GeckoLib model asset queries require exact superclass/API/asset path shape; renderer/actor/input state and computed selectors remain separate.'
     return dict(schema='tno.external_effects.exact_native_forwarding.v1',mod_key=census['mod_key'],jar_sha256=census['jar_sha256'],
         scope=scope,
         summary=dict(methods=len(rows),counts_by_kind=dict(sorted(Counter(r['kind'] for r in rows).items()))),
@@ -180,8 +204,10 @@ def validate(document,census,covered):
         key=(r['entry'],r['method'],r['descriptor']);assert key not in seen;seen.add(key)
         n=native[key];assert r['code_sha256']==n['code_sha256']==byte_hash(bytes.fromhex(r['code_hex']))
         assert r['entry_sha256']==classes[r['entry']]['entry_sha256'] and r['access']==n['access']
-        shape=forwarding_shape(r['entry'],r['method'],r['descriptor'],r['access'],templates[r['instruction_template']],r['exception_handlers'],r.get('bootstraps'))
+        if 'superclass' in r:assert r['superclass']==classes[r['entry']]['superclass']
+        shape=forwarding_shape(r['entry'],r['method'],r['descriptor'],r['access'],templates[r['instruction_template']],r['exception_handlers'],r.get('bootstraps'),r.get('superclass'))
         assert shape and shape['kind']==r['kind']
+        if 'asset_identifier' in shape:assert r['asset_identifier']==shape['asset_identifier']
         if 'target' in shape:
             assert all(r['target'][k]==v for k,v in shape['target'].items())
             t=r['target'];assert t['code_sha256']==native[(t['entry'],t['method'],t['descriptor'])]['code_sha256']

@@ -595,6 +595,9 @@ def validate_batch(batch,review,census):
     assert batch['mod_key']==review['mod_key']==census['mod_key']
     native={(r['entry'],r['method'],r['descriptor']):r for r in census['methods']}
     index=EvidenceIndex();ids={r['id'] for r in review['effects']}
+    if batch.get('native_uncalled_registry_file'):
+        from native_uncalled import validate_batch as validate_uncalled_batch
+        validate_uncalled_batch(batch,census,index.read)
     if batch.get('native_forwarding_registry_file'):
         from reconcile_native_census import reconcile
         from native_forwarding import validate as validate_forwarding

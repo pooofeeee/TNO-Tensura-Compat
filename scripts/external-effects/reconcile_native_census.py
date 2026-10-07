@@ -76,6 +76,9 @@ def reconcile(review, census, read=read_json, root=OUT):
         assert batch['mod_key'] == census['mod_key']
         if batch.get('native_forwarding_registry_file'):
             forwarding_files.add(batch['native_forwarding_registry_file'])
+        if batch.get('native_uncalled_registry_file'):
+            from native_uncalled import validate_batch as validate_uncalled_batch
+            validate_uncalled_batch(batch,census,packet)
         exclusions = batch.get('exclusions', [])
         # Legacy prose or unscoped name lists cannot close native methods.
         if not isinstance(exclusions, list):
