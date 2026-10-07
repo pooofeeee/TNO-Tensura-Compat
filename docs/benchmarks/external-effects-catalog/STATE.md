@@ -3,19 +3,19 @@
 - Active campaign: `CAMPAIGN.md`; Alex's Caves only, then STOP.
 - Branch: `external-effects-catalog-research`.
 - Latest verified research ref: `origin/external-effects-catalog-research`.
-- Last verified anchor before this checkpoint: `ff3cd5f162edcd0f8f3e8f128fa1c1b9016fe0e6`. Resolve the current ref with Git; never reset to an older anchor.
+- Last verified anchor before this checkpoint: `eec297e6f12fee532d2f7ee976e0cfa02b3abefe`. Resolve the current ref with Git; never reset to an older anchor.
 - Protected production HEAD: `eb37f0bfc0e7aa863632f163881566c0ae2a8701`; production/source gameplay unchanged.
 - Current mod/status: `alexscaves` / PARTIAL.
 - Locked COMPLETE targets: cultofazazel, variantsandventures, royalvariations, friendsandfoes, twilightforest, iceandfire, eternalstarlight, block_factorys_bosses, bosses_of_mass_destruction, cataclysm, arphex, tensura.
-- Canonical records: 88; numeric candidates: 188.
-- Classifications: {'BINARY_MECHANIC': 4, 'CUSTOM_CONTROL': 32, 'CUSTOM_DAMAGE': 3, 'CUSTOM_RESOURCE': 3, 'CUSTOM_STATUS': 3, 'VANILLA_COMPOSITE': 36, 'VANILLA_LIKE_EXTENDED': 7}.
+- Canonical records: 96; numeric candidates: 205.
+- Classifications: {'BINARY_MECHANIC': 4, 'CUSTOM_CONTROL': 34, 'CUSTOM_DAMAGE': 4, 'CUSTOM_RESOURCE': 3, 'CUSTOM_STATUS': 3, 'VANILLA_COMPOSITE': 41, 'VANILLA_LIKE_EXTENDED': 7}.
 - Census: `alexscaves-combat-census.json` (existing pin; do not rediscover).
 - Queue: `alexscaves-unresolved-queue.json`; ordinals refer to that exact census/hash.
-- Coverage: 6052 / 11764 dispositioned; 5712 pending.
-- Remaining semantic-role methods: 3719 (routing, not a mechanic count).
+- Coverage: 6360 / 11764 dispositioned; 5404 pending.
+- Remaining semantic-role methods: 3548 (routing, not a mechanic count).
 - Canonical authorities: `mod-reviews/alexscaves.json`, `mod-completion-ledger.json`, `large-mod-campaign.json`.
 - Native source/indexes: existing census, field-use index and reviewed-batch pointers; consult cold bodies only for exact unresolved boundaries.
-- Known blockers: alexscaves:sugar_rush:citadel_tick_controller_pin
+- Known blockers: Exact installed Citadel artifact/version/hash is absent; ICustomCollisions.getAllowedMovementForEntity internal collision algorithm is not substituted or inferred. Original Corrodent callbacks are proven independently., alexscaves:sugar_rush:citadel_tick_controller_pin
 - Citadel: only minimum >=2.6.0 is recorded; exact installed artifact/version/hash is absent. Never substitute an arbitrary release.
-- Exact next action: AlexCaves R2m8o: Forlorn actor and directly owned control/payload contracts; finite remaining census only. Later mods parked.
+- Exact next action: AlexCaves R2m8p: Remaining item/projectile and combat block consumers; finite queue grouped by native calls. Later mods parked.
 - Continue after intermediate checkpoints/context compaction. Do not load Legendary Monsters or any later mod.
