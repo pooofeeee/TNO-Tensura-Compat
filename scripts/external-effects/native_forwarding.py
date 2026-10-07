@@ -82,6 +82,19 @@ def asset_query_shape(name, descriptor, access, body, superclass):
 def forwarding_shape(entry, name, descriptor, access, body, exception_handlers=(), bootstraps=None, superclass=None):
     """Return an exact proof shape or None; do not establish target coverage."""
     if exception_handlers:return None
+    # Only compiler-generated, static one-reference predicates. A public/native
+    # admission callback returning a constant is deliberately not covered here.
+    # The caller's query/admission and its unconditional predicate remain native.
+    args,ret=signature(descriptor)
+    ops=[i['opcode'] for i in body]
+    if access & 0x1008 == 0x1008 and len(args)==1 and kind(args[0])=='A' \
+            and ret=='Z' and ops==['0x4','0xac'] and body[0]['operand']==1:
+        return dict(kind='EXACT_SYNTHETIC_TRUE_PREDICATE')
+    if access & 8 and descriptor=='(Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/entity/Entity;)D' \
+            and ops==['0x2b','0x2a','0xb6','0xaf'] \
+            and [body[j].get('local_index') for j in (0,1)]==[1,0] \
+            and body[2]['operand']=='net/minecraft/world/entity/Entity.distanceToSqr(Lnet/minecraft/world/phys/Vec3;)D':
+        return dict(kind='EXACT_NATIVE_VEC3_DISTANCE_QUERY')
     asset=asset_query_shape(name,descriptor,access,body,superclass)
     if asset:return asset
     query=distance_query_shape(entry,descriptor,access,body,bootstraps or {})
@@ -140,6 +153,8 @@ def collect(census, index, jar, selection=None):
                  (m['access'] & 8 and m['descriptor'].endswith(')V') and m['code_bytes']==1) or
                  (m['method']=='<init>' and m['descriptor']=='()V' and m['code_bytes']==5) or
                  (classes[m['entry']]['superclass']=='software/bernie/geckolib/model/GeoModel' and m['method'] in ('getAnimationResource','getModelResource','getTextureResource') and m['code_bytes'] in (6,7)) or
+                 (m['access'] & 0x1008 == 0x1008 and m['descriptor'].endswith(')Z') and m['code_bytes']==2) or
+                 (m['access'] & 8 and m['descriptor']=='(Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/entity/Entity;)D' and m['code_bytes']==6) or
                  (m['descriptor'] in ('(DDD)Ljava/util/Comparator;','(DDDLnet/minecraft/world/entity/Entity;)D') and m['code_bytes'] in (10,13)))]
     parsed={};waiting=[];rows=[]
     with zipfile.ZipFile(jar) as z:
@@ -184,6 +199,8 @@ def collect(census, index, jar, selection=None):
         scope+=' Distance comparator factories require exact pure target-query proof; native ordering and caller combat gates/payloads remain separate.'
     if any(r['kind']=='EXACT_GECKO_MODEL_ASSET_QUERY' for r in rows):
         scope+=' Constant GeckoLib model asset queries require exact superclass/API/asset path shape; renderer/actor/input state and computed selectors remain separate.'
+    if any(r['kind'] in ('EXACT_SYNTHETIC_TRUE_PREDICATE','EXACT_NATIVE_VEC3_DISTANCE_QUERY') for r in rows):
+        scope+=' Exact synthetic true predicates and current native Vec3 distance queries contribute no separate scalar/payload; caller selection, admission and ordering are retained, not excluded.'
     return dict(schema='tno.external_effects.exact_native_forwarding.v1',mod_key=census['mod_key'],jar_sha256=census['jar_sha256'],
         scope=scope,
         summary=dict(methods=len(rows),counts_by_kind=dict(sorted(Counter(r['kind'] for r in rows).items()))),

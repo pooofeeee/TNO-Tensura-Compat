@@ -61,6 +61,48 @@ class ForwardingTests(unittest.TestCase):
         b[2]=ins('0x2c');self.assertIsNone(forwarding_shape('example/Renderer.class','copy','(JLjava/lang/Object;)Ljava/lang/Object;',0x1041,b))
 
 
+class LeafQueryShapeTests(unittest.TestCase):
+    def test_constant_true_requires_static_synthetic_reference_predicate(self):
+        body=[ins('0x4',1),ins('0xac')]
+        shape=lambda desc,flags,b:forwarding_shape('x/Q.class','anyName',desc,flags,b)
+        self.assertEqual(shape('(Lx/Actor;)Z',0x100a,body),dict(kind='EXACT_SYNTHETIC_TRUE_PREDICATE'))
+        for desc,flags,b in [('()Z',0x100a,body),('(I)Z',0x100a,body),
+                             ('(Lx/Actor;)Z',0xa,body),('(Lx/Actor;)Z',0x1002,body),
+                             ('(Lx/Actor;)Z',0x100a,[ins('0x3',0),ins('0xac')]),
+                             ('(Lx/Actor;)Z',0x100a,[ins('0xb5','x/Actor.healthF')]+body)]:
+            self.assertIsNone(shape(desc,flags,b))
+
+    def test_vec3_distance_requires_exact_receiver_argument_and_api(self):
+        desc='(Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/entity/Entity;)D'
+        body=[ins('0x2b',local_index=1),ins('0x2a',local_index=0),
+              ins('0xb6','net/minecraft/world/entity/Entity.distanceToSqr(Lnet/minecraft/world/phys/Vec3;)D'),ins('0xaf')]
+        shape=lambda b:forwarding_shape('x/Q.class','anyName',desc,0xa,b)
+        self.assertEqual(shape(body),dict(kind='EXACT_NATIVE_VEC3_DISTANCE_QUERY'))
+        for index,field,value in [(0,'local_index',0),(1,'local_index',1),
+                                  (2,'operand','x/Actor.damage(Lnet/minecraft/world/phys/Vec3;)D')]:
+            bad=copy.deepcopy(body);bad[index][field]=value;self.assertIsNone(shape(bad))
+        self.assertIsNone(shape(body+[ins('0xb1')]))
+
+    @unittest.skipUnless(shutil.which('javac'),'Requires JDK parser fixture')
+    def test_independent_compiled_predicate_does_not_hide_a_state_gate(self):
+        source='''import java.util.function.Predicate;
+class QueryFixture {
+  static boolean gate;
+  static Predicate<Object> constant() { return entity -> true; }
+  static Predicate<Object> state() { return entity -> gate; }
+  static boolean callback(Object entity) { return true; }
+}'''
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d);(root/'QueryFixture.java').write_text(source)
+            subprocess.run(['javac','-d',d,str(root/'QueryFixture.java')],check=True,capture_output=True)
+            c=ClassFile((root/'QueryFixture.class').read_bytes(),retain_code_metadata=True)
+            accepted=[]
+            for m in c.methods:
+                shape=forwarding_shape('QueryFixture.class',m['name'],m['descriptor'],m['access'],list(c.instructions(m.get('code',b''))))
+                if shape and shape['kind']=='EXACT_SYNTHETIC_TRUE_PREDICATE':accepted.append(m['name'])
+            self.assertEqual(accepted,['lambda$constant$0'])
+
+
 class DistanceQueryShapeTests(unittest.TestCase):
     def query(self):
         return [ins('0x19',local_index=6),ins('0x26',local_index=0),
