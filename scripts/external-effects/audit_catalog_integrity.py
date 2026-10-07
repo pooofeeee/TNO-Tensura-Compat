@@ -144,7 +144,11 @@ def audit_review(review, index):
             index.witness(proof, row)
         for proof in row.get('native_resource_evidence', []):
             _,witness=index.witness(proof,row)
-            assert proof['entry'].endswith('.json') and 'data' in witness, ('not a native JSON resource',row['id'],proof)
+            is_json=proof['entry'].endswith('.json') and 'data' in witness
+            is_structure=(proof['entry'].endswith('.nbt') and
+                witness.get('structure_payload',{}).get('schema') ==
+                'tno.external_effects.structure_payload_projection.v1')
+            assert is_json or is_structure, ('not a supported pinned native resource',row['id'],proof)
         for fact in row.get('fact_references', []):
             assert fact['key'] in index.read(fact['file'])['facts']
         for component in row['components']:

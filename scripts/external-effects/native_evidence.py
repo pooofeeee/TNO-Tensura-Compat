@@ -67,6 +67,11 @@ def collect(document, jar_paths=None):
                             **({'instruction_offset_ranges':ranges} if ranges else {})))
             elif entry.endswith('.json'):
                 witness['data']=json.loads(data)
+            elif entry.endswith('.nbt') and specification.get('structure_payload_projection'):
+                import gzip
+                from structure_nbt import decode, payload_projection
+                raw = gzip.decompress(data) if data.startswith(b'\x1f\x8b') else data
+                witness['structure_payload'] = payload_projection(decode(raw))
             else:
                 witness['text']=data.decode('utf-8')
             witnesses.append(witness)

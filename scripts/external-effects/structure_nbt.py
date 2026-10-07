@@ -67,3 +67,45 @@ def decode(data):
     if reader.offset != len(data):
         raise ValueError('Trailing NBT payload')
     return result
+
+
+def payload_projection(document):
+    """Retain entity/BE payloads and used palettes, without inferring live behavior.
+
+    Ordinary block coordinates are omitted; the archive entry hash remains the
+    authority for geometry. All entity and block-entity NBT is preserved, even
+    zero-health entities, unknown tags and apparently cosmetic data.
+    """
+    from collections import Counter
+    from copy import deepcopy
+    assert set(document) <= {'size', 'entities', 'blocks', 'palette', 'palettes',
+                             'DataVersion', 'author'}, 'unknown structure root field'
+    size = document['size']
+    assert len(size) == 3 and all(type(v) is int and v >= 0 for v in size)
+    palettes = document.get('palettes', [document.get('palette')])
+    assert palettes and all(isinstance(p, list) for p in palettes)
+    counts = Counter()
+    block_payloads = []
+    for index, block in enumerate(document['blocks']):
+        assert set(block) <= {'pos', 'state', 'nbt'}, 'unknown structure block field'
+        state = block['state']
+        assert type(state) is int and all(0 <= state < len(p) for p in palettes)
+        assert len(block['pos']) == 3 and all(type(v) is int for v in block['pos'])
+        counts[state] += 1
+        if 'nbt' in block:
+            assert isinstance(block['nbt'], dict)
+            block_payloads.append(dict(source_block_index=index, **deepcopy(block)))
+    entities = document['entities']
+    for entity in entities:
+        assert set(entity) <= {'pos', 'blockPos', 'nbt'}, 'unknown structure entity field'
+        assert isinstance(entity['nbt'], dict)
+        assert len(entity['pos']) == len(entity['blockPos']) == 3
+    return dict(schema='tno.external_effects.structure_payload_projection.v1',
+                data_version=document.get('DataVersion'), size=deepcopy(size),
+                source_block_count=len(document['blocks']),
+                used_palettes=[[dict(state_index=i, block_count=counts[i],
+                                     state=deepcopy(p[i])) for i in sorted(counts)]
+                               for p in palettes],
+                block_payloads=block_payloads, entities=deepcopy(entities),
+                scope='Raw native NBT; no data-fixing, registry resolution, '
+                      'reachability, alive-state or Stage eligibility inferred.')

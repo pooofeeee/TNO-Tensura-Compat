@@ -550,10 +550,15 @@ def refined_review(review,batch):
                 assert replacement['before'] not in row['actual_behavior'] and replacement['after'] in row['actual_behavior'],('stale published behavior',rid)
             assert all(c in row['scalable_parameter_candidates'] for c in change.get('candidate_additions',[])),('missing published candidate',rid)
             assert all(p in row['implementation'] for p in change.get('implementation_additions',[])),('missing published proof',rid)
+            assert all(p in row.get('native_resource_evidence',[]) for p in change.get('native_resource_evidence_additions',[])),('missing published resource proof',rid)
             for c in change.get('component_additions',[]):
                 target=next(t for t in row['components'] if t['primitive']==c['primitive'])
                 for key,values in c.items():
-                    if key!='primitive':assert all(target[key].get(k)==v for k,v in values.items()),('changed published parameter',rid,key)
+                    if key=='primitive':continue
+                    if isinstance(values,dict):
+                        assert all(target[key].get(k)==v for k,v in values.items()),('changed published parameter',rid,key)
+                    else:
+                        assert target[key]==values,('changed published component context',rid,key)
             continue
         for replacement in replacements:
             before,after=replacement['before'],replacement['after']
@@ -577,6 +582,9 @@ def refined_review(review,batch):
         row['scalable_parameter_candidates']+=deepcopy(change.get('candidate_additions',[]))
         for proof in change.get('implementation_additions',[]):
             if proof not in row['implementation']:row['implementation'].append(deepcopy(proof))
+        for proof in change.get('native_resource_evidence_additions',[]):
+            if proof not in row.setdefault('native_resource_evidence',[]):
+                row['native_resource_evidence'].append(deepcopy(proof))
         row['native_boundary']=[dict(entry=p['entry'],methods=p['methods']) for p in row['implementation']]
         for pid in change.get('delivery_path_additions',[]):
             assert pid not in row['delivery_paths'];row['delivery_paths'].append(pid)

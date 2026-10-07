@@ -89,9 +89,17 @@ def prepare_raw(spec, client, mappings, manifest_path):
                 name=names.member(cls.name,method['name'],method['descriptor'])
                 if name in wanted:
                     code=method.get('code',b'')
+                    body=names.instructions(cls,code)
+                    ranges=spec.get('instruction_ranges',{}).get(named,{}).get(name)
+                    if ranges:
+                        assert all(0 <= a <= b for a,b in ranges)
+                        assert all(ranges[n-1][1] < ranges[n][0] for n in range(1,len(ranges)))
+                        body=[i for i in body if any(a<=i['offset']<=b for a,b in ranges)]
+                        assert all(any(i['offset']==point for i in body) for span in ranges for point in span)
                     methods.append(dict(name=name,obfuscated_name=method['name'],
                         obfuscated_descriptor=method['descriptor'],code_sha256=byte_hash(code),
-                        code_hex=code.hex(),instructions=names.instructions(cls,code)))
+                        code_hex=code.hex(),instructions=body,
+                        **({'instruction_offset_ranges':ranges} if ranges else {})))
             assert set(wanted)<={m['name'] for m in methods},(named,wanted)
             records.append(dict(class_name=named,raw_entry=entry,raw_class_sha256=byte_hash(raw),methods=methods))
     return dict(schema='tno.external_effects.vanilla_witness.v1',baseline=BASELINE,
