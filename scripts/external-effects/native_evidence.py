@@ -39,7 +39,9 @@ def collect(document, jar_paths=None):
                          entry=entry,entry_sha256=byte_hash(data))
             if entry.endswith('.class'):
                 annotated=specification.get('include_annotations',False)
-                parsed=ClassFile(data,retain_annotations=annotated)
+                metadata=any(isinstance(s,dict) and s.get('include_exception_handlers')
+                             for s in specification['methods'])
+                parsed=ClassFile(data,retain_annotations=annotated,retain_code_metadata=metadata)
                 witness.update(class_name=parsed.name,superclass=parsed.super,interfaces=parsed.interfaces,methods=[])
                 if annotated:witness['annotations']=parsed.annotations(parsed.attributes)
                 if specification.get('include_declared_methods'):
@@ -64,6 +66,9 @@ def collect(document, jar_paths=None):
                         witness['methods'].append(dict(name=name,descriptor=m['descriptor'],
                             code_sha256=byte_hash(m.get('code',b'')),instructions=body,
                             **({'annotations':m['annotations']} if annotated else {}),
+                            **({'exception_handlers':[dict(start=a,end=b,handler=h,
+                                catch_type=parsed.resolve(t)) for a,b,h,t in m.get('exception_handlers',[])]}
+                               if isinstance(selection,dict) and selection.get('include_exception_handlers') else {}),
                             **({'instruction_offset_ranges':ranges} if ranges else {})))
             elif entry.endswith('.json'):
                 witness['data']=json.loads(data)
