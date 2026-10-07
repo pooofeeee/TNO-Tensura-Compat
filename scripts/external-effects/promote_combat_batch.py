@@ -15,8 +15,35 @@ def effect_holder_binding(method,offset):
     assert 'MobEffectInstance.<init>(' in str(body[at]['operand'])
     start=max(n for n,i in enumerate(body[:at]) if i['opcode']=='0xbb' and
               i['operand']=='net/minecraft/world/effect/MobEffectInstance')
-    holder=next(i for i in body[start:at] if i['opcode']=='0xb2' and
-                ('/MobEffects.' in str(i['operand']) or '/ArphexModMobEffects.' in str(i['operand'])))
+    holder=next((i for i in body[start:at] if i['opcode']=='0xb2' and
+                ('/MobEffects.' in str(i['operand']) or '/ArphexModMobEffects.' in str(i['operand']))),None)
+    if holder is None:
+        # A real native status constructor can load a previously stored holder.
+        # Accept only one exact assignment, not the nearest effect query or an
+        # arbitrary local/data-flow guess. Keep the original direct path above.
+        assert body[start+1]['opcode']=='0x59'
+        load=body[start+2]
+        assert load['opcode'] in ('0x19','0x2a','0x2b','0x2c','0x2d') and 'local_index' in load
+        slot=load['local_index']
+        stores=[n for n,i in enumerate(body) if i.get('local_index')==slot
+                and i['opcode'] in ('0x36','0x37','0x38','0x39','0x3a',
+                    '0x3b','0x3c','0x3d','0x3e','0x3f','0x40','0x41','0x42',
+                    '0x43','0x44','0x45','0x46','0x47','0x48','0x49','0x4a',
+                    '0x4b','0x4c','0x4d','0x4e')]
+        assert len(stores)==1 and stores[0]<start, ('ambiguous local effect holder',offset)
+        n=stores[0]
+        assert n>=1
+        assert body[n]['opcode'] in ('0x3a','0x4b','0x4c','0x4d','0x4e')
+        if body[n-1]['opcode']=='0xc0':
+            assert n>=4
+            assert body[n-1]['operand']=='net/minecraft/core/Holder'
+            assert body[n-2]['operand']=='java/util/Objects.requireNonNull(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;'
+            assert body[n-2]['opcode']=='0xb8' and body[n-3]['opcode'] in ('0x12','0x13')
+            holder=body[n-4]
+        else:
+            holder=body[n-1]
+        assert holder['opcode']=='0xb2' and ('/MobEffects.' in str(holder['operand'])
+            or '/ArphexModMobEffects.' in str(holder['operand'])), ('nonconstant local effect holder',offset)
     return holder['operand'],body[start]['offset'],holder['offset']
 
 

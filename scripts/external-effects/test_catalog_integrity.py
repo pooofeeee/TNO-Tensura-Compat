@@ -23,6 +23,8 @@ class CatalogIntegrityTests(unittest.TestCase):
         self.assertTrue(all(m['status'].startswith('PASS') for m in result['mods'].values()))
         self.assertEqual(sum(s['declaration_resource_context_rows'] for s in result['source_census_checks'].values()),6)
         self.assertEqual(sum(s['exact_native_hit_rows'] for s in result['source_census_checks'].values()),611)
+        self.assertEqual(read_json(OUT/'catalog-integrity-audit.json'),result,
+                         'published integrity snapshot is stale')
 
     def test_reject_duplicate_semantics_under_another_id(self):
         duplicate=copy.deepcopy(self.review['effects'][0]);duplicate['id']='es:fake_duplicate'

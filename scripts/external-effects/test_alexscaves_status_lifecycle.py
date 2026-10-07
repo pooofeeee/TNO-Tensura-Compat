@@ -37,11 +37,13 @@ class AlexCavesStatusLifecycleTests(unittest.TestCase):
         cls.batch=read_json(OUT/FILE);cls.old=read_json(OUT/OLD);cls.new=read_json(OUT/NEW)
         cls.census=read_json(OUT/'alexscaves-combat-census.json')
         cls.review=read_json(OUT/'mod-reviews/alexscaves.json')
-        ids={r['id'] for r in cls.batch['effects']}
+        first=read_json(OUT/'alexscaves-r2m8a-status-foundation.json')
+        ids={r['id'] for r in first['effects']}
+        paths={p['id'] for p in first['paths']}
         cls.prior=copy.deepcopy(cls.review)
-        cls.prior['effects']=[r for r in cls.prior['effects'] if r['id'] not in ids]
-        cls.prior['paths']=[p for p in cls.prior['paths'] if not ids&set(p['effect_ids'])]
-        cls.prior['reviewed_batches']=[f for f in cls.prior['reviewed_batches'] if f!=FILE]
+        cls.prior['effects']=[r for r in cls.prior['effects'] if r['id'] in ids]
+        cls.prior['paths']=[p for p in cls.prior['paths'] if p['id'] in paths]
+        cls.prior['reviewed_batches']=['alexscaves-r2m8a-status-foundation.json']
 
     def test_source_bound_candidates_and_unique_canonical_statuses(self):
         result=validate_batch(self.batch,self.prior,self.census)
