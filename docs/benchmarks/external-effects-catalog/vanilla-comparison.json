@@ -1,7 +1,7 @@
 {
   "schema": "tno.external_effects.vanilla_comparison.v1",
   "status": "PARTIAL",
-  "checkpoint": "R2m8o-alexscaves-forlorn-contracts-complete",
+  "checkpoint": "R2m8p-alexscaves-item-payload-contracts-complete",
   "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
   "note": "Deterministic projection of canonical mod reviews,including explicit PARTIAL scope. The ledger alone tracks per-mod completeness. No Stage eligibility or policy decision.",
   "comparisons": [
@@ -59,6 +59,26 @@
         },
         {
           "primitive": "RIDER_CONTROL",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:beholder_native_remote_camera_input",
+      "mod_key": "alexscaves",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Native Beholder usingPlayerUUID global server PlayerList/current clientlevel; missing user server unload tickets then discardafter3. Native usingLiving inputs zza/yya/xxa zero; player keypacket exactuser equality stops. Server stop/crouch state changes camera packet/events, crossdimensiondiscard, clearUUID; chunks own/player forced via ticketcontroller while fullcontrol, native square radius max(2,viewDistance/2). Entity velocitygetteralwaysZERO/setterNOOP; no damage/status/target-control. NBT only userUUID, rotation/raw flags transient. Camera strength10tick is presentation ramp, not scalar contribution. Material input control retained separately from ordinary remote vision utility.",
+      "components": [
+        {
+          "primitive": "INPUT_CONTROL",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_GATE",
           "numerical_parameters": {},
           "parameter_formulas": {}
         }
@@ -257,6 +277,39 @@
       ]
     },
     {
+      "effect_id": "alexscaves:burrowing_arrow_native_damage_mining",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Native AbstractArrow owner/payload/lifecycle and baseDamage3.5 in each constructor, supplied by ArrowItem producer. Block hit parent then stores position. While inGround and eligible, mining hardness=int(max(destroySpeed,.2)*15), progress int(time/hardness*10), postincrement time>hardness destroys with drops, increments dug count, resets and velocity normalize(centerDelta)*.3; otherwise centerDelta*.2. Eligible owner absent or Player, not UNMOVEABLE, empty fluid, hardness!=-1 and dugCount<5. No own side guard/grief hook. Dig suspends parent despawn; removal resets crack progress. Native arrow hit is inherited, not an added hurt callback.",
+      "components": [
+        {
+          "primitive": "NATIVE_ARROW_DAMAGE",
+          "numerical_parameters": {
+            "base_damage": 3.5
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "TERRAIN_CONTROL",
+          "numerical_parameters": {
+            "hardness_coefficient": 15,
+            "max_dug": 5
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "numerical_parameters": {
+            "advance": 0.3,
+            "dig_approach": 0.2
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
       "effect_id": "alexscaves:candicorn_rider_charge_melee",
       "mod_key": "alexscaves",
       "primary_classification": "VANILLA_COMPOSITE",
@@ -290,6 +343,48 @@
             "charge_ticks": 100,
             "meter_gain": 0.005
           },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:candy_cane_hook_native_grapple_reel",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Native server item stores LastLaunchedHookUUID/reeling in CustomData, player owner/hand and dual-hand gates; reeling costs1wear. ThrowableProjectile parent tick remains; direct onHitEntity only fixes position/UUID (segment=>head), no hurt. Server unhooked proximity box1 selects alive/nonprojectile/nonhook/nonowner, favors worm, then optional nonzero thrown(projectile,owner) request SHARP_CANE*3, ignoring return. This is separate from direct-hit hook. Native UUID server/rawID client for owner and hooked entity. Reeling aftertick5 noPhysics moves toward owner, normalizes only distance>1, discard<.85/missing owner; first reel flings once. Fling no hooked entity pulls OWNER; ordinary hooked pulls victim, worm excluded: positionDelta*.2 then +Y.2+oldVelocity. Native length>1 branch scale(1) DOES NOT normalize/clamp. Hooked point pins velocity0. Worm hands/native IDs retain locked mount contract; within4 server startRiding else old*.8+normalized riderDelta. Default gravity.08 unless reeling or straight-hook speed>.05. Owner-held-hook query fallbacktrue retained. NBT parent+Reeling/HookedUUID/Offhand, not damage/position/straight flag; native removal clears held-stack UUID.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "proximity_amount": "SHARP_CANE*3; getDamage()!=0"
+          }
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "fling_fraction": 0.2,
+            "fling_y": 0.2,
+            "worm_drag": 0.8,
+            "scale_fraction_1": 0.20000000298023224,
+            "scale_fraction_2": 1.0,
+            "scale_fraction_3": 0.20000000298023224,
+            "scale_fraction_4": 1.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "launch": ".5+FAR_FLUNG*.2 plus native directional/gaussian terms"
+          }
+        },
+        {
+          "primitive": "HELD_VICTIM_CONTROL",
+          "numerical_parameters": {},
           "parameter_formulas": {}
         }
       ]
@@ -380,6 +475,30 @@
           "numerical_parameters": {
             "speed_base": 0.25,
             "speed_size_coefficient": 0.1
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:cinder_brick_native_thrown_damage_terrain",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "ThrowableItemProjectile native owner supplied by thrower constructor. Entity hit delegates parent then requests thrown(projectile,getOwner), amount 2+nextInt(2); ignores hurt return. onHit delegates parent, server broadcasts/discards then block hit destroys with drops iff resistance<5, not UNMOVEABLE and not air; no own grief hook. Shared ThrownProjectileItem server producer retains supplied angle/speed/inaccuracy, item stack and creative consumption.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "amount": "2+nextInt(2)"
+          }
+        },
+        {
+          "primitive": "TERRAIN_CONTROL",
+          "numerical_parameters": {
+            "resistance_cutoff": 5
           },
           "parameter_formulas": {}
         }
@@ -634,6 +753,72 @@
       ]
     },
     {
+      "effect_id": "alexscaves:depth_charge_native_collision_fuse",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "ThrowableItemProjectile owned producer but overrides tick with baseTick/checkInsideBlocks/move, gravity-.05/drag.99 and collision flags; DOES NOT call parent ThrowableProjectile.tick or native hit-result dispatcher. Captured onHitEntity has thrown2+rand2 but is not a damage candidate from this native tick path. onHit sets hitGround if externally dispatched; ground/horizontal/vertical collision also sets it. While hitGround zero velocity and postincrement groundTime>30 server kills then constructs locked MineExplosion with source charge, radius2, water from blockStateOn, grief hook selects KEEP or DESTROY[_WITH_DECAY]. Existing MineExplosion contract owns actual explosion payload; no duplicate explosion effect record.",
+      "components": [
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "numerical_parameters": {
+            "gravity": -0.05,
+            "drag": 0.99
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "numerical_parameters": {
+            "ground_fuse_comparison": 30
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "EXPLOSION_DELIVERY",
+          "numerical_parameters": {
+            "radius": 2
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:desolate_dagger_delayed_native_request",
+      "mod_key": "alexscaves",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "SwordItem native melee attributes Diamond tier+0/speed-2; accepted super.hurtEnemy (item wear callback, not native hurt result) spawns 1+DOUBLE_STAB entities without own server guard, raw targetID/item stack, delay(IMPENDING_STAB>0?40:20)+rand10. It DOES NOT set playerID. Finite native call index has no caller of DesolateDaggerEntity.setPlayerId. Thus native created daggers source self and conditional player saturation branch is not reached from this producer. Server after orbit decrement/dead target ramps stab+.2 to1, requests custom DesolateDagger source(player if raw ID resolves else dagger), amount2+2*IMPENDING_STAB; accepted request alone enters optional SATED_BLADE saturation+level*.1 when source Player and saturation<5. Discards regardless request return. Missing target after tick3 discards, position orbit is noPhysics, drag.9; entity save/read empty so no invented target/player/stack persistence.",
+      "components": [
+        {
+          "primitive": "CUSTOM_DAMAGE_REQUEST",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "amount": "2+2*IMPENDING_STAB"
+          }
+        },
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "numerical_parameters": {
+            "base_delay": 20,
+            "enchanted_delay": 40,
+            "random_delay": 10,
+            "stab_step": 0.20000000298023224
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "CONDITIONAL_SATURATION",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "amount": "SATED_BLADE*.1, branch requires source Player; no native setPlayerId caller"
+          }
+        }
+      ]
+    },
+    {
       "effect_id": "alexscaves:dinosaur_egg_native_hatch_aggro",
       "mod_key": "alexscaves",
       "primary_classification": "CUSTOM_CONTROL",
@@ -694,6 +879,91 @@
       ]
     },
     {
+      "effect_id": "alexscaves:dinosaur_spirit_native_payload_modes",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Entity uses actual native playerUUID: client level Player lookup, server global PlayerList lookup. No player starts fading, delay first then physical move/drag.9; discarded only fade reaches0, mode tick may still run after fade. Subterranodon sets own upward velocity .03+.005*enchantment, raw target velocity ZERO/absolute target position beneath spirit for duration<40+5*enchantment, no damage. Grottoceratops orbit radius2/height1/rotation playerTick*5, delta*.25/noPhysics; server fades once not using ExtinctionSpear. Tremorsaurus target range width+3.5, approach*.15/noPhysics, ability5 requests custom SpiritDinosaur(source Player) amount3+2*enchantment, accepted alone sets dealtDamage but fades regardless, duration postincrement>20 also fades. NBT only UsingPlayerUUID and DinosaurType; target, delay, enchantment, fade/control not persisted. No invented shield collision: directly reached CommonEvents admission handler consumes closest Grottoceratops spirit separately.",
+      "components": [
+        {
+          "primitive": "CUSTOM_DAMAGE_REQUEST",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "amount": "3+2*enchantment"
+          }
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "lift_velocity": ".03+.005*enchantment",
+            "held_duration": "40+5*enchantment"
+          }
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "numerical_parameters": {
+            "approach": 0.15,
+            "orbit_fraction": 0.25
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "numerical_parameters": {
+            "tremor_lifetime_comparison": 20
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:dreadbow_native_volley_shadow_payload",
+      "mod_key": "alexscaves",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Dreadbow native ammo admission and ArrowItem creation; only plain uncolored Arrow converts to owned DarkArrow. Release (not RELENTLESS) charge threshold>.1, maxLoad40-8*DARK_NOCK, ray128*f/miss42*f, sky search15; emits ceil((dark?30:8)*f) arrows from randomized area. Dark payload2 PRECISE else3, perfectShot doubles; unconverted native arrow baseDamage doubled for perfect, original ammo behavior remains. First native pickup ALLOWED then CREATIVE_ONLY; converted arrows EMPTY pickup. Native random speed .5+1.5*RNG and inaccuracy precise0 else dark20/other5+10*RNG, quarter chance override RNG. RELENTLESS onUseTick every3 emits1+rand2 dark or1 other, dark damage2, speed4+3*RNG/inaccuracy.5 then+2. No own server guard on either producer. Client only UseTime/PerfectShot custom-data charging and tag packets retained. DarkArrow custom damage source uses owner only (no direct projectile), perfect*2; requires owner absent or not owner/both allied false, not fading and accepted hurt to begin fading. Inground also fades, noPhysics/drag.7/postincrementfade>5 discard. No own payload persistence overrides; no invented arrow native hit/post-enchantment response.",
+      "components": [
+        {
+          "primitive": "CUSTOM_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "relentless_amount": 2.0,
+            "perfect_multiplier": 2.0
+          },
+          "parameter_formulas": {
+            "amount": "shadowDamage*(perfect?2:1)"
+          }
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "numerical_parameters": {
+            "dark_volley": 30,
+            "other_volley": 8,
+            "relentless_cadence": 3
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "numerical_parameters": {
+            "max_load_base": 40,
+            "nock_step": 8,
+            "relentless_load": 5
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "numerical_parameters": {
+            "fade_drag": 0.7
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
       "effect_id": "alexscaves:effect_visuality_protocol",
       "mod_key": "alexscaves",
       "primary_classification": "CUSTOM_STATUS",
@@ -713,6 +983,53 @@
           "primitive": "NETWORK_ADMISSION",
           "numerical_parameters": {
             "source_distance_strict_max": 32
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:extinction_spear_native_throw_return_spirits",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "SpearItem melee add8/speed-3. Player release f>.1 wears item, owned stack-carrying arrow speed f*3.5/inaccuracy1, creative pickup else consumes; no own side guard. Initial onUseTick creates3+HERD_PHALANX Grottoceratops spirits with source UUID and distributed angle, release marks them fading. Native hurtEnemy sets exact fire ticks100, delayed5 Tremorsaurus spirit at midpoint, playerUUID/targetID/CHOMPING_SPIRIT, then parent wear. Projectile one-hit flag; ignites5seconds BEFORE custom SpiritDinosaur damage10 regardless acceptance. Accepted Enderman early returns; accepted Living post-effects; accepted owner present spawns Subterranodon spirit with owner UUID/target rawID, even nonplayer owner later fails player lookup. Native rebound after request; owner-specific pickup. Block hit sets wiggling; ground/noPhysics native acceptable alive non-spectator owner waits postincrement>20 then locked TephraExplosion source owner/radius1.5 KEEP, then returns via normalize(ownerEye-delta)*.3+old*.95. Invalid owner drops if allowed/server then discard. No invented additional area damage.",
+      "components": [
+        {
+          "primitive": "CUSTOM_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "projectile_amount": 10.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "BURN",
+          "numerical_parameters": {
+            "projectile_seconds": 5.0,
+            "melee_ticks": 100
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "numerical_parameters": {
+            "return_speed": 0.3,
+            "return_drag": 0.95
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "EXPLOSION_DELIVERY",
+          "numerical_parameters": {
+            "radius": 1.5
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "numerical_parameters": {
+            "wiggle_comparison": 20
           },
           "parameter_formulas": {}
         }
@@ -836,6 +1153,35 @@
       ]
     },
     {
+      "effect_id": "alexscaves:floater_native_vehicle_fall_environment",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Native floating Entity ownerless/no attackable; gravity-.04/eye-inwater +Y.2/drag.9, outwaterpostincrement>5 serverdiscard counter NOT reset in water. FloaterItem only player.isInWaterOrBubble and not crouching server spawnsatplayer and mounts player.getRootVehicle; server interact native startRiding; positionRider (sharedvehicle/unloadedchunkgate) fixespassenger offset-.6+.7 and fallDistance0; parentfallback, own causeFallDamage false. Save/read empty. AlexCaves Boat/ChestBoat native inherited vehicle movement/damage preserved; variant override OAK/noop setter and original custom type/NBT. Own fallcallback if notpassenger and fallDistance>3, waterreset earlyreturn else native causeFallDamage multiplier1 then serverkill/drop3planks+2sticks. ChestBoat NBT calls parent; ordinary Boat custom save/read OMIT parent; no invented special lava or melee behavior. Utility variant/drop presentation is not additional Stage candidate.",
+      "components": [
+        {
+          "primitive": "NATIVE_VEHICLE_ENVIRONMENT",
+          "numerical_parameters": {
+            "floater_gravity": -0.04,
+            "floater_buoyancy": 0.2,
+            "floater_drag": 0.9
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "FALL_ADMISSION",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "RIDER_CONTROL",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
       "effect_id": "alexscaves:forsaken_native_melee_hold_leap_terrain",
       "mod_key": "alexscaves",
       "primary_classification": "VANILLA_COMPOSITE",
@@ -939,6 +1285,53 @@
             "blast_cadence": 5,
             "area_range": 14
           },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:frostmint_native_spear_explosion_freeze",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "SpearItem MAINHAND melee add5/speed-3; player release power>.1 produces original owner, speedpower*2.5/inaccuracy1/creativepickup else consumes1/noownserverguard. Item hurtEnemy assigns freeze requiredTicks+200 and native accessorflag then wear irrespective native damage return. Arrow one-hit gate; trident(projectile,owner else self)6. Accepted Enderman earlyreturn; accepted Living postHurtEffects assigns same gauge/flag. Entity onHit if !exploded&&tickCount>1 sets exploded then constructs FrostmintExplosion(source getOwner,radius2,KEEP,fromSpeartrue), BEFORE parent.onHit, no own side guard; parent determines entity-hit dispatch. Owner ID synced client only fallback parent. Custom explosion native block rays radius*(.7+.6*RNG), UNMOVEABLE/worldbounds stops, resistance only emptyfluid, step.3/energy-.225. Actor radius2*R/exposure z rays; ignoreExplosion(null)/Enderman exclusion/nonzero direction. Request int((impact^2+impact)/2*7*(2R)+1), skip ItemEntity hurt only for spear, then velocity+normalized(jittered XZ/eyeY)*impact independent accepted; Living knockback helper returns impact unchanged, NOT enchantment dampening. All eligible Living gauge required+200/flag independent hurt acceptance. Constructor source attribution direct supplied source; indirect TNTowner/Living/sourceProjectileLivingOwner. Frostmint finalize KEEP leaves blocks; other interaction directly sets AIR only fluidempty, native drop/decay metadata and not generic explosion event. FallingFrostmint gravity-.04/drag.98, purple soda contact radius4 DESTROY_WITH_DECAY/fromSpearfalse server thendiscard; onland slabstack nativeplacement/NBT preserved. Accessor flag only snowflake/clear logic in LivingEntity tick (partial shared callback), no hidden freeze damage override or caller of isFreezingFromFrostmint in finite index.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "direct_amount": 6.0
+          },
+          "parameter_formulas": {
+            "explosion_amount": "int((impact^2+impact)/2*7*(2R)+1)"
+          }
+        },
+        {
+          "primitive": "FREEZE_GAUGE",
+          "numerical_parameters": {
+            "extra_ticks": 200,
+            "explosion_extra_ticks": 200
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "explosion_impulse": "normalizedNativeJitteredDirection*impact, unchanged by dampener stub"
+          }
+        },
+        {
+          "primitive": "EXPLOSION_DELIVERY",
+          "numerical_parameters": {
+            "spear_radius": 2,
+            "soda_radius": 4
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "TERRAIN_CONTROL",
+          "numerical_parameters": {},
           "parameter_formulas": {}
         }
       ]
@@ -1164,6 +1557,23 @@
             "damage_range_add": 1,
             "window_start_exclusive": 10,
             "window_end_inclusive": 12
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:guano_native_zero_thrown_request",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_DIRECT",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Native ThrowableItemProjectile constructors retain throwing owner. onHitEntity delegates parent and invokes thrown(projectile,getOwner) with exactly zero, ignoring return; no status or substitute positive damage. onHit parent then server event/discard. Shared thrown producer retains native physics and consumption.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "amount": 0
           },
           "parameter_formulas": {}
         }
@@ -1432,6 +1842,28 @@
       ]
     },
     {
+      "effect_id": "alexscaves:ice_cream_native_effect_clear",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Native ThrowableItemProjectile owner. Entity hit parent then zero thrown request; every LivingEntity receives removeAllEffects regardless zero hurt acceptance. Server onHit event/discard. Native effect-removal callbacks/cancellations remain native; no beneficial/harmful filtering.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "amount": 0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "EFFECT_REMOVAL",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
       "effect_id": "alexscaves:ink_bomb_blindness_cloud",
       "mod_key": "alexscaves",
       "primary_classification": "VANILLA_COMPOSITE",
@@ -1577,6 +2009,39 @@
             "pepper_cooldown": 80,
             "hex_cooldown": 200,
             "potion_cooldown": 100
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:limestone_spear_native_throw_hit",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Shared SpearItem MAINHAND ADD_VALUE damage field and speed -3; item damage value3, wear1 hit/2 mining; native charge min(1,(t/20)^2/3+2*(t/20)/3), use72000. Player release charge>.1 creates owner spear with count1 stack, velocity charge*2.5/inaccuracy1, creative pickup else consumes one; no own server guard. Arrow entity retains pickup stack and one-hit dealtDamage gate. Requests native trident(projectile,owner else self), amount4. Accepted Enderman returns before rebound; accepted Living runs server post-enchantment if living owner then postHurtEffects. Otherwise rebound components(-.01,-.1,-.01) irrespective hurt acceptance; no invented loyalty.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "melee_add": 3,
+            "projectile_amount": 4.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "ATTACK_SPEED",
+          "numerical_parameters": {
+            "mainhand_add": -3
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "numerical_parameters": {
+            "velocity_coefficient": 2.5,
+            "inaccuracy": 1
           },
           "parameter_formulas": {}
         }
@@ -2520,6 +2985,48 @@
       ]
     },
     {
+      "effect_id": "alexscaves:ortholance_native_release_lunge_waves",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "MAINHAND ADD_VALUE damage5/speed-2.4, durability admission. Release charged clamp0..60: f=.1*i+.1*FLINGING, adds normalized look*f with Y*.15 and finalgroundY.2+FLINGING*.1. At i>=10/server wears1 then native owned Waves; ordinary pairs i/5 with life3+int((1-wave/max)*3), +/-60-15*index; SECOND_WAVE extra pairs max(1,maxWaves-1) wait8. TSUNAMI instead one wave scale5/life20/wait2 and maxWaves5 used by damage box. Locked Wave payload unchanged. Native direct mobAttack(actor)5 requests in path AABB inflated1, notself/not actor-allied/LOS then ALWAYS stopRiding ignoring accepted. SEA_SWING item hurtEnemy creates one owned Wave life5/no own side guard. Miningwear2; final lunge outside server guard. Numeric native delivery/kinematics kept separate from repeated Wave damage.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "direct_amount": 5
+          },
+          "parameter_formulas": {
+            "direct_amount": "5"
+          }
+        },
+        {
+          "primitive": "SELF_MOVEMENT",
+          "numerical_parameters": {
+            "charge_fraction": 0.1,
+            "vertical_fraction": 0.15
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "numerical_parameters": {
+            "tsunami_scale": 5,
+            "tsunami_life": 20,
+            "tsunami_wait": 2,
+            "second_wait": 8
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "DISMOUNT_CONTROL",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
       "effect_id": "alexscaves:powered_magnet_blocks",
       "mod_key": "alexscaves",
       "primary_classification": "CUSTOM_CONTROL",
@@ -2807,6 +3314,66 @@
         {
           "primitive": "MOVEMENT_GATE",
           "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:seeking_arrow_native_homing",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "ArrowItem creates owner-bearing native AbstractArrow; inherited damage not duplicated. Airborne/not stopped native server search radius min(10,3+tickCount/4), canHitEntity, closest, not ownedBy and owner absent or recipient not allied-to-owner, then raw native entity ID. Valid ID steers when distance>recipient width: old velocity*.3+normalized delta*.7, aim at .65*height. doPostHurtEffects sets stopSeeking only after inherited native successful-hit dispatch. No own save overrides for seek state.",
+      "components": [
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "numerical_parameters": {
+            "old_fraction": 0.3,
+            "steering": 0.7,
+            "aim_height_fraction": 0.65,
+            "scale_fraction_1": 0.30000001192092896,
+            "scale_fraction_2": 0.699999988079071
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "TARGET_SEARCH",
+          "numerical_parameters": {
+            "maximum_radius": 10,
+            "growth_interval": 4
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:sharpened_candy_cane_native_melee",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "MAINHAND ADD_VALUE attackDamage3 and attackSpeed4; native item hurtEnemy consumes one for noncreative Player, always applies knockback .15 irrespective any damage-return value (no hurt call here), then returns true. Native melee damage remains original caller; particles server-only. No added projectile or damage callback.",
+      "components": [
+        {
+          "primitive": "ATTACK_DAMAGE_ATTRIBUTE",
+          "numerical_parameters": {
+            "mainhand_add": 3
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "ATTACK_SPEED",
+          "numerical_parameters": {
+            "mainhand_add": 4
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "knockback": 0.15000000596046448
+          },
           "parameter_formulas": {}
         }
       ]
@@ -3222,6 +3789,62 @@
             "placement_count": 20,
             "cleanup_count": 35
           },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:totem_native_binding_ai_control_detonation",
+      "mod_key": "alexscaves",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Native MAINHAND ADD_VALUE attack2/speed-2.4; item hurtEnemy binds UUID/snapshotNBT and sets victim PersistentData TotemPossessed unless resistance tag or disabled player config; returns true without own sideguard/native hurt request. Server resolves UUID/current-level, client raw ControllingEntityID; use resets dead/missing bound server; gaze degree5*(1+.1distance), LOS or SIGHTLESS, maxuse72000/wear1000. onUseTick ramps15tick ray32*time, speed1.25+.35*RAPID_POSSESSION. Mobs pathTo(ray,time*speed); nonmobs set oldVelocity*.8+direction*.15*speed and groundcollision jumpY.6, serverrotation. Server boxinflate3 excludes user/control/bothallies/sharedvehicle, Mob target+lastHurtBy victim; every4 usedTicks ASTRAL_TRANSFERRING may rebind strictly healthier nonresistant victim without clearing old TotemPossessed. Controlled Player instead native attack(target) then resetAttackStrengthTicker per recipient. Client wears1 every2 except creative; releasesglow/resetstackbreak. Disabled player control gate applies useTick, original transfer gate not extended. Invalid/dead/exhausted else DETONATING_DEATH creates TotemExplosion(source USER, at controlled position,radius2+floor(width),KEEP) then clears only current possessed/reset/stop; NO own server guard on explosion. TotemExplosion native exposure request int((impact^2+impact)/2*7*(2R)+1), Luxtructosaurus/ignoreExplosion(null)/zero vector excluded, impulse independent hurt/no dampener (identity); geometry rays halve Y before normalization but finalize ONLY sound/particles, never applies toBlow or terrain damage. makeDamageCalculator/toBlow/addBlockDrops have no active destruction consumer. AbstractIllager isAlliedTo HEAD returnsfalse if self or nonnull other is TotemPossessed; Living lastHurtBy TAIL sets Mobtarget to possessed Raider for Raider/Illager self; no universal ally owner map.",
+      "components": [
+        {
+          "primitive": "AI_CONTROL",
+          "numerical_parameters": {
+            "base_speed": 1.25,
+            "enchanted_speed_step": 0.35,
+            "maximum_ray": 32,
+            "ramp_ticks": 15
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "drag": 0.8,
+            "speed_fraction": 0.15,
+            "jump_y": 0.6
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "AGGRO_REDIRECTION",
+          "numerical_parameters": {
+            "search_inflate": 3,
+            "transfer_cadence": 4
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "detonation_amount": "int((impact^2+impact)/2*7*(2R)+1)"
+          }
+        },
+        {
+          "primitive": "EXPLOSION_DELIVERY",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "radius": "2+floor(controlledWidth)"
+          }
+        },
+        {
+          "primitive": "NATIVE_ATTACK_CALLBACK",
+          "numerical_parameters": {},
           "parameter_formulas": {}
         }
       ]
