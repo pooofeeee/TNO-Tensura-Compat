@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from catalog_common import OUT,read_json,byte_hash
-from native_forwarding import forwarding_shape,validate
+from native_forwarding import forwarding_shape,validate,declared_field_exists
 from reconcile_native_census import reconcile
 from classfile import ClassFile
 
@@ -62,6 +62,25 @@ class ForwardingTests(unittest.TestCase):
 
 
 class LeafQueryShapeTests(unittest.TestCase):
+    def test_declared_field_transport_preserves_context_without_excluding_readers(self):
+        getter=[ins('0x2a'),ins('0xb4','x/Actor.phaseI'),ins('0xac')]
+        s=forwarding_shape('x/Actor.class','getPhase','()I',1,getter)
+        self.assertEqual(s,dict(kind='RAW_DECLARED_FIELD_QUERY',field_name='phase',field_descriptor='I',field_static=False))
+        self.assertTrue(declared_field_exists(s,dict(fields=[dict(name='phase',descriptor='I',access=2)])))
+        self.assertFalse(declared_field_exists(s,dict(fields=[])))
+        setter=[ins('0x2a'),ins('0x1b',local_index=1),ins('0xb5','x/Actor.phaseI'),ins('0xb1')]
+        self.assertEqual(forwarding_shape('x/Actor.class','setPhase','(I)V',1,setter)['kind'],'RAW_DECLARED_FIELD_WRITE')
+        for b in [getter+[ins('0xb1')],[ins('0x3',0),ins('0xb5','x/Actor.phaseI'),ins('0xb1')],
+                  [ins('0x2a'),ins('0xb4','x/Parent.phaseI'),ins('0xac')]]:
+            self.assertIsNone(forwarding_shape('x/Actor.class','method','()I',1,b))
+        wrong=copy.deepcopy(setter);wrong[1]['local_index']=2
+        self.assertIsNone(forwarding_shape('x/Actor.class','setPhase','(I)V',1,wrong))
+
+    def test_abstract_declarations_do_not_close_native_or_concrete_code(self):
+        self.assertEqual(forwarding_shape('x/I.class','tick','()V',0x401,[]),dict(kind='ABSTRACT_DECLARATION_CONTEXT'))
+        self.assertIsNone(forwarding_shape('x/I.class','tick','()V',0x101,[]))
+        self.assertIsNone(forwarding_shape('x/I.class','tick','()V',0x401,[ins('0xb1')]))
+
     def test_constant_true_requires_static_synthetic_reference_predicate(self):
         body=[ins('0x4',1),ins('0xac')]
         shape=lambda desc,flags,b:forwarding_shape('x/Q.class','anyName',desc,flags,b)

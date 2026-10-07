@@ -126,6 +126,10 @@ def presentation_leaf_shape(entry, name, descriptor, access, body, superclass):
 def forwarding_shape(entry, name, descriptor, access, body, exception_handlers=(), bootstraps=None, superclass=None):
     """Return an exact proof shape or None; do not establish target coverage."""
     if exception_handlers:return None
+    # Abstract declarations have no executable native body. Concrete overrides
+    # and dispatch consumers remain independently pending.
+    if access & 0x400 and not access & 0x100 and not body:
+        return dict(kind='ABSTRACT_DECLARATION_CONTEXT')
     from native_animation_shapes import animation_shape
     animation=animation_shape(entry,name,descriptor,access,body,bootstraps or {},superclass)
     if animation:return animation
@@ -157,6 +161,8 @@ def forwarding_shape(entry, name, descriptor, access, body, exception_handlers=(
     if presentation:return presentation
     query=distance_query_shape(entry,descriptor,access,body,bootstraps or {})
     if query:return query
+    transport=declared_field_transport_shape(entry,descriptor,access,body)
+    if transport:return transport
     ops=[i['opcode'] for i in body]
     if access & 8 and descriptor.endswith(')V') and ops==['0xb1']:
         return dict(kind='EMPTY_STATIC_VOID_HELPER')
@@ -196,6 +202,57 @@ def forwarding_shape(entry, name, descriptor, access, body, exception_handlers=(
     return dict(kind='EXACT_COMPILER_BRIDGE',target=dict(entry=entry,method=name,descriptor=target_desc))
 
 
+def declared_field_transport_shape(entry, descriptor, access, body):
+    """Exact field transport, never a gate/formula or an independent scalar.
+
+    Only an argument-to-own-field write or own-field-to-return query is admitted.
+    Collect/validate additionally require a real locally declared typed field.
+    Reader conditions, constructor defaults, ownership and lifecycle remain queued.
+    """
+    args,ret=signature(descriptor);ops=[i['opcode'] for i in body]
+    returns={'I':'0xac','J':'0xad','F':'0xae','D':'0xaf','A':'0xb0'}
+    static=bool(access & 8)
+    if not args and ret!='V':
+        k=kind(ret);expected=['0xb2',returns[k]] if static else ['0x2a','0xb4',returns[k]]
+        if ops!=expected:return None
+        field=body[0 if static else 1]['operand'];field_type=ret
+        mode='QUERY'
+    elif len(args)==1 and ret=='V':
+        k=kind(args[0]);loads={'I':{'0x15','0x1a','0x1b','0x1c','0x1d'},
+            'J':{'0x16','0x1e','0x1f','0x20','0x21'},'F':{'0x17','0x22','0x23','0x24','0x25'},
+            'D':{'0x18','0x26','0x27','0x28','0x29'},'A':{'0x19','0x2a','0x2b','0x2c','0x2d'}}
+        if static:
+            if len(body)!=3 or ops[1:]!=['0xb3','0xb1']:return None
+            load=body[0]
+        else:
+            if len(body)!=4 or ops[0]!='0x2a' or ops[2:]!=['0xb5','0xb1']:return None
+            load=body[1]
+        if load['opcode'] not in loads[k] or load.get('local_index')!=(0 if static else 1):return None
+        field=body[-2]['operand'];field_type=args[0];mode='WRITE'
+    else:return None
+    match=re.fullmatch(re.escape(entry[:-6])+r'\.([^.]+)'+re.escape(field_type),str(field))
+    if not match:return None
+    return dict(kind='RAW_DECLARED_FIELD_'+mode,field_name=match[1],field_descriptor=field_type,field_static=static)
+
+
+def declared_field_exists(shape,cls):
+    matches=[f for f in cls['fields'] if f['name']==shape['field_name'] and f['descriptor']==shape['field_descriptor']]
+    return len(matches)==1 and bool(matches[0]['access'] & 8)==shape['field_static']
+
+
+def validate_field_transport_source(row,body,field_index):
+    """Compare resolved field operands with the already captured native index."""
+    assert field_index is not None, 'Field transport requires independent field-site evidence'
+    key=(row['entry'],row['method'],row['descriptor'])
+    matches=[m for m in field_index['methods'] if (m['entry'],m['method'],m['descriptor'])==key]
+    assert len(matches)==1 and matches[0]['code_sha256']==row['code_sha256']
+    actual=[(o,hex(op),field_index['symbols'][s]) for o,op,s in matches[0]['field_sites']]
+    observed=[(i['offset'],i['opcode'],i['operand']) for i in body if i['opcode'] in ('0xb2','0xb3','0xb4','0xb5')]
+    assert actual==observed, 'Field transport differs from independent resolved field sites'
+    code=bytes.fromhex(row['code_hex'])
+    assert all(code[i['offset']]==int(i['opcode'],16) for i in body)
+
+
 def collect(census, index, jar, selection=None, field_index=None):
     assert sha256(jar)==census['jar_sha256']
     native={(m['entry'],m['method'],m['descriptor']):m for m in census['methods']}
@@ -207,7 +264,7 @@ def collect(census, index, jar, selection=None, field_index=None):
     assert index['jar_sha256']==census['jar_sha256']
     classes={c['entry']:c for c in census['classes']}
     candidates=[m for k,m in native.items() if k not in covered and (selected is None or k in selected) and
-                (m['access'] & 0x1040==0x1040 or
+                (m['code_bytes']<=9 or m['access'] & 0x1040==0x1040 or
                  (m['access'] & 8 and m['descriptor'].endswith(')V') and m['code_bytes']==1) or
                  (m['method']=='<init>' and m['descriptor']=='()V' and m['code_bytes']==5) or
                  (classes[m['entry']]['superclass']=='software/bernie/geckolib/model/GeoModel' and m['method'] in ('getAnimationResource','getModelResource','getTextureResource') and m['code_bytes'] in (6,7)) or
@@ -223,7 +280,7 @@ def collect(census, index, jar, selection=None, field_index=None):
                  (m['access'] & 0x1008 == 0x1008 and m['descriptor'].endswith(')Z') and m['code_bytes']==2) or
                  (m['access'] & 8 and m['descriptor']=='(Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/entity/Entity;)D' and m['code_bytes']==6) or
                  (m['descriptor'] in ('(DDD)Ljava/util/Comparator;','(DDDLnet/minecraft/world/entity/Entity;)D') and m['code_bytes'] in (10,13)))]
-    parsed={};waiting=[];rows=[]
+    parsed={};waiting=[];rows=[];unproven=[]
     with zipfile.ZipFile(jar) as z:
         for m in candidates:
             entry=m['entry']
@@ -237,20 +294,31 @@ def collect(census, index, jar, selection=None, field_index=None):
             bootstraps={str(n):bootstrap_signature(cls,n) for n in referenced_bootstraps(body)}
             shape=forwarding_shape(entry,m['method'],m['descriptor'],m['access'],body,method.get('exception_handlers',[]),bootstraps,cls.super)
             if not shape:continue
-            if is_animation(shape):
-                from native_animation_shapes import validate_context
-                if shape.get('animation_only_fields') and field_index is None:continue
-                validate_context(shape,entry,census,field_index)
-            if is_particle(shape):
-                from native_particle_shapes import validate_context
-                validate_context(shape,entry,census)
-            if is_model(shape):
-                from native_model_shapes import validate_context
-                validate_context(shape,entry,census)
-            if is_renderer(shape):
-                from native_renderer_shapes import bind_context,validate_context
-                shape=bind_context(shape,entry,census)
-                validate_context(shape,entry,census)
+            if shape['kind'].startswith('RAW_DECLARED_FIELD_'):
+                if field_index is None or not declared_field_exists(shape,classes[entry]):continue
+                validate_field_transport_source(dict(entry=entry,method=m['method'],descriptor=m['descriptor'],
+                    code_sha256=m['code_sha256'],code_hex=code.hex()),body,field_index)
+            try:
+                if is_animation(shape):
+                    from native_animation_shapes import validate_context
+                    if shape.get('animation_only_fields') and field_index is None:continue
+                    validate_context(shape,entry,census,field_index)
+                if is_particle(shape):
+                    from native_particle_shapes import validate_context
+                    validate_context(shape,entry,census)
+                if is_model(shape):
+                    from native_model_shapes import validate_context
+                    validate_context(shape,entry,census)
+                if is_renderer(shape):
+                    from native_renderer_shapes import bind_context,validate_context
+                    shape=bind_context(shape,entry,census)
+                    validate_context(shape,entry,census)
+            except AssertionError as error:
+                # A syntactic candidate with an unproven hierarchy/context is
+                # still pending. Validation of every accepted row stays strict.
+                unproven.append(dict(entry=entry,method=m['method'],descriptor=m['descriptor'],
+                    kind=shape['kind'],reason=str(error) or 'Context precondition not proven',coverage_proven=False))
+                continue
             waiting.append(dict(entry=entry,entry_sha256=classes[entry]['entry_sha256'],method=m['method'],descriptor=m['descriptor'],
                 access=m['access'],code_sha256=m['code_sha256'],code_hex=code.hex(),instructions=body,exception_handlers=[],
                 **(dict(superclass=cls.super) if is_animation(shape) or is_particle(shape) or is_model(shape) or is_renderer(shape) or shape['kind'] in ('EXACT_GECKO_MODEL_ASSET_QUERY','EXACT_GECKO_DEATH_RENDER_ROTATION','EXACT_NATIVE_LITERAL_TOOLTIP') else {}),
@@ -276,6 +344,10 @@ def collect(census, index, jar, selection=None, field_index=None):
         digest=byte_hash(json.dumps(body,sort_keys=True,separators=(',',':')).encode())
         templates.setdefault(digest,body);r['instruction_template']=digest
     scope='Exact unresolved finite-census methods only. No new semantics from constructor defaults; fields/readers remain queued. Virtual subclass dispatch and checkcast failure remain native. No bridge target closes from capture alone.'
+    if any(r['kind'].startswith('RAW_DECLARED_FIELD_') for r in rows):
+        scope+=' Own-field queries/writes prove transport only, not field meaning, values, gate interpretation or Stage eligibility. All nontrivial readers, admission, defaults and lifecycle remain independently queued; a query is not a second numeric parameter.'
+    if any(r['kind']=='ABSTRACT_DECLARATION_CONTEXT' for r in rows):
+        scope+=' Abstract declarations have no executable native body; concrete dispatch and JNI methods are not excluded by this rule.'
     if query_keys:
         scope+=' Distance comparator factories require exact pure target-query proof; native ordering and caller combat gates/payloads remain separate.'
     if any(r['kind']=='EXACT_GECKO_MODEL_ASSET_QUERY' for r in rows):
@@ -296,8 +368,9 @@ def collect(census, index, jar, selection=None, field_index=None):
         scope+=' Exact renderer/model/layer construction requires reviewed constructor targets; inherited texture dispatch additionally requires the actual bound model query. Literal renderer scale fields are distinct from Entity collision/attributes. Other scene, computed scale, orientation, layer rendering and scratch-field readers remain independent.'
     return dict(schema='tno.external_effects.exact_native_forwarding.v1',mod_key=census['mod_key'],jar_sha256=census['jar_sha256'],
         scope=scope,
+        **(dict(context_candidates_not_proven=unproven) if unproven else {}),
         **(dict(field_index_file=census['mod_key']+'-native-field-use-index.json',
-                field_index_content_sha256=byte_hash(json.dumps(field_index,sort_keys=True,separators=(',',':')).encode())) if any(r.get('animation_only_fields') for r in rows) else {}),
+                field_index_content_sha256=byte_hash(json.dumps(field_index,sort_keys=True,separators=(',',':')).encode())) if any(r.get('animation_only_fields') or r['kind'].startswith('RAW_DECLARED_FIELD_') for r in rows) else {}),
         summary=dict(methods=len(rows),counts_by_kind=dict(sorted(Counter(r['kind'] for r in rows).items()))),
         instruction_templates=dict(sorted(templates.items())),
         rows=sorted(rows,key=lambda r:(r['entry'],r['method'],r['descriptor'])))
@@ -330,7 +403,7 @@ def is_renderer(row):
 def validate(document,census,covered,field_index=None):
     assert document['schema']=='tno.external_effects.exact_native_forwarding.v1'
     assert document['mod_key']==census['mod_key'] and document['jar_sha256']==census['jar_sha256']
-    if any(r.get('animation_only_fields') for r in document['rows']):
+    if any(r.get('animation_only_fields') or r['kind'].startswith('RAW_DECLARED_FIELD_') for r in document['rows']):
         assert field_index is not None
         assert document['field_index_file']==census['mod_key']+'-native-field-use-index.json'
         assert document['field_index_content_sha256']==byte_hash(json.dumps(field_index,sort_keys=True,separators=(',',':')).encode()),'Changed animation field-consumer evidence'
@@ -347,6 +420,9 @@ def validate(document,census,covered,field_index=None):
         if 'superclass' in r:assert r['superclass']==classes[r['entry']]['superclass']
         shape=forwarding_shape(r['entry'],r['method'],r['descriptor'],r['access'],templates[r['instruction_template']],r['exception_handlers'],r.get('bootstraps'),r.get('superclass'))
         assert shape and shape['kind']==r['kind']
+        if shape['kind'].startswith('RAW_DECLARED_FIELD_'):
+            assert declared_field_exists(shape,classes[r['entry']]),'Field transport must bind a real locally declared field'
+            validate_field_transport_source(r,templates[r['instruction_template']],field_index)
         if is_renderer(shape):
             from native_renderer_shapes import bind_context,validate_context
             shape=bind_context(shape,r['entry'],census)
