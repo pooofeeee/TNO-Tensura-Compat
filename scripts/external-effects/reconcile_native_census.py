@@ -51,6 +51,7 @@ def reconcile(review, census, read=read_json, root=OUT):
     shared = defaultdict(set)
     context_equivalences = {}
     forwarding_files=set()
+    context_graph_files=set()
     def cite(p, record_ids, metadata):
         filename = p.get('evidence_file', '')
         entry = p.get('entry')
@@ -83,6 +84,8 @@ def reconcile(review, census, read=read_json, root=OUT):
         assert batch['mod_key'] == census['mod_key']
         if batch.get('native_forwarding_registry_file'):
             forwarding_files.add(batch['native_forwarding_registry_file'])
+        if batch.get('native_context_graph_registry_file'):
+            context_graph_files.add(batch['native_context_graph_registry_file'])
         for context in batch.get('native_context_equivalences', []):
             assert context.get('file') and context.get('reason'), 'Unreviewed context equivalence'
             filename = context['file']
@@ -154,6 +157,12 @@ def reconcile(review, census, read=read_json, root=OUT):
             add(key,row['code_sha256'],records,dict(kind='REVIEWED_EXCLUSION',
                 registry_file=filename,disposition=row['kind'],
                 reason='Exact pinned context body; no independent native payload. Bridge targets require prior exact coverage.'))
+
+    from native_context_graph import validate as validate_context_graph
+    for filename in sorted(context_graph_files):
+        for row in validate_context_graph(packet(filename),census):
+            add(method_key(row),row['code_sha256'],[],dict(kind='REVIEWED_EXCLUSION',
+                registry_file=filename,disposition=row['disposition'],reason=row['reason']))
 
     pending = [m for m in census['methods'] if method_key(m) not in covered]
     rows = []
