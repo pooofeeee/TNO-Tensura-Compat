@@ -129,6 +129,9 @@ def forwarding_shape(entry, name, descriptor, access, body, exception_handlers=(
     from native_animation_shapes import animation_shape
     animation=animation_shape(entry,name,descriptor,access,body,bootstraps or {},superclass)
     if animation:return animation
+    from native_particle_shapes import particle_shape
+    particle=particle_shape(entry,name,descriptor,access,body,superclass)
+    if particle and not bootstraps:return particle
     # Only compiler-generated, static one-reference predicates. A public/native
     # admission callback returning a constant is deliberately not covered here.
     # The caller's query/admission and its unconditional predicate remain native.
@@ -205,6 +208,8 @@ def collect(census, index, jar, selection=None, field_index=None):
                  (m['method'] in ('getAmbientSound','getHurtSound','getDeathSound') and m['code_bytes'] in (17,18)) or
                  (m['method']=='getAnimatableInstanceCache' and m['code_bytes']==5) or
                  (m['method'] in ('movementPredicate','attackingPredicate','idlePredicate','registerControllers','getTexture','setTexture','getSyncedAnimation','setAnimation')) or
+                 (classes[m['entry']]['superclass']=='net/minecraft/client/particle/TextureSheetParticle') or
+                 ('net/minecraft/client/particle/ParticleProvider' in classes[m['entry']]['interfaces']) or
                  (m['method']=='appendHoverText') or
                  (classes[m['entry']]['superclass']=='software/bernie/geckolib/renderer/GeoEntityRenderer' and m['method']=='getDeathMaxRotation' and m['code_bytes'] in (2,3,4)) or
                  (m['access'] & 0x1008 == 0x1008 and m['descriptor'].endswith(')Z') and m['code_bytes']==2) or
@@ -228,9 +233,12 @@ def collect(census, index, jar, selection=None, field_index=None):
                 from native_animation_shapes import validate_context
                 if shape.get('animation_only_fields') and field_index is None:continue
                 validate_context(shape,entry,census,field_index)
+            if is_particle(shape):
+                from native_particle_shapes import validate_context
+                validate_context(shape,entry,census)
             waiting.append(dict(entry=entry,entry_sha256=classes[entry]['entry_sha256'],method=m['method'],descriptor=m['descriptor'],
                 access=m['access'],code_sha256=m['code_sha256'],code_hex=code.hex(),instructions=body,exception_handlers=[],
-                **(dict(superclass=cls.super) if is_animation(shape) or shape['kind'] in ('EXACT_GECKO_MODEL_ASSET_QUERY','EXACT_GECKO_DEATH_RENDER_ROTATION','EXACT_NATIVE_LITERAL_TOOLTIP') else {}),
+                **(dict(superclass=cls.super) if is_animation(shape) or is_particle(shape) or shape['kind'] in ('EXACT_GECKO_MODEL_ASSET_QUERY','EXACT_GECKO_DEATH_RENDER_ROTATION','EXACT_NATIVE_LITERAL_TOOLTIP') else {}),
                 **(dict(bootstraps=bootstraps) if bootstraps else {}),**shape))
     query_keys={(r['entry'],r['method'],r['descriptor']) for r in waiting if r['kind']=='EXACT_NATIVE_DISTANCE_QUERY'}
     while waiting:
@@ -265,6 +273,8 @@ def collect(census, index, jar, selection=None, field_index=None):
             scope+=' Literal tooltip additions mutate only the supplied text list after the exact native parent call; tooltip claims do not establish actual combat values or active mechanics.'
     if any(is_animation(r) for r in rows):
         scope+=' GeckoLib clip callbacks require exact allowed API effects, no authored native query overrides, and native actor inheritance. Scratch attack animation fields must be actor-declared with no gameplay consumers. Controller registration requires every actual typed handler to be independently dispositioned. String transport preserves producer/readers and cannot close them or promote animation clocks into combat scalars.'
+    if any(is_particle(r) for r in rows):
+        scope+=' Native TextureSheetParticle construction/tick/render fields and typed ParticleProvider factories operate on client particles, not Entity damage or physical actor motion. Exact constructor/factory target coverage is required; particle-requesting combat producers, ownership and actual damage remain separate.'
     return dict(schema='tno.external_effects.exact_native_forwarding.v1',mod_key=census['mod_key'],jar_sha256=census['jar_sha256'],
         scope=scope,
         **(dict(field_index_file=census['mod_key']+'-native-field-use-index.json',
@@ -281,6 +291,11 @@ def required_targets(row):
 def is_animation(row):
     return row['kind'] in {'EXACT_GECKO_CONTROLLER_REGISTRATION','EXACT_GECKO_MOVEMENT_CLIP_SELECTION',
                            'EXACT_GECKO_ATTACK_ANIMATION_CONTEXT','EXACT_NATIVE_SYNCED_ANIMATION_STRING_TRANSPORT','EXACT_GECKO_ITEM_IDLE_CLIP_CONTEXT'}
+
+
+def is_particle(row):
+    return row['kind'] in {'EXACT_NATIVE_PARTICLE_PARENT_TICK','EXACT_NATIVE_PARTICLE_ROLL_TICK','EXACT_NATIVE_PARTICLE_RENDER_TYPE','EXACT_NATIVE_PARTICLE_RENDER_LIGHT',
+        'EXACT_NATIVE_CLIENT_PARTICLE_CONSTRUCTION','EXACT_NATIVE_PARTICLE_PROVIDER_FACTORY','EXACT_NATIVE_PARTICLE_SPRITE_PROVIDER','EXACT_NATIVE_CLIENT_PARTICLE_FACTORY'}
 
 
 def validate(document,census,covered,field_index=None):
@@ -306,6 +321,9 @@ def validate(document,census,covered,field_index=None):
         if is_animation(shape):
             from native_animation_shapes import validate_context
             validate_context(shape,r['entry'],census,field_index)
+        if is_particle(shape):
+            from native_particle_shapes import validate_context
+            validate_context(shape,r['entry'],census)
         for field,value in shape.items():
             if field not in ('kind','target','targets'):assert r[field]==value
         if 'target' in shape:
@@ -335,10 +353,22 @@ def validate(document,census,covered,field_index=None):
     return accepted
 
 
+def write_registry(path,document,compact=False):
+    """Optional deterministic compact rows/templates; prior formatting is default."""
+    if not compact:return write_json(path,document)
+    arrays={'rows','instruction_templates'}
+    header=json.dumps({k:v for k,v in document.items() if k not in arrays},ensure_ascii=False,indent=2)
+    dump=lambda v:json.dumps(v,ensure_ascii=False,separators=(',',':'))
+    parts=[header[:-2],',\n  "instruction_templates": {\n',
+           ',\n'.join('    '+dump(k)+':'+dump(v) for k,v in document['instruction_templates'].items()),
+           '\n  },\n  "rows": [\n',',\n'.join('    '+dump(v) for v in document['rows']),'\n  ]\n}\n']
+    Path(path).write_text(''.join(parts),encoding='utf-8')
+
+
 if __name__=='__main__':
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('mod_key');p.add_argument('--jar',type=Path,required=True);p.add_argument('--index',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--selection',type=Path);p.add_argument('--field-index',type=Path);a=p.parse_args()
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('mod_key');p.add_argument('--jar',type=Path,required=True);p.add_argument('--index',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--selection',type=Path);p.add_argument('--field-index',type=Path);p.add_argument('--compact',action='store_true');a=p.parse_args()
     c=read_json(OUT/f'{a.mod_key}-combat-census.json');i=read_json(a.index)
     selection=read_json(a.selection)['rows'] if a.selection else None
     fields=read_json(a.field_index) if a.field_index else None
     d=collect(c,i,a.jar,selection=selection,field_index=fields)
-    validate(d,c,{(m['entry'],m['method'],m['descriptor']) for m in i['methods']},field_index=fields);write_json(a.output,d);print(d['summary'])
+    validate(d,c,{(m['entry'],m['method'],m['descriptor']) for m in i['methods']},field_index=fields);write_registry(a.output,d,compact=a.compact);print(d['summary'])
