@@ -101,7 +101,13 @@ def prepare_raw(spec, client, mappings, manifest_path):
                         code_hex=code.hex(),instructions=body,
                         **({'instruction_offset_ranges':ranges} if ranges else {})))
             assert set(wanted)<={m['name'] for m in methods},(named,wanted)
-            records.append(dict(class_name=named,raw_entry=entry,raw_class_sha256=byte_hash(raw),methods=methods))
+            declarations={}
+            if spec.get('include_declarations'):
+                declarations=dict(superclass=names.obfuscated.get(cls.super,cls.super),
+                    interfaces=[names.obfuscated.get(i,i) for i in cls.interfaces],
+                    declared_methods=[dict(name=names.member(cls.name,m['name'],m['descriptor']),
+                        obfuscated_descriptor=m['descriptor'],access=m['access']) for m in cls.methods])
+            records.append(dict(class_name=named,raw_entry=entry,raw_class_sha256=byte_hash(raw),methods=methods,**declarations))
     return dict(schema='tno.external_effects.vanilla_witness.v1',baseline=BASELINE,
         status='RAW_VANILLA_BYTECODE_PINNED',version='1.21.1',client_jar_sha256=sha256(client),
         mappings_sha256=sha256(mappings),manifest_sha256=sha256(manifest_path),

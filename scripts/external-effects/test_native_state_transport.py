@@ -121,4 +121,92 @@ class NativeStateTransportTests(NativeContractHarness,unittest.TestCase):
                 self.assertFalse(any(any(s in str(i['operand']) for s in forbidden) for i in m['instructions']))
 
 
+class NativeBlockStateCarrierTests(NativeContractHarness,unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m7b-native-block-state-carriers.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-native-block-state-carriers.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+        cls.vanilla=read_json(OUT/'vanilla-evidence/arphex-native-block-state-carriers.json')
+        cls.patch=read_json(OUT/'reference-evidence/arphex-native-block-state-carriers-244.json')['witnesses'][0]
+        cls.carriers=[w for w in cls.native['witnesses'] if '/block/entity/' in w['entry']]
+
+    def test_refinement_counts_do_not_add_copied_values_or_inventory_scalars(self):
+        summary=validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual((summary['semantic_records'],summary['numeric_candidate_entries']),(462,3903))
+        self.assertEqual((len(self.native['witnesses']),sum(len(w['methods']) for w in self.native['witnesses'])),(8,145))
+        self.assertEqual(len(self.carriers),7);self.assertEqual(len(self.batch['record_refinements']),5)
+        self.assertEqual(len(self.batch['exclusions']),2);self.assertFalse(self.batch['effects'])
+        self.assertTrue(all(not r.get('candidate_additions') for r in self.batch['record_refinements']))
+
+    def test_native_stored_nine_slots_are_not_the_separate_three_row_menu(self):
+        for w in self.carriers:
+            n=w['entry'].rsplit('/',1)[-1][:-6]
+            b=self.body(n,'<init>');at=next(j for j,i in enumerate(b) if '.withSize(' in str(i['operand']))
+            self.assertEqual(b[at-2]['operand'],9)
+            m=self.body(n,'createMenu')
+            self.assertTrue(any('ChestMenu.threeRows(ILnet/minecraft/world/entity/player/Inventory;)' in str(i['operand']) for i in m))
+            self.assertFalse(any(i.get('local_index')==0 for i in m))
+        c=next(c for c in self.vanilla['classes'] if c['class_name'].endswith('/ChestMenu'))
+        m=next(m for m in c['methods'] if m['name']=='<init>' and any('SimpleContainer' in str(i['operand']) for i in m['instructions']))
+        body=m['instructions'];at=next(j for j,i in enumerate(body) if 'SimpleContainer.<init>(I)' in str(i['operand']))
+        self.assertEqual((body[at-3]['operand'],body[at-1]['opcode']),(9,'0x68'))
+        factory=next(m for m in c['methods'] if m['name']=='threeRows' and len(m['instructions'])==8)
+        self.assertEqual(factory['instructions'][-3]['operand'],3)
+
+    def test_parent_load_save_and_unconditional_load_items_order_is_preserved(self):
+        for w in self.carriers:
+            n=w['entry'].rsplit('/',1)[-1][:-6]
+            load=self.body(n,'loadAdditional');save=self.body(n,'saveAdditional')
+            self.assertIn('RandomizableContainerBlockEntity.loadAdditional(',load[3]['operand'])
+            self.assertIn('RandomizableContainerBlockEntity.saveAdditional(',save[3]['operand'])
+            load_at=next(i['offset'] for i in load if 'ContainerHelper.loadAllItems' in str(i['operand']))
+            gate=next(i for i in load if i.get('branch_target') is not None)
+            self.assertLess(gate['branch_target'],load_at)
+            save_at=next(i['offset'] for i in save if 'ContainerHelper.saveAllItems' in str(i['operand']))
+            self.assertGreater(next(i['branch_target'] for i in save if i.get('branch_target') is not None),save_at)
+        parent=next(c for c in self.vanilla['classes'] if c['class_name'].endswith('/RandomizableContainerBlockEntity'))
+        self.assertTrue(parent['superclass'].endswith('/BaseContainerBlockEntity'))
+        self.assertFalse(any(m['name'] in ('loadAdditional','saveAdditional') for m in parent['declared_methods']))
+        base=next(c for c in self.vanilla['classes'] if c['class_name'].endswith('/BaseContainerBlockEntity'))
+        for m in base['methods']:
+            self.assertIn('BlockEntity.'+m['name']+'(',m['instructions'][3]['operand'])
+
+    def test_native_persistent_tag_is_conditional_loaded_and_copied_on_save(self):
+        text=''.join(s['text'] for s in self.patch['text_sections'])
+        self.assertIn('contains("NeoForgeData", net.minecraft.nbt.Tag.TAG_COMPOUND)',text)
+        self.assertIn('this.customPersistentData = p_338466_.getCompound("NeoForgeData")',text)
+        self.assertIn('p_187471_.put("NeoForgeData", this.customPersistentData.copy())',text)
+        self.assertIn('if (this.customPersistentData == null)',text)
+        self.assertNotIn('ForgeData"',text.replace('NeoForgeData"',''))
+        block=next(c for c in self.vanilla['classes'] if c['class_name'].endswith('/BlockEntity'))
+        b=next(m for m in block['methods'] if m['name']=='saveWithoutMetadata')['instructions']
+        self.assertTrue(any('BlockEntity.saveAdditional(' in str(i['operand']) and i['opcode']=='0xb6' for i in b))
+
+    def test_shared_inventory_methods_are_exact_self_owner_equivalent(self):
+        from compare_native_methods import normalized
+        names=('loadAdditional','saveAdditional','getUpdatePacket','getUpdateTag','getContainerSize','isEmpty','getMaxStackSize','createMenu','getItems','setItems','canPlaceItem','getSlotsForFace','canPlaceItemThroughFace','canTakeItemThroughFace','getItemHandler')
+        for n in names:
+            bodies=[normalized(next(m for m in w['methods'] if m['name']==n)['instructions'],w['class_name']) for w in self.carriers]
+            self.assertTrue(all(b==bodies[0] for b in bodies))
+
+    def test_eight_native_capability_providers_ignore_side_and_return_native_handler(self):
+        w=next(w for w in self.native['witnesses'] if w['entry'].endswith('/ArphexModBlockEntities.class'))
+        callbacks=[m for m in w['methods'] if m['name'].startswith('lambda$registerCapabilities$')]
+        self.assertEqual(len(callbacks),8)
+        for m in callbacks:
+            b=m['instructions']
+            self.assertTrue(any('.getItemHandler()' in str(i['operand']) for i in b))
+            self.assertFalse(any(i.get('local_index')==1 for i in b))
+        self.assertTrue(any('TesseractTransporterBlockEntity' in str(i['operand']) for m in callbacks for i in m['instructions']))
+        registration=next(m for m in w['methods'] if m['name']=='registerCapabilities')
+        self.assertTrue(any(a['descriptor']=='Lnet/neoforged/bus/api/SubscribeEvent;' for a in registration['annotations']))
+
+    def test_all_carrier_methods_have_no_authored_combat_payload_or_tick(self):
+        for w in self.carriers:
+            self.assertNotIn('tick',w['declared_method_names'])
+            for m in w['methods']:
+                self.assertFalse(any(any(s in str(i['operand']) for s in ('.hurt(','.addEffect(','.heal(','.setDeltaMovement(','EntityType.spawn(')) for i in m['instructions']))
+
+
 if __name__=='__main__':unittest.main()
