@@ -132,6 +132,9 @@ def forwarding_shape(entry, name, descriptor, access, body, exception_handlers=(
     from native_particle_shapes import particle_shape
     particle=particle_shape(entry,name,descriptor,access,body,superclass)
     if particle and not bootstraps:return particle
+    from native_model_shapes import model_shape
+    model=model_shape(entry,name,descriptor,access,body,bootstraps or {},superclass)
+    if model:return model
     # Only compiler-generated, static one-reference predicates. A public/native
     # admission callback returning a constant is deliberately not covered here.
     # The caller's query/admission and its unconditional predicate remain native.
@@ -210,6 +213,7 @@ def collect(census, index, jar, selection=None, field_index=None):
                  (m['method'] in ('movementPredicate','attackingPredicate','idlePredicate','registerControllers','getTexture','setTexture','getSyncedAnimation','setAnimation')) or
                  (classes[m['entry']]['superclass']=='net/minecraft/client/particle/TextureSheetParticle') or
                  ('net/minecraft/client/particle/ParticleProvider' in classes[m['entry']]['interfaces']) or
+                 (classes[m['entry']]['superclass']=='software/bernie/geckolib/model/GeoModel') or
                  (m['method']=='appendHoverText') or
                  (classes[m['entry']]['superclass']=='software/bernie/geckolib/renderer/GeoEntityRenderer' and m['method']=='getDeathMaxRotation' and m['code_bytes'] in (2,3,4)) or
                  (m['access'] & 0x1008 == 0x1008 and m['descriptor'].endswith(')Z') and m['code_bytes']==2) or
@@ -236,9 +240,12 @@ def collect(census, index, jar, selection=None, field_index=None):
             if is_particle(shape):
                 from native_particle_shapes import validate_context
                 validate_context(shape,entry,census)
+            if is_model(shape):
+                from native_model_shapes import validate_context
+                validate_context(shape,entry,census)
             waiting.append(dict(entry=entry,entry_sha256=classes[entry]['entry_sha256'],method=m['method'],descriptor=m['descriptor'],
                 access=m['access'],code_sha256=m['code_sha256'],code_hex=code.hex(),instructions=body,exception_handlers=[],
-                **(dict(superclass=cls.super) if is_animation(shape) or is_particle(shape) or shape['kind'] in ('EXACT_GECKO_MODEL_ASSET_QUERY','EXACT_GECKO_DEATH_RENDER_ROTATION','EXACT_NATIVE_LITERAL_TOOLTIP') else {}),
+                **(dict(superclass=cls.super) if is_animation(shape) or is_particle(shape) or is_model(shape) or shape['kind'] in ('EXACT_GECKO_MODEL_ASSET_QUERY','EXACT_GECKO_DEATH_RENDER_ROTATION','EXACT_NATIVE_LITERAL_TOOLTIP') else {}),
                 **(dict(bootstraps=bootstraps) if bootstraps else {}),**shape))
     query_keys={(r['entry'],r['method'],r['descriptor']) for r in waiting if r['kind']=='EXACT_NATIVE_DISTANCE_QUERY'}
     while waiting:
@@ -275,6 +282,8 @@ def collect(census, index, jar, selection=None, field_index=None):
         scope+=' GeckoLib clip callbacks require exact allowed API effects, no authored native query overrides, and native actor inheritance. Scratch attack animation fields must be actor-declared with no gameplay consumers. Controller registration requires every actual typed handler to be independently dispositioned. String transport preserves producer/readers and cannot close them or promote animation clocks into combat scalars.'
     if any(is_particle(r) for r in rows):
         scope+=' Native TextureSheetParticle construction/tick/render fields and typed ParticleProvider factories operate on client particles, not Entity damage or physical actor motion. Exact constructor/factory target coverage is required; particle-requesting combat producers, ownership and actual damage remain separate.'
+    if any(is_model(r) for r in rows):
+        scope+=' Exact native GeoModel contexts preserve parent construction, dynamic texture String consumers, fallback model/animation paths and EntityModelData-to-GeoBone rotations. String helper targets must be independently dispositioned; no authored inherited-query override or Entity rotation/physics/damage API is admitted. Actor writers and gameplay state stay separate.'
     return dict(schema='tno.external_effects.exact_native_forwarding.v1',mod_key=census['mod_key'],jar_sha256=census['jar_sha256'],
         scope=scope,
         **(dict(field_index_file=census['mod_key']+'-native-field-use-index.json',
@@ -296,6 +305,11 @@ def is_animation(row):
 def is_particle(row):
     return row['kind'] in {'EXACT_NATIVE_PARTICLE_PARENT_TICK','EXACT_NATIVE_PARTICLE_ROLL_TICK','EXACT_NATIVE_PARTICLE_RENDER_TYPE','EXACT_NATIVE_PARTICLE_RENDER_LIGHT',
         'EXACT_NATIVE_CLIENT_PARTICLE_CONSTRUCTION','EXACT_NATIVE_PARTICLE_PROVIDER_FACTORY','EXACT_NATIVE_PARTICLE_SPRITE_PROVIDER','EXACT_NATIVE_CLIENT_PARTICLE_FACTORY'}
+
+
+def is_model(row):
+    return row['kind'] in {'EXACT_GECKO_MODEL_PARENT_CONSTRUCTION','EXACT_GECKO_DYNAMIC_TEXTURE_QUERY',
+        'EXACT_GECKO_SYNCED_STRING_ASSET_QUERY','EXACT_GECKO_MODEL_BONE_ROTATION'}
 
 
 def validate(document,census,covered,field_index=None):
@@ -323,6 +337,9 @@ def validate(document,census,covered,field_index=None):
             validate_context(shape,r['entry'],census,field_index)
         if is_particle(shape):
             from native_particle_shapes import validate_context
+            validate_context(shape,r['entry'],census)
+        if is_model(shape):
+            from native_model_shapes import validate_context
             validate_context(shape,r['entry'],census)
         for field,value in shape.items():
             if field not in ('kind','target','targets'):assert r[field]==value
