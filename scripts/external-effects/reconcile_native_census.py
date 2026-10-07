@@ -86,6 +86,7 @@ def reconcile(review, census, read=read_json, root=OUT):
             forwarding_files.add(batch['native_forwarding_registry_file'])
         if batch.get('native_context_graph_registry_file'):
             context_graph_files.add(batch['native_context_graph_registry_file'])
+        context_graph_files.update(batch.get('native_context_graph_registry_files',[]))
         for context in batch.get('native_context_equivalences', []):
             assert context.get('file') and context.get('reason'), 'Unreviewed context equivalence'
             filename = context['file']
@@ -101,12 +102,19 @@ def reconcile(review, census, read=read_json, root=OUT):
             continue
         for exclusion in exclusions:
             if not isinstance(exclusion, dict) or not all(exclusion.get(k)
-                    for k in ('entry', 'reason', 'implementation')):
+                    for k in ('reason', 'implementation')):
                 continue
-            assert exclusion['entry'] in classes, ('Excluded entry missing', filename, exclusion['entry'])
+            entries=exclusion.get('entries') or ([exclusion['entry']] if exclusion.get('entry') else [])
+            if not entries:continue
+            assert set(entries)<=set(classes), ('Excluded entry missing', filename,entries)
             for p in exclusion['implementation']:
+                # Legacy single-entry exclusions can cite exact shared helper
+                # methods. New grouped declarations explicitly scope every
+                # proof; names/prose alone still grant no coverage.
+                if exclusion.get('entries'):
+                    assert p.get('entry') in entries, ('Exclusion proof is outside its declared entries',filename,p)
                 cite(p, [], dict(kind='REVIEWED_EXCLUSION', reviewed_batch=filename,
-                     excluded_entry=exclusion['entry'], reason=exclusion['reason'],
+                     excluded_entry=p['entry'], reason=exclusion['reason'],
                      disposition=exclusion.get('disposition', 'REVIEWED_EXCLUSION')))
 
     for filename, record_ids in sorted(shared.items()):

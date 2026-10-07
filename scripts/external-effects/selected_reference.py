@@ -10,6 +10,9 @@ def collect(spec,source_aids=False):
     for archive in spec['archives']:
         assert sha256(archive['path'])==archive['sha256']
         with zipfile.ZipFile(archive['path']) as jar:
+            for entry in archive.get('absent_resources',[]):
+                assert entry not in jar.namelist(), ('claimed absent resource exists',entry)
+                result.append(dict(archive_sha256=archive['sha256'],entry=entry,absent=True))
             for entry,wanted in archive.get('classes',{}).items():
                 data=jar.read(entry);cls=ClassFile(data)
                 methods=[m for m in cls.methods if m['name'] in wanted or wanted==['*']]

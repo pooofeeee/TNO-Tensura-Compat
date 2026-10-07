@@ -74,3 +74,37 @@ class ContextGraphTests(unittest.TestCase):
 
 
 if __name__=='__main__':unittest.main()
+
+class NativeValueAndGenerationTests(unittest.TestCase):
+    def value_fixture(self):
+        c=fixture();m=c['methods'][0];m['descriptor']='()Lnet/minecraft/world/phys/shapes/VoxelShape;';m['calls']=[]
+        return c
+    def generation_fixture(self):
+        c=fixture();old=c['classes'][0]['name'];new='example/server/level/feature/Layout'
+        c['classes'][0].update(entry=new+'.class',name=new)
+        c['symbols']=[s.replace(old,new) for s in c['symbols']]
+        for m in c['methods']:m['entry']=new+'.class'
+        return c
+    def test_typed_value_is_retained_without_actor_mutation(self):
+        c=self.value_fixture();self.assertEqual(prove(c,'native-value-metadata-v3')['summary']['methods'],1)
+        c['methods'][0]['calls']=[[0,182,4]]
+        self.assertEqual(prove(c,'native-value-metadata-v3')['summary']['methods'],0)
+    def test_value_graph_rejects_collection_write_alias(self):
+        c=self.value_fixture();c['symbols'].append('java/util/Map.put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;');c['methods'][0]['calls']=[[0,185,5]]
+        self.assertEqual(prove(c,'native-value-metadata-v3')['summary']['methods'],0)
+    def test_generation_own_layout_fields_are_allowed_not_actor_fields(self):
+        c=self.generation_fixture();c['methods'][1]['hits']=[[0,181,1]]
+        self.assertEqual(prove(c,'generation-layout-v4')['summary']['methods'],2)
+        c['symbols'].append('net/minecraft/world/entity/Entity.fallDistanceF');c['methods'][1]['hits']=[[0,181,5]]
+        self.assertEqual(prove(c,'generation-layout-v4')['summary']['methods'],0)
+    def test_generation_package_does_not_hide_combat_or_opaque_placement(self):
+        c=self.generation_fixture()
+        for s in ['net/minecraft/world/level/WorldGenLevel.addFreshEntity(Lnet/minecraft/world/entity/Entity;)Z','net/minecraft/world/level/levelgen/feature/Feature.place()Z','example/server/block/Unknown.activate()V']:
+            c['symbols'].append(s);c['methods'][1]['calls']=[[0,182,len(c['symbols'])-1]]
+            self.assertEqual(prove(c,'generation-layout-v4')['summary']['methods'],0)
+    def test_value_profile_cannot_mutate_render_or_network_state(self):
+        self.assertFalse(external_allowed('net/minecraft/client/renderer/GameRenderer.setPostEffect(Ljava/lang/Object;)V','native-value-metadata-v3'))
+        self.assertFalse(external_allowed('net/minecraft/network/Connection.send(Ljava/lang/Object;)V','native-value-metadata-v3'))
+    def test_generation_terrain_write_does_not_authorize_block_entity_mutation(self):
+        self.assertTrue(external_allowed('net/minecraft/world/level/WorldGenLevel.setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z','generation-layout-v4'))
+        self.assertFalse(external_allowed('net/minecraft/world/level/block/entity/SpawnerBlockEntity.setEntityId()V','generation-layout-v4'))

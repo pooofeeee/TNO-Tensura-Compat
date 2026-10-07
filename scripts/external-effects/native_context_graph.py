@@ -17,7 +17,55 @@ from reconcile_native_census import method_key
 
 ROOTS=('/client/model/', '/client/render/', '/client/particle/')
 EXTRA_ROOTS=('/client/sound/', '/client/gui/')
-PROFILES=('visual-v1','presentation-audio-ui-v2')
+PROFILES=('visual-v1','presentation-audio-ui-v2','native-value-metadata-v3','generation-layout-v4')
+GEN_ROOTS=('/server/level/feature/','/server/level/carver/',
+    '/server/level/surface/','/server/level/structure/')
+GEN_VALUES=('net/minecraft/world/level/levelgen/synth/',
+    'net/minecraft/world/level/levelgen/blending/',
+    'net/minecraft/world/level/levelgen/feature/configurations/',
+    'net/minecraft/world/level/levelgen/feature/stateproviders/',
+    'net/minecraft/world/level/levelgen/heightproviders/',
+    'net/minecraft/world/level/levelgen/structure/templatesystem/StructurePlaceSettings',
+    'net/minecraft/world/level/levelgen/structure/BoundingBox',
+    'net/minecraft/world/level/levelgen/Heightmap$',
+    'net/minecraft/world/level/levelgen/GenerationStep$',
+    'net/minecraft/world/level/levelgen/CarvingMask',
+    'net/minecraft/util/valueproviders/', 'net/minecraft/core/SectionPos',
+    'net/minecraft/tags/TagKey', 'net/minecraft/world/level/ChunkPos')
+GEN_QUERY={
+ 'net/minecraft/world/level/WorldGenLevel': {'getBlockState','getFluidState','setBlock','isEmptyBlock','getHeight','getMinBuildHeight','getMaxBuildHeight','getRandom','getSeed','getBiome','ensureCanWrite','getLevel','isStateAtPosition','getBlockEntity'},
+ 'net/minecraft/world/level/LevelAccessor': {'getBlockState','getFluidState','setBlock','isEmptyBlock','getMinBuildHeight','getMaxBuildHeight','getRandom'},
+ 'net/minecraft/world/level/LevelReader': {'getBlockState','getFluidState','isEmptyBlock','getHeight','getMinBuildHeight','getMaxBuildHeight','getBiome'},
+ 'net/minecraft/world/level/StructureManager': {'startsForStructure','getStructureWithPieceAt'},
+ 'net/minecraft/world/level/chunk/ChunkGenerator': {'getBaseHeight','getFirstFreeHeight','getFirstOccupiedHeight','getSeaLevel'},
+ 'net/minecraft/world/level/levelgen/feature/Feature': {'<init>','setBlock','isReplaceable','isAir','isDirt','isStone','markAboveForPostProcessing'},
+ 'net/minecraft/world/level/levelgen/feature/FeaturePlaceContext': {'origin','random','level','config','chunkGenerator'},
+ 'net/minecraft/world/level/levelgen/structure/Structure': {'<init>','onTopOfChunkCenter','simpleCodec','adjustBoundingBox','settings','type'},
+ 'net/minecraft/world/level/levelgen/structure/StructurePiece': {'<init>','getWorldX','getWorldY','getWorldZ','getWorldPos','placeBlock','isInside','getBoundingBox','setOrientation','getOrientation','getGenDepth','isCloseToChunk','getBlock','generateBox','generateAirBox','fillColumnDown','createTag'},
+ 'net/minecraft/world/level/levelgen/structure/StructurePieceAccessor': {'addPiece'},
+ 'net/minecraft/world/level/block/state/BlockState': {'canSurvive','getBlock','isSolid','getDestroySpeed','isFaceSturdy','getTags','hasBlockEntity'},
+ 'net/minecraft/world/level/block/Block': {'getId'},
+ 'net/minecraft/world/level/material/FluidState': {'isEmpty'},
+}
+# These return types describe native metadata/geometry, never damage, effect,
+# movement or admission scalars. Read-only bodies remain native API context;
+# their callers and any side-effecting supplier stay independently pending.
+VALUE_RETURNS=('Lnet/minecraft/world/phys/shapes/VoxelShape;',
+    'Lnet/minecraft/world/level/block/RenderShape;',
+    'Lcom/mojang/serialization/MapCodec;', 'Lcom/mojang/serialization/Codec;',
+    'Lnet/minecraft/network/codec/StreamCodec;',
+    'Lnet/minecraft/resources/ResourceLocation;',
+    'Lnet/minecraft/world/item/UseAnim;',
+    'Lnet/minecraft/world/level/material/MapColor;')
+VALUE_QUERY={
+ 'net/minecraft/world/level/block/Block': {'box','getShape','getCollisionShape','getBlockSupportShape','getVisualShape'},
+ 'net/minecraft/world/level/block/SnowLayerBlock': {'getCollisionShape'},
+ 'net/minecraft/world/level/block/state/BlockBehaviour': {'getShape','getCollisionShape','getBlockSupportShape','getVisualShape'},
+ 'net/minecraft/world/level/block/state/BlockState': {'getShape','getCollisionShape','getBlockSupportShape','getVisualShape'},
+ 'net/minecraft/world/level/block/state/properties/Property': {'getName','getValueClass'},
+ 'net/minecraft/world/phys/shapes/EntityCollisionContext': {'getEntity','isAbove','isDescending'},
+ 'net/minecraft/world/phys/shapes/CollisionContext': {'isAbove','isDescending','isHoldingItem','canStandOnFluid'},
+}
 VISUAL=('net/minecraft/client/model/', 'net/minecraft/client/renderer/',
         'net/minecraft/client/particle/', 'net/minecraft/client/resources/',
         'net/minecraft/client/gui/Font', 'com/mojang/blaze3d/', 'com/mojang/math/',
@@ -91,6 +139,21 @@ def external_allowed(symbol, profile='visual-v1'):
     p=parts(symbol)
     if not p:return False
     owner,name,_=p
+    if profile=='generation-layout-v4':
+        if any(owner.startswith(x) for x in GEN_VALUES):return True
+        if name in GEN_QUERY.get(owner,set()):return True
+        # Generation may write terrain, but not entities, inventories, block
+        # entities or opaque native markers. Their exact paths remain pending.
+        return external_allowed(symbol,'native-value-metadata-v3')
+    if profile=='native-value-metadata-v3':
+        # The presentation allow-list includes render mutations. None belongs
+        # in a server-side value proof; only values and explicit native queries.
+        if owner.startswith(('java/util/','com/google/common/collect/','it/unimi/dsi/fastutil/')):
+            return name in {'<init>','get','getOrDefault','size','isEmpty','contains','containsKey','containsValue','iterator','hasNext','next','stream','values','keySet','entrySet','of','copyOf','emptyList','emptyMap','emptySet','singleton','singletonList','singletonMap','unmodifiableList','unmodifiableMap','unmodifiableSet','map','flatMap','filter','findFirst','findAny','collect','toList','orElse','orElseGet','isPresent','isEmpty','ofNullable','empty','comparing','comparingDouble','comparingInt','naturalOrder','reverseOrder','getKey','getValue','equals','hashCode','toString'}
+        if any(owner.startswith(x) for x in VALUES):return True
+        if owner.startswith('[') and name=='clone':return True
+        if owner.startswith('net/minecraft/world/entity/') and name in ENTITY_READ:return True
+        return name in QUERY.get(owner,set()) | VALUE_QUERY.get(owner,set())
     if profile=='presentation-audio-ui-v2' and owner.startswith('net/minecraft/client/sounds/'):
         return True
     if any(owner.startswith(x) for x in VISUAL+VALUES):return True
@@ -135,12 +198,13 @@ def prove(census, profile='visual-v1'):
         return external_allowed(r[1]+'.'+name+desc,profile)
 
     for key,m in native.items():
-        entry=m['entry'];is_visual=visual_entry(entry,profile);deps=set()
+        entry=m['entry'];is_visual=profile not in ('native-value-metadata-v3','generation-layout-v4') and visual_entry(entry,profile);deps=set()
         valid=not m['access'] & (0x100|0x400)
         for hit in decode_sites(census,m,'hits'):
             op=hit['opcode'];symbol=str(hit['operand'])
             if op in ('0xb3','0xb5'):
                 owner=symbol.rsplit('.',1)[0]
+                if profile=='generation-layout-v4' and any(root in entry for root in GEN_ROOTS) and any(root in owner for root in GEN_ROOTS):continue
                 if not is_visual or not (visual_entry(owner,profile) or any(owner.startswith(x) for x in VISUAL)):
                     valid=False;break
         for hit in decode_sites(census,m,'calls'):
@@ -163,7 +227,10 @@ def prove(census, profile='visual-v1'):
         rejected={k for k in safe if not dependencies[k] <= safe}
         if not rejected:break
         safe-=rejected
-    roots={k for k in native if visual_entry(k[0],profile) or (profile=='presentation-audio-ui-v2' and typed_presentation_return(native[k]))}
+    roots=({k for k in native if any(root in k[0] for root in GEN_ROOTS)} if profile=='generation-layout-v4' else
+           {k for k in native if any(native[k]['descriptor'].endswith(')'+t) for t in VALUE_RETURNS)}
+           if profile=='native-value-metadata-v3' else
+           {k for k in native if visual_entry(k[0],profile) or (profile=='presentation-audio-ui-v2' and typed_presentation_return(native[k]))})
     accepted=roots & safe
     rows=[dict(entry=k[0],method=k[1],descriptor=k[2],code_sha256=native[k]['code_sha256'],
                entry_sha256=classes[k[0][:-6]]['entry_sha256'],
@@ -176,6 +243,16 @@ def prove(census, profile='visual-v1'):
         'dispatch, game writes, inputs/network and mixed consumers stay pending. '
         'External Citadel model/render APIs are visual dependencies, not proof of time-controller semantics.',
         rows=rows,summary=dict(methods=len(rows),remaining_presentation_methods=len(roots)-len(rows)))
+    if profile=='native-value-metadata-v3':
+        result['scope']='Exact typed native geometry/metadata values with a transitive no-game-write proof. Original geometry/state reads retained; caller admission, scalar inputs and side-effecting suppliers remain pending.'
+        for row in rows:
+            row.update(disposition='TYPED_NATIVE_VALUE_API_CONTEXT',reason='Read-only exact native geometry/metadata API body; no independent runtime scalar contribution. Native callers remain separately covered or pending.')
+        result['summary']={'methods':len(rows),'remaining_value_methods':len(roots)-len(rows)}
+    if profile=='generation-layout-v4':
+        result['scope']='Exact finite world-generation layout graph only: native terrain placement/data allowed, actor/spawner/blockentity/inventory mutation and unknown dispatch rejected. Combat producers and runtime block semantics remain independently reviewed.'
+        for row in rows:
+            row.update(disposition='NATIVE_GENERATION_LAYOUT_CONTEXT',reason='Bounded world-generation geometry/terrain layout; transitive graph contains no actor or blockentity mutation. Native runtime block mechanics and encounter producers remain separate.')
+        result['summary']={'methods':len(rows),'remaining_generation_methods':len(roots)-len(rows)}
     if profile!='visual-v1':
         result['context_profile']=profile
     return result

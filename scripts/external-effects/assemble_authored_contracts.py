@@ -84,6 +84,8 @@ def render(spec):
     for authored in spec.get('exclusions',[]):
         exclusion=dict(authored)
         exclusion['implementation']=[proof(s)[0] for s in authored['implementation']]
+        if 'entry' not in exclusion:
+            exclusion['entries']=sorted({p['entry'] for p in exclusion['implementation']})
         exclusions.append(exclusion)
     refinements=deepcopy(spec.get('record_refinements',[]))
     for change in refinements:
@@ -94,7 +96,7 @@ def render(spec):
         effects=sorted(rows,key=lambda r:r['id']),paths=sorted(paths,key=lambda r:r['id']),exclusions=exclusions,
         record_refinements=refinements,
         exact_next_task=spec['exact_next_task'],stage_policy_decided=False,runtime_tests=0,
-        **({key:spec[key] for key in ('native_context_graph_registry_file',)
+        **({key:spec[key] for key in ('native_context_graph_registry_file','native_context_graph_registry_files')
             if key in spec}),
         **({'validation':deepcopy(spec['validation'])} if spec.get('validation') else {}))
 

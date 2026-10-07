@@ -127,6 +127,22 @@ class ExactContractIndexTests(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, 'Method hash mismatch'):
             self.run_fixture(review, census, files)
 
+    def test_grouped_exclusion_has_explicit_entry_scope_and_independent_hash(self):
+        review,census,files=self.exclusion_fixture()
+        e=files['batch.json']['exclusions'][0]
+        e['entries']=[e.pop('entry')]
+        index,pending=self.run_fixture(review,census,files)
+        self.assertEqual(index['summary']['explicit_exclusion_methods'],1)
+        e['implementation'][0]['entry']='test/Outside.class'
+        with self.assertRaisesRegex(AssertionError,'outside its declared entries'):
+            self.run_fixture(review,census,files)
+
+    def test_scoped_methods_without_declared_entry_set_still_do_not_close(self):
+        review,census,files=self.exclusion_fixture()
+        files['batch.json']['exclusions'][0].pop('entry')
+        _,pending=self.run_fixture(review,census,files)
+        self.assertEqual({m['method'] for m in pending},{'getState','bridge'})
+
     def test_missing_method_or_entry_cannot_close_excluded_context(self):
         for field, value in [('entry', 'test/Missing.class'), ('methods', ['missing'])]:
             review, census, files = self.exclusion_fixture()
