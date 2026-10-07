@@ -17,8 +17,9 @@ class Reader:
     def u4(self): return int.from_bytes(self.take(4),'big')
 
 class ClassFile:
-    def __init__(self,data,retain_annotations=False):
+    def __init__(self,data,retain_annotations=False,retain_code_metadata=False):
         self.retain_annotations=retain_annotations
+        self.retain_code_metadata=retain_code_metadata
         r=Reader(data)
         assert r.u4()==0xcafebabe
         self.minor=r.u2(); self.major=r.u2(); count=r.u2(); self.cp=[None]*count
@@ -56,6 +57,8 @@ class ClassFile:
             for attr,data in attrs:
                 if attr=='Code':
                     cr=Reader(data); item['max_stack']=cr.u2();item['max_locals']=cr.u2();item['code']=cr.take(cr.u4())
+                    if self.retain_code_metadata:
+                        item['exception_handlers']=[tuple(cr.u2() for _ in range(4)) for _ in range(cr.u2())]
                 elif attr=='ConstantValue': item['constant']=self.resolve(int.from_bytes(data,'big'))
             if self.retain_annotations:
                 item['annotations']=self.annotations(attrs)

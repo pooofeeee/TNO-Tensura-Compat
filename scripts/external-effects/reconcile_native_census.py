@@ -49,6 +49,7 @@ def reconcile(review, census, read=read_json, root=OUT):
         return value
 
     shared = defaultdict(set)
+    forwarding_files=set()
     def cite(p, record_ids, metadata):
         filename = p.get('evidence_file', '')
         entry = p.get('entry')
@@ -73,6 +74,8 @@ def reconcile(review, census, read=read_json, root=OUT):
         batch = packet(filename)
         assert batch['schema'] == 'tno.external_effects.reviewed_combat_batch.v1'
         assert batch['mod_key'] == census['mod_key']
+        if batch.get('native_forwarding_registry_file'):
+            forwarding_files.add(batch['native_forwarding_registry_file'])
         exclusions = batch.get('exclusions', [])
         # Legacy prose or unscoped name lists cannot close native methods.
         if not isinstance(exclusions, list):
@@ -117,6 +120,17 @@ def reconcile(review, census, read=read_json, root=OUT):
                              evidence_file=p['evidence_file'], witness_id=w['id']))
         else:
             raise AssertionError(('Unsupported shared registry', filename, schema))
+
+    from native_forwarding import validate as validate_forwarding
+    for filename in sorted(forwarding_files):
+        rows=validate_forwarding(packet(filename),census,covered)
+        for row in rows:
+            key=method_key(row)
+            target=row.get('target')
+            records=covered[method_key(target)]['record_ids'] if target else []
+            add(key,row['code_sha256'],records,dict(kind='REVIEWED_EXCLUSION',
+                registry_file=filename,disposition=row['kind'],
+                reason='Exact pinned context body; no independent native payload. Bridge targets require prior exact coverage.'))
 
     pending = [m for m in census['methods'] if method_key(m) not in covered]
     rows = []

@@ -595,6 +595,12 @@ def validate_batch(batch,review,census):
     assert batch['mod_key']==review['mod_key']==census['mod_key']
     native={(r['entry'],r['method'],r['descriptor']):r for r in census['methods']}
     index=EvidenceIndex();ids={r['id'] for r in review['effects']}
+    if batch.get('native_forwarding_registry_file'):
+        from reconcile_native_census import reconcile
+        from native_forwarding import validate as validate_forwarding
+        prior,_=reconcile(review,census)
+        validate_forwarding(index.read(batch['native_forwarding_registry_file']),census,
+            {(r['entry'],r['method'],r['descriptor']) for r in prior['methods']})
     candidates=set()
     refined=refined_review(review,batch)
     changes={c['id']:c for c in batch.get('record_refinements',[])}

@@ -86,6 +86,8 @@ class EvidenceIndex:
         self.file_hashes = {}
 
     def read(self, file):
+        if isinstance(file, Path):
+            file=file.relative_to(self.root).as_posix() if file.is_absolute() else file.as_posix()
         if file not in self.files:
             raw = (self.root/file).read_bytes()
             self.files[file] = json.loads(raw.decode('utf-8-sig'))
@@ -126,6 +128,13 @@ class EvidenceIndex:
 
 
 def audit_review(review, index):
+    forwarding_batches=[f for f in review.get('reviewed_batches',[])
+                        if index.read(f).get('native_forwarding_registry_file')]
+    if forwarding_batches:
+        from reconcile_native_census import reconcile
+        # Recheck every exact wrapper shape and its independent prior target;
+        # a manifest count or family completion label cannot grant coverage.
+        reconcile(review,index.read(review['mod_key']+'-combat-census.json'),read=index.read)
     rows, paths = review['effects'], review['paths']
     ids, by_path = {r['id'] for r in rows}, {p['id']: p for p in paths}
     assert len(ids) == len(rows), 'duplicate semantic ID'
