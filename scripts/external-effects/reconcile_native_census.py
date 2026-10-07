@@ -138,7 +138,9 @@ def reconcile(review, census, read=read_json, root=OUT):
 
     from native_forwarding import validate as validate_forwarding
     for filename in sorted(forwarding_files):
-        rows=validate_forwarding(packet(filename),census,covered)
+        registry=packet(filename)
+        rows=validate_forwarding(registry,census,covered,
+             field_index=packet(registry['field_index_file']) if registry.get('field_index_file') else None)
         for row in rows:
             key=method_key(row)
             target=row.get('target')

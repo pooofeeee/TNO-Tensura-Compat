@@ -126,6 +126,9 @@ def presentation_leaf_shape(entry, name, descriptor, access, body, superclass):
 def forwarding_shape(entry, name, descriptor, access, body, exception_handlers=(), bootstraps=None, superclass=None):
     """Return an exact proof shape or None; do not establish target coverage."""
     if exception_handlers:return None
+    from native_animation_shapes import animation_shape
+    animation=animation_shape(entry,name,descriptor,access,body,bootstraps or {},superclass)
+    if animation:return animation
     # Only compiler-generated, static one-reference predicates. A public/native
     # admission callback returning a constant is deliberately not covered here.
     # The caller's query/admission and its unconditional predicate remain native.
@@ -184,7 +187,7 @@ def forwarding_shape(entry, name, descriptor, access, body, exception_handlers=(
     return dict(kind='EXACT_COMPILER_BRIDGE',target=dict(entry=entry,method=name,descriptor=target_desc))
 
 
-def collect(census, index, jar, selection=None):
+def collect(census, index, jar, selection=None, field_index=None):
     assert sha256(jar)==census['jar_sha256']
     native={(m['entry'],m['method'],m['descriptor']):m for m in census['methods']}
     covered={(m['entry'],m['method'],m['descriptor']) for m in index['methods']}
@@ -201,6 +204,7 @@ def collect(census, index, jar, selection=None):
                  (classes[m['entry']]['superclass']=='software/bernie/geckolib/model/GeoModel' and m['method'] in ('getAnimationResource','getModelResource','getTextureResource') and m['code_bytes'] in (6,7)) or
                  (m['method'] in ('getAmbientSound','getHurtSound','getDeathSound') and m['code_bytes'] in (17,18)) or
                  (m['method']=='getAnimatableInstanceCache' and m['code_bytes']==5) or
+                 (m['method'] in ('movementPredicate','attackingPredicate','idlePredicate','registerControllers','getTexture','setTexture','getSyncedAnimation','setAnimation')) or
                  (m['method']=='appendHoverText') or
                  (classes[m['entry']]['superclass']=='software/bernie/geckolib/renderer/GeoEntityRenderer' and m['method']=='getDeathMaxRotation' and m['code_bytes'] in (2,3,4)) or
                  (m['access'] & 0x1008 == 0x1008 and m['descriptor'].endswith(')Z') and m['code_bytes']==2) or
@@ -220,20 +224,24 @@ def collect(census, index, jar, selection=None):
             bootstraps={str(n):bootstrap_signature(cls,n) for n in referenced_bootstraps(body)}
             shape=forwarding_shape(entry,m['method'],m['descriptor'],m['access'],body,method.get('exception_handlers',[]),bootstraps,cls.super)
             if not shape:continue
+            if is_animation(shape):
+                from native_animation_shapes import validate_context
+                if shape.get('animation_only_fields') and field_index is None:continue
+                validate_context(shape,entry,census,field_index)
             waiting.append(dict(entry=entry,entry_sha256=classes[entry]['entry_sha256'],method=m['method'],descriptor=m['descriptor'],
                 access=m['access'],code_sha256=m['code_sha256'],code_hex=code.hex(),instructions=body,exception_handlers=[],
-                **(dict(superclass=cls.super) if shape['kind'] in ('EXACT_GECKO_MODEL_ASSET_QUERY','EXACT_GECKO_DEATH_RENDER_ROTATION','EXACT_NATIVE_LITERAL_TOOLTIP') else {}),
+                **(dict(superclass=cls.super) if is_animation(shape) or shape['kind'] in ('EXACT_GECKO_MODEL_ASSET_QUERY','EXACT_GECKO_DEATH_RENDER_ROTATION','EXACT_NATIVE_LITERAL_TOOLTIP') else {}),
                 **(dict(bootstraps=bootstraps) if bootstraps else {}),**shape))
     query_keys={(r['entry'],r['method'],r['descriptor']) for r in waiting if r['kind']=='EXACT_NATIVE_DISTANCE_QUERY'}
     while waiting:
         next_wait=[]
         for r in waiting:
-            target=r.get('target')
+            target=r.get('target');targets=required_targets(r)
             if r['kind']=='EXACT_NATIVE_DISTANCE_COMPARATOR_FACTORY' and (target['entry'],target['method'],target['descriptor']) not in query_keys:
                 continue
-            if target and (target['entry'],target['method'],target['descriptor']) not in covered:
+            if any((t['entry'],t['method'],t['descriptor']) not in covered for t in targets):
                 next_wait.append(r);continue
-            if target:target['code_sha256']=native[(target['entry'],target['method'],target['descriptor'])]['code_sha256']
+            for t in targets:t['code_sha256']=native[(t['entry'],t['method'],t['descriptor'])]['code_sha256']
             covered.add((r['entry'],r['method'],r['descriptor']));rows.append(r)
         if len(next_wait)==len(waiting):break
         waiting=next_wait
@@ -255,16 +263,33 @@ def collect(census, index, jar, selection=None):
         scope+=' Exact sound registry returns, GeckoLib animation-cache queries and literal renderer death rotations are presentation API leaves; actor death/hurt, animation state writers and physical transforms remain separate.'
         if any(r['kind']=='EXACT_NATIVE_LITERAL_TOOLTIP' for r in rows):
             scope+=' Literal tooltip additions mutate only the supplied text list after the exact native parent call; tooltip claims do not establish actual combat values or active mechanics.'
+    if any(is_animation(r) for r in rows):
+        scope+=' GeckoLib clip callbacks require exact allowed API effects, no authored native query overrides, and native actor inheritance. Scratch attack animation fields must be actor-declared with no gameplay consumers. Controller registration requires every actual typed handler to be independently dispositioned. String transport preserves producer/readers and cannot close them or promote animation clocks into combat scalars.'
     return dict(schema='tno.external_effects.exact_native_forwarding.v1',mod_key=census['mod_key'],jar_sha256=census['jar_sha256'],
         scope=scope,
+        **(dict(field_index_file=census['mod_key']+'-native-field-use-index.json',
+                field_index_content_sha256=byte_hash(json.dumps(field_index,sort_keys=True,separators=(',',':')).encode())) if any(r.get('animation_only_fields') for r in rows) else {}),
         summary=dict(methods=len(rows),counts_by_kind=dict(sorted(Counter(r['kind'] for r in rows).items()))),
         instruction_templates=dict(sorted(templates.items())),
         rows=sorted(rows,key=lambda r:(r['entry'],r['method'],r['descriptor'])))
 
 
-def validate(document,census,covered):
+def required_targets(row):
+    return ([row['target']] if row.get('target') else [])+row.get('targets',[])
+
+
+def is_animation(row):
+    return row['kind'] in {'EXACT_GECKO_CONTROLLER_REGISTRATION','EXACT_GECKO_MOVEMENT_CLIP_SELECTION',
+                           'EXACT_GECKO_ATTACK_ANIMATION_CONTEXT','EXACT_NATIVE_SYNCED_ANIMATION_STRING_TRANSPORT','EXACT_GECKO_ITEM_IDLE_CLIP_CONTEXT'}
+
+
+def validate(document,census,covered,field_index=None):
     assert document['schema']=='tno.external_effects.exact_native_forwarding.v1'
     assert document['mod_key']==census['mod_key'] and document['jar_sha256']==census['jar_sha256']
+    if any(r.get('animation_only_fields') for r in document['rows']):
+        assert field_index is not None
+        assert document['field_index_file']==census['mod_key']+'-native-field-use-index.json'
+        assert document['field_index_content_sha256']==byte_hash(json.dumps(field_index,sort_keys=True,separators=(',',':')).encode()),'Changed animation field-consumer evidence'
     native={(m['entry'],m['method'],m['descriptor']):m for m in census['methods']}
     classes={c['entry']:c for c in census['classes']};accepted=[];todo=list(document['rows']);seen=set()
     templates=document['instruction_templates']
@@ -278,12 +303,21 @@ def validate(document,census,covered):
         if 'superclass' in r:assert r['superclass']==classes[r['entry']]['superclass']
         shape=forwarding_shape(r['entry'],r['method'],r['descriptor'],r['access'],templates[r['instruction_template']],r['exception_handlers'],r.get('bootstraps'),r.get('superclass'))
         assert shape and shape['kind']==r['kind']
+        if is_animation(shape):
+            from native_animation_shapes import validate_context
+            validate_context(shape,r['entry'],census,field_index)
         for field,value in shape.items():
-            if field not in ('kind','target'):assert r[field]==value
+            if field not in ('kind','target','targets'):assert r[field]==value
         if 'target' in shape:
             assert all(r['target'][k]==v for k,v in shape['target'].items())
             t=r['target'];assert t['code_sha256']==native[(t['entry'],t['method'],t['descriptor'])]['code_sha256']
         else:assert 'target' not in r
+        if shape.get('targets'):
+            assert len(r['targets'])==len(shape['targets'])
+            for t,s in zip(r['targets'],shape['targets']):
+                assert all(t[k]==v for k,v in s.items())
+                assert t['code_sha256']==native[(t['entry'],t['method'],t['descriptor'])]['code_sha256']
+        else:assert 'targets' not in r
     covered=set(covered)
     query_keys={(r['entry'],r['method'],r['descriptor']) for r in todo if r['kind']=='EXACT_NATIVE_DISTANCE_QUERY'}
     for r in todo:
@@ -293,8 +327,7 @@ def validate(document,census,covered):
     while todo:
         pending=[]
         for r in todo:
-            t=r.get('target')
-            if t and (t['entry'],t['method'],t['descriptor']) not in covered:pending.append(r);continue
+            if any((t['entry'],t['method'],t['descriptor']) not in covered for t in required_targets(r)):pending.append(r);continue
             covered.add((r['entry'],r['method'],r['descriptor']));accepted.append(r)
         assert len(pending)<len(todo),'Bridge target lacks prior exact contract/exclusion; cycles cannot self-prove'
         todo=pending
@@ -303,8 +336,9 @@ def validate(document,census,covered):
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('mod_key');p.add_argument('--jar',type=Path,required=True);p.add_argument('--index',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--selection',type=Path);a=p.parse_args()
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('mod_key');p.add_argument('--jar',type=Path,required=True);p.add_argument('--index',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--selection',type=Path);p.add_argument('--field-index',type=Path);a=p.parse_args()
     c=read_json(OUT/f'{a.mod_key}-combat-census.json');i=read_json(a.index)
     selection=read_json(a.selection)['rows'] if a.selection else None
-    d=collect(c,i,a.jar,selection=selection)
-    validate(d,c,{(m['entry'],m['method'],m['descriptor']) for m in i['methods']});write_json(a.output,d);print(d['summary'])
+    fields=read_json(a.field_index) if a.field_index else None
+    d=collect(c,i,a.jar,selection=selection,field_index=fields)
+    validate(d,c,{(m['entry'],m['method'],m['descriptor']) for m in i['methods']},field_index=fields);write_json(a.output,d);print(d['summary'])

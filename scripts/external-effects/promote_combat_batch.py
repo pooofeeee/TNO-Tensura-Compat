@@ -602,8 +602,10 @@ def validate_batch(batch,review,census):
         from reconcile_native_census import reconcile
         from native_forwarding import validate as validate_forwarding
         prior,_=reconcile(review,census)
-        validate_forwarding(index.read(batch['native_forwarding_registry_file']),census,
-            {(r['entry'],r['method'],r['descriptor']) for r in prior['methods']})
+        registry=index.read(batch['native_forwarding_registry_file'])
+        validate_forwarding(registry,census,
+            {(r['entry'],r['method'],r['descriptor']) for r in prior['methods']},
+            field_index=index.read(registry['field_index_file']) if registry.get('field_index_file') else None)
     candidates=set()
     refined=refined_review(review,batch)
     changes={c['id']:c for c in batch.get('record_refinements',[])}
