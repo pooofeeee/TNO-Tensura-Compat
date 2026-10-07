@@ -2295,6 +2295,21 @@ class NativeResidualBlockContracts(NativeContractHarness, unittest.TestCase):
         cls.native = read_json(OUT / 'native-evidence/arphex-native-residual-blocks.json')
         cls.census = read_json(OUT / 'arphex-combat-census.json')
 
+    def prior(self):
+        review = super().prior()
+        # Replay this Java-boundary batch before the subsequent pinned-template
+        # closure. Keep the later resource proof in canonical state; undo only
+        # its exact, explicitly recorded text replacements in this fixture.
+        templates = read_json(OUT / 'arphex-r2m6v-native-template-payloads.json')
+        for change in templates['record_refinements']:
+            row = next(r for r in review['effects'] if r['id'] == change['id'])
+            for replacement in change.get('behavior_replacements', []):
+                self.assertEqual(row['actual_behavior'].count(replacement['after']), 1)
+                self.assertNotIn(replacement['before'], row['actual_behavior'])
+                row['actual_behavior'] = row['actual_behavior'].replace(
+                    replacement['after'], replacement['before'], 1)
+        return review
+
     def test_contracts_validate_and_template_contents_remain_pending(self):
         validate_batch(self.batch, self.prior(), self.census)
         self.assertEqual(len(self.batch['effects']), 6)
@@ -2442,3 +2457,90 @@ class NativeResidualBlockContracts(NativeContractHarness, unittest.TestCase):
         self.assertFalse(any(i['opcode'] in ('0xb6', '0xb7', '0xb8', '0xb9', '0xb5') for i in body))
         body = self.body('MobTrophyOnTickUpdateProcedure')
         self.assertFalse(any('.hurt(' in str(i['operand']) or '.addEffect(' in str(i['operand']) or '.setBlock(' in str(i['operand']) for i in body))
+
+
+class NativeFinalConsumerContracts(NativeContractHarness, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.batch=read_json(OUT/'arphex-r2m6x-native-final-consumers.json')
+        cls.native=read_json(OUT/'native-evidence/arphex-native-final-consumers.json')
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+
+    def test_bounded_live_package_and_existing_refs_validate(self):
+        validate_batch(self.batch,self.prior(),self.census)
+        self.assertEqual(len(self.batch['effects']),1)
+        self.assertEqual(len(self.batch['record_refinements']),5)
+        self.assertEqual(sum(len(c['parameters']) for r in self.batch['effects'] for c in r['scalable_parameter_candidates']),2)
+        self.assertEqual((len(self.native['witnesses']),sum(len(w['methods']) for w in self.native['witnesses'])),(8,25))
+        self.assertFalse(self.batch['whole_mod_complete'])
+
+    def test_post_event_uses_actual_current_menu_type_and_event_player(self):
+        w=next(w for w in self.native['witnesses'] if w['entry'].endswith('/SuperBackpackMenu.class'))
+        m=next(m for m in w['methods'] if m['name']=='onPlayerTick')
+        self.assertEqual(m['descriptor'],'(Lnet/neoforged/neoforge/event/tick/PlayerTickEvent$Post;)V')
+        self.assertTrue(any(a['descriptor'].endswith('/SubscribeEvent;') for a in m['annotations']))
+        self.assertTrue(any(i['opcode']=='0xc1' and i['operand']=='net/arphex/world/inventory/SuperBackpackMenu' for i in m['instructions']))
+        self.assertTrue(any('Player.containerMenu' in str(i['operand']) for i in m['instructions']))
+        self.assertEqual(sum('SuperBackpackWhileThisGUIIsOpenTickProcedure.execute(' in str(i['operand']) for i in m['instructions']),1)
+
+    def test_resistance_and_use_stop_remain_independent_native_requests(self):
+        from promote_combat_batch import literal_effect_arguments
+        b=self.body('SuperBackpackWhileThisGUIIsOpenTickProcedure')
+        self.assertEqual(literal_effect_arguments(dict(instructions=b),39),dict(duration=2,amplifier=1,
+            explicit_flags=[0,0],holder='net/minecraft/world/effect/MobEffects.DAMAGE_RESISTANCELnet/minecraft/core/Holder;'))
+        self.assertTrue(any('MobEffects.DAMAGE_RESISTANCE' in str(i['operand']) for i in b))
+        add=next(j for j,i in enumerate(b) if '.addEffect(' in str(i['operand']))
+        self.assertEqual(b[add+1]['opcode'],'0x57')
+        stop=next(i for i in b if '.stopUsingItem(' in str(i['operand']))
+        self.assertEqual(stop['offset'],59)
+        self.assertGreater(stop['offset'],b[add]['offset'])
+        self.assertFalse(any('.hurt(' in str(i['operand']) or '.setHealth(' in str(i['operand']) for i in b))
+
+    def test_world_load_sets_reload_before_cosmetic_entitlement_lists(self):
+        b=self.body('WorldLoadProcedure')
+        positions={k:next(j for j,i in enumerate(b) if i['opcode']=='0xb5' and '.'+k in str(i['operand']))
+                   for k in ['checkedprojecte','reload_render','t3_patrons_list','t2_patrons_list','t1_patrons_list']}
+        self.assertEqual(b[positions['reload_render']-1]['operand'],1)
+        self.assertTrue(positions['reload_render']<positions['t3_patrons_list']<positions['t2_patrons_list']<positions['t1_patrons_list'])
+        self.assertTrue(any(i['operand']=='projecte' for i in b))
+        ref=next(r for r in self.batch['record_refinements'] if r['id']=='arphex:tormentor_native_map_health_and_lifecycle')
+        self.assertIn('currentserverdiscardsSELF',ref['behavior_append'])
+
+    def test_release_helper_clears_existing_raw_flag_without_new_payload(self):
+        b=self.body('FormicFireblasterOnPlayerStoppedUsingProcedure');at=next(j for j,i in enumerate(b) if '.putBoolean(' in str(i['operand']))
+        self.assertEqual([i['operand'] for i in b[at-2:at]],['usingff',0])
+        self.assertFalse(any('.hurt(' in str(i['operand']) or '.addEffect(' in str(i['operand']) for i in b))
+
+    def test_mining_helpers_request_no_combat_payload(self):
+        for name in ['BlockBrokenProcedure','BlockBroken3Procedure','BlockBroken4Procedure']:
+            b=self.body(name)
+            self.assertTrue(any('.isOnCooldown(' in str(i['operand']) for i in b))
+            self.assertTrue(any('.destroyBlock(' in str(i['operand']) for i in b))
+            self.assertFalse(any(any(t in str(i['operand']) for t in ['.hurt(','.addEffect(','.heal(','.setHealth(','.setDeltaMovement(','.spawn(']) for i in b))
+        self.assertEqual(sum('.destroyBlock(' in str(i['operand']) for i in self.body('BlockBroken4Procedure')),14)
+
+    def test_opal_generated_factories_have_no_external_native_callers(self):
+        from collect_combat_census import decode_sites
+        calls=[(m,i) for m in self.census['methods'] for i in decode_sites(self.census,m,'calls')
+               if str(i['operand']).startswith('net/arphex/entity/OpalArrowEntity.shoot(')]
+        self.assertTrue(calls)
+        self.assertTrue(all(m['entry']=='net/arphex/entity/OpalArrowEntity.class' for m,i in calls))
+        self.assertFalse(any(any('net/arphex/entity/OpalArrowEntity.shoot(' in str(a) for a in r['arguments'])
+                             for r in self.census['registration_bootstraps']))
+
+    def test_consumer_traceability_repairs_reuse_exact_existing_witnesses(self):
+        refs=[r for r in self.batch['record_refinements'] if 'traceability' in r['reason']]
+        self.assertEqual({r['id'] for r in refs},{'arphex:opal_arrow_intrinsic_payload','arphex:spacetime_immortal_native_temporal_armor_control'})
+        for r in refs:
+            self.assertEqual(r.get('candidate_additions',[]),[])
+            self.assertEqual(r.get('component_additions',[]),[])
+            self.assertEqual(len(r['implementation_additions']),1)
+
+    def test_detached_consumer_implementation_proof_is_rejected(self):
+        from promote_combat_batch import refined_review
+        from audit_catalog_integrity import EvidenceIndex,audit_review
+        r=refined_review(self.prior(),self.batch)
+        row=next(x for x in r['effects'] if x['id']=='arphex:opal_arrow_intrinsic_payload')
+        row['implementation']=[p for p in row['implementation'] if not p['entry'].endswith('/OpalArrowProjectileHitsLivingEntityProcedure.class')]
+        with self.assertRaisesRegex(AssertionError,'native consumer missing from implementation traceability'):
+            audit_review(r,EvidenceIndex())

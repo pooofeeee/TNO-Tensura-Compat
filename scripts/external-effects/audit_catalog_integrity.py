@@ -171,6 +171,13 @@ def audit_review(review, index):
                 # they are not guessed into component/consumer mappings.
                 candidate_count += 1
                 continue
+            consumer=candidate.get('native_consumer',{})
+            if consumer.get('methods') and row.get('native_boundary'):
+                proofs=row['implementation']+row.get('shared_contracts',[])
+                for source in [consumer]+candidate.get('additional_consumer_sites',[]):
+                    names=source.get('methods',[source.get('method')])
+                    assert all(name and any(p['entry']==source['entry'] and name in p['methods'] for p in proofs)
+                               for name in names),('native consumer missing from implementation traceability',row['id'],source)
             for parameter in candidate['parameters']:
                 key = candidate['primitive'], parameter
                 assert key not in seen, ('duplicate parameter within mechanic', row['id'], key)
