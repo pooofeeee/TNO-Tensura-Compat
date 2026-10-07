@@ -61,6 +61,12 @@ def reconcile(review, census, read=read_json, root=OUT):
             matches = [m for m in w['methods'] if m['name'] == name]
             assert matches, ('Cited method missing', filename, entry, name)
             for m in matches:
+                if p.get('partial_contract'):
+                    key = (entry, name, m['descriptor'])
+                    assert key in native and m['code_sha256'] == native[key]['code_sha256']
+                    # Exact evidence for one contribution cannot close other
+                    # branches in the same native method.
+                    continue
                 add((entry, name, m['descriptor']), m['code_sha256'], record_ids,
                     dict(metadata, evidence_file=filename, witness_id=w['id']))
 

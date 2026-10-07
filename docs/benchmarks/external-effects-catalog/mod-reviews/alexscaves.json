@@ -1,0 +1,1256 @@
+{
+  "schema": "tno.external_effects.mod_review.v1",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "alexscaves",
+  "status": "PARTIAL",
+  "effects": [
+    {
+      "id": "alexscaves:bubbled",
+      "mod_key": "alexscaves",
+      "display_name": "Bubbled",
+      "registry_ids": [
+        "alexscaves:bubbled"
+      ],
+      "primary_classification": "CUSTOM_STATUS",
+      "inspection_status": "VERIFIED_NATIVE_CORE_AND_DIRECT_SHARED_READERS",
+      "scope": "Intrinsic status plus directly necessary shared readers. Native doses/actor-specific admission and delivery producers remain independently queued.",
+      "actual_behavior": "Every native effect tick: canBreatheUnderwater OR AQUATIC-tag actors take the aquatic branch; unless RESISTS_BUBBLED, set air to native maximum and add Y=-0.08 when airborne. Other actors, unless native water-breathing or player abilities.invulnerable, multiply current X/Z by 0.800000011920929, subtract2 air with floor-20, and at air<=-20 reset air0, execute the native eight-bubble RNG/particle loop, then request ownerless native drowning damage2 and discard its return. The resistance tag is checked only in the aquatic branch. Two active mixins suppress increaseAirSupply for any bubbled actor and report isInWater=true only for non-resistant canBreatheUnderwater actors. The post-entity-tick hook requests removal when native isInFluidType() is true.",
+      "closest_vanilla_equivalent": "native air supply and drowning damage inside a custom bubble/control status",
+      "vanilla_similarities": "Uses the exact native APIs/components below; original admission, defenses, effect stacking and removal remain native.",
+      "vanilla_differences": "Every native effect tick: canBreatheUnderwater OR AQUATIC-tag actors take the aquatic branch; unless RESISTS_BUBBLED, set air to native maximum and add Y=-0.08 when airborne. Other actors, unless native water-breathing or player abilities.invulnerable, multiply current X/Z by 0.800000011920929, subtract2 air with floor-20, and at air<=-20 reset air0, execute the native eight-bubble RNG/particle loop, then request ownerless native drowning damage2 and discard its return. The resistance tag is checked only in the aquatic branch. Two active mixins suppress increaseAirSupply for any bubbled actor and report isInWater=true only for non-resistant canBreatheUnderwater actors. The post-entity-tick hook requests removal when native isInFluidType() is true.",
+      "components": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "aquatic_airborne_y_addend": -0.08,
+            "x_factor": 0.800000011920929,
+            "z_factor": 0.800000011920929
+          },
+          "parameter_formulas": {},
+          "operation": "add(0,-0.08,0) in aquatic airborne branch; multiply(xFactor,1,zFactor) in non-aquatic branch"
+        },
+        {
+          "primitive": "AIR_RESOURCE",
+          "numerical_parameters": {
+            "air_drain": 2,
+            "air_floor": -20,
+            "reset_air": 0
+          },
+          "parameter_formulas": {
+            "air": "max(originalAir-2,-20); exhaustion branch resets0 before damage"
+          },
+          "native_operation": "setAirSupply"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "requested_damage": 2.0
+          },
+          "parameter_formulas": {},
+          "damage_source": "native damageSources().drown(); no direct/causing entity"
+        },
+        {
+          "primitive": "FLUID_QUERY_AND_AIR_REGEN_GATE",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ],
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "aquatic_airborne_y_addend"
+          ],
+          "units": "native per-tick vector components; not vanilla knockback",
+          "native_parameter_identity": {
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/BubbledEffect.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 58
+          },
+          "native_consumer": {
+            "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+            "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/BubbledEffect.class",
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/BubbledEffect.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 58,
+            "operand": "net/minecraft/world/phys/Vec3.add(DDD)Lnet/minecraft/world/phys/Vec3;",
+            "opcode": "0xb6"
+          },
+          "observation_only": true,
+          "native_literal_vector_components_binding": {
+            "operation": "add",
+            "x": 0.0,
+            "y": -0.08,
+            "z": 0.0,
+            "literal_offsets": [
+              53,
+              54,
+              57
+            ]
+          },
+          "native_vector_parameter_roles": {
+            "aquatic_airborne_y_addend": "y"
+          }
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "x_factor",
+            "z_factor"
+          ],
+          "units": "native per-tick vector components; not vanilla knockback",
+          "native_parameter_identity": {
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/BubbledEffect.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 108
+          },
+          "native_consumer": {
+            "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+            "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/BubbledEffect.class",
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/BubbledEffect.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 108,
+            "operand": "net/minecraft/world/phys/Vec3.multiply(DDD)Lnet/minecraft/world/phys/Vec3;",
+            "opcode": "0xb6"
+          },
+          "observation_only": true,
+          "native_literal_vector_components_binding": {
+            "operation": "multiply",
+            "x": 0.800000011920929,
+            "y": 1.0,
+            "z": 0.800000011920929,
+            "literal_offsets": [
+              101,
+              104,
+              105
+            ]
+          },
+          "native_vector_parameter_roles": {
+            "x_factor": "x",
+            "z_factor": "z"
+          }
+        },
+        {
+          "primitive": "AIR_RESOURCE",
+          "parameters": [
+            "air_drain"
+          ],
+          "units": "air units per native tick",
+          "native_parameter_identity": {
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/BubbledEffect.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 120
+          },
+          "native_consumer": {
+            "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+            "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/BubbledEffect.class",
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/BubbledEffect.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 120,
+            "operand": null,
+            "opcode": "0x64"
+          },
+          "observation_only": true,
+          "native_literal_numeric_input_binding": {
+            "kind": "LITERAL_ARITHMETIC_INPUT",
+            "operation": "0x64",
+            "native_value": 2,
+            "value_offset": 119
+          }
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "requested_damage"
+          ],
+          "units": "requested native damage before admission",
+          "native_parameter_identity": {
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/BubbledEffect.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 283
+          },
+          "native_consumer": {
+            "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+            "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/BubbledEffect.class",
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/BubbledEffect.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 283,
+            "operand": "net/minecraft/world/entity/LivingEntity.hurt(Lnet/minecraft/world/damagesource/DamageSource;F)Z",
+            "opcode": "0xb6"
+          },
+          "observation_only": true,
+          "native_last_numeric_argument_binding": {
+            "argument_type": "F",
+            "native_value": 2.0,
+            "value_offset": 282
+          }
+        }
+      ],
+      "binary_parameters": {
+        "aquatic_branch": "canBreatheUnderwater OR native AQUATIC tag",
+        "resistance": "RESISTS_BUBBLED checked only within aquatic branch",
+        "other_branch_admission": "native hasWaterBreathing and player abilities.invulnerable gates",
+        "air_regeneration": "active increaseAirSupply HEAD injection returns its original input",
+        "removal": "has BUBBLED and native isInFluidType true; native removeEffect result ignored"
+      },
+      "lifecycle": "Core returns true; amplifier is unused. Native duration/stacking/removal applies; no custom cleanup or new carrier.",
+      "source_actor": "Original affected LivingEntity. These intrinsic callbacks retain no originating attacker/owner/team identity.",
+      "native_boundary": [
+        "com/github/alexmodguy/alexscaves/server/potion/BubbledEffect.class:<init>,applyEffectTick,shouldApplyEffectTickThisTick",
+        "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class:lambda$static$4",
+        "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class:<clinit>",
+        "com/github/alexmodguy/alexscaves/AlexsCaves.class:<init>",
+        "com/github/alexmodguy/alexscaves/server/CommonProxy.class:commonInit",
+        "com/github/alexmodguy/alexscaves/server/misc/ACTagRegistry.class:<clinit>",
+        "com/github/alexmodguy/alexscaves/server/misc/ACTagRegistry.class:registerEntityTag",
+        "com/github/alexmodguy/alexscaves/mixin/EntityMixin.class:ac_isInWater",
+        "com/github/alexmodguy/alexscaves/mixin/LivingEntityMixin.class:ac_increaseAirSupply",
+        "com/github/alexmodguy/alexscaves/server/event/CommonEvents.class:livingTick"
+      ],
+      "hurt_return_dependency": "Native hurt results are discarded; no return-conditioned secondary payload is added.",
+      "ownership_note": "No progression ownership is inferred from a status holder or recipient. Specific native producers remain separate.",
+      "delivery_paths": [
+        "alexscaves:intrinsic_status:bubbled"
+      ],
+      "primary_test_source": "Registered native status callback and directly bound native readers",
+      "alternate_sources": [],
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/BubbledEffect.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/BubbledEffect.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "methods": [
+            "lambda$static$4"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "methods": [
+            "<clinit>"
+          ],
+          "partial_contract": true
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/AlexsCaves.class",
+          "entry": "com/github/alexmodguy/alexscaves/AlexsCaves.class",
+          "methods": [
+            "<init>"
+          ],
+          "partial_contract": true
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/CommonProxy.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/CommonProxy.class",
+          "methods": [
+            "commonInit"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/misc/ACTagRegistry.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/misc/ACTagRegistry.class",
+          "methods": [
+            "<clinit>"
+          ],
+          "partial_contract": true
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/misc/ACTagRegistry.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/misc/ACTagRegistry.class",
+          "methods": [
+            "registerEntityTag"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/mixin/EntityMixin.class",
+          "entry": "com/github/alexmodguy/alexscaves/mixin/EntityMixin.class",
+          "methods": [
+            "ac_isInWater"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/mixin/LivingEntityMixin.class",
+          "entry": "com/github/alexmodguy/alexscaves/mixin/LivingEntityMixin.class",
+          "methods": [
+            "ac_increaseAirSupply"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/event/CommonEvents.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/event/CommonEvents.class",
+          "methods": [
+            "livingTick"
+          ],
+          "partial_contract": true
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/alexscaves-status-foundation.json",
+        "vanilla-evidence/alexscaves-status-lifecycle.json",
+        "reference-evidence/cataclysm-ghost-fear-244.json",
+        "reference-evidence/cataclysm-stun-244.json"
+      ],
+      "unresolved_ambiguities": [],
+      "native_resource_evidence": [
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:data/alexscaves/tags/entity_type/resists_bubbled.json",
+          "entry": "data/alexscaves/tags/entity_type/resists_bubbled.json"
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:alexscaves.mixins.json",
+          "entry": "alexscaves.mixins.json"
+        }
+      ]
+    },
+    {
+      "id": "alexscaves:irradiated",
+      "mod_key": "alexscaves",
+      "display_name": "Irradiated",
+      "registry_ids": [
+        "alexscaves:irradiated"
+      ],
+      "primary_classification": "CUSTOM_STATUS",
+      "inspection_status": "VERIFIED_NATIVE_CORE_AND_DIRECT_SHARED_READERS",
+      "scope": "Intrinsic status plus directly necessary shared readers. Native doses/actor-specific admission and delivery producers remain independently queued.",
+      "actual_behavior": "Tick admission is false for amplifier<=0. Otherwise interval=Java int200/amplifier: if interval>1, admit remainingDuration%interval==interval/2; else admit every tick. At each admitted tick count exact worn Hazmat mask/chestplate/leggings/boots; amount=1F-count*0.25F. Players wearing zero pieces receive food exhaustion0.4000000059604645 before the damage branch. Unless recipient is RaycatEntity, draw level.random.nextFloat and, when random<amount+0.10000000149011612, request original amount of ownerless alexscaves:radiation damage; discard hurt return. Four pieces produce zero damage with a0.1 trial, not a new immunity gate. An independently registered heal event cancels healing whenever the recipient has IRRADIATED and lacks RESISTS_RADIATION; that tag is not read by the intrinsic damage tick.",
+      "closest_vanilla_equivalent": "custom damage type, equipment-conditioned damage/exhaustion, and a separate native healing veto",
+      "vanilla_similarities": "Uses the exact native APIs/components below; original admission, defenses, effect stacking and removal remain native.",
+      "vanilla_differences": "Tick admission is false for amplifier<=0. Otherwise interval=Java int200/amplifier: if interval>1, admit remainingDuration%interval==interval/2; else admit every tick. At each admitted tick count exact worn Hazmat mask/chestplate/leggings/boots; amount=1F-count*0.25F. Players wearing zero pieces receive food exhaustion0.4000000059604645 before the damage branch. Unless recipient is RaycatEntity, draw level.random.nextFloat and, when random<amount+0.10000000149011612, request original amount of ownerless alexscaves:radiation damage; discard hurt return. Four pieces produce zero damage with a0.1 trial, not a new immunity gate. An independently registered heal event cancels healing whenever the recipient has IRRADIATED and lacks RESISTS_RADIATION; that tag is not read by the intrinsic damage tick.",
+      "components": [
+        {
+          "primitive": "CUSTOM_RADIATION_DAMAGE",
+          "numerical_parameters": {
+            "base_amount": 1.0,
+            "hazmat_piece_reduction": 0.25
+          },
+          "parameter_formulas": {
+            "requested_damage": "1F - exactWornHazmatPieces*0.25F"
+          },
+          "damage_type": "alexscaves:radiation",
+          "source": "DamageSourceRandomMessages(HolderReference,2) delegates to ownerless DamageSource(Holder);2 is death-message variation, not damage"
+        },
+        {
+          "primitive": "FOOD_EXHAUSTION",
+          "numerical_parameters": {
+            "amount": 0.4000000059604645
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "PROC_CHANCE",
+          "numerical_parameters": {
+            "damage_chance_bias": 0.10000000149011612
+          },
+          "parameter_formulas": {
+            "threshold": "requested_damage + bias; compare native random.nextFloat() < threshold; no clamp"
+          }
+        },
+        {
+          "primitive": "EFFECT_TICK_CADENCE",
+          "numerical_parameters": {
+            "cadence_numerator": 200
+          },
+          "parameter_formulas": {
+            "interval": "Java integer200/amplifier; see native admission gates"
+          }
+        },
+        {
+          "primitive": "HEAL_ADMISSION",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ],
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "CUSTOM_RADIATION_DAMAGE",
+          "parameters": [
+            "requested_damage"
+          ],
+          "units": "native damage request after existing Hazmat reduction",
+          "native_parameter_identity": {
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/IrradiatedEffect.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 79
+          },
+          "native_consumer": {
+            "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+            "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/IrradiatedEffect.class",
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/IrradiatedEffect.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 79,
+            "operand": "net/minecraft/world/entity/LivingEntity.hurt(Lnet/minecraft/world/damagesource/DamageSource;F)Z",
+            "opcode": "0xb6"
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "FOOD_EXHAUSTION",
+          "parameters": [
+            "amount"
+          ],
+          "units": "native player exhaustion",
+          "native_parameter_identity": {
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/IrradiatedEffect.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 35
+          },
+          "native_consumer": {
+            "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+            "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/IrradiatedEffect.class",
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/IrradiatedEffect.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 35,
+            "operand": "net/minecraft/world/entity/player/Player.causeFoodExhaustion(F)V",
+            "opcode": "0xb6"
+          },
+          "observation_only": true,
+          "native_last_numeric_argument_binding": {
+            "argument_type": "F",
+            "native_value": 0.4000000059604645,
+            "value_offset": 33
+          }
+        },
+        {
+          "primitive": "PROC_CHANCE",
+          "parameters": [
+            "damage_chance_bias"
+          ],
+          "units": "addend in native random comparison",
+          "native_parameter_identity": {
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/IrradiatedEffect.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 61
+          },
+          "native_consumer": {
+            "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+            "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/IrradiatedEffect.class",
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/IrradiatedEffect.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 61,
+            "operand": null,
+            "opcode": "0x62"
+          },
+          "observation_only": true,
+          "native_literal_numeric_input_binding": {
+            "kind": "LITERAL_ARITHMETIC_INPUT",
+            "operation": "0x62",
+            "native_value": 0.10000000149011612,
+            "value_offset": 59
+          }
+        },
+        {
+          "primitive": "EFFECT_TICK_CADENCE",
+          "parameters": [
+            "cadence_numerator"
+          ],
+          "units": "native integer cadence numerator in ticks",
+          "native_parameter_identity": {
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/IrradiatedEffect.class",
+            "method": "shouldApplyEffectTickThisTick",
+            "descriptor": "(II)Z",
+            "offset": 10
+          },
+          "native_consumer": {
+            "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+            "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/IrradiatedEffect.class",
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/IrradiatedEffect.class",
+            "methods": [
+              "shouldApplyEffectTickThisTick"
+            ],
+            "descriptor": "(II)Z",
+            "offset": 10,
+            "operand": null,
+            "opcode": "0x6c"
+          },
+          "observation_only": true,
+          "native_literal_integer_dividend_binding": {
+            "native_value": 200,
+            "value_offset": 6,
+            "divisor_local_index": 2,
+            "operation": "JAVA_INT_DIVIDE"
+          }
+        }
+      ],
+      "binary_parameters": {
+        "amplifier": "<=0 skips tick; positive value uses original integer cadence",
+        "exhaustion": "Player AND exact wornHazmatPieceCount==0",
+        "damage": "recipient not RaycatEntity AND native RNG comparison",
+        "healing": "status present AND recipient type not in native RESISTS_RADIATION tag"
+      },
+      "lifecycle": "Core returns true, and damage source stores no actor. Native duration/admission/defenses remain unchanged. No extra healing, status or damage callback.",
+      "source_actor": "Original affected LivingEntity. These intrinsic callbacks retain no originating attacker/owner/team identity.",
+      "native_boundary": [
+        "com/github/alexmodguy/alexscaves/server/potion/IrradiatedEffect.class:<init>,applyEffectTick,shouldApplyEffectTickThisTick",
+        "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class:lambda$static$3",
+        "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class:<clinit>",
+        "com/github/alexmodguy/alexscaves/AlexsCaves.class:<init>",
+        "com/github/alexmodguy/alexscaves/server/CommonProxy.class:commonInit",
+        "com/github/alexmodguy/alexscaves/server/misc/ACTagRegistry.class:<clinit>",
+        "com/github/alexmodguy/alexscaves/server/misc/ACTagRegistry.class:registerEntityTag",
+        "com/github/alexmodguy/alexscaves/server/item/HazmatArmorItem.class:getWornAmount",
+        "com/github/alexmodguy/alexscaves/server/misc/ACDamageTypes.class:causeRadiationDamage",
+        "com/github/alexmodguy/alexscaves/server/misc/ACDamageTypes.class:<clinit>",
+        "com/github/alexmodguy/alexscaves/server/misc/ACDamageTypes$DamageSourceRandomMessages.class:<init>",
+        "com/github/alexmodguy/alexscaves/server/event/CommonEvents.class:livingHeal"
+      ],
+      "hurt_return_dependency": "Native hurt results are discarded; no return-conditioned secondary payload is added.",
+      "ownership_note": "No progression ownership is inferred from a status holder or recipient. Specific native producers remain separate.",
+      "delivery_paths": [
+        "alexscaves:intrinsic_status:irradiated"
+      ],
+      "primary_test_source": "Registered native status callback and directly bound native readers",
+      "alternate_sources": [],
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/IrradiatedEffect.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/IrradiatedEffect.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "methods": [
+            "lambda$static$3"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "methods": [
+            "<clinit>"
+          ],
+          "partial_contract": true
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/AlexsCaves.class",
+          "entry": "com/github/alexmodguy/alexscaves/AlexsCaves.class",
+          "methods": [
+            "<init>"
+          ],
+          "partial_contract": true
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/CommonProxy.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/CommonProxy.class",
+          "methods": [
+            "commonInit"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/misc/ACTagRegistry.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/misc/ACTagRegistry.class",
+          "methods": [
+            "<clinit>"
+          ],
+          "partial_contract": true
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/misc/ACTagRegistry.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/misc/ACTagRegistry.class",
+          "methods": [
+            "registerEntityTag"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/item/HazmatArmorItem.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/item/HazmatArmorItem.class",
+          "methods": [
+            "getWornAmount"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/misc/ACDamageTypes.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/misc/ACDamageTypes.class",
+          "methods": [
+            "causeRadiationDamage"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/misc/ACDamageTypes.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/misc/ACDamageTypes.class",
+          "methods": [
+            "<clinit>"
+          ],
+          "partial_contract": true
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/misc/ACDamageTypes$DamageSourceRandomMessages.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/misc/ACDamageTypes$DamageSourceRandomMessages.class",
+          "methods": [
+            "<init>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/event/CommonEvents.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/event/CommonEvents.class",
+          "methods": [
+            "livingHeal"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/alexscaves-status-foundation.json",
+        "vanilla-evidence/alexscaves-status-lifecycle.json",
+        "reference-evidence/cataclysm-ghost-fear-244.json",
+        "reference-evidence/cataclysm-stun-244.json"
+      ],
+      "unresolved_ambiguities": [],
+      "native_resource_evidence": [
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:data/alexscaves/damage_type/radiation.json",
+          "entry": "data/alexscaves/damage_type/radiation.json"
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:data/alexscaves/tags/entity_type/resists_radiation.json",
+          "entry": "data/alexscaves/tags/entity_type/resists_radiation.json"
+        }
+      ],
+      "native_defense_context": {
+        "hazmat_piece_reduction": 0.25,
+        "meaning": "Original native defense contribution; recording a numeric value does not automatically promote it to a Stage candidate."
+      }
+    },
+    {
+      "id": "alexscaves:stunned",
+      "mod_key": "alexscaves",
+      "display_name": "Stunned",
+      "registry_ids": [
+        "alexscaves:stunned"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "inspection_status": "VERIFIED_NATIVE_CORE_AND_DIRECT_SHARED_READERS",
+      "scope": "Intrinsic status plus directly necessary shared readers. Native doses/actor-specific admission and delivery producers remain independently queued.",
+      "actual_behavior": "The registered status adds MOVEMENT_SPEED template coefficient-1, original alexscaves:stunned_slowdown ID, ADD_MULTIPLIED_BASE; native template creation multiplies the coefficient by amplifier+1. Each positive-duration tick dampens only positive Y motion by0.1. Mob recipients are pitched30 degrees (current and old XRot); on server their MOVE/JUMP/LOOK goal-control flags are disabled. Original stun-star RNG/particles remain. The native incoming-damage subscriber cancels only when DamageSource.getDirectEntity() is a LivingEntity with STUNNED; it does not replace direct source with causing/owner. Its preceding resistor-shield/arrow query branch has no writer or payload. No own flag-restoration callback is added; native Mob.tick/updateControlFlags still restores/recomputes flags according to native riding state, and native effect removal removes its attribute template.",
+      "closest_vanilla_equivalent": "native movement attribute plus separate custom vertical/AI/facing control and direct-source attack veto",
+      "vanilla_similarities": "Uses the exact native APIs/components below; original admission, defenses, effect stacking and removal remain native.",
+      "vanilla_differences": "The registered status adds MOVEMENT_SPEED template coefficient-1, original alexscaves:stunned_slowdown ID, ADD_MULTIPLIED_BASE; native template creation multiplies the coefficient by amplifier+1. Each positive-duration tick dampens only positive Y motion by0.1. Mob recipients are pitched30 degrees (current and old XRot); on server their MOVE/JUMP/LOOK goal-control flags are disabled. Original stun-star RNG/particles remain. The native incoming-damage subscriber cancels only when DamageSource.getDirectEntity() is a LivingEntity with STUNNED; it does not replace direct source with causing/owner. Its preceding resistor-shield/arrow query branch has no writer or payload. No own flag-restoration callback is added; native Mob.tick/updateControlFlags still restores/recomputes flags according to native riding state, and native effect removal removes its attribute template.",
+      "components": [
+        {
+          "primitive": "ATTRIBUTE_MODIFIER",
+          "numerical_parameters": {
+            "movement_speed_coefficient": -1.0
+          },
+          "parameter_formulas": {
+            "amount": "coefficient*(native amplifier+1)"
+          },
+          "native_attribute_symbol": "net/minecraft/world/entity/ai/attributes/Attributes.MOVEMENT_SPEEDLnet/minecraft/core/Holder;",
+          "native_operation_symbol": "net/minecraft/world/entity/ai/attributes/AttributeModifier$Operation.ADD_MULTIPLIED_BASELnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;",
+          "modifier_id": "alexscaves:stunned_slowdown"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "upward_y_factor": 0.1
+          },
+          "parameter_formulas": {},
+          "operation": "multiply(1,0.1,1) only when original Y>0"
+        },
+        {
+          "primitive": "FORCED_FACING",
+          "numerical_parameters": {
+            "mob_pitch": 30.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "AI_CONTROL",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "DIRECT_SOURCE_ATTACK_ADMISSION",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ],
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "ATTRIBUTE_MODIFIER",
+          "parameters": [
+            "movement_speed_coefficient"
+          ],
+          "units": "native additive-base attribute template coefficient",
+          "native_parameter_identity": {
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/StunnedEffect.class",
+            "method": "<init>",
+            "descriptor": "()V",
+            "offset": 26
+          },
+          "native_consumer": {
+            "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+            "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/StunnedEffect.class",
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/StunnedEffect.class",
+            "methods": [
+              "<init>"
+            ],
+            "descriptor": "()V",
+            "offset": 26,
+            "operand": "com/github/alexmodguy/alexscaves/server/potion/StunnedEffect.addAttributeModifier(Lnet/minecraft/core/Holder;Lnet/minecraft/resources/ResourceLocation;DLnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;)Lnet/minecraft/world/effect/MobEffect;",
+            "opcode": "0xb6"
+          },
+          "observation_only": true,
+          "native_effect_attribute_binding": {
+            "attribute_symbol": "net/minecraft/world/entity/ai/attributes/Attributes.MOVEMENT_SPEEDLnet/minecraft/core/Holder;",
+            "identifier": "alexscaves:stunned_slowdown",
+            "operation_symbol": "net/minecraft/world/entity/ai/attributes/AttributeModifier$Operation.ADD_MULTIPLIED_BASELnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;",
+            "native_value": -1.0,
+            "value_offset": 20
+          }
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "upward_y_factor"
+          ],
+          "units": "native per-tick vector components; not vanilla knockback",
+          "native_parameter_identity": {
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/StunnedEffect.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 22
+          },
+          "native_consumer": {
+            "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+            "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/StunnedEffect.class",
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/StunnedEffect.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 22,
+            "operand": "net/minecraft/world/phys/Vec3.multiply(DDD)Lnet/minecraft/world/phys/Vec3;",
+            "opcode": "0xb6"
+          },
+          "observation_only": true,
+          "native_literal_vector_components_binding": {
+            "operation": "multiply",
+            "x": 1.0,
+            "y": 0.1,
+            "z": 1.0,
+            "literal_offsets": [
+              17,
+              18,
+              21
+            ]
+          },
+          "native_vector_parameter_roles": {
+            "upward_y_factor": "y"
+          }
+        },
+        {
+          "primitive": "FORCED_FACING",
+          "parameters": [
+            "mob_pitch"
+          ],
+          "units": "degrees of native Mob pitch",
+          "native_parameter_identity": {
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/StunnedEffect.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 116
+          },
+          "native_consumer": {
+            "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+            "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/StunnedEffect.class",
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/StunnedEffect.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 116,
+            "operand": "net/minecraft/world/entity/LivingEntity.setXRot(F)V",
+            "opcode": "0xb6"
+          },
+          "observation_only": true,
+          "native_last_numeric_argument_binding": {
+            "argument_type": "F",
+            "native_value": 30.0,
+            "value_offset": 114
+          }
+        }
+      ],
+      "binary_parameters": {
+        "tick": "remaining duration>0; amplifier does not alter control tick body",
+        "vertical_motion": "Y>0 only",
+        "ai": "recipient is Mob and server side",
+        "attack_veto": "original direct source is LivingEntity AND has STUNNED",
+        "native_control_reset": "Vanilla Mob riding/control-flag update; no custom unconditional reset"
+      },
+      "lifecycle": "Native attribute application/removal and native Mob control-flag recomputation remain authoritative. No speculative persistence/receipt.",
+      "source_actor": "Original affected LivingEntity. These intrinsic callbacks retain no originating attacker/owner/team identity.",
+      "native_boundary": [
+        "com/github/alexmodguy/alexscaves/server/potion/StunnedEffect.class:<init>,applyEffectTick,shouldApplyEffectTickThisTick",
+        "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class:lambda$static$1",
+        "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class:<clinit>",
+        "com/github/alexmodguy/alexscaves/AlexsCaves.class:<init>",
+        "com/github/alexmodguy/alexscaves/server/CommonProxy.class:commonInit",
+        "com/github/alexmodguy/alexscaves/server/event/CommonEvents.class:livingAttack"
+      ],
+      "hurt_return_dependency": "No damage request; direct-source incoming-damage cancellation is a native binary gate.",
+      "ownership_note": "No progression ownership is inferred from a status holder or recipient. Specific native producers remain separate.",
+      "delivery_paths": [
+        "alexscaves:intrinsic_status:stunned"
+      ],
+      "primary_test_source": "Registered native status callback and directly bound native readers",
+      "alternate_sources": [],
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/StunnedEffect.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/StunnedEffect.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "methods": [
+            "lambda$static$1"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "methods": [
+            "<clinit>"
+          ],
+          "partial_contract": true
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/AlexsCaves.class",
+          "entry": "com/github/alexmodguy/alexscaves/AlexsCaves.class",
+          "methods": [
+            "<init>"
+          ],
+          "partial_contract": true
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/CommonProxy.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/CommonProxy.class",
+          "methods": [
+            "commonInit"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/event/CommonEvents.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/event/CommonEvents.class",
+          "methods": [
+            "livingAttack"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/alexscaves-status-foundation.json",
+        "vanilla-evidence/alexscaves-status-lifecycle.json",
+        "reference-evidence/cataclysm-ghost-fear-244.json",
+        "reference-evidence/cataclysm-stun-244.json"
+      ],
+      "unresolved_ambiguities": [],
+      "shared_contracts": [
+        {
+          "evidence_file": "vanilla-evidence/alexscaves-status-lifecycle.json",
+          "evidence_format": "VANILLA_COMPARISON",
+          "entry": "brx.class",
+          "methods": [
+            "removeAttributeModifiers",
+            "addAttributeModifiers"
+          ]
+        },
+        {
+          "evidence_file": "vanilla-evidence/alexscaves-status-lifecycle.json",
+          "evidence_format": "VANILLA_COMPARISON",
+          "entry": "brx$a.class",
+          "methods": [
+            "create"
+          ]
+        },
+        {
+          "evidence_file": "vanilla-evidence/alexscaves-status-lifecycle.json",
+          "evidence_format": "VANILLA_COMPARISON",
+          "entry": "btp.class",
+          "methods": [
+            "tick",
+            "updateControlFlags"
+          ]
+        },
+        {
+          "evidence_file": "reference-evidence/cataclysm-stun-244.json",
+          "evidence_format": "SHARED_NATIVE_REFERENCE",
+          "entry": "net/minecraft/world/effect/MobEffect$AttributeTemplate.class",
+          "methods": [
+            "create"
+          ]
+        }
+      ]
+    }
+  ],
+  "paths": [
+    {
+      "id": "alexscaves:intrinsic_status:bubbled",
+      "mod_key": "alexscaves",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "alexscaves:bubbled"
+      ],
+      "primary_source": "Registered alexscaves:bubbled native tick and original direct shared readers",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/BubbledEffect.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/BubbledEffect.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "methods": [
+            "lambda$static$4"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "methods": [
+            "<clinit>"
+          ],
+          "partial_contract": true
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/AlexsCaves.class",
+          "entry": "com/github/alexmodguy/alexscaves/AlexsCaves.class",
+          "methods": [
+            "<init>"
+          ],
+          "partial_contract": true
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/CommonProxy.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/CommonProxy.class",
+          "methods": [
+            "commonInit"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/misc/ACTagRegistry.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/misc/ACTagRegistry.class",
+          "methods": [
+            "<clinit>"
+          ],
+          "partial_contract": true
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/misc/ACTagRegistry.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/misc/ACTagRegistry.class",
+          "methods": [
+            "registerEntityTag"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/mixin/EntityMixin.class",
+          "entry": "com/github/alexmodguy/alexscaves/mixin/EntityMixin.class",
+          "methods": [
+            "ac_isInWater"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/mixin/LivingEntityMixin.class",
+          "entry": "com/github/alexmodguy/alexscaves/mixin/LivingEntityMixin.class",
+          "methods": [
+            "ac_increaseAirSupply"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/event/CommonEvents.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/event/CommonEvents.class",
+          "methods": [
+            "livingTick"
+          ],
+          "partial_contract": true
+        }
+      ]
+    },
+    {
+      "id": "alexscaves:intrinsic_status:irradiated",
+      "mod_key": "alexscaves",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "alexscaves:irradiated"
+      ],
+      "primary_source": "Registered alexscaves:irradiated native tick and original direct shared readers",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/IrradiatedEffect.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/IrradiatedEffect.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "methods": [
+            "lambda$static$3"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "methods": [
+            "<clinit>"
+          ],
+          "partial_contract": true
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/AlexsCaves.class",
+          "entry": "com/github/alexmodguy/alexscaves/AlexsCaves.class",
+          "methods": [
+            "<init>"
+          ],
+          "partial_contract": true
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/CommonProxy.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/CommonProxy.class",
+          "methods": [
+            "commonInit"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/misc/ACTagRegistry.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/misc/ACTagRegistry.class",
+          "methods": [
+            "<clinit>"
+          ],
+          "partial_contract": true
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/misc/ACTagRegistry.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/misc/ACTagRegistry.class",
+          "methods": [
+            "registerEntityTag"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/item/HazmatArmorItem.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/item/HazmatArmorItem.class",
+          "methods": [
+            "getWornAmount"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/misc/ACDamageTypes.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/misc/ACDamageTypes.class",
+          "methods": [
+            "causeRadiationDamage"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/misc/ACDamageTypes.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/misc/ACDamageTypes.class",
+          "methods": [
+            "<clinit>"
+          ],
+          "partial_contract": true
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/misc/ACDamageTypes$DamageSourceRandomMessages.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/misc/ACDamageTypes$DamageSourceRandomMessages.class",
+          "methods": [
+            "<init>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/event/CommonEvents.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/event/CommonEvents.class",
+          "methods": [
+            "livingHeal"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "alexscaves:intrinsic_status:stunned",
+      "mod_key": "alexscaves",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "alexscaves:stunned"
+      ],
+      "primary_source": "Registered alexscaves:stunned native tick and original direct shared readers",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/StunnedEffect.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/StunnedEffect.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "methods": [
+            "lambda$static$1"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "methods": [
+            "<clinit>"
+          ],
+          "partial_contract": true
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/AlexsCaves.class",
+          "entry": "com/github/alexmodguy/alexscaves/AlexsCaves.class",
+          "methods": [
+            "<init>"
+          ],
+          "partial_contract": true
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/CommonProxy.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/CommonProxy.class",
+          "methods": [
+            "commonInit"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/event/CommonEvents.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/event/CommonEvents.class",
+          "methods": [
+            "livingAttack"
+          ]
+        }
+      ]
+    }
+  ],
+  "native_context_records": [],
+  "semantic_aliases": [],
+  "reviewed_batches": [
+    "alexscaves-r2m8a-status-foundation.json"
+  ],
+  "remaining_native_ambiguities": null,
+  "unresolved_native_ambiguities": null,
+  "semantic_discovery_complete": false,
+  "source_mapping_complete": false,
+  "delivery_mapping_complete": false,
+  "checkpoint": "R2m8a-alexscaves-pinned-foundation-and-three-intrinsic-status-contracts",
+  "notes_file": "alexscaves-r2m8a-status-foundation.json",
+  "scope": "Protected original discovery indexes recovered byte-identically; finite native and additive field-use queues established. Bubbled/Irradiated/Stunned intrinsic contracts and directly necessary shared readers closed. Mixed callbacks remain pending where only one contribution is reviewed.",
+  "exact_next_task": "R2m8b — AlexCaves remaining registered status/control contracts: reuse the captured Darkness Incarnate, Rage, Sugar Rush, Magnetizing and Deepsight cores; close their direct lifecycle/mixin/Citadel state dependencies before status producers and actor families."
+}

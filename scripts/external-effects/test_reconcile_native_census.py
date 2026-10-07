@@ -42,6 +42,20 @@ class ExactContractIndexTests(unittest.TestCase):
         _, pending = self.run_fixture(review, census, files)
         self.assertEqual(len(pending), 3)
 
+    def test_partial_contract_does_not_close_the_whole_native_method(self):
+        review, census, files = self.fixture()
+        review['effects'][0]['implementation'][0]['partial_contract'] = True
+        index, pending = self.run_fixture(review, census, files)
+        self.assertEqual(index['summary']['exact_contract_methods'], 0)
+        self.assertEqual({m['method'] for m in pending}, {'tick', 'getState', 'bridge'})
+
+    def test_partial_contract_still_requires_the_original_method_hash(self):
+        review, census, files = self.fixture()
+        review['effects'][0]['implementation'][0]['partial_contract'] = True
+        files['native-evidence/actor.json']['witnesses'][0]['methods'][0]['code_sha256'] = 'wrong'
+        with self.assertRaises(AssertionError):
+            self.run_fixture(review, census, files)
+
     def test_census_method_hash_is_independent_of_canonical_claim(self):
         review, census, files = self.fixture()
         files['native-evidence/actor.json']['witnesses'][0]['methods'][0]['code_sha256'] = 'wrong'

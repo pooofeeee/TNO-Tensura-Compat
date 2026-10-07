@@ -69,8 +69,8 @@ class ArphexCompletionTests(unittest.TestCase):
         self.assertEqual(target['pending_native_method_count'],0)
         self.assertEqual(target['semantic_effect_count'],466);self.assertEqual(target['numeric_candidate_count'],3933)
         campaign=read_json(OUT/'large-mod-campaign.json')
-        self.assertEqual(campaign['current_mod'],'alexscaves')
-        self.assertEqual(ledger['exact_next_task'],NEXT)
+        # The global queue advances; this completed target retains its receipt.
+        self.assertEqual(target['exact_next_task'],NEXT)
         for pin in campaign['locked_completed_reviews']:self.assertEqual(sha256(OUT/pin['file']),pin['sha256'])
 
 

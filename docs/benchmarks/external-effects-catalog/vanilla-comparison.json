@@ -1,10 +1,154 @@
 {
   "schema": "tno.external_effects.vanilla_comparison.v1",
   "status": "PARTIAL",
-  "checkpoint": "R2m7s-arphex-full-native-integrity-and-coverage-complete",
+  "checkpoint": "R2m8a-alexscaves-pinned-foundation-and-three-intrinsic-status-contracts",
   "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
   "note": "Deterministic projection of canonical mod reviews,including explicit PARTIAL scope. The ledger alone tracks per-mod completeness. No Stage eligibility or policy decision.",
   "comparisons": [
+    {
+      "effect_id": "alexscaves:bubbled",
+      "mod_key": "alexscaves",
+      "primary_classification": "CUSTOM_STATUS",
+      "closest_vanilla": "native air supply and drowning damage inside a custom bubble/control status",
+      "similarities": "Uses the exact native APIs/components below; original admission, defenses, effect stacking and removal remain native.",
+      "differences": "Every native effect tick: canBreatheUnderwater OR AQUATIC-tag actors take the aquatic branch; unless RESISTS_BUBBLED, set air to native maximum and add Y=-0.08 when airborne. Other actors, unless native water-breathing or player abilities.invulnerable, multiply current X/Z by 0.800000011920929, subtract2 air with floor-20, and at air<=-20 reset air0, execute the native eight-bubble RNG/particle loop, then request ownerless native drowning damage2 and discard its return. The resistance tag is checked only in the aquatic branch. Two active mixins suppress increaseAirSupply for any bubbled actor and report isInWater=true only for non-resistant canBreatheUnderwater actors. The post-entity-tick hook requests removal when native isInFluidType() is true.",
+      "components": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "aquatic_airborne_y_addend": -0.08,
+            "x_factor": 0.800000011920929,
+            "z_factor": 0.800000011920929
+          },
+          "parameter_formulas": {},
+          "operation": "add(0,-0.08,0) in aquatic airborne branch; multiply(xFactor,1,zFactor) in non-aquatic branch"
+        },
+        {
+          "primitive": "AIR_RESOURCE",
+          "numerical_parameters": {
+            "air_drain": 2,
+            "air_floor": -20,
+            "reset_air": 0
+          },
+          "parameter_formulas": {
+            "air": "max(originalAir-2,-20); exhaustion branch resets0 before damage"
+          },
+          "native_operation": "setAirSupply"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "requested_damage": 2.0
+          },
+          "parameter_formulas": {},
+          "damage_source": "native damageSources().drown(); no direct/causing entity"
+        },
+        {
+          "primitive": "FLUID_QUERY_AND_AIR_REGEN_GATE",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:irradiated",
+      "mod_key": "alexscaves",
+      "primary_classification": "CUSTOM_STATUS",
+      "closest_vanilla": "custom damage type, equipment-conditioned damage/exhaustion, and a separate native healing veto",
+      "similarities": "Uses the exact native APIs/components below; original admission, defenses, effect stacking and removal remain native.",
+      "differences": "Tick admission is false for amplifier<=0. Otherwise interval=Java int200/amplifier: if interval>1, admit remainingDuration%interval==interval/2; else admit every tick. At each admitted tick count exact worn Hazmat mask/chestplate/leggings/boots; amount=1F-count*0.25F. Players wearing zero pieces receive food exhaustion0.4000000059604645 before the damage branch. Unless recipient is RaycatEntity, draw level.random.nextFloat and, when random<amount+0.10000000149011612, request original amount of ownerless alexscaves:radiation damage; discard hurt return. Four pieces produce zero damage with a0.1 trial, not a new immunity gate. An independently registered heal event cancels healing whenever the recipient has IRRADIATED and lacks RESISTS_RADIATION; that tag is not read by the intrinsic damage tick.",
+      "components": [
+        {
+          "primitive": "CUSTOM_RADIATION_DAMAGE",
+          "numerical_parameters": {
+            "base_amount": 1.0,
+            "hazmat_piece_reduction": 0.25
+          },
+          "parameter_formulas": {
+            "requested_damage": "1F - exactWornHazmatPieces*0.25F"
+          },
+          "damage_type": "alexscaves:radiation",
+          "source": "DamageSourceRandomMessages(HolderReference,2) delegates to ownerless DamageSource(Holder);2 is death-message variation, not damage"
+        },
+        {
+          "primitive": "FOOD_EXHAUSTION",
+          "numerical_parameters": {
+            "amount": 0.4000000059604645
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "PROC_CHANCE",
+          "numerical_parameters": {
+            "damage_chance_bias": 0.10000000149011612
+          },
+          "parameter_formulas": {
+            "threshold": "requested_damage + bias; compare native random.nextFloat() < threshold; no clamp"
+          }
+        },
+        {
+          "primitive": "EFFECT_TICK_CADENCE",
+          "numerical_parameters": {
+            "cadence_numerator": 200
+          },
+          "parameter_formulas": {
+            "interval": "Java integer200/amplifier; see native admission gates"
+          }
+        },
+        {
+          "primitive": "HEAL_ADMISSION",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:stunned",
+      "mod_key": "alexscaves",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "native movement attribute plus separate custom vertical/AI/facing control and direct-source attack veto",
+      "similarities": "Uses the exact native APIs/components below; original admission, defenses, effect stacking and removal remain native.",
+      "differences": "The registered status adds MOVEMENT_SPEED template coefficient-1, original alexscaves:stunned_slowdown ID, ADD_MULTIPLIED_BASE; native template creation multiplies the coefficient by amplifier+1. Each positive-duration tick dampens only positive Y motion by0.1. Mob recipients are pitched30 degrees (current and old XRot); on server their MOVE/JUMP/LOOK goal-control flags are disabled. Original stun-star RNG/particles remain. The native incoming-damage subscriber cancels only when DamageSource.getDirectEntity() is a LivingEntity with STUNNED; it does not replace direct source with causing/owner. Its preceding resistor-shield/arrow query branch has no writer or payload. No own flag-restoration callback is added; native Mob.tick/updateControlFlags still restores/recomputes flags according to native riding state, and native effect removal removes its attribute template.",
+      "components": [
+        {
+          "primitive": "ATTRIBUTE_MODIFIER",
+          "numerical_parameters": {
+            "movement_speed_coefficient": -1.0
+          },
+          "parameter_formulas": {
+            "amount": "coefficient*(native amplifier+1)"
+          },
+          "native_attribute_symbol": "net/minecraft/world/entity/ai/attributes/Attributes.MOVEMENT_SPEEDLnet/minecraft/core/Holder;",
+          "native_operation_symbol": "net/minecraft/world/entity/ai/attributes/AttributeModifier$Operation.ADD_MULTIPLIED_BASELnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;",
+          "modifier_id": "alexscaves:stunned_slowdown"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "upward_y_factor": 0.1
+          },
+          "parameter_formulas": {},
+          "operation": "multiply(1,0.1,1) only when original Y>0"
+        },
+        {
+          "primitive": "FORCED_FACING",
+          "numerical_parameters": {
+            "mob_pitch": 30.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "AI_CONTROL",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "DIRECT_SOURCE_ATTACK_ADMISSION",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
     {
       "effect_id": "arphex:ab_flight",
       "mod_key": "arphex",

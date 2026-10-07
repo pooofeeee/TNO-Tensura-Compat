@@ -41,6 +41,61 @@ def literal_effect_arguments(method, offset):
                 amplifier=arguments[1]['operand'], explicit_flags=flags)
 
 
+def literal_vector_components_binding(method, offset):
+    """Bind three literal native vector inputs without inferring a recipient."""
+    body=method['instructions'];at=next(n for n,i in enumerate(body) if i['offset']==offset)
+    operations={f'net/minecraft/world/phys/Vec3.{name}(DDD)Lnet/minecraft/world/phys/Vec3;':name
+                for name in ('add','multiply')}
+    assert body[at]['operand'] in operations and at>=3
+    values=body[at-3:at]
+    assert all(i['opcode'] in ('0xe','0xf','0x14') and type(i['operand']) is float for i in values)
+    return dict(operation=operations[body[at]['operand']],
+                **{axis:i['operand'] for axis,i in zip(('x','y','z'),values)},
+                literal_offsets=[i['offset'] for i in values])
+
+
+def literal_effect_attribute_binding(method, offset):
+    """Bind one native MobEffect attribute template and its original operation."""
+    body=method['instructions'];at=next(n for n,i in enumerate(body) if i['offset']==offset)
+    suffix='.addAttributeModifier(Lnet/minecraft/core/Holder;Lnet/minecraft/resources/ResourceLocation;DLnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;)Lnet/minecraft/world/effect/MobEffect;'
+    assert str(body[at]['operand']).endswith(suffix)
+    value,operation=body[at-2:at]
+    assert value['opcode'] in ('0xe','0xf','0x14') and type(value['operand']) is float
+    assert operation['opcode']=='0xb2' and '/AttributeModifier$Operation.' in str(operation['operand'])
+    start=max((n+1 for n,i in enumerate(body[:at]) if str(i['operand']).endswith(suffix)),default=0)
+    attributes=[i for i in body[start:at] if i['opcode']=='0xb2' and '/Attributes.' in str(i['operand'])]
+    keys=[n for n in range(start,at) if body[n]['operand']=='net/minecraft/resources/ResourceLocation.fromNamespaceAndPath(Ljava/lang/String;Ljava/lang/String;)Lnet/minecraft/resources/ResourceLocation;']
+    assert len(attributes)==len(keys)==1
+    namespace,path=body[keys[0]-2:keys[0]]
+    assert all(i['opcode'] in ('0x12','0x13') and type(i['operand']) is str for i in (namespace,path))
+    return dict(attribute_symbol=attributes[0]['operand'],identifier=namespace['operand']+':'+path['operand'],
+                operation_symbol=operation['operand'],native_value=value['operand'],value_offset=value['offset'])
+
+
+def literal_integer_dividend_binding(method, offset):
+    """Prove literal / original integer local; retain Java division and gates."""
+    body=method['instructions'];at=next(n for n,i in enumerate(body) if i['offset']==offset)
+    assert at>=2 and body[at]['opcode']=='0x6c'
+    value,divisor=body[at-2:at]
+    assert value['opcode'] in ('0x2','0x3','0x4','0x5','0x6','0x7','0x8','0x10','0x11','0x12','0x13') and type(value['operand']) is int
+    assert divisor['opcode'] in ('0x15','0x1a','0x1b','0x1c','0x1d') and type(divisor.get('local_index')) is int
+    return dict(native_value=value['operand'],value_offset=value['offset'],divisor_local_index=divisor['local_index'],operation='JAVA_INT_DIVIDE')
+
+
+def literal_last_numeric_argument_binding(method, offset):
+    """Bind a typed trailing literal at its invocation; do not infer earlier args."""
+    body=method['instructions'];at=next(n for n,i in enumerate(body) if i['offset']==offset)
+    call=body[at];assert call['opcode'] in ('0xb6','0xb7','0xb8','0xb9')
+    descriptor=str(call['operand']).split('(',1)[1].split(')',1)[0]
+    kind=descriptor[-1:]
+    allowed={'I':{'0x2','0x3','0x4','0x5','0x6','0x7','0x8','0x10','0x11','0x12','0x13'},
+             'F':{'0xb','0xc','0xd','0x12','0x13'},'D':{'0xe','0xf','0x14'},'J':{'0x9','0xa','0x14'}}
+    assert kind in allowed and not descriptor.endswith('['+kind)
+    value=body[at-1]
+    assert value['opcode'] in allowed[kind] and type(value['operand']) is (int if kind in ('I','J') else float)
+    return dict(argument_type=kind,native_value=value['operand'],value_offset=value['offset'])
+
+
 def rounded_tag_quotient_binding(method, offset):
     """Prove round(entity.rawTag / literal), without conflating display copies."""
     body = method['instructions']
@@ -697,7 +752,7 @@ def validate_batch(batch,review,census):
             scalar_sinks=('MobEffectInstance.<init>(','.hurt(','.heal(','.setHealth(',
                 'AttributeInstance.setBaseValue(D)V',
                 '.addEffect(','.setDeltaMovement(','.setYRot(','.setXRot(',
-                '.makeStuckInBlock(','.putDouble(','.queueServerWork(','.inflate(',
+                '.makeStuckInBlock(','.putDouble(','.queueServerWork(','.inflate(','.causeFoodExhaustion(',
                 'ItemCooldowns.addCooldown(','.teleportTo(',
                 '.setBaseDamage(','.shoot(','.push(','.igniteForSeconds(',
                 'LivingIncomingDamageEvent.setAmount(',
@@ -714,6 +769,38 @@ def validate_batch(batch,review,census):
                 assert component['numerical_parameters'][candidate['parameters'][0]] == binding['divisor']
             food_component = 'native_food_component_binding' in candidate
             literal_numeric = 'native_literal_numeric_input_binding' in candidate
+            last_numeric_argument = 'native_last_numeric_argument_binding' in candidate
+            if last_numeric_argument:
+                binding=literal_last_numeric_argument_binding(m,consumer['offset'])
+                assert binding==candidate['native_last_numeric_argument_binding']
+                component=next(c for c in row['components'] if c['primitive']==candidate['primitive'])
+                assert len(candidate['parameters'])==1
+                assert component['numerical_parameters'][candidate['parameters'][0]]==binding['native_value']
+            vector_components = 'native_literal_vector_components_binding' in candidate
+            if vector_components:
+                binding=literal_vector_components_binding(m,consumer['offset'])
+                assert binding==candidate['native_literal_vector_components_binding']
+                roles=candidate['native_vector_parameter_roles']
+                assert set(roles)==set(candidate['parameters']) and set(roles.values())<={'x','y','z'}
+                component=next(c for c in row['components'] if c['primitive']==candidate['primitive'])
+                assert all(component['numerical_parameters'][p]==binding[axis] for p,axis in roles.items())
+            effect_attribute = 'native_effect_attribute_binding' in candidate
+            if effect_attribute:
+                binding=literal_effect_attribute_binding(m,consumer['offset'])
+                assert binding==candidate['native_effect_attribute_binding']
+                component=next(c for c in row['components'] if c['primitive']==candidate['primitive'])
+                assert len(candidate['parameters'])==1
+                assert component['numerical_parameters'][candidate['parameters'][0]]==binding['native_value']
+                assert component['native_attribute_symbol']==binding['attribute_symbol']
+                assert component['native_operation_symbol']==binding['operation_symbol']
+                assert component['modifier_id']==binding['identifier']
+            integer_dividend = 'native_literal_integer_dividend_binding' in candidate
+            if integer_dividend:
+                binding=literal_integer_dividend_binding(m,consumer['offset'])
+                assert binding==candidate['native_literal_integer_dividend_binding']
+                component=next(c for c in row['components'] if c['primitive']==candidate['primitive'])
+                assert len(candidate['parameters'])==1
+                assert component['numerical_parameters'][candidate['parameters'][0]]==binding['native_value']
             field_literal = 'native_literal_field_numeric_binding' in candidate
             if field_literal:
                 binding = literal_field_numeric_binding(m, consumer['offset'])
@@ -897,7 +984,7 @@ def validate_batch(batch,review,census):
                 allowed={'native_value'} if binding['kind']=='ITEM_ATTRIBUTE_MODIFIER' else {'attack_bonus','attack_speed'}
                 assert set(roles.values())==allowed and len(roles)==len(allowed)
                 assert all(component['numerical_parameters'][parameter]==binding[role] for parameter,role in roles.items()),('component differs from pinned item attribute',candidate)
-            assert hit['opcode']=='0xb5' or field_literal or block_factor or literal_numeric or food_component or rounded_tag or rng or terrain or explosion or durability or attribute or item_attribute or item_wear or numeric_return or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or synched_clock or clock_distribution or vector_scale or vector_expression or registry_spawn or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
+            assert hit['opcode']=='0xb5' or field_literal or block_factor or literal_numeric or last_numeric_argument or vector_components or effect_attribute or integer_dividend or food_component or rounded_tag or rng or terrain or explosion or durability or attribute or item_attribute or item_wear or numeric_return or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or synched_clock or clock_distribution or vector_scale or vector_expression or registry_spawn or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
             if candidate['primitive'].startswith('MOB_EFFECT_') or 'native_holder_symbol' in candidate:
                 symbol,allocation,load=effect_holder_binding(m,consumer['offset'])
                 assert (symbol,allocation,load)==(candidate['native_holder_symbol'],
@@ -1010,9 +1097,24 @@ def validate_batch(batch,review,census):
     return audit_review(merged,index)
 
 
+def empty_review(key):
+    from catalog_common import BASELINE
+    return dict(schema='tno.external_effects.mod_review.v1',baseline=BASELINE,mod_key=key,
+        status='PARTIAL',effects=[],paths=[],native_context_records=[],semantic_aliases=[],
+        reviewed_batches=[],remaining_native_ambiguities=None,unresolved_native_ambiguities=None,
+        semantic_discovery_complete=False,source_mapping_complete=False,delivery_mapping_complete=False)
+
+
 def promote(batch_path):
     batch=read_json(batch_path);key=batch['mod_key']
-    review=read_json(OUT/'mod-reviews'/f'{key}.json')
+    review_path=OUT/'mod-reviews'/f'{key}.json'
+    first_batch=not review_path.exists()
+    if first_batch:
+        target=next(t for t in read_json(OUT/'mod-completion-ledger.json')['targets'] if t['mod_key']==key)
+        assert target['state']=='UNSTARTED', 'A missing partial/completed review is not a new mod.'
+        review=empty_review(key)
+    else:
+        review=read_json(review_path)
     census=read_json(OUT/f'{key}-combat-census.json')
     summary=validate_batch(batch,review,census)
     review=refined_review(review,batch)
@@ -1032,11 +1134,19 @@ def promote(batch_path):
     target.update(state='PARTIAL',detail=batch['closed_scope']+' Other finite census contracts remain pending.',
         exact_next_task=batch['exact_next_task'],semantic_effect_count=summary['semantic_records'],
         numeric_candidate_count=summary['numeric_candidate_entries'],
+        classification_counts=summary['classification_counts'],
         pending_native_method_count=native_progress['summary']['pending_methods'],
         pending_semantic_method_count=native_progress['summary']['pending_by_census_role'].get('PENDING_SEMANTIC_REVIEW',0))
     write_json(OUT/'mod-completion-ledger.json',ledger)
     campaign=read_json(OUT/'large-mod-campaign.json')
     campaign.update(checkpoint=batch['checkpoint'],exact_next_task=batch['exact_next_task'])
+    assert campaign['current_mod']==key
+    if first_batch:
+        campaign['current_census']=dict(file=f'{key}-combat-census.json',classes=census['parsed_classes'],
+            methods=census['total_methods'],counts_by_disposition=census['counts_by_disposition'],
+            original_index_recovery=census['prior_index_recovery'])
+        target['census_file']=f'{key}-combat-census.json'
+        write_json(OUT/'mod-completion-ledger.json',ledger)
     campaign.setdefault('closed_batches',[]).append(dict(file=batch_path.name,mod_key=key,
         semantic_records_added=len(batch['effects']),classification_counts=dict(sorted(Counter(r['primary_classification'] for r in batch['effects']).items()))))
     write_json(OUT/'large-mod-campaign.json',campaign)
