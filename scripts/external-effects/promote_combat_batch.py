@@ -571,7 +571,7 @@ def refined_review(review,batch):
         rid=change['id'];assert rid in by_id and rid not in seen,('unknown/duplicate refinement',rid)
         assert change['reason'] and change['behavior_append'];seen.add(rid);row=by_id[rid]
         updates=change.get('field_updates',{})
-        assert set(updates)<= {'display_name','primary_classification','classification_reason','closest_vanilla_equivalent','vanilla_differences'},('unsafe identity refinement',rid)
+        assert set(updates)<= {'display_name','primary_classification','classification_reason','closest_vanilla_equivalent','vanilla_differences','scope'},('unsafe identity refinement',rid)
         replacements=change.get('behavior_replacements',[])
         gates=change.get('binary_parameter_updates',{})
         assert isinstance(replacements,list) and isinstance(gates,dict)
