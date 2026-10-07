@@ -1,0 +1,882 @@
+{
+  "schema": "tno.external_effects.reviewed_combat_batch.v1",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "alexscaves",
+  "checkpoint": "R2m8b-alexscaves-darkness-rage-and-vision-context-closed",
+  "closed_scope": "Darkness flight/light-removal/slow-fall lifecycle and Rage attribute/aggro/cleanup contracts closed; live Deepsight vision utility explicitly accounted for. Locked first three statuses reused. Larger magnetism and Citadel time-controller domains remain a separate bounded task; mixed callbacks retain their unreviewed branches.",
+  "effects": [
+    {
+      "id": "alexscaves:darkness_incarnate",
+      "mod_key": "alexscaves",
+      "display_name": "Darkness Incarnate",
+      "registry_ids": [
+        "alexscaves:darkness_incarnate"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "inspection_status": "VERIFIED_NATIVE_CORE_AND_DIRECT_SHARED_READERS",
+      "scope": "Intrinsic status plus directly necessary shared readers. Native doses/actor-specific admission and delivery producers remain independently queued.",
+      "actual_behavior": "Every positive-duration native effect tick discards the parent tick result, enables flight through toggleFlight(true), adds Y0.1 when onGround, and retains native idle-sound RNG. ServerPlayer flight enables mayfly/flying and hardcodes speed0.05000000074505806*4.0; enabling ability sync occurs only when previous flying differs from the requested true flag. toggleFlight always clears recipient fallDistance, including nonplayers/client. On native removal/expiry toggleFlight(false) restores hardcoded base speed; non-spectators stop flying, non-creative actors lose mayfly and receive a slow-fall flag, while original creative/spectator distinctions and update calls remain. Separately, the LivingEntity.tick TAIL consumes and clears an existing slow-fall flag before requesting hidden native Slow Falling80/0 (all explicit flags false, result discarded); then it detects prior Darkness presence followed by absence and independently restores non-creative/non-spectator ServerPlayer flight state and sets the flag again. These native paths can request the handoff on successive ticks; no dedup or unconditional replacement is added. The post-entity-tick hook requests removal every fifth tick when root-vehicle-position block light, or native sky/time rule, reaches11. Effect-object first/last-duration fields only feed original visual intensity and remain singleton-local.",
+      "closest_vanilla_equivalent": "native abilities flight and Slow Falling inside custom flight/light-conditioned status control",
+      "vanilla_similarities": "Uses the exact native APIs/components below; original admission, defenses, effect stacking and removal remain native.",
+      "vanilla_differences": "Every positive-duration native effect tick discards the parent tick result, enables flight through toggleFlight(true), adds Y0.1 when onGround, and retains native idle-sound RNG. ServerPlayer flight enables mayfly/flying and hardcodes speed0.05000000074505806*4.0; enabling ability sync occurs only when previous flying differs from the requested true flag. toggleFlight always clears recipient fallDistance, including nonplayers/client. On native removal/expiry toggleFlight(false) restores hardcoded base speed; non-spectators stop flying, non-creative actors lose mayfly and receive a slow-fall flag, while original creative/spectator distinctions and update calls remain. Separately, the LivingEntity.tick TAIL consumes and clears an existing slow-fall flag before requesting hidden native Slow Falling80/0 (all explicit flags false, result discarded); then it detects prior Darkness presence followed by absence and independently restores non-creative/non-spectator ServerPlayer flight state and sets the flag again. These native paths can request the handoff on successive ticks; no dedup or unconditional replacement is added. The post-entity-tick hook requests removal every fifth tick when root-vehicle-position block light, or native sky/time rule, reaches11. Effect-object first/last-duration fields only feed original visual intensity and remain singleton-local.",
+      "components": [
+        {
+          "primitive": "FLIGHT_CONTROL",
+          "numerical_parameters": {
+            "active_speed_multiplier": 4.0,
+            "native_base_speed": 0.05000000074505806
+          },
+          "parameter_formulas": {
+            "enabled_flying_speed": "native_base_speed*active_speed_multiplier"
+          },
+          "native_restore": "hardcoded0.05000000074505806; original abilities flags and sync gates"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "grounded_y_addend": 0.1
+          },
+          "parameter_formulas": {},
+          "operation": "original movement.add(0,0.1,0) only onGround"
+        },
+        {
+          "primitive": "FALL_DAMAGE_GATE",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_SLOW_FALLING",
+          "numerical_parameters": {
+            "duration": 80,
+            "amplifier": 0
+          },
+          "parameter_formulas": {},
+          "native_flags": [
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "primitive": "ENVIRONMENTAL_STATUS_REMOVAL",
+          "numerical_parameters": {
+            "check_period": 5,
+            "brightness_threshold": 11,
+            "sky_brightness": 15,
+            "day_low": 0.259,
+            "day_high": 0.74
+          },
+          "parameter_formulas": {
+            "isInLight": "rootVehicle.blockPosition block-light; if canSeeSky AND (timeOfDay<0.259 OR timeOfDay>0.74), brightness=15; compare brightness>=11"
+          }
+        }
+      ],
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "FLIGHT_CONTROL",
+          "parameters": [
+            "active_speed_multiplier"
+          ],
+          "units": "native multiplier of hardcoded flight speed",
+          "native_parameter_identity": {
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/DarknessIncarnateEffect.class",
+            "method": "toggleFlight",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;Z)V",
+            "offset": 84
+          },
+          "native_consumer": {
+            "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+            "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/DarknessIncarnateEffect.class",
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/DarknessIncarnateEffect.class",
+            "methods": [
+              "toggleFlight"
+            ],
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;Z)V",
+            "offset": 84,
+            "operand": null,
+            "opcode": "0x6a"
+          },
+          "observation_only": true,
+          "native_literal_numeric_input_binding": {
+            "kind": "LITERAL_ARITHMETIC_INPUT",
+            "operation": "0x6a",
+            "native_value": 4.0,
+            "value_offset": 82
+          }
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "grounded_y_addend"
+          ],
+          "units": "native per-tick vector components; not vanilla knockback",
+          "native_parameter_identity": {
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/DarknessIncarnateEffect.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 30
+          },
+          "native_consumer": {
+            "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+            "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/DarknessIncarnateEffect.class",
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/DarknessIncarnateEffect.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 30,
+            "operand": "net/minecraft/world/phys/Vec3.add(DDD)Lnet/minecraft/world/phys/Vec3;",
+            "opcode": "0xb6"
+          },
+          "observation_only": true,
+          "native_literal_vector_components_binding": {
+            "operation": "add",
+            "x": 0.0,
+            "y": 0.1,
+            "z": 0.0,
+            "literal_offsets": [
+              25,
+              26,
+              29
+            ]
+          },
+          "native_vector_parameter_roles": {
+            "grounded_y_addend": "y"
+          }
+        },
+        {
+          "primitive": "MOB_EFFECT_SLOW_FALLING",
+          "parameters": [
+            "duration",
+            "amplifier"
+          ],
+          "units": "original native effect ticks/amplifier",
+          "observation_only": true,
+          "native_consumer": {
+            "evidence_file": "native-evidence/alexscaves-status-lifecycle.json",
+            "witness_id": "alexscaves:status-lifecycle:com/github/alexmodguy/alexscaves/mixin/LivingEntityMixin.class",
+            "entry": "com/github/alexmodguy/alexscaves/mixin/LivingEntityMixin.class",
+            "methods": [
+              "ac_livingTick"
+            ],
+            "descriptor": "(Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfo;)V",
+            "offset": 26,
+            "operand": "net/minecraft/world/effect/MobEffectInstance.<init>(Lnet/minecraft/core/Holder;IIZZZ)V",
+            "opcode": "0xb7"
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexmodguy/alexscaves/mixin/LivingEntityMixin.class",
+            "method": "ac_livingTick",
+            "descriptor": "(Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfo;)V",
+            "offset": 26
+          },
+          "native_holder_symbol": "net/minecraft/world/effect/MobEffects.SLOW_FALLINGLnet/minecraft/core/Holder;",
+          "native_holder_allocation_offset": 13,
+          "native_holder_load_offset": 17,
+          "native_literal_effect_arguments": {
+            "holder": "net/minecraft/world/effect/MobEffects.SLOW_FALLINGLnet/minecraft/core/Holder;",
+            "duration": 80,
+            "amplifier": 0,
+            "explicit_flags": [
+              0,
+              0,
+              0
+            ]
+          },
+          "native_recipient_context": {
+            "kind": "MIXIN_TARGET_THIS",
+            "target": "net/minecraft/world/entity/LivingEntity",
+            "receiver_load_offset": 12,
+            "add_effect_offset": 29
+          }
+        }
+      ],
+      "binary_parameters": {
+        "tick": "remaining duration>0; amplifier unused by physical tick",
+        "flight": "server side ServerPlayer for abilities; fallDistance reset is outside that gate",
+        "cleanup": "native removal/expiry and separate prior-presence TAIL reader; original creative/spectator distinctions",
+        "handoff": "consume existing per-entity flag first, then detect disappearance; no new alive/effect/source recheck",
+        "environment": "tickCount%5==0 and native root-vehicle light rule; native removal return ignored"
+      },
+      "lifecycle": "Native effect removal/expiry, direct flight cleanup and delayed per-entity flag handoff remain separate occurrences. No saved progression/owner carrier.",
+      "source_actor": "Original affected LivingEntity. These intrinsic callbacks retain no originating attacker/owner/team identity.",
+      "native_boundary": [
+        "com/github/alexmodguy/alexscaves/server/potion/DarknessIncarnateEffect.class:<init>,applyEffectTick,onEffectStarted,getActiveTime,shouldApplyEffectTickThisTick,toggleFlight,getIntensity,isInLight,isCreativePlayer",
+        "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class:lambda$static$6",
+        "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class:<clinit>",
+        "com/github/alexmodguy/alexscaves/AlexsCaves.class:<init>",
+        "com/github/alexmodguy/alexscaves/server/CommonProxy.class:commonInit",
+        "com/github/alexmodguy/alexscaves/server/event/CommonEvents.class:livingTick,livingRemoveEffect,livingExpireEffect",
+        "com/github/alexmodguy/alexscaves/mixin/LivingEntityMixin.class:ac_livingTick",
+        "com/github/alexmodguy/alexscaves/mixin/LivingEntityMixin.class:setSlowFallingFlag,hasSlowFallingFlag"
+      ],
+      "hurt_return_dependency": "No damage request. Native Slow Falling addEffect and native status removal returns are discarded.",
+      "ownership_note": "No progression ownership is inferred from a status holder or recipient. Specific native producers remain separate.",
+      "delivery_paths": [
+        "alexscaves:intrinsic_status:darkness_incarnate"
+      ],
+      "primary_test_source": "Registered native status callback and directly bound native readers",
+      "alternate_sources": [],
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/DarknessIncarnateEffect.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/DarknessIncarnateEffect.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "onEffectStarted",
+            "getActiveTime",
+            "shouldApplyEffectTickThisTick",
+            "toggleFlight",
+            "getIntensity",
+            "isInLight",
+            "isCreativePlayer"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "methods": [
+            "lambda$static$6"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "methods": [
+            "<clinit>"
+          ],
+          "partial_contract": true
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/AlexsCaves.class",
+          "entry": "com/github/alexmodguy/alexscaves/AlexsCaves.class",
+          "methods": [
+            "<init>"
+          ],
+          "partial_contract": true
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/CommonProxy.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/CommonProxy.class",
+          "methods": [
+            "commonInit"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/event/CommonEvents.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/event/CommonEvents.class",
+          "methods": [
+            "livingTick",
+            "livingRemoveEffect",
+            "livingExpireEffect"
+          ],
+          "partial_contract": true
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-lifecycle.json",
+          "witness_id": "alexscaves:status-lifecycle:com/github/alexmodguy/alexscaves/mixin/LivingEntityMixin.class",
+          "entry": "com/github/alexmodguy/alexscaves/mixin/LivingEntityMixin.class",
+          "methods": [
+            "ac_livingTick"
+          ],
+          "partial_contract": true,
+          "closed_instruction_ranges": [
+            [
+              0,
+              32
+            ],
+            [
+              127,
+              233
+            ]
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-lifecycle.json",
+          "witness_id": "alexscaves:status-lifecycle:com/github/alexmodguy/alexscaves/mixin/LivingEntityMixin.class",
+          "entry": "com/github/alexmodguy/alexscaves/mixin/LivingEntityMixin.class",
+          "methods": [
+            "setSlowFallingFlag",
+            "hasSlowFallingFlag"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/alexscaves-status-foundation.json",
+        "vanilla-evidence/alexscaves-status-lifecycle.json",
+        "reference-evidence/cataclysm-ghost-fear-244.json",
+        "reference-evidence/cataclysm-stun-244.json",
+        "native-evidence/alexscaves-status-lifecycle.json"
+      ],
+      "unresolved_ambiguities": [],
+      "native_non_candidate_context": "Flight restore baseline, fallDistance reset and brightness/admission gates remain native context; their numerical form does not automatically make them Stage parameters."
+    },
+    {
+      "id": "alexscaves:rage",
+      "mod_key": "alexscaves",
+      "display_name": "Rage",
+      "registry_ids": [
+        "alexscaves:rage"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "inspection_status": "VERIFIED_NATIVE_CORE_AND_DIRECT_SHARED_READERS",
+      "scope": "Intrinsic status plus directly necessary shared readers. Native doses/actor-specific admission and delivery producers remain independently queued.",
+      "actual_behavior": "Each positive-duration tick, if ATTACK_DAMAGE exists, compute float((1+amplifier)*2.5)*(1-health/maxHealth), remove existing alexscaves:rage_attack_boost if present, then add one same-ID transient ADD_VALUE modifier. No clamp, own native damage request, or parent-template registration is added. Server Mob recipients with no target, tickCount%10==0 and nextInt(2)==0 scan living-alive candidates in boundingBox.inflate(80). The first eligible candidate needs no nearer-choice RNG; a later candidate can replace it only if strictly closer and a fresh nextInt(2)==0. Native self, both-direction alliance and canAttack checks remain after that choice gate. The selected actor becomes both lastHurtByMob and target. The native random-bound particle loop runs afterwards and is retained without being a Stage proc candidate. The only original native removeRageModifier caller is this active tick; the inspected Remove/Expired hooks and empty MobEffect template map provide no own expiry/cure cleanup for this manually inserted transient modifier. Do not silently add one or claim the bonus is permanent across unrelated lifecycle/attribute operations.",
+      "closest_vanilla_equivalent": "native additive attack attribute plus custom missing-health formula and probabilistic Mob aggro redirection",
+      "vanilla_similarities": "Uses the exact native APIs/components below; original admission, defenses, effect stacking and removal remain native.",
+      "vanilla_differences": "Each positive-duration tick, if ATTACK_DAMAGE exists, compute float((1+amplifier)*2.5)*(1-health/maxHealth), remove existing alexscaves:rage_attack_boost if present, then add one same-ID transient ADD_VALUE modifier. No clamp, own native damage request, or parent-template registration is added. Server Mob recipients with no target, tickCount%10==0 and nextInt(2)==0 scan living-alive candidates in boundingBox.inflate(80). The first eligible candidate needs no nearer-choice RNG; a later candidate can replace it only if strictly closer and a fresh nextInt(2)==0. Native self, both-direction alliance and canAttack checks remain after that choice gate. The selected actor becomes both lastHurtByMob and target. The native random-bound particle loop runs afterwards and is retained without being a Stage proc candidate. The only original native removeRageModifier caller is this active tick; the inspected Remove/Expired hooks and empty MobEffect template map provide no own expiry/cure cleanup for this manually inserted transient modifier. Do not silently add one or claim the bonus is permanent across unrelated lifecycle/attribute operations.",
+      "components": [
+        {
+          "primitive": "ATTRIBUTE_MODIFIER",
+          "numerical_parameters": {
+            "missing_health_amplifier_coefficient": 2.5
+          },
+          "parameter_formulas": {
+            "amount": "float((1+amplifier)*coefficient)*(1-health/maxHealth); widened to double at modifier construction"
+          },
+          "attribute": "ATTACK_DAMAGE",
+          "modifier_id": "alexscaves:rage_attack_boost",
+          "native_operation": "ADD_VALUE",
+          "lifecycle": "same-ID remove then addTransientModifier each active tick"
+        },
+        {
+          "primitive": "AGGRO_REDIRECTION",
+          "numerical_parameters": {
+            "search_period": 10,
+            "search_radius": 80.0
+          },
+          "parameter_formulas": {
+            "target": "first eligible or RNG-accepted strictly closer candidate; original list order and native gates"
+          }
+        },
+        {
+          "primitive": "PROC_CHANCE",
+          "numerical_parameters": {
+            "scan_rng_bound": 2,
+            "nearer_choice_rng_bound": 2
+          },
+          "parameter_formulas": {
+            "scan": "RandomSource.nextInt(scan_rng_bound)==0",
+            "replace": "only for strictly closer candidate; nextInt(nearer_choice_rng_bound)==0"
+          }
+        }
+      ],
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "ATTRIBUTE_MODIFIER",
+          "parameters": [
+            "missing_health_amplifier_coefficient"
+          ],
+          "units": "native float attack-modifier coefficient",
+          "native_parameter_identity": {
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/RageEffect.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 18
+          },
+          "native_consumer": {
+            "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+            "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/RageEffect.class",
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/RageEffect.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 18,
+            "operand": null,
+            "opcode": "0x6a"
+          },
+          "observation_only": true,
+          "native_literal_numeric_input_binding": {
+            "kind": "LITERAL_ARITHMETIC_INPUT",
+            "operation": "0x6a",
+            "native_value": 2.5,
+            "value_offset": 16
+          }
+        },
+        {
+          "primitive": "AGGRO_REDIRECTION",
+          "parameters": [
+            "search_period"
+          ],
+          "units": "native entity-tick modulo",
+          "native_parameter_identity": {
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/RageEffect.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 99
+          },
+          "native_consumer": {
+            "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+            "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/RageEffect.class",
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/RageEffect.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 99,
+            "operand": null,
+            "opcode": "0x70"
+          },
+          "observation_only": true,
+          "native_literal_numeric_input_binding": {
+            "kind": "LITERAL_ARITHMETIC_INPUT",
+            "operation": "0x70",
+            "native_value": 10,
+            "value_offset": 97
+          }
+        },
+        {
+          "primitive": "AGGRO_REDIRECTION",
+          "parameters": [
+            "search_radius"
+          ],
+          "units": "native AABB inflation in blocks",
+          "native_parameter_identity": {
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/RageEffect.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 124
+          },
+          "native_consumer": {
+            "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+            "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/RageEffect.class",
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/RageEffect.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 124,
+            "operand": "net/minecraft/world/phys/AABB.inflate(D)Lnet/minecraft/world/phys/AABB;",
+            "opcode": "0xb6"
+          },
+          "observation_only": true,
+          "native_last_numeric_argument_binding": {
+            "argument_type": "D",
+            "native_value": 80.0,
+            "value_offset": 121
+          }
+        },
+        {
+          "primitive": "PROC_CHANCE",
+          "parameters": [
+            "scan_rng_bound"
+          ],
+          "units": "exclusive native RandomSource.nextInt bound",
+          "native_parameter_identity": {
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/RageEffect.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 108
+          },
+          "native_consumer": {
+            "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+            "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/RageEffect.class",
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/RageEffect.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 108,
+            "operand": "net/minecraft/util/RandomSource.nextInt(I)I",
+            "opcode": "0xb9"
+          },
+          "observation_only": true,
+          "native_last_numeric_argument_binding": {
+            "argument_type": "I",
+            "native_value": 2,
+            "value_offset": 107
+          }
+        },
+        {
+          "primitive": "PROC_CHANCE",
+          "parameters": [
+            "nearer_choice_rng_bound"
+          ],
+          "units": "exclusive native RandomSource.nextInt bound",
+          "native_parameter_identity": {
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/RageEffect.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 205
+          },
+          "native_consumer": {
+            "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+            "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/RageEffect.class",
+            "entry": "com/github/alexmodguy/alexscaves/server/potion/RageEffect.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 205,
+            "operand": "net/minecraft/util/RandomSource.nextInt(I)I",
+            "opcode": "0xb9"
+          },
+          "observation_only": true,
+          "native_last_numeric_argument_binding": {
+            "argument_type": "I",
+            "native_value": 2,
+            "value_offset": 204
+          }
+        }
+      ],
+      "binary_parameters": {
+        "attribute": "recipient has ATTACK_DAMAGE",
+        "tick": "remaining duration>0",
+        "aggro": "server Mob, no existing target, modulo and original RNG checks",
+        "target": "not self; not allied in either direction; native canAttack; strict closer replacement comparison"
+      },
+      "lifecycle": "Original transient-modifier update and source-free target redirection only. No own removal/expiry/cure listener resets this manually inserted ID; broader native entity/attribute lifecycle remains native.",
+      "source_actor": "Original affected LivingEntity. These intrinsic callbacks retain no originating attacker/owner/team identity.",
+      "native_boundary": [
+        "com/github/alexmodguy/alexscaves/server/potion/RageEffect.class:<init>,applyEffectTick,shouldApplyEffectTickThisTick,removeRageModifier,<clinit>",
+        "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class:lambda$static$2",
+        "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class:<clinit>",
+        "com/github/alexmodguy/alexscaves/AlexsCaves.class:<init>",
+        "com/github/alexmodguy/alexscaves/server/CommonProxy.class:commonInit"
+      ],
+      "hurt_return_dependency": "No damage request or status delivery in this intrinsic callback; subsequent original attack goals remain native.",
+      "ownership_note": "No progression ownership is inferred from a status holder or recipient. Specific native producers remain separate.",
+      "delivery_paths": [
+        "alexscaves:intrinsic_status:rage"
+      ],
+      "primary_test_source": "Registered native status callback and directly bound native readers",
+      "alternate_sources": [],
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/RageEffect.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/RageEffect.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "shouldApplyEffectTickThisTick",
+            "removeRageModifier",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "methods": [
+            "lambda$static$2"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "methods": [
+            "<clinit>"
+          ],
+          "partial_contract": true
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/AlexsCaves.class",
+          "entry": "com/github/alexmodguy/alexscaves/AlexsCaves.class",
+          "methods": [
+            "<init>"
+          ],
+          "partial_contract": true
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/CommonProxy.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/CommonProxy.class",
+          "methods": [
+            "commonInit"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/alexscaves-status-foundation.json",
+        "vanilla-evidence/alexscaves-status-lifecycle.json",
+        "reference-evidence/cataclysm-ghost-fear-244.json",
+        "reference-evidence/cataclysm-stun-244.json",
+        "vanilla-evidence/alexscaves-status-attributes.json"
+      ],
+      "unresolved_ambiguities": [],
+      "shared_contracts": [
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/event/CommonEvents.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/event/CommonEvents.class",
+          "methods": [
+            "livingRemoveEffect",
+            "livingExpireEffect"
+          ],
+          "partial_contract": true
+        },
+        {
+          "evidence_file": "vanilla-evidence/alexscaves-status-attributes.json",
+          "evidence_format": "VANILLA_COMPARISON",
+          "entry": "brx.class",
+          "methods": [
+            "<init>",
+            "addAttributeModifiers",
+            "removeAttributeModifiers"
+          ]
+        }
+      ]
+    }
+  ],
+  "paths": [
+    {
+      "id": "alexscaves:intrinsic_status:darkness_incarnate",
+      "mod_key": "alexscaves",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "alexscaves:darkness_incarnate"
+      ],
+      "primary_source": "Registered alexscaves:darkness_incarnate and original native lifecycle readers",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/DarknessIncarnateEffect.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/DarknessIncarnateEffect.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "onEffectStarted",
+            "getActiveTime",
+            "shouldApplyEffectTickThisTick",
+            "toggleFlight",
+            "getIntensity",
+            "isInLight",
+            "isCreativePlayer"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "methods": [
+            "lambda$static$6"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "methods": [
+            "<clinit>"
+          ],
+          "partial_contract": true
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/AlexsCaves.class",
+          "entry": "com/github/alexmodguy/alexscaves/AlexsCaves.class",
+          "methods": [
+            "<init>"
+          ],
+          "partial_contract": true
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/CommonProxy.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/CommonProxy.class",
+          "methods": [
+            "commonInit"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/event/CommonEvents.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/event/CommonEvents.class",
+          "methods": [
+            "livingTick",
+            "livingRemoveEffect",
+            "livingExpireEffect"
+          ],
+          "partial_contract": true
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-lifecycle.json",
+          "witness_id": "alexscaves:status-lifecycle:com/github/alexmodguy/alexscaves/mixin/LivingEntityMixin.class",
+          "entry": "com/github/alexmodguy/alexscaves/mixin/LivingEntityMixin.class",
+          "methods": [
+            "ac_livingTick"
+          ],
+          "partial_contract": true,
+          "closed_instruction_ranges": [
+            [
+              0,
+              32
+            ],
+            [
+              127,
+              233
+            ]
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-lifecycle.json",
+          "witness_id": "alexscaves:status-lifecycle:com/github/alexmodguy/alexscaves/mixin/LivingEntityMixin.class",
+          "entry": "com/github/alexmodguy/alexscaves/mixin/LivingEntityMixin.class",
+          "methods": [
+            "setSlowFallingFlag",
+            "hasSlowFallingFlag"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "alexscaves:intrinsic_status:rage",
+      "mod_key": "alexscaves",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "alexscaves:rage"
+      ],
+      "primary_source": "Registered alexscaves:rage and original native lifecycle readers",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/RageEffect.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/RageEffect.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "shouldApplyEffectTickThisTick",
+            "removeRageModifier",
+            "<clinit>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "methods": [
+            "lambda$static$2"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "methods": [
+            "<clinit>"
+          ],
+          "partial_contract": true
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/AlexsCaves.class",
+          "entry": "com/github/alexmodguy/alexscaves/AlexsCaves.class",
+          "methods": [
+            "<init>"
+          ],
+          "partial_contract": true
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/CommonProxy.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/CommonProxy.class",
+          "methods": [
+            "commonInit"
+          ]
+        }
+      ]
+    }
+  ],
+  "record_refinements": [],
+  "exclusions": [
+    {
+      "entry": "com/github/alexmodguy/alexscaves/server/potion/DarknessIncarnateEffect.class",
+      "disposition": "LEGACY_UNCALLED_CURE_HELPER",
+      "reason": "Same independently proven legacy getCurativeItems shape as the locked first status batch; not the actual NeoForge fillEffectCures lifecycle.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/DarknessIncarnateEffect.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/DarknessIncarnateEffect.class",
+          "methods": [
+            "getCurativeItems"
+          ]
+        }
+      ]
+    },
+    {
+      "entry": "com/github/alexmodguy/alexscaves/server/potion/DeepsightEffect.class",
+      "disposition": "REGISTERED_CLIENT_VISION_UTILITY",
+      "reason": "Live registered Deepsight has no intrinsic applyEffectTick/attribute/gameplay-writer override. Its duration fields/intensity only feed source-indexed client fog/brightness readers. Preserve this live vision utility; do not label it a dead method or infer a server damage/control/resource payload from the name.",
+      "actual_behavior": "Original singleton duration fields reset on start; query returns0 absent or1 infinite, otherwise min(20,activeTime+partial,remainingDuration+partial)*0.05000000074505806. Native client readers alter fog planes and brightness. Ordinary render/vision utility excluded from combat scalar contributions; originating native potion doses remain separately queued.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/DeepsightEffect.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/DeepsightEffect.class",
+          "methods": [
+            "<init>",
+            "getActiveTime",
+            "shouldApplyEffectTickThisTick",
+            "onEffectStarted",
+            "getIntensity"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-foundation.json",
+          "witness_id": "alexscaves:status-foundation:com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "entry": "com/github/alexmodguy/alexscaves/server/potion/ACEffectRegistry.class",
+          "methods": [
+            "lambda$static$5"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-lifecycle.json",
+          "witness_id": "alexscaves:status-lifecycle:com/github/alexmodguy/alexscaves/mixin/client/LightTextureMixin.class",
+          "entry": "com/github/alexmodguy/alexscaves/mixin/client/LightTextureMixin.class",
+          "methods": [
+            "ac_getBrightness"
+          ],
+          "partial_contract": true
+        },
+        {
+          "evidence_file": "native-evidence/alexscaves-status-lifecycle.json",
+          "witness_id": "alexscaves:status-lifecycle:com/github/alexmodguy/alexscaves/client/event/ClientEvents.class",
+          "entry": "com/github/alexmodguy/alexscaves/client/event/ClientEvents.class",
+          "methods": [
+            "fogRender"
+          ],
+          "partial_contract": true
+        }
+      ]
+    }
+  ],
+  "locked_canonical_contracts_reused": [
+    "alexscaves:bubbled",
+    "alexscaves:irradiated",
+    "alexscaves:stunned"
+  ],
+  "pending_status_contracts": [
+    "MagnetizedEffect and shared MagnetUtil/mixin movement/attachment",
+    "SugarRushEffect and directly used Player/Citadel lifecycle"
+  ],
+  "pending_shared_methods": [
+    "CommonEvents.livingTick non-status branches",
+    "CommonEvents.livingRemoveEffect/livingExpireEffect SugarRush branches",
+    "LivingEntityMixin.ac_livingTick Frostmint branch",
+    "ACEffectRegistry doses/brewing and remaining registrations"
+  ],
+  "native_quirks_preserved": [
+    "Rage manual transient modifier lacks an own effect-expiry cleanup path.",
+    "Darkness slow-fall flag is consumed before the separate disappearance reader can set it again.",
+    "Brightness/native restore baselines and singleton visual timers are not progression ownership."
+  ],
+  "exact_next_task": "R2m8c — AlexCaves Magnetizing shared movement/attachment contract and Sugar Rush lifecycle/time-control dependency: reuse locked status cores and finite field/call indexes; resolve the directly consumed Citadel tick-controller pin where necessary, then native status doses and actor-specific producers.",
+  "stage_policy_decided": false,
+  "runtime_tests": 0
+}

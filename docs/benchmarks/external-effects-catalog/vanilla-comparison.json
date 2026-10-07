@@ -1,7 +1,7 @@
 {
   "schema": "tno.external_effects.vanilla_comparison.v1",
   "status": "PARTIAL",
-  "checkpoint": "R2m8a-alexscaves-pinned-foundation-and-three-intrinsic-status-contracts",
+  "checkpoint": "R2m8b-alexscaves-darkness-rage-and-vision-context-closed",
   "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
   "note": "Deterministic projection of canonical mod reviews,including explicit PARTIAL scope. The ledger alone tracks per-mod completeness. No Stage eligibility or policy decision.",
   "comparisons": [
@@ -47,6 +47,66 @@
           "primitive": "FLUID_QUERY_AND_AIR_REGEN_GATE",
           "numerical_parameters": {},
           "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:darkness_incarnate",
+      "mod_key": "alexscaves",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "native abilities flight and Slow Falling inside custom flight/light-conditioned status control",
+      "similarities": "Uses the exact native APIs/components below; original admission, defenses, effect stacking and removal remain native.",
+      "differences": "Every positive-duration native effect tick discards the parent tick result, enables flight through toggleFlight(true), adds Y0.1 when onGround, and retains native idle-sound RNG. ServerPlayer flight enables mayfly/flying and hardcodes speed0.05000000074505806*4.0; enabling ability sync occurs only when previous flying differs from the requested true flag. toggleFlight always clears recipient fallDistance, including nonplayers/client. On native removal/expiry toggleFlight(false) restores hardcoded base speed; non-spectators stop flying, non-creative actors lose mayfly and receive a slow-fall flag, while original creative/spectator distinctions and update calls remain. Separately, the LivingEntity.tick TAIL consumes and clears an existing slow-fall flag before requesting hidden native Slow Falling80/0 (all explicit flags false, result discarded); then it detects prior Darkness presence followed by absence and independently restores non-creative/non-spectator ServerPlayer flight state and sets the flag again. These native paths can request the handoff on successive ticks; no dedup or unconditional replacement is added. The post-entity-tick hook requests removal every fifth tick when root-vehicle-position block light, or native sky/time rule, reaches11. Effect-object first/last-duration fields only feed original visual intensity and remain singleton-local.",
+      "components": [
+        {
+          "primitive": "FLIGHT_CONTROL",
+          "numerical_parameters": {
+            "active_speed_multiplier": 4.0,
+            "native_base_speed": 0.05000000074505806
+          },
+          "parameter_formulas": {
+            "enabled_flying_speed": "native_base_speed*active_speed_multiplier"
+          },
+          "native_restore": "hardcoded0.05000000074505806; original abilities flags and sync gates"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "grounded_y_addend": 0.1
+          },
+          "parameter_formulas": {},
+          "operation": "original movement.add(0,0.1,0) only onGround"
+        },
+        {
+          "primitive": "FALL_DAMAGE_GATE",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_SLOW_FALLING",
+          "numerical_parameters": {
+            "duration": 80,
+            "amplifier": 0
+          },
+          "parameter_formulas": {},
+          "native_flags": [
+            false,
+            false,
+            false
+          ]
+        },
+        {
+          "primitive": "ENVIRONMENTAL_STATUS_REMOVAL",
+          "numerical_parameters": {
+            "check_period": 5,
+            "brightness_threshold": 11,
+            "sky_brightness": 15,
+            "day_low": 0.259,
+            "day_high": 0.74
+          },
+          "parameter_formulas": {
+            "isInLight": "rootVehicle.blockPosition block-light; if canSeeSky AND (timeOfDay<0.259 OR timeOfDay>0.74), brightness=15; compare brightness>=11"
+          }
         }
       ]
     },
@@ -99,6 +159,50 @@
           "primitive": "HEAL_ADMISSION",
           "numerical_parameters": {},
           "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:rage",
+      "mod_key": "alexscaves",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "native additive attack attribute plus custom missing-health formula and probabilistic Mob aggro redirection",
+      "similarities": "Uses the exact native APIs/components below; original admission, defenses, effect stacking and removal remain native.",
+      "differences": "Each positive-duration tick, if ATTACK_DAMAGE exists, compute float((1+amplifier)*2.5)*(1-health/maxHealth), remove existing alexscaves:rage_attack_boost if present, then add one same-ID transient ADD_VALUE modifier. No clamp, own native damage request, or parent-template registration is added. Server Mob recipients with no target, tickCount%10==0 and nextInt(2)==0 scan living-alive candidates in boundingBox.inflate(80). The first eligible candidate needs no nearer-choice RNG; a later candidate can replace it only if strictly closer and a fresh nextInt(2)==0. Native self, both-direction alliance and canAttack checks remain after that choice gate. The selected actor becomes both lastHurtByMob and target. The native random-bound particle loop runs afterwards and is retained without being a Stage proc candidate. The only original native removeRageModifier caller is this active tick; the inspected Remove/Expired hooks and empty MobEffect template map provide no own expiry/cure cleanup for this manually inserted transient modifier. Do not silently add one or claim the bonus is permanent across unrelated lifecycle/attribute operations.",
+      "components": [
+        {
+          "primitive": "ATTRIBUTE_MODIFIER",
+          "numerical_parameters": {
+            "missing_health_amplifier_coefficient": 2.5
+          },
+          "parameter_formulas": {
+            "amount": "float((1+amplifier)*coefficient)*(1-health/maxHealth); widened to double at modifier construction"
+          },
+          "attribute": "ATTACK_DAMAGE",
+          "modifier_id": "alexscaves:rage_attack_boost",
+          "native_operation": "ADD_VALUE",
+          "lifecycle": "same-ID remove then addTransientModifier each active tick"
+        },
+        {
+          "primitive": "AGGRO_REDIRECTION",
+          "numerical_parameters": {
+            "search_period": 10,
+            "search_radius": 80.0
+          },
+          "parameter_formulas": {
+            "target": "first eligible or RNG-accepted strictly closer candidate; original list order and native gates"
+          }
+        },
+        {
+          "primitive": "PROC_CHANCE",
+          "numerical_parameters": {
+            "scan_rng_bound": 2,
+            "nearer_choice_rng_bound": 2
+          },
+          "parameter_formulas": {
+            "scan": "RandomSource.nextInt(scan_rng_bound)==0",
+            "replace": "only for strictly closer candidate; nextInt(nearer_choice_rng_bound)==0"
+          }
         }
       ]
     },

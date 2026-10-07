@@ -16,7 +16,10 @@ class CatalogIntegrityTests(unittest.TestCase):
     def test_all_completed_reviews_including_cataclysm(self):
         result=audit_catalog()
         self.assertEqual(result['status'],'PASS')
-        self.assertEqual(result['completed_mods_audited'],11)
+        completed={t['mod_key'] for t in read_json(OUT/'mod-completion-ledger.json')['targets']
+                   if t['state']=='COMPLETE'}
+        self.assertEqual(result['completed_mods_audited'],len(completed))
+        self.assertTrue(completed <= result['mods'].keys())
         self.assertTrue(all(m['status'].startswith('PASS') for m in result['mods'].values()))
         self.assertEqual(sum(s['declaration_resource_context_rows'] for s in result['source_census_checks'].values()),6)
         self.assertEqual(sum(s['exact_native_hit_rows'] for s in result['source_census_checks'].values()),611)
