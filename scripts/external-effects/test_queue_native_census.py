@@ -3,7 +3,7 @@ import copy
 import unittest
 from unittest.mock import patch
 from catalog_common import OUT,read_json
-from queue_native_census import build
+from queue_native_census import build, call_frontier
 from reconcile_native_census import reconcile,method_key
 
 
@@ -36,6 +36,30 @@ class NativeQueueTests(unittest.TestCase):
             q=build(self.review,self.census)
         self.assertEqual(q['summary']['direct_native_call_sites']['.addFreshEntityWithPassengers('],
                          q['summary']['remaining_methods'])
+
+
+class FrontierTests(unittest.TestCase):
+    def fixture(self):
+        return dict(mod_key='example',jar_sha256='pin',registration_bootstraps=[],
+            classes=[dict(name='x/Child',superclass='x/Base'),dict(name='x/Base',superclass='java/lang/Object')],
+            symbols=['x/Child.query()I','x/Child.flagI'],methods=[
+                dict(entry='x/Child.class',method='caller',descriptor='()V',calls=[[2,182,0]],hits=[[4,181,1]]),
+                dict(entry='x/Base.class',method='query',descriptor='()I',calls=[],hits=[])])
+
+    def test_inherited_declaration_preserves_exact_original_call_site(self):
+        d=call_frontier(self.fixture(),[0]);self.assertEqual(d['selected_ordinals'],[0])
+        self.assertEqual(d['calls'],[dict(symbol='x/Child.query()I',native_declaration_ordinal=1,
+            sites=[dict(caller_ordinal=0,offset=2,opcode='0xb6')])])
+        self.assertEqual(d['field_writes'][0]['sites'][0]['offset'],4)
+        self.assertNotIn('disposition',d);self.assertNotIn('classification',d)
+
+    def test_external_call_is_not_a_proven_native_target(self):
+        c=self.fixture();c['symbols'][0]='external/Unknown.activate()V'
+        self.assertIsNone(call_frontier(c,[0])['calls'][0]['native_declaration_ordinal'])
+
+    def test_finite_selection_and_deterministic_grouping(self):
+        c=self.fixture();self.assertEqual(call_frontier(c,[1,0,0]),call_frontier(c,[0,1]))
+        with self.assertRaises(AssertionError):call_frontier(c,[2])
 
 
 if __name__=='__main__':unittest.main()

@@ -8,6 +8,52 @@ from reconcile_native_census import reconcile, method_key
 from collect_combat_census import decode_sites
 
 
+def call_frontier(census, ordinals):
+    """Group repeated structural questions without interpreting their meaning.
+
+    Every site keeps its exact caller, opcode, offset and resolved symbol.
+    Bootstrap handles stay separate from invocations; neither proves that a
+    callback actually executes. Native inheritance resolves declarations only.
+    """
+    ordinals=sorted(set(ordinals))
+    assert all(isinstance(n,int) and 0<=n<len(census['methods']) for n in ordinals)
+    classes={c['name']:c for c in census['classes']}
+    native={method_key(m):n for n,m in enumerate(census['methods'])}
+    boot={(b['entry'],b['index']):b for b in census.get('registration_bootstraps',[])}
+    calls=defaultdict(list);writes=defaultdict(list);callbacks=defaultdict(list)
+    for n in ordinals:
+        m=census['methods'][n]
+        for site in decode_sites(census,m,'calls'):
+            symbol=site['operand'];row=dict(caller_ordinal=n,offset=site['offset'],opcode=site['opcode'])
+            calls[symbol].append(row)
+            if site['opcode']=='0xba':
+                import re
+                number=int(re.match(r'bootstrap#(\d+):',symbol).group(1))
+                b=boot.get((m['entry'],number))
+                assert b,'Missing exact bootstrap'
+                callbacks[b['handle']].append(dict(row,bootstrap_index=number,arguments=b['arguments']))
+        for site in decode_sites(census,m,'hits'):
+            if site['opcode'] in ('0xb3','0xb5'):
+                writes[site['operand']].append(dict(caller_ordinal=n,offset=site['offset'],opcode=site['opcode']))
+    def declaration(symbol):
+        import re
+        match=re.fullmatch(r'(.+)\.([^.(]+)(\(.*)',symbol)
+        if not match:return None
+        owner,name,desc=match.groups();seen=set()
+        while owner in classes and owner not in seen:
+            seen.add(owner);key=(owner+'.class',name,desc)
+            if key in native:return native[key]
+            owner=classes[owner]['superclass']
+        return None
+    return dict(schema='tno.external_effects.finite_call_frontier.v1',mod_key=census['mod_key'],
+        jar_sha256=census['jar_sha256'],scope='Exact finite structural site grouping only; no reachability, semantic classification, exclusion or coverage inferred.',
+        selected_ordinals=ordinals,
+        calls=[dict(symbol=s,native_declaration_ordinal=declaration(s),sites=rows) for s,rows in sorted(calls.items())],
+        field_writes=[dict(symbol=s,sites=rows) for s,rows in sorted(writes.items())],
+        bootstrap_handles=[dict(handle=s,sites=rows) for s,rows in sorted(callbacks.items())],
+        summary=dict(selected_methods=len(ordinals),unique_calls=len(calls),unique_written_fields=len(writes),bootstrap_handles=len(callbacks)))
+
+
 def build(review, census):
     index, pending = reconcile(review, census)
     ordinals = {method_key(m): n for n, m in enumerate(census['methods'])}
@@ -49,7 +95,7 @@ def build(review, census):
             for (descriptor, digest), rows in sorted(hints.items()) if len(rows)>1])
 
 
-def generate(key, output, contract_index=None):
+def generate(key, output, contract_index=None, frontier=None):
     census_path=OUT/f'{key}-combat-census.json'
     review_path=OUT/'mod-reviews'/f'{key}.json'
     census=read_json(census_path);review=read_json(review_path)
@@ -58,6 +104,8 @@ def generate(key, output, contract_index=None):
     write_json(output,result)
     if contract_index:
         index,_=reconcile(review,census);write_json(contract_index,index)
+    if frontier:
+        write_json(frontier,call_frontier(census,[n for g in result['groups'] for n in g['method_ordinals']]))
     return result['summary']
 
 
@@ -65,4 +113,5 @@ if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('mod_key');p.add_argument('--output',type=Path,required=True)
     p.add_argument('--contract-index',type=Path)
-    a=p.parse_args();print(generate(a.mod_key,a.output,a.contract_index))
+    p.add_argument('--frontier',type=Path)
+    a=p.parse_args();print(generate(a.mod_key,a.output,a.contract_index,a.frontier))

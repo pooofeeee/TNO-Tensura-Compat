@@ -1,7 +1,7 @@
 {
   "schema": "tno.external_effects.vanilla_comparison.v1",
   "status": "PARTIAL",
-  "checkpoint": "R2m8x-alexscaves-selected-display-context-complete",
+  "checkpoint": "R2m8y-alexscaves-residual-actor-caller-context-complete",
   "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
   "note": "Deterministic projection of canonical mod reviews,including explicit PARTIAL scope. The ledger alone tracks per-mod completeness. No Stage eligibility or policy decision.",
   "comparisons": [
@@ -547,6 +547,27 @@
       ]
     },
     {
+      "effect_id": "alexscaves:cave_chunk_generation_native_encounter",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "Original native biome/spawn/status APIs; exact wrapper semantics retained.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "NaturalSpawner spawnMobsForChunkGeneration TAIL independently adds cave-category native mobs. Samples5 random heights atchunkcenter, deduplicates biomeholders with CAVE_CREATURE entries, selects one. Native loop RNG<float(config caveCreatureSpawnCountModifier * biome creatureProbability); weighted list selects type. Member count minCount+nextInt(max(1,1+maxCount-minCount)) includes max. Eachmember4attempts, original chunk XZ bounds/width clamping, ground/biome search. typecanSummon, CHUNK_GENERATION SpawnPlacements before create/moveTo; actualMob checkSpawnRules+checkSpawnObstruction, finalizeSpawn CHUNK_GENERATION with shared groupdata then addFreshEntityWithPassengers. No owner/team write; groupdata is not team and successful request flag is not proof of addition success. Original concrete actor combat remains canonical. Helpers search original AIR/biome/height, no status/damage/source manufactured.",
+      "components": [
+        {
+          "primitive": "NATIVE_ENCOUNTER_SPAWN",
+          "numerical_parameters": {
+            "biome_samples": 5,
+            "attempts_per_member": 4
+          },
+          "parameter_formulas": {
+            "batch_roll": "randomFloat < config caveCreatureSpawnCountModifier * biome.getCreatureProbability()",
+            "member_count": "minCount+nextInt(max(1,1+maxCount-minCount))"
+          }
+        }
+      ]
+    },
+    {
       "effect_id": "alexscaves:cinder_brick_native_thrown_damage_terrain",
       "mod_key": "alexscaves",
       "primary_classification": "VANILLA_COMPOSITE",
@@ -576,7 +597,7 @@
       "primary_classification": "VANILLA_COMPOSITE",
       "closest_vanilla": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
       "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
-      "differences": "Native MonsterATK3/HP16/armor2. Biteframe8 underLOS/widthsum+1 requestsATK*1.5, ignores return; knockback0.2+0.3*multiplier independent; victimvehicle copiesvelocity andseparatelyrequests0.5*amount. Attacksetsburrowingafterrequestregardlessaccepted; evasion60+rand40/nativepath/40check gates. Dig excludes CORRODENT_BLOCKS_DIGGING, fluids andnonoccludingblocks; isSafeDig requirescurrentANDbelow, also consumedbyalreadylockedGumWormNavigator. Corrodent.collide delegates to Citadel ICustomCollisions.getAllowedMovementForEntity; own selective traversal predicates are proven, dependency algorithm remains blocked without the exact installed Citadel pin, IN_WALL immunity, fallparent-5 andfallcheckskipdig. Serverdigtime>40/outwall surfacesY+1/velocityY+.35; unsafe addsY+.1or-.08; digmovement speedModifier*(time<40?.25:1)*.025/distance/drag.9 orunsafeY+.3/drag.7. No actualterrain destruction: getCorrosionAmount is renderer-only block-distance query. Light>7 triggersretreat/strafeback, refreshflee50 blockingattacks, digafter20stationarychecks; stop resetsAfraidanddig. Native onground/path/loadedheight/RNG gates, mutableposition.move accumulatesbetweenattempts. RealNeoForgeACMultiparttailwidth.9 useslockedparenthurt, physical64trail/offset-1; removalkills. No own additional combatNBT override.",
+      "differences": "Native MonsterATK3/HP16/armor2. Biteframe8 underLOS/widthsum+1 requestsATK*1.5, ignores return; knockback0.2+0.3*multiplier independent; victimvehicle copiesvelocity andseparatelyrequests0.5*amount. Attacksetsburrowingafterrequestregardlessaccepted; evasion60+rand40/nativepath/40check gates. Dig excludes CORRODENT_BLOCKS_DIGGING, fluids andnonoccludingblocks; isSafeDig requirescurrentANDbelow, also consumedbyalreadylockedGumWormNavigator. Corrodent.collide delegates to Citadel ICustomCollisions.getAllowedMovementForEntity; own selective traversal predicates are proven, dependency algorithm remains blocked without the exact installed Citadel pin, IN_WALL immunity, fallparent-5 andfallcheckskipdig. Serverdigtime>40/outwall surfacesY+1/velocityY+.35; unsafe addsY+.1or-.08; digmovement speedModifier*(time<40?.25:1)*.025/distance/drag.9 orunsafeY+.3/drag.7. No actualterrain destruction: getCorrosionAmount is renderer-only block-distance query. Light>7 triggersretreat/strafeback, refreshflee50 blockingattacks, digafter20stationarychecks; stop resetsAfraidanddig. Native onground/path/loadedheight/RNG gates, mutableposition.move accumulatesbetweenattempts. RealNeoForgeACMultiparttailwidth.9 inherits generic client multipart request/always-false hurt; no direct server parent damage forward, physical64trail/offset-1; removalkills. No own additional combatNBT override.",
       "components": [
         {
           "primitive": "NATIVE_DAMAGE_REQUEST",
@@ -2612,6 +2633,14 @@
           "parameter_formulas": {
             "duration": "original remaining native effect duration; packet type2"
           }
+        },
+        {
+          "primitive": "MOB_EFFECT_MAGNETIZING",
+          "numerical_parameters": {
+            "potion_regular_duration": 3600,
+            "potion_long_duration": 9600
+          },
+          "parameter_formulas": {}
         }
       ]
     },
@@ -3373,6 +3402,42 @@
         {
           "primitive": "NATIVE_TARGET_ADMISSION",
           "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:native_potion_vanilla_status_definitions",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_DIRECT",
+      "closest_vanilla": "Original native biome/spawn/status APIs; exact wrapper semantics retained.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Registry Potion definitions are original native MobEffectInstance payload data, delivered through native POTION_CONTENTS/Vanilla drink/splash/lingering machinery, never an added effect callback. GLOWING3600/9600, DIG_SPEED3600/9600 or1800/amp1, HUNGER1800/amp4 remain distinct holders/primitives. Actual holder native immunity/lifecycle/admission remains native. Brewing recipes only acquisition; no custom request/source policy.",
+      "components": [
+        {
+          "primitive": "MOB_EFFECT_GLOWING",
+          "numerical_parameters": {
+            "regular_duration": 3600,
+            "long_duration": 9600
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_DIG_SPEED",
+          "numerical_parameters": {
+            "regular_duration": 3600,
+            "long_duration": 9600,
+            "strong_duration": 1800,
+            "strong_amplifier": 1
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_HUNGER",
+          "numerical_parameters": {
+            "strong_duration": 1800,
+            "strong_amplifier": 4
+          },
           "parameter_formulas": {}
         }
       ]
@@ -4575,6 +4640,14 @@
             "client_active_comparison": 50.0
           },
           "external_dependency_obligation": "alexscaves:sugar_rush:citadel_tick_controller_pin"
+        },
+        {
+          "primitive": "MOB_EFFECT_SUGAR_RUSH",
+          "numerical_parameters": {
+            "potion_regular_duration": 1800,
+            "potion_long_duration": 3600
+          },
+          "parameter_formulas": {}
         }
       ]
     },
