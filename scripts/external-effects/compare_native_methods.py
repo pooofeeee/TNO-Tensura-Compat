@@ -68,7 +68,11 @@ def collect(spec, jar_path):
             for method in selected:
                 key = method['name'], method['descriptor']
                 code = method.get('code', b'')
-                body = normalized(instructions(cls, code), cls.name)
+                decoded = instructions(cls, code)
+                if spec.get('include_local_operands'):
+                    from native_evidence import annotate_local_operands
+                    annotate_local_operands(decoded, code)
+                body = normalized(decoded, cls.name)
                 expected = normalized(template[key]['instructions'], witness['class_name'])
                 assert body == expected, ('non-equivalent method', entry, key)
                 for index in referenced_bootstraps(body):

@@ -49,6 +49,7 @@ def reconcile(review, census, read=read_json, root=OUT):
         return value
 
     shared = defaultdict(set)
+    context_equivalences = {}
     forwarding_files=set()
     def cite(p, record_ids, metadata):
         filename = p.get('evidence_file', '')
@@ -76,6 +77,12 @@ def reconcile(review, census, read=read_json, root=OUT):
         assert batch['mod_key'] == census['mod_key']
         if batch.get('native_forwarding_registry_file'):
             forwarding_files.add(batch['native_forwarding_registry_file'])
+        for context in batch.get('native_context_equivalences', []):
+            assert context.get('file') and context.get('reason'), 'Unreviewed context equivalence'
+            filename = context['file']
+            assert filename not in context_equivalences, 'Repeated context equivalence'
+            context_equivalences[filename] = context['reason']
+            shared[filename]  # Context proof grants no semantic record identity.
         if batch.get('native_uncalled_registry_file'):
             from native_uncalled import validate_batch as validate_uncalled_batch
             validate_uncalled_batch(batch,census,packet)
@@ -104,11 +111,16 @@ def reconcile(review, census, read=read_json, root=OUT):
             for row in document['rows']:
                 key = method_key(row)
                 assert row['entry_sha256'] == classes[key[0]]['entry_sha256']
+                assert classes[key[0]]['superclass'] == w['superclass']
                 assert row['status'] == 'EXACT_RESOLVED_INSTRUCTIONS_EXCEPT_SELF_OWNER'
                 assert template_methods[key[1:]]['code_sha256'] == row['template_code_sha256']
+                if filename in context_equivalences:
+                    assert not template_methods[key[1:]].get('instruction_offset_ranges'), 'Partial context template'
                 add(key, row['code_sha256'], record_ids,
-                    dict(kind='SHARED_NATIVE_METHOD', registry_file=filename,
-                         evidence_file=template['evidence_file'], witness_id=w['id']))
+                    dict(kind='REVIEWED_EXCLUSION' if filename in context_equivalences else 'SHARED_NATIVE_METHOD',
+                         registry_file=filename, evidence_file=template['evidence_file'], witness_id=w['id'],
+                         **(dict(disposition='EXACT_REVIEWED_TEMPLATE_CONTEXT', reason=context_equivalences[filename])
+                            if filename in context_equivalences else {})))
         elif schema == 'tno.external_effects.native_producer_kernel_registry.v1':
             assert document['mod_key'] == census['mod_key']
             for row in document['rows']:
