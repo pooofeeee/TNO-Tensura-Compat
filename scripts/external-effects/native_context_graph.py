@@ -18,7 +18,7 @@ from reconcile_native_census import method_key
 
 ROOTS=('/client/model/', '/client/render/', '/client/particle/')
 EXTRA_ROOTS=('/client/sound/', '/client/gui/')
-PROFILES=('visual-v1','presentation-audio-ui-v2','native-value-metadata-v3','generation-layout-v4','native-query-context-v5')
+PROFILES=('visual-v1','presentation-audio-ui-v2','native-value-metadata-v3','generation-layout-v4','native-query-context-v5','presentation-access-v6')
 GEN_ROOTS=('/server/level/feature/','/server/level/carver/',
     '/server/level/surface/','/server/level/structure/')
 GEN_VALUES=('net/minecraft/world/level/levelgen/synth/',
@@ -133,6 +133,28 @@ QUERY={
  'net/minecraft/client/multiplayer/ClientLevel': {'getBlockState','getFluidState','getEntitiesOfClass','getEntity','getGameTime','registryAccess','getLightEngine','addParticle','getShade','getMinBuildHeight','getMaxBuildHeight'},
 }
 
+# Additional exact display operations/readers. This version leaves old proofs
+# byte-identical. Opaque callbacks, events, inputs, packet sends and entity
+# setters are deliberately absent. It is a structural proof, not a classifier.
+DISPLAY_QUERY={
+ 'net/minecraft/client/Minecraft': {'renderBuffers','getTimer','getMainRenderTarget','getSoundManager','getEntityModels','getResourceManager'},
+ 'net/minecraft/client/DeltaTracker': {'getGameTimeDeltaPartialTick'},
+ 'net/minecraft/client/Options': {'getCameraType','fov'},
+ 'net/minecraft/client/CameraType': {'isFirstPerson'},
+ 'net/minecraft/client/OptionInstance': {'get'},
+ 'net/minecraft/client/Camera': {'getNearPlane'},
+ 'net/minecraft/client/Camera$NearPlane': {'getPointOnPlane'},
+ 'net/minecraft/client/gui/GuiGraphics': {'pose','blit','drawString','renderTooltip','fill','fillGradient','renderItem','renderFakeItem','renderItemDecorations','drawCenteredString','enableScissor','disableScissor','flush','guiWidth','guiHeight','blitSprite','hLine','vLine'},
+ 'com/github/alexthe666/citadel/client/shader/PostEffectRegistry': {'renderEffectForNextTick','getRenderTargetFor'},
+ 'net/minecraft/world/level/block/entity/BlockEntity': {'getBlockPos','getBlockState','isRemoved','getLevel'},
+ 'net/minecraft/world/inventory/AbstractContainerMenu': {'getSlot'},
+ 'net/minecraft/world/inventory/Slot': {'getItem','hasItem'},
+ 'net/minecraft/world/item/crafting/Ingredient': {'getItems'},
+ 'net/neoforged/neoforge/entity/PartEntity': {'getBoundingBoxForCulling'},
+ 'net/minecraft/world/entity/Entity': {'isVehicle','fillCrashReportCategory'},
+ 'net/minecraft/world/item/Item': {'getDescriptionId'},
+}
+
 
 def parts(symbol):
     match=re.fullmatch(r'(.+)\.([^.(]+)(\(.*)',symbol)
@@ -143,6 +165,9 @@ def external_allowed(symbol, profile='visual-v1'):
     p=parts(symbol)
     if not p:return False
     owner,name,_=p
+    if profile=='presentation-access-v6':
+        if name in DISPLAY_QUERY.get(owner,set()):return True
+        return external_allowed(symbol,'presentation-audio-ui-v2')
     if profile=='native-query-context-v5':
         # Sampling changes RNG state; builders/collection aliases and particle
         # APIs are not read-only, even when their result is a native value.
@@ -190,7 +215,7 @@ def external_allowed(symbol, profile='visual-v1'):
 
 
 def visual_entry(entry, profile='visual-v1'):
-    return any(root in entry for root in ROOTS + (EXTRA_ROOTS if profile=='presentation-audio-ui-v2' else ()))
+    return any(root in entry for root in ROOTS + (EXTRA_ROOTS if profile in ('presentation-audio-ui-v2','presentation-access-v6') else ()))
 
 
 def typed_presentation_return(method):
@@ -204,6 +229,12 @@ def opcode_read_only(code):
     parser=object.__new__(ClassFile);parser.resolve=lambda index:None
     ops={int(i['opcode'],16) for i in parser.instructions(code)}
     return not (ops & (set(range(0x4f,0x57)) | {0xb3,0xb5,0xc2,0xc3,0xa8,0xa9,0xc9}))
+
+
+def opcode_no_alias_writes(code):
+    parser=object.__new__(ClassFile);parser.resolve=lambda index:None
+    ops={int(i['opcode'],16) for i in parser.instructions(code)}
+    return not (ops & (set(range(0x4f,0x57)) | {0xc2,0xc3,0xa8,0xa9,0xc9}))
 
 
 def prove(census, profile='visual-v1', bytecodes=None, selection=None):
@@ -237,6 +268,9 @@ def prove(census, profile='visual-v1', bytecodes=None, selection=None):
         if profile=='native-query-context-v5':
             raw=(bytecodes or {}).get(key)
             valid=valid and not m['access'] & 0x20 and raw is not None and byte_hash(raw)==m['code_sha256'] and opcode_read_only(raw)
+        if profile=='presentation-access-v6':
+            raw=(bytecodes or {}).get(key)
+            valid=valid and not m['access'] & 0x20 and raw is not None and byte_hash(raw)==m['code_sha256'] and opcode_no_alias_writes(raw)
         for hit in decode_sites(census,m,'hits'):
             op=hit['opcode'];symbol=str(hit['operand'])
             if op in ('0xb3','0xb5'):
@@ -269,7 +303,10 @@ def prove(census, profile='visual-v1', bytecodes=None, selection=None):
            {k for k in native if any(root in k[0] for root in GEN_ROOTS)} if profile=='generation-layout-v4' else
            {k for k in native if any(native[k]['descriptor'].endswith(')'+t) for t in VALUE_RETURNS)}
            if profile=='native-value-metadata-v3' else
-           {k for k in native if visual_entry(k[0],profile) or (profile=='presentation-audio-ui-v2' and typed_presentation_return(native[k]))})
+           {k for k in native if visual_entry(k[0],profile) or (profile in ('presentation-audio-ui-v2','presentation-access-v6') and typed_presentation_return(native[k]))})
+    if selection is not None:
+        assert set(selection)<=set(native),'Unknown finite context selection'
+        roots &= set(selection)
     accepted=roots & safe
     rows=[dict(entry=k[0],method=k[1],descriptor=k[2],code_sha256=native[k]['code_sha256'],
                entry_sha256=classes[k[0][:-6]]['entry_sha256'],
@@ -299,6 +336,11 @@ def prove(census, profile='visual-v1', bytecodes=None, selection=None):
         result['selection']=[dict(entry=k[0],method=k[1],descriptor=k[2]) for k in sorted(selection or ())]
         result['bytecodes']=[dict(entry=k[0],method=k[1],descriptor=k[2],code_hex=v.hex()) for k,v in sorted((bytecodes or {}).items())]
         result['summary']={'methods':len(rows),'remaining_query_methods':len(roots)-len(rows)}
+    if profile=='presentation-access-v6':
+        result['scope']='Selected typed display operations/native readers, complete transitive native bodies with no array alias writes. Native game writes, packets, events and opaque callbacks rejected; actor semantics remain independently canonical.'
+        result['bytecodes']=[dict(entry=k[0],method=k[1],descriptor=k[2],code_hex=v.hex()) for k,v in sorted((bytecodes or {}).items())]
+    if selection is not None:
+        result['selection']=[dict(entry=k[0],method=k[1],descriptor=k[2]) for k in sorted(selection)]
     if profile!='visual-v1':
         result['context_profile']=profile
     return result
@@ -307,19 +349,20 @@ def prove(census, profile='visual-v1', bytecodes=None, selection=None):
 def validate(doc,census):
     profile=doc.get('context_profile','visual-v1')
     codes={method_key(r):bytes.fromhex(r['code_hex']) for r in doc.get('bytecodes',[])}
-    selection={method_key(r) for r in doc.get('selection',[])}
+    selection={method_key(r) for r in doc['selection']} if 'selection' in doc else None
     assert doc==prove(census,profile,codes,selection),'Context graph differs from independent finite call/field facts'
     return doc['rows']
 
 
-def collect_queries(census,selection,jar):
-    """Read only selected query roots and exact internal call dependencies."""
+def collect_queries(census,selection,jar,profile='native-query-context-v5'):
+    """Read only selected context roots and exact internal call dependencies."""
     assert sha256(jar)==census['jar_sha256']
     native={method_key(m):m for m in census['methods']}
     assert selection <= set(native)
     classes={c['name']:c for c in census['classes']}
     boot={(b['entry'],b['index']):b for b in census.get('registration_bootstraps',[])}
-    roots={k for k in selection if native[k]['descriptor'].split(')')[1] in QUERY_RETURNS}
+    roots=({k for k in selection if native[k]['descriptor'].split(')')[1] in QUERY_RETURNS}
+           if profile=='native-query-context-v5' else set(selection))
     todo=list(roots);needed=set()
     while todo:
         key=todo.pop()
@@ -351,7 +394,7 @@ def collect_queries(census,selection,jar):
                 if key in needed:
                     code=m.get('code',b'');assert byte_hash(code)==native[key]['code_sha256'];codes[key]=code
     assert set(codes)==needed
-    return prove(census,'native-query-context-v5',codes,roots)
+    return prove(census,profile,codes,roots)
 
 
 def reproduce(doc,census,jar):
@@ -376,10 +419,10 @@ if __name__=='__main__':
     p.add_argument('--profile',choices=PROFILES,default='visual-v1')
     p.add_argument('--selection',type=Path)
     a=p.parse_args();c=read_json(OUT/f'{a.mod_key}-combat-census.json')
-    if a.profile=='native-query-context-v5':
+    if a.profile in ('native-query-context-v5','presentation-access-v6'):
         assert a.jar and a.selection,'Query context requires an exact finite selection and pinned JAR'
         selected={method_key(r) for r in read_json(a.selection)['methods']}
-        d=collect_queries(c,selected,a.jar)
-    else:d=prove(c,a.profile)
+        d=collect_queries(c,selected,a.jar,a.profile)
+    else:d=prove(c,a.profile,selection={method_key(r) for r in read_json(a.selection)['methods']} if a.selection else None)
     if a.jar:reproduce(d,c,a.jar)
     write_json(a.output,d);print(d['summary'])

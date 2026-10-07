@@ -8,7 +8,7 @@
       "id": "alexscaves:acid_native_contact_corrosion_fluid_motion",
       "display_name": "acid_native_contact_corrosion_fluid_motion",
       "primary_classification": "CUSTOM_DAMAGE",
-      "actual_behavior": "AcidBlock excludes RESISTS_ACID and requires fluid height>.1. Living scans armor: damageable nonHazmat pieces mark armor, RNG<.05 wears1 unless creative; protection multiplier1-HazmatPieces/4. RNG<multiplier admits OWNERLESS custom acid damage multiplier*(armor?.01:1)+(WEAK_TO_ACID?10:0). Hurt acceptance only gates sound, not prior wear. No own server guard. Horizontal neighbor onPlace/neighborChanged corrosion converts exact existing block map, copies shared state properties; no invented actor owner. AcidFluidType move implements water-like input .02*SWIM_SPEED, drag(.8,.8,.8), DolphinsGrace horizontal .96, climb collisionY.2, native fluid gravity adjustment .08, free collision-stepY.3. f6 depth-strider local0 is dead branch, not a live candidate; ignores supplied gravity argument. Entity ordinary native defenses/status admission retained.",
+      "actual_behavior": "AcidBlock excludes RESISTS_ACID and requires fluid height>.1. Living scans armor: damageable nonHazmat pieces mark armor, RNG<.05 wears1 unless creative; protection multiplier1-HazmatPieces/4. RNG<multiplier admits OWNERLESS custom acid damage multiplier*(armor?.01:1)+(WEAK_TO_ACID?10:0). Hurt acceptance only gates sound, not prior wear. No own server guard. Horizontal neighbor onPlace/neighborChanged corrosion converts exact existing block map, copies shared state properties; no invented actor owner. AcidFluidType move implements water-like input .02*SWIM_SPEED, drag(.8,.8,.8), DolphinsGrace horizontal .96, climb collisionY.2, native fluid gravity adjustment .08, free collision-stepY.3. f6 depth-strider local0 is dead branch, not a live candidate; ignores supplied gravity argument. Entity ordinary native defenses/status admission retained. AcidicRadrock playerDestroy calls parent FIRST; SILK_TOUCH level0 and nextInt3==0 then replaces original position with ACID. No damage/owner assigned by block destruction; native acid contact remains the existing independent consumer. Constructor/material/particle fields remain native.",
       "closest_vanilla_equivalent": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
       "implementation": [
         {
@@ -39,6 +39,16 @@
           ],
           "evidence_file": "native-evidence/alexscaves-combat-blocks.json",
           "witness_id": "alexscaves:combat-blocks:com/github/alexmodguy/alexscaves/server/block/fluid/AcidFluidType.class"
+        },
+        {
+          "entry": "com/github/alexmodguy/alexscaves/server/block/AcidicRadrockBlock.class",
+          "methods": [
+            "<init>",
+            "animateTick",
+            "playerDestroy"
+          ],
+          "evidence_file": "native-evidence/alexscaves-remaining-block-context.json",
+          "witness_id": "alexscaves:remaining-block-context:com/github/alexmodguy/alexscaves/server/block/AcidicRadrockBlock.class"
         }
       ],
       "components": [
@@ -102,6 +112,14 @@
             "isVaporizedOnPlacement",
             "move",
             "onVaporize"
+          ]
+        },
+        {
+          "entry": "com/github/alexmodguy/alexscaves/server/block/AcidicRadrockBlock.class",
+          "methods": [
+            "<init>",
+            "animateTick",
+            "playerDestroy"
           ]
         }
       ],
@@ -171,6 +189,163 @@
           },
           "observation_only": true
         }
+      ],
+      "contract_refinements": [
+        {
+          "checkpoint": "R2m8w-alexscaves-remaining-native-block-context-complete",
+          "reason": "Exact remaining block boundary, retaining original combat identity."
+        }
+      ]
+    },
+    {
+      "id": "alexscaves:amber_monolith_native_population_encounter",
+      "display_name": "Amber Monolith native population encounter",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "Server tick refreshes spawn choice at40+nextInt50 or first migration; migration is original boss-defeated firstTime+24000>gameTime window, first migration shortens previous countdown ceil(old*.25)+100 and prefers Atlatitan. Biome CAVE_CREATURE list falls back to CREATURE; nonempty forced-match list replaces it, otherwise original list retained. Depopulation rolls4+nextInt8/range64 check the PREVIOUS choice; final roll is returned WITHOUT a final blocked check. Thus AMBER_MONOLITH_SKIPS, existing-alive density and pre-boss Atlatitan filters do not guarantee rejection of the last choice. Spawn count nextInt(maxCount-minCount)+minCount excludes max, or min if difference<=0. Countdown mean=max(1000,configured amberMonolithMeanTime), mean/2+nextInt(mean). Atcountdown<=0 requires nearestPlayer28,false, selectedtype and spawnMobs request; successful request sound/regenerate. Each requested member has6attempts, each position20randomtries xz[-10,9]/ground/Ydistance<20/loaded and CAVE_CREATURE sky restriction. TypecanSummon, SPAWNER placement rule and noCollision precede create; entitymustbeMob and CHUNK_GENERATION placement rule, then finalizeSpawn CHUNK_GENERATION with sharedSpawnGroupData and server.addFreshEntityWithPassengers. No owner/team assigned; groupdata is not team. Request flags do not prove actual addition succeeded. Display entity is UNSPAWNED; amber explosion is particles, no explosion damage. Original actor AI/combat/admission stays in its existing family.",
+      "closest_vanilla_equivalent": "Native biome weighted spawn lists, SpawnPlacements and Mob.finalizeSpawn; custom population/migration wrapper.",
+      "implementation": [
+        {
+          "entry": "com/github/alexmodguy/alexscaves/server/block/AmberMonolithBlock.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "getTicker",
+            "lambda$static$0",
+            "newBlockEntity"
+          ],
+          "evidence_file": "native-evidence/alexscaves-remaining-block-context.json",
+          "witness_id": "alexscaves:remaining-block-context:com/github/alexmodguy/alexscaves/server/block/AmberMonolithBlock.class"
+        },
+        {
+          "entry": "com/github/alexmodguy/alexscaves/server/block/blockentity/AmberMonolithBlockEntity.class",
+          "methods": [
+            "<init>",
+            "generateSpawnData",
+            "getDepopulatedEntitySpawnData",
+            "getDisplayEntity",
+            "getEntitySpawnSettingsForBiome",
+            "getRandomSpawnPos",
+            "getUpdatePacket",
+            "getUpdateTag",
+            "isEntitySpawnBlocked",
+            "isMigration",
+            "loadAdditional",
+            "onDataPacket",
+            "saveAdditional",
+            "spawnMobs",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/alexscaves-remaining-block-context.json",
+          "witness_id": "alexscaves:remaining-block-context:com/github/alexmodguy/alexscaves/server/block/blockentity/AmberMonolithBlockEntity.class"
+        }
+      ],
+      "components": [
+        {
+          "primitive": "NATIVE_ENCOUNTER_SPAWN",
+          "numerical_parameters": {
+            "nearest_player_radius": 28,
+            "population_search_range": 64,
+            "attempts_per_member": 6,
+            "position_attempts": 20,
+            "minimum_mean_ticks": 1000,
+            "migration_window_ticks": 24000
+          },
+          "parameter_formulas": {
+            "countdown": "mean/2 + nextInt(mean), mean=max(1000,amberMonolithMeanTime)",
+            "selection_rolls": "4+nextInt(8)",
+            "member_count": "j<=0 ? minCount : nextInt(j)+minCount; j=max(maxCount-minCount,0)"
+          }
+        }
+      ],
+      "source_actor": "Ownerless native monolith -> original selected EntityType/Mob; no synthetic attacking player.",
+      "binary_parameters": {
+        "native_spawn_rules": [
+          "SPAWNER",
+          "CHUNK_GENERATION"
+        ],
+        "requires_mob": true,
+        "last_roll_filter_bypass": true,
+        "owner_assigned": false
+      },
+      "lifecycle": "Parent NBT plus EntityType, SpawnCount, SpawnMobsIn, PostBossSpawn; native packet sync/countdown/display state; no external ownership storage.",
+      "hurt_return_dependency": "No hurt/effect request; native encounter producer only.",
+      "scalable_parameter_candidates": [],
+      "mod_key": "alexscaves",
+      "native_boundary": [
+        {
+          "entry": "com/github/alexmodguy/alexscaves/server/block/AmberMonolithBlock.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "getTicker",
+            "lambda$static$0",
+            "newBlockEntity"
+          ]
+        },
+        {
+          "entry": "com/github/alexmodguy/alexscaves/server/block/blockentity/AmberMonolithBlockEntity.class",
+          "methods": [
+            "<init>",
+            "generateSpawnData",
+            "getDepopulatedEntitySpawnData",
+            "getDisplayEntity",
+            "getEntitySpawnSettingsForBiome",
+            "getRandomSpawnPos",
+            "getUpdatePacket",
+            "getUpdateTag",
+            "isEntitySpawnBlocked",
+            "isMigration",
+            "loadAdditional",
+            "onDataPacket",
+            "saveAdditional",
+            "spawnMobs",
+            "tick"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Server tick refreshes spawn choice at40+nextInt50 or first migration; migration is original boss-defeated firstTime+24000>gameTime window, first migration shortens previous countdown ceil(old*.25)+100 and prefers Atlatitan. Biome CAVE_CREATURE list falls back to CREATURE; nonempty forced-match list replaces it, otherwise original list retained. Depopulation rolls4+nextInt8/range64 check the PREVIOUS choice; final roll is returned WITHOUT a final blocked check. Thus AMBER_MONOLITH_SKIPS, existing-alive density and pre-boss Atlatitan filters do not guarantee rejection of the last choice. Spawn count nextInt(maxCount-minCount)+minCount excludes max, or min if difference<=0. Countdown mean=max(1000,configured amberMonolithMeanTime), mean/2+nextInt(mean). Atcountdown<=0 requires nearestPlayer28,false, selectedtype and spawnMobs request; successful request sound/regenerate. Each requested member has6attempts, each position20randomtries xz[-10,9]/ground/Ydistance<20/loaded and CAVE_CREATURE sky restriction. TypecanSummon, SPAWNER placement rule and noCollision precede create; entitymustbeMob and CHUNK_GENERATION placement rule, then finalizeSpawn CHUNK_GENERATION with sharedSpawnGroupData and server.addFreshEntityWithPassengers. No owner/team assigned; groupdata is not team. Request flags do not prove actual addition succeeded. Display entity is UNSPAWNED; amber explosion is particles, no explosion damage. Original actor AI/combat/admission stays in its existing family.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "com/github/alexmodguy/alexscaves/server/block/AmberMonolithBlock.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "getTicker",
+            "lambda$static$0",
+            "newBlockEntity"
+          ]
+        },
+        {
+          "entry": "com/github/alexmodguy/alexscaves/server/block/blockentity/AmberMonolithBlockEntity.class",
+          "methods": [
+            "<init>",
+            "generateSpawnData",
+            "getDepopulatedEntitySpawnData",
+            "getDisplayEntity",
+            "getEntitySpawnSettingsForBiome",
+            "getRandomSpawnPos",
+            "getUpdatePacket",
+            "getUpdateTag",
+            "isEntitySpawnBlocked",
+            "isMigration",
+            "loadAdditional",
+            "onDataPacket",
+            "saveAdditional",
+            "spawnMobs",
+            "tick"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/alexscaves-remaining-block-context.json"
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "alexscaves:amber_monolith_native_population_encounter:native_boundary"
       ]
     },
     {
@@ -603,7 +778,7 @@
       "id": "alexscaves:beholder_native_remote_camera_input",
       "display_name": "beholder_native_remote_camera_input",
       "primary_classification": "CUSTOM_CONTROL",
-      "actual_behavior": "Native Beholder usingPlayerUUID global server PlayerList/current clientlevel; missing user server unload tickets then discardafter3. Native usingLiving inputs zza/yya/xxa zero; player keypacket exactuser equality stops. Server stop/crouch state changes camera packet/events, crossdimensiondiscard, clearUUID; chunks own/player forced via ticketcontroller while fullcontrol, native square radius max(2,viewDistance/2). Entity velocitygetteralwaysZERO/setterNOOP; no damage/status/target-control. NBT only userUUID, rotation/raw flags transient. Camera strength10tick is presentation ramp, not scalar contribution. Material input control retained separately from ordinary remote vision utility. OccultGem native same-dimension server GlobalPos/useOn binding and 3x3 force chunks starts BeholderBlockEntity observation; inventory reference-equality/current-dimension20cadence clears missing/out-ofbounds. No new damage; Beholder block producer still independently queued. BeholderBlockEntity startObserving constructs ownerless BeholderEye atblockcenterY-.15, setsactualusingPlayerUUID/playerYaw/addFreshEntity/currentrawID; distance>1000 onlyadvancement. No own sideguard in callback, OccultGem outerservergate unchanged. Fullblocktick rotatesvisualeye/currentID sync/sound only; currentusing-ID default-1/resetsnative getter, no additional input-control consumer. BeholderRotateMessage playToServer onlylooks upserver/currentdimension/BeholderEye; bodyaftertypecheck is EMPTY and performsNOrotation write. Actual ClientEvents.onClientTick writeslocaleyeX/Y fromlocalplayer head/pitch (setOldRotsfirst), specialkey4resetclientcamera. Sync playToClient sets hasTakenFullControlOfCamera true eveninactive; activecamera switch/reset onlywhenactualgetUsingPlayer==contextplayer. ClientProxy setView onlyforlocalplayer/currentplayercamera; forcesFIRST_PERSON, storespreviousPOV, resetrestoresnativelevel/camera/options. No addedserver rotation semantics.",
+      "actual_behavior": "Native Beholder usingPlayerUUID global server PlayerList/current clientlevel; missing user server unload tickets then discardafter3. Native usingLiving inputs zza/yya/xxa zero; player keypacket exactuser equality stops. Server stop/crouch state changes camera packet/events, crossdimensiondiscard, clearUUID; chunks own/player forced via ticketcontroller while fullcontrol, native square radius max(2,viewDistance/2). Entity velocitygetteralwaysZERO/setterNOOP; no damage/status/target-control. NBT only userUUID, rotation/raw flags transient. Camera strength10tick is presentation ramp, not scalar contribution. Material input control retained separately from ordinary remote vision utility. OccultGem native same-dimension server GlobalPos/useOn binding and 3x3 force chunks starts BeholderBlockEntity observation; inventory reference-equality/current-dimension20cadence clears missing/out-ofbounds. No new damage; Beholder block producer still independently queued. BeholderBlockEntity startObserving constructs ownerless BeholderEye atblockcenterY-.15, setsactualusingPlayerUUID/playerYaw/addFreshEntity/currentrawID; distance>1000 onlyadvancement. No own sideguard in callback, OccultGem outerservergate unchanged. Fullblocktick rotatesvisualeye/currentID sync/sound only; currentusing-ID default-1/resetsnative getter, no additional input-control consumer. BeholderRotateMessage playToServer onlylooks upserver/currentdimension/BeholderEye; bodyaftertypecheck is EMPTY and performsNOrotation write. Actual ClientEvents.onClientTick writeslocaleyeX/Y fromlocalplayer head/pitch (setOldRotsfirst), specialkey4resetclientcamera. Sync playToClient sets hasTakenFullControlOfCamera true eveninactive; activecamera switch/reset onlywhenactualgetUsingPlayer==contextplayer. ClientProxy setView onlyforlocalplayer/currentplayercamera; forcesFIRST_PERSON, storespreviousPOV, resetrestoresnativelevel/camera/options. No addedserver rotation semantics. Beholder block factory/ticker routes only to existing BeholderBlockEntity; waterlogged/placement/shape/default facing remain native, not another controlled actor.",
       "closest_vanilla_equivalent": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
       "implementation": [
         {
@@ -748,6 +923,23 @@
           ],
           "evidence_file": "native-evidence/alexscaves-remaining-protocol-setup.json",
           "witness_id": "alexscaves:remaining-protocol-setup:com/github/alexmodguy/alexscaves/client/ClientProxy.class"
+        },
+        {
+          "entry": "com/github/alexmodguy/alexscaves/server/block/BeholderBlock.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "canSurvive",
+            "createBlockStateDefinition",
+            "getFluidState",
+            "getStateForPlacement",
+            "getTicker",
+            "lambda$static$0",
+            "newBlockEntity",
+            "updateShape"
+          ],
+          "evidence_file": "native-evidence/alexscaves-remaining-block-context.json",
+          "witness_id": "alexscaves:remaining-block-context:com/github/alexmodguy/alexscaves/server/block/BeholderBlock.class"
         }
       ],
       "components": [
@@ -892,6 +1084,21 @@
             "setRenderViewEntity",
             "resetRenderViewEntity"
           ]
+        },
+        {
+          "entry": "com/github/alexmodguy/alexscaves/server/block/BeholderBlock.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "canSurvive",
+            "createBlockStateDefinition",
+            "getFluidState",
+            "getStateForPlacement",
+            "getTicker",
+            "lambda$static$0",
+            "newBlockEntity",
+            "updateShape"
+          ]
         }
       ],
       "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
@@ -952,6 +1159,10 @@
         {
           "checkpoint": "R2m8u-alexscaves-protocol-configuration-context-complete",
           "reason": "Exact native packet/factory dispatch and consumer context; no additional payload."
+        },
+        {
+          "checkpoint": "R2m8w-alexscaves-remaining-native-block-context-complete",
+          "reason": "Exact remaining block boundary, retaining original combat identity."
         }
       ]
     },
@@ -7568,7 +7779,7 @@
       "id": "alexscaves:dinosaur_egg_native_hatch_aggro",
       "display_name": "dinosaur_egg_native_hatch_aggro",
       "primary_classification": "CUSTOM_CONTROL",
-      "actual_behavior": "Native egg supplier defines hatch species; supported habitat/not STOPS_DINO_EGGS, growth RNG10 fernthatch else20 and HATCH0..2; NEEDS_PLAYER nearest15 NO_SPECTATORS gate. Native hatch removes egg and spawns born(default1); Animal baby age-24000. Server Dinosaur.tamesFromHatching chooses nearest10 player, native tame/sit/tamePlayer before addFreshEntity; Tremorzilla egg cannot ordinary hatch but already locked nuclear path calls this same hatch. Native step RNG100/fall RNG3 excluding Zombie, not DINOSAURS-tag Living and Player or native mobGrief hook can trample. Server trample selects live matching birth species within25, targets original trampler except creative and same tame owner, then remove egg. playerDestroy only parent/removal, no aggro invocation. No Stage progression inferred from owner acquisition. AnimalBreedEggsGoal only nativebreeding setsLaysEggs.hasEggtrue, parentages6000/resetlove, causePlayerstat/nativecriterion, optionalDOMOBLOOT1..7XP; doesNOTspawnEgg orsetnewowner. Existing egg/hatch contracts and concrete species placement gates remain locked.",
+      "actual_behavior": "Native egg supplier defines hatch species; supported habitat/not STOPS_DINO_EGGS, growth RNG10 fernthatch else20 and HATCH0..2; NEEDS_PLAYER nearest15 NO_SPECTATORS gate. Native hatch removes egg and spawns born(default1); Animal baby age-24000. Server Dinosaur.tamesFromHatching chooses nearest10 player, native tame/sit/tamePlayer before addFreshEntity; Tremorzilla egg cannot ordinary hatch but already locked nuclear path calls this same hatch. Native step RNG100/fall RNG3 excluding Zombie, not DINOSAURS-tag Living and Player or native mobGrief hook can trample. Server trample selects live matching birth species within25, targets original trampler except creative and same tame owner, then remove egg. playerDestroy only parent/removal, no aggro invocation. No Stage progression inferred from owner acquisition. AnimalBreedEggsGoal only nativebreeding setsLaysEggs.hasEggtrue, parentages6000/resetlove, causePlayerstat/nativecriterion, optionalDOMOBLOOT1..7XP; doesNOTspawnEgg orsetnewowner. Existing egg/hatch contracts and concrete species placement gates remain locked. MultipleDinosaurEggs shares original egg superclass; EGGS1..4 shape/placement/count removal and hatch/mob supplier remain native. Removing one emits original events/sound; no independent hatch owner or duplicate aggro rule.",
       "closest_vanilla_equivalent": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
       "implementation": [
         {
@@ -7609,6 +7820,19 @@
           ],
           "evidence_file": "native-evidence/alexscaves-residual-control.json",
           "witness_id": "alexscaves:residual-control:com/github/alexmodguy/alexscaves/server/entity/ai/AnimalBreedEggsGoal.class"
+        },
+        {
+          "entry": "com/github/alexmodguy/alexscaves/server/block/MultipleDinosaurEggsBlock.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "canBeReplaced",
+            "createBlockStateDefinition",
+            "getStateForPlacement",
+            "removeOneEgg"
+          ],
+          "evidence_file": "native-evidence/alexscaves-remaining-block-context.json",
+          "witness_id": "alexscaves:remaining-block-context:com/github/alexmodguy/alexscaves/server/block/MultipleDinosaurEggsBlock.class"
         }
       ],
       "components": [
@@ -7669,6 +7893,17 @@
             "stop",
             "tick"
           ]
+        },
+        {
+          "entry": "com/github/alexmodguy/alexscaves/server/block/MultipleDinosaurEggsBlock.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "canBeReplaced",
+            "createBlockStateDefinition",
+            "getStateForPlacement",
+            "removeOneEgg"
+          ]
         }
       ],
       "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
@@ -7714,6 +7949,10 @@
         {
           "checkpoint": "R2m8s-alexscaves-residual-control-context-complete",
           "reason": "Additional original item/global consumer captured; locked payload remains canonical."
+        },
+        {
+          "checkpoint": "R2m8w-alexscaves-remaining-native-block-context-complete",
+          "reason": "Exact remaining block boundary, retaining original combat identity."
         }
       ]
     },
@@ -10860,7 +11099,7 @@
       "id": "alexscaves:frostmint_native_spear_explosion_freeze",
       "display_name": "frostmint_native_spear_explosion_freeze",
       "primary_classification": "VANILLA_COMPOSITE",
-      "actual_behavior": "SpearItem legacy Multimap attribute hook is inactive; advertised melee5/speed-3 are not active. Registry supplies no attribute component; player release power>.1 produces original owner, speedpower*2.5/inaccuracy1/creativepickup else consumes1/noownserverguard. Item hurtEnemy assigns freeze requiredTicks+200 and native accessorflag then wear irrespective native damage return. Arrow one-hit gate; trident(projectile,owner else self)6. Accepted Enderman earlyreturn; accepted Living postHurtEffects assigns same gauge/flag. Entity onHit if !exploded&&tickCount>1 sets exploded then constructs FrostmintExplosion(source getOwner,radius2,KEEP,fromSpeartrue), BEFORE parent.onHit, no own side guard; parent determines entity-hit dispatch. Owner ID synced client only fallback parent. Custom explosion native block rays radius*(.7+.6*RNG), UNMOVEABLE/worldbounds stops, resistance only emptyfluid, step.3/energy-.225. Actor radius2*R/exposure z rays; ignoreExplosion(null)/Enderman exclusion/nonzero direction. Request int((impact^2+impact)/2*7*(2R)+1), skip ItemEntity hurt only for spear, then velocity+normalized(jittered XZ/eyeY)*impact independent accepted; Living knockback helper returns impact unchanged, NOT enchantment dampening. All eligible Living gauge required+200/flag independent hurt acceptance. Constructor source attribution direct supplied source; indirect TNTowner/Living/sourceProjectileLivingOwner. Frostmint finalize KEEP leaves blocks; other interaction directly sets AIR only fluidempty, native drop/decay metadata and not generic explosion event. FallingFrostmint gravity-.04/drag.98, purple soda contact radius4 DESTROY_WITH_DECAY/fromSpearfalse server thendiscard; onland slabstack nativeplacement/NBT preserved. Accessor flag only snowflake/clear logic in LivingEntity tick (partial shared callback), no hidden freeze damage override or caller of isFreezingFromFrostmint in finite index. PurpleSoda neighborChanged afterparent scans horizontal adjacent Frostmint, setsAIR then ownerless FrostmintExplosion radius4/DESTROY_WITH_DECAY/fromSpearfalse, NOownserverguard. FrostmintBlock onLand if PurpleSoda/server uses fallingEntity as suppliedsource at blockcenter,R4 sameflags thenadvancementonly. Locked custom explosion payload/source resolution unchanged; these are original terrain producers, not duplicated explosion mechanics. LivingMixin ac_livingTick full mixed callback: native SlowFalling flag clearsandadds80/amp0, Frostmint flag onlyparticles/clear, and lostDarkness onserver noncreative/nonspectator Player revokes mayfly/flying, speed.05/onUpdateAbilities andsetsSlowFallingflag. Native hadDarkness tracks currenteffect; no extra frozen damage callback.",
+      "actual_behavior": "SpearItem legacy Multimap attribute hook is inactive; advertised melee5/speed-3 are not active. Registry supplies no attribute component; player release power>.1 produces original owner, speedpower*2.5/inaccuracy1/creativepickup else consumes1/noownserverguard. Item hurtEnemy assigns freeze requiredTicks+200 and native accessorflag then wear irrespective native damage return. Arrow one-hit gate; trident(projectile,owner else self)6. Accepted Enderman earlyreturn; accepted Living postHurtEffects assigns same gauge/flag. Entity onHit if !exploded&&tickCount>1 sets exploded then constructs FrostmintExplosion(source getOwner,radius2,KEEP,fromSpeartrue), BEFORE parent.onHit, no own side guard; parent determines entity-hit dispatch. Owner ID synced client only fallback parent. Custom explosion native block rays radius*(.7+.6*RNG), UNMOVEABLE/worldbounds stops, resistance only emptyfluid, step.3/energy-.225. Actor radius2*R/exposure z rays; ignoreExplosion(null)/Enderman exclusion/nonzero direction. Request int((impact^2+impact)/2*7*(2R)+1), skip ItemEntity hurt only for spear, then velocity+normalized(jittered XZ/eyeY)*impact independent accepted; Living knockback helper returns impact unchanged, NOT enchantment dampening. All eligible Living gauge required+200/flag independent hurt acceptance. Constructor source attribution direct supplied source; indirect TNTowner/Living/sourceProjectileLivingOwner. Frostmint finalize KEEP leaves blocks; other interaction directly sets AIR only fluidempty, native drop/decay metadata and not generic explosion event. FallingFrostmint gravity-.04/drag.98, purple soda contact radius4 DESTROY_WITH_DECAY/fromSpearfalse server thendiscard; onland slabstack nativeplacement/NBT preserved. Accessor flag only snowflake/clear logic in LivingEntity tick (partial shared callback), no hidden freeze damage override or caller of isFreezingFromFrostmint in finite index. PurpleSoda neighborChanged afterparent scans horizontal adjacent Frostmint, setsAIR then ownerless FrostmintExplosion radius4/DESTROY_WITH_DECAY/fromSpearfalse, NOownserverguard. FrostmintBlock onLand if PurpleSoda/server uses fallingEntity as suppliedsource at blockcenter,R4 sameflags thenadvancementonly. Locked custom explosion payload/source resolution unchanged; these are original terrain producers, not duplicated explosion mechanics. LivingMixin ac_livingTick full mixed callback: native SlowFalling flag clearsandadds80/amp0, Frostmint flag onlyparticles/clear, and lostDarkness onserver noncreative/nonspectator Player revokes mayfly/flying, speed.05/onUpdateAbilities andsetsSlowFallingflag. Native hadDarkness tracks currenteffect; no extra frozen damage callback. PurpleSodaFluidType vaporization in ultraWarm destroys placed block with AIR and emits sound/soda particles; no damage/status/explosion here. Soda contact/Frostmint interaction remains the existing payload. Native client fluid tint extension separately presentation.",
       "closest_vanilla_equivalent": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
       "implementation": [
         {
@@ -10994,6 +11233,34 @@
           ],
           "evidence_file": "native-evidence/alexscaves-magnet-contract.json",
           "witness_id": "alexscaves:magnet-contract:com/github/alexmodguy/alexscaves/mixin/LivingEntityMixin.class"
+        },
+        {
+          "entry": "com/github/alexmodguy/alexscaves/server/block/fluid/PurpleSodaFluidType.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "initializeClient",
+            "isVaporizedOnPlacement",
+            "onVaporize"
+          ],
+          "evidence_file": "native-evidence/alexscaves-remaining-block-context.json",
+          "witness_id": "alexscaves:remaining-block-context:com/github/alexmodguy/alexscaves/server/block/fluid/PurpleSodaFluidType.class"
+        },
+        {
+          "entry": "com/github/alexmodguy/alexscaves/server/block/fluid/PurpleSodaFluidType$1.class",
+          "methods": [
+            "<init>"
+          ],
+          "evidence_file": "native-evidence/alexscaves-remaining-block-context.json",
+          "witness_id": "alexscaves:remaining-block-context:com/github/alexmodguy/alexscaves/server/block/fluid/PurpleSodaFluidType$1.class"
+        },
+        {
+          "entry": "com/github/alexmodguy/alexscaves/server/block/fluid/AcidFluidType$1.class",
+          "methods": [
+            "<init>"
+          ],
+          "evidence_file": "native-evidence/alexscaves-remaining-block-context.json",
+          "witness_id": "alexscaves:remaining-block-context:com/github/alexmodguy/alexscaves/server/block/fluid/AcidFluidType$1.class"
         }
       ],
       "components": [
@@ -11158,6 +11425,28 @@
           "entry": "com/github/alexmodguy/alexscaves/mixin/LivingEntityMixin.class",
           "methods": [
             "ac_livingTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexmodguy/alexscaves/server/block/fluid/PurpleSodaFluidType.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "initializeClient",
+            "isVaporizedOnPlacement",
+            "onVaporize"
+          ]
+        },
+        {
+          "entry": "com/github/alexmodguy/alexscaves/server/block/fluid/PurpleSodaFluidType$1.class",
+          "methods": [
+            "<init>"
+          ]
+        },
+        {
+          "entry": "com/github/alexmodguy/alexscaves/server/block/fluid/AcidFluidType$1.class",
+          "methods": [
+            "<init>"
           ]
         }
       ],
@@ -11359,6 +11648,10 @@
         {
           "checkpoint": "R2m8r-alexscaves-native-combat-blocks-complete",
           "reason": "Additional original item/global consumer captured; locked payload remains canonical."
+        },
+        {
+          "checkpoint": "R2m8w-alexscaves-remaining-native-block-context-complete",
+          "reason": "Exact remaining block boundary, retaining original combat identity."
         }
       ]
     },
@@ -11770,7 +12063,7 @@
       "id": "alexscaves:gingerbread_melee_limb_flee",
       "display_name": "gingerbread_melee_limb_flee",
       "primary_classification": "VANILLA_COMPOSITE",
-      "actual_behavior": "Native monster ATK2/HP10/speed0.45/follow48. Attack goal requires live target/no flee/no movement block, width sum+1/LOS and hand animation tick8: original inherited doHurtTarget, accepted return triggers flee120+rand60 (oven0). Parent hurt accepted and damage>=1 randomly removes native arm/leg; no invented numeric debuff. Synced loss emits crumbs and may drop/empty corresponding equipped hand server-side; item targeting rejects missing dominant arm. Native flee stores original entity UUID, resolves server entity, navigates away20/7 with speed1 or1.5 within5. Sitting/dancing/idle fall/jump block movement; idle jump actually jumps frame5. Oven targeting rejects same-colored Gingerbread peers and retains parent admission; oven countdown2000 kills and returns held items. Theft independently removes exactly one tagged item from noncreative nonGingerbread capability inventory, sets offhand/carry state and flee; no damage request or forced victim motion. RecheckInventoryCooldown is not decremented in tick (original). Native hand/limb/team/oven/NBT and possession/Hunger/loot gates retained; cosmetic variant/ordinary storage excluded from combat. ConfectionOven activated+cooldown0 setscooldown-100/spawns5/interval20 and native teamcolor adjacentRockCandy Dye elseMath.random. Duringnegativecooldown increments then everyinterval spawnsnative Gingerbread atfacingoffset(0,-.25,-.7),velocityoffset*.25+Y.3,variant RNG9/OvenSpawned/teamcolor/despawn100, serveradd only; sameentityalso keptlocal listbothsides. At0 restores all spawned cooldown then cooldown300 immediatelydecrements. Native block/power/player activation and NBT cooldown/team/spawns retained; locks native gingerbread team/payload, not newmelee. Oven exactactivation isConfectionOvenBlock+POWERED, native finalrestore sets everylocallytracked spawnedGingerbread despawnCooldown300 thenclear list. Per-entity team and nativehasOvenSpawned lifecycle remainunchanged.",
+      "actual_behavior": "Native monster ATK2/HP10/speed0.45/follow48. Attack goal requires live target/no flee/no movement block, width sum+1/LOS and hand animation tick8: original inherited doHurtTarget, accepted return triggers flee120+rand60 (oven0). Parent hurt accepted and damage>=1 randomly removes native arm/leg; no invented numeric debuff. Synced loss emits crumbs and may drop/empty corresponding equipped hand server-side; item targeting rejects missing dominant arm. Native flee stores original entity UUID, resolves server entity, navigates away20/7 with speed1 or1.5 within5. Sitting/dancing/idle fall/jump block movement; idle jump actually jumps frame5. Oven targeting rejects same-colored Gingerbread peers and retains parent admission; oven countdown2000 kills and returns held items. Theft independently removes exactly one tagged item from noncreative nonGingerbread capability inventory, sets offhand/carry state and flee; no damage request or forced victim motion. RecheckInventoryCooldown is not decremented in tick (original). Native hand/limb/team/oven/NBT and possession/Hunger/loot gates retained; cosmetic variant/ordinary storage excluded from combat. ConfectionOven activated+cooldown0 setscooldown-100/spawns5/interval20 and native teamcolor adjacentRockCandy Dye elseMath.random. Duringnegativecooldown increments then everyinterval spawnsnative Gingerbread atfacingoffset(0,-.25,-.7),velocityoffset*.25+Y.3,variant RNG9/OvenSpawned/teamcolor/despawn100, serveradd only; sameentityalso keptlocal listbothsides. At0 restores all spawned cooldown then cooldown300 immediatelydecrements. Native block/power/player activation and NBT cooldown/team/spawns retained; locks native gingerbread team/payload, not newmelee. Oven exactactivation isConfectionOvenBlock+POWERED, native finalrestore sets everylocallytracked spawnedGingerbread despawnCooldown300 thenclear list. Per-entity team and nativehasOvenSpawned lifecycle remainunchanged. ConfectionOven block uses redstone POWERED updates, native ticker/getBE and neighbor updates. Existing server oven entity produces Gingerbread payloads; these wrappers do not add a second spawn/control or owner.",
       "closest_vanilla_equivalent": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
       "implementation": [
         {
@@ -11931,6 +12224,33 @@
           ],
           "evidence_file": "native-evidence/alexscaves-combat-blocks.json",
           "witness_id": "alexscaves:combat-blocks:com/github/alexmodguy/alexscaves/server/block/blockentity/ConfectionOvenBlockEntity.class"
+        },
+        {
+          "entry": "com/github/alexmodguy/alexscaves/server/block/ConfectionOvenBlock.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "createBlockStateDefinition",
+            "getStateForPlacement",
+            "getTicker",
+            "lambda$static$0",
+            "mirror",
+            "neighborChanged",
+            "newBlockEntity",
+            "randomTick",
+            "rotate",
+            "updateState"
+          ],
+          "evidence_file": "native-evidence/alexscaves-remaining-block-context.json",
+          "witness_id": "alexscaves:remaining-block-context:com/github/alexmodguy/alexscaves/server/block/ConfectionOvenBlock.class"
+        },
+        {
+          "entry": "com/github/alexmodguy/alexscaves/server/block/blockentity/ConfectionOvenBlockEntity$1.class",
+          "methods": [
+            "<clinit>"
+          ],
+          "evidence_file": "native-evidence/alexscaves-remaining-block-context.json",
+          "witness_id": "alexscaves:remaining-block-context:com/github/alexmodguy/alexscaves/server/block/blockentity/ConfectionOvenBlockEntity$1.class"
         }
       ],
       "components": [
@@ -12111,6 +12431,29 @@
             "isActivated",
             "restoreAllGingerbreadMenCooldown"
           ]
+        },
+        {
+          "entry": "com/github/alexmodguy/alexscaves/server/block/ConfectionOvenBlock.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "createBlockStateDefinition",
+            "getStateForPlacement",
+            "getTicker",
+            "lambda$static$0",
+            "mirror",
+            "neighborChanged",
+            "newBlockEntity",
+            "randomTick",
+            "rotate",
+            "updateState"
+          ]
+        },
+        {
+          "entry": "com/github/alexmodguy/alexscaves/server/block/blockentity/ConfectionOvenBlockEntity$1.class",
+          "methods": [
+            "<clinit>"
+          ]
         }
       ],
       "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
@@ -12289,6 +12632,10 @@
         {
           "checkpoint": "R2m8s-alexscaves-residual-control-context-complete",
           "reason": "Additional original item/global consumer captured; locked payload remains canonical."
+        },
+        {
+          "checkpoint": "R2m8w-alexscaves-remaining-native-block-context-complete",
+          "reason": "Exact remaining block boundary, retaining original combat identity."
         }
       ]
     },
@@ -21178,7 +21525,7 @@
       "id": "alexscaves:moth_ball_native_avoidance",
       "display_name": "moth_ball_native_avoidance",
       "primary_classification": "CUSTOM_CONTROL",
-      "actual_behavior": "Gloomoth getNearestMothBall on ServerLevel uses existing block/tag predicates and range: int(sqrt(block distance squared)) < (native BALLS/5F)*supplied range. Flee goal attempts when rand.nextInt(20)==0 OR worldTime%10==0, queries range20, continues with non-null moth ball and distanceSquared<32 (not a32-block radius). Starts flying and reselects retreat when absent or distanceSquared<4, up to15 getPosAway(32,15) attempts, navigation speed1. Light goal supplied radius32 rejects locations with moth ball range10, requires light source tag/emission and LOS and native main-hand-empty continuation. Ordinary light search/flight contains no damage/status request. Block placement/suppliers remain independently queued.",
+      "actual_behavior": "Gloomoth getNearestMothBall on ServerLevel uses existing block/tag predicates and range: int(sqrt(block distance squared)) < (native BALLS/5F)*supplied range. Flee goal attempts when rand.nextInt(20)==0 OR worldTime%10==0, queries range20, continues with non-null moth ball and distanceSquared<32 (not a32-block radius). Starts flying and reselects retreat when absent or distanceSquared<4, up to15 getPosAway(32,15) attempts, navigation speed1. Light goal supplied radius32 rejects locations with moth ball range10, requires light source tag/emission and LOS and native main-hand-empty continuation. Ordinary light search/flight contains no damage/status request. Block placement/suppliers remain independently queued. MothBall original stackable BALLS placement/replacement/shape; playerDestroy parent then removeOneBall updates count or destroys last, native level/game events. Actual avoidance readers remain existing AI contract; no additional fear/damage payload.",
       "closest_vanilla_equivalent": "Native mob/goal APIs with the explicit species-specific behavior below",
       "components": [
         {
@@ -21242,6 +21589,23 @@
           ],
           "evidence_file": "native-evidence/alexscaves-small-support.json",
           "witness_id": "alexscaves:small-support:com/github/alexmodguy/alexscaves/server/entity/ai/GloomothFindLightGoal.class"
+        },
+        {
+          "entry": "com/github/alexmodguy/alexscaves/server/block/MothBallBlock.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "canBeReplaced",
+            "canSurvive",
+            "createBlockStateDefinition",
+            "getFluidState",
+            "getStateForPlacement",
+            "playerDestroy",
+            "removeOneBall",
+            "updateShape"
+          ],
+          "evidence_file": "native-evidence/alexscaves-remaining-block-context.json",
+          "witness_id": "alexscaves:remaining-block-context:com/github/alexmodguy/alexscaves/server/block/MothBallBlock.class"
         }
       ],
       "binary_parameters": {
@@ -21286,6 +21650,21 @@
             "start",
             "stop",
             "tick"
+          ]
+        },
+        {
+          "entry": "com/github/alexmodguy/alexscaves/server/block/MothBallBlock.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "canBeReplaced",
+            "canSurvive",
+            "createBlockStateDefinition",
+            "getFluidState",
+            "getStateForPlacement",
+            "playerDestroy",
+            "removeOneBall",
+            "updateShape"
           ]
         }
       ],
@@ -21340,7 +21719,13 @@
       "delivery_paths": [
         "alexscaves:moth_ball_native_avoidance:native_boundary"
       ],
-      "scalable_parameter_candidates": []
+      "scalable_parameter_candidates": [],
+      "contract_refinements": [
+        {
+          "checkpoint": "R2m8w-alexscaves-remaining-native-block-context-complete",
+          "reason": "Exact remaining block boundary, retaining original combat identity."
+        }
+      ]
     },
     {
       "id": "alexscaves:moth_dust_native_aggro_redirection",
@@ -35025,7 +35410,7 @@
       "id": "alexscaves:submarine_native_admission_control_air",
       "display_name": "submarine_native_admission_control_air",
       "primary_classification": "VANILLA_LIKE_EXTENDED",
-      "actual_behavior": "Own hurt rejects parentinvulnerability or DROWN/DRY_OUT/CACTUS/HOT_FLOOR/IN_FIRE/ON_FIRE/FALL. Otherwise addsraw damageSustained; >=10 resets0/incrementsdamageLevel, level>=4 destroys/removes; native acceptedtrue/nohealth-damagecallback, no own server guard. Every200 ticks sustained>0 decrements1. Native copper interaction reduceslevel1/resetsdamage; no own sideguard, consumesunlesscreative. Hurt counters/defense are native gates, not automatic scalars. DamageLevel4 sinks whennotground and ejectsrider. Server riderinputs turn2.5 and accelerationapproach(.02) to1/-.5, idle decay.01; native clamp(-.25,.65)*.2 directionalacceleration, waterdrag.8, outwater gravity-.5/move*.9/drag(.1,.3,.1). Keys exactsamevehicle, up/down10 ticks +/-.08; lighttoggle5 onlypresentation. PositionRider originalseat/clampedrotation and air min(old+2,max); no extra attack/owner. NBT own oxide/damage/wax/lights/oxidizetime; DamageSustained savesDOUBLE butreadsINT (native discrepancy preserved); noparent ownNBTcall. Oxidation24k*(2+rand2)/wax/scrape; thunderHit parent THENunwaxedoxide0. Danger100tick sonar ispresentationwarning, not damage. Material submarine producers: EnigmaticEngine exact assembly3x3/tagged blocks consumed bothsides then server createsoxide0 submarine atcoreY-1; Item nativewaterplacement ownerless/not combat source. AbyssalRuins spawnSubmarine finds water/empty height then rises until unobstructed; ownerless native vehicle, randomyaw, totaled damageLevel4/oxide3 elseoxide2, thenaddFreshEntity. Native broken/water admission stayscanonical; generation location/layout excluded. MountedEntityKeyMessage playToServer resolvesmessage mountId/playerId incontextplayerlevel; keypressernonnull/Player, parentKeybindUsingMount andisPassengerOfSameVehicle(parent), thennativeonKeyPacket. It doesNOTcomparekeypresserIDtoauthenticatedcontextplayer; concrete native mountcallback gates/ownership remain unchanged.",
+      "actual_behavior": "Own hurt rejects parentinvulnerability or DROWN/DRY_OUT/CACTUS/HOT_FLOOR/IN_FIRE/ON_FIRE/FALL. Otherwise addsraw damageSustained; >=10 resets0/incrementsdamageLevel, level>=4 destroys/removes; native acceptedtrue/nohealth-damagecallback, no own server guard. Every200 ticks sustained>0 decrements1. Native copper interaction reduceslevel1/resetsdamage; no own sideguard, consumesunlesscreative. Hurt counters/defense are native gates, not automatic scalars. DamageLevel4 sinks whennotground and ejectsrider. Server riderinputs turn2.5 and accelerationapproach(.02) to1/-.5, idle decay.01; native clamp(-.25,.65)*.2 directionalacceleration, waterdrag.8, outwater gravity-.5/move*.9/drag(.1,.3,.1). Keys exactsamevehicle, up/down10 ticks +/-.08; lighttoggle5 onlypresentation. PositionRider originalseat/clampedrotation and air min(old+2,max); no extra attack/owner. NBT own oxide/damage/wax/lights/oxidizetime; DamageSustained savesDOUBLE butreadsINT (native discrepancy preserved); noparent ownNBTcall. Oxidation24k*(2+rand2)/wax/scrape; thunderHit parent THENunwaxedoxide0. Danger100tick sonar ispresentationwarning, not damage. Material submarine producers: EnigmaticEngine exact assembly3x3/tagged blocks consumed bothsides then server createsoxide0 submarine atcoreY-1; Item nativewaterplacement ownerless/not combat source. AbyssalRuins spawnSubmarine finds water/empty height then rises until unobstructed; ownerless native vehicle, randomyaw, totaled damageLevel4/oxide3 elseoxide2, thenaddFreshEntity. Native broken/water admission stayscanonical; generation location/layout excluded. MountedEntityKeyMessage playToServer resolvesmessage mountId/playerId incontextplayerlevel; keypressernonnull/Player, parentKeybindUsingMount andisPassengerOfSameVehicle(parent), thennativeonKeyPacket. It doesNOTcomparekeypresserIDtoauthenticatedcontextplayer; concrete native mountcallback gates/ownership remain unchanged. EnigmaticEngine block onPlace/neighborChanged calls original BE.start on detected assembly. This is the existing assembly/ownerless submarine producer, not a new vehicle or damage source; exact construction checks and native terrain state retained.",
       "closest_vanilla_equivalent": "Original native damage/effect/movement/entity APIs; custom composition, sources and lifecycle are retained below.",
       "implementation": [
         {
@@ -35150,6 +35535,21 @@
           ],
           "evidence_file": "native-evidence/alexscaves-remaining-protocol-setup.json",
           "witness_id": "alexscaves:remaining-protocol-setup:com/github/alexmodguy/alexscaves/server/message/MountedEntityKeyMessage$1.class"
+        },
+        {
+          "entry": "com/github/alexmodguy/alexscaves/server/block/EnigmaticEngineBlock.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "attemptAssembly",
+            "getTicker",
+            "lambda$static$0",
+            "newBlockEntity",
+            "setPlacedBy",
+            "updateShape"
+          ],
+          "evidence_file": "native-evidence/alexscaves-remaining-block-context.json",
+          "witness_id": "alexscaves:remaining-block-context:com/github/alexmodguy/alexscaves/server/block/EnigmaticEngineBlock.class"
         }
       ],
       "components": [
@@ -35307,6 +35707,19 @@
             "decode",
             "encode"
           ]
+        },
+        {
+          "entry": "com/github/alexmodguy/alexscaves/server/block/EnigmaticEngineBlock.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "attemptAssembly",
+            "getTicker",
+            "lambda$static$0",
+            "newBlockEntity",
+            "setPlacedBy",
+            "updateShape"
+          ]
         }
       ],
       "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
@@ -35440,6 +35853,10 @@
         {
           "checkpoint": "R2m8u-alexscaves-protocol-configuration-context-complete",
           "reason": "Exact native packet/factory dispatch and consumer context; no additional payload."
+        },
+        {
+          "checkpoint": "R2m8w-alexscaves-remaining-native-block-context-complete",
+          "reason": "Exact remaining block boundary, retaining original combat identity."
         }
       ]
     },
@@ -44755,6 +45172,53 @@
       ]
     },
     {
+      "id": "alexscaves:amber_monolith_native_population_encounter:native_boundary",
+      "mod_key": "alexscaves",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "alexscaves:amber_monolith_native_population_encounter"
+      ],
+      "primary_source": "Ownerless native monolith -> original selected EntityType/Mob; no synthetic attacking player.",
+      "implementation": [
+        {
+          "entry": "com/github/alexmodguy/alexscaves/server/block/AmberMonolithBlock.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "getTicker",
+            "lambda$static$0",
+            "newBlockEntity"
+          ],
+          "evidence_file": "native-evidence/alexscaves-remaining-block-context.json",
+          "witness_id": "alexscaves:remaining-block-context:com/github/alexmodguy/alexscaves/server/block/AmberMonolithBlock.class"
+        },
+        {
+          "entry": "com/github/alexmodguy/alexscaves/server/block/blockentity/AmberMonolithBlockEntity.class",
+          "methods": [
+            "<init>",
+            "generateSpawnData",
+            "getDepopulatedEntitySpawnData",
+            "getDisplayEntity",
+            "getEntitySpawnSettingsForBiome",
+            "getRandomSpawnPos",
+            "getUpdatePacket",
+            "getUpdateTag",
+            "isEntitySpawnBlocked",
+            "isMigration",
+            "loadAdditional",
+            "onDataPacket",
+            "saveAdditional",
+            "spawnMobs",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/alexscaves-remaining-block-context.json",
+          "witness_id": "alexscaves:remaining-block-context:com/github/alexmodguy/alexscaves/server/block/blockentity/AmberMonolithBlockEntity.class"
+        }
+      ]
+    },
+    {
       "id": "alexscaves:atlatitan_native_attack_and_mount_sequence:native_boundary",
       "mod_key": "alexscaves",
       "labels": [
@@ -53842,15 +54306,17 @@
     "alexscaves-r2m8s-residual-control-context.json",
     "alexscaves-r2m8t-registry-block-setup.json",
     "alexscaves-r2m8u-protocol-configuration-context.json",
-    "alexscaves-r2m8v-native-query-context.json"
+    "alexscaves-r2m8v-native-query-context.json",
+    "alexscaves-r2m8w-remaining-native-block-context.json",
+    "alexscaves-r2m8x-selected-display-context.json"
   ],
   "remaining_native_ambiguities": null,
   "unresolved_native_ambiguities": null,
   "semantic_discovery_complete": false,
   "source_mapping_complete": false,
   "delivery_mapping_complete": false,
-  "checkpoint": "R2m8v-alexscaves-native-read-only-query-context-complete",
-  "notes_file": "alexscaves-r2m8v-native-query-context.json",
-  "scope": "Exact finite native query/formula context with complete bytecode and transitive dispatch proof. Original gates/values are retained; no independent effects, eligibility or numeric candidates inferred.",
-  "exact_next_task": "AlexCaves R2m8w: remaining finite native block geometry, actor state and ordinary utility closure, then mod-level integrity; later mods parked."
+  "checkpoint": "R2m8x-alexscaves-selected-display-context-complete",
+  "notes_file": "alexscaves-r2m8x-selected-display-context.json",
+  "scope": "Exact finite display operations and native read access; complete native bytecodes reject array alias writes and unknown dispatch. No actor payload or classification inferred.",
+  "exact_next_task": "AlexCaves R2m8y: finite residual presentation/actor/setup/utility semantics and independent mod-level closure; later mods parked."
 }

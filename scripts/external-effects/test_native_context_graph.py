@@ -1,7 +1,7 @@
 """Negative source-graph mutations; no package/name grants coverage by itself."""
 import copy
 import unittest
-from native_context_graph import prove, external_allowed
+from native_context_graph import prove, external_allowed, validate
 
 
 def fixture():
@@ -139,3 +139,36 @@ class NativeQueryTests(unittest.TestCase):
                        'net/minecraft/world/level/Level.addParticle()V'):
             self.assertFalse(external_allowed(symbol,'native-query-context-v5'),symbol)
         self.assertTrue(external_allowed('net/minecraft/world/entity/Entity.distanceToSqr(DDD)D','native-query-context-v5'))
+
+
+class SelectedDisplayTests(unittest.TestCase):
+    def test_exact_selection_does_not_grant_coverage_to_dependencies(self):
+        c=fixture();m=c['methods'][0];key=(m['entry'],m['method'],m['descriptor'])
+        doc=prove(c,'presentation-audio-ui-v2',selection={key})
+        self.assertEqual(len(doc['rows']),1)
+        self.assertEqual(doc['rows'][0]['method'],m['method'])
+        validate(doc,c)
+        self.assertEqual(prove(c,'presentation-audio-ui-v2',selection=set())['rows'],[])
+
+    def test_display_api_extension_never_authorizes_game_writes_or_callbacks(self):
+        for symbol in ('net/minecraft/client/gui/GuiGraphics.blit()V',
+                       'net/minecraft/client/Minecraft.renderBuffers()Lnet/minecraft/client/renderer/RenderBuffers;',
+                       'net/minecraft/world/level/block/entity/BlockEntity.getBlockPos()Lnet/minecraft/core/BlockPos;'):
+            self.assertTrue(external_allowed(symbol,'presentation-access-v6'))
+        for symbol in ('net/minecraft/world/entity/Entity.setYRot(F)V',
+                       'net/minecraft/network/Connection.send(Ljava/lang/Object;)V',
+                       'net/neoforged/bus/api/IEventBus.post(Ljava/lang/Object;)V',
+                       'java/util/function/Consumer.accept(Ljava/lang/Object;)V'):
+            self.assertFalse(external_allowed(symbol,'presentation-access-v6'))
+
+    def test_display_body_rejects_hidden_array_alias_write(self):
+        from catalog_common import byte_hash
+        c=fixture();codes={}
+        for m in c['methods']:
+            raw=b'\xb1';m['code_sha256']=byte_hash(raw)
+            codes[(m['entry'],m['method'],m['descriptor'])]=raw
+        keys=set(codes)
+        self.assertEqual(len(prove(c,'presentation-access-v6',codes,keys)['rows']),2)
+        key=next(k for k in keys if k[1]==c['methods'][1]['method'])
+        raw=bytes.fromhex('034fb1');codes[key]=raw;c['methods'][1]['code_sha256']=byte_hash(raw)
+        self.assertEqual(prove(c,'presentation-access-v6',codes,keys)['rows'],[])

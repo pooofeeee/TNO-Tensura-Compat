@@ -1,7 +1,7 @@
 {
   "schema": "tno.external_effects.vanilla_comparison.v1",
   "status": "PARTIAL",
-  "checkpoint": "R2m8v-alexscaves-native-read-only-query-context-complete",
+  "checkpoint": "R2m8x-alexscaves-selected-display-context-complete",
   "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
   "note": "Deterministic projection of canonical mod reviews,including explicit PARTIAL scope. The ledger alone tracks per-mod completeness. No Stage eligibility or policy decision.",
   "comparisons": [
@@ -42,6 +42,32 @@
           "primitive": "TERRAIN_TRANSFORM",
           "numerical_parameters": {},
           "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:amber_monolith_native_population_encounter",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "Native biome weighted spawn lists, SpawnPlacements and Mob.finalizeSpawn; custom population/migration wrapper.",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Server tick refreshes spawn choice at40+nextInt50 or first migration; migration is original boss-defeated firstTime+24000>gameTime window, first migration shortens previous countdown ceil(old*.25)+100 and prefers Atlatitan. Biome CAVE_CREATURE list falls back to CREATURE; nonempty forced-match list replaces it, otherwise original list retained. Depopulation rolls4+nextInt8/range64 check the PREVIOUS choice; final roll is returned WITHOUT a final blocked check. Thus AMBER_MONOLITH_SKIPS, existing-alive density and pre-boss Atlatitan filters do not guarantee rejection of the last choice. Spawn count nextInt(maxCount-minCount)+minCount excludes max, or min if difference<=0. Countdown mean=max(1000,configured amberMonolithMeanTime), mean/2+nextInt(mean). Atcountdown<=0 requires nearestPlayer28,false, selectedtype and spawnMobs request; successful request sound/regenerate. Each requested member has6attempts, each position20randomtries xz[-10,9]/ground/Ydistance<20/loaded and CAVE_CREATURE sky restriction. TypecanSummon, SPAWNER placement rule and noCollision precede create; entitymustbeMob and CHUNK_GENERATION placement rule, then finalizeSpawn CHUNK_GENERATION with sharedSpawnGroupData and server.addFreshEntityWithPassengers. No owner/team assigned; groupdata is not team. Request flags do not prove actual addition succeeded. Display entity is UNSPAWNED; amber explosion is particles, no explosion damage. Original actor AI/combat/admission stays in its existing family.",
+      "components": [
+        {
+          "primitive": "NATIVE_ENCOUNTER_SPAWN",
+          "numerical_parameters": {
+            "nearest_player_radius": 28,
+            "population_search_range": 64,
+            "attempts_per_member": 6,
+            "position_attempts": 20,
+            "minimum_mean_ticks": 1000,
+            "migration_window_ticks": 24000
+          },
+          "parameter_formulas": {
+            "countdown": "mean/2 + nextInt(mean), mean=max(1000,amberMonolithMeanTime)",
+            "selection_rolls": "4+nextInt(8)",
+            "member_count": "j<=0 ? minCount : nextInt(j)+minCount; j=max(maxCount-minCount,0)"
+          }
         }
       ]
     },

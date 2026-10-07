@@ -10,6 +10,12 @@ reachability before semantic review. Batches should close substantial related
 coverage; use generic tooling and bounded output. Grouping/names/hashes alone
 never establish behavior, exclusions, or completion.
 
+For remaining work, use the tool-first ROI gate: repeated structural question,
+material finite-queue reduction, existing-tool reuse, generic applicability and
+lower validation cost than manual review. Code proves structure; Codex interprets
+meaning. Record reducer impact against the R2m8v adoption baseline (1597 semantic
+roles / 2441 native methods). Do not build infrastructure for a few leaves.
+
 Record native behavior, primitive/source/owner/delivery relationships, numeric
 consumers, gates, ordering, lifecycle and exact boundaries. No Stage eligibility,
 policy, balance, runtime integration or production changes.
