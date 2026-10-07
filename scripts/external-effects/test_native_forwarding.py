@@ -42,11 +42,24 @@ class ForwardingTests(unittest.TestCase):
             b=self.bridge();b.insert(1,added);self.assertIsNone(self.shape(b))
         self.assertIsNone(self.shape(self.bridge(),[(0,1,2,3)]))
 
-    def test_instance_noop_and_constant_gate_are_not_exclusions(self):
+    def test_instance_noop_and_constant_gate_remain_context(self):
         self.assertIsNone(forwarding_shape('x/Actor.class','die','()V',1,[ins('0xb1')]))
-        self.assertIsNone(forwarding_shape('x/Actor.class','canAttack','()Z',9,[ins('0x3'),ins('0xac')]))
+        self.assertEqual(forwarding_shape('x/Actor.class','canAttack','()Z',9,[ins('0x3',0),ins('0xac')]),
+                         dict(kind='EXACT_BOOLEAN_API_LEAF',literal_value=0))
         self.assertEqual(forwarding_shape('x/Helper.class','execute','()V',9,[ins('0xb1')]),
                          dict(kind='EMPTY_STATIC_VOID_HELPER'))
+
+    def test_boolean_leaf_does_not_guess_state_queries_or_mixin_target_behavior(self):
+        shape=lambda b,d='()Z',a=1:forwarding_shape('x/Actor.class','arbitrary',d,a,b)
+        for value,op in ((0,'0x3'),(1,'0x4')):
+            self.assertEqual(shape([ins(op,value),ins('0xac')]),
+                             dict(kind='EXACT_BOOLEAN_API_LEAF',literal_value=value))
+        for body in ([ins('0x2a'),ins('0xb4','x/Actor.gateZ'),ins('0xac')],
+                     [ins('0xb8','x/Rng.nextBoolean()Z'),ins('0xac')],
+                     [ins('0x4',1),ins('0xb5','x/Actor.stateZ'),ins('0x4',1),ins('0xac')]):
+            self.assertNotEqual((shape(body) or {}).get('kind'),'EXACT_BOOLEAN_API_LEAF')
+        self.assertIsNone(shape([ins('0x4',1),ins('0xac')],d='()I'))
+        self.assertIsNone(shape([ins('0x4',1),ins('0xac')],a=0x101))
 
     def test_only_object_constructor_is_pure_context(self):
         b=[ins('0x2a'),ins('0xb7','java/lang/Object.<init>()V'),ins('0xb1')]
@@ -89,7 +102,7 @@ class LeafQueryShapeTests(unittest.TestCase):
                              ('(Lx/Actor;)Z',0xa,body),('(Lx/Actor;)Z',0x1002,body),
                              ('(Lx/Actor;)Z',0x100a,[ins('0x3',0),ins('0xac')]),
                              ('(Lx/Actor;)Z',0x100a,[ins('0xb5','x/Actor.healthF')]+body)]:
-            self.assertIsNone(shape(desc,flags,b))
+            self.assertNotEqual((shape(desc,flags,b) or {}).get('kind'),'EXACT_SYNTHETIC_TRUE_PREDICATE')
 
     def test_vec3_distance_requires_exact_receiver_argument_and_api(self):
         desc='(Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/entity/Entity;)D'

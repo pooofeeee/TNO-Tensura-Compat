@@ -168,6 +168,11 @@ def forwarding_shape(entry, name, descriptor, access, body, exception_handlers=(
     transport=synched_field_transport_shape(entry,descriptor,access,body)
     if transport:return transport
     ops=[i['opcode'] for i in body]
+    if descriptor.endswith(')Z') and not access & (0x100|0x400) and len(body)==2 \
+            and body[0]['opcode'] in ('0x3','0x4') and body[1]['opcode']=='0xac':
+        # This proves only a boolean leaf/declaration, not a named ability,
+        # gate semantics or the value of a transformed Mixin shadow target.
+        return dict(kind='EXACT_BOOLEAN_API_LEAF',literal_value=body[0]['operand'])
     if access & 8 and descriptor.endswith(')V') and ops==['0xb1']:
         return dict(kind='EMPTY_STATIC_VOID_HELPER')
     if name=='<init>' and descriptor=='()V' and ops==['0x2a','0xb7','0xb1'] \

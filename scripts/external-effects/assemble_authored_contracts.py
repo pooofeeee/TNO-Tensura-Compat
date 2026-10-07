@@ -96,7 +96,8 @@ def render(spec):
         effects=sorted(rows,key=lambda r:r['id']),paths=sorted(paths,key=lambda r:r['id']),exclusions=exclusions,
         record_refinements=refinements,
         exact_next_task=spec['exact_next_task'],stage_policy_decided=False,runtime_tests=0,
-        **({key:spec[key] for key in ('native_context_graph_registry_file','native_context_graph_registry_files')
+        **({key:spec[key] for key in ('native_context_graph_registry_file','native_context_graph_registry_files',
+                                    'native_forwarding_registry_file')
             if key in spec}),
         **({'validation':deepcopy(spec['validation'])} if spec.get('validation') else {}))
 
