@@ -3,19 +3,19 @@
 - Active campaign: `CAMPAIGN.md`; Alex's Caves only, then STOP.
 - Branch: `external-effects-catalog-research`.
 - Latest verified research ref: `origin/external-effects-catalog-research`.
-- Last verified anchor before this checkpoint: `044a598220077dea4f576a10a1fc435c1928c08e`. Resolve the current ref with Git; never reset to an older anchor.
+- Last verified anchor before this checkpoint: `483d9fd67fc6ddd0c5f52d7f4eb7b29c081c7aa8`. Resolve the current ref with Git; never reset to an older anchor.
 - Protected production HEAD: `eb37f0bfc0e7aa863632f163881566c0ae2a8701`; production/source gameplay unchanged.
 - Current mod/status: `alexscaves` / PARTIAL.
 - Locked COMPLETE targets: cultofazazel, variantsandventures, royalvariations, friendsandfoes, twilightforest, iceandfire, eternalstarlight, block_factorys_bosses, bosses_of_mass_destruction, cataclysm, arphex, tensura.
-- Canonical records: 12; numeric candidates: 33.
-- Classifications: {'CUSTOM_CONTROL': 9, 'CUSTOM_STATUS': 3}.
+- Canonical records: 19; numeric candidates: 38.
+- Classifications: {'BINARY_MECHANIC': 1, 'CUSTOM_CONTROL': 11, 'CUSTOM_STATUS': 3, 'VANILLA_COMPOSITE': 1, 'VANILLA_LIKE_EXTENDED': 3}.
 - Census: `alexscaves-combat-census.json` (existing pin; do not rediscover).
 - Queue: `alexscaves-unresolved-queue.json`; ordinals refer to that exact census/hash.
-- Coverage: 2681 / 11764 dispositioned; 9083 pending.
-- Remaining semantic-role methods: 5580 (routing, not a mechanic count).
+- Coverage: 3517 / 11764 dispositioned; 8247 pending.
+- Remaining semantic-role methods: 4983 (routing, not a mechanic count).
 - Canonical authorities: `mod-reviews/alexscaves.json`, `mod-completion-ledger.json`, `large-mod-campaign.json`.
 - Native source/indexes: existing census, field-use index and reviewed-batch pointers; consult cold bodies only for exact unresolved boundaries.
 - Known blockers: alexscaves:sugar_rush:citadel_tick_controller_pin
 - Citadel: only minimum >=2.6.0 is recorded; exact installed artifact/version/hash is absent. Never substitute an arbitrary release.
-- Exact next action: Continue AlexCaves only: native actor/goals and owned payload families, item/block/event consumers and residual independent context. All independent scopes must close before the precise Citadel time-controller pin blocker is reported; no later mod.
+- Exact next action: Continue AlexCaves grouped unresolved actor/payload and item/block/event semantics only. Reuse exact transport and already locked native contracts; no later mod.
 - Continue after intermediate checkpoints/context compaction. Do not load Legendary Monsters or any later mod.

@@ -10,7 +10,7 @@ from pathlib import Path
 from catalog_common import OUT, BASELINE, read_json, write_json
 from promote_combat_batch import (literal_numeric_input_binding,
     literal_last_numeric_argument_binding, literal_vector_components_binding,
-    literal_effect_arguments, literal_effect_attribute_binding)
+    literal_effect_arguments, literal_effect_attribute_binding,literal_attribute_binding)
 
 
 def render(spec):
@@ -66,7 +66,8 @@ def render(spec):
                        'LAST_NUMERIC_ARGUMENT': ('native_last_numeric_argument_binding',literal_last_numeric_argument_binding),
                        'VECTOR_COMPONENTS': ('native_literal_vector_components_binding',literal_vector_components_binding),
                        'EFFECT_ARGUMENTS': ('native_literal_effect_arguments',literal_effect_arguments),
-                       'EFFECT_ATTRIBUTE': ('native_effect_attribute_binding',literal_effect_attribute_binding)}
+                       'EFFECT_ATTRIBUTE': ('native_effect_attribute_binding',literal_effect_attribute_binding),
+                       'ATTRIBUTE': ('native_attribute_binding',literal_attribute_binding)}
             if binding:
                 field, helper = helpers[binding]
                 c[field] = helper(m,offset)
@@ -83,7 +84,8 @@ def render(spec):
         mod_key=spec['mod_key'],checkpoint=spec['checkpoint'],closed_scope=spec['closed_scope'],
         effects=sorted(rows,key=lambda r:r['id']),paths=sorted(paths,key=lambda r:r['id']),exclusions=exclusions,
         record_refinements=spec.get('record_refinements',[]),
-        exact_next_task=spec['exact_next_task'],stage_policy_decided=False,runtime_tests=0)
+        exact_next_task=spec['exact_next_task'],stage_policy_decided=False,runtime_tests=0,
+        **({'validation':deepcopy(spec['validation'])} if spec.get('validation') else {}))
 
 
 if __name__=='__main__':

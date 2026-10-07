@@ -1,7 +1,7 @@
 {
   "schema": "tno.external_effects.vanilla_comparison.v1",
   "status": "PARTIAL",
-  "checkpoint": "R2m8f-alexscaves-typed-presentation-graph-reduction",
+  "checkpoint": "R2m8g-alexscaves-exact-state-transport",
   "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
   "note": "Deterministic projection of canonical mod reviews,including explicit PARTIAL scope. The ledger alone tracks per-mod completeness. No Stage eligibility or policy decision.",
   "comparisons": [
@@ -130,6 +130,30 @@
           "primitive": "NETWORK_ADMISSION",
           "numerical_parameters": {
             "source_distance_strict_max": 32
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:gloomoth_native_sacrifice_conversion",
+      "mod_key": "alexscaves",
+      "primary_classification": "BINARY_MECHANIC",
+      "closest_vanilla": "Native mob/goal APIs with the explicit species-specific behavior below",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "triggerSacrificeIn(supplied time) sets sacrifice flag/time; isValidSacrifice requires distanceFromGround<4. On server flagged tick decrements supplied clock, below10 broadcasts visual event61, below0 if riding Underzealot calls its postSacrifice(self) then triggerIdleDigging; stopRiding then native convertTo(WATCHER,true), sound, and non-null converted entity stops riding. Flag is not cleared here; no fabricated success callback/extra spawn. Native conversion failure/repeated native requests remain as written. Flying is rejected for babies; land/flight navigator selection is native state. Ordinary light roaming and loot-source exclusions do not create damage. Direct Underzealot producers and Watcher combat family remain queued independently and will reuse this contract.",
+      "components": [
+        {
+          "primitive": "NATIVE_ENTITY_CONVERSION",
+          "numerical_parameters": {},
+          "parameter_formulas": {
+            "sacrifice_clock": "original supplied time; -- each server flagged tick; <0 triggers conversion"
+          }
+        },
+        {
+          "primitive": "NATIVE_SACRIFICE_ADMISSION",
+          "numerical_parameters": {
+            "ground_distance_threshold": 4
           },
           "parameter_formulas": {}
         }
@@ -279,6 +303,34 @@
       ]
     },
     {
+      "effect_id": "alexscaves:moth_ball_native_avoidance",
+      "mod_key": "alexscaves",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "Native mob/goal APIs with the explicit species-specific behavior below",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Gloomoth getNearestMothBall on ServerLevel uses existing block/tag predicates and range: int(sqrt(block distance squared)) < (native BALLS/5F)*supplied range. Flee goal attempts when rand.nextInt(20)==0 OR worldTime%10==0, queries range20, continues with non-null moth ball and distanceSquared<32 (not a32-block radius). Starts flying and reselects retreat when absent or distanceSquared<4, up to15 getPosAway(32,15) attempts, navigation speed1. Light goal supplied radius32 rejects locations with moth ball range10, requires light source tag/emission and LOS and native main-hand-empty continuation. Ordinary light search/flight contains no damage/status request. Block placement/suppliers remain independently queued.",
+      "components": [
+        {
+          "primitive": "NATIVE_ENVIRONMENT_AVOIDANCE",
+          "numerical_parameters": {
+            "moth_ball_search_range": 20,
+            "continuation_distance_squared": 32,
+            "retreat_attempts": 15,
+            "ball_density_divisor": 5.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_LIGHT_SEARCH_ADMISSION",
+          "numerical_parameters": {
+            "light_goal_radius": 32,
+            "light_moth_ball_reject_range": 10
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
       "effect_id": "alexscaves:moving_metal_blocks",
       "mod_key": "alexscaves",
       "primary_classification": "CUSTOM_CONTROL",
@@ -391,6 +443,86 @@
             "scan": "RandomSource.nextInt(scan_rng_bound)==0",
             "replace": "only for strictly closer candidate; nextInt(nearer_choice_rng_bound)==0"
           }
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:raycat_healing_and_radiation_transfer",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "Native mob/goal APIs with the explicit species-specific behavior below",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "While self irradiated, tick requests heal1F every10 entity ticks with no explicit side gate. Absorb cooldown initializes/resets300+rand300 and decrements positive values. After expiry and without a stored target, server prefers irradiated owner within20; otherwise searches living bbox.inflate(9), excludes Raycat, requires Irradiated and (tame or not Player), picks nearest and stores ID/-1; resets cooldown even with none. No allied/team test. Stored target branch starts absorbAmount1, then decrements .05F; at <=0 self requests heal10F BEFORE requesting Irradiated200 ticks at (current self amplifier+1, else0). Looks at original target30/30; if living target still has Irradiated, preserves its remaining duration, removes exact effect, and if amplifier>0 adds duration/amplifier-1. Native add/remove returns are ignored. No explicit side gate around fulfillment and no distance/status revalidation before self heal; status is only rechecked before target removal. Shipped RESISTS_RADIATION tag includes raycat, so locked radiation-heal cancellation exemption applies by default; event outcome is not guaranteed. Command0/1/2 and native owner gate retain sit/follow behavior. Native OcelotAttack/Leap(.3F) goals with base attack1 are registered but no own target selector is invented.",
+      "components": [
+        {
+          "primitive": "NATIVE_HEALING",
+          "numerical_parameters": {
+            "irradiated_periodic_heal": 1.0,
+            "transfer_completion_heal": 10.0,
+            "periodic_entity_tick_modulus": 10
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "MOB_EFFECT_IRRADIATED",
+          "numerical_parameters": {
+            "duration": 200
+          },
+          "parameter_formulas": {
+            "self_amplifier": "self currently irradiated ? original amplifier+1 : 0",
+            "target_retention": "if original amplifier>0, original duration and amplifier-1 after explicit removal"
+          }
+        },
+        {
+          "primitive": "STATUS_TRANSFER_DELIVERY",
+          "numerical_parameters": {
+            "cooldown_base": 300,
+            "cooldown_random_bound": 300,
+            "owner_distance": 20,
+            "fallback_bbox_inflate": 9,
+            "absorb_start": 1.0,
+            "absorb_step": 0.05000000074505806
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_MELEE_DAMAGE",
+          "numerical_parameters": {
+            "base_attack_damage": 1.0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_OWNER_COMMAND",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:small_aquatic_native_environment",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "Native mob/goal APIs with the explicit species-specific behavior below",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Four independently instantiated WaterAnimal families share the same dry-out request shape: alive outside the species liquid predicate decrement previous air by1; only equality -20 resets air0 and requests native dryOut damage2F. Request return is discarded. Lanternfish resets air200, Radgill500, SeaPig40 and SweetishFish400 in liquid. Radgill liquid includes Acid fluid; SweetishFish includes Purple Soda; others use native water/bubble. SeaPig initial air40; bucket loads Lanternfish/Radgill/SeaPig2000 and SweetishFish400. No attacking/owner actor is synthesized. Radgill parent fall damage result subtracts5; SweetishFish rejects HUNGER in addition to the parent effect gate. No custom attack goal is registered for these four; Radgill HurtByTarget target state is not a damaging goal.",
+      "components": [
+        {
+          "primitive": "NATIVE_DRY_OUT_DAMAGE",
+          "numerical_parameters": {
+            "requested_damage": 2.0,
+            "air_decrement": 1,
+            "request_air_equality": -20,
+            "reset_air": 0
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_ENVIRONMENT_ADMISSION",
+          "numerical_parameters": {
+            "radgill_fall_damage_subtraction": 5
+          },
+          "parameter_formulas": {}
         }
       ]
     },
@@ -512,6 +644,89 @@
             "client_active_comparison": 50.0
           },
           "external_dependency_obligation": "alexscaves:sugar_rush:citadel_tick_controller_pin"
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:tamed_native_follow_combat_gate",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "Native mob/goal APIs with the explicit species-specific behavior below",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "AnimalFollowOwnerGoal delegates parent start/continuation admission and additionally requires shouldFollow and not isInCombat. Combat here is owner non-null, owner distance<30 and current target non-null/alive; it does not acquire a target or prove an attacker owner. tick delegates parent then tickDistance(original owner distance); default tickDistance is empty. Raycat shouldFollow is command==2. Other callers remain independently queued and reuse this body instead of duplicating it.",
+      "components": [
+        {
+          "primitive": "NATIVE_OWNER_FOLLOW_ADMISSION",
+          "numerical_parameters": {
+            "combat_owner_distance": 30
+          },
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:trilocaris_native_bite",
+      "mod_key": "alexscaves",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "Native mob/goal APIs with the explicit species-specific behavior below",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "doHurtTarget first writes ATTACK_TICK5 and immediately delegates parent melee, returning that result. Independent tick later decrements positive attack clock and raises biteProgress up to5; when clock is no longer positive and biteProgress>4, a non-null target within1.3 gets a second native mobAttack(self) request equal to current float ATTACK_DAMAGE. That delayed request has no explicit side/alive/allied test and ignores its return. MeleeGoal only starts for a live target and duration<300; tick increments duration, navigates1 while target is in water/bubble, requests doHurtTarget below1.2 when cooldown0, sets30 then decrements during that tick. stop resets duration/cooldown, last hurt mob and target. Do not deduplicate the two native attempts. Own air callback is empty; baseTick restores saved air after parent only when in water, not an invented universal immunity.",
+      "components": [
+        {
+          "primitive": "NATIVE_MELEE_DAMAGE",
+          "numerical_parameters": {
+            "base_attack_damage": 1.0
+          },
+          "parameter_formulas": {
+            "delayed_request": "float(current ATTACK_DAMAGE) via mobAttack(self)"
+          }
+        },
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "numerical_parameters": {
+            "attack_tick": 5,
+            "melee_goal_duration_limit": 300,
+            "goal_cooldown_assignment": 30,
+            "goal_attack_distance": 1.2000000476837158,
+            "delayed_bite_distance": 1.2999999523162842
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_ENVIRONMENT_ADMISSION",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexscaves:tripodfish_native_flee_and_standing",
+      "mod_key": "alexscaves",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "Native mob/goal APIs with the explicit species-specific behavior below",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Native IN_WALL immunity is ORed with parent admission. hurt delegates parent first and only a true return captures current hurtPos and fleeFor40+random.nextInt(40). tick decrements flee and clears position at0. AvoidHurtGoal requires position and timer, start exits standing, then uses getPosAway(16,7,hurtPos center) and navigation speed1.6F when missing/near retreat target (distanceSquared<6). Standing refreshes dimensions to scaled .95F x1.5F and navigation switching counter400+rand400; exit adds old height*.35F before dimension refresh. Standing tick stops navigation; airborne velocity adds -.05Y and multiplies(.5,1,.5). Ordinary self travel captures old velocity, transiently adds -.005Y when targetless/non-standing but moves and finally rescales the previously captured vector (.3F standing/.9 otherwise), so that transient term must not be reported as surviving the final write.",
+      "components": [
+        {
+          "primitive": "HURT_DEPENDENT_FLEE",
+          "numerical_parameters": {
+            "flee_base_ticks": 40,
+            "flee_random_exclusive_bound": 40,
+            "flee_speed": 1.600000023841858,
+            "retreat_reselect_distance_squared": 6
+          },
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_BODY_AND_NAVIGATION_STATE",
+          "numerical_parameters": {
+            "standing_width": 0.949999988079071,
+            "standing_height": 1.5,
+            "standing_exit_height_factor": 0.3499999940395355,
+            "navigation_counter_base": 400,
+            "navigation_counter_random_bound": 400
+          },
+          "parameter_formulas": {}
         }
       ]
     },

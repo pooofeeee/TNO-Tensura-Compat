@@ -163,6 +163,10 @@ def forwarding_shape(entry, name, descriptor, access, body, exception_handlers=(
     if query:return query
     transport=declared_field_transport_shape(entry,descriptor,access,body)
     if transport:return transport
+    transport=synthetic_field_transport_shape(entry,descriptor,access,body)
+    if transport:return transport
+    transport=synched_field_transport_shape(entry,descriptor,access,body)
+    if transport:return transport
     ops=[i['opcode'] for i in body]
     if access & 8 and descriptor.endswith(')V') and ops==['0xb1']:
         return dict(kind='EMPTY_STATIC_VOID_HELPER')
@@ -240,6 +244,73 @@ def declared_field_exists(shape,cls):
     return len(matches)==1 and bool(matches[0]['access'] & 8)==shape['field_static']
 
 
+def synthetic_field_transport_shape(entry, descriptor, access, body):
+    """Typed compiler access transport; constants/arithmetic/calls are refused."""
+    if access & 0x1008 != 0x1008:return None
+    args,ret=signature(descriptor);ops=[i['opcode'] for i in body]
+    if not args or args[0]!='L'+entry[:-6]+';':return None
+    returns={'I':'0xac','J':'0xad','F':'0xae','D':'0xaf','A':'0xb0'}
+    if len(args)==1 and ret!='V' and ops==['0x2a','0xb4',returns[kind(ret)]]:
+        if body[0].get('local_index')!=0:return None
+        field=body[1]['operand'];field_type=ret;mode='ACCESS_QUERY'
+    elif len(args)==2 and ret=='V' and len(body)==4 and ops[0]=='0x2a' and ops[2:]==['0xb5','0xb1']:
+        loads={'I':('0x15','0x1b'),'J':('0x16','0x1f'),'F':('0x17','0x23'),
+               'D':('0x18','0x27'),'A':('0x19','0x2b')}
+        if body[0].get('local_index')!=0 or body[1].get('local_index')!=1 or body[1]['opcode'] not in loads[kind(args[1])]:return None
+        field=body[2]['operand'];field_type=args[1];mode='ACCESS_WRITE'
+    else:return None
+    match=re.fullmatch(re.escape(entry[:-6])+r'\.([^.]+)'+re.escape(field_type),str(field))
+    if not match:return None
+    return dict(kind='RAW_DECLARED_FIELD_'+mode,field_name=match[1],field_descriptor=field_type,field_static=False)
+
+
+def synched_field_transport_shape(entry, descriptor, access, body):
+    """Exact native accessor transport, not default/gate/clock interpretation.
+
+    The original receiver and supplied value are required. Constructor-defined
+    serializer/default and all gameplay consumers remain independent obligations.
+    """
+    if access & 8:return None
+    args,ret=signature(descriptor);ops=[i['opcode'] for i in body]
+    if len(body)<5 or ops[:3]!=['0x2a','0xb4','0xb2'] or body[0].get('local_index')!=0:return None
+    data='net/minecraft/network/syncher/SynchedEntityData'
+    accessor='Lnet/minecraft/network/syncher/EntityDataAccessor;'
+    # Inherited Entity field is resolved with the concrete receiver owner by
+    # javac. Refuse any other data field or receiver substitution.
+    if body[1]['operand']!=entry[:-6]+'.entityDataL'+data+';':return None
+    match=re.fullmatch(re.escape(entry[:-6])+r'\.([^.]+)'+re.escape(accessor),str(body[2]['operand']))
+    if not match:return None
+    boxes={'Z':('java/lang/Boolean','booleanValue'),'B':('java/lang/Byte','byteValue'),
+           'S':('java/lang/Short','shortValue'),'C':('java/lang/Character','charValue'),
+           'I':('java/lang/Integer','intValue'),'J':('java/lang/Long','longValue'),
+           'F':('java/lang/Float','floatValue'),'D':('java/lang/Double','doubleValue')}
+    returns={'I':'0xac','J':'0xad','F':'0xae','D':'0xaf','A':'0xb0'}
+    if not args and ret!='V':
+        if ops[3]!='0xb6' or body[3]['operand']!=data+'.get('+accessor+')Ljava/lang/Object;':return None
+        if ret in boxes:
+            wrapper,unbox=boxes[ret]
+            if ops[4:]!=['0xc0','0xb6',returns[kind(ret)]] or body[4]['operand']!=wrapper or body[5]['operand']!=wrapper+'.'+unbox+'()'+ret:return None
+        elif kind(ret)=='A':
+            cast=ret[1:-1] if ret.startswith('L') else ret
+            if ops[4:]!=['0xc0','0xb0'] or body[4]['operand']!=cast:return None
+        else:return None
+        mode='SYNCHED_QUERY'
+    elif len(args)==1 and ret=='V':
+        arg=args[0];k=kind(arg)
+        loads={'I':('0x15','0x1b'),'J':('0x16','0x1f'),'F':('0x17','0x23'),
+               'D':('0x18','0x27'),'A':('0x19','0x2b')}
+        if body[3]['opcode'] not in loads[k] or body[3].get('local_index')!=1:return None
+        at=4
+        if arg in boxes:
+            wrapper=boxes[arg][0]
+            if body[at]['opcode']!='0xb8' or body[at]['operand']!=wrapper+'.valueOf('+arg+')L'+wrapper+';':return None
+            at+=1
+        if ops[at:]!=['0xb6','0xb1'] or body[at]['operand']!=data+'.set('+accessor+'Ljava/lang/Object;)V':return None
+        mode='SYNCHED_WRITE'
+    else:return None
+    return dict(kind='RAW_DECLARED_FIELD_'+mode,field_name=match[1],field_descriptor=accessor,field_static=True)
+
+
 def validate_field_transport_source(row,body,field_index):
     """Compare resolved field operands with the already captured native index."""
     assert field_index is not None, 'Field transport requires independent field-site evidence'
@@ -264,7 +335,7 @@ def collect(census, index, jar, selection=None, field_index=None):
     assert index['jar_sha256']==census['jar_sha256']
     classes={c['entry']:c for c in census['classes']}
     candidates=[m for k,m in native.items() if k not in covered and (selected is None or k in selected) and
-                (m['code_bytes']<=9 or m['access'] & 0x1040==0x1040 or
+                (m['code_bytes']<=35 or m['access'] & 0x1040==0x1040 or
                  (m['access'] & 8 and m['descriptor'].endswith(')V') and m['code_bytes']==1) or
                  (m['method']=='<init>' and m['descriptor']=='()V' and m['code_bytes']==5) or
                  (classes[m['entry']]['superclass']=='software/bernie/geckolib/model/GeoModel' and m['method'] in ('getAnimationResource','getModelResource','getTextureResource') and m['code_bytes'] in (6,7)) or

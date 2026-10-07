@@ -20,8 +20,9 @@ class NativeStateTransportTests(NativeContractHarness,unittest.TestCase):
     def test_native_contracts_refine_existing_identities_without_copied_scalars(self):
         prior=self.prior();after=refined_review(prior,self.batch)
         summary=validate_batch(self.batch,prior,self.census)
-        self.assertEqual(summary['semantic_records'],462)
-        self.assertEqual(summary['numeric_candidate_entries'],3903)
+        self.assertEqual(summary['semantic_records'],len(prior['effects']))
+        self.assertEqual(summary['numeric_candidate_entries'],sum(len(c['parameters'])
+                         for r in prior['effects'] for c in r['scalable_parameter_candidates']))
         self.assertEqual((len(self.native['witnesses']),sum(len(w['methods']) for w in self.native['witnesses'])),(9,66))
         self.assertFalse(self.batch['effects']);self.assertFalse(self.batch['paths'])
         self.assertTrue(all(not r.get('candidate_additions') for r in self.batch['record_refinements']))
@@ -132,8 +133,11 @@ class NativeBlockStateCarrierTests(NativeContractHarness,unittest.TestCase):
         cls.carriers=[w for w in cls.native['witnesses'] if '/block/entity/' in w['entry']]
 
     def test_refinement_counts_do_not_add_copied_values_or_inventory_scalars(self):
-        summary=validate_batch(self.batch,self.prior(),self.census)
-        self.assertEqual((summary['semantic_records'],summary['numeric_candidate_entries']),(462,3903))
+        prior=self.prior()
+        summary=validate_batch(self.batch,prior,self.census)
+        self.assertEqual(summary['semantic_records'],len(prior['effects']))
+        self.assertEqual(summary['numeric_candidate_entries'],sum(len(c['parameters'])
+                         for r in prior['effects'] for c in r['scalable_parameter_candidates']))
         self.assertEqual((len(self.native['witnesses']),sum(len(w['methods']) for w in self.native['witnesses'])),(8,145))
         self.assertEqual(len(self.carriers),7);self.assertEqual(len(self.batch['record_refinements']),5)
         self.assertEqual(len(self.batch['exclusions']),2);self.assertFalse(self.batch['effects'])

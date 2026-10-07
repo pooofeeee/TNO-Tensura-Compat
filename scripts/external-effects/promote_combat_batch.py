@@ -9,14 +9,20 @@ from audit_catalog_integrity import EvidenceIndex,audit_review
 from refresh_catalog_views import refresh
 
 
+def effect_holder_load(instruction):
+    """Bind a typed static Holder argument, without inferring registry semantics."""
+    symbol=str(instruction.get('operand'))
+    return instruction['opcode']=='0xb2' and (symbol.endswith('Lnet/minecraft/core/Holder;')
+        or symbol.endswith('Lnet/neoforged/neoforge/registries/DeferredHolder;'))
+
+
 def effect_holder_binding(method,offset):
     """Read the holder argument of this allocation, not a nearby effect query."""
     body=method['instructions'];at=next(n for n,i in enumerate(body) if i['offset']==offset)
     assert 'MobEffectInstance.<init>(' in str(body[at]['operand'])
     start=max(n for n,i in enumerate(body[:at]) if i['opcode']=='0xbb' and
               i['operand']=='net/minecraft/world/effect/MobEffectInstance')
-    holder=next((i for i in body[start:at] if i['opcode']=='0xb2' and
-                ('/MobEffects.' in str(i['operand']) or '/ArphexModMobEffects.' in str(i['operand']))),None)
+    holder=next((i for i in body[start:at] if effect_holder_load(i)),None)
     if holder is None:
         # A real native status constructor can load a previously stored holder.
         # Accept only one exact assignment, not the nearest effect query or an
@@ -42,8 +48,7 @@ def effect_holder_binding(method,offset):
             holder=body[n-4]
         else:
             holder=body[n-1]
-        assert holder['opcode']=='0xb2' and ('/MobEffects.' in str(holder['operand'])
-            or '/ArphexModMobEffects.' in str(holder['operand'])), ('nonconstant local effect holder',offset)
+        assert effect_holder_load(holder), ('nonconstant local effect holder',offset)
     return holder['operand'],body[start]['offset'],holder['offset']
 
 
