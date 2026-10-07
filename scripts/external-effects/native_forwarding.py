@@ -2,7 +2,9 @@
 
 No names, keyword absence or capture-only witness can establish an exclusion.
 Bridges require a previously dispositioned concrete target. Context constructors
-must call only Object.<init>; empty helpers must be static void methods.
+must call only Object.<init>; empty helpers must be static void methods. Distance
+ordering factories require their exact pure native query lambda, including the
+resolved bootstrap. Callers' admission, ordering and payloads remain separate.
 """
 import argparse
 import json
@@ -29,9 +31,41 @@ def kind(t):
     return 'A' if t.startswith(('L','[')) else 'I' if t in 'BCISZ' else t
 
 
-def forwarding_shape(entry, name, descriptor, access, body, exception_handlers=()):
+def distance_query_shape(entry, descriptor, access, body, bootstraps):
+    """Two exact query-only shapes; never infer purity from a method name."""
+    entity='net/minecraft/world/entity/Entity'
+    query_descriptor='(DDDL'+entity+';)D'
+    ops=[i['opcode'] for i in body]
+    if descriptor==query_descriptor and access & 8:
+        if ops!=['0x19','0x26','0x28','0x18','0xb6','0xaf']:return None
+        if [body[j].get('local_index') for j in (0,1,2,3)]!=[6,0,2,4]:return None
+        if body[4]['operand']!=entity+'.distanceToSqr(DDD)D':return None
+        return dict(kind='EXACT_NATIVE_DISTANCE_QUERY')
+    if descriptor!='(DDD)Ljava/util/Comparator;' or access & 8:return None
+    if ops!=['0x27','0x29','0x18','0xba','0xb8','0xb0']:return None
+    if [body[j].get('local_index') for j in (0,1,2)]!=[1,3,5]:return None
+    if body[4]['operand']!='java/util/Comparator.comparingDouble(Ljava/util/function/ToDoubleFunction;)Ljava/util/Comparator;':return None
+    match=re.fullmatch(r'bootstrap#([0-9]+):applyAsDouble\(DDD\)Ljava/util/function/ToDoubleFunction;',body[3]['operand'])
+    if not match:return None
+    number=match[1]
+    if set(bootstraps)!={number}:return None
+    bootstrap=bootstraps[number]
+    expected_handle=dict(tag=15,value='java/lang/invoke/LambdaMetafactory.metafactory(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;',reference_kind=6)
+    if bootstrap.get('handle')!=expected_handle:return None
+    args=bootstrap.get('arguments',[])
+    if len(args)!=3 or args[0]!=dict(tag=16,value='(Ljava/lang/Object;)D') or args[2]!=dict(tag=16,value='(L'+entity+';)D'):return None
+    target=args[1]
+    if set(target)!={'tag','value','reference_kind'} or target['tag']!=15 or target['reference_kind']!=6:return None
+    method=re.fullmatch(r'SELF\.([^.(]+)'+re.escape(query_descriptor),target['value'])
+    if not method:return None
+    return dict(kind='EXACT_NATIVE_DISTANCE_COMPARATOR_FACTORY',target=dict(entry=entry,method=method[1],descriptor=query_descriptor))
+
+
+def forwarding_shape(entry, name, descriptor, access, body, exception_handlers=(), bootstraps=None):
     """Return an exact proof shape or None; do not establish target coverage."""
     if exception_handlers:return None
+    query=distance_query_shape(entry,descriptor,access,body,bootstraps or {})
+    if query:return query
     ops=[i['opcode'] for i in body]
     if access & 8 and descriptor.endswith(')V') and ops==['0xb1']:
         return dict(kind='EMPTY_STATIC_VOID_HELPER')
@@ -84,7 +118,8 @@ def collect(census, index, jar, selection=None):
     candidates=[m for k,m in native.items() if k not in covered and (selected is None or k in selected) and
                 (m['access'] & 0x1040==0x1040 or
                  (m['access'] & 8 and m['descriptor'].endswith(')V') and m['code_bytes']==1) or
-                 (m['method']=='<init>' and m['descriptor']=='()V' and m['code_bytes']==5))]
+                 (m['method']=='<init>' and m['descriptor']=='()V' and m['code_bytes']==5) or
+                 (m['descriptor'] in ('(DDD)Ljava/util/Comparator;','(DDDLnet/minecraft/world/entity/Entity;)D') and m['code_bytes'] in (10,13)))]
     parsed={};waiting=[];rows=[]
     with zipfile.ZipFile(jar) as z:
         for m in candidates:
@@ -95,14 +130,20 @@ def collect(census, index, jar, selection=None):
             cls=parsed[entry];method=next(x for x in cls.methods if (x['name'],x['descriptor'])==(m['method'],m['descriptor']))
             code=method.get('code',b'');assert byte_hash(code)==m['code_sha256'] and method['access']==m['access']
             body=annotate_local_operands(list(cls.instructions(code)),code)
-            shape=forwarding_shape(entry,m['method'],m['descriptor'],m['access'],body,method.get('exception_handlers',[]))
+            from compare_native_methods import bootstrap_signature,referenced_bootstraps
+            bootstraps={str(n):bootstrap_signature(cls,n) for n in referenced_bootstraps(body)}
+            shape=forwarding_shape(entry,m['method'],m['descriptor'],m['access'],body,method.get('exception_handlers',[]),bootstraps)
             if not shape:continue
             waiting.append(dict(entry=entry,entry_sha256=classes[entry]['entry_sha256'],method=m['method'],descriptor=m['descriptor'],
-                access=m['access'],code_sha256=m['code_sha256'],code_hex=code.hex(),instructions=body,exception_handlers=[],**shape))
+                access=m['access'],code_sha256=m['code_sha256'],code_hex=code.hex(),instructions=body,exception_handlers=[],
+                **(dict(bootstraps=bootstraps) if bootstraps else {}),**shape))
+    query_keys={(r['entry'],r['method'],r['descriptor']) for r in waiting if r['kind']=='EXACT_NATIVE_DISTANCE_QUERY'}
     while waiting:
         next_wait=[]
         for r in waiting:
             target=r.get('target')
+            if r['kind']=='EXACT_NATIVE_DISTANCE_COMPARATOR_FACTORY' and (target['entry'],target['method'],target['descriptor']) not in query_keys:
+                continue
             if target and (target['entry'],target['method'],target['descriptor']) not in covered:
                 next_wait.append(r);continue
             if target:target['code_sha256']=native[(target['entry'],target['method'],target['descriptor'])]['code_sha256']
@@ -116,8 +157,11 @@ def collect(census, index, jar, selection=None):
         body=r.pop('instructions')
         digest=byte_hash(json.dumps(body,sort_keys=True,separators=(',',':')).encode())
         templates.setdefault(digest,body);r['instruction_template']=digest
+    scope='Exact unresolved finite-census methods only. No new semantics from constructor defaults; fields/readers remain queued. Virtual subclass dispatch and checkcast failure remain native. No bridge target closes from capture alone.'
+    if query_keys:
+        scope+=' Distance comparator factories require exact pure target-query proof; native ordering and caller combat gates/payloads remain separate.'
     return dict(schema='tno.external_effects.exact_native_forwarding.v1',mod_key=census['mod_key'],jar_sha256=census['jar_sha256'],
-        scope='Exact unresolved finite-census methods only. No new semantics from constructor defaults; fields/readers remain queued. Virtual subclass dispatch and checkcast failure remain native. No bridge target closes from capture alone.',
+        scope=scope,
         summary=dict(methods=len(rows),counts_by_kind=dict(sorted(Counter(r['kind'] for r in rows).items()))),
         instruction_templates=dict(sorted(templates.items())),
         rows=sorted(rows,key=lambda r:(r['entry'],r['method'],r['descriptor'])))
@@ -136,13 +180,18 @@ def validate(document,census,covered):
         key=(r['entry'],r['method'],r['descriptor']);assert key not in seen;seen.add(key)
         n=native[key];assert r['code_sha256']==n['code_sha256']==byte_hash(bytes.fromhex(r['code_hex']))
         assert r['entry_sha256']==classes[r['entry']]['entry_sha256'] and r['access']==n['access']
-        shape=forwarding_shape(r['entry'],r['method'],r['descriptor'],r['access'],templates[r['instruction_template']],r['exception_handlers'])
+        shape=forwarding_shape(r['entry'],r['method'],r['descriptor'],r['access'],templates[r['instruction_template']],r['exception_handlers'],r.get('bootstraps'))
         assert shape and shape['kind']==r['kind']
         if 'target' in shape:
             assert all(r['target'][k]==v for k,v in shape['target'].items())
             t=r['target'];assert t['code_sha256']==native[(t['entry'],t['method'],t['descriptor'])]['code_sha256']
         else:assert 'target' not in r
     covered=set(covered)
+    query_keys={(r['entry'],r['method'],r['descriptor']) for r in todo if r['kind']=='EXACT_NATIVE_DISTANCE_QUERY'}
+    for r in todo:
+        if r['kind']=='EXACT_NATIVE_DISTANCE_COMPARATOR_FACTORY':
+            t=r['target']
+            assert (t['entry'],t['method'],t['descriptor']) in query_keys,'Comparator target lacks exact pure-query proof'
     while todo:
         pending=[]
         for r in todo:

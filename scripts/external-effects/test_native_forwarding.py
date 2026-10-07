@@ -61,6 +61,68 @@ class ForwardingTests(unittest.TestCase):
         b[2]=ins('0x2c');self.assertIsNone(forwarding_shape('example/Renderer.class','copy','(JLjava/lang/Object;)Ljava/lang/Object;',0x1041,b))
 
 
+class DistanceQueryShapeTests(unittest.TestCase):
+    def query(self):
+        return [ins('0x19',local_index=6),ins('0x26',local_index=0),
+                ins('0x28',local_index=2),ins('0x18',local_index=4),
+                ins('0xb6','net/minecraft/world/entity/Entity.distanceToSqr(DDD)D'),ins('0xaf')]
+
+    def factory(self):
+        return [ins('0x27',local_index=1),ins('0x29',local_index=3),ins('0x18',local_index=5),
+                ins('0xba','bootstrap#3:applyAsDouble(DDD)Ljava/util/function/ToDoubleFunction;'),
+                ins('0xb8','java/util/Comparator.comparingDouble(Ljava/util/function/ToDoubleFunction;)Ljava/util/Comparator;'),ins('0xb0')]
+
+    def bootstrap(self):
+        return {'3':dict(handle=dict(tag=15,value='java/lang/invoke/LambdaMetafactory.metafactory(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;',reference_kind=6),arguments=[
+            dict(tag=16,value='(Ljava/lang/Object;)D'),
+            dict(tag=15,value='SELF.lambda$ordered$0(DDDLnet/minecraft/world/entity/Entity;)D',reference_kind=6),
+            dict(tag=16,value='(Lnet/minecraft/world/entity/Entity;)D')])}
+
+    def test_query_preserves_exact_xyz_recipient_and_native_squared_distance(self):
+        descriptor='(DDDLnet/minecraft/world/entity/Entity;)D'
+        self.assertEqual(forwarding_shape('x/Q.class','arbitrary',descriptor,4106,self.query()),
+                         dict(kind='EXACT_NATIVE_DISTANCE_QUERY'))
+        for n,field,value in [(0,'local_index',4),(1,'local_index',2),
+                              (4,'operand','net/minecraft/world/entity/Entity.distanceTo(DDD)D')]:
+            b=self.query();b[n][field]=value
+            self.assertIsNone(forwarding_shape('x/Q.class','arbitrary',descriptor,4106,b))
+        for i in [ins('0xb6','x/Combat.hurt()V'),ins('0xb4','x/Q.stateI'),ins('0x99')]:
+            b=self.query();b.insert(0,i)
+            self.assertIsNone(forwarding_shape('x/Q.class','arbitrary',descriptor,4106,b))
+
+    def test_factory_requires_exact_typed_static_same_class_bootstrap(self):
+        shape=lambda b: forwarding_shape('x/Q.class','arbitrary','(DDD)Ljava/util/Comparator;',0,self.factory(),bootstraps=b)
+        self.assertEqual(shape(self.bootstrap()),dict(kind='EXACT_NATIVE_DISTANCE_COMPARATOR_FACTORY',
+                         target=dict(entry='x/Q.class',method='lambda$ordered$0',descriptor='(DDDLnet/minecraft/world/entity/Entity;)D')))
+        self.assertIsNone(shape({}))
+        for field,value in [('reference_kind',5),('tag',16),('value','x/Other.lambda$ordered$0(DDDLnet/minecraft/world/entity/Entity;)D')]:
+            b=self.bootstrap();b['3']['arguments'][1][field]=value;self.assertIsNone(shape(b))
+        b=self.bootstrap();b['3']['arguments'][2]['value']='(Ljava/lang/Object;)D';self.assertIsNone(shape(b))
+
+    def test_handlers_and_changed_factory_locals_are_not_pure_proofs(self):
+        b=self.factory();b[2]['local_index']=3
+        self.assertIsNone(forwarding_shape('x/Q.class','x','(DDD)Ljava/util/Comparator;',0,b,bootstraps=self.bootstrap()))
+        self.assertIsNone(forwarding_shape('x/Q.class','x','(DDD)Ljava/util/Comparator;',0,self.factory(),[(0,1,2,3)],self.bootstrap()))
+
+    def test_independent_jdk_lambda_and_side_effect_fixture(self):
+        from native_evidence import annotate_local_operands
+        from compare_native_methods import bootstrap_signature,referenced_bootstraps
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);e=root/'net/minecraft/world/entity/Entity.java';e.parent.mkdir(parents=True)
+            e.write_text('package net.minecraft.world.entity; public class Entity { public double distanceToSqr(double x,double y,double z) { return x*x+y*y+z*z; } public void hurt() {} }')
+            q=root/'QueryFixture.java';q.write_text('import java.util.Comparator; import net.minecraft.world.entity.Entity; public class QueryFixture { Comparator<Entity> ordered(double x,double y,double z) { return Comparator.comparingDouble(e -> e.distanceToSqr(x,y,z)); } Comparator<Entity> harmful(double x,double y,double z) { return Comparator.comparingDouble(e -> { e.hurt(); return e.distanceToSqr(x,y,z); }); } }')
+            subprocess.run([shutil.which('javac'),str(e),str(q)],check=True,capture_output=True)
+            c=ClassFile(q.with_suffix('.class').read_bytes(),retain_code_metadata=True)
+            shapes={}
+            for m in c.methods:
+                body=annotate_local_operands(list(c.instructions(m.get('code',b''))),m.get('code',b''))
+                bs={str(n):bootstrap_signature(c,n) for n in referenced_bootstraps(body)}
+                shapes[m['name']]=forwarding_shape('QueryFixture.class',m['name'],m['descriptor'],m['access'],body,m['exception_handlers'],bs)
+            self.assertEqual(shapes['ordered']['kind'],'EXACT_NATIVE_DISTANCE_COMPARATOR_FACTORY')
+            self.assertEqual(next(v['kind'] for k,v in shapes.items() if k.startswith('lambda$ordered$')),'EXACT_NATIVE_DISTANCE_QUERY')
+            self.assertIsNone(next(v for k,v in shapes.items() if k.startswith('lambda$harmful$')))
+
+
 class NativeForwardingRegistryTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -101,6 +163,53 @@ class NativeForwardingRegistryTests(unittest.TestCase):
         i=EvidenceIndex();name='arphex-native-forwarding-registry.json'
         self.assertIs(i.read(name),i.read(OUT/name))
         self.assertEqual(set(i.file_hashes),{name})
+
+
+class NativeDistanceOrderingRegistryTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.census=read_json(OUT/'arphex-combat-census.json')
+        cls.document=read_json(OUT/'arphex-native-distance-ordering-registry.json')
+
+    def test_every_factory_has_exact_pure_query_and_no_new_scalar(self):
+        rows=validate(self.document,self.census,set())
+        self.assertEqual(len(rows),1026)
+        self.assertEqual(self.document['summary']['counts_by_kind'],
+                         {'EXACT_NATIVE_DISTANCE_COMPARATOR_FACTORY':513,'EXACT_NATIVE_DISTANCE_QUERY':513})
+        self.assertEqual(len(self.document['instruction_templates']),2)
+        for r in rows:
+            self.assertNotIn('effects',r);self.assertNotIn('scalable_parameter_candidates',r)
+            if r['kind']=='EXACT_NATIVE_DISTANCE_QUERY':
+                b=self.document['instruction_templates'][r['instruction_template']]
+                self.assertEqual([i['operand'] for i in b if i['opcode'].startswith('0xb')],
+                                 ['net/minecraft/world/entity/Entity.distanceToSqr(DDD)D'])
+
+    def test_factory_cannot_borrow_coverage_or_captured_harmful_target(self):
+        d=copy.deepcopy(self.document)
+        query=next(r for r in d['rows'] if r['kind']=='EXACT_NATIVE_DISTANCE_QUERY')
+        d['rows'].remove(query)
+        with self.assertRaisesRegex(AssertionError,'lacks exact pure-query'):
+            validate(d,self.census,{(query['entry'],query['method'],query['descriptor'])})
+
+    def test_bootstrap_cannot_be_replaced_by_foreign_or_instance_consumer(self):
+        for value in [('reference_kind',5),('value','OTHER.lambda$compareDistOf$0(DDDLnet/minecraft/world/entity/Entity;)D')]:
+            d=copy.deepcopy(self.document)
+            r=next(r for r in d['rows'] if r['kind']=='EXACT_NATIVE_DISTANCE_COMPARATOR_FACTORY')
+            next(iter(r['bootstraps'].values()))['arguments'][1][value[0]]=value[1]
+            with self.assertRaises(AssertionError):validate(d,self.census,set())
+
+    def test_finite_census_exclusions_leave_all_caller_methods_separate(self):
+        review=read_json(OUT/'mod-reviews/arphex.json')
+        index,pending=reconcile(review,self.census)
+        batch='arphex-r2m6y-exact-native-distance-ordering.json'
+        if batch not in review['reviewed_batches']:
+            review['reviewed_batches'].append(batch);index,pending=reconcile(review,self.census)
+        keys={(m['entry'],m['method'],m['descriptor']) for m in self.document['rows']}
+        indexed={ (m['entry'],m['method'],m['descriptor']):m for m in index['methods']}
+        self.assertTrue(keys<=set(indexed))
+        self.assertTrue(all(m['method'] in ('compareDistOf','lambda$compareDistOf$0') for m in self.document['rows']))
+        self.assertTrue(all(not indexed[k]['record_ids'] for k in keys))
+        self.assertTrue(all(p['kind']=='REVIEWED_EXCLUSION' for k in keys for p in indexed[k]['proofs']))
 
 
 class JdkCodeMetadataTests(unittest.TestCase):
