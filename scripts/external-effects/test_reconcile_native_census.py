@@ -148,7 +148,19 @@ class ExactContractIndexTests(unittest.TestCase):
                             for row in index['methods'] for p in row['proofs']))
         self.assertTrue(any(p['kind'] == 'SHARED_NATIVE_KERNEL'
                             for row in index['methods'] for p in row['proofs']))
-        self.assertTrue(any(m['disposition'] == 'SYNTHETIC_BRIDGE_CONTEXT' for m in pending))
+        # Progress may legitimately close every bridge. Verify coverage against
+        # the independent original index rather than requiring unfinished work.
+        key = lambda m: (m['entry'], m['method'], m['descriptor'])
+        original = {key(m): m for m in census['methods']}
+        covered = {key(m): m for m in index['methods']}
+        remaining = {key(m): m for m in pending}
+        self.assertEqual(len(covered), len(index['methods']))
+        self.assertEqual(len(remaining), len(pending))
+        self.assertFalse(set(covered) & set(remaining))
+        self.assertEqual(set(covered) | set(remaining), set(original))
+        self.assertTrue(all(m['code_sha256'] == original[k]['code_sha256']
+                            for k, m in covered.items()))
+        self.assertTrue(all(m == original[k] for k, m in remaining.items()))
 
 
 if __name__ == '__main__':
