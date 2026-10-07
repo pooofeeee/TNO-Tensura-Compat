@@ -944,6 +944,18 @@ def validate_batch(batch,review,census):
                 candidates.add(identity)
     merged=refined
     merged['effects']+=batch['effects'];merged['paths']+=batch['paths']
+    if batch.get('native_context_equivalences'):
+        # Validate context references against the independent census before
+        # promotion writes anything. Published batches replace their own
+        # in-memory reference here; they cannot prove a mutated draft valid.
+        from reconcile_native_census import reconcile
+        name='__pending_native_context_validation__.json'
+        context_review=deepcopy(merged)
+        context_review['reviewed_batches']=[f for f in review.get('reviewed_batches',[])
+            if index.read(f).get('checkpoint')!=batch['checkpoint']]+[name]
+        def context_read(path):
+            return batch if path.name==name else index.read(path.relative_to(OUT).as_posix())
+        reconcile(context_review,census,read=context_read)
     return audit_review(merged,index)
 
 
