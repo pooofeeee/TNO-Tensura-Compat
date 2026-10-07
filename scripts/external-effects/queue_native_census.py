@@ -8,7 +8,7 @@ from reconcile_native_census import reconcile, method_key
 from collect_combat_census import decode_sites
 
 
-def call_frontier(census, ordinals):
+def call_frontier(census, ordinals, field_index=None):
     """Group repeated structural questions without interpreting their meaning.
 
     Every site keeps its exact caller, opcode, offset and resolved symbol.
@@ -21,6 +21,15 @@ def call_frontier(census, ordinals):
     native={method_key(m):n for n,m in enumerate(census['methods'])}
     boot={(b['entry'],b['index']):b for b in census.get('registration_bootstraps',[])}
     calls=defaultdict(list);writes=defaultdict(list);callbacks=defaultdict(list)
+    fields={method_key(m):m for m in field_index['methods']} if field_index else {}
+    if field_index:
+        assert field_index['jar_sha256']==census['jar_sha256'] and field_index['mod_key']==census['mod_key']
+        if field_index.get('owner_scope')=='ALL_FIELD_OWNERS':
+            selected={method_key(m):m for m in field_index['selection']}
+            for n in ordinals:
+                m=census['methods'][n];key=method_key(m)
+                assert key in selected and selected[key]['code_sha256']==m['code_sha256'], \
+                    'Incomplete selected field proof'
     for n in ordinals:
         m=census['methods'][n]
         for site in decode_sites(census,m,'calls'):
@@ -32,7 +41,9 @@ def call_frontier(census, ordinals):
                 b=boot.get((m['entry'],number))
                 assert b,'Missing exact bootstrap'
                 callbacks[b['handle']].append(dict(row,bootstrap_index=number,arguments=b['arguments']))
-        for site in decode_sites(census,m,'hits'):
+        key=method_key(m)
+        sites=(decode_sites(field_index,fields[key],'field_sites') if key in fields else []) if field_index else decode_sites(census,m,'hits')
+        for site in sites:
             if site['opcode'] in ('0xb3','0xb5'):
                 writes[site['operand']].append(dict(caller_ordinal=n,offset=site['offset'],opcode=site['opcode']))
     def declaration(symbol):
@@ -48,6 +59,8 @@ def call_frontier(census, ordinals):
     return dict(schema='tno.external_effects.finite_call_frontier.v1',mod_key=census['mod_key'],
         jar_sha256=census['jar_sha256'],scope='Exact finite structural site grouping only; no reachability, semantic classification, exclusion or coverage inferred.',
         selected_ordinals=ordinals,
+        field_site_basis=('ALL_SELECTED_FIELD_OWNERS' if field_index.get('owner_scope')=='ALL_FIELD_OWNERS'
+                          else 'MOD_OWNED_FIELD_INDEX') if field_index else 'CENSUS_COMBAT_FILTERED_HITS',
         calls=[dict(symbol=s,native_declaration_ordinal=declaration(s),sites=rows) for s,rows in sorted(calls.items())],
         field_writes=[dict(symbol=s,sites=rows) for s,rows in sorted(writes.items())],
         bootstrap_handles=[dict(handle=s,sites=rows) for s,rows in sorted(callbacks.items())],
@@ -105,7 +118,8 @@ def generate(key, output, contract_index=None, frontier=None):
     if contract_index:
         index,_=reconcile(review,census);write_json(contract_index,index)
     if frontier:
-        write_json(frontier,call_frontier(census,[n for g in result['groups'] for n in g['method_ordinals']]))
+        field_file=OUT/f'{key}-native-field-use-index.json'
+        write_json(frontier,call_frontier(census,[n for g in result['groups'] for n in g['method_ordinals']],read_json(field_file) if field_file.exists() else None))
     return result['summary']
 
 

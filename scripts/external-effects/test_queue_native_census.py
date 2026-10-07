@@ -61,5 +61,13 @@ class FrontierTests(unittest.TestCase):
         c=self.fixture();self.assertEqual(call_frontier(c,[1,0,0]),call_frontier(c,[0,1]))
         with self.assertRaises(AssertionError):call_frontier(c,[2])
 
+    def test_all_owner_field_scope_cannot_claim_unindexed_methods(self):
+        c=self.fixture()
+        for m in c['methods']:m['code_sha256']='body'
+        f=dict(mod_key='example',jar_sha256='pin',owner_scope='ALL_FIELD_OWNERS',
+               methods=[],selection=[dict(c['methods'][0])])
+        self.assertEqual(call_frontier(c,[0],f)['field_site_basis'],'ALL_SELECTED_FIELD_OWNERS')
+        with self.assertRaises(AssertionError):call_frontier(c,[1],f)
+
 
 if __name__=='__main__':unittest.main()

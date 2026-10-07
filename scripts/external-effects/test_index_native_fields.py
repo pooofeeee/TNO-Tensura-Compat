@@ -42,6 +42,16 @@ class NativeFieldIndexTests(unittest.TestCase):
             else:next(m for m in c['methods'] if m['method']=='step')['code_sha256']='wrong'
             with self.assertRaises(AssertionError):index(c,lambda e:self.raw)
 
+    def test_exact_selected_all_owner_index_preserves_external_sites(self):
+        key=('NativeFieldFixture.class','step','()V')
+        d=index(self.census,lambda e:self.raw,{key},True)
+        self.assertEqual(d['owner_scope'],'ALL_FIELD_OWNERS')
+        self.assertEqual(len(d['selection']),1)
+        self.assertEqual(d['methods'][0]['method'],'step')
+        self.assertTrue(any(i['operand'].startswith('java/lang/System.out')
+                            for i in d['methods'][0]['field_sites']))
+        with self.assertRaises(AssertionError):index(self.census,lambda e:self.raw,{('unknown','step','()V')},True)
+
     def test_interning_preserves_all_exact_sites_and_stable_bytes(self):
         d=index(self.census,lambda e:self.raw);p=pack(d)
         for m,q in zip(d['methods'],p['methods']):self.assertEqual(m['field_sites'],decode_sites(p,q,'field_sites'))

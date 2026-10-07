@@ -14,28 +14,38 @@ from classfile import ClassFile
 from catalog_common import OUT,read_json,write_json,sha256,byte_hash
 
 
-def index(census,read_entry):
+def index(census,read_entry,selection=None,include_external=False):
     owners={c['name'] for c in census['classes']}
     expected=defaultdict(dict)
     for m in census['methods']:expected[m['entry']][(m['method'],m['descriptor'])]=m
+    selected=set(selection) if selection is not None else None
+    if selected is not None:
+        assert selected <= {(e,n,d) for e,ms in expected.items() for n,d in ms}
     rows=[];classes_checked=0
     for c in census['classes']:
+        if selected is not None and not any(k[0]==c['entry'] for k in selected):continue
         raw=read_entry(c['entry']);assert byte_hash(raw)==c['entry_sha256']
         cls=ClassFile(raw);classes_checked+=1
         wanted={cls.resolve(j) for j,x in enumerate(cls.cp) if x and x[0]==9
-                and cls.resolve(x[1][0]) in owners}
+                and (include_external or cls.resolve(x[1][0]) in owners)}
         if not wanted:continue
         for m in cls.methods:
-            body=[i for i in cls.instructions(m.get('code',b'')) if i['opcode'] in {'0xb2','0xb3','0xb4','0xb5'} and i['operand'] in wanted]
-            if not body:continue
+            if selected is not None and (c['entry'],m['name'],m['descriptor']) not in selected:continue
             e=expected[c['entry']][(m['name'],m['descriptor'])]
             assert byte_hash(m.get('code',b''))==e['code_sha256']
+            body=[i for i in cls.instructions(m.get('code',b'')) if i['opcode'] in {'0xb2','0xb3','0xb4','0xb5'} and i['operand'] in wanted]
+            if not body:continue
             rows.append(dict(entry=c['entry'],method=m['name'],descriptor=m['descriptor'],entry_sha256=c['entry_sha256'],
                 code_sha256=e['code_sha256'],field_sites=body))
-    return dict(schema='tno.external_effects.native_field_use_index.v1',mod_key=census['mod_key'],jar_sha256=census['jar_sha256'],
+    result=dict(schema='tno.external_effects.native_field_use_index.v1',mod_key=census['mod_key'],jar_sha256=census['jar_sha256'],
                 semantic_coverage_granted=False,scope=__doc__.strip(),
                 summary=dict(original_census_classes_checked=classes_checked,methods_with_native_field_sites=len(rows),native_field_sites=sum(len(m['field_sites']) for m in rows)),
                 methods=sorted(rows,key=lambda r:(r['entry'],r['method'],r['descriptor'])))
+    if include_external:
+        result.update(owner_scope='ALL_FIELD_OWNERS',scope='Complete GET/PUT sites for exact selected native bodies, including external field owners. No semantic judgment or coverage inferred.')
+    if selected is not None:
+        result['selection']=[dict(entry=e,method=n,descriptor=d,code_sha256=expected[e][n,d]['code_sha256']) for e,n,d in sorted(selected)]
+    return result
 
 
 def pack(document):

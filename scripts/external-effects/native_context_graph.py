@@ -237,11 +237,19 @@ def opcode_no_alias_writes(code):
     return not (ops & (set(range(0x4f,0x57)) | {0xc2,0xc3,0xa8,0xa9,0xc9}))
 
 
-def prove(census, profile='visual-v1', bytecodes=None, selection=None):
+def prove(census, profile='visual-v1', bytecodes=None, selection=None,
+          field_index=None, field_index_file=None):
     assert profile in PROFILES
     classes={c['name']:c for c in census['classes']}
     native={method_key(m):m for m in census['methods']}
     boot={(b['entry'],b['index']):b for b in census.get('registration_bootstraps',[])}
+    if field_index is not None:
+        assert field_index.get('owner_scope')=='ALL_FIELD_OWNERS','Mod-owned field sites are not a complete write proof'
+        assert field_index['mod_key']==census['mod_key'] and field_index['jar_sha256']==census['jar_sha256']
+        fields={method_key(m):m for m in field_index['methods']}
+        field_selection={method_key(m) for m in field_index['selection']}
+        assert set(fields)<=set(native)
+        assert all(m['code_sha256']==native[k]['code_sha256'] for k,m in fields.items())
     dependencies={}; locally_valid=set()
 
     def resolve(owner,name,desc):
@@ -265,13 +273,15 @@ def prove(census, profile='visual-v1', bytecodes=None, selection=None):
     for key,m in native.items():
         entry=m['entry'];is_visual=profile not in ('native-value-metadata-v3','generation-layout-v4','native-query-context-v5') and visual_entry(entry,profile);deps=set()
         valid=not m['access'] & (0x100|0x400)
+        if field_index is not None and key not in field_selection:valid=False
         if profile=='native-query-context-v5':
             raw=(bytecodes or {}).get(key)
             valid=valid and not m['access'] & 0x20 and raw is not None and byte_hash(raw)==m['code_sha256'] and opcode_read_only(raw)
         if profile=='presentation-access-v6':
             raw=(bytecodes or {}).get(key)
             valid=valid and not m['access'] & 0x20 and raw is not None and byte_hash(raw)==m['code_sha256'] and opcode_no_alias_writes(raw)
-        for hit in decode_sites(census,m,'hits'):
+        field_sites=(decode_sites(field_index,fields[key],'field_sites') if key in fields else []) if field_index is not None else decode_sites(census,m,'hits')
+        for hit in field_sites:
             op=hit['opcode'];symbol=str(hit['operand'])
             if op in ('0xb3','0xb5'):
                 owner=symbol.rsplit('.',1)[0]
@@ -343,6 +353,9 @@ def prove(census, profile='visual-v1', bytecodes=None, selection=None):
         result['selection']=[dict(entry=k[0],method=k[1],descriptor=k[2]) for k in sorted(selection)]
     if profile!='visual-v1':
         result['context_profile']=profile
+    if field_index_file:
+        assert field_index is not None
+        result['field_index_file']=field_index_file
     return result
 
 
@@ -350,19 +363,19 @@ def validate(doc,census):
     profile=doc.get('context_profile','visual-v1')
     codes={method_key(r):bytes.fromhex(r['code_hex']) for r in doc.get('bytecodes',[])}
     selection={method_key(r) for r in doc['selection']} if 'selection' in doc else None
-    assert doc==prove(census,profile,codes,selection),'Context graph differs from independent finite call/field facts'
+    filename=doc.get('field_index_file')
+    fields=read_json(OUT/filename) if filename else None
+    assert doc==prove(census,profile,codes,selection,fields,filename),'Context graph differs from independent finite call/field facts'
     return doc['rows']
 
 
-def collect_queries(census,selection,jar,profile='native-query-context-v5'):
-    """Read only selected context roots and exact internal call dependencies."""
-    assert sha256(jar)==census['jar_sha256']
+def context_dependencies(census,selection):
+    """Exact native declaration/bootstrap closure; no semantic inference."""
     native={method_key(m):m for m in census['methods']}
     assert selection <= set(native)
     classes={c['name']:c for c in census['classes']}
     boot={(b['entry'],b['index']):b for b in census.get('registration_bootstraps',[])}
-    roots=({k for k in selection if native[k]['descriptor'].split(')')[1] in QUERY_RETURNS}
-           if profile=='native-query-context-v5' else set(selection))
+    roots=set(selection)
     todo=list(roots);needed=set()
     while todo:
         key=todo.pop()
@@ -384,6 +397,17 @@ def collect_queries(census,selection,jar,profile='native-query-context-v5'):
                 seen.add(owner);target=(owner+'.class',name,desc)
                 if target in native:todo.append(target);break
                 owner=classes[owner]['superclass']
+    return needed
+
+
+def collect_queries(census,selection,jar,profile='native-query-context-v5',field_index=None,field_index_file=None):
+    """Read only selected context roots and exact internal call dependencies."""
+    assert sha256(jar)==census['jar_sha256']
+    native={method_key(m):m for m in census['methods']}
+    classes={c['name']:c for c in census['classes']}
+    roots=({k for k in selection if native[k]['descriptor'].split(')')[1] in QUERY_RETURNS}
+           if profile=='native-query-context-v5' else set(selection))
+    needed=context_dependencies(census,roots)
     codes={}
     with zipfile.ZipFile(jar) as z:
         for entry in sorted({k[0] for k in needed}):
@@ -394,12 +418,14 @@ def collect_queries(census,selection,jar,profile='native-query-context-v5'):
                 if key in needed:
                     code=m.get('code',b'');assert byte_hash(code)==native[key]['code_sha256'];codes[key]=code
     assert set(codes)==needed
-    return prove(census,profile,codes,roots)
+    return prove(census,profile,codes,roots,field_index,field_index_file)
 
 
 def reproduce(doc,census,jar):
     assert sha256(jar)==census['jar_sha256']
     classes={c['entry']:c for c in census['classes']};parsed={}
+    fields=read_json(OUT/doc['field_index_file']) if doc.get('field_index_file') else None
+    field_methods={method_key(m):m for m in fields['methods']} if fields else {}
     with zipfile.ZipFile(jar) as z:
         for row in doc['rows']+doc.get('bytecodes',[]):
             if row['entry'] not in parsed:
@@ -408,6 +434,12 @@ def reproduce(doc,census,jar):
             c=parsed[row['entry']]
             m=next(m for m in c.methods if (m['name'],m['descriptor'])==(row['method'],row['descriptor']))
             code=m.get('code',b'')
+            if fields is not None:
+                actual=[dict(offset=i['offset'],opcode=i['opcode'],operand=i['operand'])
+                        for i in c.instructions(code) if i['opcode'] in ('0xb2','0xb3','0xb4','0xb5')]
+                key=method_key(row)
+                expected=decode_sites(fields,field_methods[key],'field_sites') if key in field_methods else []
+                assert actual==expected,('Incomplete field index',key)
             if 'code_hex' in row:assert code.hex()==row['code_hex']
             else:assert byte_hash(code)==row['code_sha256']
     return len(doc['rows'])
@@ -418,11 +450,14 @@ if __name__=='__main__':
     p.add_argument('--output',type=Path,required=True);p.add_argument('--jar',type=Path)
     p.add_argument('--profile',choices=PROFILES,default='visual-v1')
     p.add_argument('--selection',type=Path)
+    p.add_argument('--field-index',type=Path)
     a=p.parse_args();c=read_json(OUT/f'{a.mod_key}-combat-census.json')
+    fields=read_json(a.field_index) if a.field_index else None
+    field_file=str(a.field_index.relative_to(OUT)) if a.field_index else None
     if a.profile in ('native-query-context-v5','presentation-access-v6'):
         assert a.jar and a.selection,'Query context requires an exact finite selection and pinned JAR'
         selected={method_key(r) for r in read_json(a.selection)['methods']}
-        d=collect_queries(c,selected,a.jar,a.profile)
-    else:d=prove(c,a.profile,selection={method_key(r) for r in read_json(a.selection)['methods']} if a.selection else None)
+        d=collect_queries(c,selected,a.jar,a.profile,fields,field_file)
+    else:d=prove(c,a.profile,selection={method_key(r) for r in read_json(a.selection)['methods']} if a.selection else None,field_index=fields,field_index_file=field_file)
     if a.jar:reproduce(d,c,a.jar)
     write_json(a.output,d);print(d['summary'])

@@ -3,7 +3,7 @@
 - Active campaign: `CAMPAIGN.md`; Alex's Caves only, then STOP.
 - Branch: `external-effects-catalog-research`.
 - Latest verified research ref: `origin/external-effects-catalog-research`.
-- Last verified anchor before this checkpoint: `057287915a73bfff950ad8c561ac5517ede6dcf1`. Resolve the current ref with Git; never reset to an older anchor.
+- Last verified anchor before this checkpoint: `089a62eff408c39df4d2a82559dd2798178a124b`. Resolve the current ref with Git; never reset to an older anchor.
 - Protected production HEAD: `eb37f0bfc0e7aa863632f163881566c0ae2a8701`; production/source gameplay unchanged.
 - Current mod/status: `alexscaves` / PARTIAL.
 - Locked COMPLETE targets: cultofazazel, variantsandventures, royalvariations, friendsandfoes, twilightforest, iceandfire, eternalstarlight, block_factorys_bosses, bosses_of_mass_destruction, cataclysm, arphex, tensura.
@@ -11,11 +11,11 @@
 - Classifications: {'BINARY_MECHANIC': 5, 'CUSTOM_CONTROL': 38, 'CUSTOM_DAMAGE': 8, 'CUSTOM_RESOURCE': 4, 'CUSTOM_STATUS': 3, 'VANILLA_COMPOSITE': 66, 'VANILLA_DIRECT': 3, 'VANILLA_EQUIVALENT': 1, 'VANILLA_LIKE_EXTENDED': 16}.
 - Census: `alexscaves-combat-census.json` (existing pin; do not rediscover).
 - Queue: `alexscaves-unresolved-queue.json`; ordinals refer to that exact census/hash.
-- Coverage: 10571 / 11764 dispositioned; 1193 pending.
-- Remaining semantic-role methods: 662 (routing, not a mechanic count).
+- Coverage: 11133 / 11764 dispositioned; 631 pending.
+- Remaining semantic-role methods: 401 (routing, not a mechanic count).
 - Canonical authorities: `mod-reviews/alexscaves.json`, `mod-completion-ledger.json`, `large-mod-campaign.json`.
 - Native source/indexes: existing census, field-use index and reviewed-batch pointers; consult cold bodies only for exact unresolved boundaries.
 - Known blockers: Exact installed Citadel artifact/version/hash is absent; ICustomCollisions.getAllowedMovementForEntity internal collision algorithm is not substituted or inferred. Original Corrodent callbacks are proven independently., alexscaves:sugar_rush:citadel_tick_controller_pin
 - Citadel: only minimum >=2.6.0 is recorded; exact installed artifact/version/hash is absent. Never substitute an arbitrary release.
-- Exact next action: AlexCaves R2m8z: finite presentation and remaining native utility/setup closure, then mod-level integrity and exact Citadel obligation; later mods parked.
+- Exact next action: AlexCaves R2m9: remaining finite native utility/setup/generation closure, then independent mod-level audit and exact Citadel obligation; later mods parked.
 - Continue after intermediate checkpoints/context compaction. Do not load Legendary Monsters or any later mod.

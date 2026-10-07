@@ -142,6 +142,18 @@ class NativeQueryTests(unittest.TestCase):
 
 
 class SelectedDisplayTests(unittest.TestCase):
+    def test_complete_fields_reject_write_omitted_from_keyword_census(self):
+        c=fixture();c['methods'][1]['hits']=[]
+        methods=[dict(entry=m['entry'],method=m['method'],descriptor=m['descriptor'],
+                      code_sha256=m['code_sha256']) for m in c['methods']]
+        fields=dict(mod_key=c['mod_key'],jar_sha256=c['jar_sha256'],owner_scope='ALL_FIELD_OWNERS',
+                    selection=methods,symbols=['net/minecraft/world/entity/Entity.yHeadRotF'],
+                    methods=[dict(methods[1],field_sites=[[1,181,0]])])
+        self.assertEqual(prove(c,'presentation-audio-ui-v2')['summary']['methods'],2)
+        self.assertEqual(prove(c,'presentation-audio-ui-v2',field_index=fields)['rows'],[])
+        fields.pop('owner_scope')
+        with self.assertRaises(AssertionError):prove(c,'presentation-audio-ui-v2',field_index=fields)
+
     def test_exact_selection_does_not_grant_coverage_to_dependencies(self):
         c=fixture();m=c['methods'][0];key=(m['entry'],m['method'],m['descriptor'])
         doc=prove(c,'presentation-audio-ui-v2',selection={key})
