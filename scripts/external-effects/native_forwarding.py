@@ -173,6 +173,8 @@ def forwarding_shape(entry, name, descriptor, access, body, exception_handlers=(
     if name=='<init>' and descriptor=='()V' and ops==['0x2a','0xb7','0xb1'] \
             and body[1]['operand']=='java/lang/Object.<init>()V':
         return dict(kind='OBJECT_ONLY_CONTEXT_CONSTRUCTOR')
+    relay=parent_relay_shape(entry,name,descriptor,access,body,superclass)
+    if relay:return relay
     if access & 0x1040 != 0x1040 or access & 8 or len(body)<3:return None
     call=body[-2]
     if call['opcode']!='0xb6' or not isinstance(call['operand'],str):return None
@@ -242,6 +244,44 @@ def declared_field_transport_shape(entry, descriptor, access, body):
 def declared_field_exists(shape,cls):
     matches=[f for f in cls['fields'] if f['name']==shape['field_name'] and f['descriptor']==shape['field_descriptor']]
     return len(matches)==1 and bool(matches[0]['access'] & 8)==shape['field_static']
+
+
+def parent_relay_shape(entry,name,descriptor,access,body,superclass):
+    """Original receiver/arguments and original parent return, exactly once.
+
+    This is a caller transport proof. It cannot establish the parent's behavior.
+    Internal parents require independent prior target coverage; unsupported
+    external dependencies are refused when the context is bound.
+    """
+    if access & 8 or superclass is None or superclass=='java/lang/Object':return None
+    args,ret=signature(descriptor)
+    returns={'V':'0xb1','I':'0xac','J':'0xad','F':'0xae','D':'0xaf','A':'0xb0'}
+    if len(body)!=len(args)+3 or body[0]['opcode']!='0x2a' or body[0].get('local_index')!=0:return None
+    if body[-2]['opcode']!='0xb7' or body[-2]['operand']!=superclass+'.'+name+descriptor or body[-1]['opcode']!=returns[kind(ret)]:return None
+    slot=1
+    loads={'I':('0x15','0x1a','0x1b','0x1c','0x1d'),'J':('0x16','0x1e','0x1f','0x20','0x21'),
+           'F':('0x17','0x22','0x23','0x24','0x25'),'D':('0x18','0x26','0x27','0x28','0x29'),
+           'A':('0x19','0x2a','0x2b','0x2c','0x2d')}
+    for instruction,arg in zip(body[1:-2],args):
+        if instruction['opcode'] not in loads[kind(arg)] or instruction.get('local_index')!=slot:return None
+        slot+=2 if kind(arg) in ('J','D') else 1
+    return dict(kind='ORIGINAL_ARGUMENT_PARENT_RELAY',parent_method_symbol=body[-2]['operand'])
+
+
+def bind_parent_relay(shape,census):
+    """Keep internal hierarchy targets independent; refuse unpinned libraries."""
+    owner,member=shape['parent_method_symbol'].rsplit('.',1)
+    name,descriptor=member.split('(',1);descriptor='('+descriptor
+    classes={c['name']:c for c in census['classes']}
+    native={(m['entry'],m['method'],m['descriptor']) for m in census['methods']}
+    visited=set()
+    while owner in classes and owner not in visited:
+        visited.add(owner);target=(owner+'.class',name,descriptor)
+        if target in native:
+            return dict(shape,target=dict(entry=target[0],method=name,descriptor=descriptor))
+        if name=='<init>':return None
+        owner=classes[owner]['superclass']
+    return shape if owner.startswith('net/minecraft/') else None
 
 
 def synthetic_field_transport_shape(entry, descriptor, access, body):
@@ -365,6 +405,9 @@ def collect(census, index, jar, selection=None, field_index=None):
             bootstraps={str(n):bootstrap_signature(cls,n) for n in referenced_bootstraps(body)}
             shape=forwarding_shape(entry,m['method'],m['descriptor'],m['access'],body,method.get('exception_handlers',[]),bootstraps,cls.super)
             if not shape:continue
+            if shape['kind']=='ORIGINAL_ARGUMENT_PARENT_RELAY':
+                shape=bind_parent_relay(shape,census)
+                if shape is None:continue
             if shape['kind'].startswith('RAW_DECLARED_FIELD_'):
                 if field_index is None or not declared_field_exists(shape,classes[entry]):continue
                 validate_field_transport_source(dict(entry=entry,method=m['method'],descriptor=m['descriptor'],
@@ -392,7 +435,7 @@ def collect(census, index, jar, selection=None, field_index=None):
                 continue
             waiting.append(dict(entry=entry,entry_sha256=classes[entry]['entry_sha256'],method=m['method'],descriptor=m['descriptor'],
                 access=m['access'],code_sha256=m['code_sha256'],code_hex=code.hex(),instructions=body,exception_handlers=[],
-                **(dict(superclass=cls.super) if is_animation(shape) or is_particle(shape) or is_model(shape) or is_renderer(shape) or shape['kind'] in ('EXACT_GECKO_MODEL_ASSET_QUERY','EXACT_GECKO_DEATH_RENDER_ROTATION','EXACT_NATIVE_LITERAL_TOOLTIP') else {}),
+                **(dict(superclass=cls.super) if is_animation(shape) or is_particle(shape) or is_model(shape) or is_renderer(shape) or shape['kind'] in ('EXACT_GECKO_MODEL_ASSET_QUERY','EXACT_GECKO_DEATH_RENDER_ROTATION','EXACT_NATIVE_LITERAL_TOOLTIP','ORIGINAL_ARGUMENT_PARENT_RELAY') else {}),
                 **(dict(bootstraps=bootstraps) if bootstraps else {}),**shape))
     query_keys={(r['entry'],r['method'],r['descriptor']) for r in waiting if r['kind']=='EXACT_NATIVE_DISTANCE_QUERY'}
     while waiting:
@@ -417,6 +460,8 @@ def collect(census, index, jar, selection=None, field_index=None):
     scope='Exact unresolved finite-census methods only. No new semantics from constructor defaults; fields/readers remain queued. Virtual subclass dispatch and checkcast failure remain native. No bridge target closes from capture alone.'
     if any(r['kind'].startswith('RAW_DECLARED_FIELD_') for r in rows):
         scope+=' Own-field queries/writes prove transport only, not field meaning, values, gate interpretation or Stage eligibility. All nontrivial readers, admission, defaults and lifecycle remain independently queued; a query is not a second numeric parameter.'
+    if any(r['kind']=='ORIGINAL_ARGUMENT_PARENT_RELAY' for r in rows):
+        scope+=' Parent relays pass only the original receiver/arguments and return the original result once. No independent payload, default or scalar is introduced. Internal hierarchy targets require prior independent coverage; unknown external libraries are refused. Native parent behavior and upstream construction inputs are not inferred from the relay.'
     if any(r['kind']=='ABSTRACT_DECLARATION_CONTEXT' for r in rows):
         scope+=' Abstract declarations have no executable native body; concrete dispatch and JNI methods are not excluded by this rule.'
     if query_keys:
@@ -491,6 +536,9 @@ def validate(document,census,covered,field_index=None):
         if 'superclass' in r:assert r['superclass']==classes[r['entry']]['superclass']
         shape=forwarding_shape(r['entry'],r['method'],r['descriptor'],r['access'],templates[r['instruction_template']],r['exception_handlers'],r.get('bootstraps'),r.get('superclass'))
         assert shape and shape['kind']==r['kind']
+        if shape['kind']=='ORIGINAL_ARGUMENT_PARENT_RELAY':
+            shape=bind_parent_relay(shape,census)
+            assert shape is not None,'Unpinned external parent cannot prove a relay'
         if shape['kind'].startswith('RAW_DECLARED_FIELD_'):
             assert declared_field_exists(shape,classes[r['entry']]),'Field transport must bind a real locally declared field'
             validate_field_transport_source(r,templates[r['instruction_template']],field_index)

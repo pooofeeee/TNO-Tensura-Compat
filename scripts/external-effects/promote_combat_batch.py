@@ -282,6 +282,89 @@ def literal_constructor_argument_binding(method, offset, argument_index):
     raise AssertionError('Missing constructor consumer')
 
 
+def literal_call_argument_binding(method, offset, argument_index):
+    """Prove a literal argument inside the consumer's straight native block.
+
+    Every join, branch and handler starts a new block. Values supplied from
+    outside that block, locals, arithmetic and call results remain opaque.
+    This proves bytes/argument position only, never a parameter's semantics.
+    """
+    from native_forwarding import signature
+    body = method['instructions']
+    at = next(n for n, i in enumerate(body) if i['offset'] == offset)
+    hit = body[at]
+    assert hit['opcode'] in ('0xb6', '0xb7', '0xb8', '0xb9')
+    descriptor = str(hit['operand']).split('(', 1)[1]
+    args, _ = signature('(' + descriptor)
+    assert type(argument_index) is int and 0 <= argument_index < len(args)
+    assert args[argument_index] in ('B', 'C', 'S', 'I', 'J', 'F', 'D')
+    starts = {0}
+    for n, instruction in enumerate(body):
+        if 'branch_target' in instruction:
+            starts.add(instruction['branch_target'])
+        if int(instruction['opcode'], 16) in range(0x99, 0xac) or instruction['opcode'] in ('0xc6', '0xc7', '0xc8'):
+            if n + 1 < len(body):
+                starts.add(body[n + 1]['offset'])
+            # Switch decoding/exception joins are deliberately unsupported.
+            if instruction['opcode'] in ('0xaa', '0xab'):
+                raise AssertionError('Switch argument proof requires explicit CFG')
+    assert not method.get('exception_handlers'), 'Exception joins require explicit CFG'
+    start = max(o for o in starts if o <= offset)
+    stack = []
+
+    def pop(count):
+        missing = max(0, count - len(stack))
+        values = [{} for _ in range(missing)] + (stack[-min(count, len(stack)):] if count else [])
+        if count:
+            del stack[max(0, len(stack) - count):]
+        return values
+
+    for instruction in (i for i in body[:at + 1] if i['offset'] >= start):
+        op = int(instruction['opcode'], 16)
+        value = instruction['operand']
+        if op in (0x00,):
+            continue
+        if op in (0x01, 0xbb) or 0x15 <= op <= 0x2d:
+            stack.append({})
+        elif 0x02 <= op <= 0x14:
+            kind = 'J' if op in (9, 10) else 'F' if 11 <= op <= 13 else 'D' if op in (14, 15) else 'I'
+            if op in (0x12, 0x13, 0x14):
+                kind = ('D' if op == 0x14 else 'F') if type(value) is float else ('J' if op == 0x14 else 'I') if type(value) is int else None
+            stack.append(dict(literal=type(value) in (int, float), primitive=kind,
+                              value=value, value_offset=instruction['offset']))
+        elif op == 0xb2:
+            stack.append({})
+        elif op in (0xb4, 0xc0):
+            pop(1); stack.append({})
+        elif op == 0x59:
+            stack.append(stack[-1] if stack else {})
+        elif op in (0x57, 0xb3) or 0x36 <= op <= 0x4e:
+            pop(1)
+        elif op == 0xb5:
+            pop(2)
+        elif 0x60 <= op <= 0x73 or 0x78 <= op <= 0x83 or 0x94 <= op <= 0x98:
+            pop(2); stack.append({})
+        elif 0x74 <= op <= 0x77 or 0x85 <= op <= 0x93:
+            pop(1); stack.append({})
+        elif op in (0xb6, 0xb7, 0xb8, 0xb9):
+            inputs, result = signature('(' + str(value).split('(', 1)[1])
+            values = pop(len(inputs))
+            if op != 0xb8:
+                pop(1)
+            if instruction['offset'] == offset:
+                selected = values[argument_index]
+                assert selected.get('literal') and selected['primitive'] == args[argument_index], 'Unproven literal call argument'
+                return dict(kind='LITERAL_NATIVE_CALL_ARGUMENT', consumer=hit['operand'],
+                            block_start=start, argument_index=argument_index,
+                            argument_descriptor=args[argument_index],
+                            value_offset=selected['value_offset'], native_value=selected['value'])
+            if result != 'V':
+                stack.append({})
+        else:
+            raise AssertionError(('Unsupported native argument instruction', instruction))
+    raise AssertionError('Missing native call consumer')
+
+
 def literal_block_factor_binding(method, offset):
     """Bind a declared block motion property, without inferring its consumers."""
     body = method['instructions']
@@ -943,6 +1026,13 @@ def validate_batch(batch,review,census):
                         hit['operand']=='net/minecraft/world/item/ItemStack.setDamageValue(I)V')
             attribute='native_attribute_binding' in candidate
             constructor_argument='native_literal_constructor_argument_binding' in candidate
+            call_argument='native_literal_call_argument_binding' in candidate
+            if call_argument:
+                binding=candidate['native_literal_call_argument_binding']
+                assert literal_call_argument_binding(m,consumer['offset'],binding['argument_index'])==binding
+                assert len(candidate['parameters'])==1
+                component=next(c for c in row['components'] if c['primitive']==candidate['primitive'])
+                assert component['numerical_parameters'][candidate['parameters'][0]]==binding['native_value']
             if constructor_argument:
                 binding=candidate['native_literal_constructor_argument_binding']
                 assert literal_constructor_argument_binding(m,consumer['offset'],binding['argument_index'])==binding
@@ -1081,7 +1171,7 @@ def validate_batch(batch,review,census):
                 allowed={'native_value'} if binding['kind']=='ITEM_ATTRIBUTE_MODIFIER' else {'attack_bonus','attack_speed'}
                 assert set(roles.values())==allowed and len(roles)==len(allowed)
                 assert all(component['numerical_parameters'][parameter]==binding[role] for parameter,role in roles.items()),('component differs from pinned item attribute',candidate)
-            assert hit['opcode']=='0xb5' or field_literal or block_factor or literal_numeric or last_numeric_argument or vector_components or effect_attribute or integer_dividend or food_component or rounded_tag or rng or terrain or explosion or durability or attribute or constructor_argument or item_attribute or item_wear or numeric_return or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or synched_clock or clock_distribution or vector_scale or vector_expression or registry_spawn or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
+            assert hit['opcode']=='0xb5' or field_literal or block_factor or literal_numeric or last_numeric_argument or vector_components or effect_attribute or integer_dividend or food_component or rounded_tag or rng or terrain or explosion or durability or attribute or constructor_argument or call_argument or item_attribute or item_wear or numeric_return or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or synched_clock or clock_distribution or vector_scale or vector_expression or registry_spawn or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
             if candidate['primitive'].startswith('MOB_EFFECT_') or 'native_holder_symbol' in candidate:
                 symbol,allocation,load=effect_holder_binding(m,consumer['offset'])
                 assert (symbol,allocation,load)==(candidate['native_holder_symbol'],

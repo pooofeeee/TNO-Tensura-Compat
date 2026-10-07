@@ -11,7 +11,7 @@ from catalog_common import OUT, BASELINE, read_json, write_json
 from promote_combat_batch import (literal_numeric_input_binding,
     literal_last_numeric_argument_binding, literal_vector_components_binding,
     literal_effect_arguments, literal_effect_attribute_binding,literal_attribute_binding,
-    literal_constructor_argument_binding)
+    literal_constructor_argument_binding, literal_call_argument_binding)
 
 
 def render(spec):
@@ -71,6 +71,8 @@ def render(spec):
                        'ATTRIBUTE': ('native_attribute_binding',literal_attribute_binding)}
             if binding=='CONSTRUCTOR_ARGUMENT':
                 c['native_literal_constructor_argument_binding']=literal_constructor_argument_binding(m,offset,c.pop('argument_index'))
+            elif binding=='CALL_ARGUMENT':
+                c['native_literal_call_argument_binding']=literal_call_argument_binding(m,offset,c.pop('argument_index'))
             elif binding:
                 field, helper = helpers[binding]
                 c[field] = helper(m,offset)

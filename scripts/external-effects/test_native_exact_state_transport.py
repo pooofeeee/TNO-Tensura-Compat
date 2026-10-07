@@ -1,7 +1,7 @@
 """Transport proof accepts original typed values, never state interpretation."""
 import copy
 import unittest
-from native_forwarding import forwarding_shape, declared_field_exists
+from native_forwarding import forwarding_shape, declared_field_exists, bind_parent_relay
 
 
 def i(op, operand=None, slot=None):
@@ -68,6 +68,33 @@ class StateTransportTests(unittest.TestCase):
             changed = copy.deepcopy(body); changed.insert(2, extra)
             self.assertIsNone(self.shape(changed))
         self.assertIsNone(forwarding_shape('x/Actor.class', 'anyName', '()I', 1, body, [(0, 1, 2, 0)]))
+
+    def test_parent_relay_preserves_wide_original_arguments_and_return(self):
+        body=[i('0x2a',slot=0),i('0x1f',slot=1),i('0x2d',slot=3),
+              i('0xb7','x/Parent.copy(JLx/Input;)Z'),i('0xac')]
+        shape=forwarding_shape('x/Child.class','copy','(JLx/Input;)Z',1,body,superclass='x/Parent')
+        self.assertEqual(shape['kind'],'ORIGINAL_ARGUMENT_PARENT_RELAY')
+        for at,replacement in [(1,i('0x20',slot=2)),(2,i('0x3',0)),
+                               (3,i('0xb6','x/Parent.copy(JLx/Input;)Z')),
+                               (3,i('0xb7','x/Other.copy(JLx/Input;)Z'))]:
+            wrong=copy.deepcopy(body);wrong[at]=replacement
+            self.assertIsNone(forwarding_shape('x/Child.class','copy','(JLx/Input;)Z',1,wrong,superclass='x/Parent'))
+
+    def test_constructor_or_callback_extra_state_is_not_a_parent_relay(self):
+        body=[i('0x2a',slot=0),i('0x2b',slot=1),i('0xb7','net/minecraft/Parent.<init>(Lx/Input;)V'),i('0xb1')]
+        shape=forwarding_shape('x/Child.class','<init>','(Lx/Input;)V',1,body,superclass='net/minecraft/Parent')
+        self.assertEqual(bind_parent_relay(shape,dict(classes=[],methods=[])),shape)
+        wrong=copy.deepcopy(body);wrong.insert(2,i('0xb5','x/Child.healthF'))
+        self.assertIsNone(forwarding_shape('x/Child.class','<init>','(Lx/Input;)V',1,wrong,superclass='net/minecraft/Parent'))
+        shape['parent_method_symbol']='missing/library/Parent.<init>(Lx/Input;)V'
+        self.assertIsNone(bind_parent_relay(shape,dict(classes=[],methods=[])))
+
+    def test_internal_parent_target_is_bound_not_self_proved(self):
+        shape=dict(kind='ORIGINAL_ARGUMENT_PARENT_RELAY',parent_method_symbol='x/Parent.tick()V')
+        census=dict(classes=[dict(name='x/Parent',superclass='net/minecraft/Parent')],
+                    methods=[dict(entry='x/Parent.class',method='tick',descriptor='()V')])
+        bound=bind_parent_relay(shape,census)
+        self.assertEqual(bound['target'],dict(entry='x/Parent.class',method='tick',descriptor='()V'))
 
 
 if __name__ == '__main__':
