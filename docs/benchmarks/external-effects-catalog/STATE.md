@@ -1,32 +1,27 @@
 # Compact research state
 
-- Active campaign: `CAMPAIGN.md`; `alexsmobs` only. This session is paused for the user-requested safe handoff; STOP after push/verification.
+- Active campaign: `CAMPAIGN.md`; `alexsmobs` only, then STOP.
 - Branch: `external-effects-catalog-research`.
 - Latest verified research ref: `origin/external-effects-catalog-research`.
-- Last verified anchor before this checkpoint: `684069a38a834093f0179f369b26516cb51d1bd2`. Resolve the current ref with Git; never reset to an older anchor.
+- Last verified anchor before this checkpoint: `1ecac479f0269eda5a57397a3643e5159e5f6c12`. Resolve the current ref with Git; never reset to an older anchor.
 - Protected production HEAD: `eb37f0bfc0e7aa863632f163881566c0ae2a8701`; production/source gameplay unchanged.
 - Current mod/status: `alexsmobs` / PARTIAL.
 - Locked COMPLETE targets: cultofazazel, variantsandventures, royalvariations, friendsandfoes, twilightforest, iceandfire, eternalstarlight, block_factorys_bosses, bosses_of_mass_destruction, cataclysm, arphex, alexscaves, tensura, legendary_monsters.
-- Canonical records: 144; numeric candidates: 500.
-- Classifications: {'BINARY_MECHANIC': 27, 'CUSTOM_CONTROL': 42, 'CUSTOM_DAMAGE': 1, 'CUSTOM_RESOURCE': 1, 'CUSTOM_STATUS': 2, 'VANILLA_COMPOSITE': 29, 'VANILLA_DIRECT': 4, 'VANILLA_LIKE_EXTENDED': 38}.
+- Canonical records: 180; numeric candidates: 706.
+- Classifications: {'BINARY_MECHANIC': 29, 'CUSTOM_CONTROL': 52, 'CUSTOM_DAMAGE': 1, 'CUSTOM_RESOURCE': 1, 'CUSTOM_STATUS': 2, 'VANILLA_COMPOSITE': 40, 'VANILLA_DIRECT': 5, 'VANILLA_LIKE_EXTENDED': 50}.
 - Census: `alexsmobs-combat-census.json` (existing pin; do not rediscover).
 - Queue: `alexsmobs-unresolved-queue.json`; ordinals refer to that exact census/hash.
-- Coverage: 6244 / 11434 dispositioned; 5190 pending.
-- Remaining semantic-role methods: 2831 (routing, not a mechanic count).
+- Coverage: 6688 / 11434 dispositioned; 4746 pending.
+- Remaining semantic-role methods: 2576 (routing, not a mechanic count).
 - Canonical authorities: `mod-reviews/alexsmobs.json`, `mod-completion-ledger.json`, `large-mod-campaign.json`.
 - Native source/indexes: existing census, field-use index and reviewed-batch pointers; consult cold bodies only for exact unresolved boundaries.
 - Known blockers: consult unresolved queue and dependency obligations.
-- Exact next action: R2o5d — Remaining ordinary terrestrial predator, herd and pet actors; reuse locked native frame, owner, status, itemdelivery and control contracts. Continue finite actor/payload queue without restarting discovery.
-- This checkpoint remains PARTIAL. A new conversation resumes the exact next action above; no R2o5d evidence has been loaded, and no atomic edit or tool process remains pending.
-- Last closed batches: `alexsmobs-r2o5b-reptile-predators.json`, `alexsmobs-r2o5c-small-foragers.json`, `alexsmobs-r2o5c-presentation-access.json`. Already promoted once; do not repromote them.
-- Authoritative new authored contracts: `native-specifications/alexsmobs-reptile-contracts.json`, `native-specifications/alexsmobs-forager-contracts.json`. Their rendered reviewed batches are deterministic; temporary author helpers are not authorities.
-- Exact raw evidence/specification pairs: `native-evidence/alexsmobs-reptile-predators.json`, `native-evidence/alexsmobs-reptile-goals.json`, `native-evidence/alexsmobs-small-foragers.json`, `native-evidence/alexsmobs-forager-goals.json` and the matching files under `native-specifications/`. Each reproduced byte-identically against the pin.
-- `alexsmobs-presentation-access-graph.json`: 48 accepted exact proofs, 667 rejected roots remain subject to normal unresolved review. Reuse its saved selection; do not treat rejected or omitted methods as exclusions.
-- Known native distinction: Rain Frog's dance producer sends to server but the pinned payload is registered clientbound. Its conditional server weather is not proven activated; preserve `NO_PINNED_REGISTERED_SERVER_POSITIVE_DANCE_WRITER`, not an inferred active weather attack.
-- Checkpoint validation: reptile contracts 12 tests PASS; forager contracts 12 tests PASS; generic native context graph 23 tests PASS; four new raw packet replays and the 48-method graph replay PASS. Canonical/numeric audits and finite queue validation are recorded in `alexsmobs-safe-handoff.json`.
-- Native artifact preserved at `/workspace/.cache/large-mod-campaign/alexsmobs-1.22.17.jar`: SHA-256 `6e502855f79e4c9f2a11d560a9b88a3ab295aa378c44b0f0a0dd95f95d0301a6`. Its verified download URL is in `large-mod-campaign.json`; no discovery rescan is needed.
-- Exact Citadel artifact preserved at `/workspace/.cache/large-mod-campaign/citadel-1.21.1-2.7.6.jar`: SHA-256 `9e12468c49e5a95b7adbf22b3b4d05bc55565989b89c40b985cd73bdfe63c3c2`. Reuse `alexsmobs-citadel-data-contract.json` and existing dependency evidence; later unresolved dependency boundaries still require proof.
-- Cached source aids are under `/workspace/.cache/large-mod-campaign/work/alexsmobs-{reptile-predators,reptile-goals,small-foragers,forager-goals}/sources/`; complete raw evidence is committed and remains authoritative.
-- Reuse `prepare_native_scope.py`, `assemble_authored_contracts.py`, `promote_combat_batch.py`, `queue_native_census.py`, `native_context_graph.py`, `audit_catalog_integrity.py`, `audit_numeric_labels.py` and `native_evidence.py`. Exact source filtering: `scripts/external-effects/filter_native_evidence.jq`; raw evidence is retained and omissions prove nothing.
-- Cached JDK: `/workspace/.cache/large-mod-campaign/tools/jdk-21.0.2/bin` (include on PATH for Java fixtures); decompiler: `/workspace/.cache/cataclysm-research/tools/vineflower-1.10.1.jar`. No new collector, broad scan, runtime, Gradle or other mod was introduced.
-- On explicit continuation, finish AlexMobs before returning; after its closure, STOP without starting another mod. Current-session safe handoff takes precedence over that longer return condition.
+- Exact next action: R2o5d continued — Elephant, Kangaroo and Raccoon actor/inner goals, then residual directly used terrestrial helpers. Reuse the existing captured packet (734 methods); no recapture or repeat of the ten already closed terrestrial actors. Continue all finite domains before mod closure.
+- STOP after `alexsmobs` closure. Do not start another mod.
+
+- The explicit 2026-10-09 continuation supersedes the old session STOP; this recovery checkpoint does not pause the campaign.
+- R2o5d raw capture: `native-evidence/alexsmobs-terrestrial.json`, exact specifications in the matching `native-specifications/` file; 734 methods, 73 classes. Capture alone grants no coverage.
+- Closed R2o5d actors: Tiger, Snow Leopard, Tasmanian Devil, Drop Bear, Grizzly Bear, Rhinoceros, Tusklin, Anteater, Gorilla, Gelada. Their three reviewed batches are already promoted; do not repeat.
+- Remaining R2o5d actors: Elephant, Kangaroo, Raccoon; their bodies and directly used goals are already captured but have not been semantically reviewed. Remaining captured helpers stay subject to ordinary review.
+- Validation and actual byte/grouping measurements: `alexsmobs-r2o5d-checkpoint.json`; 31 targeted tests PASS, 734 native and four Vanilla method bodies reproduced byte-identically. No token/allowance telemetry.
+- Reuse saved R2o5b/R2o5c graph, field index, Citadel pin/dependency contracts and native artifact paths from `alexsmobs-safe-handoff.json`; that file describes the historical handoff, not the current session authorization.

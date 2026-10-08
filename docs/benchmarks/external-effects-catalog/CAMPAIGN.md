@@ -1,27 +1,35 @@
 # Active campaign: complete Alex's Mobs
 
-## Current session: safe handoff and STOP
+## Current session: authorized continuation
 
-The latest explicit user instruction pauses this session after the validated
-R2o5b/R2o5c atomic work is checkpointed, pushed and verified. Do not load another
-evidence domain or attempt whole-mod completion in this session. Preserve the
-authorized AlexMobs objective below for the next conversation; it resumes from
-`STATE.md` and the current finite queue, never from a previous discovery pass.
+The explicit 2026-10-09 user goal supersedes the prior session-specific safe-handoff
+STOP. Resume at verified handoff `1ecac479f0269eda5a57397a3643e5159e5f6c12`,
+preserve newer valid work, finish the entire finite AlexMobs queue, then perform
+mod closure, commit/push/verify and STOP without starting another mod. All other
+research and production protections remain in force.
 
-Resume at R2o5d: deterministically group the remaining ordinary terrestrial
-predator, herd and pet actor ordinals in `alexsmobs-unresolved-queue.json` against
-`alexsmobs-combat-census.json`; eliminate already-closed exact identities before
-capturing missing actor methods and their directly used goals. Group membership
-is only routing, never proof of behavior or exclusion. Reuse existing native
-frame/owner/status/item-delivery/control contracts and the all-owner field index.
-No new R2o5d evidence has been loaded. See `STATE.md` for pins, reusable tools,
-last-closed evidence and targeted validation references.
+R2o5d is active. Ten terrestrial actors are closed in three reviewed batches:
+Tiger, Snow Leopard, Tasmanian Devil, Drop Bear, Grizzly Bear, Rhinoceros,
+Tusklin, Anteater, Gorilla and Gelada. They added 36 records, 206 native numeric
+candidates and 444 exact method dispositions. Do not repeat these contracts.
+
+The existing R2o5d native packet contains 734 selected unresolved methods across
+73 actor/helper classes. Elephant, Kangaroo, Raccoon and remaining directly used
+helper boundaries are already captured but still need semantic review. Capture
+and structural grouping grant no coverage. Reuse the remaining exact identities,
+locked R2o5b/R2o5c evidence, saved native graphs, all-owner field index, Citadel
+contracts and pinned artifacts. See `STATE.md` for the exact remaining queue.
+
+`alexsmobs-r2o5d-checkpoint.json` records 31 targeted tests, exact reproduction of
+734 native and four Vanilla method bodies, canonical/numeric validation and real
+byte/grouping measurements. It is a recovery checkpoint, not mod closure or a
+new STOP instruction. Continue all remaining finite domains before returning.
 
 ## Authorized objective for continuation
 
 Finish the entire pinned alexsmobs-1.22.17.jar native combat semantic catalog,
-then commit/push, verify remote HEAD and production, and STOP. The new explicit user
-goal authorizes this target from verified HEAD02cb845; all prior COMPLETE reviews remain locked.
+then commit/push, verify remote HEAD and production, and STOP. The explicit 2026-10-09 user
+goal resumes this target from verified handoff 1ecac479; all prior COMPLETE reviews remain locked.
 
 Use the single finite census, exact source/index/body grouping and existing
 shared contracts before semantic interpretation. Scoped source-output filtering
