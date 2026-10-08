@@ -1,0 +1,1400 @@
+{
+  "schema": "tno.external_effects.authored_contracts.v1",
+  "mod_key": "alexsmobs",
+  "checkpoint": "R2o4a-alexsmobs-small-aquatic-complete",
+  "evidence_file": "native-evidence/alexsmobs-aquatic-small.json",
+  "closed_scope": "Six small aquatic actors with shared native bucket lifecycle; ordinary navigation/reproduction explicitly excluded, native damage/heal/admission distinct.",
+  "contracts": [
+    {
+      "id": "alexsmobs:blobfish_native_environment",
+      "display_name": "Blobfish Native Environment and Slimed State",
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Registered bakeAttributes gives HP8/speed.25; unrelated createAttributes HP3 has no native caller and is not the registered builder. Alive out of water/bubble and not Slimed: decrement air; exactly -20 -> reset0, drown damage random nextInt(2)==0 ?1F:0F. Otherwise air2000. Native no invulnerability, owner or attack added. Slime ball while alive/not Slimed sets native Slimed true, consumes1 even creative, sided result; this suppresses that dry-air branch, not incoming damage generally. NBT retains bucket, Depressurized, Slimed and visual scale. Custom persistence includes native/custom name/bucket/Slimed; far-removal predicate separately !bucket&&!customName. Goals only try-water, panic and bottom-swim; no offensive target or attack callback.",
+      "source_actor": "Original registered native actor; environmental DamageSource has no player owner",
+      "closest_vanilla_equivalent": null,
+      "components": [
+        {
+          "primitive": "NATIVE_ENVIRONMENT_ADMISSION"
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityBlobfish.class",
+          "methods": [
+            "<init>",
+            "bakeAttributes",
+            "checkSpawnRules",
+            "registerGoals",
+            "handleAirSupply",
+            "mobInteract",
+            "requiresCustomPersistence",
+            "removeWhenFarAway",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "defineSynchedData",
+            "<clinit>"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        }
+      ],
+      "candidate_bindings": [],
+      "numeric_observation_scope": "Original native consumers only. No Stage eligibility, direction, formula, bound, ownership integration or hook chosen.",
+      "native_parameters": {
+        "registered_attributes": {
+          "max_health": 8,
+          "movement_speed": 0.25
+        },
+        "dry_air_threshold": -20,
+        "recovery_air": 2000,
+        "drown_requested_damage": "random boolean 1 or0; original self-admission only"
+      },
+      "binary_parameters": {
+        "Slimed": "Only suppresses native out-of-water air damage branch",
+        "bucket": "Native persistence flag"
+      },
+      "reference_evidence": [
+        "native-evidence/alexsmobs-aquatic-small.json",
+        "vanilla-evidence/alexsmobs-aquatic-native-dispatch.json",
+        "reference-evidence/alexsmobs-aquatic-native-loader.json"
+      ],
+      "shared_contracts": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/AMEntityRegistry.class",
+          "methods": [
+            "initializeAttributes"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "partial_contract": true
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:comb_jelly_native_environment",
+      "display_name": "Comb Jelly Native Environment",
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Registered HP6/speed.2F. No attack/target/status/heal hooks or custom goals. Server native navigation targets water only; noGravity true in water and false otherwise, self-motion only, no recipient control. Bucket and custom-name persistence are native. NBT retains bucket, visual Scale/Variant. Bucket operations use shared copied-tag contract, not a proven persisted custom variant. Spawn check uses terrapinSpawnRolls, two water blocks and low light/time predicate; retain actual reused config field rather than infer one from name.",
+      "source_actor": "Original registered native actor; environmental DamageSource has no player owner",
+      "closest_vanilla_equivalent": null,
+      "components": [
+        {
+          "primitive": "NATIVE_ENVIRONMENT_ADMISSION"
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityCombJelly.class",
+          "methods": [
+            "<init>",
+            "bakeAttributes",
+            "mobInteract",
+            "requiresCustomPersistence",
+            "removeWhenFarAway",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "defineSynchedData",
+            "<clinit>"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        }
+      ],
+      "candidate_bindings": [],
+      "numeric_observation_scope": "Original native consumers only. No Stage eligibility, direction, formula, bound, ownership integration or hook chosen.",
+      "native_parameters": {
+        "registered_attributes": {
+          "max_health": 6,
+          "movement_speed": 0.20000000298023224
+        }
+      },
+      "binary_parameters": {
+        "offense": "No custom offense registered or invoked",
+        "ownership": "Untamed native actor; no player progression attribution"
+      },
+      "reference_evidence": [
+        "native-evidence/alexsmobs-aquatic-small.json",
+        "vanilla-evidence/alexsmobs-aquatic-native-dispatch.json",
+        "reference-evidence/alexsmobs-aquatic-native-loader.json"
+      ],
+      "shared_contracts": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/AMEntityRegistry.class",
+          "methods": [
+            "initializeAttributes"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "partial_contract": true
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:flying_fish_escape",
+      "display_name": "Flying Fish Hurt-Dependent Escape",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "Native parent hurt runs first; only accepted hurt AND causing DamageSource.getEntity()!=null resets own glideIn and nearby FlyingFish within AABB(15,7.5,15) to0. Direct projectile alone is not used as causing actor. Native GlideGoal selects water surface within15 attempts, visible block trace, projected water destination; admission when in water/bubble and glideIn==0 or random nextInt(80)==0. Initial glideIn=50+rand75; stop=150+rand75, clear target/gliding. Approach surface at native1.2F; first launch Y=.4F+rand*.2F, horizontal facing*.1F. Actual delta.add uses (target.x,y,target.y), not target.z as third coordinate. Already gliding and in water stops goal; descending out of water multiplies Y by.5. Land flop probability.05, Y+.5, X/Z random +/- .2. No damage/status payload and no team/owner reassignment. Empty current checkFallDamage suppresses fall check; obsolete two-argument causeFallDamage is not current native three-argument override. Dry-air damage2 at -20/reset0, recovery1000. Water self-travel drag(.9,.6F,.9), targetless Y-.005. Native isFlying always true, not the gliding flag. NBT bucket/variant only; gliding/timer transient.",
+      "source_actor": "Original registered native actor; environmental DamageSource has no player owner",
+      "closest_vanilla_equivalent": null,
+      "components": [
+        {
+          "primitive": "ESCAPE_MOVEMENT",
+          "numerical_parameters": {
+            "hurt_neighbour_xz_range": 15.0,
+            "hurt_neighbour_y_divisor": 2.0,
+            "descent_y_factor": 0.5
+          }
+        },
+        {
+          "primitive": "GLIDE_ESCAPE_SEQUENCE",
+          "numerical_parameters": {
+            "reset_rng_bound": 75,
+            "reset_base_ticks": 150,
+            "surface_navigation_speed": 1.2000000476837158,
+            "forward_contribution": 0.10000000149011612,
+            "launch_y_base": 0.4000000059604645,
+            "launch_y_random_coefficient": 0.20000000298023224
+          }
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityFlyingFish.class",
+          "methods": [
+            "<init>",
+            "registerGoals",
+            "bakeAttributes",
+            "hurt",
+            "tick",
+            "handleAirSupply",
+            "checkFallDamage",
+            "travel",
+            "isFlying",
+            "defineSynchedData",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "<clinit>"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityFlyingFish$GlideGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "findGlideToPos",
+            "findSurfacePos",
+            "start",
+            "stop",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        }
+      ],
+      "candidate_bindings": [
+        {
+          "primitive": "ESCAPE_MOVEMENT",
+          "parameters": [
+            "hurt_neighbour_xz_range"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityFlyingFish.class",
+            "methods": [
+              "hurt"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-aquatic-small.json",
+            "descriptor": "(Lnet/minecraft/world/damagesource/DamageSource;F)Z"
+          },
+          "offset": 18,
+          "binding": "LITERAL_SITE",
+          "native_value": 15.0,
+          "reviewed_parameter_role": "hurt_neighbour_xz_range in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "ESCAPE_MOVEMENT",
+          "parameters": [
+            "hurt_neighbour_y_divisor"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityFlyingFish.class",
+            "methods": [
+              "hurt"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-aquatic-small.json",
+            "descriptor": "(Lnet/minecraft/world/damagesource/DamageSource;F)Z"
+          },
+          "offset": 44,
+          "binding": "LITERAL_SITE",
+          "native_value": 2.0,
+          "reviewed_parameter_role": "hurt_neighbour_y_divisor in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "ESCAPE_MOVEMENT",
+          "parameters": [
+            "descent_y_factor"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityFlyingFish.class",
+            "methods": [
+              "tick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-aquatic-small.json",
+            "descriptor": "()V"
+          },
+          "offset": 139,
+          "binding": "LITERAL_SITE",
+          "native_value": 0.5,
+          "reviewed_parameter_role": "descent_y_factor in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "GLIDE_ESCAPE_SEQUENCE",
+          "parameters": [
+            "reset_rng_bound"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityFlyingFish$GlideGoal.class",
+            "methods": [
+              "stop"
+            ],
+            "descriptor": "()V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+          },
+          "offset": 21,
+          "binding": "LITERAL_SITE",
+          "native_value": 75,
+          "reviewed_parameter_role": "reset_rng_bound in original evasion goal formula, not status/damage or Stage policy"
+        },
+        {
+          "primitive": "GLIDE_ESCAPE_SEQUENCE",
+          "parameters": [
+            "reset_base_ticks"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityFlyingFish$GlideGoal.class",
+            "methods": [
+              "stop"
+            ],
+            "descriptor": "()V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+          },
+          "offset": 28,
+          "binding": "LITERAL_SITE",
+          "native_value": 150,
+          "reviewed_parameter_role": "reset_base_ticks in original evasion goal formula, not status/damage or Stage policy"
+        },
+        {
+          "primitive": "GLIDE_ESCAPE_SEQUENCE",
+          "parameters": [
+            "surface_navigation_speed"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityFlyingFish$GlideGoal.class",
+            "methods": [
+              "tick"
+            ],
+            "descriptor": "()V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+          },
+          "offset": 73,
+          "binding": "LITERAL_SITE",
+          "native_value": 1.2000000476837158,
+          "reviewed_parameter_role": "surface_navigation_speed in original evasion goal formula, not status/damage or Stage policy"
+        },
+        {
+          "primitive": "GLIDE_ESCAPE_SEQUENCE",
+          "parameters": [
+            "forward_contribution"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityFlyingFish$GlideGoal.class",
+            "methods": [
+              "tick"
+            ],
+            "descriptor": "()V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+          },
+          "offset": 148,
+          "binding": "LITERAL_SITE",
+          "native_value": 0.10000000149011612,
+          "reviewed_parameter_role": "forward_contribution in original evasion goal formula, not status/damage or Stage policy"
+        },
+        {
+          "primitive": "GLIDE_ESCAPE_SEQUENCE",
+          "parameters": [
+            "launch_y_base"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityFlyingFish$GlideGoal.class",
+            "methods": [
+              "tick"
+            ],
+            "descriptor": "()V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+          },
+          "offset": 167,
+          "binding": "LITERAL_SITE",
+          "native_value": 0.4000000059604645,
+          "reviewed_parameter_role": "launch_y_base in original evasion goal formula, not status/damage or Stage policy"
+        },
+        {
+          "primitive": "GLIDE_ESCAPE_SEQUENCE",
+          "parameters": [
+            "launch_y_random_coefficient"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityFlyingFish$GlideGoal.class",
+            "methods": [
+              "tick"
+            ],
+            "descriptor": "()V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+          },
+          "offset": 181,
+          "binding": "LITERAL_SITE",
+          "native_value": 0.20000000298023224,
+          "reviewed_parameter_role": "launch_y_random_coefficient in original evasion goal formula, not status/damage or Stage policy"
+        }
+      ],
+      "numeric_observation_scope": "Original native consumers only. No Stage eligibility, direction, formula, bound, ownership integration or hook chosen.",
+      "native_parameters": {
+        "registered_attributes": {
+          "max_health": 6,
+          "movement_speed": 0.30000001192092896
+        },
+        "dry_air_threshold": -20,
+        "dry_out_damage": 2,
+        "recovery_air": 1000
+      },
+      "hurt_return_dependency": "Own and neighbour timer reset only after parent accepted hurt with nonnull causing entity",
+      "binary_parameters": {
+        "no_fall_check": "current checkFallDamage empty",
+        "isFlying": "Always true"
+      },
+      "reference_evidence": [
+        "native-evidence/alexsmobs-aquatic-small.json",
+        "vanilla-evidence/alexsmobs-aquatic-native-dispatch.json",
+        "reference-evidence/alexsmobs-aquatic-native-loader.json"
+      ],
+      "shared_contracts": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/AMEntityRegistry.class",
+          "methods": [
+            "initializeAttributes"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "partial_contract": true
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:lobster_retaliation",
+      "display_name": "Lobster Native Retaliation and Timed Second Strike",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "actual_behavior": "Registered HP5/armor2/attack2/speed.15F. HurtByTarget goal supplies retaliation target; no melee goal but direct tick attack is active. doHurtTarget sets ATTACK_TICK5 BEFORE returning original parent native attack result (attribute2 plus original defenses/enchantments). Tick attacks target when distance<=1 and attackCooldown==0; cooldown20 even if initial hurt fails. Separately positive ATTACK_TICK==2 and target distance<1.3 issues mobAttack(this) hurt2F and POPs its result; no initial hurt-success check. Keep the two original requests separately, no fabricated duplicate event or knockback. Attack animation counter decrements, cooldown decrements ifpositive; only native target is used, no added ally test. Water travel jumping: delta*1.4 +Y.72; otherwise*.4 +Y-.08. baseTick restores previous air after parent when in water; outside inherited WaterAnimal admission remains. Native bucket/name persistence and FromBucket/Variant NBT.",
+      "source_actor": "Original registered native actor; environmental DamageSource has no player owner",
+      "closest_vanilla_equivalent": null,
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "second_strike_requested_damage": 2.0
+          },
+          "formula": "Original timed second hurt2, distinct from inherited first attribute attack"
+        },
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "numerical_parameters": {
+            "strike_clock_start": 5,
+            "second_strike_distance": 1.3,
+            "attack_cooldown": 20
+          }
+        },
+        {
+          "primitive": "NATIVE_LOCOMOTION",
+          "numerical_parameters": {
+            "jumping_drag": 1.4,
+            "jump_y": 0.72,
+            "nonjump_drag": 0.4,
+            "nonjump_y": -0.08
+          }
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityLobster.class",
+          "methods": [
+            "<init>",
+            "bakeAttributes",
+            "registerGoals",
+            "doHurtTarget",
+            "tick",
+            "baseTick",
+            "travel",
+            "defineSynchedData",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "<clinit>"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        }
+      ],
+      "candidate_bindings": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "second_strike_requested_damage"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityLobster.class",
+            "methods": [
+              "tick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-aquatic-small.json",
+            "descriptor": "()V"
+          },
+          "offset": 118,
+          "binding": "LITERAL_SITE",
+          "native_value": 2.0,
+          "reviewed_parameter_role": "second_strike_requested_damage in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "parameters": [
+            "strike_clock_start"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityLobster.class",
+            "methods": [
+              "doHurtTarget"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-aquatic-small.json",
+            "descriptor": "(Lnet/minecraft/world/entity/Entity;)Z"
+          },
+          "offset": 7,
+          "binding": "LITERAL_SITE",
+          "native_value": 5,
+          "reviewed_parameter_role": "strike_clock_start in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "parameters": [
+            "second_strike_distance"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityLobster.class",
+            "methods": [
+              "tick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-aquatic-small.json",
+            "descriptor": "()V"
+          },
+          "offset": 99,
+          "binding": "LITERAL_SITE",
+          "native_value": 1.3,
+          "reviewed_parameter_role": "second_strike_distance in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "parameters": [
+            "attack_cooldown"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityLobster.class",
+            "methods": [
+              "tick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-aquatic-small.json",
+            "descriptor": "()V"
+          },
+          "offset": 265,
+          "binding": "LITERAL_SITE",
+          "native_value": 20,
+          "reviewed_parameter_role": "attack_cooldown in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "NATIVE_LOCOMOTION",
+          "parameters": [
+            "jumping_drag"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityLobster.class",
+            "methods": [
+              "travel"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-aquatic-small.json",
+            "descriptor": "(Lnet/minecraft/world/phys/Vec3;)V"
+          },
+          "offset": 46,
+          "binding": "LITERAL_SITE",
+          "native_value": 1.4,
+          "reviewed_parameter_role": "jumping_drag in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "NATIVE_LOCOMOTION",
+          "parameters": [
+            "jump_y"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityLobster.class",
+            "methods": [
+              "travel"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-aquatic-small.json",
+            "descriptor": "(Lnet/minecraft/world/phys/Vec3;)V"
+          },
+          "offset": 61,
+          "binding": "LITERAL_SITE",
+          "native_value": 0.72,
+          "reviewed_parameter_role": "jump_y in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "NATIVE_LOCOMOTION",
+          "parameters": [
+            "nonjump_drag"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityLobster.class",
+            "methods": [
+              "travel"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-aquatic-small.json",
+            "descriptor": "(Lnet/minecraft/world/phys/Vec3;)V"
+          },
+          "offset": 79,
+          "binding": "LITERAL_SITE",
+          "native_value": 0.4,
+          "reviewed_parameter_role": "nonjump_drag in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "NATIVE_LOCOMOTION",
+          "parameters": [
+            "nonjump_y"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityLobster.class",
+            "methods": [
+              "travel"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-aquatic-small.json",
+            "descriptor": "(Lnet/minecraft/world/phys/Vec3;)V"
+          },
+          "offset": 94,
+          "binding": "LITERAL_SITE",
+          "native_value": -0.08,
+          "reviewed_parameter_role": "nonjump_y in the original formula/conditions stated in actual_behavior."
+        }
+      ],
+      "numeric_observation_scope": "Original native consumers only. No Stage eligibility, direction, formula, bound, ownership integration or hook chosen.",
+      "native_parameters": {
+        "registered_attributes": {
+          "max_health": 5,
+          "armor": 2,
+          "attack_damage": 2,
+          "movement_speed": 0.15000000596046448
+        }
+      },
+      "hurt_return_dependency": "Initial parent return preserved; later timed second request independent and discarded",
+      "reference_evidence": [
+        "native-evidence/alexsmobs-aquatic-small.json",
+        "vanilla-evidence/alexsmobs-aquatic-native-dispatch.json",
+        "reference-evidence/alexsmobs-aquatic-native-loader.json"
+      ],
+      "shared_contracts": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/AMEntityRegistry.class",
+          "methods": [
+            "initializeAttributes"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "partial_contract": true
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:triops_native_feeding",
+      "display_name": "Triops Native Feeding Heal and Admission",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "Dropped-item goal calls onGetItem then shrinks1 independently of healing acceptance. canTargetItem accepts TRIOPS_BREEDABLES or MOSQUITO_LARVA and !fedCarrot. onGetItem additionally requires FOOD component and nonnull getFoodProperties before heal5; server with breedCooldown==0/!fedCarrot sets fedCarrot and broadcasts67. Player mobInteract first calls parent; if result not consuming and accepted target item/!fed, shrinks1 unless creative and heals5. Only tagged breedable then sets fedCarrot; otherwise Bucketable native pickup. Native actor self-heal, no attack target/damage/status payload. Dry-out requested random1/0 at air -20/reset0; recovery2000. Swim drag(.9,.8,.9)/targetless Y-.005. fedCarrot/baby/bucket custom persistence and exact NBT; positive breedCooldown decrements, negative baby age is tested but this tick does not increment it. Ordinary mate/egg placement is excluded acquisition/reproduction, not offensive summon. Shared target goal uses native radius9 centered offset+.5, item age>10 at Triops registration, passenger/controlled-vehicle/mainhand gates, canTargetItem selector, squared distance < getMaxDistToItem default2; native target item is consumed1 after onGetItem even if food/heal branch did not run. No owner is assigned by that consumption.",
+      "source_actor": "Original registered native actor; environmental DamageSource has no player owner",
+      "closest_vanilla_equivalent": null,
+      "components": [
+        {
+          "primitive": "NATIVE_HEALING",
+          "numerical_parameters": {
+            "dropped_food_heal": 5.0,
+            "hand_feed_heal": 5.0
+          }
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityTriops.class",
+          "methods": [
+            "<init>",
+            "registerGoals",
+            "bakeAttributes",
+            "canTargetItem",
+            "onGetItem",
+            "mobInteract",
+            "handleAirSupply",
+            "travel",
+            "tick",
+            "defineSynchedData",
+            "requiresCustomPersistence",
+            "removeWhenFarAway",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "<clinit>"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/ai/CreatureAITargetItems.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "getFollowDistance",
+            "getTargetableArea",
+            "makeUpdate",
+            "moveTo",
+            "start",
+            "stop",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/ai/CreatureAITargetItems$1.class",
+          "methods": [
+            "<init>",
+            "apply"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-helpers.json"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/ai/CreatureAITargetItems$Sorter.class",
+          "methods": [
+            "<init>",
+            "compare",
+            "equals",
+            "hashCode",
+            "theEntity",
+            "toString"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-helpers.json"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/ITargetsDroppedItems.class",
+          "methods": [
+            "onFindTarget",
+            "getMaxDistToItem"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-helpers.json"
+        }
+      ],
+      "candidate_bindings": [
+        {
+          "primitive": "NATIVE_HEALING",
+          "parameters": [
+            "dropped_food_heal"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityTriops.class",
+            "methods": [
+              "onGetItem"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-aquatic-small.json",
+            "descriptor": "(Lnet/minecraft/world/entity/item/ItemEntity;)V"
+          },
+          "offset": 50,
+          "binding": "LITERAL_SITE",
+          "native_value": 5.0,
+          "reviewed_parameter_role": "dropped_food_heal in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "NATIVE_HEALING",
+          "parameters": [
+            "hand_feed_heal"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityTriops.class",
+            "methods": [
+              "mobInteract"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-aquatic-small.json",
+            "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;"
+          },
+          "offset": 75,
+          "binding": "LITERAL_SITE",
+          "native_value": 5.0,
+          "reviewed_parameter_role": "hand_feed_heal in the original formula/conditions stated in actual_behavior."
+        }
+      ],
+      "numeric_observation_scope": "Original native consumers only. No Stage eligibility, direction, formula, bound, ownership integration or hook chosen.",
+      "native_parameters": {
+        "registered_attributes": {
+          "max_health": 4,
+          "movement_speed": 0.25
+        },
+        "recovery_air": 2000,
+        "dry_out_damage": "native random1/0"
+      },
+      "binary_parameters": {
+        "food_admission": "Dropped target tag/item plus FOOD and food properties; hand feed tag/item gate differs",
+        "persistence": "Native fedCarrot/baby/bucket, no owner"
+      },
+      "reference_evidence": [
+        "native-evidence/alexsmobs-aquatic-small.json",
+        "vanilla-evidence/alexsmobs-aquatic-native-dispatch.json",
+        "reference-evidence/alexsmobs-aquatic-native-loader.json"
+      ],
+      "shared_contracts": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/AMEntityRegistry.class",
+          "methods": [
+            "initializeAttributes"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "partial_contract": true
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:pupfish_native_environment",
+      "display_name": "Devils Hole Pupfish Native Environment",
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Registered HP2/speed.34F. No native attack/status/target/heal callback; registered goals try-water, ordinary moss feeding/chase, panic and random swim. Dry-out damage2F at air -20/reset0, recovery max600. Water travel(.9,.6F,.9), targetless Y-.005; land flop probability.5,Y+.5,random X/Z+/-.2. Negative babyAge increments each tick; bucket/custom-name/baby native persistence and NBT FromBucket/BreedNextChase/Scale/BabyAge. Native moss goal only navigates, self-motion toward moss, feeding animation, loot and later breeding flag; does NOT destroy or consume the moss block. Mutual chase is reproduction/ordinary movement with no hurt/effect/aggro callback. These goals are excluded utility, not Stage damage/control. Bucket custom extras are copied but not assigned, so do not infer restored scale/babyage.",
+      "source_actor": "Original registered native actor; environmental DamageSource has no player owner",
+      "closest_vanilla_equivalent": null,
+      "components": [
+        {
+          "primitive": "NATIVE_ENVIRONMENT_ADMISSION"
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityDevilsHolePupfish.class",
+          "methods": [
+            "<init>",
+            "registerGoals",
+            "bakeAttributes",
+            "handleAirSupply",
+            "getMaxAirSupply",
+            "travel",
+            "tick",
+            "defineSynchedData",
+            "requiresCustomPersistence",
+            "removeWhenFarAway",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "mobInteract",
+            "<clinit>"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        }
+      ],
+      "candidate_bindings": [],
+      "numeric_observation_scope": "Original native consumers only. No Stage eligibility, direction, formula, bound, ownership integration or hook chosen.",
+      "native_parameters": {
+        "registered_attributes": {
+          "max_health": 2,
+          "movement_speed": 0.3400000035762787
+        },
+        "recovery_air": 600,
+        "dry_air_threshold": -20,
+        "dry_out_damage": 2
+      },
+      "reference_evidence": [
+        "native-evidence/alexsmobs-aquatic-small.json",
+        "vanilla-evidence/alexsmobs-aquatic-native-dispatch.json",
+        "reference-evidence/alexsmobs-aquatic-native-loader.json"
+      ],
+      "shared_contracts": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/AMEntityRegistry.class",
+          "methods": [
+            "initializeAttributes"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "partial_contract": true
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:aquatic_bucket_native_lifecycle",
+      "display_name": "Native Aquatic Bucket Lifecycle",
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Native Bucketable pickup calls actor saveToBucketTag then replaces hand and discards actor. ItemModFishBucket.checkExtraContent server spawns supplied type with BUCKET,true,false; loads BUCKET_ENTITY_DATA.copyTag into Bucketable and sets FromBucket=true. addExtraAttributes only sets Catfish size by exact small/medium/large bucket item, not a generic combat multiplier. Blobfish, CombJelly, FlyingFish, Lobster and Pupfish call Bucketable.saveDefaultDataToBucketTag (real BUCKET_ENTITY_DATA/native health/flags) then get CUSTOM_DATA.copyTag and put their extra fields into that detached copy without ItemStack.set or CustomData.update. Triops manually sets custom name and writes TriopsTag into a detached CUSTOM_DATA copy without persisting it; no default actor save in that branch. Exact CustomData.copyTag returns CompoundTag.copy. No loader patch for CustomData/Bucketable/MobBucketItem. Custom extra writes do not establish persisted slimed/scale/variant/babyAge/TriopsTag; a preexisting BUCKET_ENTITY_DATA payload can still be loaded by native actor load callback. Original entity NBT contracts remain separate, no new state/owner introduced.",
+      "source_actor": "Original native bucket user; spawn has null Player in EntityType.spawn; untamed actor, no ownership invented",
+      "closest_vanilla_equivalent": "minecraft:mob_bucket",
+      "components": [
+        {
+          "primitive": "NATIVE_BUCKET_LIFECYCLE"
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityBlobfish.class",
+          "methods": [
+            "getBucketItemStack",
+            "saveToBucketTag",
+            "loadFromBucketTag"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityCombJelly.class",
+          "methods": [
+            "getBucketItemStack",
+            "saveToBucketTag",
+            "loadFromBucketTag"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityFlyingFish.class",
+          "methods": [
+            "getBucketItemStack",
+            "saveToBucketTag",
+            "loadFromBucketTag"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityLobster.class",
+          "methods": [
+            "getBucketItemStack",
+            "saveToBucketTag",
+            "loadFromBucketTag"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityTriops.class",
+          "methods": [
+            "getBucketItemStack",
+            "saveToBucketTag",
+            "loadFromBucketTag"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityDevilsHolePupfish.class",
+          "methods": [
+            "getBucketItemStack",
+            "saveToBucketTag",
+            "loadFromBucketTag"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/item/ItemModFishBucket.class",
+          "methods": [
+            "<init>",
+            "checkExtraContent",
+            "spawnFish",
+            "addExtraAttributes"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-helpers.json"
+        }
+      ],
+      "candidate_bindings": [],
+      "numeric_observation_scope": "Original native consumers only. No Stage eligibility, direction, formula, bound, ownership integration or hook chosen.",
+      "reference_evidence": [
+        "native-evidence/alexsmobs-aquatic-small.json",
+        "native-evidence/alexsmobs-aquatic-helpers.json",
+        "vanilla-evidence/alexsmobs-aquatic-native-dispatch.json",
+        "reference-evidence/alexsmobs-aquatic-native-loader.json"
+      ]
+    }
+  ],
+  "exclusions": [
+    {
+      "reason": "Ordinary noncombat water seeking/panic/travel, spawn suitability, sounds, visual scale/squish/depressurization, bucket helper context below. Obsolete getStandingEyeHeight(Pose,EntityDimensions) has no matching Entity/LivingEntity/Mob/PathfinderMob/WaterAnimal declaration or native caller; no physical eye modifier inferred. createAttributes is uncalled; registry uses bakeAttributes.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityBlobfish.class",
+          "methods": [
+            "alterSquishAmount",
+            "canBlobfishSpawn",
+            "createAttributes",
+            "createNavigation",
+            "finalizeSpawn",
+            "fromBucket",
+            "getBlobfishScale",
+            "getBucketItemStack",
+            "getDeathSound",
+            "getHurtSound",
+            "getMaxSpawnClusterSize",
+            "getPickupSound",
+            "getStandingEyeHeight",
+            "getSwimSound",
+            "hasClearance",
+            "isDepressurized",
+            "isFlying",
+            "isSlimed",
+            "loadFromBucketTag",
+            "playStepSound",
+            "saveToBucketTag",
+            "setBlobfishScale",
+            "setDepressurized",
+            "setFromBucket",
+            "setSlimed",
+            "tick",
+            "travel"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        }
+      ]
+    },
+    {
+      "reason": "Comb Jelly ordinary randomized water locomotion, target visibility, yaw/pitch and cosmetic variant/scale, spawn filtering, sounds. tick/travel change only actor motion/noGravity and visual pitch, no attack/effect/healing/other entity motion. Bucket custom copying is in shared lifecycle contract.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityCombJelly.class",
+          "methods": [
+            "canBlockPosBeSeen",
+            "canCombJellySpawn",
+            "checkSpawnObstruction",
+            "checkSpawnRules",
+            "decrementJellyPitch",
+            "finalizeSpawn",
+            "fromBucket",
+            "getBucketItemStack",
+            "getDeathSound",
+            "getHurtSound",
+            "getJellyPitch",
+            "getJellyScale",
+            "getMaxSpawnClusterSize",
+            "getPickupSound",
+            "getVariant",
+            "incrementJellyPitch",
+            "isLightLevelOk",
+            "loadFromBucketTag",
+            "rotlerp",
+            "saveToBucketTag",
+            "setFromBucket",
+            "setJellyPitch",
+            "setJellyScale",
+            "setVariant",
+            "tick",
+            "travel"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        }
+      ]
+    },
+    {
+      "reason": "Sound/render/variant/spawn/bucket context, ordinary navigation. Two-argument causeFallDamage does not match pinned native admission API. No new fall protection attributed to that old hook; current empty checkFallDamage already recorded.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityFlyingFish.class",
+          "methods": [
+            "access$000",
+            "access$100",
+            "access$200",
+            "access$300",
+            "access$400",
+            "canSeeBlock",
+            "causeFallDamage",
+            "checkSpawnRules",
+            "createNavigation",
+            "finalizeSpawn",
+            "fromBucket",
+            "getBucketItemStack",
+            "getDeathSound",
+            "getHurtSound",
+            "getMaxSpawnClusterSize",
+            "getPickupSound",
+            "getSwimSound",
+            "getVariant",
+            "isGliding",
+            "isMaxGroupSizeReached",
+            "loadFromBucketTag",
+            "mobInteract",
+            "removeWhenFarAway",
+            "requiresCustomPersistence",
+            "rotlerp",
+            "saveToBucketTag",
+            "setFromBucket",
+            "setGliding",
+            "setVariant"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        }
+      ]
+    },
+    {
+      "reason": "Bucket/spawn/name/persistence helpers, ordinary amphibious navigation, variant lookup and sounds. Original HurtByTarget goal and two native hurt consumers already canonical; no extra attack inferred from visual progress.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityLobster.class",
+          "methods": [
+            "canLobsterSpawn",
+            "checkSpawnObstruction",
+            "checkSpawnRules",
+            "createNavigation",
+            "finalizeSpawn",
+            "fromBucket",
+            "getBucketItemStack",
+            "getDeathSound",
+            "getHurtSound",
+            "getMaxSpawnClusterSize",
+            "getPickupSound",
+            "getVariant",
+            "getVariantName",
+            "getWalkTargetValue",
+            "getWaterSearchRange",
+            "isMaxGroupSizeReached",
+            "loadFromBucketTag",
+            "mobInteract",
+            "removeWhenFarAway",
+            "requiresCustomPersistence",
+            "saveToBucketTag",
+            "setFromBucket",
+            "setVariant",
+            "shouldEnterWater",
+            "shouldLeaveWater",
+            "shouldStopMoving"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        }
+      ]
+    },
+    {
+      "reason": "Sounds/bucket/name/visual scale and native event particles, ordinary reproduction state helper. Native breeding and egg-placement goals below only mate and place eggs; no combat source, offensive spawn, healing or hostile target changes.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityTriops.class",
+          "methods": [
+            "access$000",
+            "access$100",
+            "calculateEntityAnimation",
+            "createNavigation",
+            "finalizeSpawn",
+            "fromBucket",
+            "getBabyAge",
+            "getBucketItemStack",
+            "getDeathSound",
+            "getHurtSound",
+            "getMaxSpawnClusterSize",
+            "getPickupSound",
+            "getSwimSound",
+            "getTriopsScale",
+            "handleEntityEvent",
+            "isBaby",
+            "isMaxGroupSizeReached",
+            "isSearchingForMate",
+            "loadFromBucketTag",
+            "playStepSound",
+            "playSwimSound",
+            "saveToBucketTag",
+            "setBabyAge",
+            "setFromBucket",
+            "setTriopsScale"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        }
+      ]
+    },
+    {
+      "reason": "Ordinary reproduction/acquisition only: reciprocal navigation, fedCarrot/pregnant and native cooldown, eggs placed in water/air. No damage/status/owner/control of combat victims.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityTriops$BreedGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "lambda$new$0",
+            "start",
+            "stop",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        }
+      ]
+    },
+    {
+      "reason": "Ordinary reproduction/acquisition only: reciprocal navigation, fedCarrot/pregnant and native cooldown, eggs placed in water/air. No damage/status/owner/control of combat victims.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityTriops$LayEggGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "getEggLayPos",
+            "isValidPos",
+            "stop",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        }
+      ]
+    },
+    {
+      "reason": "Native cave/chunk/geographical spawn gates, loot and breeding, ordinary chase/moss locomotion and visual scale/feeding/sounds, bucket helper context. Food loot and babies are ordinary reproduction/utility, not offensive payload entities.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityDevilsHolePupfish.class",
+          "methods": [
+            "access$000",
+            "access$100",
+            "access$1000",
+            "access$1100",
+            "access$1200",
+            "access$1300",
+            "access$1400",
+            "access$1500",
+            "access$200",
+            "access$300",
+            "access$400",
+            "access$500",
+            "access$600",
+            "access$700",
+            "access$800",
+            "access$900",
+            "canPupfishSpawn",
+            "canSeeBlock",
+            "checkSpawnRules",
+            "createNavigation",
+            "finalizeSpawn",
+            "fromBucket",
+            "getBabyAge",
+            "getBucketItemStack",
+            "getDeathSound",
+            "getFeedingTime",
+            "getFoodLoot",
+            "getHurtSound",
+            "getMaxSpawnClusterSize",
+            "getPickupSound",
+            "getPupfishScale",
+            "getSwimSound",
+            "isBaby",
+            "isFlying",
+            "isInCave",
+            "isMaxGroupSizeReached",
+            "isPupfishChunk",
+            "loadFromBucketTag",
+            "playStepSound",
+            "playSwimSound",
+            "saveToBucketTag",
+            "setBabyAge",
+            "setFeedingTime",
+            "setFromBucket",
+            "setPupfishScale",
+            "spawnBabiesWith"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        }
+      ]
+    },
+    {
+      "reason": "Ordinary reproduction/foraging: mutual same-species navigation and moss feeding/loot/baby admission; no combat damage/status/other-actor forced motion or moss destruction. Native feeding adds only self motion.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityDevilsHolePupfish$ChaseGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "lambda$new$0",
+            "start",
+            "stop",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        }
+      ]
+    },
+    {
+      "reason": "Ordinary reproduction/foraging: mutual same-species navigation and moss feeding/loot/baby admission; no combat damage/status/other-actor forced motion or moss destruction. Native feeding adds only self motion.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityDevilsHolePupfish$EatMossGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "isCloseToMoss",
+            "isMossBlock",
+            "searchForDestination",
+            "start",
+            "stop",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        }
+      ]
+    },
+    {
+      "reason": "Shared ordinary self-navigation context only, not damage/effect/healing/recipient forced movement. Exact methods read actor targets/water/lava and native movement speed, steer actor, path/visibility/waypoint/stuck checks; AI enter/leave/stop predicates remain actor-owned. AquaticMoveController GiantSquid directPitch and WarpedToad lava branches call native self-motion, whose actor semantics stay queued. Legacy six-argument canMoveDirectly belongs only to direct callers of this helper; no current three-argument override inferred.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/ai/AnimalAIFindWater.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "generateTarget",
+            "start",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        }
+      ]
+    },
+    {
+      "reason": "Shared ordinary self-navigation context only, not damage/effect/healing/recipient forced movement. Exact methods read actor targets/water/lava and native movement speed, steer actor, path/visibility/waypoint/stuck checks; AI enter/leave/stop predicates remain actor-owned. AquaticMoveController GiantSquid directPitch and WarpedToad lava branches call native self-motion, whose actor semantics stay queued. Legacy six-argument canMoveDirectly belongs only to direct callers of this helper; no current three-argument override inferred.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/ai/AnimalAILeaveWater.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "generateTarget",
+            "start",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        }
+      ]
+    },
+    {
+      "reason": "Shared ordinary self-navigation context only, not damage/effect/healing/recipient forced movement. Exact methods read actor targets/water/lava and native movement speed, steer actor, path/visibility/waypoint/stuck checks; AI enter/leave/stop predicates remain actor-owned. AquaticMoveController GiantSquid directPitch and WarpedToad lava branches call native self-motion, whose actor semantics stay queued. Legacy six-argument canMoveDirectly belongs only to direct callers of this helper; no current three-argument override inferred.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/ai/AnimalAIRandomSwimming.class",
+          "methods": [
+            "<init>",
+            "canJumpTo",
+            "canUse",
+            "findSurfaceTarget",
+            "getPosition",
+            "isAirAbove"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        }
+      ]
+    },
+    {
+      "reason": "Shared ordinary self-navigation context only, not damage/effect/healing/recipient forced movement. Exact methods read actor targets/water/lava and native movement speed, steer actor, path/visibility/waypoint/stuck checks; AI enter/leave/stop predicates remain actor-owned. AquaticMoveController GiantSquid directPitch and WarpedToad lava branches call native self-motion, whose actor semantics stay queued. Legacy six-argument canMoveDirectly belongs only to direct callers of this helper; no current three-argument override inferred.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/ai/AnimalAISwimBottom.class",
+          "methods": [
+            "<init>",
+            "getPosition"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        }
+      ]
+    },
+    {
+      "reason": "Shared ordinary self-navigation context only, not damage/effect/healing/recipient forced movement. Exact methods read actor targets/water/lava and native movement speed, steer actor, path/visibility/waypoint/stuck checks; AI enter/leave/stop predicates remain actor-owned. AquaticMoveController GiantSquid directPitch and WarpedToad lava branches call native self-motion, whose actor semantics stay queued. Legacy six-argument canMoveDirectly belongs only to direct callers of this helper; no current three-argument override inferred.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/ai/AquaticMoveController.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        }
+      ]
+    },
+    {
+      "reason": "Shared ordinary self-navigation context only, not damage/effect/healing/recipient forced movement. Exact methods read actor targets/water/lava and native movement speed, steer actor, path/visibility/waypoint/stuck checks; AI enter/leave/stop predicates remain actor-owned. AquaticMoveController GiantSquid directPitch and WarpedToad lava branches call native self-motion, whose actor semantics stay queued. Legacy six-argument canMoveDirectly belongs only to direct callers of this helper; no current three-argument override inferred.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/ai/BottomFeederAIWander.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "getPosition",
+            "isBottomOfSeafloor"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        }
+      ]
+    },
+    {
+      "reason": "Shared ordinary self-navigation context only, not damage/effect/healing/recipient forced movement. Exact methods read actor targets/water/lava and native movement speed, steer actor, path/visibility/waypoint/stuck checks; AI enter/leave/stop predicates remain actor-owned. AquaticMoveController GiantSquid directPitch and WarpedToad lava branches call native self-motion, whose actor semantics stay queued. Legacy six-argument canMoveDirectly belongs only to direct callers of this helper; no current three-argument override inferred.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/ai/SemiAquaticPathNavigator.class",
+          "methods": [
+            "<init>",
+            "canMoveDirectly",
+            "canUpdatePath",
+            "createPathFinder",
+            "getTempMobPos",
+            "isStableDestination",
+            "setCanFloat"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        }
+      ]
+    },
+    {
+      "reason": "Shared ordinary self-navigation context only, not damage/effect/healing/recipient forced movement. Exact methods read actor targets/water/lava and native movement speed, steer actor, path/visibility/waypoint/stuck checks; AI enter/leave/stop predicates remain actor-owned. AquaticMoveController GiantSquid directPitch and WarpedToad lava branches call native self-motion, whose actor semantics stay queued. Legacy six-argument canMoveDirectly belongs only to direct callers of this helper; no current three-argument override inferred.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/ai/SwimmerJumpPathNavigator.class",
+          "methods": [
+            "<init>",
+            "canMoveDirectly",
+            "canUpdatePath",
+            "createPathFinder",
+            "doStuckDetection",
+            "followThePath",
+            "getTempMobPos",
+            "isStableDestination",
+            "setCanFloat",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        }
+      ]
+    },
+    {
+      "reason": "Native water-navigation suitability or cosmetic group variant holder; no independent combat payload.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityLobster$1.class",
+          "methods": [
+            "<init>",
+            "isStableDestination"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        }
+      ]
+    },
+    {
+      "reason": "Native water-navigation suitability or cosmetic group variant holder; no independent combat payload.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityFlyingFish$FlyingFishGroupData.class",
+          "methods": [
+            "<init>"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-small.json"
+        }
+      ]
+    },
+    {
+      "reason": "Obsolete four-argument Level tooltip callback, ordinary names/cosmetic utility only; not current TooltipContext hook and null compound prevents native variant branches. No combat behavior.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/item/ItemModFishBucket.class",
+          "methods": [
+            "appendHoverText"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-helpers.json"
+        }
+      ]
+    }
+  ],
+  "exact_next_task": "R2o4b — Grouped remaining aquatic predator and status actor families; reuse locked aquatic controller, dropped-item and bucket contracts."
+}

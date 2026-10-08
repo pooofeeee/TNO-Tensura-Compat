@@ -1,0 +1,2385 @@
+{
+  "schema": "tno.external_effects.reviewed_combat_batch.v1",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "alexsmobs",
+  "checkpoint": "R2o4c-alexsmobs-aquatic-interactions-complete",
+  "closed_scope": "Catfish storage/control, Terrapin native launcher contact, MantisShrimp owner/admission/control/burn/feeding and material utility punch gates.",
+  "effects": [
+    {
+      "id": "alexsmobs:catfish_swallow_restore",
+      "display_name": "Catfish Native Swallow and Restoration",
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Native large size2 food predicate requires Mob, nonCatfish, not CATFISH_IGNORE_EATING tag, height<=1. Smaller fish target only ItemEntity age>35. TargetFoodGoal requires water/bubble, eatCooldown<=0, notfull, nearest nonspectator accepted food within AABBinflate(8,8,8); search reset50+rand50, continuation foodalive/notfull, stop resets search5. It navigates1, computes eatDist=actorwidth*.65F+foodwidth. Within eatDist+3 and LOS add normalized mouth-to-food delta*.1F to FOOD entity; within eatDist call swallowEntity then discard original only when swallow returns true. swallowEntity(size2,Mob) sets contained flag/type and calls original Mob.addAdditionalSaveData into fresh tag, then returns true; it does not issue hurt or change target health. The source contains a Player hurt12000 branch, but native selector admits Mob or ItemEntity, Player is neither, and only canUse writes food. That branch is unreachable under pinned native selection, not an active damage candidate. No owner/team/immunity gate added to swallowing. Accepted parent hurt calls spit and returns true; rejected returnsfalse. SeaPickle hand interaction calls spit without consumption; aiStep touching seaPickle and canSpit also calls spit. dropEquipment is current inherited LivingEntity no-arg callback: drops stored items/clears, size2 spit. Spit sets clock10/eatCooldown60+rand60; largecontained resolves type/newLiving, reads only original additional data (not full Entity save), then health=max(2,maxHealth*.25), randomyaw, mouthposition. Only successful level.addFreshEntity clears contained flag/type/data; failed creation/add retains it. No native owner/source is assigned to restored actor; original add/readAdditionalSaveData can restore subclass owner data, but UUID/base entity state is not generically promised. Small/medium item spit sets zero movement/pickupdelay30 and clears slot only successful add; inventory/acquisition is otherwise excluded. CatfishSize clamps0..2/current dimensions .9x.6/1.25x.9/1.9x.9; data callback maxHP=10*size+10 and heal50, native state admission, not an offensive Stage multiplier. NBT retains contained additional data/type/flag, items and nativebucket. Bucket extra addAdditionalSaveData is detached CUSTOM_DATA copy; ItemModFishBucket restores size via actual bucket item after BUCKET_ENTITY_DATA load, reusing exact shared lifecycle.",
+      "source_actor": "Original untamed Catfish control; restored Mob retains original subclass additional-data semantics, no generic player provenance",
+      "closest_vanilla_equivalent": null,
+      "components": [
+        {
+          "primitive": "PREY_CONTROL_SEQUENCE",
+          "numerical_parameters": {
+            "search_reset_base": 50,
+            "search_reset_rng_bound": 50,
+            "search_radius": 8.0,
+            "eat_width_coefficient": 0.6499999761581421,
+            "pull_extra_range": 3.0,
+            "spit_clock": 10,
+            "eat_cooldown_base": 60,
+            "eat_cooldown_rng_bound": 60
+          }
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "mouth_pull_coefficient": 0.10000000149011612
+          }
+        },
+        {
+          "primitive": "NATIVE_RESTORED_HEALTH",
+          "numerical_parameters": {
+            "restored_health_floor": 2.0,
+            "restored_health_fraction": 0.25
+          }
+        },
+        {
+          "primitive": "NATIVE_ENTITY_STORAGE",
+          "formula": "Original Mob.addAdditionalSaveData, original discard, new native type/readAdditionalSaveData, fixed restored health, clear only accepted native entity add."
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish.class",
+          "methods": [
+            "<init>",
+            "bakeAttributes",
+            "registerGoals",
+            "defineSynchedData",
+            "tick",
+            "aiStep",
+            "onSyncedDataUpdated",
+            "getCatfishSize",
+            "setCatfishSize",
+            "hurt",
+            "mobInteract",
+            "swallowEntity",
+            "spit",
+            "canSpit",
+            "isFood",
+            "isFull",
+            "getMouthVec",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "requiresCustomPersistence",
+            "dropEquipment",
+            "getDefaultDimensions",
+            "getDimsForCatfish",
+            "<clinit>"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+          "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityCatfish.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish$TargetFoodGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "lambda$canUse$0",
+            "stop",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+          "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityCatfish$TargetFoodGoal.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/item/ItemModFishBucket.class",
+          "methods": [
+            "spawnFish",
+            "addExtraAttributes"
+          ],
+          "partial_contract": true,
+          "evidence_file": "native-evidence/alexsmobs-aquatic-helpers.json",
+          "witness_id": "alexsmobs:aquatic-helpers:com/github/alexthe666/alexsmobs/item/ItemModFishBucket.class"
+        }
+      ],
+      "numeric_observation_scope": "Original native consumers only. No Stage eligibility, direction, formula, bound, ownership integration or hook chosen.",
+      "hurt_return_dependency": "Parent accepted hurt required for hurt-triggered spit; native addFreshEntity result required to clear storage",
+      "native_parameters": {
+        "registered_health": 10,
+        "speed": 0.25,
+        "size_max_health": "10*size+10",
+        "size_update_heal": 50,
+        "container_slots": "native size>2?1:size==1?9:3; clamped size<=2 makes >2 branch inactive"
+      },
+      "binary_parameters": {
+        "large_food": "Mob, notPlayer; height/tag/native actor rules",
+        "swallow": "Discard original only after true native swallow; no hurt admission",
+        "spit": "Create/add/readAdditionalData; no full UUID/base entity restoration promise"
+      },
+      "reference_evidence": [
+        "native-evidence/alexsmobs-aquatic-interactions.json",
+        "native-evidence/alexsmobs-aquatic-pet-helpers.json",
+        "vanilla-evidence/alexsmobs-predator-native-dispatch.json",
+        "vanilla-evidence/alexsmobs-aquatic-native-dispatch.json",
+        "alexsmobs-citadel-data-contract.json",
+        "vanilla-evidence/alexsmobs-tether-native-dispatch.json",
+        "vanilla-evidence/alexsmobs-aquatic-owner-lifecycle.json",
+        "reference-evidence/alexsmobs-aquatic-owner-loader.json"
+      ],
+      "shared_contracts": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/AMEntityRegistry.class",
+          "methods": [
+            "initializeAttributes"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "partial_contract": true
+        }
+      ],
+      "mod_key": "alexsmobs",
+      "native_boundary": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish.class",
+          "methods": [
+            "<init>",
+            "bakeAttributes",
+            "registerGoals",
+            "defineSynchedData",
+            "tick",
+            "aiStep",
+            "onSyncedDataUpdated",
+            "getCatfishSize",
+            "setCatfishSize",
+            "hurt",
+            "mobInteract",
+            "swallowEntity",
+            "spit",
+            "canSpit",
+            "isFood",
+            "isFull",
+            "getMouthVec",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "requiresCustomPersistence",
+            "dropEquipment",
+            "getDefaultDimensions",
+            "getDimsForCatfish",
+            "<clinit>"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish$TargetFoodGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "lambda$canUse$0",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/item/ItemModFishBucket.class",
+          "methods": [
+            "spawnFish",
+            "addExtraAttributes"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Native large size2 food predicate requires Mob, nonCatfish, not CATFISH_IGNORE_EATING tag, height<=1. Smaller fish target only ItemEntity age>35. TargetFoodGoal requires water/bubble, eatCooldown<=0, notfull, nearest nonspectator accepted food within AABBinflate(8,8,8); search reset50+rand50, continuation foodalive/notfull, stop resets search5. It navigates1, computes eatDist=actorwidth*.65F+foodwidth. Within eatDist+3 and LOS add normalized mouth-to-food delta*.1F to FOOD entity; within eatDist call swallowEntity then discard original only when swallow returns true. swallowEntity(size2,Mob) sets contained flag/type and calls original Mob.addAdditionalSaveData into fresh tag, then returns true; it does not issue hurt or change target health. The source contains a Player hurt12000 branch, but native selector admits Mob or ItemEntity, Player is neither, and only canUse writes food. That branch is unreachable under pinned native selection, not an active damage candidate. No owner/team/immunity gate added to swallowing. Accepted parent hurt calls spit and returns true; rejected returnsfalse. SeaPickle hand interaction calls spit without consumption; aiStep touching seaPickle and canSpit also calls spit. dropEquipment is current inherited LivingEntity no-arg callback: drops stored items/clears, size2 spit. Spit sets clock10/eatCooldown60+rand60; largecontained resolves type/newLiving, reads only original additional data (not full Entity save), then health=max(2,maxHealth*.25), randomyaw, mouthposition. Only successful level.addFreshEntity clears contained flag/type/data; failed creation/add retains it. No native owner/source is assigned to restored actor; original add/readAdditionalSaveData can restore subclass owner data, but UUID/base entity state is not generically promised. Small/medium item spit sets zero movement/pickupdelay30 and clears slot only successful add; inventory/acquisition is otherwise excluded. CatfishSize clamps0..2/current dimensions .9x.6/1.25x.9/1.9x.9; data callback maxHP=10*size+10 and heal50, native state admission, not an offensive Stage multiplier. NBT retains contained additional data/type/flag, items and nativebucket. Bucket extra addAdditionalSaveData is detached CUSTOM_DATA copy; ItemModFishBucket restores size via actual bucket item after BUCKET_ENTITY_DATA load, reusing exact shared lifecycle.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish.class",
+          "methods": [
+            "<init>",
+            "bakeAttributes",
+            "registerGoals",
+            "defineSynchedData",
+            "tick",
+            "aiStep",
+            "onSyncedDataUpdated",
+            "getCatfishSize",
+            "setCatfishSize",
+            "hurt",
+            "mobInteract",
+            "swallowEntity",
+            "spit",
+            "canSpit",
+            "isFood",
+            "isFull",
+            "getMouthVec",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "requiresCustomPersistence",
+            "dropEquipment",
+            "getDefaultDimensions",
+            "getDimsForCatfish",
+            "<clinit>"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish$TargetFoodGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "lambda$canUse$0",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/item/ItemModFishBucket.class",
+          "methods": [
+            "spawnFish",
+            "addExtraAttributes"
+          ]
+        }
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "alexsmobs:catfish_swallow_restore:native_boundary"
+      ],
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "PREY_CONTROL_SEQUENCE",
+          "parameters": [
+            "search_reset_base"
+          ],
+          "native_value": 50,
+          "reviewed_parameter_role": "search_reset_base at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 50,
+            "value_offset": 43,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish$TargetFoodGoal.class",
+            "methods": [
+              "canUse"
+            ],
+            "descriptor": "()Z",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityCatfish$TargetFoodGoal.class",
+            "offset": 43,
+            "opcode": "0x10",
+            "operand": 50
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish$TargetFoodGoal.class",
+            "method": "canUse",
+            "descriptor": "()Z",
+            "offset": 43
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "PREY_CONTROL_SEQUENCE",
+          "parameters": [
+            "search_reset_rng_bound"
+          ],
+          "native_value": 50,
+          "reviewed_parameter_role": "search_reset_rng_bound at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 50,
+            "value_offset": 52,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish$TargetFoodGoal.class",
+            "methods": [
+              "canUse"
+            ],
+            "descriptor": "()Z",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityCatfish$TargetFoodGoal.class",
+            "offset": 52,
+            "opcode": "0x10",
+            "operand": 50
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish$TargetFoodGoal.class",
+            "method": "canUse",
+            "descriptor": "()Z",
+            "offset": 52
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "PREY_CONTROL_SEQUENCE",
+          "parameters": [
+            "search_radius"
+          ],
+          "native_value": 8.0,
+          "reviewed_parameter_role": "search_radius at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 8.0,
+            "value_offset": 89,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish$TargetFoodGoal.class",
+            "methods": [
+              "canUse"
+            ],
+            "descriptor": "()Z",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityCatfish$TargetFoodGoal.class",
+            "offset": 89,
+            "opcode": "0x14",
+            "operand": 8.0
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish$TargetFoodGoal.class",
+            "method": "canUse",
+            "descriptor": "()Z",
+            "offset": 89
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "mouth_pull_coefficient"
+          ],
+          "native_value": 0.10000000149011612,
+          "reviewed_parameter_role": "mouth_pull_coefficient at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 0.10000000149011612,
+            "value_offset": 108,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish$TargetFoodGoal.class",
+            "methods": [
+              "tick"
+            ],
+            "descriptor": "()V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityCatfish$TargetFoodGoal.class",
+            "offset": 108,
+            "opcode": "0x14",
+            "operand": 0.10000000149011612
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish$TargetFoodGoal.class",
+            "method": "tick",
+            "descriptor": "()V",
+            "offset": 108
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "PREY_CONTROL_SEQUENCE",
+          "parameters": [
+            "eat_width_coefficient"
+          ],
+          "native_value": 0.6499999761581421,
+          "reviewed_parameter_role": "eat_width_coefficient at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 0.6499999761581421,
+            "value_offset": 43,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish$TargetFoodGoal.class",
+            "methods": [
+              "tick"
+            ],
+            "descriptor": "()V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityCatfish$TargetFoodGoal.class",
+            "offset": 43,
+            "opcode": "0x12",
+            "operand": 0.6499999761581421
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish$TargetFoodGoal.class",
+            "method": "tick",
+            "descriptor": "()V",
+            "offset": 43
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "PREY_CONTROL_SEQUENCE",
+          "parameters": [
+            "pull_extra_range"
+          ],
+          "native_value": 3.0,
+          "reviewed_parameter_role": "pull_extra_range at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 3.0,
+            "value_offset": 67,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish$TargetFoodGoal.class",
+            "methods": [
+              "tick"
+            ],
+            "descriptor": "()V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityCatfish$TargetFoodGoal.class",
+            "offset": 67,
+            "opcode": "0x12",
+            "operand": 3.0
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish$TargetFoodGoal.class",
+            "method": "tick",
+            "descriptor": "()V",
+            "offset": 67
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "PREY_CONTROL_SEQUENCE",
+          "parameters": [
+            "spit_clock"
+          ],
+          "native_value": 10,
+          "reviewed_parameter_role": "spit_clock at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 10,
+            "value_offset": 1,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish.class",
+            "methods": [
+              "spit"
+            ],
+            "descriptor": "()V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityCatfish.class",
+            "offset": 1,
+            "opcode": "0x10",
+            "operand": 10
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish.class",
+            "method": "spit",
+            "descriptor": "()V",
+            "offset": 1
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "PREY_CONTROL_SEQUENCE",
+          "parameters": [
+            "eat_cooldown_base"
+          ],
+          "native_value": 60,
+          "reviewed_parameter_role": "eat_cooldown_base at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 60,
+            "value_offset": 7,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish.class",
+            "methods": [
+              "spit"
+            ],
+            "descriptor": "()V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityCatfish.class",
+            "offset": 7,
+            "opcode": "0x10",
+            "operand": 60
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish.class",
+            "method": "spit",
+            "descriptor": "()V",
+            "offset": 7
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "PREY_CONTROL_SEQUENCE",
+          "parameters": [
+            "eat_cooldown_rng_bound"
+          ],
+          "native_value": 60,
+          "reviewed_parameter_role": "eat_cooldown_rng_bound at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 60,
+            "value_offset": 13,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish.class",
+            "methods": [
+              "spit"
+            ],
+            "descriptor": "()V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityCatfish.class",
+            "offset": 13,
+            "opcode": "0x10",
+            "operand": 60
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish.class",
+            "method": "spit",
+            "descriptor": "()V",
+            "offset": 13
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "NATIVE_RESTORED_HEALTH",
+          "parameters": [
+            "restored_health_floor"
+          ],
+          "native_value": 2.0,
+          "reviewed_parameter_role": "restored_health_floor at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 2.0,
+            "value_offset": 92,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish.class",
+            "methods": [
+              "spit"
+            ],
+            "descriptor": "()V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityCatfish.class",
+            "offset": 92,
+            "opcode": "0xd",
+            "operand": 2.0
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish.class",
+            "method": "spit",
+            "descriptor": "()V",
+            "offset": 92
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "NATIVE_RESTORED_HEALTH",
+          "parameters": [
+            "restored_health_fraction"
+          ],
+          "native_value": 0.25,
+          "reviewed_parameter_role": "restored_health_fraction at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 0.25,
+            "value_offset": 97,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish.class",
+            "methods": [
+              "spit"
+            ],
+            "descriptor": "()V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityCatfish.class",
+            "offset": 97,
+            "opcode": "0x13",
+            "operand": 0.25
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish.class",
+            "method": "spit",
+            "descriptor": "()V",
+            "offset": 97
+          },
+          "observation_only": true
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:mantis_shrimp_native_admission_owner",
+      "display_name": "Mantis Shrimp Admission Ownership and Feeding",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "isInvulnerableTo DROWN or IN_WALL orparent. hurt checks that first, then causing source.getEntity Shulker OR ShulkerBullet -> amount=(amount+1)*.33F, then parent; directentity not substituted. TicknoAI refillair; else dry/noWATER_BUCKET in mainhand decrementMoistness, <=0 and moistureAttackTime--<=0 -> command0, unsit, dryOut random1/0, reset20; otherwisewater/rain/bubble orwaterbucket restores60000. Levitation effect multiplies actorY*.5, not general motion immunity. Untamed tagged tamefood serversideusePlayerItem/fishFeedings++: only feeds>10 andrand6==0 ORfeeds>30 tame(player), nativeevents6/7; retainbinaryprobabilistic ownership, no Stageproc chosen. Parent mobInteract runs first otherwise. Tame + ItemTags.FISHES + wounded -> serverconsume/heal5, no owner-only requirement for this feeding. Ownerotherinteract can give/take one mainhanditem shift/fryable and cyclecommand0..3; command2 sets sitting,3 mining customnearesttargetrestriction,1 ownerfollow. Native owner/team are original tameable contracts. NBTsitting/command/moisture/variant plusparentowner; feedcounter/moistureAttackTime transient. Kill-score Shulker rewrite deathlootEMPTY/dropSHULKER_SHELL is acquisition, not an offensive/heal/status contribution. OwnerFollow onlycommand1/noaliveattacktarget/notsit/nonspectatorowner; nativepathrecalcevery10, distance²>=144 attempts10teleport nearowner, leash/passenger veto. Waterdestination allowed directly; landmustmoistness>=2000, nonleaves(falseconfiguration), noCollision; no extra damage/status/force toowner. Old canBreatheUnderwaterAM has no caller; actual DROWN admission already proven. Current inherited OwnableEntity.getOwner resolves only Player by stored UUID in current level; native isOwnedBy is reference equality, including null equality. Custom setOrderedToSit writes only SITTING SynchedEntityData, never parent orderedToSit. Registered vanilla SitWhenOrderedToGoal reads parent isOrderedToSit/private field, so custom command2 alone does not activate that goal. Custom isSitting still gates this actor travel, ownerfollow, cooking and nearest-tag target; it is not a universal hurt/queued-attack veto. Native parent NBT calls virtual setter and retains this distinction; no compatibility shim exists in pinned loader owner/sit patch.",
+      "source_actor": "Original actor-owned admission/state; actual Player supplied to native tame; healing is actor self-heal",
+      "closest_vanilla_equivalent": null,
+      "components": [
+        {
+          "primitive": "NATIVE_HEALING",
+          "numerical_parameters": {
+            "fed_heal": 5.0
+          }
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_ADMISSION",
+          "formula": "isInvulnerableTo then causing Shulker formula then parent hurt; no Stage policy."
+        },
+        {
+          "primitive": "NATIVE_OWNER_COMMAND",
+          "formula": "Native tame/getOwner/team, command/sit/owner goal rules; inherited owner NBT."
+        },
+        {
+          "primitive": "NATIVE_ENVIRONMENT_RESPONSE",
+          "formula": "Waterbucket/moisture/dryOut unsit/commandreset and native levitation Y factor."
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+          "methods": [
+            "hurt",
+            "isInvulnerableTo",
+            "tick",
+            "mobInteract",
+            "isFood",
+            "getMoistness",
+            "setMoistness",
+            "shouldEnterWater",
+            "shouldLeaveWater",
+            "shouldStopMoving",
+            "getWaterSearchRange",
+            "shouldFollow",
+            "isPushedByFluid",
+            "updateAir",
+            "awardKillScore"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+          "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp$FollowOwner.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "getRandomNumber",
+            "isTeleportFriendlyBlock",
+            "start",
+            "stop",
+            "tick",
+            "tryToTeleportNearEntity",
+            "tryToTeleportToLocation"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+          "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp$FollowOwner.class"
+        }
+      ],
+      "numeric_observation_scope": "Original native consumers only. No Stage eligibility, direction, formula, bound, ownership integration or hook chosen.",
+      "native_parameters": {
+        "moistness_recovery": 60000,
+        "dry_damage": "random1or0 native self-admission",
+        "dry_damage_interval_reset": 20,
+        "incoming_shulker_formula": "(amount+1F)*.33F; causing entity test",
+        "levitation_y_factor": 0.5,
+        "tame_admission": "feed>10 and1/6, orfeed>30"
+      },
+      "binary_parameters": {
+        "owner": "Native tame(player), inherited UUID/getOwner/NBT/team",
+        "command": "0..3 nativecycle; command3 gates nearest-tag target only, not queued attacks",
+        "inventory": "Native waterbucket changes moisture/enterleave gates"
+      },
+      "reference_evidence": [
+        "native-evidence/alexsmobs-aquatic-interactions.json",
+        "native-evidence/alexsmobs-aquatic-pet-helpers.json",
+        "vanilla-evidence/alexsmobs-predator-native-dispatch.json",
+        "vanilla-evidence/alexsmobs-aquatic-native-dispatch.json",
+        "alexsmobs-citadel-data-contract.json",
+        "vanilla-evidence/alexsmobs-aquatic-owner-lifecycle.json",
+        "reference-evidence/alexsmobs-aquatic-owner-loader.json"
+      ],
+      "shared_contracts": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/AMEntityRegistry.class",
+          "methods": [
+            "initializeAttributes"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "partial_contract": true
+        }
+      ],
+      "mod_key": "alexsmobs",
+      "native_boundary": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+          "methods": [
+            "hurt",
+            "isInvulnerableTo",
+            "tick",
+            "mobInteract",
+            "isFood",
+            "getMoistness",
+            "setMoistness",
+            "shouldEnterWater",
+            "shouldLeaveWater",
+            "shouldStopMoving",
+            "getWaterSearchRange",
+            "shouldFollow",
+            "isPushedByFluid",
+            "updateAir",
+            "awardKillScore"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp$FollowOwner.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "getRandomNumber",
+            "isTeleportFriendlyBlock",
+            "start",
+            "stop",
+            "tick",
+            "tryToTeleportNearEntity",
+            "tryToTeleportToLocation"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "isInvulnerableTo DROWN or IN_WALL orparent. hurt checks that first, then causing source.getEntity Shulker OR ShulkerBullet -> amount=(amount+1)*.33F, then parent; directentity not substituted. TicknoAI refillair; else dry/noWATER_BUCKET in mainhand decrementMoistness, <=0 and moistureAttackTime--<=0 -> command0, unsit, dryOut random1/0, reset20; otherwisewater/rain/bubble orwaterbucket restores60000. Levitation effect multiplies actorY*.5, not general motion immunity. Untamed tagged tamefood serversideusePlayerItem/fishFeedings++: only feeds>10 andrand6==0 ORfeeds>30 tame(player), nativeevents6/7; retainbinaryprobabilistic ownership, no Stageproc chosen. Parent mobInteract runs first otherwise. Tame + ItemTags.FISHES + wounded -> serverconsume/heal5, no owner-only requirement for this feeding. Ownerotherinteract can give/take one mainhanditem shift/fryable and cyclecommand0..3; command2 sets sitting,3 mining customnearesttargetrestriction,1 ownerfollow. Native owner/team are original tameable contracts. NBTsitting/command/moisture/variant plusparentowner; feedcounter/moistureAttackTime transient. Kill-score Shulker rewrite deathlootEMPTY/dropSHULKER_SHELL is acquisition, not an offensive/heal/status contribution. OwnerFollow onlycommand1/noaliveattacktarget/notsit/nonspectatorowner; nativepathrecalcevery10, distance²>=144 attempts10teleport nearowner, leash/passenger veto. Waterdestination allowed directly; landmustmoistness>=2000, nonleaves(falseconfiguration), noCollision; no extra damage/status/force toowner. Old canBreatheUnderwaterAM has no caller; actual DROWN admission already proven. Current inherited OwnableEntity.getOwner resolves only Player by stored UUID in current level; native isOwnedBy is reference equality, including null equality. Custom setOrderedToSit writes only SITTING SynchedEntityData, never parent orderedToSit. Registered vanilla SitWhenOrderedToGoal reads parent isOrderedToSit/private field, so custom command2 alone does not activate that goal. Custom isSitting still gates this actor travel, ownerfollow, cooking and nearest-tag target; it is not a universal hurt/queued-attack veto. Native parent NBT calls virtual setter and retains this distinction; no compatibility shim exists in pinned loader owner/sit patch.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+          "methods": [
+            "hurt",
+            "isInvulnerableTo",
+            "tick",
+            "mobInteract",
+            "isFood",
+            "getMoistness",
+            "setMoistness",
+            "shouldEnterWater",
+            "shouldLeaveWater",
+            "shouldStopMoving",
+            "getWaterSearchRange",
+            "shouldFollow",
+            "isPushedByFluid",
+            "updateAir",
+            "awardKillScore"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp$FollowOwner.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "getRandomNumber",
+            "isTeleportFriendlyBlock",
+            "start",
+            "stop",
+            "tick",
+            "tryToTeleportNearEntity",
+            "tryToTeleportToLocation"
+          ]
+        }
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "alexsmobs:mantis_shrimp_native_admission_owner:native_boundary"
+      ],
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_HEALING",
+          "parameters": [
+            "fed_heal"
+          ],
+          "native_value": 5.0,
+          "reviewed_parameter_role": "fed_heal at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 5.0,
+            "value_offset": 220,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+            "methods": [
+              "mobInteract"
+            ],
+            "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+            "offset": 220,
+            "opcode": "0x13",
+            "operand": 5.0
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+            "method": "mobInteract",
+            "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;",
+            "offset": 220
+          },
+          "observation_only": true
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:mantis_shrimp_native_punch",
+      "display_name": "Mantis Shrimp Native Punch Package",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "actual_behavior": "Native registered attack3/HP20/armor8/knockresist.1/follow32/speed.3F. MeleeAttackGoal1.2F triggers doHurtTarget, which ignores supplied entity argument, sets PUNCH_TICK4 and returnstrue without hurt. aiStep positiveclock at2 and this.getTarget()!=null distance<2.8: if targetAbstractFish and actoruntamed, suppress native fish deathloot by additionalNBT; then knockback1.7F (actorX-targetX/actorZ-targetZ), addY=clamp(1-ACTOR currentKNOCKBACK_RESISTANCE,0,1)*.8F, igniteForSeconds2 ONLY targetnotwater, then mobAttack(actor) hurt currenttotalATTACK_DAMAGEfloat. All control/burn precede hurt and do not depend on its success; returndiscarded. aiStep is not server-gated at wrapper; original native hurt/effect APIs own side/admission. No targetLOS/ally recheck added to punchframe. Clock decrements after originalframe; visualpunchprogress remains independent. Native targetgoals ownerhurt/ownerattack, nearesttagtargets chance120 requires command!=3&&!sitting only for that goal, retaliationnative; do not apply this gate to every native target/queuedpunch. isAlliedTo when tame: ownertrue, TamableAnimal.isOwnedBy(owner) resultdirect, else ownowner.isAlliedTo, otherwiseparents. Cooking and mining goals also call same punch; cooking lacks no-target gate, so a live this.getTarget during original clock can execute same native attack; do not label every cooking punch cosmetic. No new effect/projectile/eventsource invented. Owner/command persists with inherited tameNBT; transientpunch notNBT. Current inherited OwnableEntity.getOwner resolves only Player by stored UUID in current level; native isOwnedBy is reference equality, including null equality. Custom setOrderedToSit writes only SITTING SynchedEntityData, never parent orderedToSit. Registered vanilla SitWhenOrderedToGoal reads parent isOrderedToSit/private field, so custom command2 alone does not activate that goal. Custom isSitting still gates this actor travel, ownerfollow, cooking and nearest-tag target; it is not a universal hurt/queued-attack veto. Native parent NBT calls virtual setter and retains this distinction; no compatibility shim exists in pinned loader owner/sit patch.",
+      "source_actor": "Original tameable MantisShrimp native mobAttack, owner/team native; direct frame uses current actor target, not original goal argument",
+      "closest_vanilla_equivalent": null,
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "registered_base_damage": 3.0
+          }
+        },
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "numerical_parameters": {
+            "punch_clock_start": 4,
+            "damage_frame": 2
+          }
+        },
+        {
+          "primitive": "ATTACK_CONTACT_RANGE",
+          "numerical_parameters": {
+            "native_target_range": 2.8
+          }
+        },
+        {
+          "primitive": "KNOCKBACK",
+          "numerical_parameters": {
+            "horizontal_strength": 1.7000000476837158
+          }
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "vertical_coefficient": 0.800000011920929
+          }
+        },
+        {
+          "primitive": "BURN",
+          "numerical_parameters": {
+            "ignite_seconds": 2.0
+          }
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+          "methods": [
+            "<init>",
+            "bakeAttributes",
+            "registerGoals",
+            "defineSynchedData",
+            "doHurtTarget",
+            "punch",
+            "aiStep",
+            "isAlliedTo",
+            "getCommand",
+            "setCommand",
+            "isSitting",
+            "setOrderedToSit",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "travel",
+            "switchNavigator",
+            "<clinit>"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+          "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp$1.class",
+          "methods": [
+            "<init>",
+            "canUse"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+          "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp$1.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/ai/MantisShrimpAIFryRice.class",
+          "methods": [
+            "tick"
+          ],
+          "partial_contract": true,
+          "evidence_file": "native-evidence/alexsmobs-aquatic-pet-helpers.json",
+          "witness_id": "alexsmobs:aquatic-pet-helpers:com/github/alexthe666/alexsmobs/entity/ai/MantisShrimpAIFryRice.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/ai/MantisShrimpAIBreakBlocks.class",
+          "methods": [
+            "tick"
+          ],
+          "partial_contract": true,
+          "evidence_file": "native-evidence/alexsmobs-aquatic-pet-helpers.json",
+          "witness_id": "alexsmobs:aquatic-pet-helpers:com/github/alexthe666/alexsmobs/entity/ai/MantisShrimpAIBreakBlocks.class"
+        }
+      ],
+      "numeric_observation_scope": "Original native consumers only. No Stage eligibility, direction, formula, bound, ownership integration or hook chosen.",
+      "hurt_return_dependency": "Knockback/vertical motion/ignite all before original damage and independent of hurt return",
+      "native_parameters": {
+        "health": 20,
+        "armor": 8,
+        "follow_range": 32,
+        "knockback_resistance": 0.1,
+        "speed": 0.30000001192092896
+      },
+      "reference_evidence": [
+        "native-evidence/alexsmobs-aquatic-interactions.json",
+        "native-evidence/alexsmobs-aquatic-pet-helpers.json",
+        "vanilla-evidence/alexsmobs-predator-native-dispatch.json",
+        "vanilla-evidence/alexsmobs-aquatic-native-dispatch.json",
+        "alexsmobs-citadel-data-contract.json",
+        "vanilla-evidence/alexsmobs-aquatic-owner-lifecycle.json",
+        "reference-evidence/alexsmobs-aquatic-owner-loader.json"
+      ],
+      "shared_contracts": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/AMEntityRegistry.class",
+          "methods": [
+            "initializeAttributes"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "partial_contract": true
+        }
+      ],
+      "mod_key": "alexsmobs",
+      "native_boundary": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+          "methods": [
+            "<init>",
+            "bakeAttributes",
+            "registerGoals",
+            "defineSynchedData",
+            "doHurtTarget",
+            "punch",
+            "aiStep",
+            "isAlliedTo",
+            "getCommand",
+            "setCommand",
+            "isSitting",
+            "setOrderedToSit",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "travel",
+            "switchNavigator",
+            "<clinit>"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp$1.class",
+          "methods": [
+            "<init>",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/ai/MantisShrimpAIFryRice.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/ai/MantisShrimpAIBreakBlocks.class",
+          "methods": [
+            "tick"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Native registered attack3/HP20/armor8/knockresist.1/follow32/speed.3F. MeleeAttackGoal1.2F triggers doHurtTarget, which ignores supplied entity argument, sets PUNCH_TICK4 and returnstrue without hurt. aiStep positiveclock at2 and this.getTarget()!=null distance<2.8: if targetAbstractFish and actoruntamed, suppress native fish deathloot by additionalNBT; then knockback1.7F (actorX-targetX/actorZ-targetZ), addY=clamp(1-ACTOR currentKNOCKBACK_RESISTANCE,0,1)*.8F, igniteForSeconds2 ONLY targetnotwater, then mobAttack(actor) hurt currenttotalATTACK_DAMAGEfloat. All control/burn precede hurt and do not depend on its success; returndiscarded. aiStep is not server-gated at wrapper; original native hurt/effect APIs own side/admission. No targetLOS/ally recheck added to punchframe. Clock decrements after originalframe; visualpunchprogress remains independent. Native targetgoals ownerhurt/ownerattack, nearesttagtargets chance120 requires command!=3&&!sitting only for that goal, retaliationnative; do not apply this gate to every native target/queuedpunch. isAlliedTo when tame: ownertrue, TamableAnimal.isOwnedBy(owner) resultdirect, else ownowner.isAlliedTo, otherwiseparents. Cooking and mining goals also call same punch; cooking lacks no-target gate, so a live this.getTarget during original clock can execute same native attack; do not label every cooking punch cosmetic. No new effect/projectile/eventsource invented. Owner/command persists with inherited tameNBT; transientpunch notNBT. Current inherited OwnableEntity.getOwner resolves only Player by stored UUID in current level; native isOwnedBy is reference equality, including null equality. Custom setOrderedToSit writes only SITTING SynchedEntityData, never parent orderedToSit. Registered vanilla SitWhenOrderedToGoal reads parent isOrderedToSit/private field, so custom command2 alone does not activate that goal. Custom isSitting still gates this actor travel, ownerfollow, cooking and nearest-tag target; it is not a universal hurt/queued-attack veto. Native parent NBT calls virtual setter and retains this distinction; no compatibility shim exists in pinned loader owner/sit patch.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+          "methods": [
+            "<init>",
+            "bakeAttributes",
+            "registerGoals",
+            "defineSynchedData",
+            "doHurtTarget",
+            "punch",
+            "aiStep",
+            "isAlliedTo",
+            "getCommand",
+            "setCommand",
+            "isSitting",
+            "setOrderedToSit",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "travel",
+            "switchNavigator",
+            "<clinit>"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp$1.class",
+          "methods": [
+            "<init>",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/ai/MantisShrimpAIFryRice.class",
+          "methods": [
+            "tick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/ai/MantisShrimpAIBreakBlocks.class",
+          "methods": [
+            "tick"
+          ]
+        }
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "alexsmobs:mantis_shrimp_native_punch:native_boundary"
+      ],
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "registered_base_damage"
+          ],
+          "native_value": 3.0,
+          "reviewed_parameter_role": "registered_base_damage at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 3.0,
+            "value_offset": 42,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+            "methods": [
+              "bakeAttributes"
+            ],
+            "descriptor": "()Lnet/minecraft/world/entity/ai/attributes/AttributeSupplier$Builder;",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+            "offset": 42,
+            "opcode": "0x14",
+            "operand": 3.0
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+            "method": "bakeAttributes",
+            "descriptor": "()Lnet/minecraft/world/entity/ai/attributes/AttributeSupplier$Builder;",
+            "offset": 42
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "parameters": [
+            "punch_clock_start"
+          ],
+          "native_value": 4,
+          "reviewed_parameter_role": "punch_clock_start at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 4,
+            "value_offset": 7,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+            "methods": [
+              "punch"
+            ],
+            "descriptor": "()V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+            "offset": 7,
+            "opcode": "0x7",
+            "operand": 4
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+            "method": "punch",
+            "descriptor": "()V",
+            "offset": 7
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "parameters": [
+            "damage_frame"
+          ],
+          "native_value": 2,
+          "reviewed_parameter_role": "damage_frame at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 2,
+            "value_offset": 216,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+            "methods": [
+              "aiStep"
+            ],
+            "descriptor": "()V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+            "offset": 216,
+            "opcode": "0x5",
+            "operand": 2
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+            "method": "aiStep",
+            "descriptor": "()V",
+            "offset": 216
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "ATTACK_CONTACT_RANGE",
+          "parameters": [
+            "native_target_range"
+          ],
+          "native_value": 2.8,
+          "reviewed_parameter_role": "native_target_range at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 2.8,
+            "value_offset": 236,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+            "methods": [
+              "aiStep"
+            ],
+            "descriptor": "()V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+            "offset": 236,
+            "opcode": "0x14",
+            "operand": 2.8
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+            "method": "aiStep",
+            "descriptor": "()V",
+            "offset": 236
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "KNOCKBACK",
+          "parameters": [
+            "horizontal_strength"
+          ],
+          "native_value": 1.7000000476837158,
+          "reviewed_parameter_role": "horizontal_strength at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 1.7000000476837158,
+            "value_offset": 305,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+            "methods": [
+              "aiStep"
+            ],
+            "descriptor": "()V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+            "offset": 305,
+            "opcode": "0x14",
+            "operand": 1.7000000476837158
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+            "method": "aiStep",
+            "descriptor": "()V",
+            "offset": 305
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "vertical_coefficient"
+          ],
+          "native_value": 0.800000011920929,
+          "reviewed_parameter_role": "vertical_coefficient at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 0.800000011920929,
+            "value_offset": 364,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+            "methods": [
+              "aiStep"
+            ],
+            "descriptor": "()V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+            "offset": 364,
+            "opcode": "0x13",
+            "operand": 0.800000011920929
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+            "method": "aiStep",
+            "descriptor": "()V",
+            "offset": 364
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "BURN",
+          "parameters": [
+            "ignite_seconds"
+          ],
+          "native_value": 2.0,
+          "reviewed_parameter_role": "ignite_seconds at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 2.0,
+            "value_offset": 390,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+            "methods": [
+              "aiStep"
+            ],
+            "descriptor": "()V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+            "offset": 390,
+            "opcode": "0xd",
+            "operand": 2.0
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+            "method": "aiStep",
+            "descriptor": "()V",
+            "offset": 390
+          },
+          "observation_only": true
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:terrapin_launcher_spin",
+      "display_name": "Terrapin Native Launcher Spin Contact",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "actual_behavior": "Server out-of-water queries Player AABBinflateY.15; player movingup or notground and Y>actorEye: ifnotretreated hideTimer+=40+rand40, else ifnotspinning lastLauncher=player, spin=100+rand100,hideTimer=spin,yaw=playerheadYaw,spinFor(spin). SpinFor sets maxRollTime/spinning, not a projectile spawn. handleSpin marksretreated/incrementscounter; server counter>max stops/spinCounter0/hide10+rand30. Firstcounter1 copySpinDelta(yaw,currentmotion), speed baby.3F else.5; YZERO, deltaXZ originalmotion plus facingvelocity. Subsequent spinpreservesvec.y and savedXZ. Outside server-only branch, live adult spinCounter>5 -> LivingEntity queryAABB.inflate.3F, excludingTerrapin and this.isAlliedTo(victim); hurt4+randFloat*4, resultignored, no new cooldown pervictim. Source is mobAttack(lastLauncher==null?THIS:lastLauncher), direct/causing original native living source rather than a projectile; lastLauncher transient pointer remains until nextlaunch, not cleared at spinend/NBT. Native side distinction preserved: outer hurt loop is not server-gated; hurt admission remains native. Horizontalcollision cooldown0 -> set10, reflect storedyaw by hitaxis +randInt40-20, copySpinDelta with ZERO; collision while cooldownpositive maxRollTime-=30; cooldown decrements. No terrain destruction or explosion. Land push(nonTerrapin) adds native Terrapin currentdelta to other entity independent of hurt; otherwiseparentpush. This forced movement remains distinct from ownspin and native damage. Retreated/spinning stops normaltravel/path; no custom hurt/invulnerability override, so no shell damage immunity invented. Native statHP10/armor10/speed.1F; air4800, fluidpushfalse. NBT cosmetictypes/colors,egg,bucket only; spin/lastLauncher/clocks notsaved. Bucket TerrapinData detached CUSTOM_DATA copy, not persisted; original native release data contract reused.",
+      "source_actor": "Original last launching Player or native Terrapin fallback selected by native mobAttack; ally predicate remains actor-owned",
+      "closest_vanilla_equivalent": null,
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "contact_damage_base": 4.0,
+            "contact_damage_random_coefficient": 4.0
+          }
+        },
+        {
+          "primitive": "ATTACK_CONTACT_RANGE",
+          "numerical_parameters": {
+            "contact_query_radius": 0.30000001192092896
+          }
+        },
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "numerical_parameters": {
+            "minimum_spin_counter_exclusive": 5,
+            "spin_time_base": 100,
+            "spin_time_rng_bound": 100,
+            "collision_cooldown": 10,
+            "collision_shortening": 30,
+            "postspin_hide_base": 10,
+            "postspin_hide_rng_bound": 30
+          }
+        },
+        {
+          "primitive": "SELF_ATTACK_MOVEMENT",
+          "numerical_parameters": {
+            "baby_spin_speed": 0.30000001192092896,
+            "adult_spin_speed": 0.5
+          }
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "formula": "On land push(nonTerrapin) adds original actor delta to recipient, independently of contact hurt; otherwise original parent push."
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+          "methods": [
+            "<init>",
+            "bakeAttributes",
+            "registerGoals",
+            "defineSynchedData",
+            "tick",
+            "collideDirectionAndSound",
+            "copySpinDelta",
+            "spinFor",
+            "handleSpin",
+            "push",
+            "canBeCollidedWith",
+            "travel",
+            "shouldStopMoving",
+            "shouldEnterWater",
+            "shouldLeaveWater",
+            "getWaterSearchRange",
+            "isPushedByFluid",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "switchNavigator",
+            "<clinit>"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+          "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class"
+        }
+      ],
+      "numeric_observation_scope": "Original native consumers only. No Stage eligibility, direction, formula, bound, ownership integration or hook chosen.",
+      "hurt_return_dependency": "Contact hurt result discarded; native colliding push independently adds original actor motion",
+      "native_parameters": {
+        "health": 10,
+        "armor": 10,
+        "speed": 0.10000000149011612,
+        "max_air": 4800
+      },
+      "binary_parameters": {
+        "launch_source": "Player pointer or actor; not spawned projectile owner",
+        "persistence": "No spin/launcher transport stored by actor"
+      },
+      "reference_evidence": [
+        "native-evidence/alexsmobs-aquatic-interactions.json",
+        "native-evidence/alexsmobs-aquatic-pet-helpers.json",
+        "vanilla-evidence/alexsmobs-predator-native-dispatch.json",
+        "vanilla-evidence/alexsmobs-aquatic-native-dispatch.json",
+        "alexsmobs-citadel-data-contract.json",
+        "vanilla-evidence/alexsmobs-aquatic-owner-lifecycle.json",
+        "reference-evidence/alexsmobs-aquatic-owner-loader.json"
+      ],
+      "shared_contracts": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/AMEntityRegistry.class",
+          "methods": [
+            "initializeAttributes"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "partial_contract": true
+        }
+      ],
+      "mod_key": "alexsmobs",
+      "native_boundary": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+          "methods": [
+            "<init>",
+            "bakeAttributes",
+            "registerGoals",
+            "defineSynchedData",
+            "tick",
+            "collideDirectionAndSound",
+            "copySpinDelta",
+            "spinFor",
+            "handleSpin",
+            "push",
+            "canBeCollidedWith",
+            "travel",
+            "shouldStopMoving",
+            "shouldEnterWater",
+            "shouldLeaveWater",
+            "getWaterSearchRange",
+            "isPushedByFluid",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "switchNavigator",
+            "<clinit>"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Server out-of-water queries Player AABBinflateY.15; player movingup or notground and Y>actorEye: ifnotretreated hideTimer+=40+rand40, else ifnotspinning lastLauncher=player, spin=100+rand100,hideTimer=spin,yaw=playerheadYaw,spinFor(spin). SpinFor sets maxRollTime/spinning, not a projectile spawn. handleSpin marksretreated/incrementscounter; server counter>max stops/spinCounter0/hide10+rand30. Firstcounter1 copySpinDelta(yaw,currentmotion), speed baby.3F else.5; YZERO, deltaXZ originalmotion plus facingvelocity. Subsequent spinpreservesvec.y and savedXZ. Outside server-only branch, live adult spinCounter>5 -> LivingEntity queryAABB.inflate.3F, excludingTerrapin and this.isAlliedTo(victim); hurt4+randFloat*4, resultignored, no new cooldown pervictim. Source is mobAttack(lastLauncher==null?THIS:lastLauncher), direct/causing original native living source rather than a projectile; lastLauncher transient pointer remains until nextlaunch, not cleared at spinend/NBT. Native side distinction preserved: outer hurt loop is not server-gated; hurt admission remains native. Horizontalcollision cooldown0 -> set10, reflect storedyaw by hitaxis +randInt40-20, copySpinDelta with ZERO; collision while cooldownpositive maxRollTime-=30; cooldown decrements. No terrain destruction or explosion. Land push(nonTerrapin) adds native Terrapin currentdelta to other entity independent of hurt; otherwiseparentpush. This forced movement remains distinct from ownspin and native damage. Retreated/spinning stops normaltravel/path; no custom hurt/invulnerability override, so no shell damage immunity invented. Native statHP10/armor10/speed.1F; air4800, fluidpushfalse. NBT cosmetictypes/colors,egg,bucket only; spin/lastLauncher/clocks notsaved. Bucket TerrapinData detached CUSTOM_DATA copy, not persisted; original native release data contract reused.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+          "methods": [
+            "<init>",
+            "bakeAttributes",
+            "registerGoals",
+            "defineSynchedData",
+            "tick",
+            "collideDirectionAndSound",
+            "copySpinDelta",
+            "spinFor",
+            "handleSpin",
+            "push",
+            "canBeCollidedWith",
+            "travel",
+            "shouldStopMoving",
+            "shouldEnterWater",
+            "shouldLeaveWater",
+            "getWaterSearchRange",
+            "isPushedByFluid",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "switchNavigator",
+            "<clinit>"
+          ]
+        }
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "alexsmobs:terrapin_launcher_spin:native_boundary"
+      ],
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "contact_damage_base"
+          ],
+          "native_value": 4.0,
+          "reviewed_parameter_role": "contact_damage_base at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 4.0,
+            "value_offset": 301,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "methods": [
+              "tick"
+            ],
+            "descriptor": "()V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "offset": 301,
+            "opcode": "0x13",
+            "operand": 4.0
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "method": "tick",
+            "descriptor": "()V",
+            "offset": 301
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "contact_damage_random_coefficient"
+          ],
+          "native_value": 4.0,
+          "reviewed_parameter_role": "contact_damage_random_coefficient at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 4.0,
+            "value_offset": 313,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "methods": [
+              "tick"
+            ],
+            "descriptor": "()V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "offset": 313,
+            "opcode": "0x13",
+            "operand": 4.0
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "method": "tick",
+            "descriptor": "()V",
+            "offset": 313
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "ATTACK_CONTACT_RANGE",
+          "parameters": [
+            "contact_query_radius"
+          ],
+          "native_value": 0.30000001192092896,
+          "reviewed_parameter_role": "contact_query_radius at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 0.30000001192092896,
+            "value_offset": 222,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "methods": [
+              "tick"
+            ],
+            "descriptor": "()V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "offset": 222,
+            "opcode": "0x14",
+            "operand": 0.30000001192092896
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "method": "tick",
+            "descriptor": "()V",
+            "offset": 222
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "parameters": [
+            "minimum_spin_counter_exclusive"
+          ],
+          "native_value": 5,
+          "reviewed_parameter_role": "minimum_spin_counter_exclusive at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 5,
+            "value_offset": 200,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "methods": [
+              "tick"
+            ],
+            "descriptor": "()V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "offset": 200,
+            "opcode": "0x8",
+            "operand": 5
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "method": "tick",
+            "descriptor": "()V",
+            "offset": 200
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "parameters": [
+            "spin_time_base"
+          ],
+          "native_value": 100,
+          "reviewed_parameter_role": "spin_time_base at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 100,
+            "value_offset": 677,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "methods": [
+              "tick"
+            ],
+            "descriptor": "()V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "offset": 677,
+            "opcode": "0x10",
+            "operand": 100
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "method": "tick",
+            "descriptor": "()V",
+            "offset": 677
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "parameters": [
+            "spin_time_rng_bound"
+          ],
+          "native_value": 100,
+          "reviewed_parameter_role": "spin_time_rng_bound at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 100,
+            "value_offset": 683,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "methods": [
+              "tick"
+            ],
+            "descriptor": "()V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "offset": 683,
+            "opcode": "0x10",
+            "operand": 100
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "method": "tick",
+            "descriptor": "()V",
+            "offset": 683
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "parameters": [
+            "collision_cooldown"
+          ],
+          "native_value": 10,
+          "reviewed_parameter_role": "collision_cooldown at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 10,
+            "value_offset": 352,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "methods": [
+              "tick"
+            ],
+            "descriptor": "()V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "offset": 352,
+            "opcode": "0x10",
+            "operand": 10
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "method": "tick",
+            "descriptor": "()V",
+            "offset": 352
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "parameters": [
+            "collision_shortening"
+          ],
+          "native_value": 30,
+          "reviewed_parameter_role": "collision_shortening at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 30,
+            "value_offset": 434,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "methods": [
+              "tick"
+            ],
+            "descriptor": "()V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "offset": 434,
+            "opcode": "0x10",
+            "operand": 30
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "method": "tick",
+            "descriptor": "()V",
+            "offset": 434
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "parameters": [
+            "postspin_hide_base"
+          ],
+          "native_value": 10,
+          "reviewed_parameter_role": "postspin_hide_base at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 10,
+            "value_offset": 42,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "methods": [
+              "handleSpin"
+            ],
+            "descriptor": "()V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "offset": 42,
+            "opcode": "0x10",
+            "operand": 10
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "method": "handleSpin",
+            "descriptor": "()V",
+            "offset": 42
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "ATTACK_SEQUENCE",
+          "parameters": [
+            "postspin_hide_rng_bound"
+          ],
+          "native_value": 30,
+          "reviewed_parameter_role": "postspin_hide_rng_bound at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 30,
+            "value_offset": 48,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "methods": [
+              "handleSpin"
+            ],
+            "descriptor": "()V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "offset": 48,
+            "opcode": "0x10",
+            "operand": 30
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "method": "handleSpin",
+            "descriptor": "()V",
+            "offset": 48
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "SELF_ATTACK_MOVEMENT",
+          "parameters": [
+            "baby_spin_speed"
+          ],
+          "native_value": 0.30000001192092896,
+          "reviewed_parameter_role": "baby_spin_speed at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 0.30000001192092896,
+            "value_offset": 13,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "methods": [
+              "copySpinDelta"
+            ],
+            "descriptor": "(FLnet/minecraft/world/phys/Vec3;)V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "offset": 13,
+            "opcode": "0x13",
+            "operand": 0.30000001192092896
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "method": "copySpinDelta",
+            "descriptor": "(FLnet/minecraft/world/phys/Vec3;)V",
+            "offset": 13
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "SELF_ATTACK_MOVEMENT",
+          "parameters": [
+            "adult_spin_speed"
+          ],
+          "native_value": 0.5,
+          "reviewed_parameter_role": "adult_spin_speed at original native site; complete source/formula preserved in actual_behavior",
+          "native_literal_numeric_site_binding": {
+            "native_value": 0.5,
+            "value_offset": 19,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "methods": [
+              "copySpinDelta"
+            ],
+            "descriptor": "(FLnet/minecraft/world/phys/Vec3;)V",
+            "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+            "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "offset": 19,
+            "opcode": "0x13",
+            "operand": 0.5
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+            "method": "copySpinDelta",
+            "descriptor": "(FLnet/minecraft/world/phys/Vec3;)V",
+            "offset": 19
+          },
+          "observation_only": true
+        }
+      ]
+    }
+  ],
+  "paths": [
+    {
+      "id": "alexsmobs:catfish_swallow_restore:native_boundary",
+      "mod_key": "alexsmobs",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "alexsmobs:catfish_swallow_restore"
+      ],
+      "primary_source": "Original untamed Catfish control; restored Mob retains original subclass additional-data semantics, no generic player provenance",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish.class",
+          "methods": [
+            "<init>",
+            "bakeAttributes",
+            "registerGoals",
+            "defineSynchedData",
+            "tick",
+            "aiStep",
+            "onSyncedDataUpdated",
+            "getCatfishSize",
+            "setCatfishSize",
+            "hurt",
+            "mobInteract",
+            "swallowEntity",
+            "spit",
+            "canSpit",
+            "isFood",
+            "isFull",
+            "getMouthVec",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "requiresCustomPersistence",
+            "dropEquipment",
+            "getDefaultDimensions",
+            "getDimsForCatfish",
+            "<clinit>"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+          "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityCatfish.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish$TargetFoodGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "lambda$canUse$0",
+            "stop",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+          "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityCatfish$TargetFoodGoal.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/item/ItemModFishBucket.class",
+          "methods": [
+            "spawnFish",
+            "addExtraAttributes"
+          ],
+          "partial_contract": true,
+          "evidence_file": "native-evidence/alexsmobs-aquatic-helpers.json",
+          "witness_id": "alexsmobs:aquatic-helpers:com/github/alexthe666/alexsmobs/item/ItemModFishBucket.class"
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:mantis_shrimp_native_admission_owner:native_boundary",
+      "mod_key": "alexsmobs",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "alexsmobs:mantis_shrimp_native_admission_owner"
+      ],
+      "primary_source": "Original actor-owned admission/state; actual Player supplied to native tame; healing is actor self-heal",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+          "methods": [
+            "hurt",
+            "isInvulnerableTo",
+            "tick",
+            "mobInteract",
+            "isFood",
+            "getMoistness",
+            "setMoistness",
+            "shouldEnterWater",
+            "shouldLeaveWater",
+            "shouldStopMoving",
+            "getWaterSearchRange",
+            "shouldFollow",
+            "isPushedByFluid",
+            "updateAir",
+            "awardKillScore"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+          "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp$FollowOwner.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "getRandomNumber",
+            "isTeleportFriendlyBlock",
+            "start",
+            "stop",
+            "tick",
+            "tryToTeleportNearEntity",
+            "tryToTeleportToLocation"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+          "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp$FollowOwner.class"
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:mantis_shrimp_native_punch:native_boundary",
+      "mod_key": "alexsmobs",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "alexsmobs:mantis_shrimp_native_punch"
+      ],
+      "primary_source": "Original tameable MantisShrimp native mobAttack, owner/team native; direct frame uses current actor target, not original goal argument",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+          "methods": [
+            "<init>",
+            "bakeAttributes",
+            "registerGoals",
+            "defineSynchedData",
+            "doHurtTarget",
+            "punch",
+            "aiStep",
+            "isAlliedTo",
+            "getCommand",
+            "setCommand",
+            "isSitting",
+            "setOrderedToSit",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "travel",
+            "switchNavigator",
+            "<clinit>"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+          "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp$1.class",
+          "methods": [
+            "<init>",
+            "canUse"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+          "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp$1.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/ai/MantisShrimpAIFryRice.class",
+          "methods": [
+            "tick"
+          ],
+          "partial_contract": true,
+          "evidence_file": "native-evidence/alexsmobs-aquatic-pet-helpers.json",
+          "witness_id": "alexsmobs:aquatic-pet-helpers:com/github/alexthe666/alexsmobs/entity/ai/MantisShrimpAIFryRice.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/ai/MantisShrimpAIBreakBlocks.class",
+          "methods": [
+            "tick"
+          ],
+          "partial_contract": true,
+          "evidence_file": "native-evidence/alexsmobs-aquatic-pet-helpers.json",
+          "witness_id": "alexsmobs:aquatic-pet-helpers:com/github/alexthe666/alexsmobs/entity/ai/MantisShrimpAIBreakBlocks.class"
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:terrapin_launcher_spin:native_boundary",
+      "mod_key": "alexsmobs",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "alexsmobs:terrapin_launcher_spin"
+      ],
+      "primary_source": "Original last launching Player or native Terrapin fallback selected by native mobAttack; ally predicate remains actor-owned",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+          "methods": [
+            "<init>",
+            "bakeAttributes",
+            "registerGoals",
+            "defineSynchedData",
+            "tick",
+            "collideDirectionAndSound",
+            "copySpinDelta",
+            "spinFor",
+            "handleSpin",
+            "push",
+            "canBeCollidedWith",
+            "travel",
+            "shouldStopMoving",
+            "shouldEnterWater",
+            "shouldLeaveWater",
+            "getWaterSearchRange",
+            "isPushedByFluid",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "switchNavigator",
+            "<clinit>"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+          "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class"
+        }
+      ]
+    }
+  ],
+  "exclusions": [
+    {
+      "reason": "Ordinary storage/acquisition/navigation, food-lantern fascination and item pickup, names/audio/spawn/cosmetics; container maxhealth/consumption/restoration/material lifecycle already canonical. Raw query/writes use original data; no generic Stage progression or receipt/cache introduced.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish.class",
+          "methods": [
+            "access$000",
+            "access$100",
+            "access$200",
+            "access$300",
+            "canCatfishSpawn",
+            "canSeeBlock",
+            "checkSpawnRules",
+            "containerChanged",
+            "createNavigation",
+            "finalizeSpawn",
+            "fromBucket",
+            "getBucketItemStack",
+            "getDeathSound",
+            "getHurtSound",
+            "getMaxSpawnClusterSize",
+            "getPickupSound",
+            "getSpitTime",
+            "getSwallowedData",
+            "getSwallowedEntityType",
+            "getVoicePitch",
+            "hasSwallowedEntity",
+            "initCatfishInventory",
+            "isFlying",
+            "isMaxGroupSizeReached",
+            "isSpitting",
+            "loadFromBucketTag",
+            "pickUpItem",
+            "playStepSound",
+            "removeWhenFarAway",
+            "saveToBucketTag",
+            "setFromBucket",
+            "setHasSwallowedEntity",
+            "setSpitTime",
+            "setSwallowedData",
+            "setSwallowedEntityType",
+            "travel"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+          "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityCatfish.class"
+        }
+      ],
+      "entries": [
+        "com/github/alexthe666/alexsmobs/entity/EntityCatfish.class"
+      ]
+    },
+    {
+      "reason": "Noncombat lantern attraction only: water/notfull, nearby tagged block trace, self-navigation/self delta to lantern, no damage/effects or extra victim control.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish$FascinateLanternGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "isCloseToLantern",
+            "isSeaLantern",
+            "searchForDestination",
+            "start",
+            "stop",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+          "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityCatfish$FascinateLanternGoal.class"
+        }
+      ],
+      "entries": [
+        "com/github/alexthe666/alexsmobs/entity/EntityCatfish$FascinateLanternGoal.class"
+      ]
+    },
+    {
+      "reason": "Native container validity only: actor alive and portalProcess null; no independent combat ability.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityCatfish$1.class",
+          "methods": [
+            "<init>",
+            "stillValid"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+          "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityCatfish$1.class"
+        }
+      ],
+      "entries": [
+        "com/github/alexthe666/alexsmobs/entity/EntityCatfish$1.class"
+      ]
+    },
+    {
+      "reason": "Cosmetic turtle/skin/shell/color transport, sounds/name-based Koopa rendering, native bucket/persistence/food/spawn/breeding and swimming only. No shell invulnerability is inferred. Ordinary egg reproduction and visual walk-animation helpers carry no attack mechanics.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class",
+          "methods": [
+            "access$000",
+            "calculateEntityAnimation",
+            "canTerrapinSpawn",
+            "checkSpawnObstruction",
+            "checkSpawnRules",
+            "finalizeSpawn",
+            "fromBucket",
+            "getBreedOffspring",
+            "getBucketItemStack",
+            "getDeathSound",
+            "getHurtSound",
+            "getMaxAirSupply",
+            "getPickupSound",
+            "getShellColor",
+            "getShellType",
+            "getSkinColor",
+            "getSkinType",
+            "getTurtleColor",
+            "getTurtleType",
+            "getTurtleTypeOrdinal",
+            "hasEgg",
+            "hasRetreated",
+            "increaseAirSupply",
+            "isFood",
+            "isKoopa",
+            "isMoving",
+            "isSpinning",
+            "lambda$collideDirectionAndSound$0",
+            "loadFromBucketTag",
+            "mobInteract",
+            "playStepSound",
+            "removeWhenFarAway",
+            "requiresCustomPersistence",
+            "saveToBucketTag",
+            "setFromBucket",
+            "setHasEgg",
+            "setRetreated",
+            "setShellColor",
+            "setShellType",
+            "setSkinColor",
+            "setSkinType",
+            "setSpinning",
+            "setTurtleColor",
+            "setTurtleType",
+            "setTurtleTypeOrdinal"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+          "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class"
+        }
+      ],
+      "entries": [
+        "com/github/alexthe666/alexsmobs/entity/EntityTerrapin.class"
+      ]
+    },
+    {
+      "reason": "Ordinary reproduction: native mate/egg/habitat/parent cosmetic data and XP acquisition only. No combat victim/damage/status/owner output. hasEgg also affects native leave-water admission already preserved.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin$LayEggGoal.class",
+          "methods": [
+            "<init>",
+            "acceptedDistance",
+            "canContinueToUse",
+            "canUse",
+            "isValidTarget",
+            "stop",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+          "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityTerrapin$LayEggGoal.class"
+        }
+      ],
+      "entries": [
+        "com/github/alexthe666/alexsmobs/entity/EntityTerrapin$LayEggGoal.class"
+      ]
+    },
+    {
+      "reason": "Ordinary reproduction: native mate/egg/habitat/parent cosmetic data and XP acquisition only. No combat victim/damage/status/owner output. hasEgg also affects native leave-water admission already preserved.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityTerrapin$MateGoal.class",
+          "methods": [
+            "<init>",
+            "breed",
+            "canUse"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+          "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityTerrapin$MateGoal.class"
+        }
+      ],
+      "entries": [
+        "com/github/alexthe666/alexsmobs/entity/EntityTerrapin$MateGoal.class"
+      ]
+    },
+    {
+      "reason": "Native sounds/cosmeticvariant/eyes/bodypose, spawn/reproduction, unused old AM breathing suffix; explicit environment/owner/heal/punch rules preserved above, no new damage attributed to visualupdate or utility.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class",
+          "methods": [
+            "canBreatheUnderwaterAM",
+            "canMantisShrimpSpawn",
+            "checkSpawnObstruction",
+            "checkSpawnRules",
+            "finalizeSpawn",
+            "getBreedOffspring",
+            "getDeathSound",
+            "getEyePitch",
+            "getEyeYaw",
+            "getHurtSound",
+            "getVariant",
+            "removeWhenFarAway",
+            "setEyePitch",
+            "setEyeYaw",
+            "setVariant",
+            "updateEyes"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-interactions.json",
+          "witness_id": "alexsmobs:aquatic-interactions:com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class"
+        }
+      ],
+      "entries": [
+        "com/github/alexthe666/alexsmobs/entity/EntityMantisShrimp.class"
+      ]
+    },
+    {
+      "reason": "Ordinary block-gathering utility with command3, nonbaby and no alive attacktarget admission; native heldblock item matching/LOS/water touch plus CommonHooks.canEntityDestroy and nonnegative destroy speed. Cooking requires fryablehelditem/not sitting; toggles furnaceLIT and replaces native heldstack after200ticks. Both goals use original punch(clock) and its frame target behavior already canonical, not an extra damage/effect event. Recipe/acquisition values are not Stage candidates.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/ai/MantisShrimpAIBreakBlocks.class",
+          "methods": [
+            "<init>",
+            "breakBlock",
+            "canContinueToUse",
+            "canUse",
+            "getIsAboveDestination",
+            "getTargetDistanceSq",
+            "hasLineOfSightBlock",
+            "isBlockTouchingWater",
+            "isWithinXZDist",
+            "resetTarget",
+            "shouldMoveTo",
+            "start",
+            "stop",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-pet-helpers.json",
+          "witness_id": "alexsmobs:aquatic-pet-helpers:com/github/alexthe666/alexsmobs/entity/ai/MantisShrimpAIBreakBlocks.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/ai/MantisShrimpAIFryRice.class",
+          "methods": [
+            "<init>",
+            "acceptedDistance",
+            "canContinueToUse",
+            "canUse",
+            "isValidTarget",
+            "stop",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-pet-helpers.json",
+          "witness_id": "alexsmobs:aquatic-pet-helpers:com/github/alexthe666/alexsmobs/entity/ai/MantisShrimpAIFryRice.class"
+        }
+      ],
+      "entries": [
+        "com/github/alexthe666/alexsmobs/entity/ai/MantisShrimpAIBreakBlocks.class",
+        "com/github/alexthe666/alexsmobs/entity/ai/MantisShrimpAIFryRice.class"
+      ]
+    },
+    {
+      "reason": "Shared ordinary own-navigation context: native water/lava/target/stop and movement-speed gates, waypoint/controller/travel. No damage/effect/heal/recipient forced movement. Sink controller MimicOctopus non-ground idle Y-.02 is actor locomotion only; actor family remains queued. Native controller speed/reset/geometry not automatic external Stage parameters.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/ai/AnimalSwimMoveControllerSink.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-pet-helpers.json",
+          "witness_id": "alexsmobs:aquatic-pet-helpers:com/github/alexthe666/alexsmobs/entity/ai/AnimalSwimMoveControllerSink.class"
+        }
+      ],
+      "entries": [
+        "com/github/alexthe666/alexsmobs/entity/ai/AnimalSwimMoveControllerSink.class"
+      ]
+    },
+    {
+      "reason": "Shared ordinary own-navigation context: native water/lava/target/stop and movement-speed gates, waypoint/controller/travel. No damage/effect/heal/recipient forced movement. Sink controller MimicOctopus non-ground idle Y-.02 is actor locomotion only; actor family remains queued. Native controller speed/reset/geometry not automatic external Stage parameters.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/ai/SemiAquaticAIRandomSwimming.class",
+          "methods": [
+            "<init>",
+            "canJumpTo",
+            "canUse",
+            "findSurfaceTarget",
+            "getPosition",
+            "isAirAbove"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-pet-helpers.json",
+          "witness_id": "alexsmobs:aquatic-pet-helpers:com/github/alexthe666/alexsmobs/entity/ai/SemiAquaticAIRandomSwimming.class"
+        }
+      ],
+      "entries": [
+        "com/github/alexthe666/alexsmobs/entity/ai/SemiAquaticAIRandomSwimming.class"
+      ]
+    },
+    {
+      "reason": "Shared ordinary own-navigation context: native water/lava/target/stop and movement-speed gates, waypoint/controller/travel. No damage/effect/heal/recipient forced movement. Sink controller MimicOctopus non-ground idle Y-.02 is actor locomotion only; actor family remains queued. Native controller speed/reset/geometry not automatic external Stage parameters.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/ai/GroundPathNavigatorWide.class",
+          "methods": [
+            "<init>",
+            "followThePath",
+            "shouldTargetNextNodeInDirection"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-aquatic-pet-helpers.json",
+          "witness_id": "alexsmobs:aquatic-pet-helpers:com/github/alexthe666/alexsmobs/entity/ai/GroundPathNavigatorWide.class"
+        }
+      ],
+      "entries": [
+        "com/github/alexthe666/alexsmobs/entity/ai/GroundPathNavigatorWide.class"
+      ]
+    }
+  ],
+  "record_refinements": [],
+  "exact_next_task": "R2o4d — MimicOctopus complete combat/control family, then grouped remaining aquatic actors; reuse locked environment, owner, bucket and navigation context.",
+  "stage_policy_decided": false,
+  "runtime_tests": 0
+}

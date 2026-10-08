@@ -1,0 +1,20 @@
+{
+  "schema": "tno.external_effects.selected_reference.v1",
+  "id": "alexsmobs-aquatic-owner-loader",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "scope": "Exact current tamable owner and death callback patches only; native method declarations are separate proof.",
+  "status": "STATIC_EVIDENCE",
+  "witnesses": [
+    {
+      "archive_sha256": "ab6611d0408855a769aca03121f53e4a8aa05e90a3bac17a15b5157079e24fda",
+      "entry": "patches/net/minecraft/world/entity/OwnableEntity.java.patch",
+      "absent": true
+    },
+    {
+      "archive_sha256": "ab6611d0408855a769aca03121f53e4a8aa05e90a3bac17a15b5157079e24fda",
+      "entry": "patches/net/minecraft/world/entity/TamableAnimal.java.patch",
+      "entry_sha256": "94241c6d6faec9ea1689447ef001baeb7ecf5bda3ab4636e7b5d3d83717dffa8",
+      "text": "--- a/net/minecraft/world/entity/TamableAnimal.java\n+++ b/net/minecraft/world/entity/TamableAnimal.java\n@@ -220,11 +_,15 @@\n \n     @Override\n     public void die(DamageSource p_21809_) {\n+        // FORGE: Super moved to top so that death message would be cancelled properly\n+        net.minecraft.network.chat.Component deathMessage = this.getCombatTracker().getDeathMessage();\n+        super.die(p_21809_);\n+\n+        if (this.dead)\n         if (!this.level().isClientSide && this.level().getGameRules().getBoolean(GameRules.RULE_SHOWDEATHMESSAGES) && this.getOwner() instanceof ServerPlayer) {\n-            this.getOwner().sendSystemMessage(this.getCombatTracker().getDeathMessage());\n+            this.getOwner().sendSystemMessage(deathMessage);\n         }\n \n-        super.die(p_21809_);\n     }\n \n     public boolean isOrderedToSit() {\n"
+    }
+  ]
+}
