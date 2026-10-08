@@ -8,7 +8,7 @@ preserve newer valid work, finish the entire finite AlexMobs queue, then perform
 mod closure, commit/push/verify and STOP without starting another mod. All other
 research and production protections remain in force.
 
-R2o5d through R2o9 are closed. Current canonical review has 266 records and 1308 numeric candidates; 8432/11434 methods dispositioned and 3002 pending (1610 semantic-role). Next is R2oa remaining flying actors, then multipart and the complete remaining finite queue. Reuse the saved native packets, graphs, field index and Citadel contracts. Capture and structural grouping grant no semantic coverage.
+R2o5d through R2oa are closed. Current canonical review has 284 records and 1434 numeric candidates; 8808/11434 methods dispositioned and 2626 pending (1416 semantic-role). Next is R2ob multipart and remaining other actors, then the complete remaining finite queue. Reuse the saved native packets, graphs, field index and Citadel contracts. Capture and structural grouping grant no semantic coverage.
 
 ## Authorized objective for continuation
 
@@ -49,3 +49,5 @@ Authorized continuation recovery: R2o5d is now closed with all thirteen actors a
 - R2o7 bird closure: 241 canonical records, 1081 numeric candidates, 8037/11434 dispositioned; 3397 pending. Crow, Blue Jay, Seagull, Shoebill, Bald Eagle and exact helpers closed; 12 targeted tests PASS, integrity/numeric audits PASS, locked reviews and production unchanged. Pending-only remaining actor packet (1915 bodies/183 classes) reproduced byte-identically. Continue at R2o8 Flutter/Mungus/Bunfungus; recovery commit does not pause campaign.
 
 - R2o8/R2o9 recovery: fungal and parasitic flying actors closed in two grouped batches, 20 targeted tests PASS; integrity/numeric audits PASS and production unchanged. Continue at R2oa; this is not mod closure or a pause.
+
+- R2oa flight/wind closure: 18 records/126 numeric candidates/376 new method dispositions, 13 targeted tests PASS. New pinned Vanilla leash dispatch reproduced BYTE_IDENTICAL; saved effect/projectile/Vanilla contracts reused. Production and locked COMPLETE reviews unchanged. Continue at R2ob; no intermediate STOP.
