@@ -1,0 +1,2330 @@
+{
+  "schema": "tno.external_effects.reviewed_combat_batch.v1",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "legendary_monsters",
+  "checkpoint": "legendary-monsters-creatures-three",
+  "closed_scope": "Skeletosaurus and remaining Chorusling/Endersent/Shulker creature boundaries.",
+  "effects": [
+    {
+      "id": "lm:chorusling",
+      "display_name": "chorusling",
+      "source_actor": [
+        "entity/AnimatedMonster/Mobs/Chorusling/ChoruslingEntity",
+        "entity/ai/ChoruslingAttackGoal",
+        "entity/AnimatedMonster/OriginClasses/AbstractChorusling"
+      ],
+      "primary_classification": "CUSTOM_DAMAGE",
+      "actual_behavior": "AbstractChorusling extends IAnimatedMob, so shares FALL/IN_WALL rejection and animated state kernel, without miniboss cap/idle-heal. Health70/armor6/resistance.5/range14/speed.1/knockback.5/damage5/XP2 with configured full-health scaling. Own hurt rejects IN_FIRE, direct AbstractArrow, FALL and TRIDENT. Own registerGoals does not invoke AbstractChorusling.registerGoals, so its extra AnnihilationPursuer/Obliterator targeting is dormant here; actual targets Player, SnowGolem, retaliation and AbstractFlameborn, plus a Mob.class predicate testing Player (incompatible native Mob class filter). Correct single-argument attack goal speed3 starts windup9/reset18/squared reach12.25. It first invokes native melee callback: when child counter ready and native melee range/LOS passes, parent calls custom doHurtTarget and resets18, suppressing subsequent custom performAttack. Custom doHurtTarget casts ATTACK_DAMAGE float then multiplies ChoruslingDamageMultiplier, mobAttack; accepted damage triggers knockback=.5*ATTACK_KNOCKBACK, own horizontal*.6, last hurt mob, and if own mainhand Axe/target exact vanilla SHIELD used item then cooldown100/broadcast30. Outside native range but within custom reach (or lacking LOS), custom performAttack uses this doHurtTarget for nonPlayer; Player uses direct amount5*config HARD/NORMAL, EASY+3, no extra custom accepted-hit knockback. Then CURRENT target nonblocking receives ChorusInfection60amp0 independently accepted damage, and blocking recipient shield40 if not already cooling. This proc belongs to custom performAttack only, not every parent melee hit; custom periodic infection dormant. Own count decrements only after parent tick while counting, out-of-range resets and clears animation. Modified doHurtTarget omits enchantment damage/post-attack processing. Constructor/type/drop/sound/animation state adds no alternate payload. Death callback60 server removal; target/fuse animation clocks transient.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native admission, damage, navigation and status APIs with mod state callbacks.",
+      "components": [
+        {
+          "primitive": "NATIVE_CHORUSLING",
+          "numerical_parameters": {
+            "health": 70,
+            "armor": 6,
+            "base_damage": 5,
+            "easy_addition": 3,
+            "custom_reach_squared": 12.25,
+            "windup": 9,
+            "reset": 18,
+            "infection_ticks": 60,
+            "shield_custom": 40,
+            "shield_native_axe": 100
+          }
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Chorusling/ChoruslingEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "LGspawnatlocation",
+            "aiStep",
+            "attackTargets",
+            "canDespawn",
+            "createAttributes",
+            "createNavigation",
+            "defineSynchedData",
+            "die",
+            "doHurtTarget",
+            "getAmbientSound",
+            "getDeathSound",
+            "getHurtSound",
+            "hurt",
+            "isAttacking",
+            "isPushable",
+            "lambda$registerGoals$0",
+            "maybeDisableShield",
+            "onAddedToLevel",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "setAttacking",
+            "setupAnimationStates",
+            "spawnAtLocation",
+            "stopAllOtherAnimations",
+            "tick",
+            "tickDeath",
+            "updateWalkAnimation"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Chorusling/ChoruslingEntity.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/ai/ChoruslingAttackGoal.class",
+          "methods": [
+            "<init>",
+            "checkAndPerformAttack",
+            "getTicksUntilNextAttack",
+            "isEnemyWithinAttackDistance",
+            "isTimeToAttack",
+            "isTimeToStartAttackAnimation",
+            "performAttack",
+            "resetAttackCooldown",
+            "start",
+            "stop",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/ai/ChoruslingAttackGoal.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/OriginClasses/AbstractChorusling.class",
+          "methods": [
+            "<init>",
+            "registerGoals"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/OriginClasses/AbstractChorusling.class"
+        },
+        {
+          "evidence_format": "VANILLA_COMPARISON",
+          "evidence_file": "vanilla-evidence/legendary-monsters-melee-scheduling.json",
+          "entry": "caw.class",
+          "witness_id": "net/minecraft/world/entity/ai/goal/MeleeAttackGoal",
+          "methods": [
+            "checkAndPerformAttack",
+            "canPerformAttack",
+            "isTimeToAttack",
+            "tick",
+            "requiresUpdateEveryTick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "lm:chorusling:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Chorusling/ChoruslingEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "LGspawnatlocation",
+            "aiStep",
+            "attackTargets",
+            "canDespawn",
+            "createAttributes",
+            "createNavigation",
+            "defineSynchedData",
+            "die",
+            "doHurtTarget",
+            "getAmbientSound",
+            "getDeathSound",
+            "getHurtSound",
+            "hurt",
+            "isAttacking",
+            "isPushable",
+            "lambda$registerGoals$0",
+            "maybeDisableShield",
+            "onAddedToLevel",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "setAttacking",
+            "setupAnimationStates",
+            "spawnAtLocation",
+            "stopAllOtherAnimations",
+            "tick",
+            "tickDeath",
+            "updateWalkAnimation"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/ai/ChoruslingAttackGoal.class",
+          "methods": [
+            "<init>",
+            "checkAndPerformAttack",
+            "getTicksUntilNextAttack",
+            "isEnemyWithinAttackDistance",
+            "isTimeToAttack",
+            "isTimeToStartAttackAnimation",
+            "performAttack",
+            "resetAttackCooldown",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/OriginClasses/AbstractChorusling.class",
+          "methods": [
+            "<init>",
+            "registerGoals"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "AbstractChorusling extends IAnimatedMob, so shares FALL/IN_WALL rejection and animated state kernel, without miniboss cap/idle-heal. Health70/armor6/resistance.5/range14/speed.1/knockback.5/damage5/XP2 with configured full-health scaling. Own hurt rejects IN_FIRE, direct AbstractArrow, FALL and TRIDENT. Own registerGoals does not invoke AbstractChorusling.registerGoals, so its extra AnnihilationPursuer/Obliterator targeting is dormant here; actual targets Player, SnowGolem, retaliation and AbstractFlameborn, plus a Mob.class predicate testing Player (incompatible native Mob class filter). Correct single-argument attack goal speed3 starts windup9/reset18/squared reach12.25. It first invokes native melee callback: when child counter ready and native melee range/LOS passes, parent calls custom doHurtTarget and resets18, suppressing subsequent custom performAttack. Custom doHurtTarget casts ATTACK_DAMAGE float then multiplies ChoruslingDamageMultiplier, mobAttack; accepted damage triggers knockback=.5*ATTACK_KNOCKBACK, own horizontal*.6, last hurt mob, and if own mainhand Axe/target exact vanilla SHIELD used item then cooldown100/broadcast30. Outside native range but within custom reach (or lacking LOS), custom performAttack uses this doHurtTarget for nonPlayer; Player uses direct amount5*config HARD/NORMAL, EASY+3, no extra custom accepted-hit knockback. Then CURRENT target nonblocking receives ChorusInfection60amp0 independently accepted damage, and blocking recipient shield40 if not already cooling. This proc belongs to custom performAttack only, not every parent melee hit; custom periodic infection dormant. Own count decrements only after parent tick while counting, out-of-range resets and clears animation. Modified doHurtTarget omits enchantment damage/post-attack processing. Constructor/type/drop/sound/animation state adds no alternate payload. Death callback60 server removal; target/fuse animation clocks transient.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Chorusling/ChoruslingEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "LGspawnatlocation",
+            "aiStep",
+            "attackTargets",
+            "canDespawn",
+            "createAttributes",
+            "createNavigation",
+            "defineSynchedData",
+            "die",
+            "doHurtTarget",
+            "getAmbientSound",
+            "getDeathSound",
+            "getHurtSound",
+            "hurt",
+            "isAttacking",
+            "isPushable",
+            "lambda$registerGoals$0",
+            "maybeDisableShield",
+            "onAddedToLevel",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "setAttacking",
+            "setupAnimationStates",
+            "spawnAtLocation",
+            "stopAllOtherAnimations",
+            "tick",
+            "tickDeath",
+            "updateWalkAnimation"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/ai/ChoruslingAttackGoal.class",
+          "methods": [
+            "<init>",
+            "checkAndPerformAttack",
+            "getTicksUntilNextAttack",
+            "isEnemyWithinAttackDistance",
+            "isTimeToAttack",
+            "isTimeToStartAttackAnimation",
+            "performAttack",
+            "resetAttackCooldown",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/OriginClasses/AbstractChorusling.class",
+          "methods": [
+            "<init>",
+            "registerGoals"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:endersent",
+      "display_name": "endersent",
+      "source_actor": [
+        "entity/AnimatedMonster/Mobs/Chorusling/EndersentEntity"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "AbstractChorusling/IAnimatedMob health200/armor10/resistance1/range30/speed.1/knockback.5/native damage16/XP40, configured full-health scaling/persistence/no peaceful despawn. Own registerGoals replaces parent, targets Players/golems/AbstractFlameborn/retaliation; no inherited Pursuer/Obliterator targets. Direct ANY Projectile first invokes random teleport then rejects damage even bypass/sleep; teleport attempts10 sameY x/z +/-7 requiring empty block and nonair below, no volume/liquid safety. Other own rejects IN_FIRE/FALL/TRIDENT and sleep1/2 non-bypass; base additionally IN_WALL. Sleep blocks effects and enemy visibility. Own attack update before parent and cooldown decrements. State3/4 tick26 area7/height4/arc120/base12/shield40; state6 tick26 same base15; all teleport randomly at29. State5 tick7 stores CURRENT target coordinates as floats,20 invulnerable and if current target exists teleports to stored coordinates (argument itself unused),26 clears invulnerability and area5/height4/arc140/base12/shield40. If target replaced between7/20, stored prior coordinates still used. All area bases*EndersentDamageMultiplier, excludes self/Endersent/Chorusling/allies with wrapped-angle distance precedence. Before damage nonblocking and !stun samples Math.random>.5 ChorusInfection40amp2 owned by this; custom tick dormant. launch sets absolute(0,Lstrength=.25,0), shield40, independent accepted damage. State3 max45/look15/range5 sample.4 cooldown60; state4 same sample16/50 cooldown60; state6 max45/look64/range5 no additional random; state5 max45/look30/range12 sample.45 cooldown160. Sleep freezes motion, wake max20/range15. Collision(.1,0,.1); aim yaw overwritten by pitch. NBT sleep only, state2 reload maps1, cooldowns/float aim/transient counter not saved. Death state7 removal60 callbacks. Presentation camera/animations no damage.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native admission, damage, navigation and status APIs with mod state callbacks.",
+      "components": [
+        {
+          "primitive": "NATIVE_ENDERSENT",
+          "numerical_parameters": {
+            "health": 200,
+            "armor": 10,
+            "native_damage": 16,
+            "arm_base": 12,
+            "slam_base": 15,
+            "infection_ticks": 40,
+            "infection_amplifier": 2,
+            "absolute_motion_y": 0.25,
+            "teleport_attempts": 10,
+            "teleport_span": 14,
+            "attack_cooldown": 60,
+            "teleport_cooldown": 160,
+            "death_callbacks": 60
+          }
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Chorusling/EndersentEntity.class",
+          "methods": [
+            "<init>",
+            "AreaAttack",
+            "LGspawnatlocation",
+            "addAdditionalSaveData",
+            "addEffect",
+            "aiStep",
+            "canBeAffected",
+            "canBeSeenAsEnemy",
+            "canDespawn",
+            "createAttributes",
+            "createBodyControl",
+            "createNavigation",
+            "die",
+            "finalizeSpawn",
+            "getAmbientSound",
+            "getAnimationState",
+            "getDeathSound",
+            "getHurtSound",
+            "hurt",
+            "isPushable",
+            "isSleep",
+            "onAddedToLevel",
+            "onSyncedDataUpdated",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "resetSmashAnchorCooldown",
+            "resetSmashCooldown",
+            "setSleep",
+            "shouldDespawnInPeaceful",
+            "spawnAtLocation",
+            "startSeenByPlayer",
+            "stopAllAnimationStates",
+            "stopSeenByPlayer",
+            "teleportRandomly",
+            "teleportToTarget",
+            "tick",
+            "tickDeath",
+            "updateWithAttack"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Chorusling/EndersentEntity.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Chorusling/EndersentEntity$1.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Chorusling/EndersentEntity$1.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Chorusling/EndersentEntity$2.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Chorusling/EndersentEntity$2.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Chorusling/EndersentEntity$3.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Chorusling/EndersentEntity$3.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Chorusling/EndersentEntity$4.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Chorusling/EndersentEntity$4.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:endersent:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Chorusling/EndersentEntity.class",
+          "methods": [
+            "<init>",
+            "AreaAttack",
+            "LGspawnatlocation",
+            "addAdditionalSaveData",
+            "addEffect",
+            "aiStep",
+            "canBeAffected",
+            "canBeSeenAsEnemy",
+            "canDespawn",
+            "createAttributes",
+            "createBodyControl",
+            "createNavigation",
+            "die",
+            "finalizeSpawn",
+            "getAmbientSound",
+            "getAnimationState",
+            "getDeathSound",
+            "getHurtSound",
+            "hurt",
+            "isPushable",
+            "isSleep",
+            "onAddedToLevel",
+            "onSyncedDataUpdated",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "resetSmashAnchorCooldown",
+            "resetSmashCooldown",
+            "setSleep",
+            "shouldDespawnInPeaceful",
+            "spawnAtLocation",
+            "startSeenByPlayer",
+            "stopAllAnimationStates",
+            "stopSeenByPlayer",
+            "teleportRandomly",
+            "teleportToTarget",
+            "tick",
+            "tickDeath",
+            "updateWithAttack"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Chorusling/EndersentEntity$1.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Chorusling/EndersentEntity$2.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Chorusling/EndersentEntity$3.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Chorusling/EndersentEntity$4.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "AbstractChorusling/IAnimatedMob health200/armor10/resistance1/range30/speed.1/knockback.5/native damage16/XP40, configured full-health scaling/persistence/no peaceful despawn. Own registerGoals replaces parent, targets Players/golems/AbstractFlameborn/retaliation; no inherited Pursuer/Obliterator targets. Direct ANY Projectile first invokes random teleport then rejects damage even bypass/sleep; teleport attempts10 sameY x/z +/-7 requiring empty block and nonair below, no volume/liquid safety. Other own rejects IN_FIRE/FALL/TRIDENT and sleep1/2 non-bypass; base additionally IN_WALL. Sleep blocks effects and enemy visibility. Own attack update before parent and cooldown decrements. State3/4 tick26 area7/height4/arc120/base12/shield40; state6 tick26 same base15; all teleport randomly at29. State5 tick7 stores CURRENT target coordinates as floats,20 invulnerable and if current target exists teleports to stored coordinates (argument itself unused),26 clears invulnerability and area5/height4/arc140/base12/shield40. If target replaced between7/20, stored prior coordinates still used. All area bases*EndersentDamageMultiplier, excludes self/Endersent/Chorusling/allies with wrapped-angle distance precedence. Before damage nonblocking and !stun samples Math.random>.5 ChorusInfection40amp2 owned by this; custom tick dormant. launch sets absolute(0,Lstrength=.25,0), shield40, independent accepted damage. State3 max45/look15/range5 sample.4 cooldown60; state4 same sample16/50 cooldown60; state6 max45/look64/range5 no additional random; state5 max45/look30/range12 sample.45 cooldown160. Sleep freezes motion, wake max20/range15. Collision(.1,0,.1); aim yaw overwritten by pitch. NBT sleep only, state2 reload maps1, cooldowns/float aim/transient counter not saved. Death state7 removal60 callbacks. Presentation camera/animations no damage.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Chorusling/EndersentEntity.class",
+          "methods": [
+            "<init>",
+            "AreaAttack",
+            "LGspawnatlocation",
+            "addAdditionalSaveData",
+            "addEffect",
+            "aiStep",
+            "canBeAffected",
+            "canBeSeenAsEnemy",
+            "canDespawn",
+            "createAttributes",
+            "createBodyControl",
+            "createNavigation",
+            "die",
+            "finalizeSpawn",
+            "getAmbientSound",
+            "getAnimationState",
+            "getDeathSound",
+            "getHurtSound",
+            "hurt",
+            "isPushable",
+            "isSleep",
+            "onAddedToLevel",
+            "onSyncedDataUpdated",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "resetSmashAnchorCooldown",
+            "resetSmashCooldown",
+            "setSleep",
+            "shouldDespawnInPeaceful",
+            "spawnAtLocation",
+            "startSeenByPlayer",
+            "stopAllAnimationStates",
+            "stopSeenByPlayer",
+            "teleportRandomly",
+            "teleportToTarget",
+            "tick",
+            "tickDeath",
+            "updateWithAttack"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Chorusling/EndersentEntity$1.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Chorusling/EndersentEntity$2.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Chorusling/EndersentEntity$3.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Chorusling/EndersentEntity$4.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:shulker_mimic",
+      "display_name": "shulker mimic",
+      "source_actor": [
+        "entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity",
+        "entity/AnimatedMonster/Mobs/ShulkerTower/ShulkerMimicPart",
+        "entity/AnimatedMonster/Mobs/ShulkerTower/goals/FireworkGrabGoal"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "IAnimatedMiniBoss with configured full-health scaling, health 200, armor 15, resistance 1, follow range 30, speed .1, attack knockback .5, native damage 12, step height 2, XP 20. Persistent multipart actor: one .7 by .7 pickable head with parent ID+1 and ticked rotated offset; head is not independently saved or spawned. Body hurt rejects projectile-tag damage, FALL, sleep states 1/2, and teleport windows state9 ticks23..28 or state10 ticks33..38, even bypass sources. Head hurt first checks its own invulnerability then calls applyPartDamage -> super.hurt, bypassing those body checks while retaining miniboss/base admission. The separate hurt(part,source,amount) returns true without damage but has no native callers. Sleep blocks effects/enemy visibility. Phase starts1 and becomes2 in strict MEDIUM health bucket (<.5),3 HIGH (<.25), only promoted when currently different; healing can return HIGH to MEDIUM and downgrade3->2. Save phase/sleep only, waking reloads sleeping; cooldowns/type choices transient. Passengers cannot control/sit; Player passenger shift is cleared, all passengers ejected outside14/16. Damage nerf is constant5. Area damage (base-5)*ShulkerMimicDamageMutliplier excludes self/Mimics/allies and uses wrapped-angle alternatives with distance precedence. Accepted hits launch when requested; all active producers pass canStun=false, so defined STUN80amp1 has no active producer here. Shields disabled independently accepted damage. State3 dash.2 at14, area range3.9 height4 arc180 base16/shield100 at17. State4 backward impulse-.75 ticks4..6, dash.35 at23, straight box inflate(.005,4,.005) expanded4 at31, base20/shield100/accepted launch. State5 backward impulse-.75 ticks4..6. State8 dash.25 ticks14/27, area4.5 height1.1 arc180 base18/shield100/no launch at17/30. State7 loop executes three iterations: blocks spawn at24/26/28 at distances2/3/4, spread .7*pi, ceil(distance*spread) cells, front offset2, downward render-shape search30; falling block constructed but not added. Every cell nonallied target in 1x5x1 selection requests mobAttack 11-5*1+min(11*1,maxHP*1), no config scaling; accepted hit adds Y=.05*distance+random[0,.15). The same loop repeats area range5/height4/arc180/base20/shield140/launch three times at24 and repeats push three times on25..45. Push selection uses negative horizontal inflate-.5, vertical0, forward14; damage (5-5)*config=0 still requested, accepted hit adds GRAVITY_PULL100amp2 to SELF. Independent invulnerable-Player exclusion motion subtracts normalized away vector scaled-.06, actually pushes outward by .06, three times; custom GravityPull periodic tick is dormant. State6 bullets at10 and21 duplicated by a second same-state block: two size.75 at10, two size1 at21, one size1.5 at32. State12 size.75 at10/size1 at21. State9 size.75 at10,size1 at33,size1.5 at43 plus server teleport at23 behind target relative yaw (-5 forward,+2 side); state10 sizes .75/1/1.5 at10/21/44 but no own teleport producer despite immunity window33..38. Big bullets owner=this, destination current targetY+1.5, origin ownY+2; shoot helper always adds backward impulse-.5 before target gate, no local spawn server guard, canonical bullet payload. State11 tick18 two gravity bullets size.75 velocity1 inaccuracies15-4*difficultyID and45-4*difficultyID, origin relative(.75,Y+.5), bulletY origin+1.5, aim adds horizontalDistance*.2, owner=this, no local server gate. State14 tick22 dash.2;25 server Grab narrow .0025 inflate, Y2, expanded3.5: first nonallied entity only requests amount 5-5*PosessedPaladinDamageMutliplier + .03*CURRENT_TARGET maxHP, then forces mount only if hit entity IS target, independent hurt. Success requires accepted damage AND mounting; shield100 independent. State17 launch branch (.8 radial/Y1.25) has no state17 initiator. FireworkGrabGoal stop success ->16 server and clears flag; failure ->15. RequiresUpdateEveryTick=false. States15/16 max20/44 then cooldown100; state16 tick22 launches size1 firework bullet straight up destination ownY+10 fromY+.45 carrying CURRENT target, regardless whether actual passenger. SideGrab helper has zero native calls/handles, excludes Obliterator, mounts before damage and uses Stratling config, so no extra active grab. Teleport constructs EnderEntity but does not post it; cancellation is inspected on this unposted object. Searches ground, loaded chunk, moves then collision/liquid checks, rolls back and syncs on failure, navigation stops on success. Goals probability16% for ordinary attacks; backstep states4/5 selected type2/1, ranges5, max51/17 look25 cooldown80; shoot6 type1/3 max48 look42/39,9 type2 or10 type3 max67/look60, range12/cooldown30. Big11 max42/look38/range12 cooldown60,12 additionallytype4 max45/look38. Slam7 max65/look5/range6 cooldown60; bite3 max36/look36/range6; double8 max50/look20/range6/vertical>=-1/cooldown40. Grab14 max27/look5/range6 sample32% cooldown100; sleeping freeze and wake max40/look10/range7. Random shooting switch uses nextInt4: case0 picks4/1,case1 picks4/1/2 by phase;case2 picks4/1/3 then falls through empty3;case3 leaves prior type unchanged;case4 unreachable. Phase1 backsteps always2, later each type half. Six cooldowns decrement each tick. Death state13 counter60, removal has no local server gate. Presentation animations/camera/sound add no attack.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native admission, damage, navigation and status APIs with mod state callbacks.",
+      "components": [
+        {
+          "primitive": "NATIVE_SHULKER_MIMIC",
+          "numerical_parameters": {
+            "health": 200,
+            "armor": 15,
+            "damage_nerf": 5,
+            "bite_base": 16,
+            "dash_base": 20,
+            "slash_base": 18,
+            "slam_base": 20,
+            "grab_base": 5,
+            "grab_target_hp_fraction": 0.03,
+            "repel_damage": 0,
+            "gravity_pull_ticks": 100,
+            "gravity_pull_amplifier": 2,
+            "shield_bite": 100,
+            "shield_slam": 140,
+            "firework_cooldown": 100,
+            "death_callbacks": 60
+          }
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "AreaAttack",
+            "Grab",
+            "PushEntitiesAwayInFrontOf",
+            "SideGrab",
+            "SpawnDamagingBlocks",
+            "Sphereparticle",
+            "StraightLineAreaAttack",
+            "UpdateWithAttack",
+            "addAdditionalSaveData",
+            "addEffect",
+            "aiStep",
+            "animationLockedForTests",
+            "applyPartDamage",
+            "attackDelayTicksValue",
+            "backStep",
+            "canBeAffected",
+            "canBeCollidedWith",
+            "canBeSeenAsEnemy",
+            "canCollideWith",
+            "canDespawn",
+            "createAttributes",
+            "createNavigation",
+            "damageNerf",
+            "defineSynchedData",
+            "die",
+            "finalizeSpawn",
+            "getAmbientSound",
+            "getAnimationState",
+            "getAttachFace",
+            "getControllingPassenger",
+            "getCrackiness",
+            "getDeathSound",
+            "getEntityParts",
+            "getHurtSound",
+            "getNextRandomBackstep",
+            "getNextRandomShootType",
+            "getPartXRot",
+            "getPartYRot",
+            "getParts",
+            "getPhase",
+            "hurt",
+            "isDuringTeleportation",
+            "isHighCrackiness",
+            "isLowCrackiness",
+            "isMediumCrackiness",
+            "isMultipartEntity",
+            "isNoneCrackiness",
+            "isPushable",
+            "isSleep",
+            "onAddedToLevel",
+            "onSyncedDataUpdated",
+            "randomizeAttackPatterns",
+            "randomizeNextBackstepType",
+            "randomizeNextShootType",
+            "readAdditionalSaveData",
+            "recreateFromPacket",
+            "registerGoals",
+            "setId",
+            "setPartXRot",
+            "setPartYRot",
+            "setPhase",
+            "setSleep",
+            "shootBigShulkerBullet",
+            "shootGravityShulkerBullet",
+            "shouldRiderSit",
+            "stopAllAnimationStates",
+            "teleport",
+            "teleportBoolean",
+            "tick",
+            "tickDeath",
+            "tickPart"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$1.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$1.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$10.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$10.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$11.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$11.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$12.class",
+          "methods": [
+            "<init>",
+            "stop"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$12.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$13.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$13.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$14.class",
+          "methods": [
+            "<init>",
+            "stop"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$14.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$15.class",
+          "methods": [
+            "<init>",
+            "stop"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$15.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$16.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$16.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$2.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$2.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$3.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$3.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$4.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$4.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$5.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$5.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$6.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$6.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$7.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$7.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$8.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$8.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$9.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$9.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$Crackiness.class",
+          "methods": [
+            "$values",
+            "<clinit>",
+            "<init>",
+            "byFraction",
+            "lambda$static$0",
+            "valueOf",
+            "values"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$Crackiness.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/ShulkerMimicPart.class",
+          "methods": [
+            "<init>",
+            "addAdditionalSaveData",
+            "defineSynchedData",
+            "getAddEntityPacket",
+            "getDimensions",
+            "getPickResult",
+            "hurt",
+            "is",
+            "isAttackable",
+            "isPickable",
+            "readAdditionalSaveData",
+            "shouldBeSaved"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/ShulkerMimicPart.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/goals/FireworkGrabGoal.class",
+          "methods": [
+            "<init>",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/goals/FireworkGrabGoal.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:shulker_mimic:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "AreaAttack",
+            "Grab",
+            "PushEntitiesAwayInFrontOf",
+            "SideGrab",
+            "SpawnDamagingBlocks",
+            "Sphereparticle",
+            "StraightLineAreaAttack",
+            "UpdateWithAttack",
+            "addAdditionalSaveData",
+            "addEffect",
+            "aiStep",
+            "animationLockedForTests",
+            "applyPartDamage",
+            "attackDelayTicksValue",
+            "backStep",
+            "canBeAffected",
+            "canBeCollidedWith",
+            "canBeSeenAsEnemy",
+            "canCollideWith",
+            "canDespawn",
+            "createAttributes",
+            "createNavigation",
+            "damageNerf",
+            "defineSynchedData",
+            "die",
+            "finalizeSpawn",
+            "getAmbientSound",
+            "getAnimationState",
+            "getAttachFace",
+            "getControllingPassenger",
+            "getCrackiness",
+            "getDeathSound",
+            "getEntityParts",
+            "getHurtSound",
+            "getNextRandomBackstep",
+            "getNextRandomShootType",
+            "getPartXRot",
+            "getPartYRot",
+            "getParts",
+            "getPhase",
+            "hurt",
+            "isDuringTeleportation",
+            "isHighCrackiness",
+            "isLowCrackiness",
+            "isMediumCrackiness",
+            "isMultipartEntity",
+            "isNoneCrackiness",
+            "isPushable",
+            "isSleep",
+            "onAddedToLevel",
+            "onSyncedDataUpdated",
+            "randomizeAttackPatterns",
+            "randomizeNextBackstepType",
+            "randomizeNextShootType",
+            "readAdditionalSaveData",
+            "recreateFromPacket",
+            "registerGoals",
+            "setId",
+            "setPartXRot",
+            "setPartYRot",
+            "setPhase",
+            "setSleep",
+            "shootBigShulkerBullet",
+            "shootGravityShulkerBullet",
+            "shouldRiderSit",
+            "stopAllAnimationStates",
+            "teleport",
+            "teleportBoolean",
+            "tick",
+            "tickDeath",
+            "tickPart"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$1.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$10.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$11.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$12.class",
+          "methods": [
+            "<init>",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$13.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$14.class",
+          "methods": [
+            "<init>",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$15.class",
+          "methods": [
+            "<init>",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$16.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$2.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$3.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$4.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$5.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$6.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$7.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$8.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$9.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$Crackiness.class",
+          "methods": [
+            "$values",
+            "<clinit>",
+            "<init>",
+            "byFraction",
+            "lambda$static$0",
+            "valueOf",
+            "values"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/ShulkerMimicPart.class",
+          "methods": [
+            "<init>",
+            "addAdditionalSaveData",
+            "defineSynchedData",
+            "getAddEntityPacket",
+            "getDimensions",
+            "getPickResult",
+            "hurt",
+            "is",
+            "isAttackable",
+            "isPickable",
+            "readAdditionalSaveData",
+            "shouldBeSaved"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/goals/FireworkGrabGoal.class",
+          "methods": [
+            "<init>",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "IAnimatedMiniBoss with configured full-health scaling, health 200, armor 15, resistance 1, follow range 30, speed .1, attack knockback .5, native damage 12, step height 2, XP 20. Persistent multipart actor: one .7 by .7 pickable head with parent ID+1 and ticked rotated offset; head is not independently saved or spawned. Body hurt rejects projectile-tag damage, FALL, sleep states 1/2, and teleport windows state9 ticks23..28 or state10 ticks33..38, even bypass sources. Head hurt first checks its own invulnerability then calls applyPartDamage -> super.hurt, bypassing those body checks while retaining miniboss/base admission. The separate hurt(part,source,amount) returns true without damage but has no native callers. Sleep blocks effects/enemy visibility. Phase starts1 and becomes2 in strict MEDIUM health bucket (<.5),3 HIGH (<.25), only promoted when currently different; healing can return HIGH to MEDIUM and downgrade3->2. Save phase/sleep only, waking reloads sleeping; cooldowns/type choices transient. Passengers cannot control/sit; Player passenger shift is cleared, all passengers ejected outside14/16. Damage nerf is constant5. Area damage (base-5)*ShulkerMimicDamageMutliplier excludes self/Mimics/allies and uses wrapped-angle alternatives with distance precedence. Accepted hits launch when requested; all active producers pass canStun=false, so defined STUN80amp1 has no active producer here. Shields disabled independently accepted damage. State3 dash.2 at14, area range3.9 height4 arc180 base16/shield100 at17. State4 backward impulse-.75 ticks4..6, dash.35 at23, straight box inflate(.005,4,.005) expanded4 at31, base20/shield100/accepted launch. State5 backward impulse-.75 ticks4..6. State8 dash.25 ticks14/27, area4.5 height1.1 arc180 base18/shield100/no launch at17/30. State7 loop executes three iterations: blocks spawn at24/26/28 at distances2/3/4, spread .7*pi, ceil(distance*spread) cells, front offset2, downward render-shape search30; falling block constructed but not added. Every cell nonallied target in 1x5x1 selection requests mobAttack 11-5*1+min(11*1,maxHP*1), no config scaling; accepted hit adds Y=.05*distance+random[0,.15). The same loop repeats area range5/height4/arc180/base20/shield140/launch three times at24 and repeats push three times on25..45. Push selection uses negative horizontal inflate-.5, vertical0, forward14; damage (5-5)*config=0 still requested, accepted hit adds GRAVITY_PULL100amp2 to SELF. Independent invulnerable-Player exclusion motion subtracts normalized away vector scaled-.06, actually pushes outward by .06, three times; custom GravityPull periodic tick is dormant. State6 bullets at10 and21 duplicated by a second same-state block: two size.75 at10, two size1 at21, one size1.5 at32. State12 size.75 at10/size1 at21. State9 size.75 at10,size1 at33,size1.5 at43 plus server teleport at23 behind target relative yaw (-5 forward,+2 side); state10 sizes .75/1/1.5 at10/21/44 but no own teleport producer despite immunity window33..38. Big bullets owner=this, destination current targetY+1.5, origin ownY+2; shoot helper always adds backward impulse-.5 before target gate, no local spawn server guard, canonical bullet payload. State11 tick18 two gravity bullets size.75 velocity1 inaccuracies15-4*difficultyID and45-4*difficultyID, origin relative(.75,Y+.5), bulletY origin+1.5, aim adds horizontalDistance*.2, owner=this, no local server gate. State14 tick22 dash.2;25 server Grab narrow .0025 inflate, Y2, expanded3.5: first nonallied entity only requests amount 5-5*PosessedPaladinDamageMutliplier + .03*CURRENT_TARGET maxHP, then forces mount only if hit entity IS target, independent hurt. Success requires accepted damage AND mounting; shield100 independent. State17 launch branch (.8 radial/Y1.25) has no state17 initiator. FireworkGrabGoal stop success ->16 server and clears flag; failure ->15. RequiresUpdateEveryTick=false. States15/16 max20/44 then cooldown100; state16 tick22 launches size1 firework bullet straight up destination ownY+10 fromY+.45 carrying CURRENT target, regardless whether actual passenger. SideGrab helper has zero native calls/handles, excludes Obliterator, mounts before damage and uses Stratling config, so no extra active grab. Teleport constructs EnderEntity but does not post it; cancellation is inspected on this unposted object. Searches ground, loaded chunk, moves then collision/liquid checks, rolls back and syncs on failure, navigation stops on success. Goals probability16% for ordinary attacks; backstep states4/5 selected type2/1, ranges5, max51/17 look25 cooldown80; shoot6 type1/3 max48 look42/39,9 type2 or10 type3 max67/look60, range12/cooldown30. Big11 max42/look38/range12 cooldown60,12 additionallytype4 max45/look38. Slam7 max65/look5/range6 cooldown60; bite3 max36/look36/range6; double8 max50/look20/range6/vertical>=-1/cooldown40. Grab14 max27/look5/range6 sample32% cooldown100; sleeping freeze and wake max40/look10/range7. Random shooting switch uses nextInt4: case0 picks4/1,case1 picks4/1/2 by phase;case2 picks4/1/3 then falls through empty3;case3 leaves prior type unchanged;case4 unreachable. Phase1 backsteps always2, later each type half. Six cooldowns decrement each tick. Death state13 counter60, removal has no local server gate. Presentation animations/camera/sound add no attack.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "AreaAttack",
+            "Grab",
+            "PushEntitiesAwayInFrontOf",
+            "SideGrab",
+            "SpawnDamagingBlocks",
+            "Sphereparticle",
+            "StraightLineAreaAttack",
+            "UpdateWithAttack",
+            "addAdditionalSaveData",
+            "addEffect",
+            "aiStep",
+            "animationLockedForTests",
+            "applyPartDamage",
+            "attackDelayTicksValue",
+            "backStep",
+            "canBeAffected",
+            "canBeCollidedWith",
+            "canBeSeenAsEnemy",
+            "canCollideWith",
+            "canDespawn",
+            "createAttributes",
+            "createNavigation",
+            "damageNerf",
+            "defineSynchedData",
+            "die",
+            "finalizeSpawn",
+            "getAmbientSound",
+            "getAnimationState",
+            "getAttachFace",
+            "getControllingPassenger",
+            "getCrackiness",
+            "getDeathSound",
+            "getEntityParts",
+            "getHurtSound",
+            "getNextRandomBackstep",
+            "getNextRandomShootType",
+            "getPartXRot",
+            "getPartYRot",
+            "getParts",
+            "getPhase",
+            "hurt",
+            "isDuringTeleportation",
+            "isHighCrackiness",
+            "isLowCrackiness",
+            "isMediumCrackiness",
+            "isMultipartEntity",
+            "isNoneCrackiness",
+            "isPushable",
+            "isSleep",
+            "onAddedToLevel",
+            "onSyncedDataUpdated",
+            "randomizeAttackPatterns",
+            "randomizeNextBackstepType",
+            "randomizeNextShootType",
+            "readAdditionalSaveData",
+            "recreateFromPacket",
+            "registerGoals",
+            "setId",
+            "setPartXRot",
+            "setPartYRot",
+            "setPhase",
+            "setSleep",
+            "shootBigShulkerBullet",
+            "shootGravityShulkerBullet",
+            "shouldRiderSit",
+            "stopAllAnimationStates",
+            "teleport",
+            "teleportBoolean",
+            "tick",
+            "tickDeath",
+            "tickPart"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$1.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$10.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$11.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$12.class",
+          "methods": [
+            "<init>",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$13.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$14.class",
+          "methods": [
+            "<init>",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$15.class",
+          "methods": [
+            "<init>",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$16.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$2.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$3.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$4.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$5.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$6.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$7.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$8.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$9.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$Crackiness.class",
+          "methods": [
+            "$values",
+            "<clinit>",
+            "<init>",
+            "byFraction",
+            "lambda$static$0",
+            "valueOf",
+            "values"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/ShulkerMimicPart.class",
+          "methods": [
+            "<init>",
+            "addAdditionalSaveData",
+            "defineSynchedData",
+            "getAddEntityPacket",
+            "getDimensions",
+            "getPickResult",
+            "hurt",
+            "is",
+            "isAttackable",
+            "isPickable",
+            "readAdditionalSaveData",
+            "shouldBeSaved"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/goals/FireworkGrabGoal.class",
+          "methods": [
+            "<init>",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:skeletosaurus",
+      "display_name": "skeletosaurus",
+      "source_actor": [
+        "entity/AnimatedMonster/Mobs/SkeletosaurusEntity"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "IAnimatedMiniBoss health200/armor15/resistance1/range30/speed.1/knockback.5/native damage13/XP10, configured full-health scaling and persistence/no peaceful despawn. Fire immune; own hurt rejects ON_FIRE/FALL/direct potion/cloud, sleep state1 rejects effects/non-bypass damage, waking2 is not sleep. Native baseTick refreshes dimensions every call. Own attack update after parent. Every tick movement BASE assigned .15 when isSpeed else.1, before clearing expired flag/decrementing duration. Roar stop sets isSpeed=true duration40; starting roar clears it. All four attack cooldowns decrement. State3 tick8 area8/height5/arc380/base9/shield40, no launch. State7 tick16 and state8 ticks16/36 area8/height7/arc380/base14/shield40/huge launch independent hurt. All area bases*SkeletosaurusDamageMutliplier, excludes self/Skeletosaurus/allies with wrapped-angle distance precedence; shield independent accepted hit. State6 supported Shockwave rings6/11/14/19/26 radii2.5/3.5/4.5/5.5/6.5 on ticks12/13/16/19/21,37/40/43/46/49,62/65/68/71/74, only with current target. Owner=this, damage17, constructor boolean false and warmup0 retained; no own server gate. State5 ticks2..9 and wake2 ticks23..32 run away mobs: box30/10/30, nonallied PathfinderMob, excluding self and sitting tame mob, clears target/last attacker, grounded horizontal*.7 plus random jitter +/- .05, navigation stops then picks LandRandomPos away(15,7), speed2. Native navigation admission retained. At state5 tick6 server applies FEAR240amp0 radius16/height10/360; wake2 tick45 FEAR140amp0. Fear marker periodic callback dormant; fleeing is independently active during these windows. Goal state6 max/look80/range7 sample16/42 cooldown100; state7 max/look50/range7 sample.4 healthiest buckets NONE/LOW cooldown100; state8 max/look48/range7 sample.4 MEDIUM/HIGH cooldown180; state3 max/look20/range6 sample.4. Roar0->5 max50/look64/range(9,12), sample.45, cooldown300; sleep1 frozen, wake1->2 max70/range15. Buckets strict .25/.5/.75/1. Legacy performAreaAttack radius3 applies BrokenArmor60 stackingamp0..4/refillsat4, and difficulty helper9.5*config HARD-2/EASY+9; current state callbacks do not call them, native caller closure separately verified. Save writes sleep but READS isSpeed from output compound into own flag rather than writing, generally clearing it; read restores isSpeed if externally supplied but not speed duration. Counter/helper animation flags add no extra attack. Death state4 removal60 callbacks; camera/sounds presentation only.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native admission, damage, navigation and status APIs with mod state callbacks.",
+      "components": [
+        {
+          "primitive": "NATIVE_SKELETOSAURUS",
+          "numerical_parameters": {
+            "health": 200,
+            "armor": 15,
+            "native_damage": 13,
+            "bite_base": 9,
+            "tail_base": 14,
+            "shockwave_damage": 17,
+            "fear_roar_ticks": 240,
+            "fear_wake_ticks": 140,
+            "flee_radius": 30,
+            "flee_speed": 2,
+            "speed_duration": 40,
+            "roar_cooldown": 300,
+            "death_callbacks": 60
+          }
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "ApplyEffects",
+            "AreaAttack",
+            "LGspawnatlocation",
+            "addAdditionalSaveData",
+            "addEffect",
+            "aiStep",
+            "attackTargets",
+            "baseTick",
+            "canBeAffected",
+            "canDespawn",
+            "createAttributes",
+            "createBodyControl",
+            "createNavigation",
+            "defineSynchedData",
+            "die",
+            "finalizeSpawn",
+            "fireImmune",
+            "getAmbientSound",
+            "getAnimationState",
+            "getCrackiness",
+            "getDeathSound",
+            "getHurtSound",
+            "handleWalkingMessage",
+            "hurt",
+            "isMoving",
+            "isPushable",
+            "isSleep",
+            "isSpeedy",
+            "onAddedToLevel",
+            "onSyncedDataUpdated",
+            "performAreaAttack",
+            "playStepSound",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "runawayMobs",
+            "setSleep",
+            "shouldDespawnInPeaceful",
+            "spawnAtLocation",
+            "spawnShockwaves",
+            "stopAllAnimationStates",
+            "tick",
+            "tickDeath",
+            "updateWithAttack"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$1.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$1.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$2.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$2.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$3.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$3.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$4.class",
+          "methods": [
+            "<init>",
+            "canUse"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$4.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$5.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$5.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$6.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$6.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$Crackiness.class",
+          "methods": [
+            "$values",
+            "<clinit>",
+            "<init>",
+            "byFraction",
+            "lambda$static$0",
+            "valueOf",
+            "values"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$Crackiness.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:skeletosaurus:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "ApplyEffects",
+            "AreaAttack",
+            "LGspawnatlocation",
+            "addAdditionalSaveData",
+            "addEffect",
+            "aiStep",
+            "attackTargets",
+            "baseTick",
+            "canBeAffected",
+            "canDespawn",
+            "createAttributes",
+            "createBodyControl",
+            "createNavigation",
+            "defineSynchedData",
+            "die",
+            "finalizeSpawn",
+            "fireImmune",
+            "getAmbientSound",
+            "getAnimationState",
+            "getCrackiness",
+            "getDeathSound",
+            "getHurtSound",
+            "handleWalkingMessage",
+            "hurt",
+            "isMoving",
+            "isPushable",
+            "isSleep",
+            "isSpeedy",
+            "onAddedToLevel",
+            "onSyncedDataUpdated",
+            "performAreaAttack",
+            "playStepSound",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "runawayMobs",
+            "setSleep",
+            "shouldDespawnInPeaceful",
+            "spawnAtLocation",
+            "spawnShockwaves",
+            "stopAllAnimationStates",
+            "tick",
+            "tickDeath",
+            "updateWithAttack"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$1.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$2.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$3.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$4.class",
+          "methods": [
+            "<init>",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$5.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$6.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$Crackiness.class",
+          "methods": [
+            "$values",
+            "<clinit>",
+            "<init>",
+            "byFraction",
+            "lambda$static$0",
+            "valueOf",
+            "values"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "IAnimatedMiniBoss health200/armor15/resistance1/range30/speed.1/knockback.5/native damage13/XP10, configured full-health scaling and persistence/no peaceful despawn. Fire immune; own hurt rejects ON_FIRE/FALL/direct potion/cloud, sleep state1 rejects effects/non-bypass damage, waking2 is not sleep. Native baseTick refreshes dimensions every call. Own attack update after parent. Every tick movement BASE assigned .15 when isSpeed else.1, before clearing expired flag/decrementing duration. Roar stop sets isSpeed=true duration40; starting roar clears it. All four attack cooldowns decrement. State3 tick8 area8/height5/arc380/base9/shield40, no launch. State7 tick16 and state8 ticks16/36 area8/height7/arc380/base14/shield40/huge launch independent hurt. All area bases*SkeletosaurusDamageMutliplier, excludes self/Skeletosaurus/allies with wrapped-angle distance precedence; shield independent accepted hit. State6 supported Shockwave rings6/11/14/19/26 radii2.5/3.5/4.5/5.5/6.5 on ticks12/13/16/19/21,37/40/43/46/49,62/65/68/71/74, only with current target. Owner=this, damage17, constructor boolean false and warmup0 retained; no own server gate. State5 ticks2..9 and wake2 ticks23..32 run away mobs: box30/10/30, nonallied PathfinderMob, excluding self and sitting tame mob, clears target/last attacker, grounded horizontal*.7 plus random jitter +/- .05, navigation stops then picks LandRandomPos away(15,7), speed2. Native navigation admission retained. At state5 tick6 server applies FEAR240amp0 radius16/height10/360; wake2 tick45 FEAR140amp0. Fear marker periodic callback dormant; fleeing is independently active during these windows. Goal state6 max/look80/range7 sample16/42 cooldown100; state7 max/look50/range7 sample.4 healthiest buckets NONE/LOW cooldown100; state8 max/look48/range7 sample.4 MEDIUM/HIGH cooldown180; state3 max/look20/range6 sample.4. Roar0->5 max50/look64/range(9,12), sample.45, cooldown300; sleep1 frozen, wake1->2 max70/range15. Buckets strict .25/.5/.75/1. Legacy performAreaAttack radius3 applies BrokenArmor60 stackingamp0..4/refillsat4, and difficulty helper9.5*config HARD-2/EASY+9; current state callbacks do not call them, native caller closure separately verified. Save writes sleep but READS isSpeed from output compound into own flag rather than writing, generally clearing it; read restores isSpeed if externally supplied but not speed duration. Counter/helper animation flags add no extra attack. Death state4 removal60 callbacks; camera/sounds presentation only.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "ApplyEffects",
+            "AreaAttack",
+            "LGspawnatlocation",
+            "addAdditionalSaveData",
+            "addEffect",
+            "aiStep",
+            "attackTargets",
+            "baseTick",
+            "canBeAffected",
+            "canDespawn",
+            "createAttributes",
+            "createBodyControl",
+            "createNavigation",
+            "defineSynchedData",
+            "die",
+            "finalizeSpawn",
+            "fireImmune",
+            "getAmbientSound",
+            "getAnimationState",
+            "getCrackiness",
+            "getDeathSound",
+            "getHurtSound",
+            "handleWalkingMessage",
+            "hurt",
+            "isMoving",
+            "isPushable",
+            "isSleep",
+            "isSpeedy",
+            "onAddedToLevel",
+            "onSyncedDataUpdated",
+            "performAreaAttack",
+            "playStepSound",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "runawayMobs",
+            "setSleep",
+            "shouldDespawnInPeaceful",
+            "spawnAtLocation",
+            "spawnShockwaves",
+            "stopAllAnimationStates",
+            "tick",
+            "tickDeath",
+            "updateWithAttack"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$1.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$2.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$3.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$4.class",
+          "methods": [
+            "<init>",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$5.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$6.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$Crackiness.class",
+          "methods": [
+            "$values",
+            "<clinit>",
+            "<init>",
+            "byFraction",
+            "lambda$static$0",
+            "valueOf",
+            "values"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    }
+  ],
+  "paths": [
+    {
+      "id": "lm:chorusling:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "MOB_MELEE"
+      ],
+      "effect_ids": [
+        "lm:chorusling"
+      ],
+      "primary_source": [
+        "entity/AnimatedMonster/Mobs/Chorusling/ChoruslingEntity",
+        "entity/ai/ChoruslingAttackGoal",
+        "entity/AnimatedMonster/OriginClasses/AbstractChorusling"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Chorusling/ChoruslingEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "LGspawnatlocation",
+            "aiStep",
+            "attackTargets",
+            "canDespawn",
+            "createAttributes",
+            "createNavigation",
+            "defineSynchedData",
+            "die",
+            "doHurtTarget",
+            "getAmbientSound",
+            "getDeathSound",
+            "getHurtSound",
+            "hurt",
+            "isAttacking",
+            "isPushable",
+            "lambda$registerGoals$0",
+            "maybeDisableShield",
+            "onAddedToLevel",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "setAttacking",
+            "setupAnimationStates",
+            "spawnAtLocation",
+            "stopAllOtherAnimations",
+            "tick",
+            "tickDeath",
+            "updateWalkAnimation"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/ai/ChoruslingAttackGoal.class",
+          "methods": [
+            "<init>",
+            "checkAndPerformAttack",
+            "getTicksUntilNextAttack",
+            "isEnemyWithinAttackDistance",
+            "isTimeToAttack",
+            "isTimeToStartAttackAnimation",
+            "performAttack",
+            "resetAttackCooldown",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/OriginClasses/AbstractChorusling.class",
+          "methods": [
+            "<init>",
+            "registerGoals"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:endersent:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "MOB_MELEE",
+        "AOE"
+      ],
+      "effect_ids": [
+        "lm:endersent"
+      ],
+      "primary_source": [
+        "entity/AnimatedMonster/Mobs/Chorusling/EndersentEntity"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Chorusling/EndersentEntity.class",
+          "methods": [
+            "<init>",
+            "AreaAttack",
+            "LGspawnatlocation",
+            "addAdditionalSaveData",
+            "addEffect",
+            "aiStep",
+            "canBeAffected",
+            "canBeSeenAsEnemy",
+            "canDespawn",
+            "createAttributes",
+            "createBodyControl",
+            "createNavigation",
+            "die",
+            "finalizeSpawn",
+            "getAmbientSound",
+            "getAnimationState",
+            "getDeathSound",
+            "getHurtSound",
+            "hurt",
+            "isPushable",
+            "isSleep",
+            "onAddedToLevel",
+            "onSyncedDataUpdated",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "resetSmashAnchorCooldown",
+            "resetSmashCooldown",
+            "setSleep",
+            "shouldDespawnInPeaceful",
+            "spawnAtLocation",
+            "startSeenByPlayer",
+            "stopAllAnimationStates",
+            "stopSeenByPlayer",
+            "teleportRandomly",
+            "teleportToTarget",
+            "tick",
+            "tickDeath",
+            "updateWithAttack"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Chorusling/EndersentEntity$1.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Chorusling/EndersentEntity$2.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Chorusling/EndersentEntity$3.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Chorusling/EndersentEntity$4.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:shulker_mimic:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "MOB_MELEE",
+        "AOE",
+        "SUMMONED_ATTACK"
+      ],
+      "effect_ids": [
+        "lm:shulker_mimic"
+      ],
+      "primary_source": [
+        "entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity",
+        "entity/AnimatedMonster/Mobs/ShulkerTower/ShulkerMimicPart",
+        "entity/AnimatedMonster/Mobs/ShulkerTower/goals/FireworkGrabGoal"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "AreaAttack",
+            "Grab",
+            "PushEntitiesAwayInFrontOf",
+            "SideGrab",
+            "SpawnDamagingBlocks",
+            "Sphereparticle",
+            "StraightLineAreaAttack",
+            "UpdateWithAttack",
+            "addAdditionalSaveData",
+            "addEffect",
+            "aiStep",
+            "animationLockedForTests",
+            "applyPartDamage",
+            "attackDelayTicksValue",
+            "backStep",
+            "canBeAffected",
+            "canBeCollidedWith",
+            "canBeSeenAsEnemy",
+            "canCollideWith",
+            "canDespawn",
+            "createAttributes",
+            "createNavigation",
+            "damageNerf",
+            "defineSynchedData",
+            "die",
+            "finalizeSpawn",
+            "getAmbientSound",
+            "getAnimationState",
+            "getAttachFace",
+            "getControllingPassenger",
+            "getCrackiness",
+            "getDeathSound",
+            "getEntityParts",
+            "getHurtSound",
+            "getNextRandomBackstep",
+            "getNextRandomShootType",
+            "getPartXRot",
+            "getPartYRot",
+            "getParts",
+            "getPhase",
+            "hurt",
+            "isDuringTeleportation",
+            "isHighCrackiness",
+            "isLowCrackiness",
+            "isMediumCrackiness",
+            "isMultipartEntity",
+            "isNoneCrackiness",
+            "isPushable",
+            "isSleep",
+            "onAddedToLevel",
+            "onSyncedDataUpdated",
+            "randomizeAttackPatterns",
+            "randomizeNextBackstepType",
+            "randomizeNextShootType",
+            "readAdditionalSaveData",
+            "recreateFromPacket",
+            "registerGoals",
+            "setId",
+            "setPartXRot",
+            "setPartYRot",
+            "setPhase",
+            "setSleep",
+            "shootBigShulkerBullet",
+            "shootGravityShulkerBullet",
+            "shouldRiderSit",
+            "stopAllAnimationStates",
+            "teleport",
+            "teleportBoolean",
+            "tick",
+            "tickDeath",
+            "tickPart"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$1.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$10.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$11.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$12.class",
+          "methods": [
+            "<init>",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$13.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$14.class",
+          "methods": [
+            "<init>",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$15.class",
+          "methods": [
+            "<init>",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$16.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$2.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$3.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$4.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$5.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$6.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$7.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$8.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$9.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/Shulker_MimicEntity$Crackiness.class",
+          "methods": [
+            "$values",
+            "<clinit>",
+            "<init>",
+            "byFraction",
+            "lambda$static$0",
+            "valueOf",
+            "values"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/ShulkerMimicPart.class",
+          "methods": [
+            "<init>",
+            "addAdditionalSaveData",
+            "defineSynchedData",
+            "getAddEntityPacket",
+            "getDimensions",
+            "getPickResult",
+            "hurt",
+            "is",
+            "isAttackable",
+            "isPickable",
+            "readAdditionalSaveData",
+            "shouldBeSaved"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/ShulkerTower/goals/FireworkGrabGoal.class",
+          "methods": [
+            "<init>",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:skeletosaurus:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "MOB_MELEE",
+        "AOE",
+        "SUMMONED_ATTACK"
+      ],
+      "effect_ids": [
+        "lm:skeletosaurus"
+      ],
+      "primary_source": [
+        "entity/AnimatedMonster/Mobs/SkeletosaurusEntity"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "ApplyEffects",
+            "AreaAttack",
+            "LGspawnatlocation",
+            "addAdditionalSaveData",
+            "addEffect",
+            "aiStep",
+            "attackTargets",
+            "baseTick",
+            "canBeAffected",
+            "canDespawn",
+            "createAttributes",
+            "createBodyControl",
+            "createNavigation",
+            "defineSynchedData",
+            "die",
+            "finalizeSpawn",
+            "fireImmune",
+            "getAmbientSound",
+            "getAnimationState",
+            "getCrackiness",
+            "getDeathSound",
+            "getHurtSound",
+            "handleWalkingMessage",
+            "hurt",
+            "isMoving",
+            "isPushable",
+            "isSleep",
+            "isSpeedy",
+            "onAddedToLevel",
+            "onSyncedDataUpdated",
+            "performAreaAttack",
+            "playStepSound",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "runawayMobs",
+            "setSleep",
+            "shouldDespawnInPeaceful",
+            "spawnAtLocation",
+            "spawnShockwaves",
+            "stopAllAnimationStates",
+            "tick",
+            "tickDeath",
+            "updateWithAttack"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$1.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$2.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$3.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$4.class",
+          "methods": [
+            "<init>",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$5.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$6.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SkeletosaurusEntity$Crackiness.class",
+          "methods": [
+            "$values",
+            "<clinit>",
+            "<init>",
+            "byFraction",
+            "lambda$static$0",
+            "valueOf",
+            "values"
+          ]
+        }
+      ]
+    }
+  ],
+  "exclusions": [],
+  "record_refinements": [],
+  "exact_next_task": "Complete remaining Legendary Monsters creatures/bosses and ancillary contexts/resources; numeric identity and whole-mod audits, push, STOP.",
+  "stage_policy_decided": false,
+  "runtime_tests": 0
+}

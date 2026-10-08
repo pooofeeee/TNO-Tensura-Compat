@@ -1,0 +1,4607 @@
+{
+  "schema": "tno.external_effects.reviewed_combat_batch.v1",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "legendary_monsters",
+  "checkpoint": "legendary-monsters-projectile-payloads",
+  "closed_scope": "Explicitly reviewed projectile damage, control, owner and lifecycle bodies. Unreviewed ancillary methods, producers and actors remain pending.",
+  "effects": [
+    {
+      "id": "lm:animated_projectile_state",
+      "display_name": "animated_projectile_state",
+      "source_actor": [
+        [
+          "AnimatedEntity/IAnimatedEntity",
+          [
+            "<init>",
+            "tick",
+            "setAnimationState",
+            "handleEntityEvent",
+            "defineSynchedData"
+          ]
+        ],
+        [
+          "AnimatedEntity/IHurtingEntity",
+          [
+            "<init>",
+            "defineSynchedData",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "setDamage",
+            "getDamage"
+          ]
+        ]
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Synced animation state resets AnimationTicks; positive state increments it. Nonpositive entity event resets clock. Synced damage defaults0. Save writes dmg; read writes dmg into input tag rather than restoring value. Damage and transient clocks therefore are not recovered by that read override.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_SYNC_AND_PERSISTENCE",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/AnimatedEntity/IAnimatedEntity.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "setAnimationState",
+            "handleEntityEvent",
+            "defineSynchedData"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/AnimatedEntity/IAnimatedEntity.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/AnimatedEntity/IHurtingEntity.class",
+          "methods": [
+            "<init>",
+            "defineSynchedData",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "setDamage",
+            "getDamage"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/AnimatedEntity/IHurtingEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:animated_projectile_state:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/AnimatedEntity/IAnimatedEntity.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "setAnimationState",
+            "handleEntityEvent",
+            "defineSynchedData"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/AnimatedEntity/IHurtingEntity.class",
+          "methods": [
+            "<init>",
+            "defineSynchedData",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "setDamage",
+            "getDamage"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Synced animation state resets AnimationTicks; positive state increments it. Nonpositive entity event resets clock. Synced damage defaults0. Save writes dmg; read writes dmg into input tag rather than restoring value. Damage and transient clocks therefore are not recovered by that read override.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/AnimatedEntity/IAnimatedEntity.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "setAnimationState",
+            "handleEntityEvent",
+            "defineSynchedData"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/AnimatedEntity/IHurtingEntity.class",
+          "methods": [
+            "<init>",
+            "defineSynchedData",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "setDamage",
+            "getDamage"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:annihilation_beam",
+      "display_name": "annihilation_beam",
+      "source_actor": "Projectile/AnnihilationBeamEntity",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "actual_behavior": "Server aftertick>getDelay ray damage excludes caster/allies/own pets. Void helper ignores beam direct entity: caster/caster. Amount=(damage+recipientMaxHP*hpDamage*.01)*(Player caster?1:TheObliteratorDamageMutliplier); success stacks Annihilation1 and fire40 irrespective getFire. Quad rotates yaw by signed followSpeed, reverses at turnBackMoment and resets clock when enabled; Player aim initially then freezes, other caster follows aim. Discardtick>=duration. Block loops read only, no native terrain destruction.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "fire_ticks": 40
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationBeamEntity.class",
+          "methods": [
+            "tick",
+            "raytraceEntities"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationBeamEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:annihilation_beam:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationBeamEntity.class",
+          "methods": [
+            "tick",
+            "raytraceEntities"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Server aftertick>getDelay ray damage excludes caster/allies/own pets. Void helper ignores beam direct entity: caster/caster. Amount=(damage+recipientMaxHP*hpDamage*.01)*(Player caster?1:TheObliteratorDamageMutliplier); success stacks Annihilation1 and fire40 irrespective getFire. Quad rotates yaw by signed followSpeed, reverses at turnBackMoment and resets clock when enabled; Player aim initially then freezes, other caster follows aim. Discardtick>=duration. Block loops read only, no native terrain destruction.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationBeamEntity.class",
+          "methods": [
+            "tick",
+            "raytraceEntities"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:annihilation_bomb",
+      "display_name": "annihilation_bomb",
+      "source_actor": "Projectile/AnnihilationBombEntity",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "actual_behavior": "Server living-owner/living-recipient contact requests void(getDamage), then stacks Annihilation1 regardless accepted hurt. Parent hit precedes two rings: bulletAmount*.5 with SmallAnnihilationBomb damage8 speed.5 vertical vy+horizontalLength*2; bulletAmount damage8 speed.7 vertical vy+length*.2. Spawn loops lack a local server guard; discard guarded. AreaAttack defined separately uses unparenthesized wrapped-arc alternatives (range restriction only in first arm), projectile ally exclusion, living owner and damage*StratlingDamageMultiplier; native call reachability remains producer-dependent.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "child_damage": 8,
+            "inner_speed": 0.5,
+            "outer_speed": 0.7
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationBombEntity.class",
+          "methods": [
+            "onHitEntity",
+            "onHit",
+            "AreaAttack"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationBombEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:annihilation_bomb:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationBombEntity.class",
+          "methods": [
+            "onHitEntity",
+            "onHit",
+            "AreaAttack"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Server living-owner/living-recipient contact requests void(getDamage), then stacks Annihilation1 regardless accepted hurt. Parent hit precedes two rings: bulletAmount*.5 with SmallAnnihilationBomb damage8 speed.5 vertical vy+horizontalLength*2; bulletAmount damage8 speed.7 vertical vy+length*.2. Spawn loops lack a local server guard; discard guarded. AreaAttack defined separately uses unparenthesized wrapped-arc alternatives (range restriction only in first arm), projectile ally exclusion, living owner and damage*StratlingDamageMultiplier; native call reachability remains producer-dependent.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationBombEntity.class",
+          "methods": [
+            "onHitEntity",
+            "onHit",
+            "AreaAttack"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:annihilation_bottle",
+      "display_name": "annihilation_bottle",
+      "source_actor": "Projectile/ThrownAnnihilationBottle",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "actual_behavior": "Living recipient plus living owner: fire100 BEFOREvoid1; no own server guard in contact. Parent onHit then server discard/presentation. Gravity.03, ordinary ThrowableItemProjectile owner delivery. Defined dowseFire helper has no local impact invocation, so no fire extinction attributed.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "damage": 1,
+            "fire_ticks": 100,
+            "gravity": 0.03
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownAnnihilationBottle.class",
+          "methods": [
+            "<init>",
+            "onHit",
+            "onHitEntity",
+            "getDefaultGravity"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownAnnihilationBottle.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:annihilation_bottle:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownAnnihilationBottle.class",
+          "methods": [
+            "<init>",
+            "onHit",
+            "onHitEntity",
+            "getDefaultGravity"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Living recipient plus living owner: fire100 BEFOREvoid1; no own server guard in contact. Parent onHit then server discard/presentation. Gravity.03, ordinary ThrowableItemProjectile owner delivery. Defined dowseFire helper has no local impact invocation, so no fire extinction attributed.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownAnnihilationBottle.class",
+          "methods": [
+            "<init>",
+            "onHit",
+            "onHitEntity",
+            "getDefaultGravity"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:annihilation_explosion",
+      "display_name": "annihilation_explosion",
+      "source_actor": "Projectile/AnnihilationExplosionEntity",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "actual_behavior": "Server negative warmup damages during -1..-7, every tick; -8 emits bulletAmount SmallAnnihilationBombs damage6 speed.5. Alive/noninvulnerable recipient differs caster. Ownerless source allocated custom void null caster, excludes unowned tamed animals; living caster excludes allies/own pets. Hurt acceptance gates Annihilation stacking1. Life decremented only after warmup<0, discard<0; event4 once. Separate from native explosion API.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "child_damage": 6,
+            "child_speed": 0.5
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationExplosionEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationExplosionEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:annihilation_explosion:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationExplosionEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Server negative warmup damages during -1..-7, every tick; -8 emits bulletAmount SmallAnnihilationBombs damage6 speed.5. Alive/noninvulnerable recipient differs caster. Ownerless source allocated custom void null caster, excludes unowned tamed animals; living caster excludes allies/own pets. Hurt acceptance gates Annihilation stacking1. Life decremented only after warmup<0, discard<0; event4 once. Separate from native explosion API.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationExplosionEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:annihilation_flame_strike",
+      "display_name": "annihilation_flame_strike",
+      "source_actor": "Projectile/AnnihilationFlameStrike",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "actual_behavior": "Server warmup active -1..-7, tick%1: void getDamage+3% recipient maxHealth, including null caster allocated source. Nonnull caster excludes allies; alive/noninvulnerable/noncaster predicate. Accepted hurt gates Annihilation1 and fire100. Life decrements after warmup and event4 once.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "hp_percent": 3,
+            "fire_ticks": 100
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationFlameStrike.class",
+          "methods": [
+            "tick",
+            "damage"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationFlameStrike.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:annihilation_flame_strike:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationFlameStrike.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Server warmup active -1..-7, tick%1: void getDamage+3% recipient maxHealth, including null caster allocated source. Nonnull caster excludes allies; alive/noninvulnerable/noncaster predicate. Accepted hurt gates Annihilation1 and fire100. Life decrements after warmup and event4 once.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationFlameStrike.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:annihilation_geyser",
+      "display_name": "annihilation_geyser",
+      "source_actor": "Projectile/AnnihilationGeyserEntity",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "actual_behavior": "Every5 in own bbox: ownerless void getDamage, living owner getDamage+3% recipient HP with allies excluded. No holder effect on accepted hit. Owner death server discards AND adds dangerous scale2 AnnihilationPortal(warmup5,life40,damage15) retaining dead caster. Turning/inertia/power transport, server life clock and manual impact. Unlike PlasmaOrb terminal, portal is explicitly added.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "hp_percent": 3,
+            "portal_warmup": 5,
+            "portal_life": 40,
+            "portal_damage": 15
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationGeyserEntity.class",
+          "methods": [
+            "tick",
+            "damage",
+            "onHitEntity",
+            "onHit"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationGeyserEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:annihilation_geyser:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationGeyserEntity.class",
+          "methods": [
+            "tick",
+            "damage",
+            "onHitEntity",
+            "onHit"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Every5 in own bbox: ownerless void getDamage, living owner getDamage+3% recipient HP with allies excluded. No holder effect on accepted hit. Owner death server discards AND adds dangerous scale2 AnnihilationPortal(warmup5,life40,damage15) retaining dead caster. Turning/inertia/power transport, server life clock and manual impact. Unlike PlasmaOrb terminal, portal is explicitly added.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationGeyserEntity.class",
+          "methods": [
+            "tick",
+            "damage",
+            "onHitEntity",
+            "onHit"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:annihilation_ground_nuke",
+      "display_name": "annihilation_ground_nuke",
+      "source_actor": "Projectile/AnnihilationGroundNukeStrikeEntity",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "actual_behavior": "Server active warmup -1..-7 requests void. Null caster amount=getDamage+3% recipient HP. Living Player caster gets no HP bonus; other living caster uses PortalExplosionHPDamage percent. Excludes own pets and allies under nonnull branch. Success adds upward push1, synchronizes Player motion, stacks Annihilation1, fire100. Life/event warmup clock retained.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "null_owner_hp_percent": 3,
+            "upward_push": 1,
+            "fire_ticks": 100
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationGroundNukeStrikeEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationGroundNukeStrikeEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:annihilation_ground_nuke:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationGroundNukeStrikeEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Server active warmup -1..-7 requests void. Null caster amount=getDamage+3% recipient HP. Living Player caster gets no HP bonus; other living caster uses PortalExplosionHPDamage percent. Excludes own pets and allies under nonnull branch. Success adds upward push1, synchronizes Player motion, stacks Annihilation1, fire100. Life/event warmup clock retained.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationGroundNukeStrikeEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:annihilation_portal",
+      "display_name": "annihilation_portal",
+      "source_actor": "Projectile/AnnihilationPortalEntity",
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Dangerous portal after warmup<-12 pulls living recipients in inflated1.5 or2.5 (big) by normalized displacement*.03, excluding caster and invulnerable Player, without ally gate. After warmup<=-16 damages every5: excludes caster/allies/own pets; void getDamage+configured PortalHPDamage percent unless matrixScale2 or scale4 with Player caster. Accepted hit at EXACTwarmup-16 stacks Annihilation1 and sets CASTER motion(0,.5,0). Scale4 ring warnings life43/45/47/49, damaging rings46/48/50/52; warnings only particles, attacks grounded support emit GroundNuke life20 damage7; warning supplied17 unused as damage. lifeTicks1 increments independent of warmup; final discard can invoke extra damage scan.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "pull": 0.03,
+            "damage_period": 5,
+            "caster_lift": 0.5,
+            "ring_damage": 7
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationPortalEntity.class",
+          "methods": [
+            "tick",
+            "damage",
+            "flameRadagonShockwave",
+            "spawnFlames2"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationPortalEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:annihilation_portal:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationPortalEntity.class",
+          "methods": [
+            "tick",
+            "damage",
+            "flameRadagonShockwave",
+            "spawnFlames2"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Dangerous portal after warmup<-12 pulls living recipients in inflated1.5 or2.5 (big) by normalized displacement*.03, excluding caster and invulnerable Player, without ally gate. After warmup<=-16 damages every5: excludes caster/allies/own pets; void getDamage+configured PortalHPDamage percent unless matrixScale2 or scale4 with Player caster. Accepted hit at EXACTwarmup-16 stacks Annihilation1 and sets CASTER motion(0,.5,0). Scale4 ring warnings life43/45/47/49, damaging rings46/48/50/52; warnings only particles, attacks grounded support emit GroundNuke life20 damage7; warning supplied17 unused as damage. lifeTicks1 increments independent of warmup; final discard can invoke extra damage scan.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationPortalEntity.class",
+          "methods": [
+            "tick",
+            "damage",
+            "flameRadagonShockwave",
+            "spawnFlames2"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:bomb",
+      "display_name": "bomb",
+      "source_actor": "Projectile/BombEntity",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "actual_behavior": "Server entity hit requests thrown source(this,living owner or null),8, excluding DuneSentinel. Parent onHit runs first; explosion power2 or3 for Player owner, firefalse, interactionNONE, then discard. Explosion native damage/knockback remains separate from contact8; onHit has no local server guard.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "contact_damage": 8,
+            "ordinary_explosion_power": 2,
+            "player_explosion_power": 3
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/BombEntity.class",
+          "methods": [
+            "onHit",
+            "onHitEntity"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/BombEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:bomb:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/BombEntity.class",
+          "methods": [
+            "onHit",
+            "onHitEntity"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Server entity hit requests thrown source(this,living owner or null),8, excluding DuneSentinel. Parent onHit runs first; explosion power2 or3 for Player owner, firefalse, interactionNONE, then discard. Explosion native damage/knockback remains separate from contact8; onHit has no local server guard.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/BombEntity.class",
+          "methods": [
+            "onHit",
+            "onHitEntity"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:chorus_bomb",
+      "display_name": "chorus_bomb",
+      "source_actor": "Projectile/Chorus_BombEntity",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "actual_behavior": "Explosion power2 or3 forPlayer owner, firefalse interactionNONE occurs BEFOREparentonHit. Server contact thrown8 except DuneSentinel, then area and Chorus80amp0 independent of acceptance. Area bbox radius3.5 height3.5 requires living owner and excludes DuneSentinel but not owner/allies/pets. Area invoked through onHit and contact branches, retaining repeated effect requests. Chorus marker has no scheduled tick payload.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "contact_damage": 8,
+            "area_radius": 3.5,
+            "chorus_ticks": 80,
+            "chorus_amplifier": 0,
+            "ordinary_explosion_power": 2,
+            "player_explosion_power": 3
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/Chorus_BombEntity.class",
+          "methods": [
+            "onHit",
+            "onHitEntity",
+            "performAreaAttack"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/Chorus_BombEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:chorus_bomb:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/Chorus_BombEntity.class",
+          "methods": [
+            "onHit",
+            "onHitEntity",
+            "performAreaAttack"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Explosion power2 or3 forPlayer owner, firefalse interactionNONE occurs BEFOREparentonHit. Server contact thrown8 except DuneSentinel, then area and Chorus80amp0 independent of acceptance. Area bbox radius3.5 height3.5 requires living owner and excludes DuneSentinel but not owner/allies/pets. Area invoked through onHit and contact branches, retaining repeated effect requests. Chorus marker has no scheduled tick payload.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/Chorus_BombEntity.class",
+          "methods": [
+            "onHit",
+            "onHitEntity",
+            "performAreaAttack"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:chorus_breath",
+      "display_name": "chorus_breath",
+      "source_actor": "Projectile/ChorusBreathEntity",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "actual_behavior": "Caster-following positionY+1; front/back/right/left independently set yaw offsets0/-180/-90/+90 in that order. Same expanding range10 cone, every3, MOB_ATTACK getDamage; success fire60 and horizontalmotion*.25. No custom Chorus effect despite name; no ownerpet exclusion unlike FireBreath. No local serverguard; tick>50discard, ownerdeath.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "damage_period": 3,
+            "range": 10,
+            "cone_half_angle": 22.5,
+            "fire_ticks": 60,
+            "horizontal_drag": 0.25
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ChorusBreathEntity.class",
+          "methods": [
+            "tick",
+            "hitEntities"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ChorusBreathEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:chorus_breath:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ChorusBreathEntity.class",
+          "methods": [
+            "tick",
+            "hitEntities"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Caster-following positionY+1; front/back/right/left independently set yaw offsets0/-180/-90/+90 in that order. Same expanding range10 cone, every3, MOB_ATTACK getDamage; success fire60 and horizontalmotion*.25. No custom Chorus effect despite name; no ownerpet exclusion unlike FireBreath. No local serverguard; tick>50discard, ownerdeath.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ChorusBreathEntity.class",
+          "methods": [
+            "tick",
+            "hitEntities"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:chorus_energy_bullet",
+      "display_name": "chorus_energy_bullet",
+      "source_actor": "Projectile/ChorusEnergyBulletEntity",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "actual_behavior": "Server casts impact recipient to LivingEntity without type guard. Living owner requests ownerless MAGIC8; accepted killing hit heals owner5. Other owner branch MAGIC5, success ChorusInfection1amp1 marker. Parent impact first, then explosion power1 firefalse interactionMOB and discard. Contact damage and explosion stay separate.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "living_owner_damage": 8,
+            "other_damage": 5,
+            "kill_heal": 5,
+            "explosion_power": 1
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ChorusEnergyBulletEntity.class",
+          "methods": [
+            "onHit",
+            "onHitEntity"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ChorusEnergyBulletEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:chorus_energy_bullet:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ChorusEnergyBulletEntity.class",
+          "methods": [
+            "onHit",
+            "onHitEntity"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Server casts impact recipient to LivingEntity without type guard. Living owner requests ownerless MAGIC8; accepted killing hit heals owner5. Other owner branch MAGIC5, success ChorusInfection1amp1 marker. Parent impact first, then explosion power1 firefalse interactionMOB and discard. Contact damage and explosion stay separate.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ChorusEnergyBulletEntity.class",
+          "methods": [
+            "onHit",
+            "onHitEntity"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:cloud_area",
+      "display_name": "cloud_area",
+      "source_actor": "Projectile/CloudEntity",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "actual_behavior": "Every impact scans inflated attackRange (field default2), damage default5 attenuated by max(distance/2,1). Player owner excludes self and its tamed animals. Mob owner excludes self and its pets, but adds1% of OWNER CURRENT TARGET maxHealth to each recipient request; no ally predicate. Neither Player nor Mob living owner has a damage branch. Custom clouds uses owner/owner. Super onHit occurs after area, then discard; no local server guard.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "default_range": 2,
+            "default_damage": 5,
+            "attenuation_distance": 2,
+            "current_target_hp_percent": 1
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/CloudEntity.class",
+          "methods": [
+            "onHit"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/CloudEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:cloud_area:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/CloudEntity.class",
+          "methods": [
+            "onHit"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Every impact scans inflated attackRange (field default2), damage default5 attenuated by max(distance/2,1). Player owner excludes self and its tamed animals. Mob owner excludes self and its pets, but adds1% of OWNER CURRENT TARGET maxHealth to each recipient request; no ally predicate. Neither Player nor Mob living owner has a damage branch. Custom clouds uses owner/owner. Super onHit occurs after area, then discard; no local server guard.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/CloudEntity.class",
+          "methods": [
+            "onHit"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:electricity_area",
+      "display_name": "electricity_area",
+      "source_actor": "Projectile/ElectricityEntity",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "Each tick scans bbox(.5,4,.75), every5 alive/noninvulnerable/nonowner; allocated INDIRECT_MAGIC owner getDamage. Nonnull excludes allies/own pets. Manual projectile ray dispatch bypasses local impact hook; velocity/power/inertia integrate; server increments lifetime and discards maxLife.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "damage_period": 5,
+            "vertical_range": 4
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ElectricityEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ElectricityEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:electricity_area:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ElectricityEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Each tick scans bbox(.5,4,.75), every5 alive/noninvulnerable/nonowner; allocated INDIRECT_MAGIC owner getDamage. Nonnull excludes allies/own pets. Manual projectile ray dispatch bypasses local impact hook; velocity/power/inertia integrate; server increments lifetime and discards maxLife.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ElectricityEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:energy_beam",
+      "display_name": "energy_beam",
+      "source_actor": "Projectile/EnergyBeamEntity",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "actual_behavior": "Server aftertick>20, each tick raytraces full line with block COLLIDER/fluidNONE and recipient bbox expansion pickRadius+.5; entity shortlist uses block-clipped bounding box, per-entity clip uses full original endpoints. Requires caster nonally/nonself. Laser directTHISbeam causingcaster, damage+1%recipientmaxHP. Hurt success gates fire40 only getFire. Unused owner target HP*.0025 and block-state read loops do not heal/change terrain. Discardtick==duration, owner death; caller boolean ray flags unused.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "delay_ticks": 20,
+            "hp_percent": 1,
+            "fire_ticks": 40
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/EnergyBeamEntity.class",
+          "methods": [
+            "tick",
+            "raytraceEntities"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/EnergyBeamEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:energy_beam:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/EnergyBeamEntity.class",
+          "methods": [
+            "tick",
+            "raytraceEntities"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Server aftertick>20, each tick raytraces full line with block COLLIDER/fluidNONE and recipient bbox expansion pickRadius+.5; entity shortlist uses block-clipped bounding box, per-entity clip uses full original endpoints. Requires caster nonally/nonself. Laser directTHISbeam causingcaster, damage+1%recipientmaxHP. Hurt success gates fire40 only getFire. Unused owner target HP*.0025 and block-state read loops do not heal/change terrain. Discardtick==duration, owner death; caller boolean ray flags unused.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/EnergyBeamEntity.class",
+          "methods": [
+            "tick",
+            "raytraceEntities"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:entity_throw_carrier",
+      "display_name": "entity_throw_carrier",
+      "source_actor": "Projectile/ThrownEntity/EntityThrownEntity",
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Constructor forces passenger ride, assigns owner/damage. Tick uncrouches first Player passenger. onHit overrides entityhit with no parent dispatch, so onHitEntity mobAttack8 body is not reached through ordinary impact; nonentityhit delegates and performs arc3range3height360damage5: wrapped alternatives retain precedence, exclude ShulkerMimic, livingowner, projectile ally gate; target motion(projectilevx,.3,projectilevz) BEFORE GRAVITY owner/owner5. Computed1%HP unused. Server discard on nonentityhit; pickability/hurt false.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_THROWN_ENTITY_CONTROL",
+          "numerical_parameters": {
+            "area_damage": 5,
+            "area_range": 3,
+            "vertical_velocity": 0.3
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownEntity/EntityThrownEntity.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "AreaAttack",
+            "onHitEntity",
+            "onHit"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownEntity/EntityThrownEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:entity_throw_carrier:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownEntity/EntityThrownEntity.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "AreaAttack",
+            "onHitEntity",
+            "onHit"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Constructor forces passenger ride, assigns owner/damage. Tick uncrouches first Player passenger. onHit overrides entityhit with no parent dispatch, so onHitEntity mobAttack8 body is not reached through ordinary impact; nonentityhit delegates and performs arc3range3height360damage5: wrapped alternatives retain precedence, exclude ShulkerMimic, livingowner, projectile ally gate; target motion(projectilevx,.3,projectilevz) BEFORE GRAVITY owner/owner5. Computed1%HP unused. Server discard on nonentityhit; pickability/hurt false.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownEntity/EntityThrownEntity.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "AreaAttack",
+            "onHitEntity",
+            "onHit"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:falling_cloud_arrows",
+      "display_name": "falling_cloud_arrows",
+      "source_actor": "Projectile/Falling_CloudEntity",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "Both constructors with a LivingEntity argument ignore it, passing only type/world to AbstractArrow, so no owner is assigned there. Arrow impact retains inherited native damage/enchantment admission. Ground contact discards; small counterpart separately has the same ignored-shooter constructor and ground discard.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_ARROW_DELIVERY",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/Falling_CloudEntity.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/Falling_CloudEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:falling_cloud_arrows:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/Falling_CloudEntity.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Both constructors with a LivingEntity argument ignore it, passing only type/world to AbstractArrow, so no owner is assigned there. Arrow impact retains inherited native damage/enchantment admission. Ground contact discards; small counterpart separately has the same ignored-shooter constructor and ground discard.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/Falling_CloudEntity.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:fire_breath",
+      "display_name": "fire_breath",
+      "source_actor": "Projectile/FireBreath",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "actual_behavior": "Follows caster positionY+1 and headyaw/pitch; ownerdeath discard; tick>2 attacks and>50discard. Every3, query radius10 plus victimwidth/2, yaw/pitch +/-22.5 wrapped, expanding distance int(tickCount/2)+1; LavaEater close<=2 bypassesangles. Dead Player close code has no effect. Projectile ally and ownertame exclusions. MOB_ATTACK caster getDamage; acceptedfire60 and horizontalvelocity*.25. No local server guard.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "damage_period": 3,
+            "range": 10,
+            "cone_half_angle": 22.5,
+            "fire_ticks": 60,
+            "horizontal_drag": 0.25
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/FireBreath.class",
+          "methods": [
+            "tick",
+            "hitEntities"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/FireBreath.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:fire_breath:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/FireBreath.class",
+          "methods": [
+            "tick",
+            "hitEntities"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Follows caster positionY+1 and headyaw/pitch; ownerdeath discard; tick>2 attacks and>50discard. Every3, query radius10 plus victimwidth/2, yaw/pitch +/-22.5 wrapped, expanding distance int(tickCount/2)+1; LavaEater close<=2 bypassesangles. Dead Player close code has no effect. Projectile ally and ownertame exclusions. MOB_ATTACK caster getDamage; acceptedfire60 and horizontalvelocity*.25. No local server guard.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/FireBreath.class",
+          "methods": [
+            "tick",
+            "hitEntities"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:fire_column",
+      "display_name": "fire_column",
+      "source_actor": "Projectile/FireColumnEntity",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "actual_behavior": "Every tick performs bbox(.2,0,.2) damage scan before warmup handling; every5 alive/noninvulnerable/noncaster. MOB_ATTACK source THISCOLUMN, not caster; null owner10, living Player2, other10 with living ally exclusion. Fire80 is unconditional on hurt success. Warmup only affects presentation/lifetime; default life60.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "ordinary_damage": 10,
+            "player_damage": 2,
+            "fire_ticks": 80
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/FireColumnEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/FireColumnEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:fire_column:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/FireColumnEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Every tick performs bbox(.2,0,.2) damage scan before warmup handling; every5 alive/noninvulnerable/noncaster. MOB_ATTACK source THISCOLUMN, not caster; null owner10, living Player2, other10 with living ally exclusion. Fire80 is unconditional on hurt success. Warmup only affects presentation/lifetime; default life60.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/FireColumnEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:flame_rocket",
+      "display_name": "flame_rocket",
+      "source_actor": "Projectile/FlameRocketEntity",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "actual_behavior": "Server living owner void10; other owner MAGIC5. Accepted living recipient gets Wither amp1 for200normal/800hard, none easy/peaceful, native effect source. Parent impact then explosion power1 firefalse interactionMOB, discard.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "living_owner_damage": 10,
+            "other_damage": 5,
+            "normal_wither_ticks": 200,
+            "hard_wither_ticks": 800,
+            "wither_amplifier": 1,
+            "explosion_power": 1
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/FlameRocketEntity.class",
+          "methods": [
+            "onHit",
+            "onHitEntity"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/FlameRocketEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:flame_rocket:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/FlameRocketEntity.class",
+          "methods": [
+            "onHit",
+            "onHitEntity"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Server living owner void10; other owner MAGIC5. Accepted living recipient gets Wither amp1 for200normal/800hard, none easy/peaceful, native effect source. Parent impact then explosion power1 firefalse interactionMOB, discard.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/FlameRocketEntity.class",
+          "methods": [
+            "onHit",
+            "onHitEntity"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:flying_armor",
+      "display_name": "flying_armor",
+      "source_actor": "Projectile/FlyingArmorEntity",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "actual_behavior": "Server living-owner contact excludes owner and requests void12. Countdown sets fired at<=0; timer==timer/2 is zero/-1 equality. Once fired, Mob owner with current target sets x/y/zPower toward target middle at .25/distance (zero distance retains division behavior). This ThrowableProjectile subclass does not consume those power fields in its own tick; do not infer inherited flying acceleration. Impact server discards, no explosion.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "contact_damage": 12,
+            "power_speed": 0.25
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/FlyingArmorEntity.class",
+          "methods": [
+            "tick",
+            "onHit",
+            "onHitEntity"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/FlyingArmorEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:flying_armor:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/FlyingArmorEntity.class",
+          "methods": [
+            "tick",
+            "onHit",
+            "onHitEntity"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Server living-owner contact excludes owner and requests void12. Countdown sets fired at<=0; timer==timer/2 is zero/-1 equality. Once fired, Mob owner with current target sets x/y/zPower toward target middle at .25/distance (zero distance retains division behavior). This ThrowableProjectile subclass does not consume those power fields in its own tick; do not infer inherited flying acceleration. Impact server discards, no explosion.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/FlyingArmorEntity.class",
+          "methods": [
+            "tick",
+            "onHit",
+            "onHitEntity"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:flying_projectile_transport",
+      "display_name": "flying_projectile_transport",
+      "source_actor": "Projectile/AbstractFlyingProjectile",
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Supplied acceleration is normalized to .1; shooter constructor assigns owner. Server owner removal or missing chunk discards. Native impact hook cancellation precedes onHit. Integration uses velocity plus acceleration, inertia .95 (water .8); reflection accepts a source entity, server replaces motion by look vector and acceleration*.1 and transfers owner. Invulnerability rejects reflection. Projectile selection excludes noPhysics. Power persists as three doubles; spawn packet uses owner ID and client normalizes transmitted power. No damage payload exists in this base.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_REFLECTABLE_PROJECTILE_TRANSPORT",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AbstractFlyingProjectile.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "hurt",
+            "canHitEntity",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "getAddEntityPacket",
+            "recreateFromPacket"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AbstractFlyingProjectile.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:flying_projectile_transport:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AbstractFlyingProjectile.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "hurt",
+            "canHitEntity",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "getAddEntityPacket",
+            "recreateFromPacket"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Supplied acceleration is normalized to .1; shooter constructor assigns owner. Server owner removal or missing chunk discards. Native impact hook cancellation precedes onHit. Integration uses velocity plus acceleration, inertia .95 (water .8); reflection accepts a source entity, server replaces motion by look vector and acceleration*.1 and transfers owner. Invulnerability rejects reflection. Projectile selection excludes noPhysics. Power persists as three doubles; spawn packet uses owner ID and client normalizes transmitted power. No damage payload exists in this base.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AbstractFlyingProjectile.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "hurt",
+            "canHitEntity",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "getAddEntityPacket",
+            "recreateFromPacket"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:golden_halbert",
+      "display_name": "golden_halbert",
+      "source_actor": "Projectile/ThrownGoldenHalbert",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "actual_behavior": "Trident8 requested twice as Halbert. Before damage, Living recipient !isInvulnerableTo source and Math.random<.5 receives Bleeding80amp0, independently of hurt success. Bleeding periodic tick dormant. Native lightning at sky/thunder independent of damage acceptance, no Channeling test. Post gates second request; decay(-.1,-.01,-.1).",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "damage_per_request": 8,
+            "bleed_probability": 0.5,
+            "bleed_ticks": 80,
+            "bleed_amplifier": 0
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownGoldenHalbert.class",
+          "methods": [
+            "onHitEntity"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownGoldenHalbert.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:golden_halbert:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownGoldenHalbert.class",
+          "methods": [
+            "onHitEntity"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Trident8 requested twice as Halbert. Before damage, Living recipient !isInvulnerableTo source and Math.random<.5 receives Bleeding80amp0, independently of hurt success. Bleeding periodic tick dormant. Native lightning at sky/thunder independent of damage acceptance, no Channeling test. Post gates second request; decay(-.1,-.01,-.1).",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownGoldenHalbert.class",
+          "methods": [
+            "onHitEntity"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:gravity_shulker_bullet",
+      "display_name": "gravity_shulker_bullet",
+      "source_actor": "Projectile/GravityBigShulkerEntity",
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Server living-owner hit GRAVITY3+size*3; living recipient GravityPull100amp1 and Levitation60amp1 independent of hurt. Invalid owner fallback cast retains failure; if accepted then Gravity100 and Levitation40amp1. Owner/self and ShulkerMimicPart exclusions retained, parent impact then discard.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "base_damage": 3,
+            "size_damage_coefficient": 3,
+            "gravity_ticks": 100,
+            "levitation_ticks": 60,
+            "amplifier": 1
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/GravityBigShulkerEntity.class",
+          "methods": [
+            "onHit",
+            "onHitEntity"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/GravityBigShulkerEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:gravity_shulker_bullet:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/GravityBigShulkerEntity.class",
+          "methods": [
+            "onHit",
+            "onHitEntity"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Server living-owner hit GRAVITY3+size*3; living recipient GravityPull100amp1 and Levitation60amp1 independent of hurt. Invalid owner fallback cast retains failure; if accepted then Gravity100 and Levitation40amp1. Owner/self and ShulkerMimicPart exclusions retained, parent impact then discard.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/GravityBigShulkerEntity.class",
+          "methods": [
+            "onHit",
+            "onHitEntity"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:halbert",
+      "display_name": "halbert",
+      "source_actor": "Projectile/ThrownHalbert",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "Trident(this,owner or this) damage8 requested twice: first unconditional, second result gates post/Enderman return. Native cooldown may reject second; no double-effective damage inferred. Random.5 branch empty. Decay(-.1,-.01,-.1). ThunderingServerLevel+canSeeSky spawns vanilla lightning, cause ServerPlayer owner if present, independent of hurt acceptance or Channeling enchantment.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "damage_per_request": 8
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownHalbert.class",
+          "methods": [
+            "onHitEntity"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownHalbert.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:halbert:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownHalbert.class",
+          "methods": [
+            "onHitEntity"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Trident(this,owner or this) damage8 requested twice: first unconditional, second result gates post/Enderman return. Native cooldown may reject second; no double-effective damage inferred. Random.5 branch empty. Decay(-.1,-.01,-.1). ThunderingServerLevel+canSeeSky spawns vanilla lightning, cause ServerPlayer owner if present, independent of hurt acceptance or Channeling enchantment.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownHalbert.class",
+          "methods": [
+            "onHitEntity"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:ice_spike",
+      "display_name": "ice_spike",
+      "source_actor": "Projectile/IceSpikeEntity",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "actual_behavior": "Server warmup-11..-29, bbox(.2,0,.2), every5: allocated mob_attack caster source, FrostGolem5 else3*GreatFrostAbilityDamageMultiplier; freeze60amp0 is applied regardless hurt. Null caster ordinary branch still3*config; null caster with unowned TamableAnimal enters livingentity.isAlliedTo and fails. Freeze custom periodic payload is dormant as separately proved. Lifetime34 default and warmup/event animation clocks preserved.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "golem_damage": 5,
+            "other_base_damage": 3,
+            "freeze_ticks": 60,
+            "freeze_amplifier": 0
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/IceSpikeEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/IceSpikeEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:ice_spike:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/IceSpikeEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Server warmup-11..-29, bbox(.2,0,.2), every5: allocated mob_attack caster source, FrostGolem5 else3*GreatFrostAbilityDamageMultiplier; freeze60amp0 is applied regardless hurt. Null caster ordinary branch still3*config; null caster with unowned TamableAnimal enters livingentity.isAlliedTo and fails. Freeze custom periodic payload is dormant as separately proved. Lifetime34 default and warmup/event animation clocks preserved.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/IceSpikeEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:large_shulker_bullet",
+      "display_name": "large_shulker_bullet",
+      "source_actor": "Projectile/BigShulkerBulletEntity",
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Nonfirework server living-owner hit excludes owner/ShulkerMimicPart; GRAVITY directowner causingowner amount3+size*3; living recipient Levitation int(40*size) amp1 regardless hurt. Nonliving nonnull owner fallback casts to LivingEntity and can fail; success gates Levitation40amp1 there. Null owner has no damage payload. Firework suppresses hit payload and normal discard.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "base_damage": 3,
+            "size_damage_coefficient": 3,
+            "levitation_base_ticks": 40,
+            "levitation_amplifier": 1
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/BigShulkerBulletEntity.class",
+          "methods": [
+            "onHit",
+            "onHitEntity"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/BigShulkerBulletEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:large_shulker_bullet:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/BigShulkerBulletEntity.class",
+          "methods": [
+            "onHit",
+            "onHitEntity"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Nonfirework server living-owner hit excludes owner/ShulkerMimicPart; GRAVITY directowner causingowner amount3+size*3; living recipient Levitation int(40*size) amp1 regardless hurt. Nonliving nonnull owner fallback casts to LivingEntity and can fail; success gates Levitation40amp1 there. Null owner has no damage payload. Firework suppresses hit payload and normal discard.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/BigShulkerBulletEntity.class",
+          "methods": [
+            "onHit",
+            "onHitEntity"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:laser_bullet_transport",
+      "display_name": "laser_bullet_transport",
+      "source_actor": "Projectile/LaserBulletEntity",
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "AbstractFlyingProjectile subclass repeats transport/reflection with inertia .6 and shouldBurnfalse. No own impact damage/effect override: Projectile.onHit dispatches inherited no-payload callbacks. Supplied power .1, reflection transfersowner, waterinertia.8, native impact hook. Power save and packet logic retain exact base behavior.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_REFLECTABLE_PROJECTILE_TRANSPORT",
+          "numerical_parameters": {
+            "inertia": 0.6
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/LaserBulletEntity.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "hurt",
+            "canHitEntity",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "getAddEntityPacket",
+            "recreateFromPacket",
+            "getInertia",
+            "shouldBurn"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/LaserBulletEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:laser_bullet_transport:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/LaserBulletEntity.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "hurt",
+            "canHitEntity",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "getAddEntityPacket",
+            "recreateFromPacket",
+            "getInertia",
+            "shouldBurn"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "AbstractFlyingProjectile subclass repeats transport/reflection with inertia .6 and shouldBurnfalse. No own impact damage/effect override: Projectile.onHit dispatches inherited no-payload callbacks. Supplied power .1, reflection transfersowner, waterinertia.8, native impact hook. Power save and packet logic retain exact base behavior.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/LaserBulletEntity.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "hurt",
+            "canHitEntity",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "getAddEntityPacket",
+            "recreateFromPacket",
+            "getInertia",
+            "shouldBurn"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:lightning_beam",
+      "display_name": "lightning_beam",
+      "source_actor": "Projectile/LightningBeamEntity",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "actual_behavior": "Server after20 ray requires caster nonally/nonself, requests MOB_ATTACK caster damage+min(damage,recipientMaxHP*hpDamage*.01). Success heals caster3+.5% OWNER CURRENT TARGET maxHealth only Mob caster with target, and fire40 only getFire. Block loops read only. Discardtick==duration; exact line shortlist/clip behavior as EnergyBeam.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "delay_ticks": 20,
+            "heal_base": 3,
+            "heal_target_hp_percent": 0.5,
+            "fire_ticks": 40
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/LightningBeamEntity.class",
+          "methods": [
+            "tick",
+            "raytraceEntities"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/LightningBeamEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:lightning_beam:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/LightningBeamEntity.class",
+          "methods": [
+            "tick",
+            "raytraceEntities"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Server after20 ray requires caster nonally/nonself, requests MOB_ATTACK caster damage+min(damage,recipientMaxHP*hpDamage*.01). Success heals caster3+.5% OWNER CURRENT TARGET maxHealth only Mob caster with target, and fire40 only getFire. Block loops read only. Discardtick==duration; exact line shortlist/clip behavior as EnergyBeam.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/LightningBeamEntity.class",
+          "methods": [
+            "tick",
+            "raytraceEntities"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:lightning_bolt_area",
+      "display_name": "lightning_bolt_area",
+      "source_actor": "Projectile/LightningBoltEntity",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "Server warmup-6..-29 scans bbox(.2,6,.2), every5 alive/noninvulnerable/noncaster. Allocated INDIRECT_MAGIC caster with synced getDamage; excludes allies/own pets for living owner. Null owner with unowned tameable enters null allied dereference. Defaultlife35, negative warmup lifetime and owner UUID clocks; no vanilla LightningBolt fire/terrain behavior is inferred.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "damage_period": 5,
+            "vertical_range": 6
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/LightningBoltEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/LightningBoltEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:lightning_bolt_area:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/LightningBoltEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Server warmup-6..-29 scans bbox(.2,6,.2), every5 alive/noninvulnerable/noncaster. Allocated INDIRECT_MAGIC caster with synced getDamage; excludes allies/own pets for living owner. Null owner with unowned tameable enters null allied dereference. Defaultlife35, negative warmup lifetime and owner UUID clocks; no vanilla LightningBolt fire/terrain behavior is inferred.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/LightningBoltEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:linear_throw_carrier",
+      "display_name": "linear_throw_carrier",
+      "source_actor": "Projectile/ThrownEntity/LinearEntityThrownEntity",
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Flying transport constructor forces passenger ride, owner/damage. Uncrouches Player. onHit processes only nonentityhit then serverdiscard, so contact mobAttack8 helper is not ordinary dispatch. Private AreaAttack defined GRAVITY damage*ShulkerMimicDamageMutliplier+1%recipientHP but not called by onHit; no delivered area from this branch. Native flying collision/acceleration preserved.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_THROWN_ENTITY_CONTROL",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownEntity/LinearEntityThrownEntity.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "AreaAttack",
+            "onHitEntity",
+            "onHit"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownEntity/LinearEntityThrownEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:linear_throw_carrier:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownEntity/LinearEntityThrownEntity.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "AreaAttack",
+            "onHitEntity",
+            "onHit"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Flying transport constructor forces passenger ride, owner/damage. Uncrouches Player. onHit processes only nonentityhit then serverdiscard, so contact mobAttack8 helper is not ordinary dispatch. Private AreaAttack defined GRAVITY damage*ShulkerMimicDamageMutliplier+1%recipientHP but not called by onHit; no delivered area from this branch. Native flying collision/acceleration preserved.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownEntity/LinearEntityThrownEntity.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "AreaAttack",
+            "onHitEntity",
+            "onHit"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:phantom_dagger",
+      "display_name": "phantom_dagger",
+      "source_actor": "Projectile/ThrownPhantomDaggerEntity",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "actual_behavior": "Owner-tamed pet early exclusion, owner !=recipient and bothLiving; both POSSESSED_ARMOR_TEAM tag rejects. Ghost owner/owner damage getDamage+(Playerowner?0:1%recipientmaxHP). Accepted nonPlayer owner except FracturedApostle stacks SoulFracture bonus1 cap4 duration200 and healsowner3. Tracking field unused in contact. No own server guard.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "nonplayer_hp_percent": 1,
+            "stack_cap": 4,
+            "effect_ticks": 200,
+            "heal": 3
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownPhantomDaggerEntity.class",
+          "methods": [
+            "onHitEntity"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownPhantomDaggerEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:phantom_dagger:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownPhantomDaggerEntity.class",
+          "methods": [
+            "onHitEntity"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Owner-tamed pet early exclusion, owner !=recipient and bothLiving; both POSSESSED_ARMOR_TEAM tag rejects. Ghost owner/owner damage getDamage+(Playerowner?0:1%recipientmaxHP). Accepted nonPlayer owner except FracturedApostle stacks SoulFracture bonus1 cap4 duration200 and healsowner3. Tracking field unused in contact. No own server guard.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownPhantomDaggerEntity.class",
+          "methods": [
+            "onHitEntity"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:plasma_orb",
+      "display_name": "plasma_orb",
+      "source_actor": "Projectile/PlasmaOrbEntity",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "actual_behavior": "Inflated.25, every5 ticks: allocated void source owner, damage+3% recipient maxHealth; nonnull excludes allies. Success stacks Annihilation1. At maxLife, server constructs AnnihilationExplosion life20 damage7 bullets2 but never adds it, so no delivered terminal explosion. Owner death discards. Turning/inertia/power integrate motion; collision dispatch manually sets hasHurt; no impact hook. Server life/transparency clock; passengers eject at maxLife-3.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "hp_percent": 3
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/PlasmaOrbEntity.class",
+          "methods": [
+            "tick",
+            "damage",
+            "onHitEntity",
+            "onHit"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/PlasmaOrbEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:plasma_orb:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/PlasmaOrbEntity.class",
+          "methods": [
+            "tick",
+            "damage",
+            "onHitEntity",
+            "onHit"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Inflated.25, every5 ticks: allocated void source owner, damage+3% recipient maxHealth; nonnull excludes allies. Success stacks Annihilation1. At maxLife, server constructs AnnihilationExplosion life20 damage7 bullets2 but never adds it, so no delivered terminal explosion. Owner death discards. Turning/inertia/power integrate motion; collision dispatch manually sets hasHurt; no impact hook. Server life/transparency clock; passengers eject at maxLife-3.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/PlasmaOrbEntity.class",
+          "methods": [
+            "tick",
+            "damage",
+            "onHitEntity",
+            "onHit"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:player_tornado_capture",
+      "display_name": "player_tornado_capture",
+      "source_actor": "Projectile/PlayerTornado",
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Pull all noncreative/nonspectator entities in inflated3: velocityY-2 then subtract normalized displacement*.095, no ally gate. Impact stops motion, sets hasHurt and forces riding, no damage request. getPassengers() instanceof Player is false because result is List. Owner death/lifetime/missed100 discard; super tick twice and duplicated movement retained.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_FORCED_RIDING_CONTROL",
+          "numerical_parameters": {
+            "pull": 0.095,
+            "downward_velocity": 2,
+            "range": 3,
+            "missed_ticks": 100
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/PlayerTornado.class",
+          "methods": [
+            "tick",
+            "onHitEntity",
+            "onHit"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/PlayerTornado.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:player_tornado_capture:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/PlayerTornado.class",
+          "methods": [
+            "tick",
+            "onHitEntity",
+            "onHit"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Pull all noncreative/nonspectator entities in inflated3: velocityY-2 then subtract normalized displacement*.095, no ally gate. Impact stops motion, sets hasHurt and forces riding, no damage request. getPassengers() instanceof Player is false because result is List. Owner death/lifetime/missed100 discard; super tick twice and duplicated movement retained.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/PlayerTornado.class",
+          "methods": [
+            "tick",
+            "onHitEntity",
+            "onHit"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:poisonous_shockwave",
+      "display_name": "poisonous_shockwave",
+      "source_actor": "Projectile/PoisonousShockwave",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "actual_behavior": "Server warmup-11..-29 single scan; every5 alive/noninvulnerable/noncaster. Null caster only allocated MOB_ATTACK getDamage. Living caster excludes allies: Player recipient gets Poison80amp2 and caster Regeneration100amp2 BEFORE hurt. Other recipients hurt then caster heal2 when healingOwner, regardless accepted result, plus Poison80amp2. No owner-pet test beyond allies. Defaultlife3; constructor can supply life/radius.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "poison_ticks": 80,
+            "poison_amplifier": 2,
+            "regen_ticks": 100,
+            "regen_amplifier": 2,
+            "heal": 2
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/PoisonousShockwave.class",
+          "methods": [
+            "tick",
+            "damage"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/PoisonousShockwave.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:poisonous_shockwave:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/PoisonousShockwave.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Server warmup-11..-29 single scan; every5 alive/noninvulnerable/noncaster. Null caster only allocated MOB_ATTACK getDamage. Living caster excludes allies: Player recipient gets Poison80amp2 and caster Regeneration100amp2 BEFORE hurt. Other recipients hurt then caster heal2 when healingOwner, regardless accepted result, plus Poison80amp2. No owner-pet test beyond allies. Defaultlife3; constructor can supply life/radius.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/PoisonousShockwave.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:poisonous_shockwave_spawner",
+      "display_name": "poisonous_shockwave_spawner",
+      "source_actor": "Projectile/PoisonousShockwaveSpawner",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "actual_behavior": "Ground-supported rings life7/4/1 create2/6/11 PoisonousShockwaves radius1.5/2.5/3.5, final delay2; supplied child life9 radius1 damage5. Spawn outside server gate. Constructor immediate scan; own warmup-11..-29 every5 MOB_ATTACK8 except Overgrown caster ispoisonous, excluding living allies, no pet exclusion. Defaultlife9.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "own_damage": 8,
+            "child_damage": 5,
+            "child_life": 9
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/PoisonousShockwaveSpawner.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "damage",
+            "spawnIceSpikesAdvanced"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/PoisonousShockwaveSpawner.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:poisonous_shockwave_spawner:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/PoisonousShockwaveSpawner.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "damage",
+            "spawnIceSpikesAdvanced"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Ground-supported rings life7/4/1 create2/6/11 PoisonousShockwaves radius1.5/2.5/3.5, final delay2; supplied child life9 radius1 damage5. Spawn outside server gate. Constructor immediate scan; own warmup-11..-29 every5 MOB_ATTACK8 except Overgrown caster ispoisonous, excluding living allies, no pet exclusion. Defaultlife9.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/PoisonousShockwaveSpawner.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "damage",
+            "spawnIceSpikesAdvanced"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:resurrected_javelin",
+      "display_name": "resurrected_javelin",
+      "source_actor": "Projectile/ThrownResurrectedJavelin",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "Trident source(this,owner or this), requested8 then server EnchantmentHelper.modifyDamage using weapon item. dealtDamage beforehurt; acceptedEnderman early return; server post attack effects, Living knockback/posthurt. Motion decay(-.01,-.1,-.01).",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "base_damage": 8
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownResurrectedJavelin.class",
+          "methods": [
+            "onHitEntity"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownResurrectedJavelin.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:resurrected_javelin:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownResurrectedJavelin.class",
+          "methods": [
+            "onHitEntity"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Trident source(this,owner or this), requested8 then server EnchantmentHelper.modifyDamage using weapon item. dealtDamage beforehurt; acceptedEnderman early return; server post attack effects, Living knockback/posthurt. Motion decay(-.01,-.1,-.01).",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownResurrectedJavelin.class",
+          "methods": [
+            "onHitEntity"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:resurrected_knight_throw_carrier",
+      "display_name": "resurrected_knight_throw_carrier",
+      "source_actor": "Projectile/ThrownEntity/ThrownResurrectedKnightEntity",
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Throwable owner/passenger delivery. Entityhit skipped parent, suppressing ordinary onHitEntity mobAttack8. Nonentityhit spawns six SoulPillars radius3damage5, then ghost area range4height4arc360getDamage excluding ResurrectedKnight/projectile allies, livingowner; computed1%HP unused. Force-ride and Player uncrouch, serverdiscard; no owner allies predicate beyond projectile.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_THROWN_ENTITY_CONTROL",
+          "numerical_parameters": {
+            "pillar_count": 6,
+            "pillar_radius": 3,
+            "pillar_damage": 5,
+            "area_range": 4
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownEntity/ThrownResurrectedKnightEntity.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "AreaAttack",
+            "onHitEntity",
+            "onHit"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownEntity/ThrownResurrectedKnightEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:resurrected_knight_throw_carrier:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownEntity/ThrownResurrectedKnightEntity.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "AreaAttack",
+            "onHitEntity",
+            "onHit"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Throwable owner/passenger delivery. Entityhit skipped parent, suppressing ordinary onHitEntity mobAttack8. Nonentityhit spawns six SoulPillars radius3damage5, then ghost area range4height4arc360getDamage excluding ResurrectedKnight/projectile allies, livingowner; computed1%HP unused. Force-ride and Player uncrouch, serverdiscard; no owner allies predicate beyond projectile.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownEntity/ThrownResurrectedKnightEntity.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "AreaAttack",
+            "onHitEntity",
+            "onHit"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:shockwave",
+      "display_name": "shockwave",
+      "source_actor": "Projectile/ShockwaveEntity",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "Every tick scans bbox(.2,0,.2), plus second scan server warmup-11..-29. Every5 with nonnull caster, alive/noninvulnerable/noncaster, excludes caster allies/own pets, allocated MOB_ATTACK caster getDamage. Two requests during overlapping clocks; do not infer double effective damage through native cooldown. Poison boolean changes presentation only. Defaultlife3.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "damage_period": 5
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ShockwaveEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ShockwaveEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:shockwave:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ShockwaveEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Every tick scans bbox(.2,0,.2), plus second scan server warmup-11..-29. Every5 with nonnull caster, alive/noninvulnerable/noncaster, excludes caster allies/own pets, allocated MOB_ATTACK caster getDamage. Two requests during overlapping clocks; do not infer double effective damage through native cooldown. Poison boolean changes presentation only. Defaultlife3.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ShockwaveEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:shockwave_spawner",
+      "display_name": "shockwave_spawner",
+      "source_actor": "Projectile/ShockwaveSpawner",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "actual_behavior": "Constructor immediately scans and damages before level insertion. Ground-supported rings at life7/4/1 create2/6/11 Shockwaves radius1.5/2.5/3.5, final delay2; Player-owned child damage7*DinosaurBoneClubAbilityDamageMultiplier, other17. Spawn loops outside server gate. Own active server warmup-11..-29 every5 MOB_ATTACK8 except ispoisonous Overgrown caster; ally/pet exclusion, null-unowned-pet allied dereference. Defaultlife9.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "own_damage": 8,
+            "player_child_base": 7,
+            "other_child_damage": 17
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ShockwaveSpawner.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "damage",
+            "spawnIceSpikesAdvanced"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ShockwaveSpawner.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:shockwave_spawner:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ShockwaveSpawner.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "damage",
+            "spawnIceSpikesAdvanced"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Constructor immediately scans and damages before level insertion. Ground-supported rings at life7/4/1 create2/6/11 Shockwaves radius1.5/2.5/3.5, final delay2; Player-owned child damage7*DinosaurBoneClubAbilityDamageMultiplier, other17. Spawn loops outside server gate. Own active server warmup-11..-29 every5 MOB_ATTACK8 except ispoisonous Overgrown caster; ally/pet exclusion, null-unowned-pet allied dereference. Defaultlife9.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ShockwaveSpawner.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "damage",
+            "spawnIceSpikesAdvanced"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:small_annihilation_bomb",
+      "display_name": "small_annihilation_bomb",
+      "source_actor": "Projectile/SmallAnnihilationBombEntity",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "actual_behavior": "Server contact requires living owner; excludes owner, its pets and ObliteratorPart. Requested void damage=getDamage*(TheObliterator owner ? TheObliteratorDamageMutliplier : FlameDrifterDamageMutliplier). Bytecode multiplication verified despite invalid decompiler ternary. Turning rotates velocity aboutY by synced turnRate; impact server discard; no automatic Annihilation holder addition here.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SmallAnnihilationBombEntity.class",
+          "methods": [
+            "onHitEntity",
+            "onHit",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SmallAnnihilationBombEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:small_annihilation_bomb:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SmallAnnihilationBombEntity.class",
+          "methods": [
+            "onHitEntity",
+            "onHit",
+            "tick"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Server contact requires living owner; excludes owner, its pets and ObliteratorPart. Requested void damage=getDamage*(TheObliterator owner ? TheObliteratorDamageMutliplier : FlameDrifterDamageMutliplier). Bytecode multiplication verified despite invalid decompiler ternary. Turning rotates velocity aboutY by synced turnRate; impact server discard; no automatic Annihilation holder addition here.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SmallAnnihilationBombEntity.class",
+          "methods": [
+            "onHitEntity",
+            "onHit",
+            "tick"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:small_cloud_area",
+      "display_name": "small_cloud_area",
+      "source_actor": "Projectile/SmallCloudEntity",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "actual_behavior": "Inflated2 impact scans exclude owner and owner-tamed animals. Cloud damage attenuated by max(distance/2,1). Source helper receives owner as direct entity and RECIPIENT as causing entity; cast owner to LivingEntity. No local server guard. Discards after parent hit and presentation.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "range": 2,
+            "attenuation_distance": 2
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SmallCloudEntity.class",
+          "methods": [
+            "onHit"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SmallCloudEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:small_cloud_area:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SmallCloudEntity.class",
+          "methods": [
+            "onHit"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Inflated2 impact scans exclude owner and owner-tamed animals. Cloud damage attenuated by max(distance/2,1). Source helper receives owner as direct entity and RECIPIENT as causing entity; cast owner to LivingEntity. No local server guard. Discards after parent hit and presentation.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SmallCloudEntity.class",
+          "methods": [
+            "onHit"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:small_falling_cloud_arrow",
+      "display_name": "small_falling_cloud_arrow",
+      "source_actor": "Projectile/Falling_Cloud_SmallEntity",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "LivingEntity constructor argument is ignored; no owner assignment. AbstractArrow inherited collision payload remains native. inGround causes discard.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_ARROW_DELIVERY",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/Falling_Cloud_SmallEntity.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/Falling_Cloud_SmallEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:small_falling_cloud_arrow:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/Falling_Cloud_SmallEntity.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "LivingEntity constructor argument is ignored; no owner assignment. AbstractArrow inherited collision payload remains native. inGround causes discard.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/Falling_Cloud_SmallEntity.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:soul_hand",
+      "display_name": "soul_hand",
+      "source_actor": "Projectile/SoulHandEntity",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "Server warmup-11..-29, every5: alive/noninvulnerable/noncaster; allocated MOB_ATTACK caster. Null owner3, living owner excludes allies then3. Legacy PosessedPaladin subtype branch requests5 and heals caster4 regardless hurt; constructor/registration reachability of that legacy type is tracked separately. Defaultlife34.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "ordinary_damage": 3,
+            "legacy_damage": 5,
+            "legacy_heal": 4
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SoulHandEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SoulHandEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:soul_hand:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SoulHandEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Server warmup-11..-29, every5: alive/noninvulnerable/noncaster; allocated MOB_ATTACK caster. Null owner3, living owner excludes allies then3. Legacy PosessedPaladin subtype branch requests5 and heals caster4 regardless hurt; constructor/registration reachability of that legacy type is tracked separately. Defaultlife34.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SoulHandEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:soul_javelin",
+      "display_name": "soul_javelin",
+      "source_actor": "Projectile/SoulJavelinEntity",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "actual_behavior": "Native hit body matches SoulTrident after self-owner normalization: ghost8+3%HP, acceptedheal8 and SoulFracture cap5/200; dealt before hurt; acceptedEnderman earlyreturn; post enchantments only, motion(-.01,-.1,-.01). Native type/item identity remains distinct.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "base_damage": 8,
+            "hp_percent": 3,
+            "heal": 8,
+            "stack_cap": 5,
+            "effect_ticks": 200
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SoulJavelinEntity.class",
+          "methods": [
+            "onHitEntity"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SoulJavelinEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:soul_javelin:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SoulJavelinEntity.class",
+          "methods": [
+            "onHitEntity"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Native hit body matches SoulTrident after self-owner normalization: ghost8+3%HP, acceptedheal8 and SoulFracture cap5/200; dealt before hurt; acceptedEnderman earlyreturn; post enchantments only, motion(-.01,-.1,-.01). Native type/item identity remains distinct.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SoulJavelinEntity.class",
+          "methods": [
+            "onHitEntity"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:soul_pillar_explosion",
+      "display_name": "soul_pillar_explosion",
+      "source_actor": "Projectile/SoulPillarExplosionEntity",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "actual_behavior": "Payload identical to SoulPillar after self normalization: ghost getDamage liveowner with acceptedSoulFracturecap4/200, pillar-based velocityY+.85, casterheal4; ownerless adds3%HP without active followups. Warmup-1..-7 every5, life20, owner/warmup only ownNBT. Explosion name does not imply native explosion API.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "null_owner_hp_percent": 3,
+            "heal": 4,
+            "stack_cap": 4,
+            "effect_ticks": 200,
+            "upward_velocity": 0.85
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SoulPillarExplosionEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SoulPillarExplosionEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:soul_pillar_explosion:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SoulPillarExplosionEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Payload identical to SoulPillar after self normalization: ghost getDamage liveowner with acceptedSoulFracturecap4/200, pillar-based velocityY+.85, casterheal4; ownerless adds3%HP without active followups. Warmup-1..-7 every5, life20, owner/warmup only ownNBT. Explosion name does not imply native explosion API.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SoulPillarExplosionEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:soul_pillars",
+      "display_name": "soul_pillars",
+      "source_actor": "Projectile/SoulPillarEntity",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "actual_behavior": "Server warmup -1..-7, every5, alive/noninvulnerable/noncaster. Ownerless allocated ghost amountgetDamage+3%recipientHP, no accepted followup; nested FrostGolem-owner arm under nullowner is impossible. Nonnull caster excludes allies, ghost getDamage; accepted stacksSoulFracturebonus1cap4duration200, sets victim velocity to PILLARx/z and pillarY+.85, syncPlayer, healscaster4. Defaultlife20; UUIDowner/warmup persisted but damage/life are not saved by own override.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "null_owner_hp_percent": 3,
+            "heal": 4,
+            "stack_cap": 4,
+            "effect_ticks": 200,
+            "upward_velocity": 0.85
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SoulPillarEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SoulPillarEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:soul_pillars:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SoulPillarEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Server warmup -1..-7, every5, alive/noninvulnerable/noncaster. Ownerless allocated ghost amountgetDamage+3%recipientHP, no accepted followup; nested FrostGolem-owner arm under nullowner is impossible. Nonnull caster excludes allies, ghost getDamage; accepted stacksSoulFracturebonus1cap4duration200, sets victim velocity to PILLARx/z and pillarY+.85, syncPlayer, healscaster4. Defaultlife20; UUIDowner/warmup persisted but damage/life are not saved by own override.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SoulPillarEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:soul_strike",
+      "display_name": "soul_strike",
+      "source_actor": "Projectile/SoulStrike",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "actual_behavior": "Lifetime20 decrements during in-air update; owner death discards. Tick moves before superclass. Grounded living recipients in inflated(.5,.5,.5), alive, excluding owner and owner allies, every tickCount%5 receive ghost caster/caster damage+3% recipient maxHealth. Accepted hurt heals owner8 only for nonPlayer owner. Ghost factory requires living nonnull caster; ownerless impact can fail. No extra stack effect in this payload.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "life_ticks": 20,
+            "heal": 8,
+            "recipient_hp_percent": 3
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SoulStrike.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "onUpdateInAir"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SoulStrike.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:soul_strike:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SoulStrike.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "onUpdateInAir"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Lifetime20 decrements during in-air update; owner death discards. Tick moves before superclass. Grounded living recipients in inflated(.5,.5,.5), alive, excluding owner and owner allies, every tickCount%5 receive ghost caster/caster damage+3% recipient maxHealth. Accepted hurt heals owner8 only for nonPlayer owner. Ghost factory requires living nonnull caster; ownerless impact can fail. No extra stack effect in this payload.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SoulStrike.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "onUpdateInAir"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:soul_trident",
+      "display_name": "soul_trident",
+      "source_actor": "Projectile/SoulTridentEntity",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "actual_behavior": "Requested ghost damage8+3% recipient maxHealth (nonLiving8), owner cast Living and factory null failure. dealtDamage set beforehurt. Accepted Living recipient heals owner8 and stacks SoulFracture bonus1 cap5 duration200. AcceptedEnderman early returns before motion decay/post processing. Server post-enchantment effects with item source, but no pre-hurt modifyDamage. Living knockback/posthurt native; velocity decay(-.01,-.1,-.01).",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "base_damage": 8,
+            "hp_percent": 3,
+            "heal": 8,
+            "stack_cap": 5,
+            "effect_ticks": 200
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SoulTridentEntity.class",
+          "methods": [
+            "onHitEntity"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SoulTridentEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:soul_trident:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SoulTridentEntity.class",
+          "methods": [
+            "onHitEntity"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Requested ghost damage8+3% recipient maxHealth (nonLiving8), owner cast Living and factory null failure. dealtDamage set beforehurt. Accepted Living recipient heals owner8 and stacks SoulFracture bonus1 cap5 duration200. AcceptedEnderman early returns before motion decay/post processing. Server post-enchantment effects with item source, but no pre-hurt modifyDamage. Living knockback/posthurt native; velocity decay(-.01,-.1,-.01).",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SoulTridentEntity.class",
+          "methods": [
+            "onHitEntity"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:thunder_cloud_spawner",
+      "display_name": "thunder_cloud_spawner",
+      "source_actor": "Projectile/ThunderCloud",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "actual_behavior": "At server warmup-10, one-shot k established only when life32 and nonsilent: if owner Mob has target or Player, find supporting ground then add LightningBolt life20 damage=abs(cloudY-casterY), height=abs(cloudY-boltY). At -22 constructs EnergyBeam damage9 HPdamage6 duration90 but never adds it. Tick scan -11..-29 has empty body; private damage helper is not invoked by tick. Thus no direct freeze/contact3/5 from this actor is attributed. Defaultlife34, negative warmup lifetime and event4 retained.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThunderCloud.class",
+          "methods": [
+            "tick",
+            "spawnIceSpikesAdvanced"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThunderCloud.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:thunder_cloud_spawner:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThunderCloud.class",
+          "methods": [
+            "tick",
+            "spawnIceSpikesAdvanced"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "At server warmup-10, one-shot k established only when life32 and nonsilent: if owner Mob has target or Player, find supporting ground then add LightningBolt life20 damage=abs(cloudY-casterY), height=abs(cloudY-boltY). At -22 constructs EnergyBeam damage9 HPdamage6 duration90 but never adds it. Tick scan -11..-29 has empty body; private damage helper is not invoked by tick. Thus no direct freeze/contact3/5 from this actor is attributed. Defaultlife34, negative warmup lifetime and event4 retained.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThunderCloud.class",
+          "methods": [
+            "tick",
+            "spawnIceSpikesAdvanced"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:tornado_capture",
+      "display_name": "tornado_capture",
+      "source_actor": "Projectile/Tornado",
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Tick captures/grabs nearby living in inflated(.75,height,.75), forces uncrouch. Player first capture requires !hasHurt; nonPlayer does not. Excludes owner/allies/dead, force startRiding else teleports to centerY+3; stops tornado velocity; fire60 if tornado burning. First capture with Mob owner/current target requests mobProjectile getDamage only when victimPlayer&&!blocking; calculated current target HP*.07 unused. Server onHitEntity living owner requests MOB_ATTACK getDamage irrespective acceptance then force rides/halts. Private damage()/grab() are not tick payload. Tick calls super twice and also adds velocity to position then move; exact displacement preserved. Eject/discard at maxLife-3 or missed>100.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_FORCED_RIDING_CONTROL",
+          "numerical_parameters": {
+            "fire_ticks": 60,
+            "capture_vertical_offset": 3,
+            "missed_ticks": 100
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/Tornado.class",
+          "methods": [
+            "tick",
+            "DamageAndGrab",
+            "onHitEntity",
+            "onHit"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/Tornado.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:tornado_capture:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/Tornado.class",
+          "methods": [
+            "tick",
+            "DamageAndGrab",
+            "onHitEntity",
+            "onHit"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Tick captures/grabs nearby living in inflated(.75,height,.75), forces uncrouch. Player first capture requires !hasHurt; nonPlayer does not. Excludes owner/allies/dead, force startRiding else teleports to centerY+3; stops tornado velocity; fire60 if tornado burning. First capture with Mob owner/current target requests mobProjectile getDamage only when victimPlayer&&!blocking; calculated current target HP*.07 unused. Server onHitEntity living owner requests MOB_ATTACK getDamage irrespective acceptance then force rides/halts. Private damage()/grab() are not tick payload. Tick calls super twice and also adds velocity to position then move; exact displacement preserved. Eject/discard at maxLife-3 or missed>100.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/Tornado.class",
+          "methods": [
+            "tick",
+            "DamageAndGrab",
+            "onHitEntity",
+            "onHit"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:tracking_bomb",
+      "display_name": "tracking_bomb",
+      "source_actor": "Projectile/TrackingBombEntity",
+      "primary_classification": "CUSTOM_DAMAGE",
+      "actual_behavior": "Server contact with living owner excludes owner and requests custom void caster/caster12. Timer decreases only while positive; timer==timer/2 holds at0 and -1, not halfway through countdown. Fired flag at<=0 does not itself steer in tick. Inherited flying transport handles acceleration/collision. Impact discards and presents without explosion.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native damage/effect/movement APIs; custom eligibility, source, timing and success gates are preserved.",
+      "components": [
+        {
+          "primitive": "NATIVE_PROJECTILE_PAYLOAD",
+          "numerical_parameters": {
+            "contact_damage": 12
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/TrackingBombEntity.class",
+          "methods": [
+            "tick",
+            "onHit",
+            "onHitEntity"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/TrackingBombEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:tracking_bomb:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/TrackingBombEntity.class",
+          "methods": [
+            "tick",
+            "onHit",
+            "onHitEntity"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Server contact with living owner excludes owner and requests custom void caster/caster12. Timer decreases only while positive; timer==timer/2 holds at0 and -1, not halfway through countdown. Fired flag at<=0 does not itself steer in tick. Inherited flying transport handles acceleration/collision. Impact discards and presents without explosion.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/TrackingBombEntity.class",
+          "methods": [
+            "tick",
+            "onHit",
+            "onHitEntity"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    }
+  ],
+  "paths": [
+    {
+      "id": "lm:animated_projectile_state:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:animated_projectile_state"
+      ],
+      "primary_source": [
+        [
+          "AnimatedEntity/IAnimatedEntity",
+          [
+            "<init>",
+            "tick",
+            "setAnimationState",
+            "handleEntityEvent",
+            "defineSynchedData"
+          ]
+        ],
+        [
+          "AnimatedEntity/IHurtingEntity",
+          [
+            "<init>",
+            "defineSynchedData",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "setDamage",
+            "getDamage"
+          ]
+        ]
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/AnimatedEntity/IAnimatedEntity.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "setAnimationState",
+            "handleEntityEvent",
+            "defineSynchedData"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/AnimatedEntity/IHurtingEntity.class",
+          "methods": [
+            "<init>",
+            "defineSynchedData",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "setDamage",
+            "getDamage"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:annihilation_beam:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:annihilation_beam"
+      ],
+      "primary_source": "Projectile/AnnihilationBeamEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationBeamEntity.class",
+          "methods": [
+            "tick",
+            "raytraceEntities"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:annihilation_bomb:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:annihilation_bomb"
+      ],
+      "primary_source": "Projectile/AnnihilationBombEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationBombEntity.class",
+          "methods": [
+            "onHitEntity",
+            "onHit",
+            "AreaAttack"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:annihilation_bottle:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "THROWN_PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:annihilation_bottle"
+      ],
+      "primary_source": "Projectile/ThrownAnnihilationBottle",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownAnnihilationBottle.class",
+          "methods": [
+            "<init>",
+            "onHit",
+            "onHitEntity",
+            "getDefaultGravity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:annihilation_explosion:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:annihilation_explosion"
+      ],
+      "primary_source": "Projectile/AnnihilationExplosionEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationExplosionEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:annihilation_flame_strike:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:annihilation_flame_strike"
+      ],
+      "primary_source": "Projectile/AnnihilationFlameStrike",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationFlameStrike.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:annihilation_geyser:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:annihilation_geyser"
+      ],
+      "primary_source": "Projectile/AnnihilationGeyserEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationGeyserEntity.class",
+          "methods": [
+            "tick",
+            "damage",
+            "onHitEntity",
+            "onHit"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:annihilation_ground_nuke:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:annihilation_ground_nuke"
+      ],
+      "primary_source": "Projectile/AnnihilationGroundNukeStrikeEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationGroundNukeStrikeEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:annihilation_portal:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "AOE",
+        "SUMMONED_ATTACK"
+      ],
+      "effect_ids": [
+        "lm:annihilation_portal"
+      ],
+      "primary_source": "Projectile/AnnihilationPortalEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AnnihilationPortalEntity.class",
+          "methods": [
+            "tick",
+            "damage",
+            "flameRadagonShockwave",
+            "spawnFlames2"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:bomb:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "THROWN_PROJECTILE",
+        "EXPLOSION"
+      ],
+      "effect_ids": [
+        "lm:bomb"
+      ],
+      "primary_source": "Projectile/BombEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/BombEntity.class",
+          "methods": [
+            "onHit",
+            "onHitEntity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:chorus_bomb:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "THROWN_PROJECTILE",
+        "EXPLOSION",
+        "AOE"
+      ],
+      "effect_ids": [
+        "lm:chorus_bomb"
+      ],
+      "primary_source": "Projectile/Chorus_BombEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/Chorus_BombEntity.class",
+          "methods": [
+            "onHit",
+            "onHitEntity",
+            "performAreaAttack"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:chorus_breath:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "AOE",
+        "MOB_ATTACK"
+      ],
+      "effect_ids": [
+        "lm:chorus_breath"
+      ],
+      "primary_source": "Projectile/ChorusBreathEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ChorusBreathEntity.class",
+          "methods": [
+            "tick",
+            "hitEntities"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:chorus_energy_bullet:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE",
+        "EXPLOSION"
+      ],
+      "effect_ids": [
+        "lm:chorus_energy_bullet"
+      ],
+      "primary_source": "Projectile/ChorusEnergyBulletEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ChorusEnergyBulletEntity.class",
+          "methods": [
+            "onHit",
+            "onHitEntity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:cloud_area:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:cloud_area"
+      ],
+      "primary_source": "Projectile/CloudEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/CloudEntity.class",
+          "methods": [
+            "onHit"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:electricity_area:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:electricity_area"
+      ],
+      "primary_source": "Projectile/ElectricityEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ElectricityEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:energy_beam:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:energy_beam"
+      ],
+      "primary_source": "Projectile/EnergyBeamEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/EnergyBeamEntity.class",
+          "methods": [
+            "tick",
+            "raytraceEntities"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:entity_throw_carrier:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:entity_throw_carrier"
+      ],
+      "primary_source": "Projectile/ThrownEntity/EntityThrownEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownEntity/EntityThrownEntity.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "AreaAttack",
+            "onHitEntity",
+            "onHit"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:falling_cloud_arrows:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:falling_cloud_arrows"
+      ],
+      "primary_source": "Projectile/Falling_CloudEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/Falling_CloudEntity.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:fire_breath:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "AOE",
+        "MOB_ATTACK"
+      ],
+      "effect_ids": [
+        "lm:fire_breath"
+      ],
+      "primary_source": "Projectile/FireBreath",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/FireBreath.class",
+          "methods": [
+            "tick",
+            "hitEntities"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:fire_column:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:fire_column"
+      ],
+      "primary_source": "Projectile/FireColumnEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/FireColumnEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:flame_rocket:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE",
+        "EXPLOSION"
+      ],
+      "effect_ids": [
+        "lm:flame_rocket"
+      ],
+      "primary_source": "Projectile/FlameRocketEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/FlameRocketEntity.class",
+          "methods": [
+            "onHit",
+            "onHitEntity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:flying_armor:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:flying_armor"
+      ],
+      "primary_source": "Projectile/FlyingArmorEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/FlyingArmorEntity.class",
+          "methods": [
+            "tick",
+            "onHit",
+            "onHitEntity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:flying_projectile_transport:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:flying_projectile_transport"
+      ],
+      "primary_source": "Projectile/AbstractFlyingProjectile",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/AbstractFlyingProjectile.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "hurt",
+            "canHitEntity",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "getAddEntityPacket",
+            "recreateFromPacket"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:golden_halbert:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "THROWN_PROJECTILE",
+        "SUMMONED_ATTACK"
+      ],
+      "effect_ids": [
+        "lm:golden_halbert"
+      ],
+      "primary_source": "Projectile/ThrownGoldenHalbert",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownGoldenHalbert.class",
+          "methods": [
+            "onHitEntity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:gravity_shulker_bullet:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:gravity_shulker_bullet"
+      ],
+      "primary_source": "Projectile/GravityBigShulkerEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/GravityBigShulkerEntity.class",
+          "methods": [
+            "onHit",
+            "onHitEntity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:halbert:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "THROWN_PROJECTILE",
+        "SUMMONED_ATTACK"
+      ],
+      "effect_ids": [
+        "lm:halbert"
+      ],
+      "primary_source": "Projectile/ThrownHalbert",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownHalbert.class",
+          "methods": [
+            "onHitEntity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:ice_spike:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:ice_spike"
+      ],
+      "primary_source": "Projectile/IceSpikeEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/IceSpikeEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:large_shulker_bullet:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:large_shulker_bullet"
+      ],
+      "primary_source": "Projectile/BigShulkerBulletEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/BigShulkerBulletEntity.class",
+          "methods": [
+            "onHit",
+            "onHitEntity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:laser_bullet_transport:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:laser_bullet_transport"
+      ],
+      "primary_source": "Projectile/LaserBulletEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/LaserBulletEntity.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "hurt",
+            "canHitEntity",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "getAddEntityPacket",
+            "recreateFromPacket",
+            "getInertia",
+            "shouldBurn"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:lightning_beam:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:lightning_beam"
+      ],
+      "primary_source": "Projectile/LightningBeamEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/LightningBeamEntity.class",
+          "methods": [
+            "tick",
+            "raytraceEntities"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:lightning_bolt_area:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:lightning_bolt_area"
+      ],
+      "primary_source": "Projectile/LightningBoltEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/LightningBoltEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:linear_throw_carrier:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:linear_throw_carrier"
+      ],
+      "primary_source": "Projectile/ThrownEntity/LinearEntityThrownEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownEntity/LinearEntityThrownEntity.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "AreaAttack",
+            "onHitEntity",
+            "onHit"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:phantom_dagger:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "THROWN_PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:phantom_dagger"
+      ],
+      "primary_source": "Projectile/ThrownPhantomDaggerEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownPhantomDaggerEntity.class",
+          "methods": [
+            "onHitEntity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:plasma_orb:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:plasma_orb"
+      ],
+      "primary_source": "Projectile/PlasmaOrbEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/PlasmaOrbEntity.class",
+          "methods": [
+            "tick",
+            "damage",
+            "onHitEntity",
+            "onHit"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:player_tornado_capture:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:player_tornado_capture"
+      ],
+      "primary_source": "Projectile/PlayerTornado",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/PlayerTornado.class",
+          "methods": [
+            "tick",
+            "onHitEntity",
+            "onHit"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:poisonous_shockwave:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:poisonous_shockwave"
+      ],
+      "primary_source": "Projectile/PoisonousShockwave",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/PoisonousShockwave.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:poisonous_shockwave_spawner:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "SUMMONED_ATTACK",
+        "AOE"
+      ],
+      "effect_ids": [
+        "lm:poisonous_shockwave_spawner"
+      ],
+      "primary_source": "Projectile/PoisonousShockwaveSpawner",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/PoisonousShockwaveSpawner.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "damage",
+            "spawnIceSpikesAdvanced"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:resurrected_javelin:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "THROWN_PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:resurrected_javelin"
+      ],
+      "primary_source": "Projectile/ThrownResurrectedJavelin",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownResurrectedJavelin.class",
+          "methods": [
+            "onHitEntity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:resurrected_knight_throw_carrier:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:resurrected_knight_throw_carrier"
+      ],
+      "primary_source": "Projectile/ThrownEntity/ThrownResurrectedKnightEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThrownEntity/ThrownResurrectedKnightEntity.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "AreaAttack",
+            "onHitEntity",
+            "onHit"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:shockwave:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:shockwave"
+      ],
+      "primary_source": "Projectile/ShockwaveEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ShockwaveEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:shockwave_spawner:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "SUMMONED_ATTACK",
+        "AOE"
+      ],
+      "effect_ids": [
+        "lm:shockwave_spawner"
+      ],
+      "primary_source": "Projectile/ShockwaveSpawner",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ShockwaveSpawner.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "damage",
+            "spawnIceSpikesAdvanced"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:small_annihilation_bomb:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:small_annihilation_bomb"
+      ],
+      "primary_source": "Projectile/SmallAnnihilationBombEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SmallAnnihilationBombEntity.class",
+          "methods": [
+            "onHitEntity",
+            "onHit",
+            "tick"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:small_cloud_area:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:small_cloud_area"
+      ],
+      "primary_source": "Projectile/SmallCloudEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SmallCloudEntity.class",
+          "methods": [
+            "onHit"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:small_falling_cloud_arrow:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:small_falling_cloud_arrow"
+      ],
+      "primary_source": "Projectile/Falling_Cloud_SmallEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/Falling_Cloud_SmallEntity.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:soul_hand:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:soul_hand"
+      ],
+      "primary_source": "Projectile/SoulHandEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SoulHandEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:soul_javelin:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "THROWN_PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:soul_javelin"
+      ],
+      "primary_source": "Projectile/SoulJavelinEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SoulJavelinEntity.class",
+          "methods": [
+            "onHitEntity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:soul_pillar_explosion:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "SUMMONED_ATTACK",
+        "AOE"
+      ],
+      "effect_ids": [
+        "lm:soul_pillar_explosion"
+      ],
+      "primary_source": "Projectile/SoulPillarExplosionEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SoulPillarExplosionEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:soul_pillars:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "SUMMONED_ATTACK",
+        "AOE"
+      ],
+      "effect_ids": [
+        "lm:soul_pillars"
+      ],
+      "primary_source": "Projectile/SoulPillarEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SoulPillarEntity.class",
+          "methods": [
+            "tick",
+            "damage"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:soul_strike:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:soul_strike"
+      ],
+      "primary_source": "Projectile/SoulStrike",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SoulStrike.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "onUpdateInAir"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:soul_trident:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "THROWN_PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:soul_trident"
+      ],
+      "primary_source": "Projectile/SoulTridentEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/SoulTridentEntity.class",
+          "methods": [
+            "onHitEntity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:thunder_cloud_spawner:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "SUMMONED_ATTACK"
+      ],
+      "effect_ids": [
+        "lm:thunder_cloud_spawner"
+      ],
+      "primary_source": "Projectile/ThunderCloud",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/ThunderCloud.class",
+          "methods": [
+            "tick",
+            "spawnIceSpikesAdvanced"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:tornado_capture:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:tornado_capture"
+      ],
+      "primary_source": "Projectile/Tornado",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/Tornado.class",
+          "methods": [
+            "tick",
+            "DamageAndGrab",
+            "onHitEntity",
+            "onHit"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:tracking_bomb:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "PROJECTILE"
+      ],
+      "effect_ids": [
+        "lm:tracking_bomb"
+      ],
+      "primary_source": "Projectile/TrackingBombEntity",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Projectile/TrackingBombEntity.class",
+          "methods": [
+            "tick",
+            "onHit",
+            "onHitEntity"
+          ]
+        }
+      ]
+    }
+  ],
+  "exclusions": [],
+  "record_refinements": [],
+  "exact_next_task": "Complete remaining Legendary Monsters methods and producers, then independent closure audits and STOP.",
+  "stage_policy_decided": false,
+  "runtime_tests": 0
+}

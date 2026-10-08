@@ -17,8 +17,11 @@ from classfile import ClassFile
 from reconcile_native_census import method_key
 
 ROOTS=('/client/model/', '/client/render/', '/client/particle/')
+LAYOUT_ALIASES=('/entity/client/', '/Particle/', '/entity/ProjectileEntityRenderer/',
+                '/entity/AnimatedMonster/Animations/', '/entity/animations/',
+                '/item/custom/customArmor/client/')
 EXTRA_ROOTS=('/client/sound/', '/client/gui/')
-PROFILES=('visual-v1','presentation-audio-ui-v2','native-value-metadata-v3','generation-layout-v4','native-query-context-v5','presentation-access-v6')
+PROFILES=('visual-v1','presentation-audio-ui-v2','native-value-metadata-v3','generation-layout-v4','native-query-context-v5','presentation-access-v6','presentation-layout-aliases-v7')
 GEN_ROOTS=('/server/level/feature/','/server/level/carver/',
     '/server/level/surface/','/server/level/structure/')
 GEN_VALUES=('net/minecraft/world/level/levelgen/synth/',
@@ -165,6 +168,11 @@ def external_allowed(symbol, profile='visual-v1'):
     p=parts(symbol)
     if not p:return False
     owner,name,_=p
+    if profile=='presentation-layout-aliases-v7':
+        if owner.startswith(('net/minecraft/client/animation/',
+                             'software/bernie/geckolib/model/',
+                             'software/bernie/geckolib/renderer/')):return True
+        return external_allowed(symbol,'presentation-audio-ui-v2')
     if profile=='presentation-access-v6':
         if name in DISPLAY_QUERY.get(owner,set()):return True
         return external_allowed(symbol,'presentation-audio-ui-v2')
@@ -215,7 +223,9 @@ def external_allowed(symbol, profile='visual-v1'):
 
 
 def visual_entry(entry, profile='visual-v1'):
-    return any(root in entry for root in ROOTS + (EXTRA_ROOTS if profile in ('presentation-audio-ui-v2','presentation-access-v6') else ()))
+    roots=ROOTS + (EXTRA_ROOTS if profile in ('presentation-audio-ui-v2','presentation-access-v6','presentation-layout-aliases-v7') else ())
+    if profile=='presentation-layout-aliases-v7':roots+=LAYOUT_ALIASES
+    return any(root in entry for root in roots)
 
 
 def typed_presentation_return(method):
@@ -313,7 +323,7 @@ def prove(census, profile='visual-v1', bytecodes=None, selection=None,
            {k for k in native if any(root in k[0] for root in GEN_ROOTS)} if profile=='generation-layout-v4' else
            {k for k in native if any(native[k]['descriptor'].endswith(')'+t) for t in VALUE_RETURNS)}
            if profile=='native-value-metadata-v3' else
-           {k for k in native if visual_entry(k[0],profile) or (profile in ('presentation-audio-ui-v2','presentation-access-v6') and typed_presentation_return(native[k]))})
+           {k for k in native if visual_entry(k[0],profile) or (profile in ('presentation-audio-ui-v2','presentation-access-v6','presentation-layout-aliases-v7') and typed_presentation_return(native[k]))})
     if selection is not None:
         assert set(selection)<=set(native),'Unknown finite context selection'
         roots &= set(selection)

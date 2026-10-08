@@ -1,35 +1,25 @@
-# Active campaign: Alex's Caves closure
+# Completed campaign: Legendary Monsters
 
-Finish Alex's Caves completely and defensibly, checkpoint/push, then STOP.
-The user's latest scope supersedes the earlier seven-mod campaign order.
-ArPhEx and all ledger COMPLETE targets are locked. Later mods are parked.
+The entire pinned `legendary_monsters-2.2.1 MC 1.21.1.jar` semantic catalog is
+COMPLETE. Verify the research branch push, then STOP. This user goal supersedes
+the previous Alex's Caves stop boundary. All ledger COMPLETE targets stay locked.
 
-Consume the existing AlexCaves finite census without restarting discovery.
-Reduce/group unresolved methods using indexes, exact bodies, equivalence and
-reachability before semantic review. Batches should close substantial related
-coverage; use generic tooling and bounded output. Grouping/names/hashes alone
-never establish behavior, exclusions, or completion.
+Use one finite census and existing indexes, exact bytecode, inheritance,
+delegation, equivalence and consumers before semantic review. Structural facts
+never establish semantic classifications or exclusions by themselves.
 
-For remaining work, use the tool-first ROI gate: repeated structural question,
-material finite-queue reduction, existing-tool reuse, generic applicability and
-lower validation cost than manual review. Code proves structure; Codex interprets
-meaning. Record reducer impact against the R2m8v adoption baseline (1597 semantic
-roles / 2441 native methods). Do not build infrastructure for a few leaves.
+Before new tooling, record unresolved cases reduced, existing alternatives,
+implementation/validation cost and later reuse. Prefer generic existing tools.
+Measure initial/final unresolved coverage, proven grouping, semantic review
+workload, new tools and their measured reduction; do not invent usage savings.
 
-Record native behavior, primitive/source/owner/delivery relationships, numeric
-consumers, gates, ordering, lifecycle and exact boundaries. No Stage eligibility,
-policy, balance, runtime integration or production changes.
+Cover damage, admission, creatures, attacks/projectiles, statuses, control,
+movement, healing/resources, equipment, attributes/configuration, timing/state,
+ownership/targeting and native numeric consumers. Preserve independent mechanics.
 
-After two checkpoints without substantial queue reduction or necessary new
-evidence, diagnose and change strategy. Intermediate checkpoints do not end work.
-When context grows: replace STATE, preserve the queue, commit/push, reload only
-current unresolved work, and continue.
-
-Closure requires fully dispositioned relevant census, evidence-backed exclusions,
-live semantics represented, deduplicated independent numeric candidates, zero
-material ambiguities or precisely blocked obligations, integrity audit and
-pinned-JAR validation/reproduction. If the exact Citadel dependency is unavailable,
-document it without guessing and complete every independent AlexCaves scope.
-
-At closure update STATE/review/ledger/counts, run mod-level validation, commit/push,
-verify live/local HEAD and protected production. Do not preload Legendary Monsters.
+Closure requires independent finite-census and integrity audits, classifications,
+numeric identities, duplicates/aliases/exclusions/dependencies, targeted checks
+and pinned-JAR reproduction. Update canonical review/ledger/STATE and push the
+requested branch. Confirm production unchanged. No Minecraft, Gradle, datagen,
+Stage policy or runtime changes. Genuine missing native evidence means PARTIAL
+with exact blockers after all independent research. Do not start another mod.

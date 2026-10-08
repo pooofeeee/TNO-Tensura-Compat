@@ -1,7 +1,7 @@
 """Reader tests against independently constructed binary fixtures."""
 import struct
 import unittest
-from structure_nbt import decode
+from structure_nbt import decode, decode_payload, payload_projection
 
 
 def string(value):
@@ -48,6 +48,28 @@ class NbtTests(unittest.TestCase):
     def test_nesting_limit(self):
         fixture = root(tag(10,'x',b'')*66+b'\x00'*66)
         with self.assertRaises(ValueError):decode(fixture)
+
+    def test_budget_override_is_bounded(self):
+        fixture = root(tag(9, 'numbers', b'\x03' + struct.pack('>iiii', 3, 1, 2, 3)))
+        with self.assertRaises(ValueError):decode(fixture, max_nodes=4)
+        self.assertEqual(decode(fixture, max_nodes=5)['numbers'], [1, 2, 3])
+        for invalid in (0, -1, 64000001, True):
+            with self.assertRaises(ValueError):decode(fixture, max_nodes=invalid)
+
+    def test_stream_projection_matches_full_decode(self):
+        pos = tag(9, 'pos', b'\x03' + struct.pack('>iiii', 3, 1, 2, 3))
+        first = pos + tag(3, 'state', struct.pack('>i', 0)) + b'\x00'
+        second = pos + tag(3, 'state', struct.pack('>i', 1)) + tag(10, 'nbt',
+            tag(8, 'id', string(b'minecraft:spawner')) + b'\x00') + b'\x00'
+        palette = (tag(8, 'Name', string(b'minecraft:stone')) + b'\x00' +
+                   tag(8, 'Name', string(b'minecraft:spawner')) + b'\x00')
+        fixture = root(tag(9, 'blocks', b'\x0a' + struct.pack('>i', 2) + first + second),
+            tag(9, 'size', b'\x03' + struct.pack('>iiii', 3, 4, 5, 6)),
+            tag(9, 'entities', b'\x0a' + struct.pack('>i', 0)),
+            tag(9, 'palette', b'\x0a' + struct.pack('>i', 2) + palette))
+        self.assertEqual(decode_payload(fixture), payload_projection(decode(fixture)))
+        for size in range(len(fixture)):
+            with self.subTest(size=size), self.assertRaises(ValueError):decode_payload(fixture[:size])
 
 
 if __name__ == '__main__':unittest.main()

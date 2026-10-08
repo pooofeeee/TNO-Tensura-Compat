@@ -1,0 +1,883 @@
+{
+  "mod_key": "legendary_monsters",
+  "evidence_file": "native-evidence/legendary_monsters-core.json",
+  "checkpoint": "legendary-monsters-pursuer",
+  "closed_scope": "Annihilation Pursuer creature and seven specialized native goals.",
+  "exact_next_task": "Complete remaining Legendary Monsters creatures/bosses and ancillary contexts/resources; numeric identity and whole-mod audits, push, STOP.",
+  "contracts": [
+    {
+      "id": "lm:annihilation_pursuer",
+      "display_name": "annihilation pursuer",
+      "source_actor": [
+        "entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "IAnimatedMiniBoss, not AbstractFlameborn: shared target-height admission, configurable miniboss damage cap, idle recovery/return and vehicle gates retained; own damageCap21/damageReduction1 do not replace superclass hardcoded MiniBossDamageCap lookup. Health210 armor13 toughness4 resistance1 range30 speed .1 float knockback .5 damage10 step1.5 XP15, configured full-health scaling/persistence. Allies ANNIHILATION_TEAM OR native. Sleep6/7 rejects damage including bypass and status admission; saveboolean reload6, hidden from enemy query. FALL rejects. Projectile-tag source while awake invokes RAW random teleportTo within10/10 attempts and rejects, even bypass; this helper does not post hook, collision/liquid validate or EntityUtil sync. Other damage rejected during state4 clocks9..12,13 clocks13..17,18/19 clocks9..13,14 clocks13..17,23 clocks11..15 except bypass; sleep still rejects. Awake ordinary damage delegates to shared cap/recovery/height gates. Safe teleport path posts EventHooks, loaded ground search, liquid/collision checks with rollback and EntityUtil synchronization; used by attack teleports. No AbstractFlameborn fall teleport. Attack update before parent tick. Cooldowns initially0, positive decrement; attackDelay2. Server ejects passengers except14/15/19, suppresses sneaking on passenger; forced target-only grab, fixed rider position(Y+3), no controlling passenger; dismount functions ignore requested destination and use relative own coordinates. Targets Player/golems/retaliation/AbstractChorusling, move3. Goal21 buckshot sample32%, strict(5,15), max/look28, delay and cooldown;22 max21/look10 or23 max/look26 then buckshotCD40. Goal13 sample16%, strict(3,13), max70/look25 and cooldown, stopCD100;18 chase sample32%, strict(6,20), max21/look25. Goal8 sample16%, range7/max29/look29, stop10 unless accepted-hit flag and stunCD<=0 transitions9;9 max48/look25 stopCD100,10 max19/look0. Goal5 sample16%, range7/max/look28, hit transitions11(max37/look30), miss12(max21/look0) or14;14 max39/look30 and19 max38/look35 grab goals success15 max112/look0 or16 max23/look0, stops finisherCD200. Goal2 stomp sample16%, range7/max46/look34/cooldown, stop3(max22) or4(max28), stopsCD100. Sleep6 freezes horizontal, wakes7 max30/range10. Death17 timeout85. Goals with random nextInt()*100 comparisons retain signed 32-bit overflow and are not bounded50%/70% samples. State2: clocks20/22/24/26 flame arcs distances2/4/6/8, spread .2pi, delay2, life20 ownerthis damage6; sweep20 range3.5/h3/arc180/offset-90/base18/shield70; dash25*.15, sweep28 range4/h4/180/base16.5/shield100, dash33*.25, sweep36 range5/h5/220/offset-90/base18/shield120. State4 raw attack safe teleport backward4 at8. State5/8 dash23*.2 then nextSideAreaAttack26 range5/h5/220/base16.5/shield120. State11 dash10*.2/sweep13 same16.5. State9 dash22*.35/sweep25 range4.25/h5/210/offset90/base16.5/shield120, accepted huge launch and STUN40amp1. State13 saves target-relative own-body-facing position10, safe teleport13, straight33 horizontal inflate-.5/Y2/forward5.5/base17/shield120/accepted huge launch; also two energy explosions at distances4/8, damage8/life20/bulletamount2/delay0. State18 stores midpoint own/target XZ and targetY3, teleport8. State14 teleport13 relative target head-facing offsets5/3, dash36*.25, grab39 range4.5/h4/225/offset90/base5/shield100;19 teleport8 offsets4/0, dash35, grab38 identical. Grab server wrapped-arc OR alternatives can bypass range, excludes allies/self/Pursuer; mobAttack damage5*config, forced ride only current target AFTER accepted hurt; result overwritten for each recipient, final recipient determines succedGrabbing. Blocked or rejected hit clears success, shields independent acceptance. State15 first passenger annihilation damage8*config at21/45; server throw84 EntityThrownEntity ownerthis damage1/inertia1, velocity1, inaccuracy14-4*difficulty, destination15 ahead/Y+2 and startY+3; passenger binding preserved by projectile contract. State21 creates three SmallAnnihilationBombs18 atY+3, damage8/ownerthis/velocity1, inaccuracies15/0/30 minus4*difficulty; no producer config multiplier. State23 safe random target teleport10 range7/10 attempts. Ordinary SideAreaAttack strictly distance AND wrapped arc, excludes self/allies/Pursuer, base*PursuerDamageMutliplier, mobAttack except defined state15 annihilation; accepted sets hasHit, optional huge launch and STUN40amp1, shields independent. nextSideAreaAttack server OR-wrapped arc can bypass distance, hasHit overwritten by EACH recipient acceptance and false on empty selection; accepted disables recipient sneak. Flame/energy spawns ground-search, no producer config multiplier. Legacy throwAnEntity helper has no producer; retain definition without extra active throw. Sleep/idle visual states add no payload. Death85 callbacks, no own server guard, target-player hotbar message at removal.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native admission, damage, navigation and status APIs with mod state callbacks.",
+      "components": [
+        {
+          "primitive": "NATIVE_ANNIHILATION_PURSUER",
+          "numerical_parameters": {
+            "health": 210,
+            "armor": 13,
+            "toughness": 4,
+            "slash_base": 16.5,
+            "stomp_base": 18,
+            "straight_base": 17,
+            "grab_base": 5,
+            "passenger_damage": 8,
+            "bomb_damage": 8,
+            "flame_damage": 6,
+            "explosion_damage": 8,
+            "stun_ticks": 40,
+            "stun_amplifier": 1,
+            "finisher_cooldown": 200,
+            "death_callbacks": 85
+          }
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "numerical_parameters": {
+            "max_health": 210.0,
+            "knockback_resistance": 1.0,
+            "follow_range": 30.0,
+            "armor": 13.0,
+            "armor_toughness": 4.0,
+            "movement_speed": 0.10000000149011612,
+            "attack_knockback": 0.5,
+            "attack_damage": 10.0,
+            "step_height": 1.5
+          },
+          "attribute_symbols": {
+            "max_health": "net/minecraft/world/entity/ai/attributes/Attributes.MAX_HEALTHLnet/minecraft/core/Holder;",
+            "knockback_resistance": "net/minecraft/world/entity/ai/attributes/Attributes.KNOCKBACK_RESISTANCELnet/minecraft/core/Holder;",
+            "follow_range": "net/minecraft/world/entity/ai/attributes/Attributes.FOLLOW_RANGELnet/minecraft/core/Holder;",
+            "armor": "net/minecraft/world/entity/ai/attributes/Attributes.ARMORLnet/minecraft/core/Holder;",
+            "armor_toughness": "net/minecraft/world/entity/ai/attributes/Attributes.ARMOR_TOUGHNESSLnet/minecraft/core/Holder;",
+            "movement_speed": "net/minecraft/world/entity/ai/attributes/Attributes.MOVEMENT_SPEEDLnet/minecraft/core/Holder;",
+            "attack_knockback": "net/minecraft/world/entity/ai/attributes/Attributes.ATTACK_KNOCKBACKLnet/minecraft/core/Holder;",
+            "attack_damage": "net/minecraft/world/entity/ai/attributes/Attributes.ATTACK_DAMAGELnet/minecraft/core/Holder;",
+            "step_height": "net/minecraft/world/entity/ai/attributes/Attributes.STEP_HEIGHTLnet/minecraft/core/Holder;"
+          }
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "SideAreaAttack",
+            "SideGrab",
+            "StraightLineAreaAttack",
+            "UpdateWithAttack",
+            "addAdditionalSaveData",
+            "addEffect",
+            "animationLockedForTests",
+            "attackDelayTicksValue",
+            "canBeAffected",
+            "canBeSeenAsEnemy",
+            "createAttributes",
+            "createSweep",
+            "damageCap",
+            "damageReduction",
+            "defineSynchedData",
+            "die",
+            "dismountTo",
+            "finalizeSpawn",
+            "flameRadagonShockwave",
+            "getAnimationState",
+            "getControllingPassenger",
+            "getDismountLocationForPassenger",
+            "getHasHit",
+            "hurt",
+            "isAlliedTo",
+            "isDuringTeleportation",
+            "isSleep",
+            "nextSideAreaAttack",
+            "onAddedToLevel",
+            "onSyncedDataUpdated",
+            "positionRider",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "saveTeleportPositions",
+            "setPersistenceRequired",
+            "setSleep",
+            "shootAnnihilationBomb",
+            "shouldRiderSit",
+            "spawnEnergyExplosions",
+            "spawnExplosions",
+            "spawnFlames",
+            "stopAllAnimationStates",
+            "teleport",
+            "teleportBoolean",
+            "teleportRandomly",
+            "throwAnEntity",
+            "throwAnGravityEntity",
+            "tick",
+            "tickDeath"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$1.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$10.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$11.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$12.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$13.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$14.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$15.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$16.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$17.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$18.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$19.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$2.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$20.class",
+          "methods": [
+            "<init>"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$3.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$4.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$5.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$6.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$7.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$8.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$9.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "lm:annihilation_pursuer:delivery"
+      ],
+      "candidate_bindings": [
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "max_health"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 9
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "knockback_resistance"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 16
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "follow_range"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 25
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "armor"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 34
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "armor_toughness"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 43
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "movement_speed"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 52
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "attack_knockback"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 61
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "attack_damage"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 70
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "step_height"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 79
+        }
+      ]
+    },
+    {
+      "id": "lm:pursuer_specialized_goals",
+      "display_name": "pursuer specialized goals",
+      "source_actor": [
+        "entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/goals/StompComboGoal",
+        "entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/goals/StabFinisherGrabStateGoal",
+        "entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/goals/SingleSlashFromGoal",
+        "entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/goals/SwordTeleportSlamGoal",
+        "entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/goals/TeleportChaseGoal",
+        "entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/goals/SingleSlashGoal",
+        "entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/goals/BuckshotGoal"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Specialized Pursuer goal kernel: target-driven attack goals require live target and source state, strict configured range; StompCombo/SingleSlash/Buckshot also attackDelay<=0, SwordTeleport/Chase strict min range without delay. All active constructors set MOVE/LOOK/JUMP, overload can supply flags. Start changes state, continuation clock<max AND active state. Look30/30 before see clock else yaw freeze. StompCombo stop3/4 via signed-overflow nextInt()*100<50 and cooldown0. SingleSlash stop accepted hasHit server11 then clears flag; miss finisherCD<=0 chooses12/14 using signed overflow, cooldown-active branch consumes random but both outcomes12; does not reset cooldown here. SingleSlashFrom accepted-hit and stunCD<=0 server9 then clears, else parent stop. Buckshot min distance5 and stop22/23 via signed-overflow random without cooldown reset. These four updateEveryTick=false. SwordTeleport stops supplied endstate/cooldown0; Chase stops19 when signed-overflow comparison true and finisherCD<=0 else endstate/cooldown0, both updateEveryTick=true. StabFinisher state goal start changes only different state, continuation positive final<= inclusive OR source+active state; stop success15/failure16, clock0/cooldown0, updateEveryTick=true; optional interruptsAI false sets no flags. Damage belongs to actor callbacks. Native alternating goal cleanup/callback schedule applies; grab clock39 with inclusive final39 is reachable.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native admission, damage, navigation and status APIs with mod state callbacks.",
+      "components": [
+        {
+          "primitive": "NATIVE_PURSUER_SPECIALIZED_GOALS",
+          "numerical_parameters": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/goals/StompComboGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/goals/StabFinisherGrabStateGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/goals/SingleSlashFromGoal.class",
+          "methods": [
+            "<init>",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/goals/SwordTeleportSlamGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/goals/TeleportChaseGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/goals/SingleSlashGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/goals/BuckshotGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "lm:pursuer_specialized_goals:delivery"
+      ],
+      "candidate_bindings": []
+    }
+  ],
+  "exclusions": [],
+  "paths": [
+    {
+      "id": "lm:annihilation_pursuer:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "MOB_MELEE",
+        "AOE",
+        "SUMMONED_ATTACK"
+      ],
+      "effect_ids": [
+        "lm:annihilation_pursuer"
+      ],
+      "primary_source": [
+        "entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "SideAreaAttack",
+            "SideGrab",
+            "StraightLineAreaAttack",
+            "UpdateWithAttack",
+            "addAdditionalSaveData",
+            "addEffect",
+            "animationLockedForTests",
+            "attackDelayTicksValue",
+            "canBeAffected",
+            "canBeSeenAsEnemy",
+            "createAttributes",
+            "createSweep",
+            "damageCap",
+            "damageReduction",
+            "defineSynchedData",
+            "die",
+            "dismountTo",
+            "finalizeSpawn",
+            "flameRadagonShockwave",
+            "getAnimationState",
+            "getControllingPassenger",
+            "getDismountLocationForPassenger",
+            "getHasHit",
+            "hurt",
+            "isAlliedTo",
+            "isDuringTeleportation",
+            "isSleep",
+            "nextSideAreaAttack",
+            "onAddedToLevel",
+            "onSyncedDataUpdated",
+            "positionRider",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "saveTeleportPositions",
+            "setPersistenceRequired",
+            "setSleep",
+            "shootAnnihilationBomb",
+            "shouldRiderSit",
+            "spawnEnergyExplosions",
+            "spawnExplosions",
+            "spawnFlames",
+            "stopAllAnimationStates",
+            "teleport",
+            "teleportBoolean",
+            "teleportRandomly",
+            "throwAnEntity",
+            "throwAnGravityEntity",
+            "tick",
+            "tickDeath"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$1.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$10.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$11.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$12.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$13.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$14.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$15.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$16.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$17.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$18.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$19.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$2.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$20.class",
+          "methods": [
+            "<init>"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$3.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$4.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$5.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$6.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$7.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$8.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/AnnihilationPursuerEntity$9.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:pursuer_specialized_goals:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "lm:pursuer_specialized_goals"
+      ],
+      "primary_source": [
+        "entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/goals/StompComboGoal",
+        "entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/goals/StabFinisherGrabStateGoal",
+        "entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/goals/SingleSlashFromGoal",
+        "entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/goals/SwordTeleportSlamGoal",
+        "entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/goals/TeleportChaseGoal",
+        "entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/goals/SingleSlashGoal",
+        "entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/goals/BuckshotGoal"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/goals/StompComboGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/goals/StabFinisherGrabStateGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/goals/SingleSlashFromGoal.class",
+          "methods": [
+            "<init>",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/goals/SwordTeleportSlamGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/goals/TeleportChaseGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/goals/SingleSlashGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/SpaceStation/Flameborn/AnnihilationPursuer/goals/BuckshotGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        }
+      ]
+    }
+  ],
+  "record_refinements": []
+}

@@ -81,9 +81,12 @@ def collect(document, jar_paths=None):
                 witness['data']=json.loads(data)
             elif entry.endswith('.nbt') and specification.get('structure_payload_projection'):
                 import gzip
-                from structure_nbt import decode, payload_projection
+                from structure_nbt import decode, decode_payload, payload_projection
                 raw = gzip.decompress(data) if data.startswith(b'\x1f\x8b') else data
-                witness['structure_payload'] = payload_projection(decode(raw))
+                budget = specification.get('nbt_max_nodes', 1000000)
+                witness['structure_payload'] = (decode_payload(raw, max_nodes=budget)
+                    if specification.get('stream_structure_payload_projection') else
+                    payload_projection(decode(raw, max_nodes=budget)))
             else:
                 witness['text']=data.decode('utf-8')
             witnesses.append(witness)

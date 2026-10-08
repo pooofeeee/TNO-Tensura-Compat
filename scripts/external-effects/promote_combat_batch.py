@@ -395,6 +395,22 @@ def literal_rng_bounds_binding(method, offset):
                 minimum_offset=low['offset'], maximum_offset=high['offset'])
 
 
+def literal_numeric_site_binding(method, offset):
+    """Pin an explicitly selected scalar literal; assign no role or reachability.
+
+    Predicates, loop limits and mixed argument expressions cannot always use
+    the narrower scalar-sink helpers. The author must identify their meaning
+    from the complete witnessed method, never from a value match alone.
+    """
+    hit = next(i for i in method['instructions'] if i['offset'] == offset)
+    assert hit['opcode'] in ('0x2', '0x3', '0x4', '0x5', '0x6', '0x7',
+        '0x8', '0x9', '0xa', '0xb', '0xc', '0xd', '0xe', '0xf',
+        '0x10', '0x11', '0x12', '0x13', '0x14')
+    assert type(hit['operand']) in (int, float)
+    return dict(native_value=hit['operand'], value_offset=offset,
+                kind='EXPLICITLY_REVIEWED_LITERAL_SITE')
+
+
 def literal_numeric_input_binding(method, offset):
     """Pin a literal scalar input to arithmetic or a subsequently read local.
 
@@ -803,7 +819,7 @@ def refined_review(review,batch):
         replacements=change.get('behavior_replacements',[])
         gates=change.get('binary_parameter_updates',{})
         assert isinstance(replacements,list) and isinstance(gates,dict)
-        assert set(gates)<=set(row['binary_parameters']),('unknown native gate refinement',rid)
+        assert set(gates)<=set(row.get('binary_parameters',{})),('unknown native gate refinement',rid)
         receipt=dict(checkpoint=batch['checkpoint'],reason=change['reason'])
         if receipt in row.get('contract_refinements',[]):
             # Published batches can be validated without duplicating their
@@ -833,7 +849,8 @@ def refined_review(review,batch):
         row['actual_behavior']+=' '+change['behavior_append']
         row.setdefault('contract_refinements',[]).append(receipt)
         row.update(deepcopy(updates))
-        row['binary_parameters'].update(deepcopy(gates))
+        if gates:
+            row['binary_parameters'].update(deepcopy(gates))
         for component in change.get('component_additions',[]):
             matches=[c for c in row['components'] if c['primitive']==component['primitive']]
             assert len(matches)<=1,('ambiguous component refinement',rid,component)
@@ -942,6 +959,14 @@ def validate_batch(batch,review,census):
                 assert component['numerical_parameters'][candidate['parameters'][0]] == binding['divisor']
             food_component = 'native_food_component_binding' in candidate
             literal_numeric = 'native_literal_numeric_input_binding' in candidate
+            literal_site = 'native_literal_numeric_site_binding' in candidate
+            if literal_site:
+                binding = literal_numeric_site_binding(m, consumer['offset'])
+                assert binding == candidate['native_literal_numeric_site_binding']
+                assert candidate.get('reviewed_parameter_role')
+                assert len(candidate['parameters']) == 1
+                component = next(c for c in row['components'] if c['primitive'] == candidate['primitive'])
+                assert component['numerical_parameters'][candidate['parameters'][0]] == binding['native_value']
             last_numeric_argument = 'native_last_numeric_argument_binding' in candidate
             if last_numeric_argument:
                 binding=literal_last_numeric_argument_binding(m,consumer['offset'])
@@ -1171,7 +1196,7 @@ def validate_batch(batch,review,census):
                 allowed={'native_value'} if binding['kind']=='ITEM_ATTRIBUTE_MODIFIER' else {'attack_bonus','attack_speed'}
                 assert set(roles.values())==allowed and len(roles)==len(allowed)
                 assert all(component['numerical_parameters'][parameter]==binding[role] for parameter,role in roles.items()),('component differs from pinned item attribute',candidate)
-            assert hit['opcode']=='0xb5' or field_literal or block_factor or literal_numeric or last_numeric_argument or vector_components or effect_attribute or integer_dividend or food_component or rounded_tag or rng or terrain or explosion or durability or attribute or constructor_argument or call_argument or item_attribute or item_wear or numeric_return or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or synched_clock or clock_distribution or vector_scale or vector_expression or registry_spawn or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
+            assert hit['opcode']=='0xb5' or field_literal or block_factor or literal_numeric or literal_site or last_numeric_argument or vector_components or effect_attribute or integer_dividend or food_component or rounded_tag or rng or terrain or explosion or durability or attribute or constructor_argument or call_argument or item_attribute or item_wear or numeric_return or command or concat or area_state or block_speed or hazard_timer or projectile_placement or body_dimensions or synched_clock or clock_distribution or vector_scale or vector_expression or registry_spawn or handoff or arrow_factory or any(s in str(hit['operand']) for s in scalar_sinks),('not a native scalar consumer',consumer)
             if candidate['primitive'].startswith('MOB_EFFECT_') or 'native_holder_symbol' in candidate:
                 symbol,allocation,load=effect_holder_binding(m,consumer['offset'])
                 assert (symbol,allocation,load)==(candidate['native_holder_symbol'],

@@ -1,0 +1,2942 @@
+{
+  "schema": "tno.external_effects.reviewed_combat_batch.v1",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "legendary_monsters",
+  "checkpoint": "legendary-monsters-foundation-contracts",
+  "closed_scope": "Pinned status scheduling, registered attributes, global combat hooks and shared native combat/admission/state kernels. Remaining actor/item/projectile/block families stay pending.",
+  "effects": [
+    {
+      "id": "lm:animated_mob_environment_immunity",
+      "display_name": "animated_mob_environment_immunity",
+      "source_actor": [
+        "entity/AnimatedMonster/OriginClasses/IAnimatedMob"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "IAnimatedMob rejects FALL and IN_WALL then delegates to vehicle-sensitive IAnimatedMonster. Drops add glowing and extended lifetime; no additional damage scalar in that delivery utility.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native API with exact native overrides and NeoForge 21.1.244 admission hooks; no HP/SHP/runtime projection.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_ADMISSION",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/OriginClasses/IAnimatedMob.class",
+          "methods": [
+            "<init>",
+            "hurt",
+            "spawnAtLocation",
+            "target"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/OriginClasses/IAnimatedMob.class"
+        }
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/OriginClasses/IAnimatedMob.class",
+          "methods": [
+            "<init>",
+            "hurt",
+            "spawnAtLocation",
+            "target"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "IAnimatedMob rejects FALL and IN_WALL then delegates to vehicle-sensitive IAnimatedMonster. Drops add glowing and extended lifetime; no additional damage scalar in that delivery utility.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/OriginClasses/IAnimatedMob.class",
+          "methods": [
+            "<init>",
+            "hurt",
+            "spawnAtLocation",
+            "target"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "lm:animated_mob_environment_immunity:native_boundary"
+      ],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:animated_monster_shared_control",
+      "display_name": "animated_monster_shared_control",
+      "source_actor": [
+        "entity/AnimatedMonster/OriginClasses/IAnimatedMonster"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Attack state setter resets attackTicks, sets delay from virtual callback, syncs state and emits signed entity event; tick advances attack clock only state>0 and decrements positive cooldown/delay. readAdditionalSaveData writes attackTicks into the incoming tag rather than restoring it; save override adds no own timer. Vehicle blocks hurt/push; canRide false. Dash helpers retain native vectors, including calculatedDashToScaledVec Z using end.x, and basicDash cap branches with identical formulas. Launch uses max(dx^2+dz^2,1e-4), horizontal divided by squared distance; huge switch(2,.5) versus(.5,.2). Repel uses horizontal .1 and preservesY. SpawnDamagingBlocks samples arc ground up to30 below, spawns cosmetic falling block, requests mobAttack 11*damage+min(11*damage,maxHP*hpdamage); successful hurt gates airborne add. Native self/allied exclusion retained. disableShield casts Player, cooldown caller ticks then stop use/event30. Query envelopes, range plus half recipient width and upperY gate retained.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native API with exact native overrides and NeoForge 21.1.244 admission hooks; no HP/SHP/runtime projection.",
+      "components": [
+        {
+          "primitive": "NATIVE_ATTACK_CONTROL_KERNEL",
+          "numerical_parameters": {
+            "arc_base_damage": 11.0,
+            "ground_search_depth": 30,
+            "push_coefficient": 0.05,
+            "repel_coefficient": 0.1
+          },
+          "parameter_formulas": {
+            "arc_damage": "11*damage + min(11*damage, recipient.maxHealth*hpdamage)",
+            "airborne": "airborne*distance + randomDouble*.15"
+          }
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/OriginClasses/IAnimatedMonster.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "SpawnDamagingBlocks",
+            "addAdditionalSaveData",
+            "advancedDash",
+            "applyEffectTo",
+            "applyStackingEffect",
+            "attackDelayTicksValue",
+            "basicDash",
+            "calculatedDash",
+            "calculatedDashToPositon",
+            "calculatedDashToScaledVec",
+            "canBePushedByEntity",
+            "canRide",
+            "createBodyControl",
+            "createNavigation",
+            "defineSynchedData",
+            "disableShield",
+            "getAngleBetweenEntities",
+            "getAttackDelayTicks",
+            "getAttackState",
+            "getAttackTicks",
+            "getEntitiesNearby",
+            "getEntityLivingBaseNearby",
+            "handleEntityEvent",
+            "hurt",
+            "isTargetCheesing",
+            "lambda$getEntitiesNearby$0",
+            "launch",
+            "pitch",
+            "push",
+            "readAdditionalSaveData",
+            "repelEntities",
+            "sendAdvancedHotBarMessage",
+            "sendBasicHotBarMessage",
+            "setAttackState",
+            "shouldDespawnInPeaceful",
+            "spawnCircleParticle",
+            "target",
+            "targetIsNotNull",
+            "tick",
+            "yaw"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/OriginClasses/IAnimatedMonster.class"
+        }
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/OriginClasses/IAnimatedMonster.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "SpawnDamagingBlocks",
+            "addAdditionalSaveData",
+            "advancedDash",
+            "applyEffectTo",
+            "applyStackingEffect",
+            "attackDelayTicksValue",
+            "basicDash",
+            "calculatedDash",
+            "calculatedDashToPositon",
+            "calculatedDashToScaledVec",
+            "canBePushedByEntity",
+            "canRide",
+            "createBodyControl",
+            "createNavigation",
+            "defineSynchedData",
+            "disableShield",
+            "getAngleBetweenEntities",
+            "getAttackDelayTicks",
+            "getAttackState",
+            "getAttackTicks",
+            "getEntitiesNearby",
+            "getEntityLivingBaseNearby",
+            "handleEntityEvent",
+            "hurt",
+            "isTargetCheesing",
+            "lambda$getEntitiesNearby$0",
+            "launch",
+            "pitch",
+            "push",
+            "readAdditionalSaveData",
+            "repelEntities",
+            "sendAdvancedHotBarMessage",
+            "sendBasicHotBarMessage",
+            "setAttackState",
+            "shouldDespawnInPeaceful",
+            "spawnCircleParticle",
+            "target",
+            "targetIsNotNull",
+            "tick",
+            "yaw"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Attack state setter resets attackTicks, sets delay from virtual callback, syncs state and emits signed entity event; tick advances attack clock only state>0 and decrements positive cooldown/delay. readAdditionalSaveData writes attackTicks into the incoming tag rather than restoring it; save override adds no own timer. Vehicle blocks hurt/push; canRide false. Dash helpers retain native vectors, including calculatedDashToScaledVec Z using end.x, and basicDash cap branches with identical formulas. Launch uses max(dx^2+dz^2,1e-4), horizontal divided by squared distance; huge switch(2,.5) versus(.5,.2). Repel uses horizontal .1 and preservesY. SpawnDamagingBlocks samples arc ground up to30 below, spawns cosmetic falling block, requests mobAttack 11*damage+min(11*damage,maxHP*hpdamage); successful hurt gates airborne add. Native self/allied exclusion retained. disableShield casts Player, cooldown caller ticks then stop use/event30. Query envelopes, range plus half recipient width and upperY gate retained.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/OriginClasses/IAnimatedMonster.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "SpawnDamagingBlocks",
+            "addAdditionalSaveData",
+            "advancedDash",
+            "applyEffectTo",
+            "applyStackingEffect",
+            "attackDelayTicksValue",
+            "basicDash",
+            "calculatedDash",
+            "calculatedDashToPositon",
+            "calculatedDashToScaledVec",
+            "canBePushedByEntity",
+            "canRide",
+            "createBodyControl",
+            "createNavigation",
+            "defineSynchedData",
+            "disableShield",
+            "getAngleBetweenEntities",
+            "getAttackDelayTicks",
+            "getAttackState",
+            "getAttackTicks",
+            "getEntitiesNearby",
+            "getEntityLivingBaseNearby",
+            "handleEntityEvent",
+            "hurt",
+            "isTargetCheesing",
+            "lambda$getEntitiesNearby$0",
+            "launch",
+            "pitch",
+            "push",
+            "readAdditionalSaveData",
+            "repelEntities",
+            "sendAdvancedHotBarMessage",
+            "sendBasicHotBarMessage",
+            "setAttackState",
+            "shouldDespawnInPeaceful",
+            "spawnCircleParticle",
+            "target",
+            "targetIsNotNull",
+            "tick",
+            "yaw"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "lm:animated_monster_shared_control:native_boundary"
+      ],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:annihilation",
+      "display_name": "annihilation",
+      "source_actor": [
+        [
+          "effect/ModEffects",
+          [
+            "lambda$static$11"
+          ]
+        ],
+        [
+          "effect/custom/Annihilation",
+          null
+        ]
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "ATTACK_SPEED -0.1*(amplifier+1), ADD_MULTIPLIED_TOTAL. Independent from custom void DamageType and source factories; holder stacking is performed by producers.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native API with exact native overrides and NeoForge 21.1.244 admission hooks; no HP/SHP/runtime projection.",
+      "components": [
+        {
+          "primitive": "NATIVE_STATUS_GATE",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_EFFECT_ATTRIBUTE_ATTACK_SPEED",
+          "numerical_parameters": {
+            "base_amount": -0.1
+          },
+          "parameter_formulas": {
+            "amount": "base_amount * (amplifier + 1)"
+          },
+          "native_attribute_symbol": "net/minecraft/world/entity/ai/attributes/Attributes.ATTACK_SPEEDLnet/minecraft/core/Holder;",
+          "native_operation_symbol": "net/minecraft/world/entity/ai/attributes/AttributeModifier$Operation.ADD_MULTIPLIED_TOTALLnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;",
+          "modifier_id": "legendary_monsters:attack_speed"
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+          "methods": [
+            "lambda$static$11"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/ModEffects.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/Annihilation.class",
+          "methods": [
+            "<init>"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/Annihilation.class"
+        }
+      ],
+      "registry_ids": [
+        "legendary_monsters:annihilation"
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json",
+        "vanilla-evidence/legendary-monsters-status-scheduling.json",
+        "legendary_monsters-status-loader-patches.json"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+          "methods": [
+            "lambda$static$11"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/Annihilation.class",
+          "methods": [
+            "<init>"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "ATTACK_SPEED -0.1*(amplifier+1), ADD_MULTIPLIED_TOTAL. Independent from custom void DamageType and source factories; holder stacking is performed by producers.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+          "methods": [
+            "lambda$static$11"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/Annihilation.class",
+          "methods": [
+            "<init>"
+          ]
+        }
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "lm:annihilation:native_boundary"
+      ],
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_EFFECT_ATTRIBUTE_ATTACK_SPEED",
+          "parameters": [
+            "base_amount"
+          ],
+          "native_effect_attribute_binding": {
+            "attribute_symbol": "net/minecraft/world/entity/ai/attributes/Attributes.ATTACK_SPEEDLnet/minecraft/core/Holder;",
+            "identifier": "legendary_monsters:attack_speed",
+            "operation_symbol": "net/minecraft/world/entity/ai/attributes/AttributeModifier$Operation.ADD_MULTIPLIED_TOTALLnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;",
+            "native_value": -0.1,
+            "value_offset": 21
+          },
+          "native_consumer": {
+            "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+            "methods": [
+              "lambda$static$11"
+            ],
+            "evidence_file": "native-evidence/legendary_monsters-core.json",
+            "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/ModEffects.class",
+            "descriptor": "()Lnet/minecraft/world/effect/MobEffect;",
+            "offset": 27,
+            "opcode": "0xb6",
+            "operand": "net/miauczel/legendary_monsters/effect/custom/Annihilation.addAttributeModifier(Lnet/minecraft/core/Holder;Lnet/minecraft/resources/ResourceLocation;DLnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;)Lnet/minecraft/world/effect/MobEffect;"
+          },
+          "native_parameter_identity": {
+            "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+            "method": "lambda$static$11",
+            "descriptor": "()Lnet/minecraft/world/effect/MobEffect;",
+            "offset": 27
+          },
+          "observation_only": true
+        }
+      ]
+    },
+    {
+      "id": "lm:annihilator_ender_mask",
+      "display_name": "annihilator_ender_mask",
+      "source_actor": [
+        "mixin/IForgeItemMixin"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "IItemExtension mixin default isEnderMask returns true exactly for carved pumpkin or Annihilator helmet, retaining ordinary Enderman mask consumer semantics.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native API with exact native overrides and NeoForge 21.1.244 admission hooks; no HP/SHP/runtime projection.",
+      "components": [
+        {
+          "primitive": "NATIVE_TARGETING_ADMISSION",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/mixin/IForgeItemMixin.class",
+          "methods": [
+            "isEnderMask"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/mixin/IForgeItemMixin.class"
+        }
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/mixin/IForgeItemMixin.class",
+          "methods": [
+            "isEnderMask"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "IItemExtension mixin default isEnderMask returns true exactly for carved pumpkin or Annihilator helmet, retaining ordinary Enderman mask consumer semantics.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/mixin/IForgeItemMixin.class",
+          "methods": [
+            "isEnderMask"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "lm:annihilator_ender_mask:native_boundary"
+      ],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:boss_damage_accounting_and_admission",
+      "display_name": "boss_damage_accounting_and_admission",
+      "source_actor": [
+        "entity/AnimatedMonster/OriginClasses/IAnimatedBoss"
+      ],
+      "primary_classification": "CUSTOM_RESOURCE",
+      "actual_behavior": "IAnimatedBoss uses server maxHealth-totalDamageTaken, clamped>=0; setHealth only initializes at tick0 on server, while client delegates. Forge incoming event adds amount after own cap except bypass, armor then magic reduction; accumulates and calls die if resulting health<=0, sets hurtCD30 when configured. This incoming hook precedes downstream success: cancellation/order from external listeners remains pack boundary. Native heal reduces accumulated damage. _td persists float bits XOR1597463007, reload clamps0..maxHP. hurt bypass delegates early; otherwise cap, conditional adaptation multiplier clamp(reducedDamageTicks*.01,.5,amount), rejects FALL/DROWN/IS_FIRE/FREEZE/IN_WALL and too-far current target. Successful hurt resets adaptation30, decrements factor by virtual adaptationFactor and cycles griefing destruction. Factor restores100 after30; DamageTime=max20,factor. Incoming hook clock hurtCD is not itself tested by base hurt. Effects refused by addEffect(instance,entity); fluid push/freeze disabled; fluid travel relative speed, moveSELF then*.8. Idle return260/100 at squared225; spawn position persists, transient clocks do not. Concrete overrides remain separately pending.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native API with exact native overrides and NeoForge 21.1.244 admission hooks; no HP/SHP/runtime projection.",
+      "components": [
+        {
+          "primitive": "NATIVE_BOSS_DAMAGE_ACCOUNTING",
+          "numerical_parameters": {
+            "default_damage_cap": 21.0,
+            "adaptation_reset_ticks": 30,
+            "damage_factor_reset": 100,
+            "minimum_damage_time": 20,
+            "incoming_hurt_clock_ticks": 30,
+            "fluid_drag": 0.8
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/OriginClasses/IAnimatedBoss.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "DamageTime",
+            "adaptationFactor",
+            "addAdditionalSaveData",
+            "addDamage",
+            "addEffect",
+            "aiStep",
+            "antiCheeseDistance",
+            "attractParticles",
+            "baseHealth",
+            "breakCheeseBlocks",
+            "canFreeze",
+            "canPlayMusic",
+            "canPlayerHearMusic",
+            "createAttributes",
+            "damageAdaptationSystem",
+            "damageCap",
+            "defineSynchedData",
+            "entityBasedHpDamage",
+            "finalizeSpawn",
+            "getBossMusic",
+            "getHealth",
+            "getInvulnerabilityConfig",
+            "getSpawnBlockPos",
+            "heal",
+            "hurt",
+            "isAlive",
+            "isDeadOrDying",
+            "isPushedByFluid",
+            "moveToBlockPos",
+            "onAddedToLevel",
+            "readAdditionalSaveData",
+            "reducedDamage",
+            "setDamageTimeFactor",
+            "setHealth",
+            "setSpawnBlockPos",
+            "tick",
+            "toPercent",
+            "travel",
+            "updateFluidHeightAndDoFluidPushing"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/OriginClasses/IAnimatedBoss.class"
+        }
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/OriginClasses/IAnimatedBoss.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "DamageTime",
+            "adaptationFactor",
+            "addAdditionalSaveData",
+            "addDamage",
+            "addEffect",
+            "aiStep",
+            "antiCheeseDistance",
+            "attractParticles",
+            "baseHealth",
+            "breakCheeseBlocks",
+            "canFreeze",
+            "canPlayMusic",
+            "canPlayerHearMusic",
+            "createAttributes",
+            "damageAdaptationSystem",
+            "damageCap",
+            "defineSynchedData",
+            "entityBasedHpDamage",
+            "finalizeSpawn",
+            "getBossMusic",
+            "getHealth",
+            "getInvulnerabilityConfig",
+            "getSpawnBlockPos",
+            "heal",
+            "hurt",
+            "isAlive",
+            "isDeadOrDying",
+            "isPushedByFluid",
+            "moveToBlockPos",
+            "onAddedToLevel",
+            "readAdditionalSaveData",
+            "reducedDamage",
+            "setDamageTimeFactor",
+            "setHealth",
+            "setSpawnBlockPos",
+            "tick",
+            "toPercent",
+            "travel",
+            "updateFluidHeightAndDoFluidPushing"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "IAnimatedBoss uses server maxHealth-totalDamageTaken, clamped>=0; setHealth only initializes at tick0 on server, while client delegates. Forge incoming event adds amount after own cap except bypass, armor then magic reduction; accumulates and calls die if resulting health<=0, sets hurtCD30 when configured. This incoming hook precedes downstream success: cancellation/order from external listeners remains pack boundary. Native heal reduces accumulated damage. _td persists float bits XOR1597463007, reload clamps0..maxHP. hurt bypass delegates early; otherwise cap, conditional adaptation multiplier clamp(reducedDamageTicks*.01,.5,amount), rejects FALL/DROWN/IS_FIRE/FREEZE/IN_WALL and too-far current target. Successful hurt resets adaptation30, decrements factor by virtual adaptationFactor and cycles griefing destruction. Factor restores100 after30; DamageTime=max20,factor. Incoming hook clock hurtCD is not itself tested by base hurt. Effects refused by addEffect(instance,entity); fluid push/freeze disabled; fluid travel relative speed, moveSELF then*.8. Idle return260/100 at squared225; spawn position persists, transient clocks do not. Concrete overrides remain separately pending.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/OriginClasses/IAnimatedBoss.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "DamageTime",
+            "adaptationFactor",
+            "addAdditionalSaveData",
+            "addDamage",
+            "addEffect",
+            "aiStep",
+            "antiCheeseDistance",
+            "attractParticles",
+            "baseHealth",
+            "breakCheeseBlocks",
+            "canFreeze",
+            "canPlayMusic",
+            "canPlayerHearMusic",
+            "createAttributes",
+            "damageAdaptationSystem",
+            "damageCap",
+            "defineSynchedData",
+            "entityBasedHpDamage",
+            "finalizeSpawn",
+            "getBossMusic",
+            "getHealth",
+            "getInvulnerabilityConfig",
+            "getSpawnBlockPos",
+            "heal",
+            "hurt",
+            "isAlive",
+            "isDeadOrDying",
+            "isPushedByFluid",
+            "moveToBlockPos",
+            "onAddedToLevel",
+            "readAdditionalSaveData",
+            "reducedDamage",
+            "setDamageTimeFactor",
+            "setHealth",
+            "setSpawnBlockPos",
+            "tick",
+            "toPercent",
+            "travel",
+            "updateFluidHeightAndDoFluidPushing"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "lm:boss_damage_accounting_and_admission:native_boundary"
+      ],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:broken_armor",
+      "display_name": "broken_armor",
+      "source_actor": [
+        [
+          "effect/ModEffects",
+          [
+            "lambda$static$6"
+          ]
+        ],
+        [
+          "effect/custom/BrokenArmor",
+          null
+        ]
+      ],
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "ARMOR -2*(amplifier+1), ADD_VALUE; this is flat armor subtraction, distinct from a percentage damage multiplier.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native API with exact native overrides and NeoForge 21.1.244 admission hooks; no HP/SHP/runtime projection.",
+      "components": [
+        {
+          "primitive": "NATIVE_STATUS_GATE",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_EFFECT_ATTRIBUTE_ARMOR",
+          "numerical_parameters": {
+            "base_amount": -2.0
+          },
+          "parameter_formulas": {
+            "amount": "base_amount * (amplifier + 1)"
+          },
+          "native_attribute_symbol": "net/minecraft/world/entity/ai/attributes/Attributes.ARMORLnet/minecraft/core/Holder;",
+          "native_operation_symbol": "net/minecraft/world/entity/ai/attributes/AttributeModifier$Operation.ADD_VALUELnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;",
+          "modifier_id": "legendary_monsters:armor"
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+          "methods": [
+            "lambda$static$6"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/ModEffects.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/BrokenArmor.class",
+          "methods": [
+            "<init>"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/BrokenArmor.class"
+        }
+      ],
+      "registry_ids": [
+        "legendary_monsters:broken_armor"
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json",
+        "vanilla-evidence/legendary-monsters-status-scheduling.json",
+        "legendary_monsters-status-loader-patches.json"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+          "methods": [
+            "lambda$static$6"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/BrokenArmor.class",
+          "methods": [
+            "<init>"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "ARMOR -2*(amplifier+1), ADD_VALUE; this is flat armor subtraction, distinct from a percentage damage multiplier.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+          "methods": [
+            "lambda$static$6"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/BrokenArmor.class",
+          "methods": [
+            "<init>"
+          ]
+        }
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "lm:broken_armor:native_boundary"
+      ],
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_EFFECT_ATTRIBUTE_ARMOR",
+          "parameters": [
+            "base_amount"
+          ],
+          "native_effect_attribute_binding": {
+            "attribute_symbol": "net/minecraft/world/entity/ai/attributes/Attributes.ARMORLnet/minecraft/core/Holder;",
+            "identifier": "legendary_monsters:armor",
+            "operation_symbol": "net/minecraft/world/entity/ai/attributes/AttributeModifier$Operation.ADD_VALUELnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;",
+            "native_value": -2.0,
+            "value_offset": 21
+          },
+          "native_consumer": {
+            "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+            "methods": [
+              "lambda$static$6"
+            ],
+            "evidence_file": "native-evidence/legendary_monsters-core.json",
+            "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/ModEffects.class",
+            "descriptor": "()Lnet/minecraft/world/effect/MobEffect;",
+            "offset": 27,
+            "opcode": "0xb6",
+            "operand": "net/miauczel/legendary_monsters/effect/custom/BrokenArmor.addAttributeModifier(Lnet/minecraft/core/Holder;Lnet/minecraft/resources/ResourceLocation;DLnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;)Lnet/minecraft/world/effect/MobEffect;"
+          },
+          "native_parameter_identity": {
+            "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+            "method": "lambda$static$6",
+            "descriptor": "()Lnet/minecraft/world/effect/MobEffect;",
+            "offset": 27
+          },
+          "observation_only": true
+        }
+      ]
+    },
+    {
+      "id": "lm:global_equipment_reactions",
+      "display_name": "global_equipment_reactions",
+      "source_actor": [
+        "event/ForgeEvents"
+      ],
+      "primary_classification": "VANILLA_COMPOSITE",
+      "actual_behavior": "GAME annotated ForgeEvents callbacks: IAnimatedMonster boat/minecart mounting canceled; entity teleport canceled while riding animated monster or thrown entity. Boss incoming-damage hook delegates addDamage before downstream mitigation as separately canonical. Spiky Shield while blocking/useItem exact stack: direct living source with attack attribute and signed Java nextInt()*100>50 (overflow preserved, not a 50% nextFloat test) receives thorns source target, .25*source.attackDamage+5. SoulGreatSword parry requires Player, current useItem type, enabled config, not crouching, source lacks bypass invulnerability/armor and timeUsed<=maxUseDuration; source entity and ThreadLocal recursion guard. Source receives playerAttack attackDamage+.30*incoming amount; secondary living targets in inflated(2,2.5,2) exclude player, source and owner-tamed animals; receive attackDamage independent of damage return. Parry success set, heal .20maxHP, incoming event canceled. Nine SoulStrike objects damage9 are constructed/shot but never addFreshEntity, so this branch delivers no strike actors. Annihilator leggings incoming-source Player critical fallDistance>0/full charge plus signed nextInt()*100<25: exclude custom void source and attacker/main victim; inflated3 living targets receive custom void source attacker, attackDamage/2; no ally gate. onCheckSpawn reads progression but writes no result.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native API with exact native overrides and NeoForge 21.1.244 admission hooks; no HP/SHP/runtime projection.",
+      "components": [
+        {
+          "primitive": "NATIVE_REACTIVE_DAMAGE_AND_PARRY",
+          "numerical_parameters": {
+            "shield_flat_damage": 5.0,
+            "shield_attack_percent": 25.0,
+            "parry_incoming_percent": 30.0,
+            "parry_heal_percent": 20.0,
+            "leggings_damage_divisor": 2.0,
+            "leggings_radius": 3.0
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/event/ForgeEvents.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "addDamage",
+            "createCircularLightningParticle",
+            "createSweep",
+            "ejectpassengers",
+            "lambda$static$0",
+            "onCheckSpawn",
+            "onEntityTeleport",
+            "onLivingHurt",
+            "spikyShieldEvent"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/event/ForgeEvents.class"
+        }
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/event/ForgeEvents.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "addDamage",
+            "createCircularLightningParticle",
+            "createSweep",
+            "ejectpassengers",
+            "lambda$static$0",
+            "onCheckSpawn",
+            "onEntityTeleport",
+            "onLivingHurt",
+            "spikyShieldEvent"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "GAME annotated ForgeEvents callbacks: IAnimatedMonster boat/minecart mounting canceled; entity teleport canceled while riding animated monster or thrown entity. Boss incoming-damage hook delegates addDamage before downstream mitigation as separately canonical. Spiky Shield while blocking/useItem exact stack: direct living source with attack attribute and signed Java nextInt()*100>50 (overflow preserved, not a 50% nextFloat test) receives thorns source target, .25*source.attackDamage+5. SoulGreatSword parry requires Player, current useItem type, enabled config, not crouching, source lacks bypass invulnerability/armor and timeUsed<=maxUseDuration; source entity and ThreadLocal recursion guard. Source receives playerAttack attackDamage+.30*incoming amount; secondary living targets in inflated(2,2.5,2) exclude player, source and owner-tamed animals; receive attackDamage independent of damage return. Parry success set, heal .20maxHP, incoming event canceled. Nine SoulStrike objects damage9 are constructed/shot but never addFreshEntity, so this branch delivers no strike actors. Annihilator leggings incoming-source Player critical fallDistance>0/full charge plus signed nextInt()*100<25: exclude custom void source and attacker/main victim; inflated3 living targets receive custom void source attacker, attackDamage/2; no ally gate. onCheckSpawn reads progression but writes no result.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/event/ForgeEvents.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "addDamage",
+            "createCircularLightningParticle",
+            "createSweep",
+            "ejectpassengers",
+            "lambda$static$0",
+            "onCheckSpawn",
+            "onEntityTeleport",
+            "onLivingHurt",
+            "spikyShieldEvent"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "lm:global_equipment_reactions:native_boundary"
+      ],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:gravity_pull",
+      "display_name": "gravity_pull",
+      "source_actor": [
+        [
+          "effect/ModEffects",
+          [
+            "lambda$static$8"
+          ]
+        ],
+        [
+          "effect/custom/FastFalling",
+          null
+        ]
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "GRAVITY +0.05*(amplifier+1), ADD_VALUE, using actual NeoForge gravity attribute. Empty base tick payload adds no movement call.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native API with exact native overrides and NeoForge 21.1.244 admission hooks; no HP/SHP/runtime projection.",
+      "components": [
+        {
+          "primitive": "NATIVE_STATUS_GATE",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_EFFECT_ATTRIBUTE_GRAVITY",
+          "numerical_parameters": {
+            "base_amount": 0.05
+          },
+          "parameter_formulas": {
+            "amount": "base_amount * (amplifier + 1)"
+          },
+          "native_attribute_symbol": "net/minecraft/world/entity/ai/attributes/Attributes.GRAVITYLnet/minecraft/core/Holder;",
+          "native_operation_symbol": "net/minecraft/world/entity/ai/attributes/AttributeModifier$Operation.ADD_VALUELnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;",
+          "modifier_id": "legendary_monsters:gravity_pull_gravity"
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+          "methods": [
+            "lambda$static$8"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/ModEffects.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/FastFalling.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/FastFalling.class"
+        }
+      ],
+      "registry_ids": [
+        "legendary_monsters:gravity_pull"
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json",
+        "vanilla-evidence/legendary-monsters-status-scheduling.json",
+        "legendary_monsters-status-loader-patches.json"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+          "methods": [
+            "lambda$static$8"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/FastFalling.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "GRAVITY +0.05*(amplifier+1), ADD_VALUE, using actual NeoForge gravity attribute. Empty base tick payload adds no movement call.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+          "methods": [
+            "lambda$static$8"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/FastFalling.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick"
+          ]
+        }
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "lm:gravity_pull:native_boundary"
+      ],
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_EFFECT_ATTRIBUTE_GRAVITY",
+          "parameters": [
+            "base_amount"
+          ],
+          "native_effect_attribute_binding": {
+            "attribute_symbol": "net/minecraft/world/entity/ai/attributes/Attributes.GRAVITYLnet/minecraft/core/Holder;",
+            "identifier": "legendary_monsters:gravity_pull_gravity",
+            "operation_symbol": "net/minecraft/world/entity/ai/attributes/AttributeModifier$Operation.ADD_VALUELnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;",
+            "native_value": 0.05,
+            "value_offset": 21
+          },
+          "native_consumer": {
+            "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+            "methods": [
+              "lambda$static$8"
+            ],
+            "evidence_file": "native-evidence/legendary_monsters-core.json",
+            "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/ModEffects.class",
+            "descriptor": "()Lnet/minecraft/world/effect/MobEffect;",
+            "offset": 27,
+            "opcode": "0xb6",
+            "operand": "net/miauczel/legendary_monsters/effect/custom/FastFalling.addAttributeModifier(Lnet/minecraft/core/Holder;Lnet/minecraft/resources/ResourceLocation;DLnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;)Lnet/minecraft/world/effect/MobEffect;"
+          },
+          "native_parameter_identity": {
+            "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+            "method": "lambda$static$8",
+            "descriptor": "()Lnet/minecraft/world/effect/MobEffect;",
+            "offset": 27
+          },
+          "observation_only": true
+        }
+      ]
+    },
+    {
+      "id": "lm:mini_boss_caps_recovery_return",
+      "display_name": "mini_boss_caps_recovery_return",
+      "source_actor": [
+        "entity/AnimatedMonster/OriginClasses/IAnimatedMiniBoss"
+      ],
+      "primary_classification": "CUSTOM_RESOURCE",
+      "actual_behavior": "Target height delta>=4 or<=-4 rejects hurt before all other checks including bypass. FALL rejects. Active reducedDamage window multiplies amount by virtual damageReduction for bypass OR nonMAGIC. Bypass then delegates; other damage caps to configurable MiniBossDamageCap. Successful hurt cycles every third hit into griefing/event/destructibility/block hardness checked destruction in inflated1 box, excluding INDESTRUCTIBLE_BLOCK. Idle targetless state0 countdown60 then heal20 every tickCount%15; config/server gate. Inactivity260 is decremented twice when server targetless; return after100 at squared distance>=225 with optional teleport; reset100 even when config disables teleport. Spawn position persists via ints; recovery/transient clocks are not restored.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native API with exact native overrides and NeoForge 21.1.244 admission hooks; no HP/SHP/runtime projection.",
+      "components": [
+        {
+          "primitive": "NATIVE_CAP_RECOVERY_AND_RETURN",
+          "numerical_parameters": {
+            "idle_heal": 20.0,
+            "heal_period_ticks": 15.0,
+            "heal_delay_ticks": 60,
+            "return_distance_squared": 225,
+            "return_delay_ticks": 100,
+            "inactive_ticks": 260,
+            "reduced_damage_ticks": 100
+          },
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/OriginClasses/IAnimatedMiniBoss.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "addAdditionalSaveData",
+            "breakCheeseBlocks",
+            "damageCap",
+            "damageReduction",
+            "defineSynchedData",
+            "finalizeSpawn",
+            "getSpawnBlockPos",
+            "hurt",
+            "lastTargetPos",
+            "moveToBlockPos",
+            "onAddedToLevel",
+            "readAdditionalSaveData",
+            "regainHealthWithoutTarget",
+            "saveTargetPos",
+            "setSpawnBlockPos",
+            "shouldDespawnInPeaceful",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/OriginClasses/IAnimatedMiniBoss.class"
+        }
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/OriginClasses/IAnimatedMiniBoss.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "addAdditionalSaveData",
+            "breakCheeseBlocks",
+            "damageCap",
+            "damageReduction",
+            "defineSynchedData",
+            "finalizeSpawn",
+            "getSpawnBlockPos",
+            "hurt",
+            "lastTargetPos",
+            "moveToBlockPos",
+            "onAddedToLevel",
+            "readAdditionalSaveData",
+            "regainHealthWithoutTarget",
+            "saveTargetPos",
+            "setSpawnBlockPos",
+            "shouldDespawnInPeaceful",
+            "tick"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Target height delta>=4 or<=-4 rejects hurt before all other checks including bypass. FALL rejects. Active reducedDamage window multiplies amount by virtual damageReduction for bypass OR nonMAGIC. Bypass then delegates; other damage caps to configurable MiniBossDamageCap. Successful hurt cycles every third hit into griefing/event/destructibility/block hardness checked destruction in inflated1 box, excluding INDESTRUCTIBLE_BLOCK. Idle targetless state0 countdown60 then heal20 every tickCount%15; config/server gate. Inactivity260 is decremented twice when server targetless; return after100 at squared distance>=225 with optional teleport; reset100 even when config disables teleport. Spawn position persists via ints; recovery/transient clocks are not restored.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/OriginClasses/IAnimatedMiniBoss.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "addAdditionalSaveData",
+            "breakCheeseBlocks",
+            "damageCap",
+            "damageReduction",
+            "defineSynchedData",
+            "finalizeSpawn",
+            "getSpawnBlockPos",
+            "hurt",
+            "lastTargetPos",
+            "moveToBlockPos",
+            "onAddedToLevel",
+            "readAdditionalSaveData",
+            "regainHealthWithoutTarget",
+            "saveTargetPos",
+            "setSpawnBlockPos",
+            "shouldDespawnInPeaceful",
+            "tick"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "lm:mini_boss_caps_recovery_return:native_boundary"
+      ],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:native_custom_damage_sources",
+      "display_name": "native_custom_damage_sources",
+      "source_actor": [
+        "damagetype/ModDamageTypes"
+      ],
+      "primary_classification": "CUSTOM_DAMAGE",
+      "actual_behavior": "Eight keys match resource identities laser/clouds/ghost/void/gravity/cut/impale/shadow. Laser/gravity use direct attacker and causing caster; clouds null attacker falls back caster/caster; cut/impale ownerless. Annihilation helper ignores attacker and uses caster/caster; shadow caster/caster. Ghost helper uses caster/caster when nonnull, but null branch dereferences caster.level(), producing failure rather than ownerless fallback. Resource tag bypasses armor for named custom types only; no inferred shield, Resistance, invulnerability/cooldown bypass beyond actual tags. Individual delivery consumers remain separate.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native API with exact native overrides and NeoForge 21.1.244 admission hooks; no HP/SHP/runtime projection.",
+      "components": [
+        {
+          "primitive": "NATIVE_CUSTOM_DAMAGE_TYPE",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/damagetype/ModDamageTypes.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "causeAnnihilationDamage",
+            "causeCloudDamage",
+            "causeCutDamage",
+            "causeEnergyBeamDamage",
+            "causeGhostlyDamage",
+            "causeGravityDamage",
+            "causeImpaleDamage",
+            "causeShadowDamage"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/damagetype/ModDamageTypes.class"
+        }
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/damagetype/ModDamageTypes.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "causeAnnihilationDamage",
+            "causeCloudDamage",
+            "causeCutDamage",
+            "causeEnergyBeamDamage",
+            "causeGhostlyDamage",
+            "causeGravityDamage",
+            "causeImpaleDamage",
+            "causeShadowDamage"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Eight keys match resource identities laser/clouds/ghost/void/gravity/cut/impale/shadow. Laser/gravity use direct attacker and causing caster; clouds null attacker falls back caster/caster; cut/impale ownerless. Annihilation helper ignores attacker and uses caster/caster; shadow caster/caster. Ghost helper uses caster/caster when nonnull, but null branch dereferences caster.level(), producing failure rather than ownerless fallback. Resource tag bypasses armor for named custom types only; no inferred shield, Resistance, invulnerability/cooldown bypass beyond actual tags. Individual delivery consumers remain separate.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/damagetype/ModDamageTypes.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "causeAnnihilationDamage",
+            "causeCloudDamage",
+            "causeCutDamage",
+            "causeEnergyBeamDamage",
+            "causeGhostlyDamage",
+            "causeGravityDamage",
+            "causeImpaleDamage",
+            "causeShadowDamage"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "lm:native_custom_damage_sources:native_boundary"
+      ],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:soul_fracture",
+      "display_name": "soul_fracture",
+      "source_actor": [
+        [
+          "effect/ModEffects",
+          [
+            "lambda$static$0"
+          ]
+        ],
+        [
+          "effect/custom/SoulEater",
+          null
+        ]
+      ],
+      "primary_classification": "CUSTOM_STATUS",
+      "actual_behavior": "MAX_HEALTH template -0.2*(amplifier+1), ADD_MULTIPLIED_TOTAL. The absorption-removal applyEffectTick body is dormant under the inherited false scheduling predicate; no absorption cure is attributed to normal native ticking.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native API with exact native overrides and NeoForge 21.1.244 admission hooks; no HP/SHP/runtime projection.",
+      "components": [
+        {
+          "primitive": "NATIVE_STATUS_GATE",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_EFFECT_ATTRIBUTE_MAX_HEALTH",
+          "numerical_parameters": {
+            "base_amount": -0.2
+          },
+          "parameter_formulas": {
+            "amount": "base_amount * (amplifier + 1)"
+          },
+          "native_attribute_symbol": "net/minecraft/world/entity/ai/attributes/Attributes.MAX_HEALTHLnet/minecraft/core/Holder;",
+          "native_operation_symbol": "net/minecraft/world/entity/ai/attributes/AttributeModifier$Operation.ADD_MULTIPLIED_TOTALLnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;",
+          "modifier_id": "legendary_monsters:health"
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+          "methods": [
+            "lambda$static$0"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/ModEffects.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/SoulEater.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/SoulEater.class"
+        }
+      ],
+      "registry_ids": [
+        "legendary_monsters:soul_fracture"
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json",
+        "vanilla-evidence/legendary-monsters-status-scheduling.json",
+        "legendary_monsters-status-loader-patches.json"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+          "methods": [
+            "lambda$static$0"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/SoulEater.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "MAX_HEALTH template -0.2*(amplifier+1), ADD_MULTIPLIED_TOTAL. The absorption-removal applyEffectTick body is dormant under the inherited false scheduling predicate; no absorption cure is attributed to normal native ticking.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+          "methods": [
+            "lambda$static$0"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/SoulEater.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick"
+          ]
+        }
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "lm:soul_fracture:native_boundary"
+      ],
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_EFFECT_ATTRIBUTE_MAX_HEALTH",
+          "parameters": [
+            "base_amount"
+          ],
+          "native_effect_attribute_binding": {
+            "attribute_symbol": "net/minecraft/world/entity/ai/attributes/Attributes.MAX_HEALTHLnet/minecraft/core/Holder;",
+            "identifier": "legendary_monsters:health",
+            "operation_symbol": "net/minecraft/world/entity/ai/attributes/AttributeModifier$Operation.ADD_MULTIPLIED_TOTALLnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;",
+            "native_value": -0.2,
+            "value_offset": 22
+          },
+          "native_consumer": {
+            "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+            "methods": [
+              "lambda$static$0"
+            ],
+            "evidence_file": "native-evidence/legendary_monsters-core.json",
+            "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/ModEffects.class",
+            "descriptor": "()Lnet/minecraft/world/effect/MobEffect;",
+            "offset": 28,
+            "opcode": "0xb6",
+            "operand": "net/miauczel/legendary_monsters/effect/custom/SoulEater.addAttributeModifier(Lnet/minecraft/core/Holder;Lnet/minecraft/resources/ResourceLocation;DLnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;)Lnet/minecraft/world/effect/MobEffect;"
+          },
+          "native_parameter_identity": {
+            "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+            "method": "lambda$static$0",
+            "descriptor": "()Lnet/minecraft/world/effect/MobEffect;",
+            "offset": 28
+          },
+          "observation_only": true
+        }
+      ]
+    },
+    {
+      "id": "lm:soul_rage",
+      "display_name": "soul_rage",
+      "source_actor": [
+        [
+          "effect/ModEffects",
+          [
+            "lambda$static$5"
+          ]
+        ],
+        [
+          "effect/custom/Rage",
+          null
+        ],
+        "effect/custom/RageTick",
+        "effect/custom/RageExpires"
+      ],
+      "primary_classification": "VANILLA_COMPOSITE",
+      "actual_behavior": "ARMOR +6, ATTACK_SPEED +0.5, ARMOR_TOUGHNESS +1, each scaled by amplifier+1 with ADD_VALUE. RageTick is empty and its expiry helper has no native callers; no periodic damage or freezing cleanup is attributed.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native API with exact native overrides and NeoForge 21.1.244 admission hooks; no HP/SHP/runtime projection.",
+      "components": [
+        {
+          "primitive": "NATIVE_STATUS_GATE",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_EFFECT_ATTRIBUTE_ARMOR",
+          "numerical_parameters": {
+            "base_amount": 6.0
+          },
+          "parameter_formulas": {
+            "amount": "base_amount * (amplifier + 1)"
+          },
+          "native_attribute_symbol": "net/minecraft/world/entity/ai/attributes/Attributes.ARMORLnet/minecraft/core/Holder;",
+          "native_operation_symbol": "net/minecraft/world/entity/ai/attributes/AttributeModifier$Operation.ADD_VALUELnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;",
+          "modifier_id": "legendary_monsters:armor"
+        },
+        {
+          "primitive": "NATIVE_EFFECT_ATTRIBUTE_ATTACK_SPEED",
+          "numerical_parameters": {
+            "base_amount": 0.5
+          },
+          "parameter_formulas": {
+            "amount": "base_amount * (amplifier + 1)"
+          },
+          "native_attribute_symbol": "net/minecraft/world/entity/ai/attributes/Attributes.ATTACK_SPEEDLnet/minecraft/core/Holder;",
+          "native_operation_symbol": "net/minecraft/world/entity/ai/attributes/AttributeModifier$Operation.ADD_VALUELnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;",
+          "modifier_id": "legendary_monsters:attack_speed"
+        },
+        {
+          "primitive": "NATIVE_EFFECT_ATTRIBUTE_ARMOR_TOUGHNESS",
+          "numerical_parameters": {
+            "base_amount": 1.0
+          },
+          "parameter_formulas": {
+            "amount": "base_amount * (amplifier + 1)"
+          },
+          "native_attribute_symbol": "net/minecraft/world/entity/ai/attributes/Attributes.ARMOR_TOUGHNESSLnet/minecraft/core/Holder;",
+          "native_operation_symbol": "net/minecraft/world/entity/ai/attributes/AttributeModifier$Operation.ADD_VALUELnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;",
+          "modifier_id": "legendary_monsters:tough"
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+          "methods": [
+            "lambda$static$5"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/ModEffects.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/Rage.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/Rage.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/RageTick.class",
+          "methods": [
+            "<init>",
+            "execute"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/RageTick.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/RageExpires.class",
+          "methods": [
+            "<init>",
+            "execute"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/RageExpires.class"
+        }
+      ],
+      "registry_ids": [
+        "legendary_monsters:soul_rage"
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json",
+        "vanilla-evidence/legendary-monsters-status-scheduling.json",
+        "legendary_monsters-status-loader-patches.json"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+          "methods": [
+            "lambda$static$5"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/Rage.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/RageTick.class",
+          "methods": [
+            "<init>",
+            "execute"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/RageExpires.class",
+          "methods": [
+            "<init>",
+            "execute"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "ARMOR +6, ATTACK_SPEED +0.5, ARMOR_TOUGHNESS +1, each scaled by amplifier+1 with ADD_VALUE. RageTick is empty and its expiry helper has no native callers; no periodic damage or freezing cleanup is attributed.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+          "methods": [
+            "lambda$static$5"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/Rage.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/RageTick.class",
+          "methods": [
+            "<init>",
+            "execute"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/RageExpires.class",
+          "methods": [
+            "<init>",
+            "execute"
+          ]
+        }
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "lm:soul_rage:native_boundary"
+      ],
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_EFFECT_ATTRIBUTE_ARMOR",
+          "parameters": [
+            "base_amount"
+          ],
+          "native_effect_attribute_binding": {
+            "attribute_symbol": "net/minecraft/world/entity/ai/attributes/Attributes.ARMORLnet/minecraft/core/Holder;",
+            "identifier": "legendary_monsters:armor",
+            "operation_symbol": "net/minecraft/world/entity/ai/attributes/AttributeModifier$Operation.ADD_VALUELnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;",
+            "native_value": 6.0,
+            "value_offset": 22
+          },
+          "native_consumer": {
+            "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+            "methods": [
+              "lambda$static$5"
+            ],
+            "evidence_file": "native-evidence/legendary_monsters-core.json",
+            "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/ModEffects.class",
+            "descriptor": "()Lnet/minecraft/world/effect/MobEffect;",
+            "offset": 28,
+            "opcode": "0xb6",
+            "operand": "net/miauczel/legendary_monsters/effect/custom/Rage.addAttributeModifier(Lnet/minecraft/core/Holder;Lnet/minecraft/resources/ResourceLocation;DLnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;)Lnet/minecraft/world/effect/MobEffect;"
+          },
+          "native_parameter_identity": {
+            "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+            "method": "lambda$static$5",
+            "descriptor": "()Lnet/minecraft/world/effect/MobEffect;",
+            "offset": 28
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "NATIVE_EFFECT_ATTRIBUTE_ATTACK_SPEED",
+          "parameters": [
+            "base_amount"
+          ],
+          "native_effect_attribute_binding": {
+            "attribute_symbol": "net/minecraft/world/entity/ai/attributes/Attributes.ATTACK_SPEEDLnet/minecraft/core/Holder;",
+            "identifier": "legendary_monsters:attack_speed",
+            "operation_symbol": "net/minecraft/world/entity/ai/attributes/AttributeModifier$Operation.ADD_VALUELnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;",
+            "native_value": 0.5,
+            "value_offset": 41
+          },
+          "native_consumer": {
+            "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+            "methods": [
+              "lambda$static$5"
+            ],
+            "evidence_file": "native-evidence/legendary_monsters-core.json",
+            "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/ModEffects.class",
+            "descriptor": "()Lnet/minecraft/world/effect/MobEffect;",
+            "offset": 47,
+            "opcode": "0xb6",
+            "operand": "net/minecraft/world/effect/MobEffect.addAttributeModifier(Lnet/minecraft/core/Holder;Lnet/minecraft/resources/ResourceLocation;DLnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;)Lnet/minecraft/world/effect/MobEffect;"
+          },
+          "native_parameter_identity": {
+            "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+            "method": "lambda$static$5",
+            "descriptor": "()Lnet/minecraft/world/effect/MobEffect;",
+            "offset": 47
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "NATIVE_EFFECT_ATTRIBUTE_ARMOR_TOUGHNESS",
+          "parameters": [
+            "base_amount"
+          ],
+          "native_effect_attribute_binding": {
+            "attribute_symbol": "net/minecraft/world/entity/ai/attributes/Attributes.ARMOR_TOUGHNESSLnet/minecraft/core/Holder;",
+            "identifier": "legendary_monsters:tough",
+            "operation_symbol": "net/minecraft/world/entity/ai/attributes/AttributeModifier$Operation.ADD_VALUELnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;",
+            "native_value": 1.0,
+            "value_offset": 60
+          },
+          "native_consumer": {
+            "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+            "methods": [
+              "lambda$static$5"
+            ],
+            "evidence_file": "native-evidence/legendary_monsters-core.json",
+            "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/ModEffects.class",
+            "descriptor": "()Lnet/minecraft/world/effect/MobEffect;",
+            "offset": 64,
+            "opcode": "0xb6",
+            "operand": "net/minecraft/world/effect/MobEffect.addAttributeModifier(Lnet/minecraft/core/Holder;Lnet/minecraft/resources/ResourceLocation;DLnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;)Lnet/minecraft/world/effect/MobEffect;"
+          },
+          "native_parameter_identity": {
+            "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+            "method": "lambda$static$5",
+            "descriptor": "()Lnet/minecraft/world/effect/MobEffect;",
+            "offset": 64
+          },
+          "observation_only": true
+        }
+      ]
+    },
+    {
+      "id": "lm:stacking_health_buff_utilities",
+      "display_name": "stacking_health_buff_utilities",
+      "source_actor": [
+        "util/EntityUtil",
+        "util/MathUtils"
+      ],
+      "primary_classification": "CUSTOM_RESOURCE",
+      "actual_behavior": "Server health multiplier only while current HP equals max HP; remove existing minecraft:hp permanent modifier, install (multiplier-1) ADD_MULTIPLIED_TOTAL if nonzero, fill current max then clamp. Zero amount removes modifier without refill. Status stacking installs amplifier0 initially; existing amplifier below cap adds bonus and replaces duration; at cap it does not refresh. Boss cancelBuffs acts only on Player: food component + active use + config -> cooldown20 and stop; Resistance amplifier>1 -> remove then reapply same duration amplifier0, respecting native effect events. Motion packet only ServerPlayer; addDuringTeleport only ServerLevel. Percent helpers preserve float/Java conversion.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native API with exact native overrides and NeoForge 21.1.244 admission hooks; no HP/SHP/runtime projection.",
+      "components": [
+        {
+          "primitive": "NATIVE_RESOURCE_AND_STATUS_COMPOSITION",
+          "numerical_parameters": {
+            "food_cooldown_ticks": 20,
+            "resistance_replacement_amplifier": 0
+          },
+          "parameter_formulas": {
+            "health_modifier_amount": "healthMultiplier - 1",
+            "percentValue": "float(double(value) * double(percentage) * .01)",
+            "toTicks": "int(seconds * 20F)"
+          }
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/util/EntityUtil.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "applyHealthMultiplier",
+            "applyPlayerDeltaMovement",
+            "applyServerTeleport",
+            "applyStackingEffect",
+            "cancelBuffs"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/util/EntityUtil.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/util/MathUtils.class",
+          "methods": [
+            "<init>",
+            "distanceToVec",
+            "entityBasedHpDamage",
+            "fit",
+            "lerpRad",
+            "linearTransformd",
+            "percentValue",
+            "quatFromRotationXYZ",
+            "radAngle",
+            "rotateYaw",
+            "toPercent",
+            "toTicks",
+            "wrapRad"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/util/MathUtils.class"
+        }
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/util/EntityUtil.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "applyHealthMultiplier",
+            "applyPlayerDeltaMovement",
+            "applyServerTeleport",
+            "applyStackingEffect",
+            "cancelBuffs"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/util/MathUtils.class",
+          "methods": [
+            "<init>",
+            "distanceToVec",
+            "entityBasedHpDamage",
+            "fit",
+            "lerpRad",
+            "linearTransformd",
+            "percentValue",
+            "quatFromRotationXYZ",
+            "radAngle",
+            "rotateYaw",
+            "toPercent",
+            "toTicks",
+            "wrapRad"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Server health multiplier only while current HP equals max HP; remove existing minecraft:hp permanent modifier, install (multiplier-1) ADD_MULTIPLIED_TOTAL if nonzero, fill current max then clamp. Zero amount removes modifier without refill. Status stacking installs amplifier0 initially; existing amplifier below cap adds bonus and replaces duration; at cap it does not refresh. Boss cancelBuffs acts only on Player: food component + active use + config -> cooldown20 and stop; Resistance amplifier>1 -> remove then reapply same duration amplifier0, respecting native effect events. Motion packet only ServerPlayer; addDuringTeleport only ServerLevel. Percent helpers preserve float/Java conversion.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/util/EntityUtil.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "applyHealthMultiplier",
+            "applyPlayerDeltaMovement",
+            "applyServerTeleport",
+            "applyStackingEffect",
+            "cancelBuffs"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/util/MathUtils.class",
+          "methods": [
+            "<init>",
+            "distanceToVec",
+            "entityBasedHpDamage",
+            "fit",
+            "lerpRad",
+            "linearTransformd",
+            "percentValue",
+            "quatFromRotationXYZ",
+            "radAngle",
+            "rotateYaw",
+            "toPercent",
+            "toTicks",
+            "wrapRad"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "lm:stacking_health_buff_utilities:native_boundary"
+      ],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "lm:stun",
+      "display_name": "stun",
+      "source_actor": [
+        [
+          "effect/ModEffects",
+          [
+            "lambda$static$7"
+          ]
+        ],
+        [
+          "effect/custom/Stun",
+          null
+        ],
+        "effect/custom/StunTick",
+        "effect/custom/StunJumpRemover",
+        "mixin/LivingEntityMixin"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "MOVEMENT_SPEED and ATTACK_SPEED -1*(amplifier+1), ADD_VALUE, retaining attribute clamps. Loaded LivingEntityMixin cancels canAttack at HEAD while holder present; event jump callback sets entire motion zero. The defined item-cooldown/actionbar/stopUsingItem tick body is dormant under base scheduling, so native Stun does not periodically run those writes.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native API with exact native overrides and NeoForge 21.1.244 admission hooks; no HP/SHP/runtime projection.",
+      "components": [
+        {
+          "primitive": "NATIVE_STATUS_GATE",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        },
+        {
+          "primitive": "NATIVE_EFFECT_ATTRIBUTE_MOVEMENT_SPEED",
+          "numerical_parameters": {
+            "base_amount": -1.0
+          },
+          "parameter_formulas": {
+            "amount": "base_amount * (amplifier + 1)"
+          },
+          "native_attribute_symbol": "net/minecraft/world/entity/ai/attributes/Attributes.MOVEMENT_SPEEDLnet/minecraft/core/Holder;",
+          "native_operation_symbol": "net/minecraft/world/entity/ai/attributes/AttributeModifier$Operation.ADD_VALUELnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;",
+          "modifier_id": "legendary_monsters:move_speed"
+        },
+        {
+          "primitive": "NATIVE_EFFECT_ATTRIBUTE_ATTACK_SPEED",
+          "numerical_parameters": {
+            "base_amount": -1.0
+          },
+          "parameter_formulas": {
+            "amount": "base_amount * (amplifier + 1)"
+          },
+          "native_attribute_symbol": "net/minecraft/world/entity/ai/attributes/Attributes.ATTACK_SPEEDLnet/minecraft/core/Holder;",
+          "native_operation_symbol": "net/minecraft/world/entity/ai/attributes/AttributeModifier$Operation.ADD_VALUELnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;",
+          "modifier_id": "legendary_monsters:attack_speed"
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+          "methods": [
+            "lambda$static$7"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/ModEffects.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/Stun.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "sendActionBarMessageToPlayer"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/Stun.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/StunTick.class",
+          "methods": [
+            "<init>",
+            "execute"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/StunTick.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/StunJumpRemover.class",
+          "methods": [
+            "<init>",
+            "onLivingJump"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/StunJumpRemover.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/mixin/LivingEntityMixin.class",
+          "methods": [
+            "<init>",
+            "canAttack",
+            "hasEffect"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/mixin/LivingEntityMixin.class"
+        }
+      ],
+      "registry_ids": [
+        "legendary_monsters:stun"
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json",
+        "vanilla-evidence/legendary-monsters-status-scheduling.json",
+        "legendary_monsters-status-loader-patches.json"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+          "methods": [
+            "lambda$static$7"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/Stun.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "sendActionBarMessageToPlayer"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/StunTick.class",
+          "methods": [
+            "<init>",
+            "execute"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/StunJumpRemover.class",
+          "methods": [
+            "<init>",
+            "onLivingJump"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/mixin/LivingEntityMixin.class",
+          "methods": [
+            "<init>",
+            "canAttack",
+            "hasEffect"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "MOVEMENT_SPEED and ATTACK_SPEED -1*(amplifier+1), ADD_VALUE, retaining attribute clamps. Loaded LivingEntityMixin cancels canAttack at HEAD while holder present; event jump callback sets entire motion zero. The defined item-cooldown/actionbar/stopUsingItem tick body is dormant under base scheduling, so native Stun does not periodically run those writes.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+          "methods": [
+            "lambda$static$7"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/Stun.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "sendActionBarMessageToPlayer"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/StunTick.class",
+          "methods": [
+            "<init>",
+            "execute"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/StunJumpRemover.class",
+          "methods": [
+            "<init>",
+            "onLivingJump"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/mixin/LivingEntityMixin.class",
+          "methods": [
+            "<init>",
+            "canAttack",
+            "hasEffect"
+          ]
+        }
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "lm:stun:native_boundary"
+      ],
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_EFFECT_ATTRIBUTE_MOVEMENT_SPEED",
+          "parameters": [
+            "base_amount"
+          ],
+          "native_effect_attribute_binding": {
+            "attribute_symbol": "net/minecraft/world/entity/ai/attributes/Attributes.MOVEMENT_SPEEDLnet/minecraft/core/Holder;",
+            "identifier": "legendary_monsters:move_speed",
+            "operation_symbol": "net/minecraft/world/entity/ai/attributes/AttributeModifier$Operation.ADD_VALUELnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;",
+            "native_value": -1.0,
+            "value_offset": 21
+          },
+          "native_consumer": {
+            "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+            "methods": [
+              "lambda$static$7"
+            ],
+            "evidence_file": "native-evidence/legendary_monsters-core.json",
+            "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/ModEffects.class",
+            "descriptor": "()Lnet/minecraft/world/effect/MobEffect;",
+            "offset": 27,
+            "opcode": "0xb6",
+            "operand": "net/miauczel/legendary_monsters/effect/custom/Stun.addAttributeModifier(Lnet/minecraft/core/Holder;Lnet/minecraft/resources/ResourceLocation;DLnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;)Lnet/minecraft/world/effect/MobEffect;"
+          },
+          "native_parameter_identity": {
+            "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+            "method": "lambda$static$7",
+            "descriptor": "()Lnet/minecraft/world/effect/MobEffect;",
+            "offset": 27
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "NATIVE_EFFECT_ATTRIBUTE_ATTACK_SPEED",
+          "parameters": [
+            "base_amount"
+          ],
+          "native_effect_attribute_binding": {
+            "attribute_symbol": "net/minecraft/world/entity/ai/attributes/Attributes.ATTACK_SPEEDLnet/minecraft/core/Holder;",
+            "identifier": "legendary_monsters:attack_speed",
+            "operation_symbol": "net/minecraft/world/entity/ai/attributes/AttributeModifier$Operation.ADD_VALUELnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;",
+            "native_value": -1.0,
+            "value_offset": 40
+          },
+          "native_consumer": {
+            "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+            "methods": [
+              "lambda$static$7"
+            ],
+            "evidence_file": "native-evidence/legendary_monsters-core.json",
+            "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/ModEffects.class",
+            "descriptor": "()Lnet/minecraft/world/effect/MobEffect;",
+            "offset": 46,
+            "opcode": "0xb6",
+            "operand": "net/minecraft/world/effect/MobEffect.addAttributeModifier(Lnet/minecraft/core/Holder;Lnet/minecraft/resources/ResourceLocation;DLnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;)Lnet/minecraft/world/effect/MobEffect;"
+          },
+          "native_parameter_identity": {
+            "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+            "method": "lambda$static$7",
+            "descriptor": "()Lnet/minecraft/world/effect/MobEffect;",
+            "offset": 46
+          },
+          "observation_only": true
+        }
+      ]
+    },
+    {
+      "id": "lm:unbreakable",
+      "display_name": "unbreakable",
+      "source_actor": [
+        [
+          "effect/ModEffects",
+          [
+            "lambda$static$3"
+          ]
+        ],
+        [
+          "effect/custom/Unbreakable",
+          null
+        ],
+        "mixin/PlayerMixin"
+      ],
+      "primary_classification": "BINARY_MECHANIC",
+      "actual_behavior": "Loaded PlayerMixin cancels Player.hurt at HEAD while holder present, with no damage-type exception in this injector. Does not generalize to arbitrary LivingEntity hurt.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native API with exact native overrides and NeoForge 21.1.244 admission hooks; no HP/SHP/runtime projection.",
+      "components": [
+        {
+          "primitive": "NATIVE_STATUS_GATE",
+          "numerical_parameters": {},
+          "parameter_formulas": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+          "methods": [
+            "lambda$static$3"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/ModEffects.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/Unbreakable.class",
+          "methods": [
+            "<init>"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/Unbreakable.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/mixin/PlayerMixin.class",
+          "methods": [
+            "<init>",
+            "lmHurt"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/mixin/PlayerMixin.class"
+        }
+      ],
+      "registry_ids": [
+        "legendary_monsters:unbreakable"
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json",
+        "vanilla-evidence/legendary-monsters-status-scheduling.json",
+        "legendary_monsters-status-loader-patches.json"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+          "methods": [
+            "lambda$static$3"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/Unbreakable.class",
+          "methods": [
+            "<init>"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/mixin/PlayerMixin.class",
+          "methods": [
+            "<init>",
+            "lmHurt"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Loaded PlayerMixin cancels Player.hurt at HEAD while holder present, with no damage-type exception in this injector. Does not generalize to arbitrary LivingEntity hurt.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+          "methods": [
+            "lambda$static$3"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/Unbreakable.class",
+          "methods": [
+            "<init>"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/mixin/PlayerMixin.class",
+          "methods": [
+            "<init>",
+            "lmHurt"
+          ]
+        }
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "lm:unbreakable:native_boundary"
+      ],
+      "scalable_parameter_candidates": []
+    }
+  ],
+  "paths": [
+    {
+      "id": "lm:animated_mob_environment_immunity:native_boundary",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "lm:animated_mob_environment_immunity"
+      ],
+      "primary_source": [
+        "entity/AnimatedMonster/OriginClasses/IAnimatedMob"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/OriginClasses/IAnimatedMob.class",
+          "methods": [
+            "<init>",
+            "hurt",
+            "spawnAtLocation",
+            "target"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/OriginClasses/IAnimatedMob.class"
+        }
+      ]
+    },
+    {
+      "id": "lm:animated_monster_shared_control:native_boundary",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "lm:animated_monster_shared_control"
+      ],
+      "primary_source": [
+        "entity/AnimatedMonster/OriginClasses/IAnimatedMonster"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/OriginClasses/IAnimatedMonster.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "SpawnDamagingBlocks",
+            "addAdditionalSaveData",
+            "advancedDash",
+            "applyEffectTo",
+            "applyStackingEffect",
+            "attackDelayTicksValue",
+            "basicDash",
+            "calculatedDash",
+            "calculatedDashToPositon",
+            "calculatedDashToScaledVec",
+            "canBePushedByEntity",
+            "canRide",
+            "createBodyControl",
+            "createNavigation",
+            "defineSynchedData",
+            "disableShield",
+            "getAngleBetweenEntities",
+            "getAttackDelayTicks",
+            "getAttackState",
+            "getAttackTicks",
+            "getEntitiesNearby",
+            "getEntityLivingBaseNearby",
+            "handleEntityEvent",
+            "hurt",
+            "isTargetCheesing",
+            "lambda$getEntitiesNearby$0",
+            "launch",
+            "pitch",
+            "push",
+            "readAdditionalSaveData",
+            "repelEntities",
+            "sendAdvancedHotBarMessage",
+            "sendBasicHotBarMessage",
+            "setAttackState",
+            "shouldDespawnInPeaceful",
+            "spawnCircleParticle",
+            "target",
+            "targetIsNotNull",
+            "tick",
+            "yaw"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/OriginClasses/IAnimatedMonster.class"
+        }
+      ]
+    },
+    {
+      "id": "lm:annihilation:native_boundary",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "lm:annihilation"
+      ],
+      "primary_source": [
+        [
+          "effect/ModEffects",
+          [
+            "lambda$static$11"
+          ]
+        ],
+        [
+          "effect/custom/Annihilation",
+          null
+        ]
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+          "methods": [
+            "lambda$static$11"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/ModEffects.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/Annihilation.class",
+          "methods": [
+            "<init>"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/Annihilation.class"
+        }
+      ]
+    },
+    {
+      "id": "lm:annihilator_ender_mask:native_boundary",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "lm:annihilator_ender_mask"
+      ],
+      "primary_source": [
+        "mixin/IForgeItemMixin"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/mixin/IForgeItemMixin.class",
+          "methods": [
+            "isEnderMask"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/mixin/IForgeItemMixin.class"
+        }
+      ]
+    },
+    {
+      "id": "lm:boss_damage_accounting_and_admission:native_boundary",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "lm:boss_damage_accounting_and_admission"
+      ],
+      "primary_source": [
+        "entity/AnimatedMonster/OriginClasses/IAnimatedBoss"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/OriginClasses/IAnimatedBoss.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "DamageTime",
+            "adaptationFactor",
+            "addAdditionalSaveData",
+            "addDamage",
+            "addEffect",
+            "aiStep",
+            "antiCheeseDistance",
+            "attractParticles",
+            "baseHealth",
+            "breakCheeseBlocks",
+            "canFreeze",
+            "canPlayMusic",
+            "canPlayerHearMusic",
+            "createAttributes",
+            "damageAdaptationSystem",
+            "damageCap",
+            "defineSynchedData",
+            "entityBasedHpDamage",
+            "finalizeSpawn",
+            "getBossMusic",
+            "getHealth",
+            "getInvulnerabilityConfig",
+            "getSpawnBlockPos",
+            "heal",
+            "hurt",
+            "isAlive",
+            "isDeadOrDying",
+            "isPushedByFluid",
+            "moveToBlockPos",
+            "onAddedToLevel",
+            "readAdditionalSaveData",
+            "reducedDamage",
+            "setDamageTimeFactor",
+            "setHealth",
+            "setSpawnBlockPos",
+            "tick",
+            "toPercent",
+            "travel",
+            "updateFluidHeightAndDoFluidPushing"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/OriginClasses/IAnimatedBoss.class"
+        }
+      ]
+    },
+    {
+      "id": "lm:broken_armor:native_boundary",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "lm:broken_armor"
+      ],
+      "primary_source": [
+        [
+          "effect/ModEffects",
+          [
+            "lambda$static$6"
+          ]
+        ],
+        [
+          "effect/custom/BrokenArmor",
+          null
+        ]
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+          "methods": [
+            "lambda$static$6"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/ModEffects.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/BrokenArmor.class",
+          "methods": [
+            "<init>"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/BrokenArmor.class"
+        }
+      ]
+    },
+    {
+      "id": "lm:global_equipment_reactions:native_boundary",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "lm:global_equipment_reactions"
+      ],
+      "primary_source": [
+        "event/ForgeEvents"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/event/ForgeEvents.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "addDamage",
+            "createCircularLightningParticle",
+            "createSweep",
+            "ejectpassengers",
+            "lambda$static$0",
+            "onCheckSpawn",
+            "onEntityTeleport",
+            "onLivingHurt",
+            "spikyShieldEvent"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/event/ForgeEvents.class"
+        }
+      ]
+    },
+    {
+      "id": "lm:gravity_pull:native_boundary",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "lm:gravity_pull"
+      ],
+      "primary_source": [
+        [
+          "effect/ModEffects",
+          [
+            "lambda$static$8"
+          ]
+        ],
+        [
+          "effect/custom/FastFalling",
+          null
+        ]
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+          "methods": [
+            "lambda$static$8"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/ModEffects.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/FastFalling.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/FastFalling.class"
+        }
+      ]
+    },
+    {
+      "id": "lm:mini_boss_caps_recovery_return:native_boundary",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "lm:mini_boss_caps_recovery_return"
+      ],
+      "primary_source": [
+        "entity/AnimatedMonster/OriginClasses/IAnimatedMiniBoss"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/OriginClasses/IAnimatedMiniBoss.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "addAdditionalSaveData",
+            "breakCheeseBlocks",
+            "damageCap",
+            "damageReduction",
+            "defineSynchedData",
+            "finalizeSpawn",
+            "getSpawnBlockPos",
+            "hurt",
+            "lastTargetPos",
+            "moveToBlockPos",
+            "onAddedToLevel",
+            "readAdditionalSaveData",
+            "regainHealthWithoutTarget",
+            "saveTargetPos",
+            "setSpawnBlockPos",
+            "shouldDespawnInPeaceful",
+            "tick"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/OriginClasses/IAnimatedMiniBoss.class"
+        }
+      ]
+    },
+    {
+      "id": "lm:native_custom_damage_sources:native_boundary",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "lm:native_custom_damage_sources"
+      ],
+      "primary_source": [
+        "damagetype/ModDamageTypes"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/damagetype/ModDamageTypes.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "causeAnnihilationDamage",
+            "causeCloudDamage",
+            "causeCutDamage",
+            "causeEnergyBeamDamage",
+            "causeGhostlyDamage",
+            "causeGravityDamage",
+            "causeImpaleDamage",
+            "causeShadowDamage"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/damagetype/ModDamageTypes.class"
+        }
+      ]
+    },
+    {
+      "id": "lm:soul_fracture:native_boundary",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "lm:soul_fracture"
+      ],
+      "primary_source": [
+        [
+          "effect/ModEffects",
+          [
+            "lambda$static$0"
+          ]
+        ],
+        [
+          "effect/custom/SoulEater",
+          null
+        ]
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+          "methods": [
+            "lambda$static$0"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/ModEffects.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/SoulEater.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/SoulEater.class"
+        }
+      ]
+    },
+    {
+      "id": "lm:soul_rage:native_boundary",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "lm:soul_rage"
+      ],
+      "primary_source": [
+        [
+          "effect/ModEffects",
+          [
+            "lambda$static$5"
+          ]
+        ],
+        [
+          "effect/custom/Rage",
+          null
+        ],
+        "effect/custom/RageTick",
+        "effect/custom/RageExpires"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+          "methods": [
+            "lambda$static$5"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/ModEffects.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/Rage.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/Rage.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/RageTick.class",
+          "methods": [
+            "<init>",
+            "execute"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/RageTick.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/RageExpires.class",
+          "methods": [
+            "<init>",
+            "execute"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/RageExpires.class"
+        }
+      ]
+    },
+    {
+      "id": "lm:stacking_health_buff_utilities:native_boundary",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "lm:stacking_health_buff_utilities"
+      ],
+      "primary_source": [
+        "util/EntityUtil",
+        "util/MathUtils"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/util/EntityUtil.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "applyHealthMultiplier",
+            "applyPlayerDeltaMovement",
+            "applyServerTeleport",
+            "applyStackingEffect",
+            "cancelBuffs"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/util/EntityUtil.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/util/MathUtils.class",
+          "methods": [
+            "<init>",
+            "distanceToVec",
+            "entityBasedHpDamage",
+            "fit",
+            "lerpRad",
+            "linearTransformd",
+            "percentValue",
+            "quatFromRotationXYZ",
+            "radAngle",
+            "rotateYaw",
+            "toPercent",
+            "toTicks",
+            "wrapRad"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/util/MathUtils.class"
+        }
+      ]
+    },
+    {
+      "id": "lm:stun:native_boundary",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "lm:stun"
+      ],
+      "primary_source": [
+        [
+          "effect/ModEffects",
+          [
+            "lambda$static$7"
+          ]
+        ],
+        [
+          "effect/custom/Stun",
+          null
+        ],
+        "effect/custom/StunTick",
+        "effect/custom/StunJumpRemover",
+        "mixin/LivingEntityMixin"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+          "methods": [
+            "lambda$static$7"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/ModEffects.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/Stun.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "sendActionBarMessageToPlayer"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/Stun.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/StunTick.class",
+          "methods": [
+            "<init>",
+            "execute"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/StunTick.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/StunJumpRemover.class",
+          "methods": [
+            "<init>",
+            "onLivingJump"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/StunJumpRemover.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/mixin/LivingEntityMixin.class",
+          "methods": [
+            "<init>",
+            "canAttack",
+            "hasEffect"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/mixin/LivingEntityMixin.class"
+        }
+      ]
+    },
+    {
+      "id": "lm:unbreakable:native_boundary",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "lm:unbreakable"
+      ],
+      "primary_source": [
+        [
+          "effect/ModEffects",
+          [
+            "lambda$static$3"
+          ]
+        ],
+        [
+          "effect/custom/Unbreakable",
+          null
+        ],
+        "mixin/PlayerMixin"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+          "methods": [
+            "lambda$static$3"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/ModEffects.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/Unbreakable.class",
+          "methods": [
+            "<init>"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/Unbreakable.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/mixin/PlayerMixin.class",
+          "methods": [
+            "<init>",
+            "lmHurt"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/mixin/PlayerMixin.class"
+        }
+      ]
+    }
+  ],
+  "exclusions": [
+    {
+      "reason": "Complete declarations and native call/handle census plus pinned base MobEffect.shouldApplyEffectTickThisTick=false establish dormant periodic callbacks, not active bleeding/freezing/teleport/heal semantics. BleedingTick defines two independent random samples (2 damage at p=.5; 3 damage at conditional p=.25; else1); FreezeTick defines p=.05 freeze damage2 and frozenTicks200; Chorus helper defines p=.05 magic3 then 10 same-Y empty-block/support teleport attempts within x/z +/-2, irrespective of hurt result. These do not execute through ordinary effect ticking. Expiry helpers lack registered event/injector/caller bindings. Overgrown is not registered. Registered inert holders retain vanilla duration/display/admission only; consumers outside this JAR remain unknown.",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/Bleeding.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/Bleeding.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/BleedingTick.class",
+          "methods": [
+            "<init>",
+            "execute"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/BleedingTick.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/ChorusInfection.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/ChorusInfection.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/ChorusInfectionHurt.class",
+          "methods": [
+            "<init>",
+            "execute",
+            "teleportRandomly"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/ChorusInfectionHurt.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/Freeze.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/Freeze.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/FreezeTick.class",
+          "methods": [
+            "<init>",
+            "execute"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/FreezeTick.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/FreezeExpires.class",
+          "methods": [
+            "<init>",
+            "execute"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/FreezeExpires.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/Overgrown.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/Overgrown.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/custom/OvergrownExpires.class",
+          "methods": [
+            "<init>",
+            "execute"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/custom/OvergrownExpires.class"
+        }
+      ],
+      "entries": [
+        "net/miauczel/legendary_monsters/effect/custom/Bleeding.class",
+        "net/miauczel/legendary_monsters/effect/custom/BleedingTick.class",
+        "net/miauczel/legendary_monsters/effect/custom/ChorusInfection.class",
+        "net/miauczel/legendary_monsters/effect/custom/ChorusInfectionHurt.class",
+        "net/miauczel/legendary_monsters/effect/custom/Freeze.class",
+        "net/miauczel/legendary_monsters/effect/custom/FreezeExpires.class",
+        "net/miauczel/legendary_monsters/effect/custom/FreezeTick.class",
+        "net/miauczel/legendary_monsters/effect/custom/Overgrown.class",
+        "net/miauczel/legendary_monsters/effect/custom/OvergrownExpires.class"
+      ]
+    },
+    {
+      "reason": "Exact effect registration and inert marker factories: chorus_infection, freeze, bleeding, curse_of_desert and fear have no scheduled native tick payload or independent native consumer beyond admission/delivery/display. Active attribute and gate factories are separately canonical.",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/effect/ModEffects.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "register",
+            "lambda$static$1",
+            "lambda$static$2",
+            "lambda$static$4",
+            "lambda$static$9",
+            "lambda$static$10"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/effect/ModEffects.class"
+        }
+      ],
+      "entries": [
+        "net/miauczel/legendary_monsters/effect/ModEffects.class"
+      ]
+    }
+  ],
+  "record_refinements": [],
+  "exact_next_task": "Close every remaining Legendary Monsters actor, projectile, item, block and support census entry; then independent audits and STOP.",
+  "stage_policy_decided": false,
+  "runtime_tests": 0,
+  "native_context_graph_registry_file": "legendary_monsters-presentation-context.json"
+}

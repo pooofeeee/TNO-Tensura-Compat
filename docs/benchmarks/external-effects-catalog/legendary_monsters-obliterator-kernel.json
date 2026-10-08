@@ -1,0 +1,206 @@
+{
+  "schema": "tno.external_effects.reviewed_combat_batch.v1",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "legendary_monsters",
+  "checkpoint": "legendary-monsters-obliterator-kernel",
+  "closed_scope": "Obliterator damage/status kernels and uninstantiated part; boss state producers remain explicitly pending.",
+  "effects": [
+    {
+      "id": "lm:obliterator_damage_status_kernel",
+      "display_name": "obliterator damage status kernel",
+      "source_actor": [
+        "entity/AnimatedMonster/IAnimatedBoss/TheObliterator/TheObliteratorUtils",
+        "entity/AnimatedMonster/IAnimatedBoss/TheObliterator/TheObliteratorEntity"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Reviewed delivery kernels; exact boss state producers/timing are a separate pending boundary. opArmorNerf returns1 unless recipient ARMOR VALUE>20; then1+(armor-20)*.075 exceptstates20/14/24/40/50 forced1. State53 &&armor<20 exception is impossible inside armor>20 branch, so phase53 normally still scales. Configured TheObliteratorAnnihilationEffect stack adds ANNIHILATION200 amplifier0 when absent; existingamp<4 adds suppliedbonus, amp>=4 has no refresh. stun argument true atamp4 has empty body and adds no stun. Periodic ANNIHILATION callback is dormant per pinned effect scheduler; independent attribute effects retained. AreaAttack and shorter SideAreaAttack use wrapped-arc OR alternatives that can bypass distance; forward-offset SideAreaAttack requires strict distance AND wrapped arc. Excludes self/allies; side variants also exclude TheObliteratorEntity. Damage float((base*armorNerf + recipient maxHP*percent*.01)*TheObliteratorDamageMutliplier). Area source annihilation in14/20/24 elsemobAttack, shorter side in14/40/50, longer side in14/53. Accepted hit cancelBuffs and configured annihilation stack. Area state14 calls swapPositions after each accepted recipient if current targetnonnull, even recipient is not target; boss safe teleport to stored target position then CURRENTtarget RAW teleportTo stored boss position. Area accepted optionallaunch uses squared-distance floor.001, state8 strength1.5/Y.25 else2/Y.5. Short-side22 insteadpushes boss CURRENT motionXZ*1.1/Y.5; longer-side alwaysradial. Shortside blade states59/15/23/31/32/4/5/30/35 ANDphase>2 sets recipient fire60; longerside sets3 ticks. Optional canStun accepted adds STUN50amp1, side59 additionally heals20 PER accepted recipient; Area59 has no heal. Every shield branch independent damage acceptance. StraightLineAreaAttack differs: base + armorNerf ADDITIVE + recipient health term, not base*armorNerf. Six-input overload uses ownconfig/h4; eight-input uses PosessedPaladinDamageMutliplier and suppliedheight, acceptedlaunch additionallycancelBuffs onlyeight-input. Accepted both stackANNIHILATION; state17 accepted launchesvictim normalized horizontal*.8 andY1.25 andsuccessflagtrue,elseflagfalse PERrecipient; acceptedoptional inheritedhuge launch may further add. No invulnerability-time reset here. Grab server firsteligible recipient only, ownboxh4; damage(base*armorNerf+health3%)*PosessedPaladinDamageMutliplier (other-mod-creatureconfig field). Target-only forcedmount attempted AFTERhurt but independent acceptance; flag&&mounted determines success; state17 acceptedcancelBuffs andnormalized*.8/Y1.25; no annihilation stack. PreGrab suppliedheight, samePaladinconfigformula, firsteligibleonly;accepted17/47launch*.8/Y1.25, acceptedcancelBuffs+annihilationstack andsuccessflagtrue, no mount. SideGrab server loopsalleligible ORwrappedarc, target-only FORCEDmount BEFOREhurt independent acceptance; damage(base*armorNerf+recipient3%health)*ownconfig, flag&&mounted cancelBuffs/sneakfalse/success, elsefalse; lastrecipient overwrites,emptyclears. Native zero-distance divisions and downstream hurt/status admission retained. These helpers define behavior only when a reviewed state producer invokes them.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native admission, damage, navigation and status APIs with mod state callbacks.",
+      "components": [
+        {
+          "primitive": "NATIVE_OBLITERATOR_DAMAGE_STATUS_KERNEL",
+          "numerical_parameters": {
+            "armor_threshold": 20,
+            "armor_scale_per_point": 0.075,
+            "status_duration": 200,
+            "status_max_amplifier": 4,
+            "stun_duration": 50,
+            "stun_amplifier": 1,
+            "parry_accepted_heal": 20,
+            "blade_fire_ticks_short": 60,
+            "blade_fire_ticks_long": 3,
+            "grab_health_percent": 3,
+            "radial_distance_squared_floor": 0.001,
+            "uppercut_horizontal": 0.8,
+            "uppercut_y": 1.25
+          }
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/IAnimatedBoss/TheObliterator/TheObliteratorUtils.class",
+          "methods": [
+            "<init>",
+            "applyAnnihilationEffect",
+            "opArmorNerf"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/IAnimatedBoss/TheObliterator/TheObliteratorUtils.class"
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/IAnimatedBoss/TheObliterator/TheObliteratorEntity.class",
+          "methods": [
+            "Grab",
+            "PreGrab",
+            "StraightLineAreaAttack",
+            "AreaAttack",
+            "SideAreaAttack",
+            "SideGrab",
+            "launch",
+            "savePreSwapPositions",
+            "swapPositions"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/IAnimatedBoss/TheObliterator/TheObliteratorEntity.class"
+        }
+      ],
+      "delivery_paths": [
+        "lm:obliterator_damage_status_kernel:delivery"
+      ],
+      "mod_key": "legendary_monsters",
+      "native_boundary": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/IAnimatedBoss/TheObliterator/TheObliteratorUtils.class",
+          "methods": [
+            "<init>",
+            "applyAnnihilationEffect",
+            "opArmorNerf"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/IAnimatedBoss/TheObliterator/TheObliteratorEntity.class",
+          "methods": [
+            "Grab",
+            "PreGrab",
+            "StraightLineAreaAttack",
+            "AreaAttack",
+            "SideAreaAttack",
+            "SideGrab",
+            "launch",
+            "savePreSwapPositions",
+            "swapPositions"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "registry_ids": [],
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Reviewed delivery kernels; exact boss state producers/timing are a separate pending boundary. opArmorNerf returns1 unless recipient ARMOR VALUE>20; then1+(armor-20)*.075 exceptstates20/14/24/40/50 forced1. State53 &&armor<20 exception is impossible inside armor>20 branch, so phase53 normally still scales. Configured TheObliteratorAnnihilationEffect stack adds ANNIHILATION200 amplifier0 when absent; existingamp<4 adds suppliedbonus, amp>=4 has no refresh. stun argument true atamp4 has empty body and adds no stun. Periodic ANNIHILATION callback is dormant per pinned effect scheduler; independent attribute effects retained. AreaAttack and shorter SideAreaAttack use wrapped-arc OR alternatives that can bypass distance; forward-offset SideAreaAttack requires strict distance AND wrapped arc. Excludes self/allies; side variants also exclude TheObliteratorEntity. Damage float((base*armorNerf + recipient maxHP*percent*.01)*TheObliteratorDamageMutliplier). Area source annihilation in14/20/24 elsemobAttack, shorter side in14/40/50, longer side in14/53. Accepted hit cancelBuffs and configured annihilation stack. Area state14 calls swapPositions after each accepted recipient if current targetnonnull, even recipient is not target; boss safe teleport to stored target position then CURRENTtarget RAW teleportTo stored boss position. Area accepted optionallaunch uses squared-distance floor.001, state8 strength1.5/Y.25 else2/Y.5. Short-side22 insteadpushes boss CURRENT motionXZ*1.1/Y.5; longer-side alwaysradial. Shortside blade states59/15/23/31/32/4/5/30/35 ANDphase>2 sets recipient fire60; longerside sets3 ticks. Optional canStun accepted adds STUN50amp1, side59 additionally heals20 PER accepted recipient; Area59 has no heal. Every shield branch independent damage acceptance. StraightLineAreaAttack differs: base + armorNerf ADDITIVE + recipient health term, not base*armorNerf. Six-input overload uses ownconfig/h4; eight-input uses PosessedPaladinDamageMutliplier and suppliedheight, acceptedlaunch additionallycancelBuffs onlyeight-input. Accepted both stackANNIHILATION; state17 accepted launchesvictim normalized horizontal*.8 andY1.25 andsuccessflagtrue,elseflagfalse PERrecipient; acceptedoptional inheritedhuge launch may further add. No invulnerability-time reset here. Grab server firsteligible recipient only, ownboxh4; damage(base*armorNerf+health3%)*PosessedPaladinDamageMutliplier (other-mod-creatureconfig field). Target-only forcedmount attempted AFTERhurt but independent acceptance; flag&&mounted determines success; state17 acceptedcancelBuffs andnormalized*.8/Y1.25; no annihilation stack. PreGrab suppliedheight, samePaladinconfigformula, firsteligibleonly;accepted17/47launch*.8/Y1.25, acceptedcancelBuffs+annihilationstack andsuccessflagtrue, no mount. SideGrab server loopsalleligible ORwrappedarc, target-only FORCEDmount BEFOREhurt independent acceptance; damage(base*armorNerf+recipient3%health)*ownconfig, flag&&mounted cancelBuffs/sneakfalse/success, elsefalse; lastrecipient overwrites,emptyclears. Native zero-distance divisions and downstream hurt/status admission retained. These helpers define behavior only when a reviewed state producer invokes them.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/IAnimatedBoss/TheObliterator/TheObliteratorUtils.class",
+          "methods": [
+            "<init>",
+            "applyAnnihilationEffect",
+            "opArmorNerf"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/IAnimatedBoss/TheObliterator/TheObliteratorEntity.class",
+          "methods": [
+            "Grab",
+            "PreGrab",
+            "StraightLineAreaAttack",
+            "AreaAttack",
+            "SideAreaAttack",
+            "SideGrab",
+            "launch",
+            "savePreSwapPositions",
+            "swapPositions"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/legendary_monsters-core.json"
+      ],
+      "unresolved_ambiguities": [],
+      "scalable_parameter_candidates": []
+    }
+  ],
+  "paths": [
+    {
+      "id": "lm:obliterator_damage_status_kernel:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "MOB_MELEE",
+        "AOE",
+        "SUMMONED_ATTACK"
+      ],
+      "effect_ids": [
+        "lm:obliterator_damage_status_kernel"
+      ],
+      "primary_source": [
+        "entity/AnimatedMonster/IAnimatedBoss/TheObliterator/TheObliteratorUtils",
+        "entity/AnimatedMonster/IAnimatedBoss/TheObliterator/TheObliteratorEntity"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/IAnimatedBoss/TheObliterator/TheObliteratorUtils.class",
+          "methods": [
+            "<init>",
+            "applyAnnihilationEffect",
+            "opArmorNerf"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/IAnimatedBoss/TheObliterator/TheObliteratorEntity.class",
+          "methods": [
+            "Grab",
+            "PreGrab",
+            "StraightLineAreaAttack",
+            "AreaAttack",
+            "SideAreaAttack",
+            "SideGrab",
+            "launch",
+            "savePreSwapPositions",
+            "swapPositions"
+          ]
+        }
+      ]
+    }
+  ],
+  "exclusions": [
+    {
+      "disposition": "UNINSTANTIATED_PART_DEFINITION",
+      "reason": "All exact constructors have zero calls/bootstrap handles and no subclasses. Registered boss explicitly isMultipartEntity=false and allocates no Part. Reviewed definition delegates hurt after own invulnerability check but first casts causing entity to LivingEntity, unsafe for another type. Unsaved and spawn packet throws UnsupportedOperationException. Part is not a native combat instance producer.",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/IAnimatedBoss/TheObliterator/TheObliteratorPart.class",
+          "methods": [
+            "<init>",
+            "addAdditionalSaveData",
+            "defineSynchedData",
+            "getAddEntityPacket",
+            "getDimensions",
+            "getPickResult",
+            "hurt",
+            "is",
+            "isAttackable",
+            "isPickable",
+            "readAdditionalSaveData",
+            "shouldBeSaved"
+          ],
+          "evidence_file": "native-evidence/legendary_monsters-core.json",
+          "witness_id": "legendary_monsters:core:net/miauczel/legendary_monsters/entity/AnimatedMonster/IAnimatedBoss/TheObliterator/TheObliteratorPart.class"
+        }
+      ],
+      "entries": [
+        "net/miauczel/legendary_monsters/entity/AnimatedMonster/IAnimatedBoss/TheObliterator/TheObliteratorPart.class"
+      ]
+    }
+  ],
+  "record_refinements": [],
+  "exact_next_task": "Complete remaining Legendary Monsters creatures/bosses and ancillary contexts/resources; numeric identity and whole-mod audits, push, STOP.",
+  "stage_policy_decided": false,
+  "runtime_tests": 0
+}

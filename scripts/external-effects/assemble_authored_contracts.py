@@ -11,7 +11,8 @@ from catalog_common import OUT, BASELINE, read_json, write_json
 from promote_combat_batch import (literal_numeric_input_binding,
     literal_last_numeric_argument_binding, literal_vector_components_binding,
     literal_effect_arguments, literal_effect_attribute_binding,literal_attribute_binding,
-    literal_constructor_argument_binding, literal_call_argument_binding)
+    literal_constructor_argument_binding, literal_call_argument_binding,
+    literal_numeric_site_binding)
 
 
 def render(spec):
@@ -21,7 +22,9 @@ def render(spec):
     def proof(selection):
         selection = dict(selection)
         packet = selection.pop('evidence_file', spec['evidence_file'])
-        doc = files.setdefault(packet, read_json(OUT/packet))
+        if packet not in files:
+            files[packet] = read_json(OUT/packet)
+        doc = files[packet]
         witness = next(w for w in doc['witnesses'] if w['entry']==selection['entry'])
         selection.update(evidence_file=packet, witness_id=witness['id'])
         return selection, witness
@@ -64,6 +67,7 @@ def render(spec):
                      opcode=hit['opcode'],operand=hit['operand'])
             binding = c.pop('binding', None)
             helpers = {'LITERAL_INPUT': ('native_literal_numeric_input_binding',literal_numeric_input_binding),
+                       'LITERAL_SITE': ('native_literal_numeric_site_binding',literal_numeric_site_binding),
                        'LAST_NUMERIC_ARGUMENT': ('native_last_numeric_argument_binding',literal_last_numeric_argument_binding),
                        'VECTOR_COMPONENTS': ('native_literal_vector_components_binding',literal_vector_components_binding),
                        'EFFECT_ARGUMENTS': ('native_literal_effect_arguments',literal_effect_arguments),

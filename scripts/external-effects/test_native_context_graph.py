@@ -184,3 +184,33 @@ class SelectedDisplayTests(unittest.TestCase):
         key=next(k for k in keys if k[1]==c['methods'][1]['method'])
         raw=bytes.fromhex('034fb1');codes[key]=raw;c['methods'][1]['code_sha256']=byte_hash(raw)
         self.assertEqual(prove(c,'presentation-access-v6',codes,keys)['rows'],[])
+
+
+class PresentationLayoutAliasTests(unittest.TestCase):
+    def layout(self):
+        c=fixture();old=c['classes'][0]['name'];new='example/entity/client/Test'
+        c['classes'][0].update(entry=new+'.class',name=new)
+        c['symbols']=[s.replace(old,new) for s in c['symbols']]
+        for m in c['methods']:m['entry']=new+'.class'
+        return c
+
+    def test_new_layout_roots_do_not_change_old_profiles(self):
+        c=self.layout();c['methods'][1]['hits']=[[0,181,1]]
+        self.assertEqual(prove(c,'presentation-audio-ui-v2')['rows'],[])
+        self.assertEqual(prove(c,'presentation-layout-aliases-v7')['summary']['methods'],2)
+
+    def test_game_mutation_invalidates_entire_layout_cycle(self):
+        c=self.layout();c['methods'][1]['calls'].append([3,182,4])
+        self.assertEqual(prove(c,'presentation-layout-aliases-v7')['rows'],[])
+        c=self.layout();c['symbols'].append('net/minecraft/world/entity/Entity.yHeadRotF')
+        c['methods'][1]['hits']=[[3,181,5]]
+        self.assertEqual(prove(c,'presentation-layout-aliases-v7')['rows'],[])
+
+    def test_animation_api_extension_is_versioned_and_unknown_dispatch_rejected(self):
+        api='net/minecraft/client/animation/KeyframeAnimations.animate()V'
+        self.assertTrue(external_allowed(api,'presentation-layout-aliases-v7'))
+        self.assertFalse(external_allowed(api,'presentation-audio-ui-v2'))
+        for api in ('net/minecraft/world/entity/Entity.setDeltaMovement(DDD)V',
+                    'net/minecraft/network/Connection.send(Ljava/lang/Object;)V',
+                    'java/util/function/Consumer.accept(Ljava/lang/Object;)V'):
+            self.assertFalse(external_allowed(api,'presentation-layout-aliases-v7'))

@@ -1,0 +1,2134 @@
+{
+  "mod_key": "legendary_monsters",
+  "evidence_file": "native-evidence/legendary_monsters-core.json",
+  "checkpoint": "legendary-monsters-pets",
+  "closed_scope": "All four tamable creatures, shared tamable state/navigation and knight parry boundaries.",
+  "exact_next_task": "Complete remaining Legendary Monsters creatures/bosses and ancillary contexts/resources; numeric identity and whole-mod audits, push, STOP.",
+  "contracts": [
+    {
+      "id": "lm:tamable_state_motion_kernel",
+      "display_name": "tamable state motion kernel",
+      "source_actor": [
+        "entity/ai/goal/ITamableMonster/IAnimatedTamableMob"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Actual TamableAnimal subclass is in entity/ai/goal/ITamableMonster, distinct from empty same-named OriginClasses class. State setter resets attackTicks, syncs state and broadcasts negative byte; parent-first tick increments clock for positive states and decrements attackCooldown. Nonpositive entity events reset clock. Base isFood=false and offspring=null. Target clearing only for another TamableAnimal with same nonnull resolved owner; no general owner exclusion in nearby queries. Nearby query inflated XYZ box, excludes self, distance<=radius+recipientWidth/2, recipientY<=sourceY+height. Shared shield helper unchecked Player cast, used item cooldown then stops use and broadcasts30. Push rejects sleeping/samevehicle/nophysics, uses absMax horizontal separation>=.01, sqrt, reciprocal clamp1, impulse .05; respects own canBePushedByEntity and vehicle rules. Repel helper writes horizontal-.1 angular vector preserving Y to pickable physics-enabled recipients; caller-specific activity not implied. Particle helper strictly client presentation. Native taming, owner, feeding and damage admission inherited.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native admission, damage, navigation and status APIs with mod state callbacks.",
+      "components": [
+        {
+          "primitive": "NATIVE_TAMABLE_STATE_MOTION_KERNEL",
+          "numerical_parameters": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/ai/goal/ITamableMonster/IAnimatedTamableMob.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "SpawnCircleParticle",
+            "canBePushedByEntity",
+            "defineSynchedData",
+            "disableShield",
+            "getAngleBetweenEntities",
+            "getAttackState",
+            "getAttackTicks",
+            "getBreedOffspring",
+            "getEntitiesNearby",
+            "getEntityLivingBaseNearby",
+            "handleEntityEvent",
+            "isFood",
+            "lambda$getEntitiesNearby$0",
+            "push",
+            "readAdditionalSaveData",
+            "repelEntities",
+            "setAttackState",
+            "stopAttackingAllies",
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "lm:tamable_state_motion_kernel:delivery"
+      ],
+      "candidate_bindings": []
+    },
+    {
+      "id": "lm:tamable_goal_kernel",
+      "display_name": "tamable goal kernel",
+      "source_actor": [
+        "entity/ai/goal/ITamableMonster/ITamableMobAttackGoal",
+        "entity/ai/goal/ITamableMonster/ITamableMobStateGoal",
+        "entity/ai/goal/ITamableMonster/ILookingTamableMobStateGoal",
+        "entity/ai/goal/ITamableMonster/ITamableMobMoveGoal"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Attack goal live target, strict distance<range and source state; no attackDelay/cooldown admission. Start sets attack state; stop end state and cooldown0 without explicit clock reset beyond setter. Continues solely attackTicks<max independent current state. MOVE/LOOK/JUMP flags or supplied override; tracks30/30 before see tick else freezes yaw, every-tick=false. State goal start only changes different state, stop end state/clock0/cooldown0; final>0 continues clock<=final else current source state; tracks30/30 before see tick, default MOVE/LOOK/JUMP or optional no flags, every-tick=true. Looking-state goal has EMPTY tick, default no flags, optional MOVE only; same transitions/continuation/every-tick=true. Move goal starts navigation with uninitialized null path and aggressive true; tick every time tracks30/30, delay4+randomInt7, beyond squared FOLLOW_RANGE only repaths at speed1 when not already pathfinding (failure adds5), within range repaths configured speed. CanUse live target; continuation either unfinished navigation or restriction+noncreative/nonspectator Player. Stop navigation, clears creative/spectator target and aggression. No direct payload.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native admission, damage, navigation and status APIs with mod state callbacks.",
+      "components": [
+        {
+          "primitive": "NATIVE_TAMABLE_GOAL_KERNEL",
+          "numerical_parameters": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/ai/goal/ITamableMonster/ITamableMobAttackGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/ai/goal/ITamableMonster/ITamableMobStateGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/ai/goal/ITamableMonster/ILookingTamableMobStateGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/ai/goal/ITamableMonster/ITamableMobMoveGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "lm:tamable_goal_kernel:delivery"
+      ],
+      "candidate_bindings": []
+    },
+    {
+      "id": "lm:tamable_knight_parry_goals",
+      "display_name": "tamable knight parry goals",
+      "source_actor": [
+        "entity/AnimatedMonster/Mobs/Pets/knights/goals/TamableKnightParryGoal",
+        "entity/AnimatedMonster/Mobs/Pets/knights/goals/TamableKnightParryFrameGoal"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Parry goal uses live target/range/source state, starts clearing gambitParry and setting state, stops to8 if success else5 regardless authored end state, cooldown0. Continues solely clock<max; look30/30 before see tick; flags MOVE/LOOK/JUMP or supplied, every-tick=false. Frame goal requires source state, start only changes different state, stop8 if success else7 regardless configured end, resets clock/cooldown. Continuation final>0 clock<=final else source state, look30/30 before see tick, flags MOVE/LOOK/JUMP or optionally none, every-tick=true. No damage independent of actor callbacks.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native admission, damage, navigation and status APIs with mod state callbacks.",
+      "components": [
+        {
+          "primitive": "NATIVE_TAMABLE_KNIGHT_PARRY_GOALS",
+          "numerical_parameters": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/goals/TamableKnightParryGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/goals/TamableKnightParryFrameGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "lm:tamable_knight_parry_goals:delivery"
+      ],
+      "candidate_bindings": []
+    },
+    {
+      "id": "lm:mossy_golem",
+      "display_name": "mossy golem",
+      "source_actor": [
+        "entity/AnimatedMonster/Mobs/Pets/MossyGolemEntity"
+      ],
+      "primary_classification": "CUSTOM_RESOURCE",
+      "actual_behavior": "Tamable state base, health60 armor6 resistance.5 range14 speed.1 knockback.5 native damage16, configured full-health scaling and persistence/no peaceful despawn. Own damage rejects direct arrows/FALL/TRIDENT. Parent-first tick immobilizes command1(sit) or3(stand), commands0follow/2wander. Setter ordered-sit does NOT call native parent or update command; stopping/restarting navigation and clearing target are its effects. Owner interaction server only calls parent then cycles0->1->2->3->0 if result unconsumed OR baby; leaving1 resets state0; command saved/restored, synced STANDING field is not queried by isStanding (command3 instead). Owner-related targets+retaliation; same-owner tame target cleared before attack update. Follow speed4 distances10/2 suppressed commands2/3; move speed3, attack goal0->2 max35/look20/range3 rejected commands1/2. At state2 tick12 area4/height2/arc180/base7.5*MossyGolemDamageMutliplier, excludes self/MossyGolem/allies and tamed recipients with same resolved owner; wrapped-angle alternatives retain distance precedence. No shield/status/launch. Crop query radius3 requires immature CropBlock. Idle tick cooldown<=0 with query sets cooldown260 and state4; state4 tick14 server scans cube radius4 and increments AGE_7/AGE_3/AGE_5 by5 capped7/3/5 with block update2, including nonCropBlock carrying these properties. Registered growth goal independently requires crop query and cooldown<=0 rather than source-state gate; max60 stops when command1. Tick producer sets260 before this goal admission, so its state reset is not guaranteed by the tick-started path; do not claim a universal60-tick cycle. No attack target exclusion from crop trigger. Offspring creates MossyGolem, copies ownerUUID/tamed when available; drops glow+extended lifetime in spawnAtLocation override. No special death timer/heal override. Animation/sounds only presentation.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native admission, damage, navigation and status APIs with mod state callbacks.",
+      "components": [
+        {
+          "primitive": "NATIVE_MOSSY_GOLEM",
+          "numerical_parameters": {
+            "health": 60,
+            "armor": 6,
+            "slam_base": 7.5,
+            "crop_detection_radius": 3,
+            "crop_change_radius": 4,
+            "crop_age_increment": 5,
+            "crop_cooldown": 260
+          }
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "numerical_parameters": {
+            "max_health": 60.0,
+            "knockback_resistance": 0.5,
+            "follow_range": 14.0,
+            "armor": 6.0,
+            "movement_speed": 0.10000000149011612,
+            "attack_knockback": 0.5,
+            "attack_damage": 16.0
+          },
+          "attribute_symbols": {
+            "max_health": "net/minecraft/world/entity/ai/attributes/Attributes.MAX_HEALTHLnet/minecraft/core/Holder;",
+            "knockback_resistance": "net/minecraft/world/entity/ai/attributes/Attributes.KNOCKBACK_RESISTANCELnet/minecraft/core/Holder;",
+            "follow_range": "net/minecraft/world/entity/ai/attributes/Attributes.FOLLOW_RANGELnet/minecraft/core/Holder;",
+            "armor": "net/minecraft/world/entity/ai/attributes/Attributes.ARMORLnet/minecraft/core/Holder;",
+            "movement_speed": "net/minecraft/world/entity/ai/attributes/Attributes.MOVEMENT_SPEEDLnet/minecraft/core/Holder;",
+            "attack_knockback": "net/minecraft/world/entity/ai/attributes/Attributes.ATTACK_KNOCKBACKLnet/minecraft/core/Holder;",
+            "attack_damage": "net/minecraft/world/entity/ai/attributes/Attributes.ATTACK_DAMAGELnet/minecraft/core/Holder;"
+          }
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/MossyGolemEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "AreaAttack",
+            "CircleParticle",
+            "LGspawnatlocation",
+            "accelerateCropGrowth",
+            "addAdditionalSaveData",
+            "aiStep",
+            "canDespawn",
+            "canIncreaseCropGrowth",
+            "createAttributes",
+            "createBodyControl",
+            "createNavigation",
+            "defineSynchedData",
+            "die",
+            "getAnimationState",
+            "getBreedOffspring",
+            "getCommand",
+            "getDeathSound",
+            "getEntityName",
+            "getHurtSound",
+            "hurt",
+            "isAttacking",
+            "isOrderedToSit",
+            "isSitting",
+            "isStanding",
+            "mobInteract",
+            "onAddedToLevel",
+            "onSyncedDataUpdated",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "sendActionBarMessageToPlayer",
+            "sendAdvancedHotBarMessage",
+            "setAttacking",
+            "setCommand",
+            "setOrderedToSit",
+            "setStanding",
+            "shouldDespawnInPeaceful",
+            "spawnAtLocation",
+            "stopAllAnimationStates",
+            "stopAttackingAllies",
+            "tick",
+            "updateWalkAnimation",
+            "updateWithAttack"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/MossyGolemEntity$1.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/MossyGolemEntity$2.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/MossyGolemEntity$3.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/MossyGolemEntity$4.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/MossyGolemEntity$5.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "lm:mossy_golem:delivery"
+      ],
+      "candidate_bindings": [
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "max_health"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/MossyGolemEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 9
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "knockback_resistance"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/MossyGolemEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 18
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "follow_range"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/MossyGolemEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 27
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "armor"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/MossyGolemEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 36
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "movement_speed"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/MossyGolemEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 45
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "attack_knockback"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/MossyGolemEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 54
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "attack_damage"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/MossyGolemEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 63
+        }
+      ]
+    },
+    {
+      "id": "lm:skeloraptor",
+      "display_name": "skeloraptor",
+      "source_actor": [
+        "entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Tamable state base with health60 armor10 resistance1 range30 speed.1 knockback.5 native damage2 jumpStrength.9 XP10, configured full-health scaling/persistence. Rejects ON_FIRE/FALL/direct potion/cloud; FALL always rejected even though causeFallDamage separately suppresses reduceFallDamage and distance<60. Fluid pushes false, fluid effects true, water slow down .96; refreshes dimensions every baseTick. Native collision push to self disabled via canBePushedByEntity=false while pushable true. Commands0follow/1sit/2wander saved; owner shift interaction cycles commands on either side, leaving1 state0. Raw meat beef/mutton/pork/chicken/rabbit consumes via native usePlayerItem, tame probability1/3 with native cancel hook. Any player may ride already-tamed adult when command!=1 even if not owner; first LivingEntity passenger controls. Travel allowed only state0 and command!=1, rotates to rider with pitch*.5, strafe*.1 and forward unchanged; own tick also performs rider travel using full strafe and sets speed ATTACK movement attribute+.1. Pending jump power clamped minimum0; >=90 scale1 else .4+.4*power/90, grounded rider tick executes Y=JUMP_STRENGTH*scale*blockFactor+jumpBoost, forward jump impulse(-.4*sinYaw*scale,0,.4*cosYaw*scale). LastJumpHeight initialized0 never updated; later lastY descent test <10 overrides earlier reduction flag, but all fall damage already rejected. While not ordered sit, server heals1 each tick%30 belowmax, regardless target/combat; sitting skips this branch. Roar cooldown decrements always; registered packet vehicle handlers start1/cooldown300 or random3/4 as separate network contract. State1 ticks6..19 flee nonallied PathfinderMob in16/10/16 box, excludes sitting tame, clears target/last attacker, grounded velocity horizontal*.7+jitter+/-.05, navigation away(15,7) speed2; no Fear status application. State3 tick16 area5/height3/arc180/base10/shield40/launch; state4 ticks12/37 area2/height3/arc360/base7/shield40/no launch, rings6/11/14 at radius2.5/3.5/4.5 ticks12/13/16 and37/40/43, ground-supported Shockwave owner=this damage4 warmup0/false, no local server gate. Area amount*SkeloraptorDamageMultiplier, excludes self/allies only; launch independent accepted hit, horizontal1.2 divided squared distance floor1e-4/Y.5; stun/knockback arguments ignored. AI attacks states4/3/1 sample16/35 range4 max55/50/53, require no controller and command!=1, roar-ready and stop300; state goals1/4/3 clocks53/55/50 freeze horizontal,7 recovery20,5->6 sit25,6 sitloop80. Native follow4 distances10/2 suppressed1/2; other walking goals plus retaliation. Server horizontal collision/mobGriefing destroys Leaves in box inflated2 with drops. Uncalled legacy area3/height3 native doHurtTarget adds no active attack. No offspring, standard native death. Presentation tables/camera do not add damage.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native admission, damage, navigation and status APIs with mod state callbacks.",
+      "components": [
+        {
+          "primitive": "NATIVE_SKELORAPTOR",
+          "numerical_parameters": {
+            "health": 60,
+            "armor": 10,
+            "tail_base": 10,
+            "stomp_base": 7,
+            "shockwave_damage": 4,
+            "heal": 1,
+            "heal_period": 30,
+            "roar_cooldown": 300,
+            "shield_ticks": 40,
+            "jump_strength": 0.9,
+            "water_slowdown": 0.96
+          }
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "numerical_parameters": {
+            "max_health": 60.0,
+            "knockback_resistance": 1.0,
+            "follow_range": 30.0,
+            "armor": 10.0,
+            "movement_speed": 0.10000000149011612,
+            "attack_knockback": 0.5,
+            "attack_damage": 2.0,
+            "jump_strength": 0.9
+          },
+          "attribute_symbols": {
+            "max_health": "net/minecraft/world/entity/ai/attributes/Attributes.MAX_HEALTHLnet/minecraft/core/Holder;",
+            "knockback_resistance": "net/minecraft/world/entity/ai/attributes/Attributes.KNOCKBACK_RESISTANCELnet/minecraft/core/Holder;",
+            "follow_range": "net/minecraft/world/entity/ai/attributes/Attributes.FOLLOW_RANGELnet/minecraft/core/Holder;",
+            "armor": "net/minecraft/world/entity/ai/attributes/Attributes.ARMORLnet/minecraft/core/Holder;",
+            "movement_speed": "net/minecraft/world/entity/ai/attributes/Attributes.MOVEMENT_SPEEDLnet/minecraft/core/Holder;",
+            "attack_knockback": "net/minecraft/world/entity/ai/attributes/Attributes.ATTACK_KNOCKBACKLnet/minecraft/core/Holder;",
+            "attack_damage": "net/minecraft/world/entity/ai/attributes/Attributes.ATTACK_DAMAGELnet/minecraft/core/Holder;",
+            "jump_strength": "net/minecraft/world/entity/ai/attributes/Attributes.JUMP_STRENGTHLnet/minecraft/core/Holder;"
+          }
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "AreaAttack",
+            "LGspawnatlocation",
+            "UpdateWithAttack",
+            "addAdditionalSaveData",
+            "aiStep",
+            "baseTick",
+            "canBePushedByEntity",
+            "canDespawn",
+            "canJump",
+            "canTravel",
+            "causeFallDamage",
+            "createAttributes",
+            "defineSynchedData",
+            "die",
+            "executeRidersJump",
+            "getAmbientSound",
+            "getAnimationState",
+            "getBreedOffspring",
+            "getCommand",
+            "getControllingPassenger",
+            "getCustomJump",
+            "getDeathSound",
+            "getEntityName",
+            "getHurtSound",
+            "getWaterSlowDown",
+            "handleStartJump",
+            "handleStopJump",
+            "handleWalkingMessage",
+            "hurt",
+            "isAffectedByFluids",
+            "isAttacking",
+            "isFood",
+            "isJumping",
+            "isMoving",
+            "isPushable",
+            "isPushedByFluid",
+            "isSitting",
+            "isWoodSoundType",
+            "launch",
+            "mobInteract",
+            "onAddedToLevel",
+            "onPlayerJump",
+            "onSyncedDataUpdated",
+            "performAreaAttack",
+            "playGallopSound",
+            "playJumpSound",
+            "playStepSound",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "runawayMobs",
+            "sendActionBarMessage",
+            "sendActionBarMessageToPlayer",
+            "sendAdvancedHotBarMessage",
+            "setAttacking",
+            "setCommand",
+            "setIsJumping",
+            "setOrderedToSit",
+            "spawnShockwaves",
+            "standIfPossible",
+            "startSeenByPlayer",
+            "stopAllAnimationStates",
+            "stopSeenByPlayer",
+            "tick",
+            "tickRidden",
+            "travel"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity$1.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity$10.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity$11.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity$2.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity$3.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity$4.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity$5.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity$6.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity$7.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity$8.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity$9.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "lm:skeloraptor:delivery"
+      ],
+      "candidate_bindings": [
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "max_health"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 9
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "knockback_resistance"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 16
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "follow_range"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 25
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "armor"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 34
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "movement_speed"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 43
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "attack_knockback"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 52
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "attack_damage"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 61
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "jump_strength"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 70
+        }
+      ]
+    },
+    {
+      "id": "lm:tamable_knight_living_armor",
+      "display_name": "tamable knight living armor",
+      "source_actor": [
+        "entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Both summoned knights are actual TamableAnimal actors. Age forcibly0 each tick. Server heals1 every30 belowmax, even in combat/sitting. Persistence and configured full-health scaling. Shift interaction required (otherwise FAIL); owner may consume one cosmetic material even creative to set variants1gold/2amethyst/3emerald/4copper/5diamond/6echo/7iron/8netherite, stats unchanged. Owner parent interaction then unconsumed/baby result cycles0follow->1sit->2wander->3guard->0, leaving1 resetsstate0. Untamed iron consumes native player item and tame1/3 subject cancel hook. Food iron uses inherited feeding; offspring creates respective registered type, copies ownerUUID/tamed. Same-owner TamableAnimal recipient exclusion compares resolved owners directly, so two ownerless animals also compare equal; excludes self/allies. Guard command3 may target Monster only when AllowKnightSummonsInitiateAttack, ownerhurt/ownerattack/retaliation suppressed command1, follow speed4 distances10/2 suppressed1/2. Both nearby queries include recipient halfwidth, vertical upper bound. Saves command/texture/Sitting; isOrderedToSit reads command1, setter updates custom SITTING only for LivingArmor and does not call native superclass for either actor. Death produces1 deactivated respective summoner,1 matching variant material (default0 none),1 plain name tag if custom name exists, and an AIR item attempt; material/summoner drops glow, name tag does not carry name component. Counter60 server removal; cooldowns/transient parry/state not serialized. Client particle/sweep color has no stats. LivingArmor health120 armor14 resistance .7 float range30 speed.1 knockback1 damage18 XP2. State2 unconditional hurt rejection through clock13 including bypass; otherwise server !gambitParry and (state4 tick>5 OR state5) rejects ANY source, sets8 and gambit=true before base admission. No own projectile/FALL rejection. Parry goal0->4 range3 probability33% targetMob whose target!=owner; max/look8, failure5 then frame<=25 ->7, success8; recovery7 max11, counter8 max27. Attack2 max39/look20/range3 probability28%,3 max65/look40/range3 probability28%, both command!=1. State2 dash.25 at12, area2.5/height3/arc100/base14 at15, target+oneextra; state3 dashes.25 ticks11/33, same area at14/36. Counter8 dash.25 tick5, area2.5/height3/arc180/base18 tick8 target+4extra. Strict distance AND wrapped arc; target amount*TamableKnightDamageMutliplier, EXTRAS instead amount*TamableKnightHealthMultiplier. Extra budget consumed regardless hurt success. Accepted state8 hits STUN15amp0. No shield/launch. aiStep attacks before sit target clear. Custom state9 freeze goal has no state9 initiator in this actor; tick does not directly set state9 when sitting, sit animation dependscommand. Wander onlycommand2, move suppressed1. Death state6.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native admission, damage, navigation and status APIs with mod state callbacks.",
+      "components": [
+        {
+          "primitive": "NATIVE_TAMABLE_KNIGHT_LIVING_ARMOR",
+          "numerical_parameters": {
+            "health": 120,
+            "armor": 14,
+            "slash_base": 14,
+            "counter_base": 18,
+            "extra_sweep_budget": 1,
+            "extra_counter_budget": 4,
+            "stun_ticks": 15,
+            "heal": 1,
+            "heal_period": 30,
+            "parry_probability": 0.33,
+            "shieldless_windup_ticks": 13
+          }
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "numerical_parameters": {
+            "max_health": 120.0,
+            "knockback_resistance": 0.699999988079071,
+            "follow_range": 30.0,
+            "armor": 14.0,
+            "movement_speed": 0.10000000149011612,
+            "attack_knockback": 1.0,
+            "attack_damage": 18.0
+          },
+          "attribute_symbols": {
+            "max_health": "net/minecraft/world/entity/ai/attributes/Attributes.MAX_HEALTHLnet/minecraft/core/Holder;",
+            "knockback_resistance": "net/minecraft/world/entity/ai/attributes/Attributes.KNOCKBACK_RESISTANCELnet/minecraft/core/Holder;",
+            "follow_range": "net/minecraft/world/entity/ai/attributes/Attributes.FOLLOW_RANGELnet/minecraft/core/Holder;",
+            "armor": "net/minecraft/world/entity/ai/attributes/Attributes.ARMORLnet/minecraft/core/Holder;",
+            "movement_speed": "net/minecraft/world/entity/ai/attributes/Attributes.MOVEMENT_SPEEDLnet/minecraft/core/Holder;",
+            "attack_knockback": "net/minecraft/world/entity/ai/attributes/Attributes.ATTACK_KNOCKBACKLnet/minecraft/core/Holder;",
+            "attack_damage": "net/minecraft/world/entity/ai/attributes/Attributes.ATTACK_DAMAGELnet/minecraft/core/Holder;"
+          }
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "AreaAttack",
+            "LGspawnatlocation",
+            "UpdateWithAttack",
+            "addAdditionalSaveData",
+            "aiStep",
+            "calculatedDash",
+            "canDespawn",
+            "canParry",
+            "createAttributes",
+            "createBodyControl",
+            "createNavigation",
+            "createSweep",
+            "dash",
+            "defineSynchedData",
+            "die",
+            "getAnimationState",
+            "getBreedOffspring",
+            "getCommand",
+            "getDeathSound",
+            "getEntitiesNearby",
+            "getEntityLivingBaseNearby",
+            "getEntityName",
+            "getHurtSound",
+            "getTextureVariant",
+            "hurt",
+            "isAttacking",
+            "isFood",
+            "isOrderedToSit",
+            "isPushable",
+            "lambda$getEntitiesNearby$0",
+            "mobInteract",
+            "onAddedToLevel",
+            "onSyncedDataUpdated",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "sendActionBarMessageToPlayer",
+            "sendAdvancedHotBarMessage",
+            "setAttacking",
+            "setCommand",
+            "setOrderedToSit",
+            "setRGB",
+            "spawnHeartParticles",
+            "stopAllAnimationStates",
+            "tick",
+            "tickDeath"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity$1.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity$10.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity$11.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity$12.class",
+          "methods": [
+            "<init>",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity$13.class",
+          "methods": [
+            "<init>",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity$14.class",
+          "methods": [
+            "<init>",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity$2.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity$3.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity$4.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity$5.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity$6.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity$7.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity$8.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity$9.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "lm:tamable_knight_living_armor:delivery"
+      ],
+      "candidate_bindings": [
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "max_health"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 9
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "knockback_resistance"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 18
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "follow_range"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 27
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "armor"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 36
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "movement_speed"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 45
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "attack_knockback"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 52
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "attack_damage"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 61
+        }
+      ]
+    },
+    {
+      "id": "lm:tamable_haunted_guard",
+      "display_name": "tamable haunted guard",
+      "source_actor": [
+        "entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity"
+      ],
+      "primary_classification": "CUSTOM_DAMAGE",
+      "actual_behavior": "Both summoned knights are actual TamableAnimal actors. Age forcibly0 each tick. Server heals1 every30 belowmax, even in combat/sitting. Persistence and configured full-health scaling. Shift interaction required (otherwise FAIL); owner may consume one cosmetic material even creative to set variants1gold/2amethyst/3emerald/4copper/5diamond/6echo/7iron/8netherite, stats unchanged. Owner parent interaction then unconsumed/baby result cycles0follow->1sit->2wander->3guard->0, leaving1 resetsstate0. Untamed iron consumes native player item and tame1/3 subject cancel hook. Food iron uses inherited feeding; offspring creates respective registered type, copies ownerUUID/tamed. Same-owner TamableAnimal recipient exclusion compares resolved owners directly, so two ownerless animals also compare equal; excludes self/allies. Guard command3 may target Monster only when AllowKnightSummonsInitiateAttack, ownerhurt/ownerattack/retaliation suppressed command1, follow speed4 distances10/2 suppressed1/2. Both nearby queries include recipient halfwidth, vertical upper bound. Saves command/texture/Sitting; isOrderedToSit reads command1, setter updates custom SITTING only for LivingArmor and does not call native superclass for either actor. Death produces1 deactivated respective summoner,1 matching variant material (default0 none),1 plain name tag if custom name exists, and an AIR item attempt; material/summoner drops glow, name tag does not carry name component. Counter60 server removal; cooldowns/transient parry/state not serialized. Client particle/sweep color has no stats. Guard health140 armor14 resistance .7 float range30 speed.1 knockback1 damage18 XP2, rejects direct arrows/FALL/TRIDENT. Tick command1 freezes horizontal and sets idle0->sit4; setter no SITTING/native pose update. Unused slamCooldown20 decrements without producer gating. Wander WaterAvoiding speed3 whencommand!=1 plus RandomStroll speed0 only2. Native move speed3 has no command restriction. Attack2 maxint(2.67f*20)=53/look15/range4 sample16/35,3 max90/look55/range4 sample16/35, commands!=1. State2 stores current target coordinates at13, dash to stored XZ*.15 at17 requires current targetnonnull, straight hit20: box horizontal inflate-.5, Y3, expands3.25, amount20*HauntedKnightDamageMutliplier (hostile-knight config), accepted launch always uses1 not supplied1.2, squared distance floor1e-4/Y.2; Player shield100 independent hurt. Straight attack no extra target budget/type exclusion. State3 dash .25 at int(1.21f*20)-3=21 and int(2.63f*20)-3=49; area at24/52 range3/height3/arc180/base20*TamableGuardDamageMutliplier, target+10extras, strictdistance AND wrapped arc, excludes otherFGuards/same-owner tame/allies. Extra budget consumed on attempt. Own aim writes yaw then overwrites bodyYaw with pitch. Death state7, slam/stored aim not saved.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native admission, damage, navigation and status APIs with mod state callbacks.",
+      "components": [
+        {
+          "primitive": "NATIVE_TAMABLE_HAUNTED_GUARD",
+          "numerical_parameters": {
+            "health": 140,
+            "armor": 14,
+            "attack_base": 20,
+            "extra_budget": 10,
+            "heal": 1,
+            "heal_period": 30,
+            "shield_ticks": 100,
+            "launch_y": 0.2
+          }
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "numerical_parameters": {
+            "max_health": 140.0,
+            "knockback_resistance": 0.699999988079071,
+            "follow_range": 30.0,
+            "armor": 14.0,
+            "movement_speed": 0.10000000149011612,
+            "attack_knockback": 1.0,
+            "attack_damage": 18.0
+          },
+          "attribute_symbols": {
+            "max_health": "net/minecraft/world/entity/ai/attributes/Attributes.MAX_HEALTHLnet/minecraft/core/Holder;",
+            "knockback_resistance": "net/minecraft/world/entity/ai/attributes/Attributes.KNOCKBACK_RESISTANCELnet/minecraft/core/Holder;",
+            "follow_range": "net/minecraft/world/entity/ai/attributes/Attributes.FOLLOW_RANGELnet/minecraft/core/Holder;",
+            "armor": "net/minecraft/world/entity/ai/attributes/Attributes.ARMORLnet/minecraft/core/Holder;",
+            "movement_speed": "net/minecraft/world/entity/ai/attributes/Attributes.MOVEMENT_SPEEDLnet/minecraft/core/Holder;",
+            "attack_knockback": "net/minecraft/world/entity/ai/attributes/Attributes.ATTACK_KNOCKBACKLnet/minecraft/core/Holder;",
+            "attack_damage": "net/minecraft/world/entity/ai/attributes/Attributes.ATTACK_DAMAGELnet/minecraft/core/Holder;"
+          }
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "AreaAttack",
+            "LGspawnatlocation",
+            "StraightLineAreaAttack",
+            "UpdateWithAttack",
+            "addAdditionalSaveData",
+            "aiStep",
+            "calculatedDash",
+            "calculatedDashToPositon",
+            "canDespawn",
+            "createAttributes",
+            "createBodyControl",
+            "createNavigation",
+            "createSweep",
+            "dash",
+            "defineSynchedData",
+            "die",
+            "getAnimationState",
+            "getBreedOffspring",
+            "getCommand",
+            "getDeathSound",
+            "getEntitiesNearby",
+            "getEntityLivingBaseNearby",
+            "getEntityName",
+            "getHurtSound",
+            "getTextureVariant",
+            "hurt",
+            "isAttacking",
+            "isFood",
+            "isOrderedToSit",
+            "isPushable",
+            "lambda$getEntitiesNearby$0",
+            "lastTargetPos",
+            "launch",
+            "mobInteract",
+            "onAddedToLevel",
+            "onSyncedDataUpdated",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "saveTargetPos",
+            "sendActionBarMessageToPlayer",
+            "sendAdvancedHotBarMessage",
+            "setAttacking",
+            "setCommand",
+            "setOrderedToSit",
+            "setRGB",
+            "spawnHeartParticles",
+            "stopAllAnimationStates",
+            "target",
+            "targetIsNotNull",
+            "tick",
+            "tickDeath"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity$1.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity$10.class",
+          "methods": [
+            "<init>",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity$11.class",
+          "methods": [
+            "<init>",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity$2.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity$3.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity$4.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity$5.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity$6.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity$7.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity$8.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity$9.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "lm:tamable_haunted_guard:delivery"
+      ],
+      "candidate_bindings": [
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "max_health"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 9
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "knockback_resistance"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 18
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "follow_range"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 27
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "armor"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 36
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "movement_speed"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 45
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "attack_knockback"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 52
+        },
+        {
+          "primitive": "NATIVE_REGISTERED_ATTRIBUTES",
+          "parameters": [
+            "attack_damage"
+          ],
+          "binding": "ATTRIBUTE",
+          "consumer": {
+            "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity.class",
+            "methods": [
+              "createAttributes"
+            ]
+          },
+          "offset": 61
+        }
+      ]
+    }
+  ],
+  "exclusions": [
+    {
+      "disposition": "EMPTY_UNREGISTERED_TYPE_DECLARATION",
+      "reason": "OriginClasses/IAnimatedTamableMob is an empty unrelated class; the actual tamable superclass is explicitly covered in its different package. It contributes no combat state or delivery.",
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/OriginClasses/IAnimatedTamableMob.class",
+          "methods": [
+            "<init>"
+          ]
+        }
+      ]
+    }
+  ],
+  "paths": [
+    {
+      "id": "lm:tamable_state_motion_kernel:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "lm:tamable_state_motion_kernel"
+      ],
+      "primary_source": [
+        "entity/ai/goal/ITamableMonster/IAnimatedTamableMob"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/ai/goal/ITamableMonster/IAnimatedTamableMob.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "SpawnCircleParticle",
+            "canBePushedByEntity",
+            "defineSynchedData",
+            "disableShield",
+            "getAngleBetweenEntities",
+            "getAttackState",
+            "getAttackTicks",
+            "getBreedOffspring",
+            "getEntitiesNearby",
+            "getEntityLivingBaseNearby",
+            "handleEntityEvent",
+            "isFood",
+            "lambda$getEntitiesNearby$0",
+            "push",
+            "readAdditionalSaveData",
+            "repelEntities",
+            "setAttackState",
+            "stopAttackingAllies",
+            "tick"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:tamable_goal_kernel:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "lm:tamable_goal_kernel"
+      ],
+      "primary_source": [
+        "entity/ai/goal/ITamableMonster/ITamableMobAttackGoal",
+        "entity/ai/goal/ITamableMonster/ITamableMobStateGoal",
+        "entity/ai/goal/ITamableMonster/ILookingTamableMobStateGoal",
+        "entity/ai/goal/ITamableMonster/ITamableMobMoveGoal"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/ai/goal/ITamableMonster/ITamableMobAttackGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/ai/goal/ITamableMonster/ITamableMobStateGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/ai/goal/ITamableMonster/ILookingTamableMobStateGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/ai/goal/ITamableMonster/ITamableMobMoveGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:tamable_knight_parry_goals:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "lm:tamable_knight_parry_goals"
+      ],
+      "primary_source": [
+        "entity/AnimatedMonster/Mobs/Pets/knights/goals/TamableKnightParryGoal",
+        "entity/AnimatedMonster/Mobs/Pets/knights/goals/TamableKnightParryFrameGoal"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/goals/TamableKnightParryGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/goals/TamableKnightParryFrameGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:mossy_golem:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "MOB_MELEE",
+        "AOE",
+        "OTHER"
+      ],
+      "effect_ids": [
+        "lm:mossy_golem"
+      ],
+      "primary_source": [
+        "entity/AnimatedMonster/Mobs/Pets/MossyGolemEntity"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/MossyGolemEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "AreaAttack",
+            "CircleParticle",
+            "LGspawnatlocation",
+            "accelerateCropGrowth",
+            "addAdditionalSaveData",
+            "aiStep",
+            "canDespawn",
+            "canIncreaseCropGrowth",
+            "createAttributes",
+            "createBodyControl",
+            "createNavigation",
+            "defineSynchedData",
+            "die",
+            "getAnimationState",
+            "getBreedOffspring",
+            "getCommand",
+            "getDeathSound",
+            "getEntityName",
+            "getHurtSound",
+            "hurt",
+            "isAttacking",
+            "isOrderedToSit",
+            "isSitting",
+            "isStanding",
+            "mobInteract",
+            "onAddedToLevel",
+            "onSyncedDataUpdated",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "sendActionBarMessageToPlayer",
+            "sendAdvancedHotBarMessage",
+            "setAttacking",
+            "setCommand",
+            "setOrderedToSit",
+            "setStanding",
+            "shouldDespawnInPeaceful",
+            "spawnAtLocation",
+            "stopAllAnimationStates",
+            "stopAttackingAllies",
+            "tick",
+            "updateWalkAnimation",
+            "updateWithAttack"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/MossyGolemEntity$1.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/MossyGolemEntity$2.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/MossyGolemEntity$3.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/MossyGolemEntity$4.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/MossyGolemEntity$5.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:skeloraptor:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "MOB_MELEE",
+        "AOE",
+        "SUMMONED_ATTACK"
+      ],
+      "effect_ids": [
+        "lm:skeloraptor"
+      ],
+      "primary_source": [
+        "entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "AreaAttack",
+            "LGspawnatlocation",
+            "UpdateWithAttack",
+            "addAdditionalSaveData",
+            "aiStep",
+            "baseTick",
+            "canBePushedByEntity",
+            "canDespawn",
+            "canJump",
+            "canTravel",
+            "causeFallDamage",
+            "createAttributes",
+            "defineSynchedData",
+            "die",
+            "executeRidersJump",
+            "getAmbientSound",
+            "getAnimationState",
+            "getBreedOffspring",
+            "getCommand",
+            "getControllingPassenger",
+            "getCustomJump",
+            "getDeathSound",
+            "getEntityName",
+            "getHurtSound",
+            "getWaterSlowDown",
+            "handleStartJump",
+            "handleStopJump",
+            "handleWalkingMessage",
+            "hurt",
+            "isAffectedByFluids",
+            "isAttacking",
+            "isFood",
+            "isJumping",
+            "isMoving",
+            "isPushable",
+            "isPushedByFluid",
+            "isSitting",
+            "isWoodSoundType",
+            "launch",
+            "mobInteract",
+            "onAddedToLevel",
+            "onPlayerJump",
+            "onSyncedDataUpdated",
+            "performAreaAttack",
+            "playGallopSound",
+            "playJumpSound",
+            "playStepSound",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "runawayMobs",
+            "sendActionBarMessage",
+            "sendActionBarMessageToPlayer",
+            "sendAdvancedHotBarMessage",
+            "setAttacking",
+            "setCommand",
+            "setIsJumping",
+            "setOrderedToSit",
+            "spawnShockwaves",
+            "standIfPossible",
+            "startSeenByPlayer",
+            "stopAllAnimationStates",
+            "stopSeenByPlayer",
+            "tick",
+            "tickRidden",
+            "travel"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity$1.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity$10.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity$11.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity$2.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity$3.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity$4.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity$5.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity$6.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity$7.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity$8.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/SkeloraptorEntity$9.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:tamable_knight_living_armor:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "MOB_MELEE",
+        "AOE",
+        "OTHER"
+      ],
+      "effect_ids": [
+        "lm:tamable_knight_living_armor"
+      ],
+      "primary_source": [
+        "entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "AreaAttack",
+            "LGspawnatlocation",
+            "UpdateWithAttack",
+            "addAdditionalSaveData",
+            "aiStep",
+            "calculatedDash",
+            "canDespawn",
+            "canParry",
+            "createAttributes",
+            "createBodyControl",
+            "createNavigation",
+            "createSweep",
+            "dash",
+            "defineSynchedData",
+            "die",
+            "getAnimationState",
+            "getBreedOffspring",
+            "getCommand",
+            "getDeathSound",
+            "getEntitiesNearby",
+            "getEntityLivingBaseNearby",
+            "getEntityName",
+            "getHurtSound",
+            "getTextureVariant",
+            "hurt",
+            "isAttacking",
+            "isFood",
+            "isOrderedToSit",
+            "isPushable",
+            "lambda$getEntitiesNearby$0",
+            "mobInteract",
+            "onAddedToLevel",
+            "onSyncedDataUpdated",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "sendActionBarMessageToPlayer",
+            "sendAdvancedHotBarMessage",
+            "setAttacking",
+            "setCommand",
+            "setOrderedToSit",
+            "setRGB",
+            "spawnHeartParticles",
+            "stopAllAnimationStates",
+            "tick",
+            "tickDeath"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity$1.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity$10.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity$11.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity$12.class",
+          "methods": [
+            "<init>",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity$13.class",
+          "methods": [
+            "<init>",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity$14.class",
+          "methods": [
+            "<init>",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity$2.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity$3.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity$4.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity$5.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity$6.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity$7.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity$8.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FLivingArmorEntity$9.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:tamable_haunted_guard:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "MOB_MELEE",
+        "AOE",
+        "OTHER"
+      ],
+      "effect_ids": [
+        "lm:tamable_haunted_guard"
+      ],
+      "primary_source": [
+        "entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "AreaAttack",
+            "LGspawnatlocation",
+            "StraightLineAreaAttack",
+            "UpdateWithAttack",
+            "addAdditionalSaveData",
+            "aiStep",
+            "calculatedDash",
+            "calculatedDashToPositon",
+            "canDespawn",
+            "createAttributes",
+            "createBodyControl",
+            "createNavigation",
+            "createSweep",
+            "dash",
+            "defineSynchedData",
+            "die",
+            "getAnimationState",
+            "getBreedOffspring",
+            "getCommand",
+            "getDeathSound",
+            "getEntitiesNearby",
+            "getEntityLivingBaseNearby",
+            "getEntityName",
+            "getHurtSound",
+            "getTextureVariant",
+            "hurt",
+            "isAttacking",
+            "isFood",
+            "isOrderedToSit",
+            "isPushable",
+            "lambda$getEntitiesNearby$0",
+            "lastTargetPos",
+            "launch",
+            "mobInteract",
+            "onAddedToLevel",
+            "onSyncedDataUpdated",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "saveTargetPos",
+            "sendActionBarMessageToPlayer",
+            "sendAdvancedHotBarMessage",
+            "setAttacking",
+            "setCommand",
+            "setOrderedToSit",
+            "setRGB",
+            "spawnHeartParticles",
+            "stopAllAnimationStates",
+            "target",
+            "targetIsNotNull",
+            "tick",
+            "tickDeath"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity$1.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity$10.class",
+          "methods": [
+            "<init>",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity$11.class",
+          "methods": [
+            "<init>",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity$2.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity$3.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity$4.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity$5.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity$6.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity$7.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity$8.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Pets/knights/FHauntedGuardEntity$9.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse"
+          ]
+        }
+      ]
+    }
+  ],
+  "record_refinements": []
+}

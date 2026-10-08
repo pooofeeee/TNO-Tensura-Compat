@@ -1,0 +1,1561 @@
+{
+  "mod_key": "legendary_monsters",
+  "evidence_file": "native-evidence/legendary_monsters-core.json",
+  "checkpoint": "legendary-monsters-creatures-two",
+  "closed_scope": "Five remaining general creatures, minimum/look attack goals and exact vanilla inherited melee/death scheduling corrections.",
+  "exact_next_task": "Complete remaining Legendary Monsters creatures/bosses and ancillary contexts/resources; numeric identity and whole-mod audits, push, STOP.",
+  "contracts": [
+    {
+      "id": "lm:withered_abomination",
+      "display_name": "withered abomination",
+      "source_actor": [
+        "entity/AnimatedMonster/Mobs/Withered_AbominationEntity"
+      ],
+      "primary_classification": "CUSTOM_DAMAGE",
+      "actual_behavior": "IAnimatedMiniBoss with shared admission/cap/idle-heal/return contract. Health190, armor12, knockback resistance1, range30, speed.1, attack knockback1, native damage15, XP100; configured full-health multiplier and persistence. Fire immune; rejects IN_FIRE/ON_FIRE/LAVA/HOT_FLOOR/FALL/WITHER and direct potion/cloud; sleep1/2 rejects effects, visibility and non-bypass invulnerability damage. Strict health buckets .25/.5/.75/1: at MEDIUM/HIGH drops one WitheredHorn once per corresponding persisted flag; no server guard, skipping MEDIUM does not backfill first horn. Own attack update runs after parent. State3/4 tick13 area4.5/height6/arc150/base16.5/shield100/launch; state13/14 tick13 same without launch and tick25 range4.6 with launch. State5 tick24 area7/height6/arc160/base21/shield140 plus supported Shockwaves owned by this, explicit damage17, rings6/11/14/19 at radius2.5/3.5/4.5/5.5 on ticks24/27/30/33, warmup0. State6 tick16 grounded target distance squared>16 dash1.8+old1.5; tick22 area6/height4/arc180/base15/shield60. State12 tick3 area6/height4/arc120/base15/shield120. State9 contains legacy combo callbacks ticks17/50(base10 radius6 arc60 shield30), tick60 nonPlayer target mobAttack16 plus grounded dash1.5+old1.3, tick66(base14 radius4 arc60 shield60, launch false); no goal initiates state9. All area amounts multiply WitheredAbominationDamageMutliplier, wrapped-angle alternatives bypass distance, self/Abominations/allies excluded. Accepted nonblocking hits apply WITHER40amp1 owned by this. Accepted launch requires nonblocking; always-true state!=13 OR !=14 executes first huge launch, then state13/14 or12 executes a second, each squared-distance floor1e-4, horizontal factor2/Y.35. Shield disable independent hurt; stun/BNknockback/Lstrength arguments unused. Sweep type initially1, full healthiest bucket forces1, others randomInt2+1. Sweep goals3/4 max35/look15/range5/type1 and13/14 max40/look40/range5/type2, sample.4; stop rerolls. State6 max35/look15/range6 cooldown40; state5 max47/look15/range6 cooldown100 initially35. Dash initial0->10->11 max7/look6/range(2,15), sample.09/run-ready; stop assigns extra dashes1 at MEDIUM,2 HIGH, otherwise0. State11 max20 preserves Y with horizontal forward.5+old.65; recovery state12 max30, possible restart12->10 max20 only when extra dashes>0 and target>=5, decrements budget. Recovery stops run cooldown40. Sleep/wake1->2 max25/range15; no peaceful despawn. NBT sleep/horns/stun only, sleep loses wake-state distinction. Legacy performAreaAttack (radius5, Y.75, WITHER30amp2, native melee) and Player-only difficulty helper14*config HARD-5/EASY+13 have no native callers and do not deliver active attacks. Death state8: native baseTick calls tickDeath and own tick explicitly calls it again when dying; counter reaches removal100 callbacks, generally two per entity tick while native death gate allows, despite unused deathtimer60. Sound/camera/animation callbacks add presentation only.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native admission, damage, navigation and status APIs with mod state callbacks.",
+      "components": [
+        {
+          "primitive": "NATIVE_WITHERED_ABOMINATION",
+          "numerical_parameters": {
+            "health": 190,
+            "armor": 12,
+            "native_damage": 15,
+            "sweep_base": 16.5,
+            "slam_base": 21,
+            "shockwave_damage": 17,
+            "wither_ticks": 40,
+            "wither_amplifier": 1,
+            "death_callbacks": 100
+          }
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Withered_AbominationEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "AreaAttack",
+            "LGspawnatlocation",
+            "Makeparticle",
+            "UpdateWithAttack",
+            "addAdditionalSaveData",
+            "addEffect",
+            "aiStep",
+            "attackTargets",
+            "canBeAffected",
+            "canBeSeenAsEnemy",
+            "canDespawn",
+            "canStun",
+            "createAttributes",
+            "createBodyControl",
+            "createNavigation",
+            "deathtimer",
+            "defineSynchedData",
+            "destroy",
+            "die",
+            "finalizeSpawn",
+            "fireImmune",
+            "getAnimationState",
+            "getCrackiness",
+            "getCrackinessHigh",
+            "getCrackinessMedium",
+            "getDeathSound",
+            "getHurtSound",
+            "getNextSweepType",
+            "getRandomSweepAnimation",
+            "getUniqueID",
+            "hurt",
+            "isHighCrackiness",
+            "isLowCrackiness",
+            "isMediumCrackiness",
+            "isNoneCrackiness",
+            "isPushable",
+            "isSleep",
+            "launch",
+            "onAddedToLevel",
+            "onSyncedDataUpdated",
+            "performAreaAttack",
+            "playCrackSound",
+            "randomizeAllAttackTypes",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "setSleep",
+            "setTimesToUseDashBasedOnCrackiness",
+            "shouldDespawnInPeaceful",
+            "spawnAtLocation",
+            "spawnShockwaves",
+            "stopAllAnimationStates",
+            "tick",
+            "tickDeath"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Withered_AbominationEntity$1.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Withered_AbominationEntity$10.class",
+          "methods": [
+            "<init>",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Withered_AbominationEntity$11.class",
+          "methods": [
+            "<init>",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Withered_AbominationEntity$12.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Withered_AbominationEntity$2.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Withered_AbominationEntity$3.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Withered_AbominationEntity$4.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Withered_AbominationEntity$5.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Withered_AbominationEntity$6.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Withered_AbominationEntity$7.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Withered_AbominationEntity$8.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Withered_AbominationEntity$9.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Withered_AbominationEntity$Crackiness.class",
+          "methods": [
+            "$values",
+            "<clinit>",
+            "<init>",
+            "byFraction",
+            "lambda$static$0",
+            "valueOf",
+            "values"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "lm:withered_abomination:delivery"
+      ],
+      "candidate_bindings": []
+    },
+    {
+      "id": "lm:warped_fungussus",
+      "display_name": "warped fungussus",
+      "source_actor": [
+        "entity/AnimatedMonster/Mobs/Warped_FungussusEntity",
+        "entity/ai/Warped_FungussusAttackGoal"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Monster health100, armor10, knockback resistance1, range30, speed.1, knockback1, damage7, XP4; configured full-health scaling/persistence, fire immune/no peaceful despawn. Rejects LAVA/IN_FIRE/ON_FIRE/FALL and direct potion/cloud; pushable. Goal speed3 follows unseen targets, players/golems/retaliation. Custom single-argument melee callback correctly overrides native and first calls parent: native melee range+LOS+child isTimeToAttack can perform damage7 and reset child cooldown30, suppressing the later custom performAttack in that callback. Beyond native range but within custom squared18, custom countdown15 decrements while counting, then native doHurtTarget7 without own LOS gate, independent success .5 random teleport attempts10 sameY x/z +/-5, requires empty destination/nonair below; blocking target shield40 if not already cooling. Own callback resets animation/countdown out of range. Teleport probability applies only to custom performAttack, not every parent hit. Damage/resource admission remains native. Aim overwrites body yaw with pitch; death callback server removal60, stop AI nonsilent after1. Presentation animations contain no damage.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native admission, damage, navigation and status APIs with mod state callbacks.",
+      "components": [
+        {
+          "primitive": "NATIVE_WARPED_FUNGUSSUS",
+          "numerical_parameters": {
+            "health": 100,
+            "armor": 10,
+            "damage": 7,
+            "custom_reach_squared": 18,
+            "windup": 15,
+            "reset": 30,
+            "teleport_probability": 0.5,
+            "teleport_attempts": 10,
+            "shield_cooldown": 40
+          }
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Warped_FungussusEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "LGspawnatlocation",
+            "aiStep",
+            "canDespawn",
+            "createAttributes",
+            "createNavigation",
+            "defineSynchedData",
+            "die",
+            "fireImmune",
+            "getAmbientSound",
+            "getDeathSound",
+            "getHurtSound",
+            "hurt",
+            "isAttacking",
+            "isPushable",
+            "onAddedToLevel",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "setAttacking",
+            "setupAnimationStates",
+            "shouldDespawnInPeaceful",
+            "spawnAtLocation",
+            "stopAllOtherAnimations",
+            "tick",
+            "tickDeath",
+            "updateWalkAnimation"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/ai/Warped_FungussusAttackGoal.class",
+          "methods": [
+            "<init>",
+            "checkAndPerformAttack",
+            "getTicksUntilNextAttack",
+            "isEnemyWithinAttackDistance",
+            "isTimeToAttack",
+            "isTimeToStartAttackAnimation",
+            "performAttack",
+            "resetAttackCooldown",
+            "start",
+            "stop",
+            "teleportRandomly",
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "lm:warped_fungussus:delivery"
+      ],
+      "candidate_bindings": []
+    },
+    {
+      "id": "lm:frostbitten_golem",
+      "display_name": "frostbitten golem",
+      "source_actor": [
+        "entity/AnimatedMonster/Mobs/Frostbitten_GolemEntity"
+      ],
+      "primary_classification": "CUSTOM_DAMAGE",
+      "actual_behavior": "IAnimatedMiniBoss health220/armor10/resistance1/range30/speed.1/knockback1/native damage16/XP100, configured full-health scaling. Sleep1/2 rejects effects and non-bypass damage; direct arrows configured, potion/cloud and FALL rejected. Strict .25/.5/.75/1 buckets; first MEDIUM and HIGH each drop one PrimalIceShard with independent persisted flags, no own server gate. Own update after parent. State3/4 tick16 area6/height5/arc150/base12/shield40, mini-launch horizontal1.2 divided distance squared floored.001/Y.3 regardless accepted damage. State6 tick18 area7/height6/arc170/base13/shield100 and shared huge launch; at28 MEDIUM target-centered IceSpike rings6/11 radii2.5/3.5 delays0/2, HIGH adds14 radius4.5 delay4. State7 tick12 area4.5/height5/arc100/base13/shield80 and nineteen radial rows of eight supported IceSpikes; angle step pi/(19/2 integer=9), spacing1.25*1.15*(k+1), warmup int(2*(k+1)). State5 tick14 target-directed two parallel lines of ten IceSpikes step1.25, delay int(1.25*l), HIGH additionally seven radial rows of six with delay k+1 and odd integer angular denominator3. All spawns owner=this, ground collision height retained, no local server gate. Area amount base*FrostbittenGolemDamageMutliplier, excludes Frost Golems/Moss Golem/self/allies with wrapped-angle distance precedence. Before hurt, nonblocking and !stun samples Math.random>.5 to FREEZE40amp5, whose periodic tick is dormant. Launch and shield independent accepted damage. BN knockback checks state3/4 tick20 but actual area calls are tick16, so that radial branch is dormant for these producers. Goal state7 max35/look10/range5 sample16/45 cooldown160; state3 max46/look10/range5 sample16/25 cooldown100; state4 max46/look15/range5 sample16/35 cooldown160; state6 max46/look75/range5 no additional probability; state5 max46/look30/range12 sample9/20 cooldown60. Sleep wake max20/range15. LASERED flag is stored but no native laser initiation in this class. Legacy area helper native melee and difficulty helper14*config HARD-4/EASY+13 have no native callers, as does gaussian low-spike helper. NBT sleep/drop flags/lasered, cooldowns transient. Death state8 counter60 server removal. Aim overwrites yaw with pitch; animation/camera have no extra payload.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native admission, damage, navigation and status APIs with mod state callbacks.",
+      "components": [
+        {
+          "primitive": "NATIVE_FROSTBITTEN_GOLEM",
+          "numerical_parameters": {
+            "health": 220,
+            "armor": 10,
+            "native_damage": 16,
+            "arm_damage_base": 12,
+            "slam_damage_base": 13,
+            "freeze_ticks": 40,
+            "freeze_amplifier": 5,
+            "mini_launch_y": 0.3,
+            "death_callbacks": 60
+          }
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Frostbitten_GolemEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "AreaAttack",
+            "LGspawnatlocation",
+            "addAdditionalSaveData",
+            "addEffect",
+            "aiStep",
+            "attackTargets",
+            "canBeAffected",
+            "canDespawn",
+            "createAttributes",
+            "createBodyControl",
+            "createNavigation",
+            "createSpellEntity",
+            "defineSynchedData",
+            "die",
+            "finalizeSpawn",
+            "getAnimationState",
+            "getCrackiness",
+            "getDeathSound",
+            "getHurtSound",
+            "hurt",
+            "isPushable",
+            "isSleep",
+            "launchMini",
+            "onAddedToLevel",
+            "onSyncedDataUpdated",
+            "performAreaAttack",
+            "playCrackSound",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "resetSmash2Cooldown",
+            "resetSmashAnchorCooldown",
+            "resetSmashCooldown",
+            "setSleep",
+            "shouldDespawnInPeaceful",
+            "spawnAtLocation",
+            "spawnFire",
+            "spawnIceSpikes",
+            "spawnIceSpikesAdvanced",
+            "spawnLowIceSpikes",
+            "stopAllAnimationStates",
+            "strikeFire",
+            "tick",
+            "tickDeath",
+            "updateWithAttack"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Frostbitten_GolemEntity$1.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Frostbitten_GolemEntity$2.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Frostbitten_GolemEntity$3.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Frostbitten_GolemEntity$4.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Frostbitten_GolemEntity$5.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Frostbitten_GolemEntity$6.class",
+          "methods": [
+            "<init>",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Frostbitten_GolemEntity$Crackiness.class",
+          "methods": [
+            "$values",
+            "<clinit>",
+            "<init>",
+            "byFraction",
+            "lambda$static$0",
+            "valueOf",
+            "values"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "lm:frostbitten_golem:delivery"
+      ],
+      "candidate_bindings": []
+    },
+    {
+      "id": "lm:lava_eater",
+      "display_name": "lava eater",
+      "source_actor": [
+        "entity/AnimatedMonster/Mobs/Lava_eaterEntity"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "IAnimatedMiniBoss health170/armor15/resistance1/range30/speed.1/knockback.5/native damage11/XP5, configured health scaling and persistence. Fire immune; sleep1/2 rejects addEffect/non-bypass damage; IN_FIRE/ON_FIRE/HOT_FLOOR/LAVA/FALL and configured direct arrows rejected. State4 nonpushable, others pushable. Own attack update before parent; cooldowns/anger decrement. State3 tick8 area4.5/height3/arc100/base8/shield40 with two identical fire80 setters before damage (not160 duration). State6 tick13 area6.7/height3/arc140/base12/shield40 plus shared huge launch. State7 tick28 area7.5/height6/arc200/base16/shield40 plus huge launch Y.5 and ten radial rows of eight supported FireColumn, spacing1.25*1.15*(k+1), delay int(.5*(k+1)), owner=this. State8 tick13 adds FireBreath owner=this damage11 at relative Y1; no LavaEaterDamageMultiplier on this initial breath argument. Area damage bases multiply LavaEaterDamageMutliplier; exclude self/Lava Eaters/allies, wrapped-angle distance precedence; launch and shield disable independent hurt. State3 goal max24/look18/range4.5 sample.4; state6 max48/look15/range5 sample.4 cooldown100; state7 max48/look15/range5 sample.4 cooldown200. Flamethrower goal0->8->0 max80/look20/range7/min-1 sample.4 and anger<=0; no attack-delay check, clock-only continuation, before20 freezes yaw, after20 tracks with yaw speed1.5+clamp(distance/5,.54,3.76), pitch90, exact20 no branch; stop anger160. Dig goal0->4->0 max104/look64/range(6,12), sample.45, teleport-ready; start invulnerable, stop clears and cooldown300. Dig tick1 invulnerable,25 invisible,27..50 teleports to current target when squared distance<225 with no terrain safety,50 visible,54 if no passengers forces nonblocking target to ride or blocking Player shield200. Ticks54..90 when target squared distance<9 and ANY passenger exists, every callback area2/height5/arc560/base(10+1% current target maxHP)*config; every entity tick%5 heals2 independent accepted damage. Clears target shift key even when not the actual passenger; clears invulnerability during54..90. Tick93 current target stopRiding,95 teleports to targetX+2. Ejects passengers whenever state!=4; riders do not control, interact, do not sit. No local server guard. Sleep frozen/wake20/range15; NBT sleep only, cooldowns/invisibility not serialized here. Death state5 server removal60. Sounds/particles do not add damage.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native admission, damage, navigation and status APIs with mod state callbacks.",
+      "components": [
+        {
+          "primitive": "NATIVE_LAVA_EATER",
+          "numerical_parameters": {
+            "health": 170,
+            "armor": 15,
+            "native_damage": 11,
+            "bite_base": 8,
+            "swipe_base": 12,
+            "slam_base": 16,
+            "breath_damage": 11,
+            "grab_base": 10,
+            "grab_target_hp_percent": 1,
+            "grab_heal": 2,
+            "grab_heal_period": 5,
+            "fire_ticks": 80,
+            "dig_cooldown": 300,
+            "death_callbacks": 60
+          }
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Lava_eaterEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "AreaAttack",
+            "LGspawnatlocation",
+            "StrikeFire",
+            "UpdateWithAttack",
+            "addAdditionalSaveData",
+            "addEffect",
+            "aiStep",
+            "canDespawn",
+            "canRiderInteract",
+            "createAttributes",
+            "createBodyControl",
+            "createNavigation",
+            "die",
+            "finalizeSpawn",
+            "fireImmune",
+            "getAnimationState",
+            "getControllingPassenger",
+            "getDeathSound",
+            "getHurtSound",
+            "hh",
+            "hurt",
+            "isPushable",
+            "isSleep",
+            "k",
+            "launch2",
+            "onAddedToLevel",
+            "onSyncedDataUpdated",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "resetSmashAnchorCooldown",
+            "setSleep",
+            "shouldDespawnInPeaceful",
+            "shouldRiderSit",
+            "spawnAtLocation",
+            "spawnFire",
+            "stopAllAnimationStates",
+            "teleportToTarget",
+            "teleportToTarget2",
+            "tick",
+            "tickDeath"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Lava_eaterEntity$1.class",
+          "methods": [
+            "<init>",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Lava_eaterEntity$2.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Lava_eaterEntity$3.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Lava_eaterEntity$4.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Lava_eaterEntity$5.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Lava_eaterEntity$6.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Lava_eaterEntity$FlamethrowerGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "lm:lava_eater:delivery"
+      ],
+      "candidate_bindings": []
+    },
+    {
+      "id": "lm:overgrown_colossus",
+      "display_name": "overgrown colossus",
+      "source_actor": [
+        "entity/AnimatedMonster/Mobs/Overgrown_colossusEntity"
+      ],
+      "primary_classification": "CUSTOM_DAMAGE",
+      "actual_behavior": "IAnimatedMiniBoss health170/armor10/resistance1/range30/speed.1/knockback1.5/native damage14/XP100, configured full-health scaling/persistence. Independently heals1 each entity tick%25 without local server/target/idle/config guard, in addition to shared miniboss healing. Sleep1/2 blocks effects/non-bypass damage; IN_FIRE/MAGIC/FALL/direct potion/cloud and configured direct arrows rejected. Own attack update runs in aiStep. Area base*OvergrownColosussDamageMutliplier excludes Colossi/Moss Golem/self/allies; wrapped-angle distance precedence. Accepted hits always launch regardless launch parameter: state11 mini-launch squared-distance floor.001/horizontal1.2/Y.3, other states shared huge launch. Shield independent accepted hit; empty random branch applies no Poison or Stun. State13 tick18 radius5/height5/arc180/base15/shield120; state9 tick17 grounded dash1.1+old1.1 if target squared distance>4, tick20 radius4.75/height5/arc120/base15/shield100. State6 tick17 radius6.25/height6/arc180/base16/shield120. Legacy states3/4 tick17 if target area5.5/height5/arc150/base12/shield40 have no initiating goal. State11 every aiStep area2.5/height4/arc360/base10/shield100 and every tick%5 ADDS PoisonousShockwave radius3/damage4/life60/canHealOwner=false/caster=this; no local server gate. Goal state11 stop CONSTRUCTS radius6 PoisonousShockwave but never adds it, no extra end blast. Charge0->10->11 max20/look20/range15 sample.45 charge-ready, state11 max25/look100 grounded forward.45+old.6, recovery12 max20/look100 then cooldown160. State9 max44/look44/range3.75 sample16/25 cooldown100; state13 max37/look37/range5 sample16/35 cooldown160; state6 max46/look75/range5; state5 max85/look100/range8 sample9/20 cooldown160. State5 with target adds PoisonousShockwave rings6/11/14/19/26 radii2.5/3.5/4.5/5.5/6.5 at ticks14/17/20/23/26,42/45/48/51/54,70/73/76/79/81. Each ground-supported constructor (owner=this, integer6,float1,damage7) preserves canonical PoisonousShockwave constructor semantics; warmup0. Server mobGriefing destruction in states9/11 inflated(.5,.2,.5), honors both native destroy hooks, nonnegative hardness and random sixth retention except block entities. Collision escape (.1,0,.1), canCollideWith true. Sleep/wake20/range15; NBT writes sleep/texture/stun but reads rage/spawned flags it never writes, resetting defaults on reload; other cooldowns transient, stunCooldown not decremented by this override. Uncalled helper radius4 Poison40amp2/nonblocking and Player-only damage14*config HARD-5/EASY+13 are not active attacks. Death state8 removal60 callbacks; animation/camera not extra damage.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native admission, damage, navigation and status APIs with mod state callbacks.",
+      "components": [
+        {
+          "primitive": "NATIVE_OVERGROWN_COLOSSUS",
+          "numerical_parameters": {
+            "health": 170,
+            "armor": 10,
+            "native_damage": 14,
+            "heal": 1,
+            "heal_period": 25,
+            "uppercut_base": 15,
+            "slam_base": 16,
+            "charge_base": 10,
+            "charge_cloud_damage": 4,
+            "ring_cloud_damage": 7,
+            "cloud_life": 60,
+            "death_callbacks": 60
+          }
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Overgrown_colossusEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "AreaAttack",
+            "LGspawnatlocation",
+            "WantsToStun",
+            "addAdditionalSaveData",
+            "addEffect",
+            "aiStep",
+            "attackTargets",
+            "canBeAffected",
+            "canCollideWith",
+            "canDespawn",
+            "canStun",
+            "createAttributes",
+            "createBodyControl",
+            "createNavigation",
+            "dash",
+            "deathtimer",
+            "defineSynchedData",
+            "destroy",
+            "die",
+            "finalizeSpawn",
+            "getAnimationState",
+            "getCrackiness",
+            "getDeathSound",
+            "getHurtSound",
+            "getTextureVariant",
+            "hurt",
+            "isSleep",
+            "launchMini",
+            "onAddedToLevel",
+            "onSyncedDataUpdated",
+            "performAreaAttack",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "resetSmash2Cooldown",
+            "resetSmashCooldown",
+            "setSleep",
+            "shouldDespawnInPeaceful",
+            "spawnAtLocation",
+            "spawnShockwaves",
+            "startSeenByPlayer",
+            "stopAllAnimationStates",
+            "stopSeenByPlayer",
+            "tick",
+            "tickDeath",
+            "updateWithAttack"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Overgrown_colossusEntity$1.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Overgrown_colossusEntity$2.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Overgrown_colossusEntity$3.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Overgrown_colossusEntity$4.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Overgrown_colossusEntity$5.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Overgrown_colossusEntity$6.class",
+          "methods": [
+            "<init>",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Overgrown_colossusEntity$7.class",
+          "methods": [
+            "<init>",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Overgrown_colossusEntity$Crackiness.class",
+          "methods": [
+            "$values",
+            "<clinit>",
+            "<init>",
+            "byFraction",
+            "lambda$static$0",
+            "valueOf",
+            "values"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "lm:overgrown_colossus:delivery"
+      ],
+      "candidate_bindings": []
+    },
+    {
+      "id": "lm:minimum_range_attack_goal",
+      "display_name": "minimum range attack goal",
+      "source_actor": [
+        "entity/ai/goal/IAttackGoalMin"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Shared goal requires live target, strict min<distance<max, source state and attackDelay<=0. Starts active state, stops end state/attackCooldown0 without resetting attackTicks. Continues by clock<max only, even if active state changed; tracks30/30 before see tick else freezes yaw. Every-tick update=false, MOVE/LOOK/JUMP or supplied flags. No direct damage.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native admission, damage, navigation and status APIs with mod state callbacks.",
+      "components": [
+        {
+          "primitive": "NATIVE_MINIMUM_RANGE_ATTACK_GOAL",
+          "numerical_parameters": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/ai/goal/IAttackGoalMin.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "lm:minimum_range_attack_goal:delivery"
+      ],
+      "candidate_bindings": []
+    },
+    {
+      "id": "lm:look_attack_goal",
+      "display_name": "look attack goal",
+      "source_actor": [
+        "entity/ai/goal/ILookAttackGoal"
+      ],
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Shared goal requires live target, strict max range and source state, lacks attackDelay gate. Start active state; stop end state and cooldown0, not attackTicks. Clock-only continuation; look30/360 before see tick else yaw freeze. Flags MOVE/JUMP deliberately omit LOOK unless caller supplied; every-tick update=false. No independent damage.",
+      "closest_vanilla_equivalent": "Minecraft 1.21.1 native admission, damage, navigation and status APIs with mod state callbacks.",
+      "components": [
+        {
+          "primitive": "NATIVE_LOOK_ATTACK_GOAL",
+          "numerical_parameters": {}
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/ai/goal/ILookAttackGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        }
+      ],
+      "delivery_paths": [
+        "lm:look_attack_goal:delivery"
+      ],
+      "candidate_bindings": []
+    }
+  ],
+  "exclusions": [],
+  "paths": [
+    {
+      "id": "lm:withered_abomination:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "MOB_MELEE",
+        "AOE",
+        "SUMMONED_ATTACK"
+      ],
+      "effect_ids": [
+        "lm:withered_abomination"
+      ],
+      "primary_source": [
+        "entity/AnimatedMonster/Mobs/Withered_AbominationEntity"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Withered_AbominationEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "AreaAttack",
+            "LGspawnatlocation",
+            "Makeparticle",
+            "UpdateWithAttack",
+            "addAdditionalSaveData",
+            "addEffect",
+            "aiStep",
+            "attackTargets",
+            "canBeAffected",
+            "canBeSeenAsEnemy",
+            "canDespawn",
+            "canStun",
+            "createAttributes",
+            "createBodyControl",
+            "createNavigation",
+            "deathtimer",
+            "defineSynchedData",
+            "destroy",
+            "die",
+            "finalizeSpawn",
+            "fireImmune",
+            "getAnimationState",
+            "getCrackiness",
+            "getCrackinessHigh",
+            "getCrackinessMedium",
+            "getDeathSound",
+            "getHurtSound",
+            "getNextSweepType",
+            "getRandomSweepAnimation",
+            "getUniqueID",
+            "hurt",
+            "isHighCrackiness",
+            "isLowCrackiness",
+            "isMediumCrackiness",
+            "isNoneCrackiness",
+            "isPushable",
+            "isSleep",
+            "launch",
+            "onAddedToLevel",
+            "onSyncedDataUpdated",
+            "performAreaAttack",
+            "playCrackSound",
+            "randomizeAllAttackTypes",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "setSleep",
+            "setTimesToUseDashBasedOnCrackiness",
+            "shouldDespawnInPeaceful",
+            "spawnAtLocation",
+            "spawnShockwaves",
+            "stopAllAnimationStates",
+            "tick",
+            "tickDeath"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Withered_AbominationEntity$1.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Withered_AbominationEntity$10.class",
+          "methods": [
+            "<init>",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Withered_AbominationEntity$11.class",
+          "methods": [
+            "<init>",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Withered_AbominationEntity$12.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Withered_AbominationEntity$2.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Withered_AbominationEntity$3.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Withered_AbominationEntity$4.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Withered_AbominationEntity$5.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Withered_AbominationEntity$6.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Withered_AbominationEntity$7.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Withered_AbominationEntity$8.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Withered_AbominationEntity$9.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Withered_AbominationEntity$Crackiness.class",
+          "methods": [
+            "$values",
+            "<clinit>",
+            "<init>",
+            "byFraction",
+            "lambda$static$0",
+            "valueOf",
+            "values"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:warped_fungussus:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "MOB_MELEE"
+      ],
+      "effect_ids": [
+        "lm:warped_fungussus"
+      ],
+      "primary_source": [
+        "entity/AnimatedMonster/Mobs/Warped_FungussusEntity",
+        "entity/ai/Warped_FungussusAttackGoal"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Warped_FungussusEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "LGspawnatlocation",
+            "aiStep",
+            "canDespawn",
+            "createAttributes",
+            "createNavigation",
+            "defineSynchedData",
+            "die",
+            "fireImmune",
+            "getAmbientSound",
+            "getDeathSound",
+            "getHurtSound",
+            "hurt",
+            "isAttacking",
+            "isPushable",
+            "onAddedToLevel",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "setAttacking",
+            "setupAnimationStates",
+            "shouldDespawnInPeaceful",
+            "spawnAtLocation",
+            "stopAllOtherAnimations",
+            "tick",
+            "tickDeath",
+            "updateWalkAnimation"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/ai/Warped_FungussusAttackGoal.class",
+          "methods": [
+            "<init>",
+            "checkAndPerformAttack",
+            "getTicksUntilNextAttack",
+            "isEnemyWithinAttackDistance",
+            "isTimeToAttack",
+            "isTimeToStartAttackAnimation",
+            "performAttack",
+            "resetAttackCooldown",
+            "start",
+            "stop",
+            "teleportRandomly",
+            "tick"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:frostbitten_golem:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "MOB_MELEE",
+        "AOE",
+        "SUMMONED_ATTACK"
+      ],
+      "effect_ids": [
+        "lm:frostbitten_golem"
+      ],
+      "primary_source": [
+        "entity/AnimatedMonster/Mobs/Frostbitten_GolemEntity"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Frostbitten_GolemEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "AreaAttack",
+            "LGspawnatlocation",
+            "addAdditionalSaveData",
+            "addEffect",
+            "aiStep",
+            "attackTargets",
+            "canBeAffected",
+            "canDespawn",
+            "createAttributes",
+            "createBodyControl",
+            "createNavigation",
+            "createSpellEntity",
+            "defineSynchedData",
+            "die",
+            "finalizeSpawn",
+            "getAnimationState",
+            "getCrackiness",
+            "getDeathSound",
+            "getHurtSound",
+            "hurt",
+            "isPushable",
+            "isSleep",
+            "launchMini",
+            "onAddedToLevel",
+            "onSyncedDataUpdated",
+            "performAreaAttack",
+            "playCrackSound",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "resetSmash2Cooldown",
+            "resetSmashAnchorCooldown",
+            "resetSmashCooldown",
+            "setSleep",
+            "shouldDespawnInPeaceful",
+            "spawnAtLocation",
+            "spawnFire",
+            "spawnIceSpikes",
+            "spawnIceSpikesAdvanced",
+            "spawnLowIceSpikes",
+            "stopAllAnimationStates",
+            "strikeFire",
+            "tick",
+            "tickDeath",
+            "updateWithAttack"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Frostbitten_GolemEntity$1.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Frostbitten_GolemEntity$2.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Frostbitten_GolemEntity$3.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Frostbitten_GolemEntity$4.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Frostbitten_GolemEntity$5.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Frostbitten_GolemEntity$6.class",
+          "methods": [
+            "<init>",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Frostbitten_GolemEntity$Crackiness.class",
+          "methods": [
+            "$values",
+            "<clinit>",
+            "<init>",
+            "byFraction",
+            "lambda$static$0",
+            "valueOf",
+            "values"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:lava_eater:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "MOB_MELEE",
+        "AOE",
+        "SUMMONED_ATTACK"
+      ],
+      "effect_ids": [
+        "lm:lava_eater"
+      ],
+      "primary_source": [
+        "entity/AnimatedMonster/Mobs/Lava_eaterEntity"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Lava_eaterEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "AreaAttack",
+            "LGspawnatlocation",
+            "StrikeFire",
+            "UpdateWithAttack",
+            "addAdditionalSaveData",
+            "addEffect",
+            "aiStep",
+            "canDespawn",
+            "canRiderInteract",
+            "createAttributes",
+            "createBodyControl",
+            "createNavigation",
+            "die",
+            "finalizeSpawn",
+            "fireImmune",
+            "getAnimationState",
+            "getControllingPassenger",
+            "getDeathSound",
+            "getHurtSound",
+            "hh",
+            "hurt",
+            "isPushable",
+            "isSleep",
+            "k",
+            "launch2",
+            "onAddedToLevel",
+            "onSyncedDataUpdated",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "resetSmashAnchorCooldown",
+            "setSleep",
+            "shouldDespawnInPeaceful",
+            "shouldRiderSit",
+            "spawnAtLocation",
+            "spawnFire",
+            "stopAllAnimationStates",
+            "teleportToTarget",
+            "teleportToTarget2",
+            "tick",
+            "tickDeath"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Lava_eaterEntity$1.class",
+          "methods": [
+            "<init>",
+            "canUse"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Lava_eaterEntity$2.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Lava_eaterEntity$3.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Lava_eaterEntity$4.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Lava_eaterEntity$5.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Lava_eaterEntity$6.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Lava_eaterEntity$FlamethrowerGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:overgrown_colossus:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "MOB_MELEE",
+        "AOE",
+        "SUMMONED_ATTACK"
+      ],
+      "effect_ids": [
+        "lm:overgrown_colossus"
+      ],
+      "primary_source": [
+        "entity/AnimatedMonster/Mobs/Overgrown_colossusEntity"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Overgrown_colossusEntity.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "AreaAttack",
+            "LGspawnatlocation",
+            "WantsToStun",
+            "addAdditionalSaveData",
+            "addEffect",
+            "aiStep",
+            "attackTargets",
+            "canBeAffected",
+            "canCollideWith",
+            "canDespawn",
+            "canStun",
+            "createAttributes",
+            "createBodyControl",
+            "createNavigation",
+            "dash",
+            "deathtimer",
+            "defineSynchedData",
+            "destroy",
+            "die",
+            "finalizeSpawn",
+            "getAnimationState",
+            "getCrackiness",
+            "getDeathSound",
+            "getHurtSound",
+            "getTextureVariant",
+            "hurt",
+            "isSleep",
+            "launchMini",
+            "onAddedToLevel",
+            "onSyncedDataUpdated",
+            "performAreaAttack",
+            "readAdditionalSaveData",
+            "registerGoals",
+            "resetSmash2Cooldown",
+            "resetSmashCooldown",
+            "setSleep",
+            "shouldDespawnInPeaceful",
+            "spawnAtLocation",
+            "spawnShockwaves",
+            "startSeenByPlayer",
+            "stopAllAnimationStates",
+            "stopSeenByPlayer",
+            "tick",
+            "tickDeath",
+            "updateWithAttack"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Overgrown_colossusEntity$1.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Overgrown_colossusEntity$2.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Overgrown_colossusEntity$3.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Overgrown_colossusEntity$4.class",
+          "methods": [
+            "<init>",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Overgrown_colossusEntity$5.class",
+          "methods": [
+            "<init>",
+            "canUse",
+            "start"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Overgrown_colossusEntity$6.class",
+          "methods": [
+            "<init>",
+            "start",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Overgrown_colossusEntity$7.class",
+          "methods": [
+            "<init>",
+            "start",
+            "stop"
+          ]
+        },
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/AnimatedMonster/Mobs/Overgrown_colossusEntity$Crackiness.class",
+          "methods": [
+            "$values",
+            "<clinit>",
+            "<init>",
+            "byFraction",
+            "lambda$static$0",
+            "valueOf",
+            "values"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:minimum_range_attack_goal:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "MOB_MELEE",
+        "AOE",
+        "SUMMONED_ATTACK"
+      ],
+      "effect_ids": [
+        "lm:minimum_range_attack_goal"
+      ],
+      "primary_source": [
+        "entity/ai/goal/IAttackGoalMin"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/ai/goal/IAttackGoalMin.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lm:look_attack_goal:delivery",
+      "mod_key": "legendary_monsters",
+      "labels": [
+        "MOB_MELEE",
+        "AOE",
+        "SUMMONED_ATTACK"
+      ],
+      "effect_ids": [
+        "lm:look_attack_goal"
+      ],
+      "primary_source": [
+        "entity/ai/goal/ILookAttackGoal"
+      ],
+      "implementation": [
+        {
+          "entry": "net/miauczel/legendary_monsters/entity/ai/goal/ILookAttackGoal.class",
+          "methods": [
+            "<init>",
+            "canContinueToUse",
+            "canUse",
+            "requiresUpdateEveryTick",
+            "start",
+            "stop",
+            "tick"
+          ]
+        }
+      ]
+    }
+  ],
+  "record_refinements": [
+    {
+      "id": "lm:spikebug",
+      "reason": "Exact 1.21.1 parent callback descriptor and whole-JAR zero callers contradict an active old-overload melee interpretation.",
+      "behavior_replacements": [
+        {
+          "before": "Monster with health 7, armor 6, knockback resistance .1, follow range 14, movement .105, attack damage 3 and attack knockback .5. On-add SpikyBugHealthMutliplier uses the shared full-health multiplier gate. Rejects FALL, otherwise native hurt. Native melee damage is delivered by the parent melee goal: squared reach 8.75, windup/countdown 8 and adjusted attack reset 16, animation starts before the actual hit. Targets players, iron/snow golems and retaliation; movement goal speed 3. Persistence/no despawn and XP 2; drops glow and have extended lifetime. Client animation and sounds add no payload. Aim code overwrites body yaw with pitch.",
+          "after": "Monster with health 7, armor 6, knockback resistance .1, follow range 14, movement .105, attack damage 3 and attack knockback .5. On-add SpikyBugHealthMutliplier uses the shared full-health multiplier gate. Rejects FALL, otherwise native hurt. Defined, inactive melee helper: squared reach 8.75, windup/countdown 8 and adjusted attack reset 16, helper animation would start before the requested hit. Targets players, iron/snow golems and retaliation; movement goal speed 3. Persistence/no despawn and XP 2; drops glow and have extended lifetime. Client animation and sounds add no payload. Aim code overwrites body yaw with pitch."
+        }
+      ],
+      "behavior_append": "Pinned vanilla correction: the declared checkAndPerformAttack(LivingEntity,double) is an uncalled old overload, not the 1.21.1 single-argument override. shouldCountTillNextAttack never becomes true through registered goals, child counter stays8; virtual isTimeToAttack therefore remains false and blocks inherited melee too. The described8.75/8/16 helper attack is dormant; no active melee damage is attributed. Retaliation is independently preserved.",
+      "field_updates": {
+        "vanilla_differences": "Monster with health 7, armor 6, knockback resistance .1, follow range 14, movement .105, attack damage 3 and attack knockback .5. On-add SpikyBugHealthMutliplier uses the shared full-health multiplier gate. Rejects FALL, otherwise native hurt. Defined, inactive melee helper: squared reach 8.75, windup/countdown 8 and adjusted attack reset 16, helper animation would start before the requested hit. Targets players, iron/snow golems and retaliation; movement goal speed 3. Persistence/no despawn and XP 2; drops glow and have extended lifetime. Client animation and sounds add no payload. Aim code overwrites body yaw with pitch. Pinned vanilla correction: the declared checkAndPerformAttack(LivingEntity,double) is an uncalled old overload, not the 1.21.1 single-argument override. shouldCountTillNextAttack never becomes true through registered goals, child counter stays8; virtual isTimeToAttack therefore remains false and blocks inherited melee too. The described8.75/8/16 helper attack is dormant; no active melee damage is attributed. Retaliation is independently preserved."
+      },
+      "implementation_additions": []
+    },
+    {
+      "id": "lm:dune_sentinel",
+      "reason": "Exact 1.21.1 parent callback descriptor and whole-JAR zero callers contradict an active old-overload melee interpretation.",
+      "behavior_replacements": [
+        {
+          "before": "Monster with health 170, armor 16, knockback resistance base 100 (native attribute range clamps effective value), follow range 30, movement 0 and damage 16; health multiplier, persistence/no peaceful despawn, XP 2. Rejects IN_FIRE, configured direct arrows, FALL, EXPLOSION, PLAYER_EXPLOSION, MOB_PROJECTILE and TRIDENT. Both push overloads and knockback do nothing, isPushable=false. Primary attack requests MOB_ATTACK base 16*DuneSentinelDamageMutliplier: HARD subtracts 5, NORMAL unchanged, EASY adds 14; peaceful no request. Nearby area radius 4/height 3 above feet excludes primary target, self, Mossy Golem and CameraShake, then uses native doHurtTarget damage 16. BigCannon melee windup 9/reset adjusted 18/squared reach 12.25, sets two recovery clocks to 40. All other nearby living recipients within 5 have radial motion, no ally exclusion: based on PRIMARY target grounding, grounded horizontal strength 1+.5*(5-distance), Y .4, airborne .5+.25*(5-distance), Y .3; division by zero is not floored. Blocking primary shield disabled 40 ticks. Cosmetic ground rings 6/11/14/19/26 at radii 2.5/3.5/4.5/5.5/6.5 with delays 0/2/4/6/8 create falling blocks at mob position with hardcoded maxY=1, no fang damage. Bomb ranged shot owner=this, speed .8/inaccuracy 14-4*difficultyID. Shoot goal captures target, squared range<900, cooldown<=0 and animation>=2, fires then resets cooldown 17/animation 0. aiStep separately fires when attackAnimationTimeout<=0 then sets20; this animation clock decrements only client-side, so that server branch fires once. Two melee recovery clocks saved in NBT, decremented each tick. Death fire 140 at tick60, server removal at200. Crackiness thresholds .25/.5/.75/1 are presentation only.",
+          "after": "Monster with health 170, armor 16, knockback resistance base 100 (native attribute range clamps effective value), follow range 30, movement 0 and damage 16; health multiplier, persistence/no peaceful despawn, XP 2. Rejects IN_FIRE, configured direct arrows, FALL, EXPLOSION, PLAYER_EXPLOSION, MOB_PROJECTILE and TRIDENT. Both push overloads and knockback do nothing, isPushable=false. Defined, inactive primary attack helper requests MOB_ATTACK base 16*DuneSentinelDamageMutliplier: HARD subtracts 5, NORMAL unchanged, EASY adds 14; peaceful no request. Dormant nearby area radius 4/height 3 above feet excludes primary target, self, Mossy Golem and CameraShake, then uses native doHurtTarget damage 16. Dormant BigCannon melee windup 9/reset adjusted 18/squared reach 12.25, sets two recovery clocks to 40. All other nearby living recipients within 5 have radial motion, no ally exclusion: based on PRIMARY target grounding, grounded horizontal strength 1+.5*(5-distance), Y .4, airborne .5+.25*(5-distance), Y .3; division by zero is not floored. Blocking primary shield disabled 40 ticks. Cosmetic ground rings 6/11/14/19/26 at radii 2.5/3.5/4.5/5.5/6.5 with delays 0/2/4/6/8 create falling blocks at mob position with hardcoded maxY=1, no fang damage. Bomb ranged shot owner=this, speed .8/inaccuracy 14-4*difficultyID. Shoot goal captures target, squared range<900, cooldown<=0 and animation>=2, fires then resets cooldown 17/animation 0. aiStep separately fires when attackAnimationTimeout<=0 then sets20; this animation clock decrements only client-side, so that server branch fires once. Two melee recovery clocks saved in NBT, decremented each tick. Death fire 140 at tick60, server removal at200. Crackiness thresholds .25/.5/.75/1 are presentation only."
+        }
+      ],
+      "behavior_append": "Pinned vanilla correction: BigCannonAttackGoal declares the uncalled old (LivingEntity,double) overload. Registered 1.21.1 parent invokes the single-argument callback; child counter stays9 after start and isTimeToAttack=false, suppressing inherited melee. Primary difficulty helper, melee area, recoil rings and shield40 described above are dormant through this goal. Independent Bomb aiStep/BigCannonShootGoal remain active.",
+      "field_updates": {
+        "vanilla_differences": "Monster with health 170, armor 16, knockback resistance base 100 (native attribute range clamps effective value), follow range 30, movement 0 and damage 16; health multiplier, persistence/no peaceful despawn, XP 2. Rejects IN_FIRE, configured direct arrows, FALL, EXPLOSION, PLAYER_EXPLOSION, MOB_PROJECTILE and TRIDENT. Both push overloads and knockback do nothing, isPushable=false. Defined, inactive primary attack helper requests MOB_ATTACK base 16*DuneSentinelDamageMutliplier: HARD subtracts 5, NORMAL unchanged, EASY adds 14; peaceful no request. Dormant nearby area radius 4/height 3 above feet excludes primary target, self, Mossy Golem and CameraShake, then uses native doHurtTarget damage 16. Dormant BigCannon melee windup 9/reset adjusted 18/squared reach 12.25, sets two recovery clocks to 40. All other nearby living recipients within 5 have radial motion, no ally exclusion: based on PRIMARY target grounding, grounded horizontal strength 1+.5*(5-distance), Y .4, airborne .5+.25*(5-distance), Y .3; division by zero is not floored. Blocking primary shield disabled 40 ticks. Cosmetic ground rings 6/11/14/19/26 at radii 2.5/3.5/4.5/5.5/6.5 with delays 0/2/4/6/8 create falling blocks at mob position with hardcoded maxY=1, no fang damage. Bomb ranged shot owner=this, speed .8/inaccuracy 14-4*difficultyID. Shoot goal captures target, squared range<900, cooldown<=0 and animation>=2, fires then resets cooldown 17/animation 0. aiStep separately fires when attackAnimationTimeout<=0 then sets20; this animation clock decrements only client-side, so that server branch fires once. Two melee recovery clocks saved in NBT, decremented each tick. Death fire 140 at tick60, server removal at200. Crackiness thresholds .25/.5/.75/1 are presentation only. Pinned vanilla correction: BigCannonAttackGoal declares the uncalled old (LivingEntity,double) overload. Registered 1.21.1 parent invokes the single-argument callback; child counter stays9 after start and isTimeToAttack=false, suppressing inherited melee. Primary difficulty helper, melee area, recoil rings and shield40 described above are dormant through this goal. Independent Bomb aiStep/BigCannonShootGoal remain active."
+      },
+      "implementation_additions": []
+    }
+  ]
+}

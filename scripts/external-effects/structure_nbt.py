@@ -4,10 +4,13 @@ from classfile import modified_utf8
 
 
 class Reader:
-    def __init__(self, data):
+    def __init__(self, data, max_nodes=1000000):
+        if type(max_nodes) is not int or not 1 <= max_nodes <= 64000000:
+            raise ValueError('Invalid NBT structural budget')
         self.data = data
         self.offset = 0
         self.nodes = 0
+        self.max_nodes = max_nodes
 
     def take(self, size):
         if size < 0 or self.offset + size > len(self.data):
@@ -30,7 +33,7 @@ class Reader:
 
     def value(self, kind, depth=0):
         self.nodes += 1
-        if depth > 64 or self.nodes > 1000000:
+        if depth > 64 or self.nodes > self.max_nodes:
             raise ValueError('NBT structural budget exceeded')
         if 1 <= kind <= 6:
             return self.number({1:'b',2:'h',3:'i',4:'q',5:'f',6:'d'}[kind])
@@ -58,8 +61,8 @@ class Reader:
         raise ValueError('Invalid NBT type: ' + str(kind))
 
 
-def decode(data):
-    reader = Reader(data)
+def decode(data, max_nodes=1000000):
+    reader = Reader(data, max_nodes=max_nodes)
     if reader.number('B') != 10:
         raise ValueError('Expected compound NBT root')
     reader.string()
@@ -109,3 +112,51 @@ def payload_projection(document):
                 block_payloads=block_payloads, entities=deepcopy(entities),
                 scope='Raw native NBT; no data-fixing, registry resolution, '
                       'reachability, alive-state or Stage eligibility inferred.')
+
+
+def decode_payload(data, max_nodes=1000000):
+    """Read the same projection without retaining ordinary block dictionaries.
+
+    Large native templates can contain millions of ordinary blocks. Every
+    block is still decoded and checked; only its palette count and any NBT
+    payload survive. Entity/BE data and palette alternatives are preserved.
+    """
+    from collections import Counter
+    reader = Reader(data, max_nodes=max_nodes)
+    if reader.number('B') != 10:
+        raise ValueError('Expected compound NBT root')
+    reader.string()
+    document, counts, payloads, total = {}, Counter(), [], 0
+    while True:
+        kind = reader.number('B')
+        if kind == 0:
+            break
+        name = reader.string()
+        if name in document:
+            raise ValueError('Duplicate NBT compound key')
+        if name != 'blocks':
+            document[name] = reader.value(kind, 1)
+            continue
+        if kind != 9 or reader.number('B') != 10:
+            raise ValueError('Expected compound structure block list')
+        total = reader.length()
+        document[name] = []
+        for index in range(total):
+            block = reader.value(10, 2)
+            assert set(block) <= {'pos', 'state', 'nbt'}
+            assert type(block['state']) is int and block['state'] >= 0
+            assert len(block['pos']) == 3 and all(type(v) is int for v in block['pos'])
+            counts[block['state']] += 1
+            if 'nbt' in block:
+                assert isinstance(block['nbt'], dict)
+                payloads.append(dict(source_block_index=index, **block))
+    if reader.offset != len(data):
+        raise ValueError('Trailing NBT payload')
+    result = payload_projection(document)
+    palettes = document.get('palettes', [document.get('palette')])
+    assert all(all(i < len(p) for i in counts) for p in palettes)
+    result['source_block_count'] = total
+    result['used_palettes'] = [[dict(state_index=i, block_count=counts[i],
+        state=p[i]) for i in sorted(counts)] for p in palettes]
+    result['block_payloads'] = payloads
+    return result
