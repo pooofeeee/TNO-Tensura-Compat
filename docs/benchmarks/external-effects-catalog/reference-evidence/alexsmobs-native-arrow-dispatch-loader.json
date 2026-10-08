@@ -1,0 +1,31 @@
+{
+  "schema": "tno.external_effects.selected_reference.v1",
+  "id": "alexsmobs-native-arrow-dispatch-loader",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "scope": "Exact NeoForge21.1.244 arrow factory patch; unchanged DefaultDispenseItemBehavior and projectile dispatch; no whole loader scan.",
+  "status": "STATIC_EVIDENCE",
+  "witnesses": [
+    {
+      "archive_sha256": "ab6611d0408855a769aca03121f53e4a8aa05e90a3bac17a15b5157079e24fda",
+      "entry": "patches/net/minecraft/core/dispenser/DefaultDispenseItemBehavior.java.patch",
+      "absent": true
+    },
+    {
+      "archive_sha256": "ab6611d0408855a769aca03121f53e4a8aa05e90a3bac17a15b5157079e24fda",
+      "entry": "patches/net/minecraft/core/dispenser/ProjectileDispenseBehavior.java.patch",
+      "absent": true
+    },
+    {
+      "archive_sha256": "ab6611d0408855a769aca03121f53e4a8aa05e90a3bac17a15b5157079e24fda",
+      "entry": "patches/net/minecraft/world/item/ArrowItem.java.patch",
+      "entry_sha256": "d47c04a718dac4e960f5a0f77d2930cbbb9bd2a27ac35340d887fbc8165735ce",
+      "text": "--- a/net/minecraft/world/item/ArrowItem.java\n+++ b/net/minecraft/world/item/ArrowItem.java\n@@ -24,4 +_,18 @@\n         arrow.pickup = AbstractArrow.Pickup.ALLOWED;\n         return arrow;\n     }\n+\n+    /**\n+     * Called to determine if this arrow will be infinite when fired. If an arrow is infinite, then the arrow will never be consumed (regardless of enchantments).\n+     * <p>\n+     * Only called on the logical server.\n+     *\n+     * @param ammo The ammo stack (containing this item)\n+     * @param bow  The bow stack\n+     * @param livingEntity The entity who is firing the bow\n+     * @return True if the arrow is infinite\n+     */\n+    public boolean isInfinite(ItemStack ammo, ItemStack bow, net.minecraft.world.entity.LivingEntity livingEntity) {\n+        return false;\n+    }\n }\n"
+    },
+    {
+      "archive_sha256": "ab6611d0408855a769aca03121f53e4a8aa05e90a3bac17a15b5157079e24fda",
+      "entry": "patches/net/minecraft/world/item/ProjectileWeaponItem.java.patch",
+      "entry_sha256": "3ad874d1b52452a6a135c0512541c4428c5c641eaab2bab26f189af65630b008",
+      "text": "--- a/net/minecraft/world/item/ProjectileWeaponItem.java\n+++ b/net/minecraft/world/item/ProjectileWeaponItem.java\n@@ -24,12 +_,42 @@\n         super(p_43009_);\n     }\n \n+    /**\n+     * @deprecated Use ItemStack sensitive version {@link ProjectileWeaponItem#getSupportedHeldProjectiles(ItemStack)}\n+     */\n+    @Deprecated\n     public Predicate<ItemStack> getSupportedHeldProjectiles() {\n         return this.getAllSupportedProjectiles();\n     }\n \n+    /**\n+     * @deprecated Use ItemStack sensitive version {@link ProjectileWeaponItem#getAllSupportedProjectiles(ItemStack)}\n+     */\n+    @Deprecated\n     public abstract Predicate<ItemStack> getAllSupportedProjectiles();\n \n+    /**\n+     * Override this method if the weapon stack allows special projectile that would only be used if it's in hand.\n+     * The default return value is a union-predicate of {@link ProjectileWeaponItem#getAllSupportedProjectiles(ItemStack)}\n+     * and {@link ProjectileWeaponItem#getSupportedHeldProjectiles()}\n+     *\n+     * @param stack The ProjectileWeapon stack\n+     * @return A predicate that returns true for supported projectile stack in hand\n+     */\n+    public Predicate<ItemStack> getSupportedHeldProjectiles(ItemStack stack) {\n+        return getAllSupportedProjectiles(stack).or(getSupportedHeldProjectiles());\n+    }\n+\n+    /**\n+     * Override this method if the allowed projectile is weapon stack dependent.\n+     *\n+     * @param stack The ProjectileWeapon stack\n+     * @return A predicate that returns true for all supported projectile stack\n+     */\n+    public Predicate<ItemStack> getAllSupportedProjectiles(ItemStack stack) {\n+        return getAllSupportedProjectiles();\n+    }\n+\n     public static ItemStack getHeldProjectile(LivingEntity p_43011_, Predicate<ItemStack> p_43012_) {\n         if (p_43012_.test(p_43011_.getItemInHand(InteractionHand.OFF_HAND))) {\n             return p_43011_.getItemInHand(InteractionHand.OFF_HAND);\n@@ -92,7 +_,7 @@\n             abstractarrow.setCritArrow(true);\n         }\n \n-        return abstractarrow;\n+        return customArrow(abstractarrow, p_331497_, p_330846_);\n     }\n \n     protected static List<ItemStack> draw(ItemStack p_331565_, ItemStack p_330406_, LivingEntity p_330823_) {\n@@ -115,7 +_,8 @@\n     }\n \n     protected static ItemStack useAmmo(ItemStack p_331207_, ItemStack p_331434_, LivingEntity p_330302_, boolean p_330934_) {\n-        int i = !p_330934_ && !p_330302_.hasInfiniteMaterials() && p_330302_.level() instanceof ServerLevel serverlevel\n+        // Neo: Adjust this check to respect ArrowItem#isInfinite, bypassing processAmmoUse if true.\n+        int i = !p_330934_ && p_330302_.level() instanceof ServerLevel serverlevel && !(p_330302_.hasInfiniteMaterials() || (p_331434_.getItem() instanceof ArrowItem ai && ai.isInfinite(p_331434_, p_331207_, p_330302_)))\n             ? EnchantmentHelper.processAmmoUse(serverlevel, p_331207_, p_331434_, 1)\n             : 0;\n         if (i > p_331434_.getCount()) {\n@@ -132,5 +_,20 @@\n \n             return itemstack;\n         }\n+    }\n+\n+    public AbstractArrow customArrow(AbstractArrow arrow, ItemStack projectileStack, ItemStack weaponStack) {\n+        return arrow;\n+    }\n+\n+    /**\n+     * Neo: Controls what ammo ItemStack that Creative Mode should return if the player has no valid ammo in inventory.\n+     * Modded weapons should override this to return their own ammo if they do not use vanilla arrows.\n+     * @param player The player (if in context) firing the weapon\n+     * @param projectileWeaponItem The weapon ItemStack the ammo is for\n+     * @return The default ammo ItemStack for this weapon\n+     */\n+    public ItemStack getDefaultCreativeAmmo(@Nullable Player player, ItemStack projectileWeaponItem) {\n+        return Items.ARROW.getDefaultInstance();\n     }\n }\n"
+    }
+  ]
+}
