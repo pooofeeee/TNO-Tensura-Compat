@@ -1,5 +1,24 @@
 # Active campaign: complete Alex's Mobs
 
+## Current session: safe handoff and STOP
+
+The latest explicit user instruction pauses this session after the validated
+R2o5b/R2o5c atomic work is checkpointed, pushed and verified. Do not load another
+evidence domain or attempt whole-mod completion in this session. Preserve the
+authorized AlexMobs objective below for the next conversation; it resumes from
+`STATE.md` and the current finite queue, never from a previous discovery pass.
+
+Resume at R2o5d: deterministically group the remaining ordinary terrestrial
+predator, herd and pet actor ordinals in `alexsmobs-unresolved-queue.json` against
+`alexsmobs-combat-census.json`; eliminate already-closed exact identities before
+capturing missing actor methods and their directly used goals. Group membership
+is only routing, never proof of behavior or exclusion. Reuse existing native
+frame/owner/status/item-delivery/control contracts and the all-owner field index.
+No new R2o5d evidence has been loaded. See `STATE.md` for pins, reusable tools,
+last-closed evidence and targeted validation references.
+
+## Authorized objective for continuation
+
 Finish the entire pinned alexsmobs-1.22.17.jar native combat semantic catalog,
 then commit/push, verify remote HEAD and production, and STOP. The new explicit user
 goal authorizes this target from verified HEAD02cb845; all prior COMPLETE reviews remain locked.
