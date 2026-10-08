@@ -34,6 +34,12 @@ def collect(document, jar_paths=None):
             assert sha256(path)==target['sha256']
             verified[target['key']]=path
         with zipfile.ZipFile(path) as jar:
+            if specification.get('expected_absent'):
+                entry=specification['entry']
+                assert entry not in jar.NameToInfo, ('expected absent archive entry is present',entry)
+                witnesses.append(dict(id=specification['id'],mod_key=target['key'],
+                    jar_sha256=target['sha256'],entry=entry,entry_absent=True))
+                continue
             entry=specification['entry']; data=jar.read(entry)
             witness=dict(id=specification['id'],mod_key=target['key'],jar_sha256=target['sha256'],
                          entry=entry,entry_sha256=byte_hash(data))
