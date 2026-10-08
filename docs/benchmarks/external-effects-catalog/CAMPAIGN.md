@@ -58,3 +58,7 @@ Genuine missing evidence is a precise blocker after independent scopes finish.
 Do not return after individual families or start any subsequent mod.
 
 Authorized continuation recovery: R2o5d is now closed with all thirteen actors and directly used shared/ant-colony boundaries. AlexMobs remains PARTIAL: 205 records, 839 numeric candidates, 7,138/11,434 dispositioned and 4,296 pending (2,320 semantic-role). Next is R2o6 remaining terrestrial/shore actors, then the entire unresolved finite queue. This checkpoint is not a STOP or mod closure.
+
+- R2o6 shore closure: 225 canonical records, 989 numeric candidates, 7601/11434 methods dispositioned; 3833 pending. All seven shore actors and directly used payloads closed in `alexsmobs-r2o6-shore-terrestrial.json`; 13 targeted tests PASS and 453 native bodies reproduce byte-identically. Continuation proceeds at R2o7 remaining flying birds using a pending-only remaining-actors capture. No production edits.
+
+- R2o7 bird closure: 241 canonical records, 1081 numeric candidates, 8037/11434 dispositioned; 3397 pending. Crow, Blue Jay, Seagull, Shoebill, Bald Eagle and exact helpers closed; 12 targeted tests PASS, integrity/numeric audits PASS, locked reviews and production unchanged. Pending-only remaining actor packet (1915 bodies/183 classes) reproduced byte-identically. Continue at R2o8 Flutter/Mungus/Bunfungus; recovery commit does not pause campaign.
