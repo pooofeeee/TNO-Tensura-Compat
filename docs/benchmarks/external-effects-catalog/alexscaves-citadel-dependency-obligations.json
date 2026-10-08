@@ -5,18 +5,22 @@
   "artifact": {
     "mod_id": "citadel",
     "declared_minimum": "2.6.0",
-    "exact_installed_version": null,
-    "sha256": null,
-    "status": "UNAVAILABLE",
-    "availability_evidence": "Pinned AlexCaves neoforge.mods.toml records only a lower bound. Existing inventory and workspace artifact filenames contain no exact installed Citadel artifact/version/hash. No arbitrary release downloaded.",
+    "exact_installed_version": "2.7.6",
+    "sha256": "9e12468c49e5a95b7adbf22b3b4d05bc55565989b89c40b985cd73bdfe63c3c2",
+    "status": "AVAILABLE_VERIFIED",
+    "availability_evidence": "Owner supplied the exact installed artifact. SHA-256 verified; neoforge.mods.toml declares modId citadel, version 2.7.6, Minecraft [1.21,1.22). No release substitution.",
     "native_metadata_evidence_file": "native-evidence/alexscaves-status-foundation.json",
-    "native_metadata_entry": "META-INF/neoforge.mods.toml"
+    "native_metadata_entry": "META-INF/neoforge.mods.toml",
+    "filename": "citadel-1.21.1-2.7.6.jar",
+    "size_bytes": 3028943,
+    "installed_identity_confirmed_by_owner": true,
+    "metadata_evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+    "metadata_entry": "META-INF/neoforge.mods.toml"
   },
   "obligations": [
     {
       "id": "alexscaves:citadel:sugar_rush_tick_controller",
-      "status": "BLOCKED_EXACT_ARTIFACT_UNAVAILABLE",
-      "reason": "Exact external tick-controller duration/region behavior and server/client transport; native Sugar Rush calls and literal constructor inputs are captured, external meanings/execution are not inferred.",
+      "status": "RESOLVED_PINNED",
       "native_boundary_calls": [
         {
           "symbol": "com/github/alexthe666/citadel/client/tick/ClientTickRateTracker.getClientTickRate()F",
@@ -158,12 +162,244 @@
       "affected_mechanic_ids": [
         "alexscaves:sugar_rush"
       ],
-      "claim_limit": "Preserved external native boundary; no substitute dependency, execution timing, source policy or runtime behavior guessed."
+      "claim_limit": "Exact owner-supplied artifact and specified native callers only; static proof, no Stage policy or Minecraft/runtime test.",
+      "previous_blocker": "Exact external tick-controller duration/region behavior and server/client transport; native Sugar Rush calls and literal constructor inputs are captured, external meanings/execution are not inferred.",
+      "reason": "LOCAL_ENTITY constructor stores player ID/type, radius10, original dimension, maxDuration=ceil(effectDuration*2F), multiplier2F. Strict distanceSquared<radiusSquared and a live/added matching entity type plus IModifiesTime validity admit the local query. Local appliesTo does not compare the stored dimension. Native Player validity rejects this modifier when SugarRush is absent. Modifiers multiply, without team/immunity/source-policy substitution.",
+      "contract": {
+        "actual_behavior": "LOCAL_ENTITY constructor stores player ID/type, radius10, original dimension, maxDuration=ceil(effectDuration*2F), multiplier2F. Strict distanceSquared<radiusSquared and a live/added matching entity type plus IModifiesTime validity admit the local query. Local appliesTo does not compare the stored dimension. Native Player validity rejects this modifier when SugarRush is absent. Modifiers multiply, without team/immunity/source-policy substitution.",
+        "numerical_contract": {
+          "native_radius_blocks": 10.0,
+          "native_multiplier": 2.0,
+          "native_maxDuration": "ceil(float(effectDuration)*2F)",
+          "master_tick_increment": 1.0,
+          "removal": "duration >= maxDuration*(multiplier!=0 && type!=CELESTIAL ? 1/multiplier : 1)",
+          "server_tick_length_ms": "50 multiplied by GLOBAL modifiers only; integer cast, minimum1; LOCAL_ENTITY alone returns50",
+          "client_tick_length_ms": "max(1,50*product(all applicable modifiers)*product(applicable LOCAL modifiers)); one valid native LOCAL_ENTITY multiplier2 returns200"
+        },
+        "lifecycle": [
+          "Adding on server syncs serialized modifier list to all players via registered clientbound tick_rate payload. Client handler enqueues work, checks clientbound flow, clears old list and deserializes the snapshot. Player ID/type is delivery/validity identity, not inferred progression ownership.",
+          "Registered ClientProxy Pre tick advances masterTick when running/unpaused with level+player, expires local copies and writes Timer.msPerTick. Server Pre tick calls masterTick only inside the ModifiableTickRateServer instanceof arm. This JAR contains that server mixin and entity tick gate mixin, but citadel.mixins.json does not activate either: configured mixins are BlockBehaviourAccessor, NoiseGeneratorSettingsMixin, LivingEntityMixin; client list empty. No server entity slowdown/clock hook is supplied by these configured Citadel mixins. Conditional helper bodies are retained as such, not claimed active by class presence.",
+          "Native enter updates only first matching local entity ID maxDuration; no age reset or sync. Native leave directly removes only last matching local entity ID; no sync. Client copies therefore do not automatically receive those changes. Expiry/dimension removal and native status lifecycle remain original.",
+          "NBT writes/checks Dimension but constructor reads lowercase dimension; preserve exact case mismatch. No dimension admission check is added. Server SavedData serializes tracker state; entity type/ID validity is reevaluated in the queried Level."
+        ],
+        "binary_gates": [
+          "native sugarRushSlowsTime configuration and event branches",
+          "native Player isTimeModificationValid",
+          "isAddedToLevel, expected type and alive",
+          "strict radius",
+          "server ModifiableTickRateServer instance gate",
+          "registered client Pre-tick pause/running/level/player gates"
+        ]
+      },
+      "evidence": [
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:Citadel",
+          "entry": "com/github/alexthe666/citadel/Citadel.class",
+          "methods": [
+            "<init>",
+            "registerPayloads"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:server/CitadelEvents",
+          "entry": "com/github/alexthe666/citadel/server/CitadelEvents.class",
+          "methods": [
+            "onServerTick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:ClientProxy",
+          "entry": "com/github/alexthe666/citadel/ClientProxy.class",
+          "methods": [
+            "canEntityTickClient",
+            "clientTick",
+            "handleAnimationPacket",
+            "handleClientTickRatePacket"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:ServerProxy",
+          "entry": "com/github/alexthe666/citadel/ServerProxy.class",
+          "methods": [
+            "canEntityTickServer",
+            "handleAnimationPacket",
+            "handleClientTickRatePacket"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:server/world/CitadelServerData",
+          "entry": "com/github/alexthe666/citadel/server/world/CitadelServerData.class",
+          "methods": [
+            "<init>",
+            "get",
+            "getOrCreateTickRateTracker",
+            "load",
+            "save"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:server/tick/TickRateTracker",
+          "entry": "com/github/alexthe666/citadel/server/tick/TickRateTracker.class",
+          "methods": [
+            "<init>",
+            "addTickBlockedEntity",
+            "fromTag",
+            "getEntityTickLengthModifier",
+            "hasModifiersActive",
+            "hasNormalTickRate",
+            "isTickingHandled",
+            "masterTick",
+            "sync",
+            "tickBlockedEntity",
+            "toTag"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:server/tick/ServerTickRateTracker",
+          "entry": "com/github/alexthe666/citadel/server/tick/ServerTickRateTracker.class",
+          "methods": [
+            "<init>",
+            "addTickRateModifier",
+            "getForServer",
+            "getServerTickLengthMs",
+            "sync",
+            "tickEntityAtCustomRate"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:client/tick/ClientTickRateTracker",
+          "entry": "com/github/alexthe666/citadel/client/tick/ClientTickRateTracker.class",
+          "methods": [
+            "<init>",
+            "getClientTickRate",
+            "getForClient",
+            "masterTick",
+            "syncFromServer",
+            "tickEntityAtCustomRate"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:server/tick/modifier/TickRateModifier",
+          "entry": "com/github/alexthe666/citadel/server/tick/modifier/TickRateModifier.class",
+          "methods": [
+            "<init>",
+            "doRemove",
+            "fromTag",
+            "getMaxDuration",
+            "getTickRateMultiplier",
+            "getType",
+            "masterTick",
+            "setMaxDuration",
+            "toTag"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:server/tick/modifier/LocalTickRateModifier",
+          "entry": "com/github/alexthe666/citadel/server/tick/modifier/LocalTickRateModifier.class",
+          "methods": [
+            "<init>",
+            "appliesTo",
+            "getRange",
+            "toTag"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:server/tick/modifier/LocalEntityTickRateModifier",
+          "entry": "com/github/alexthe666/citadel/server/tick/modifier/LocalEntityTickRateModifier.class",
+          "methods": [
+            "<init>",
+            "appliesTo",
+            "getCenter",
+            "getEntityId",
+            "isEntityValid",
+            "toTag"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:server/tick/modifier/TickRateModifierType",
+          "entry": "com/github/alexthe666/citadel/server/tick/modifier/TickRateModifierType.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "fromId",
+            "getTickRateClass",
+            "isLocal",
+            "toId"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:server/entity/IModifiesTime",
+          "entry": "com/github/alexthe666/citadel/server/entity/IModifiesTime.class",
+          "methods": [
+            "isTimeModificationValid"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:server/message/SyncClientTickRateMessage",
+          "entry": "com/github/alexthe666/citadel/server/message/SyncClientTickRateMessage.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "handle",
+            "lambda$handle$0",
+            "read",
+            "write"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:server/message/PacketBufferUtils",
+          "entry": "com/github/alexthe666/citadel/server/message/PacketBufferUtils.class",
+          "methods": [
+            "readTag",
+            "writeTag"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:mixin/MinecraftServerMixin",
+          "entry": "com/github/alexthe666/citadel/mixin/MinecraftServerMixin.class",
+          "methods": [
+            "citadel_beforeServerTick",
+            "citadel_serverMsPerTick",
+            "getMasterMs",
+            "masterTick",
+            "setGlobalTickLengthMs"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:mixin/LevelMixin",
+          "entry": "com/github/alexthe666/citadel/mixin/LevelMixin.class",
+          "methods": [
+            "citadel_guardEntityTick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:citadel.mixins.json",
+          "entry": "citadel.mixins.json",
+          "methods": []
+        }
+      ]
     },
     {
       "id": "alexscaves:citadel:selective_actor_collision",
-      "status": "BLOCKED_EXACT_ARTIFACT_UNAVAILABLE",
-      "reason": "Exact external selective collision algorithm called by BOTH Corrodent and Vallumraptor; original actor filtering/motion contributions remain independently proven.",
+      "status": "RESOLVED_PINNED",
       "native_boundary_calls": [
         {
           "symbol": "com/github/alexthe666/citadel/server/entity/collision/ICustomCollisions.getAllowedMovementForEntity(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/Vec3;)Lnet/minecraft/world/phys/Vec3;",
@@ -187,12 +423,51 @@
         "alexscaves:corrodent_bite_native_dig_light_fear",
         "alexscaves:vallumraptor_native_pack_attack_hide_and_food"
       ],
-      "claim_limit": "Preserved external native boundary; no substitute dependency, execution timing, source policy or runtime behavior guessed."
+      "claim_limit": "Exact owner-supplied artifact and specified native callers only; static proof, no Stage policy or Minecraft/runtime test.",
+      "previous_blocker": "Exact external selective collision algorithm called by BOTH Corrodent and Vallumraptor; original actor filtering/motion contributions remain independently proven.",
+      "reason": "Both native actors delegate supplied motion to ICustomCollisions. Solver combines entity collisions, near world-border collision and loaded block shapes. CustomCollisionsBlockCollisions omits a block shape only when that entity implements ICustomCollisions and its own canPassThrough returns true; native actor filters remain authoritative. Clip Y first, then horizontal axes in magnitude-dependent order. On ground or downward Y clipping with positive maxUpStep and horizontal clipping, compare step alternatives by horizontal distance and apply final Y correction. No direct damage, terrain destruction, status, owner transfer or ignored entity collisions.",
+      "contract": {
+        "actual_behavior": "Both native actors delegate supplied motion to ICustomCollisions. Solver combines entity collisions, near world-border collision and loaded block shapes. CustomCollisionsBlockCollisions omits a block shape only when that entity implements ICustomCollisions and its own canPassThrough returns true; native actor filters remain authoritative. Clip Y first, then horizontal axes in magnitude-dependent order. On ground or downward Y clipping with positive maxUpStep and horizontal clipping, compare step alternatives by horizontal distance and apply final Y correction. No direct damage, terrain destruction, status, owner transfer or ignored entity collisions.",
+        "numerical_contract": {
+          "step_height": "native entity.maxUpStep()",
+          "sweep": "original AABB.expandTowards(supplied velocity)",
+          "horizontal_axis_order": "Z before X iff abs(X)<abs(Z); otherwise X before Z"
+        },
+        "binary_gates": [
+          "zero-motion bypass",
+          "native custom canPassThrough",
+          "loaded collision chunk",
+          "border admission",
+          "positive native step height and ground/downward-clipping condition"
+        ]
+      },
+      "evidence": [
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:server/entity/collision/ICustomCollisions",
+          "entry": "com/github/alexthe666/citadel/server/entity/collision/ICustomCollisions.class",
+          "methods": [
+            "canPassThrough",
+            "collideBoundingBox2",
+            "collideWithShapes2",
+            "getAllowedMovementForEntity"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:server/entity/collision/CustomCollisionsBlockCollisions",
+          "entry": "com/github/alexthe666/citadel/server/entity/collision/CustomCollisionsBlockCollisions.class",
+          "methods": [
+            "<init>",
+            "computeNext",
+            "getChunk"
+          ]
+        }
+      ]
     },
     {
       "id": "alexscaves:citadel:actor_animation_clock",
-      "status": "BLOCKED_EXACT_ARTIFACT_UNAVAILABLE",
-      "reason": "Original animation allocation/duration and AnimationHandler.updateAnimations handoffs are captured. Full dependency clock advance/reset/network dispatch affects attack timing and is not claimed proven by native call signatures.",
+      "status": "RESOLVED_PINNED",
       "native_boundary_calls": [
         {
           "symbol": "com/github/alexthe666/citadel/animation/Animation.create(I)Lcom/github/alexthe666/citadel/animation/Animation;",
@@ -1113,12 +1388,136 @@
         "alexscaves:watcher_native_melee_shade_pursuit",
         "alexscaves:watcher_native_possession_admission_control"
       ],
-      "claim_limit": "Preserved external native boundary; no substitute dependency, execution timing, source policy or runtime behavior guessed."
+      "claim_limit": "Exact owner-supplied artifact and specified native callers only; static proof, no Stage policy or Minecraft/runtime test.",
+      "previous_blocker": "Original animation allocation/duration and AnimationHandler.updateAnimations handoffs are captured. Full dependency clock advance/reset/network dispatch affects attack timing and is not claimed proven by native call signatures.",
+      "reason": "Animation.create(duration) stores the original integer duration, with no multiplier/clamp. updateAnimations sets null to NO_ANIMATION; non-sentinel tick0 posts cancellable Start. Only uncancelled Start calls server-only sendAnimationMessage, allowing the event animation replacement. Cancellation skips send/set, not the subsequent clock advance. Below current duration, increment exactly1 and post Tick. At equality with current duration, reset tick0 and NO_ANIMATION. Above duration does not satisfy either branch. No hidden damage/status callback; original actor frame readers and setAnimation overrides remain native.",
+      "contract": {
+        "actual_behavior": "Animation.create(duration) stores the original integer duration, with no multiplier/clamp. updateAnimations sets null to NO_ANIMATION; non-sentinel tick0 posts cancellable Start. Only uncancelled Start calls server-only sendAnimationMessage, allowing the event animation replacement. Cancellation skips send/set, not the subsequent clock advance. Below current duration, increment exactly1 and post Tick. At equality with current duration, reset tick0 and NO_ANIMATION. Above duration does not satisfy either branch. No hidden damage/status callback; original actor frame readers and setAnimation overrides remain native.",
+        "numerical_contract": {
+          "duration": "original native Animation.create input, returned unchanged by getDuration",
+          "clock_increment": 1,
+          "end_condition": "animationTick == currentAnimation.getDuration(), after optional Tick event"
+        },
+        "lifecycle": [
+          "Server send sets the supplied animation and broadcasts entity ID plus index in getAnimations to all players via registered clientbound animation payload.",
+          "Enqueued client proxy looks up that entity in current client level, casts IAnimatedEntity, uses -1 as NO_ANIMATION or supplied array index, then resets tick0; no new range/type/owner admission checks invented.",
+          "Animation is transient clock/delivery state; native entity setters control any actor-specific resets. No persistent progression or generic occurrence storage is introduced."
+        ],
+        "binary_gates": [
+          "null/NO_ANIMATION",
+          "cancellable Start",
+          "server-only broadcast",
+          "native callback frequency and supplied actor animation identity"
+        ]
+      },
+      "evidence": [
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:animation/Animation",
+          "entry": "com/github/alexthe666/citadel/animation/Animation.class",
+          "methods": [
+            "<init>",
+            "create",
+            "getDuration"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:animation/IAnimatedEntity",
+          "entry": "com/github/alexthe666/citadel/animation/IAnimatedEntity.class",
+          "methods": [
+            "<clinit>",
+            "getAnimation",
+            "getAnimationTick",
+            "getAnimations",
+            "setAnimation",
+            "setAnimationTick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:animation/AnimationHandler",
+          "entry": "com/github/alexthe666/citadel/animation/AnimationHandler.class",
+          "methods": [
+            "sendAnimationMessage",
+            "updateAnimations"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:animation/AnimationEvent",
+          "entry": "com/github/alexthe666/citadel/animation/AnimationEvent.class",
+          "methods": [
+            "<init>",
+            "getAnimation"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:animation/AnimationEvent$Start",
+          "entry": "com/github/alexthe666/citadel/animation/AnimationEvent$Start.class",
+          "methods": [
+            "<init>",
+            "setAnimation"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:animation/AnimationEvent$Tick",
+          "entry": "com/github/alexthe666/citadel/animation/AnimationEvent$Tick.class",
+          "methods": [
+            "<init>",
+            "getTick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:server/message/AnimationMessage",
+          "entry": "com/github/alexthe666/citadel/server/message/AnimationMessage.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "handle",
+            "lambda$handle$0",
+            "read",
+            "write"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:Citadel",
+          "entry": "com/github/alexthe666/citadel/Citadel.class",
+          "methods": [
+            "<init>",
+            "registerPayloads"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:ClientProxy",
+          "entry": "com/github/alexthe666/citadel/ClientProxy.class",
+          "methods": [
+            "canEntityTickClient",
+            "clientTick",
+            "handleAnimationPacket",
+            "handleClientTickRatePacket"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:ServerProxy",
+          "entry": "com/github/alexthe666/citadel/ServerProxy.class",
+          "methods": [
+            "canEntityTickServer",
+            "handleAnimationPacket",
+            "handleClientTickRatePacket"
+          ]
+        }
+      ]
     },
     {
       "id": "alexscaves:citadel:delegated_combat_navigation",
-      "status": "BLOCKED_EXACT_ARTIFACT_UNAVAILABLE",
-      "reason": "Native navigation construction, PathingStuckHandler and Lux canReach PathResult reads are preserved. External traversal/stuck handling and returned path behavior cannot be certified from the NoTeleport class name or constructor.",
+      "status": "RESOLVED_PINNED",
       "native_boundary_calls": [
         {
           "symbol": "com/github/alexthe666/citadel/server/entity/pathfinding/raycoms/AdvancedPathNavigate.<init>(Lnet/minecraft/world/entity/Mob;Lnet/minecraft/world/level/Level;Lcom/github/alexthe666/citadel/server/entity/pathfinding/raycoms/AdvancedPathNavigate$MovementType;FFLcom/github/alexthe666/citadel/server/entity/pathfinding/raycoms/PathingStuckHandler;)V",
@@ -1175,12 +1574,124 @@
         "alexscaves:luxtructosaurus_native_area_attacks_and_enrage",
         "alexscaves:native_citadel_path_update_gate"
       ],
-      "claim_limit": "Preserved external native boundary; no substitute dependency, execution timing, source policy or runtime behavior guessed."
+      "claim_limit": "Exact owner-supplied artifact and specified native callers only; static proof, no Stage policy or Minecraft/runtime test.",
+      "previous_blocker": "Native navigation construction, PathingStuckHandler and Lux canReach PathResult reads are preserved. External traversal/stuck handling and returned path behavior cannot be certified from the NoTeleport class name or constructor.",
+      "reason": "Native NoTeleport constructor passes a fresh unmodified createStuckHandler result to the six-argument AdvancedPathNavigate constructor, which retains that exact handler. Default teleportRange=0, canTeleportGoal=false, takeDamageOnCompleteStuck=false, completeStuckBlockBreakRange=0, and block/ladders/leaves flags=false prove optional teleport/damage/terrain actions disabled for this construction. Ordinary navigation may stop/retry/move away when stuck; no victim damage/owner reassignment. This proof comes from constructor values, not the class name.",
+      "contract": {
+        "actual_behavior": "Native NoTeleport constructor passes a fresh unmodified createStuckHandler result to the six-argument AdvancedPathNavigate constructor, which retains that exact handler. Default teleportRange=0, canTeleportGoal=false, takeDamageOnCompleteStuck=false, completeStuckBlockBreakRange=0, and block/ladders/leaves flags=false prove optional teleport/damage/terrain actions disabled for this construction. Ordinary navigation may stop/retry/move away when stuck; no victim damage/owner reassignment. This proof comes from constructor values, not the class name.",
+        "numerical_contract": {
+          "accepted_job_speed": "0.1 <= speedFactor <= 2.0; rejected job returns null",
+          "safe_destination_timeout_ticks": 1000,
+          "initial_unstuck_delay_ticks": 1200,
+          "global_stuck_timeout": "globalTimeout > max(2400,100*max(10,distanceToGoal))",
+          "ordinary_unstuck_retry": "stop then moveAwayFromXYZ(currentBlockPos,10,1,false); retry delays50/100/200, native RNG progression"
+        },
+        "lifecycle": [
+          "moveToLivingEntity forwards original target coordinates to moveToXYZ; job uses original actor FOLLOW_RANGE and pathing options. Returns a cached computing/matching job or starts an asynchronous PathJobMoveToLocation. Navigation tick waits for completed computation before normal follow/control and stuck handling.",
+          "PathResult starts null path; getPath returns only that field and does not wait or process. isFinished processes a completed Future once; cancellation cancels without interruption and native stop clears result/destination. Lux canReach reads getPath immediately: null result/path retains its native squared-distance fallback, not proof of an immediately computed/reachable path.",
+          "Native movement type/actor dimensions and canUpdatePath override remain original. Library pathfinding is navigation/admission context, not a second attack payload. Disabled optional damage/teleport helpers are not active combat candidates."
+        ],
+        "binary_gates": [
+          "fresh default handler flags",
+          "original job state/destination",
+          "speed admission",
+          "native sitting/stopTickingPathing branch",
+          "future completion"
+        ]
+      },
+      "evidence": [
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:server/entity/pathfinding/raycoms/AbstractAdvancedPathNavigate",
+          "entry": "com/github/alexthe666/citadel/server/entity/pathfinding/raycoms/AbstractAdvancedPathNavigate.class",
+          "methods": [
+            "<init>",
+            "getOurEntity",
+            "getPathingOptions"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:server/entity/pathfinding/raycoms/AdvancedPathNavigate",
+          "entry": "com/github/alexthe666/citadel/server/entity/pathfinding/raycoms/AdvancedPathNavigate.class",
+          "methods": [
+            "<init>",
+            "convertPath",
+            "followThePath",
+            "getDesiredPos",
+            "getSpeedFactor",
+            "handleEntityInWater",
+            "handleLadders",
+            "handlePathOnRails",
+            "handlePathPointOnLadder",
+            "handleRails",
+            "moveTo",
+            "moveToLivingEntity",
+            "moveToXYZ",
+            "processCompletedCalculationResult",
+            "setPathJob",
+            "setStuckHandler",
+            "stop",
+            "tick"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:server/entity/pathfinding/raycoms/PathingStuckHandler",
+          "entry": "com/github/alexthe666/citadel/server/entity/pathfinding/raycoms/PathingStuckHandler.class",
+          "methods": [
+            "<init>",
+            "chanceStuckLevel",
+            "checkStuck",
+            "completeStuckAction",
+            "createStuckHandler",
+            "resetGlobalStuckTimers",
+            "resetStuckTimers",
+            "tryUnstuck"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:server/entity/pathfinding/raycoms/PathResult",
+          "entry": "com/github/alexthe666/citadel/server/entity/pathfinding/raycoms/PathResult.class",
+          "methods": [
+            "<init>",
+            "cancel",
+            "getJob",
+            "getPath",
+            "getStatus",
+            "isComputing",
+            "isFinished",
+            "processCalculationResults",
+            "setJob",
+            "setStatus",
+            "startJob"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:server/entity/pathfinding/raycoms/pathjobs/PathJobMoveToLocation",
+          "entry": "com/github/alexthe666/citadel/server/entity/pathfinding/raycoms/pathjobs/PathJobMoveToLocation.class",
+          "methods": [
+            "<init>"
+          ]
+        },
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:server/entity/pathfinding/raycoms/pathjobs/AbstractPathJob",
+          "entry": "com/github/alexthe666/citadel/server/entity/pathfinding/raycoms/pathjobs/AbstractPathJob.class",
+          "methods": [
+            "<init>",
+            "getResult",
+            "prepareStart",
+            "setPathingOptions"
+          ]
+        }
+      ]
     },
     {
       "id": "alexscaves:citadel:radioactive_item_parent_tick",
-      "status": "BLOCKED_EXACT_ARTIFACT_UNAVAILABLE",
-      "reason": "Original radioactive inventory callback invokes its external superclass tick. The explicit own proc is proven; absence of additional behavior in the parent cannot be established without its exact artifact.",
+      "status": "RESOLVED_PINNED",
       "native_boundary_calls": [
         {
           "symbol": "com/github/alexthe666/citadel/item/BlockItemWithSupplier.inventoryTick(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/Entity;IZ)V",
@@ -1197,10 +1708,36 @@
       "affected_mechanic_ids": [
         "alexscaves:inventory_radioactive_native_proc"
       ],
-      "claim_limit": "Preserved external native boundary; no substitute dependency, execution timing, source policy or runtime behavior guessed."
+      "claim_limit": "Exact owner-supplied artifact and specified native callers only; static proof, no Stage policy or Minecraft/runtime test.",
+      "previous_blocker": "Original radioactive inventory callback invokes its external superclass tick. The explicit own proc is proven; absence of additional behavior in the parent cannot be established without its exact artifact.",
+      "reason": "Exact BlockItemWithSupplier extends native BlockItem and declares only constructor/getBlock/canFitInsideContainerItems. It supplies no inventoryTick override. Native BlockItem likewise supplies no inventoryTick override; Item.inventoryTick is exact raw Vanilla no-op return. Therefore the original superclass call contributes no extra Citadel radiation/status/proc. Supplier/container behavior is ordinary utility. Already proven own RadioactiveBlockItem inventory proc remains sole native contribution.",
+      "contract": {
+        "actual_behavior": "Exact BlockItemWithSupplier extends native BlockItem and declares only constructor/getBlock/canFitInsideContainerItems. It supplies no inventoryTick override. Native BlockItem likewise supplies no inventoryTick override; Item.inventoryTick is exact raw Vanilla no-op return. Therefore the original superclass call contributes no extra Citadel radiation/status/proc. Supplier/container behavior is ordinary utility. Already proven own RadioactiveBlockItem inventory proc remains sole native contribution.",
+        "numerical_contract": {},
+        "binary_gates": [
+          "existing original radioactive proc admission and native effect lifecycle unchanged"
+        ]
+      },
+      "evidence": [
+        {
+          "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json",
+          "witness_id": "citadel:alexscaves-dependency:item/BlockItemWithSupplier",
+          "entry": "com/github/alexthe666/citadel/item/BlockItemWithSupplier.class",
+          "methods": [
+            "<init>",
+            "canFitInsideContainerItems",
+            "getBlock"
+          ]
+        }
+      ],
+      "vanilla_evidence_file": "vanilla-evidence/alexscaves-radioactive-parent-tick.json"
     }
   ],
   "other_api_context": "Model/shader/leg display, book-data/recipe display, surface-rule/biome setup and ordinary block-item construction calls remain delegated context, not independent combat contributions. All native finite call sites were indexed; no unknown external method was treated as a newly implemented effect.",
   "runtime_tests": 0,
-  "stage_policy_decided": false
+  "stage_policy_decided": false,
+  "checkpoint": "R2m11-alexscaves-exact-citadel-dependencies-closed",
+  "status": "COMPLETE",
+  "specification_file": "native-findings/citadel-alexscaves-dependencies.json",
+  "evidence_file": "native-evidence/citadel-alexscaves-dependencies.json"
 }

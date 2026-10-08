@@ -28,10 +28,13 @@ def render(key, verified_head):
         f'- Remaining semantic-role methods: {queue["summary"]["pending_by_census_role"].get("PENDING_SEMANTIC_REVIEW",0)} (routing, not a mechanic count).',
         '- Canonical authorities: `mod-reviews/'+key+'.json`, `mod-completion-ledger.json`, `large-mod-campaign.json`.',
         '- Native source/indexes: existing census, field-use index and reviewed-batch pointers; consult cold bodies only for exact unresolved boundaries.',
-        '- Known blockers: '+(', '.join(blockers) if blockers else 'none confirmed; unreviewed queue remains.'),
-        '- Citadel: only minimum >=2.6.0 is recorded; exact installed artifact/version/hash is absent. Never substitute an arbitrary release.',
+        '- Known blockers: '+(', '.join(blockers) if blockers else ('none; finite census and dependency contracts closed.' if target['state']=='COMPLETE' else 'consult unresolved queue and dependency obligations.')),
         '- Exact next action: '+target['exact_next_task'],
-        '- Continue after intermediate checkpoints/context compaction. Do not load Legendary Monsters or any later mod.','']
+        '- STOP after AlexCaves closure. Do not load Legendary Monsters or any later mod.','']
+    if review.get('external_dependency_obligations_file'):
+        dep=read_json(OUT/review['external_dependency_obligations_file'])
+        pin=dep['artifact']
+        lines.insert(-3,f'- Citadel: {pin["status"]}; version {pin["exact_installed_version"]}; SHA-256 `{pin["sha256"]}`; contracts in `{review["external_dependency_obligations_file"]}`.')
     return '\n'.join(lines)
 
 

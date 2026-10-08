@@ -3,10 +3,10 @@
 - Active campaign: `CAMPAIGN.md`; Alex's Caves only, then STOP.
 - Branch: `external-effects-catalog-research`.
 - Latest verified research ref: `origin/external-effects-catalog-research`.
-- Last verified anchor before this checkpoint: `0fec82807ff6403fe6ae334f1c1b22c1d0e856ad`. Resolve the current ref with Git; never reset to an older anchor.
+- Last verified anchor before this checkpoint: `4054e474306c24842181d286468618b4843dcaaa`. Resolve the current ref with Git; never reset to an older anchor.
 - Protected production HEAD: `eb37f0bfc0e7aa863632f163881566c0ae2a8701`; production/source gameplay unchanged.
-- Current mod/status: `alexscaves` / PARTIAL.
-- Locked COMPLETE targets: cultofazazel, variantsandventures, royalvariations, friendsandfoes, twilightforest, iceandfire, eternalstarlight, block_factorys_bosses, bosses_of_mass_destruction, cataclysm, arphex, tensura.
+- Current mod/status: `alexscaves` / COMPLETE.
+- Locked COMPLETE targets: cultofazazel, variantsandventures, royalvariations, friendsandfoes, twilightforest, iceandfire, eternalstarlight, block_factorys_bosses, bosses_of_mass_destruction, cataclysm, arphex, alexscaves, tensura.
 - Canonical records: 145; numeric candidates: 367.
 - Classifications: {'BINARY_MECHANIC': 5, 'CUSTOM_CONTROL': 38, 'CUSTOM_DAMAGE': 8, 'CUSTOM_RESOURCE': 4, 'CUSTOM_STATUS': 3, 'VANILLA_COMPOSITE': 66, 'VANILLA_DIRECT': 4, 'VANILLA_EQUIVALENT': 1, 'VANILLA_LIKE_EXTENDED': 16}.
 - Census: `alexscaves-combat-census.json` (existing pin; do not rediscover).
@@ -15,7 +15,7 @@
 - Remaining semantic-role methods: 0 (routing, not a mechanic count).
 - Canonical authorities: `mod-reviews/alexscaves.json`, `mod-completion-ledger.json`, `large-mod-campaign.json`.
 - Native source/indexes: existing census, field-use index and reviewed-batch pointers; consult cold bodies only for exact unresolved boundaries.
-- Known blockers: exact installed Citadel artifact/version/hash unavailable; five exact boundary groups in `alexscaves-citadel-dependency-obligations.json` (tick controller, selective collision, animation clock, delegated combat navigation, radioactive parent tick).
-- Citadel: only minimum >=2.6.0 is recorded; exact installed artifact/version/hash is absent. Never substitute an arbitrary release.
-- Exact next action: AlexCaves dependency-only completion: supply the exact installed Citadel artifact/version/hash, reproduce the five named native dependency obligations, then re-run closure. Independent AlexCaves census is closed; STOP and do not load later mods.
-- STOP: every independent AlexCaves scope is closed. Resume only the five named dependency obligations after the exact installed Citadel pin is supplied. Do not load Legendary Monsters or any later mod.
+- Known blockers: none; finite census and dependency contracts closed.
+- Citadel: AVAILABLE_VERIFIED; version 2.7.6; SHA-256 `9e12468c49e5a95b7adbf22b3b4d05bc55565989b89c40b985cd73bdfe63c3c2`; contracts in `alexscaves-citadel-dependency-obligations.json`.
+- Exact next action: AlexCaves COMPLETE. Five exact Citadel2.7.6 dependency obligations proven. STOP; do not load Legendary Monsters or any later mod.
+- STOP after AlexCaves closure. Do not load Legendary Monsters or any later mod.

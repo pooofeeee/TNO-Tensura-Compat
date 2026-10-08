@@ -25,7 +25,8 @@ def annotate_local_operands(body, code):
 
 def collect(document, jar_paths=None):
     inventory=read_json(OUT/'jar-inventory.json')
-    targets={x['key']:x for x in inventory['targets']+inventory['compat_candidates']}
+    targets={x['key']:x for x in inventory['targets']+inventory['compat_candidates']
+             +inventory.get('dependency_artifacts',[])}
     witnesses=[]; verified={}
     for specification in document['evidence_specifications']:
         target=targets[specification['mod_key']]
