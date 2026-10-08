@@ -13,7 +13,7 @@ def render(key, verified_head):
     blockers=sorted({a for r in review['effects'] for a in r.get('unresolved_ambiguities',[]) if isinstance(a,str)})
     locked=', '.join(t['mod_key'] for t in ledger['targets'] if t['state']=='COMPLETE')
     lines=['# Compact research state','',
-        '- Active campaign: `CAMPAIGN.md`; Alex\'s Caves only, then STOP.',
+        f'- Active campaign: `CAMPAIGN.md`; `{key}` only, then STOP.',
         '- Branch: `external-effects-catalog-research`.',
         '- Latest verified research ref: `origin/external-effects-catalog-research`.',
         f'- Last verified anchor before this checkpoint: `{verified_head}`. Resolve the current ref with Git; never reset to an older anchor.',
@@ -30,7 +30,7 @@ def render(key, verified_head):
         '- Native source/indexes: existing census, field-use index and reviewed-batch pointers; consult cold bodies only for exact unresolved boundaries.',
         '- Known blockers: '+(', '.join(blockers) if blockers else ('none; finite census and dependency contracts closed.' if target['state']=='COMPLETE' else 'consult unresolved queue and dependency obligations.')),
         '- Exact next action: '+target['exact_next_task'],
-        '- STOP after AlexCaves closure. Do not load Legendary Monsters or any later mod.','']
+        f'- STOP after `{key}` closure. Do not start another mod.','']
     if review.get('external_dependency_obligations_file'):
         dep=read_json(OUT/review['external_dependency_obligations_file'])
         pin=dep['artifact']

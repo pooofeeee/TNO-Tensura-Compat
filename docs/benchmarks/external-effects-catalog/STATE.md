@@ -1,13 +1,20 @@
 # Compact research state
 
-- Latest authorized goal: verify and finish only Alex's Caves' five Citadel dependency obligations, then STOP.
-- Branch: `external-effects-catalog-research`; requested anchor: `4054e474306c24842181d286468618b4843dcaaa`.
-- Existing resolution commit: `82c5f052d8324613d6de71d548437b3f648faa7f`; verified descendant HEAD: `07cf32a4a9e006cf3cf2b86ff0b88efbfe2a69ca`. Preserve newer work; never reset to the old anchor.
-- AlexCaves: COMPLETE; 145 semantic records, 367 deduplicated numeric candidates, 11,764/11,764 native census methods dispositioned, zero pending methods or ambiguities.
-- Exact owner-supplied Citadel: version 2.7.6; SHA-256 `9e12468c49e5a95b7adbf22b3b4d05bc55565989b89c40b985cd73bdfe63c3c2`.
-- All five groups RESOLVED_PINNED: Sugar Rush tick controller, selective actor collision, actor animation clock, delegated combat navigation, radioactive item parent tick.
-- Current verification: 20 targeted tests PASS; independent closure/integrity PASS; 35 dependency entries/168 methods and two Vanilla parent classes reproduced BYTE_IDENTICAL.
-- Canonical authorities: `mod-reviews/alexscaves.json`, `alexscaves-citadel-dependency-obligations.json`, `alexscaves-r2m11-citadel-dependency-closure.json`, `mod-completion-ledger.json`.
-- Protected production HEAD: `eb37f0bfc0e7aa863632f163881566c0ae2a8701`; production gameplay unchanged.
-- Later campaign material is preserved but paused. `CAMPAIGN.md` and local draft state do not authorize further work under this request.
-- Exact next action: STOP. Do not start or resume another mod.
+- Active campaign: `CAMPAIGN.md`; `alexsmobs` only, then STOP.
+- Branch: `external-effects-catalog-research`.
+- Latest verified research ref: `origin/external-effects-catalog-research`.
+- Last verified anchor before this checkpoint: `02cb8459a626f42975e135f11f2cd7a4d67172de`. Resolve the current ref with Git; never reset to an older anchor.
+- Protected production HEAD: `eb37f0bfc0e7aa863632f163881566c0ae2a8701`; production/source gameplay unchanged.
+- Current mod/status: `alexsmobs` / PARTIAL.
+- Locked COMPLETE targets: cultofazazel, variantsandventures, royalvariations, friendsandfoes, twilightforest, iceandfire, eternalstarlight, block_factorys_bosses, bosses_of_mass_destruction, cataclysm, arphex, alexscaves, tensura, legendary_monsters.
+- Canonical records: 17; numeric candidates: 40.
+- Classifications: {'BINARY_MECHANIC': 2, 'CUSTOM_CONTROL': 5, 'CUSTOM_RESOURCE': 1, 'CUSTOM_STATUS': 2, 'VANILLA_COMPOSITE': 4, 'VANILLA_LIKE_EXTENDED': 3}.
+- Census: `alexsmobs-combat-census.json` (existing pin; do not rediscover).
+- Queue: `alexsmobs-unresolved-queue.json`; ordinals refer to that exact census/hash.
+- Coverage: 2127 / 11434 dispositioned; 9307 pending.
+- Remaining semantic-role methods: 5046 (routing, not a mechanic count).
+- Canonical authorities: `mod-reviews/alexsmobs.json`, `mod-completion-ledger.json`, `large-mod-campaign.json`.
+- Native source/indexes: existing census, field-use index and reviewed-batch pointers; consult cold bodies only for exact unresolved boundaries.
+- Known blockers: consult unresolved queue and dependency obligations.
+- Exact next action: R2o2c — Shared event/gear helpers and new CitadelEntityData storage boundary; then network/registry packages and grouped actor domains.
+- STOP after `alexsmobs` closure. Do not start another mod.

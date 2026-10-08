@@ -10,4 +10,4 @@
 - Research/catalog only: no Stage policy, gameplay edits, Minecraft, Gradle, or datagen.
 - Update compact state and the unresolved queue before meaningful recovery checkpoints.
 - Intermediate commits and context compaction are recovery points; continue internally.
-- Legendary Monsters is COMPLETE. Verify the research push, then STOP; no later mod or production work. The latest user goal supersedes the previous Alex's Caves stop boundary.
+- Newly authorized active target is Alex's Mobs only. Reuse all ledger COMPLETE results; do not load another mod after AlexMobs closure.

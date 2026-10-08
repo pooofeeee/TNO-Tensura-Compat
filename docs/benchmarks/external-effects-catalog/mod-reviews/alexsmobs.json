@@ -1,0 +1,3841 @@
+{
+  "schema": "tno.external_effects.mod_review.v1",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "alexsmobs",
+  "status": "PARTIAL",
+  "effects": [
+    {
+      "id": "alexsmobs:bug_pheromones",
+      "display_name": "Bug Pheromones",
+      "primary_classification": "BINARY_MECHANIC",
+      "registry_ids": [
+        "alexsmobs:bug_pheromones"
+      ],
+      "source_actor": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "actual_behavior": "The effect tick itself is a no-op. LivingChangeTargetEvent cancels an arthropod Mob's non-null proposed target when that target has this effect and is not its lastHurtByMob, then returns. Revenge targeting remains native. No periodic damage, source reassignment or generic immunity.",
+      "closest_vanilla_equivalent": null,
+      "components": [
+        {
+          "primitive": "AI_TARGET_ADMISSION",
+          "numerical_parameters": {}
+        }
+      ],
+      "binary_parameters": {
+        "recipient_tag": "ARTHROPOD",
+        "revenge_exception": true
+      },
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectBugPheromones.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectBugPheromones.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+          "methods": [
+            "onLivingSetTargetEvent"
+          ],
+          "partial_contract": true,
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/event/ServerEvents.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$7"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ],
+      "native_lifecycle": "Original MobEffectInstance admission, stacking, immunity and lifecycle. No extra damage/source/status instance is inferred.",
+      "numeric_observation_scope": "Observed original native inputs only; this does not decide Stage eligibility, policy, balance or hooks.",
+      "mod_key": "alexsmobs",
+      "native_boundary": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectBugPheromones.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+          "methods": [
+            "onLivingSetTargetEvent"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$7"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "The effect tick itself is a no-op. LivingChangeTargetEvent cancels an arthropod Mob's non-null proposed target when that target has this effect and is not its lastHurtByMob, then returns. Revenge targeting remains native. No periodic damage, source reassignment or generic immunity.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectBugPheromones.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+          "methods": [
+            "onLivingSetTargetEvent"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$7"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/alexsmobs-foundation.json"
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "alexsmobs:bug_pheromones:native_boundary"
+      ],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "alexsmobs:clinging",
+      "display_name": "Clinging",
+      "primary_classification": "CUSTOM_CONTROL",
+      "registry_ids": [
+        "alexsmobs:clinging"
+      ],
+      "source_actor": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "actual_behavior": "Every effect tick refreshes dimensions and clears noGravity. Touching ceiling means verticalCollision && !onGround; near-ceiling upward motion also admits the control. Active control clears fallDistance. Without shift, touching writes Y=.08; otherwise adds Y=.15F; both damp X/Z by .98F. Shift while touching writes Y=-.2. Ceiling scan checks current X/Z at bbox.maxY+offset for the first nonempty collision shape. No flight ownership or knockback semantics. Three-argument removal hook is inactive; it does not provide native exit cleanup.",
+      "closest_vanilla_equivalent": null,
+      "components": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "touching_y": 0.08,
+            "approach_y_add": 0.15000000596046448,
+            "horizontal_factor": 0.9800000190734863,
+            "shift_y": -0.2
+          }
+        },
+        {
+          "primitive": "CEILING_QUERY",
+          "numerical_parameters": {
+            "first_offset": 0.1,
+            "max_offset": 3.0,
+            "step": 0.3
+          }
+        }
+      ],
+      "binary_parameters": {},
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectClinging.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "isNearCeiling",
+            "isUpsideDown",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectClinging.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$9"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ],
+      "native_lifecycle": "Original MobEffectInstance admission, stacking, immunity and lifecycle. No extra damage/source/status instance is inferred.",
+      "numeric_observation_scope": "Observed original native inputs only; this does not decide Stage eligibility, policy, balance or hooks.",
+      "dispatch_reference": "vanilla-evidence/alexsmobs-effect-dispatch.json",
+      "mod_key": "alexsmobs",
+      "native_boundary": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectClinging.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "isNearCeiling",
+            "isUpsideDown",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$9"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Every effect tick refreshes dimensions and clears noGravity. Touching ceiling means verticalCollision && !onGround; near-ceiling upward motion also admits the control. Active control clears fallDistance. Without shift, touching writes Y=.08; otherwise adds Y=.15F; both damp X/Z by .98F. Shift while touching writes Y=-.2. Ceiling scan checks current X/Z at bbox.maxY+offset for the first nonempty collision shape. No flight ownership or knockback semantics. Three-argument removal hook is inactive; it does not provide native exit cleanup.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectClinging.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "isNearCeiling",
+            "isUpsideDown",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$9"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/alexsmobs-foundation.json"
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "alexsmobs:clinging:native_boundary"
+      ],
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "touching_y"
+          ],
+          "native_value": 0.08,
+          "reviewed_parameter_role": "Original touching y input to FORCED_MOVEMENT; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 0.08,
+            "value_offset": 104,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectClinging.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectClinging.class",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 104,
+            "opcode": "0x14",
+            "operand": 0.08
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectClinging.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 104
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "approach_y_add"
+          ],
+          "native_value": 0.15000000596046448,
+          "reviewed_parameter_role": "Original approach y add input to FORCED_MOVEMENT; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 0.15000000596046448,
+            "value_offset": 126,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectClinging.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectClinging.class",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 126,
+            "opcode": "0x14",
+            "operand": 0.15000000596046448
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectClinging.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 126
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "horizontal_factor"
+          ],
+          "native_value": 0.9800000190734863,
+          "reviewed_parameter_role": "Original horizontal factor input to FORCED_MOVEMENT; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 0.9800000190734863,
+            "value_offset": 141,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectClinging.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectClinging.class",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 141,
+            "opcode": "0x14",
+            "operand": 0.9800000190734863
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectClinging.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 141
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "shift_y"
+          ],
+          "native_value": -0.2,
+          "reviewed_parameter_role": "Original shift y input to FORCED_MOVEMENT; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": -0.2,
+            "value_offset": 170,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectClinging.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectClinging.class",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 170,
+            "opcode": "0x14",
+            "operand": -0.2
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectClinging.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 170
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "CEILING_QUERY",
+          "parameters": [
+            "first_offset"
+          ],
+          "native_value": 0.1,
+          "reviewed_parameter_role": "Original first offset input to CEILING_QUERY; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 0.1,
+            "value_offset": 0,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectClinging.class",
+            "methods": [
+              "isNearCeiling"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectClinging.class",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;)Z",
+            "offset": 0,
+            "opcode": "0x14",
+            "operand": 0.1
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectClinging.class",
+            "method": "isNearCeiling",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;)Z",
+            "offset": 0
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "CEILING_QUERY",
+          "parameters": [
+            "max_offset"
+          ],
+          "native_value": 3.0,
+          "reviewed_parameter_role": "Original max offset input to CEILING_QUERY; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 3.0,
+            "value_offset": 5,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectClinging.class",
+            "methods": [
+              "isNearCeiling"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectClinging.class",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;)Z",
+            "offset": 5,
+            "opcode": "0x14",
+            "operand": 3.0
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectClinging.class",
+            "method": "isNearCeiling",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;)Z",
+            "offset": 5
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "CEILING_QUERY",
+          "parameters": [
+            "step"
+          ],
+          "native_value": 0.3,
+          "reviewed_parameter_role": "Original step input to CEILING_QUERY; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 0.3,
+            "value_offset": 70,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectClinging.class",
+            "methods": [
+              "isNearCeiling"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectClinging.class",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;)Z",
+            "offset": 70,
+            "opcode": "0x14",
+            "operand": 0.3
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectClinging.class",
+            "method": "isNearCeiling",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;)Z",
+            "offset": 70
+          },
+          "observation_only": true
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:debilitating_sting",
+      "display_name": "Debilitating Sting",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "registry_ids": [
+        "alexsmobs:debilitating_sting"
+      ],
+      "source_actor": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "actual_behavior": "Native attribute template is movement-speed -1 ADD_MULTIPLIED_BASE for admitted recipients: old three-argument arthropod-filter hooks are not dispatched. Non-arthropods above half maximum health request anonymous magic1 every eligible tick, ignoring hurt return. Arthropods: suffocating eye collision writes velocity ZERO/noPhysics=true, sets noGravity to that query and clears jumping. Nonpassenger Mob with a MoveControl subclass receives absolute (0,-1,0). At stored duration1 request magic(amp+1)*30, ignoring acceptance; amp>0 creates a baby Tarantula Hawk above a nonempty-block scan capped at Y256, with spawn Y+.1F; server finalizes BREEDING and adds it. Then clear noGravity/noPhysics independently of hurt acceptance. Early effect removal supplies no proven three-argument physics cleanup. Scheduler lastDuration belongs to the shared effect object.",
+      "closest_vanilla_equivalent": null,
+      "components": [
+        {
+          "primitive": "MOVEMENT_SPEED",
+          "numerical_parameters": {
+            "coefficient": -1.0
+          },
+          "attribute": "minecraft:movement_speed",
+          "native_operation": "ADD_MULTIPLIED_BASE"
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "non_arthropod_damage": 1.0,
+            "terminal_damage_coefficient": 30
+          }
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "special_control_y": -1.0
+          }
+        },
+        {
+          "primitive": "SUMMON_LIFECYCLE",
+          "numerical_parameters": {}
+        },
+        {
+          "primitive": "STATUS_DELIVERY",
+          "numerical_parameters": {
+            "client_duration": 2400
+          }
+        }
+      ],
+      "binary_parameters": {
+        "type_split": "EntityTypeTags.ARTHROPOD",
+        "summon_gate": "amplifier>0 at lastDuration==1",
+        "physics_cleanup": "terminal tick only"
+      },
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectDebilitatingSting.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "isEntityInsideOpaqueBlock",
+            "lambda$isEntityInsideOpaqueBlock$0",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectDebilitatingSting.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/network/MessageTarantulaHawkSting.class",
+          "methods": [
+            "handleClient",
+            "lambda$handleClient$0"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-status-consumers.json",
+          "witness_id": "alexsmobs:status-consumers:com/github/alexthe666/alexsmobs/network/MessageTarantulaHawkSting.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$13"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ],
+      "native_lifecycle": "Original MobEffectInstance admission, stacking, immunity and lifecycle. No extra damage/source/status instance is inferred.",
+      "numeric_observation_scope": "Observed original native inputs only; this does not decide Stage eligibility, policy, balance or hooks.",
+      "native_client_transport": "Queued handler resolves original player-level hawk ID as EntityTarantulaHawk and spider ID as LivingEntity ARTHROPOD, then requests duration2400 default amplifier0. No caller/source team proof or accepted-server-damage dependency is inferred; network registration reviewed separately.",
+      "dispatch_reference": "vanilla-evidence/alexsmobs-effect-dispatch.json",
+      "mod_key": "alexsmobs",
+      "native_boundary": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectDebilitatingSting.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "isEntityInsideOpaqueBlock",
+            "lambda$isEntityInsideOpaqueBlock$0",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/network/MessageTarantulaHawkSting.class",
+          "methods": [
+            "handleClient",
+            "lambda$handleClient$0"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$13"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Native attribute template is movement-speed -1 ADD_MULTIPLIED_BASE for admitted recipients: old three-argument arthropod-filter hooks are not dispatched. Non-arthropods above half maximum health request anonymous magic1 every eligible tick, ignoring hurt return. Arthropods: suffocating eye collision writes velocity ZERO/noPhysics=true, sets noGravity to that query and clears jumping. Nonpassenger Mob with a MoveControl subclass receives absolute (0,-1,0). At stored duration1 request magic(amp+1)*30, ignoring acceptance; amp>0 creates a baby Tarantula Hawk above a nonempty-block scan capped at Y256, with spawn Y+.1F; server finalizes BREEDING and adds it. Then clear noGravity/noPhysics independently of hurt acceptance. Early effect removal supplies no proven three-argument physics cleanup. Scheduler lastDuration belongs to the shared effect object.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectDebilitatingSting.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "isEntityInsideOpaqueBlock",
+            "lambda$isEntityInsideOpaqueBlock$0",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/network/MessageTarantulaHawkSting.class",
+          "methods": [
+            "handleClient",
+            "lambda$handleClient$0"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$13"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/alexsmobs-foundation.json",
+        "native-evidence/alexsmobs-status-consumers.json"
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "alexsmobs:debilitating_sting:native_boundary"
+      ],
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "MOVEMENT_SPEED",
+          "parameters": [
+            "coefficient"
+          ],
+          "native_value": -1.0,
+          "reviewed_parameter_role": "Original coefficient input to MOVEMENT_SPEED; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": -1.0,
+            "value_offset": 23,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectDebilitatingSting.class",
+            "methods": [
+              "<init>"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectDebilitatingSting.class",
+            "descriptor": "()V",
+            "offset": 23,
+            "opcode": "0x14",
+            "operand": -1.0
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectDebilitatingSting.class",
+            "method": "<init>",
+            "descriptor": "()V",
+            "offset": 23
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "non_arthropod_damage"
+          ],
+          "native_value": 1.0,
+          "reviewed_parameter_role": "Original non arthropod damage input to NATIVE_DAMAGE_REQUEST; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 1.0,
+            "value_offset": 36,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectDebilitatingSting.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectDebilitatingSting.class",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 36,
+            "opcode": "0xc",
+            "operand": 1.0
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectDebilitatingSting.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 36
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "terminal_damage_coefficient"
+          ],
+          "native_value": 30,
+          "reviewed_parameter_role": "Original terminal damage coefficient input to NATIVE_DAMAGE_REQUEST; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 30,
+            "value_offset": 140,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectDebilitatingSting.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectDebilitatingSting.class",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 140,
+            "opcode": "0x10",
+            "operand": 30
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectDebilitatingSting.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 140
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "special_control_y"
+          ],
+          "native_value": -1.0,
+          "reviewed_parameter_role": "Original special control y input to FORCED_MOVEMENT; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": -1.0,
+            "value_offset": 111,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectDebilitatingSting.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectDebilitatingSting.class",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 111,
+            "opcode": "0x14",
+            "operand": -1.0
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectDebilitatingSting.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 111
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "STATUS_DELIVERY",
+          "parameters": [
+            "client_duration"
+          ],
+          "native_value": 2400,
+          "reviewed_parameter_role": "Original client duration input to STATUS_DELIVERY; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 2400,
+            "value_offset": 88,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/network/MessageTarantulaHawkSting.class",
+            "methods": [
+              "lambda$handleClient$0"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-status-consumers.json",
+            "witness_id": "alexsmobs:status-consumers:com/github/alexthe666/alexsmobs/network/MessageTarantulaHawkSting.class",
+            "descriptor": "(Lnet/neoforged/neoforge/network/handling/IPayloadContext;Lcom/github/alexthe666/alexsmobs/network/MessageTarantulaHawkSting;)V",
+            "offset": 88,
+            "opcode": "0x11",
+            "operand": 2400
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/network/MessageTarantulaHawkSting.class",
+            "method": "lambda$handleClient$0",
+            "descriptor": "(Lnet/neoforged/neoforge/network/handling/IPayloadContext;Lcom/github/alexthe666/alexsmobs/network/MessageTarantulaHawkSting;)V",
+            "offset": 88
+          },
+          "observation_only": true
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:earthquake",
+      "display_name": "Earthquake",
+      "primary_classification": "CUSTOM_CONTROL",
+      "registry_ids": [
+        "alexsmobs:earthquake"
+      ],
+      "source_actor": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "actual_behavior": "Server status tick is empty. Unpaused client player with Earthquake adds camera roll rng*.5*intensity and pitch rng*1*intensity, where intensity=(min(10,duration)+partialTick)*.1F*screenEffectScale. Camera events change rendered view only: no native entity knockback, terrain damage or entity rotation write is implied.",
+      "closest_vanilla_equivalent": null,
+      "components": [
+        {
+          "primitive": "CAMERA_CONTROL",
+          "numerical_parameters": {
+            "duration_ramp_limit": 10,
+            "intensity_coefficient": 0.10000000149011612,
+            "roll_coefficient": 0.5
+          }
+        }
+      ],
+      "binary_parameters": {
+        "unpaused": true,
+        "owner": "local player",
+        "options": "screenEffectScale"
+      },
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectEarthquake.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectEarthquake.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+          "methods": [
+            "onCameraSetup"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-status-consumers.json",
+          "witness_id": "alexsmobs:status-consumers:com/github/alexthe666/alexsmobs/client/event/ClientEvents.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$15"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ],
+      "native_lifecycle": "Original MobEffectInstance admission, stacking, immunity and lifecycle. No extra damage/source/status instance is inferred.",
+      "numeric_observation_scope": "Observed original native inputs only; this does not decide Stage eligibility, policy, balance or hooks.",
+      "mod_key": "alexsmobs",
+      "native_boundary": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectEarthquake.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+          "methods": [
+            "onCameraSetup"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$15"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Server status tick is empty. Unpaused client player with Earthquake adds camera roll rng*.5*intensity and pitch rng*1*intensity, where intensity=(min(10,duration)+partialTick)*.1F*screenEffectScale. Camera events change rendered view only: no native entity knockback, terrain damage or entity rotation write is implied.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectEarthquake.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+          "methods": [
+            "onCameraSetup"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$15"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/alexsmobs-foundation.json",
+        "native-evidence/alexsmobs-status-consumers.json"
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "alexsmobs:earthquake:native_boundary"
+      ],
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "CAMERA_CONTROL",
+          "parameters": [
+            "duration_ramp_limit"
+          ],
+          "native_value": 10,
+          "reviewed_parameter_role": "Original duration ramp limit input to CAMERA_CONTROL; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 10,
+            "value_offset": 49,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+            "methods": [
+              "onCameraSetup"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-status-consumers.json",
+            "witness_id": "alexsmobs:status-consumers:com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+            "descriptor": "(Lnet/neoforged/neoforge/client/event/ViewportEvent$ComputeCameraAngles;)V",
+            "offset": 49,
+            "opcode": "0x10",
+            "operand": 10
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+            "method": "onCameraSetup",
+            "descriptor": "(Lnet/neoforged/neoforge/client/event/ViewportEvent$ComputeCameraAngles;)V",
+            "offset": 49
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "CAMERA_CONTROL",
+          "parameters": [
+            "intensity_coefficient"
+          ],
+          "native_value": 0.10000000149011612,
+          "reviewed_parameter_role": "Original intensity coefficient input to CAMERA_CONTROL; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 0.10000000149011612,
+            "value_offset": 69,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+            "methods": [
+              "onCameraSetup"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-status-consumers.json",
+            "witness_id": "alexsmobs:status-consumers:com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+            "descriptor": "(Lnet/neoforged/neoforge/client/event/ViewportEvent$ComputeCameraAngles;)V",
+            "offset": 69,
+            "opcode": "0x12",
+            "operand": 0.10000000149011612
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+            "method": "onCameraSetup",
+            "descriptor": "(Lnet/neoforged/neoforge/client/event/ViewportEvent$ComputeCameraAngles;)V",
+            "offset": 69
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "CAMERA_CONTROL",
+          "parameters": [
+            "roll_coefficient"
+          ],
+          "native_value": 0.5,
+          "reviewed_parameter_role": "Original roll coefficient input to CAMERA_CONTROL; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 0.5,
+            "value_offset": 114,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+            "methods": [
+              "onCameraSetup"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-status-consumers.json",
+            "witness_id": "alexsmobs:status-consumers:com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+            "descriptor": "(Lnet/neoforged/neoforge/client/event/ViewportEvent$ComputeCameraAngles;)V",
+            "offset": 114,
+            "opcode": "0x12",
+            "operand": 0.5
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+            "method": "onCameraSetup",
+            "descriptor": "(Lnet/neoforged/neoforge/client/event/ViewportEvent$ComputeCameraAngles;)V",
+            "offset": 114
+          },
+          "observation_only": true
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:ender_flu",
+      "display_name": "Ender Flu",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "registry_ids": [
+        "alexsmobs:ender_flu"
+      ],
+      "source_actor": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "actual_behavior": "Scheduler stores duration on the registered effect object. At lastDuration1, request anonymous magic((amp+1)*10) and ignore hurt return. Create amp+1 Enderiophages at the original recipient position, call onSpawnFromEffect and setSkinForDimension; server sets standard flee time and adds them. Summons are not conditional on damage acceptance and no infected-source attribution is invented. Chorus-fruit Finish event has nextInt(3)==0 cleanse. Interaction with an infected nonplayer/nonEndergrade consumes chorus fruit unless creative; .4 proc removes flu then calls native chorus fruit finishUsingItem on the current copied interaction stack. Its surrounding lasso/rainbow/rabbit branches are not closed by this status proof.",
+      "closest_vanilla_equivalent": null,
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "damage_per_phage": 10
+          }
+        },
+        {
+          "primitive": "SUMMON_LIFECYCLE",
+          "numerical_parameters": {}
+        },
+        {
+          "primitive": "EFFECT_REMOVAL",
+          "numerical_parameters": {
+            "finish_rng_bound": 3,
+            "interaction_chance": 0.4000000059604645
+          }
+        }
+      ],
+      "binary_parameters": {},
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectEnderFlu.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectEnderFlu.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+          "methods": [
+            "onItemUseLast"
+          ],
+          "partial_contract": true,
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/event/ServerEvents.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+          "methods": [
+            "onInteractWithEntity"
+          ],
+          "partial_contract": true,
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/event/ServerEvents.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$10"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ],
+      "native_lifecycle": "Original MobEffectInstance admission, stacking, immunity and lifecycle. No extra damage/source/status instance is inferred.",
+      "numeric_observation_scope": "Observed original native inputs only; this does not decide Stage eligibility, policy, balance or hooks.",
+      "mod_key": "alexsmobs",
+      "native_boundary": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectEnderFlu.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+          "methods": [
+            "onItemUseLast"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+          "methods": [
+            "onInteractWithEntity"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$10"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Scheduler stores duration on the registered effect object. At lastDuration1, request anonymous magic((amp+1)*10) and ignore hurt return. Create amp+1 Enderiophages at the original recipient position, call onSpawnFromEffect and setSkinForDimension; server sets standard flee time and adds them. Summons are not conditional on damage acceptance and no infected-source attribution is invented. Chorus-fruit Finish event has nextInt(3)==0 cleanse. Interaction with an infected nonplayer/nonEndergrade consumes chorus fruit unless creative; .4 proc removes flu then calls native chorus fruit finishUsingItem on the current copied interaction stack. Its surrounding lasso/rainbow/rabbit branches are not closed by this status proof.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectEnderFlu.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+          "methods": [
+            "onItemUseLast"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+          "methods": [
+            "onInteractWithEntity"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$10"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/alexsmobs-foundation.json"
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "alexsmobs:ender_flu:native_boundary"
+      ],
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "damage_per_phage"
+          ],
+          "native_value": 10,
+          "reviewed_parameter_role": "Original damage per phage input to NATIVE_DAMAGE_REQUEST; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 10,
+            "value_offset": 21,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectEnderFlu.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectEnderFlu.class",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 21,
+            "opcode": "0x10",
+            "operand": 10
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectEnderFlu.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 21
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "EFFECT_REMOVAL",
+          "parameters": [
+            "finish_rng_bound"
+          ],
+          "native_value": 3,
+          "reviewed_parameter_role": "Original finish rng bound input to EFFECT_REMOVAL; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 3,
+            "value_offset": 16,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+            "methods": [
+              "onItemUseLast"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+            "descriptor": "(Lnet/neoforged/neoforge/event/entity/living/LivingEntityUseItemEvent$Finish;)V",
+            "offset": 16,
+            "opcode": "0x6",
+            "operand": 3
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+            "method": "onItemUseLast",
+            "descriptor": "(Lnet/neoforged/neoforge/event/entity/living/LivingEntityUseItemEvent$Finish;)V",
+            "offset": 16
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "EFFECT_REMOVAL",
+          "parameters": [
+            "interaction_chance"
+          ],
+          "native_value": 0.4000000059604645,
+          "reviewed_parameter_role": "Original interaction chance input to EFFECT_REMOVAL; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 0.4000000059604645,
+            "value_offset": 198,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+            "methods": [
+              "onInteractWithEntity"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+            "descriptor": "(Lnet/neoforged/neoforge/event/entity/player/PlayerInteractEvent$EntityInteract;)V",
+            "offset": 198,
+            "opcode": "0x13",
+            "operand": 0.4000000059604645
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+            "method": "onInteractWithEntity",
+            "descriptor": "(Lnet/neoforged/neoforge/event/entity/player/PlayerInteractEvent$EntityInteract;)V",
+            "offset": 198
+          },
+          "observation_only": true
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:exsanguination",
+      "display_name": "Exsanguination",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "registry_ids": [
+        "alexsmobs:exsanguination"
+      ],
+      "source_actor": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "actual_behavior": "Positive remaining duration divisible by20 admits tick; stores duration on the registered effect instance. Request anonymous magic min(amp+1,round(float(lastDuration)/20F)); ignore hurt return. Damage-indicator particles are cosmetic, not additional damage or parameters.",
+      "closest_vanilla_equivalent": null,
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "remaining_duration_divisor": 20.0
+          }
+        },
+        {
+          "primitive": "EFFECT_TICK_CADENCE",
+          "numerical_parameters": {
+            "interval": 20
+          }
+        }
+      ],
+      "binary_parameters": {},
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectExsanguination.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectExsanguination.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$14"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ],
+      "native_lifecycle": "Original MobEffectInstance admission, stacking, immunity and lifecycle. No extra damage/source/status instance is inferred.",
+      "numeric_observation_scope": "Observed original native inputs only; this does not decide Stage eligibility, policy, balance or hooks.",
+      "mod_key": "alexsmobs",
+      "native_boundary": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectExsanguination.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$14"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Positive remaining duration divisible by20 admits tick; stores duration on the registered effect instance. Request anonymous magic min(amp+1,round(float(lastDuration)/20F)); ignore hurt return. Damage-indicator particles are cosmetic, not additional damage or parameters.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectExsanguination.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$14"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/alexsmobs-foundation.json"
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "alexsmobs:exsanguination:native_boundary"
+      ],
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "remaining_duration_divisor"
+          ],
+          "native_value": 20.0,
+          "reviewed_parameter_role": "Original remaining duration divisor input to NATIVE_DAMAGE_REQUEST; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 20.0,
+            "value_offset": 16,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectExsanguination.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectExsanguination.class",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 16,
+            "opcode": "0x12",
+            "operand": 20.0
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectExsanguination.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 16
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "EFFECT_TICK_CADENCE",
+          "parameters": [
+            "interval"
+          ],
+          "native_value": 20,
+          "reviewed_parameter_role": "Original interval input to EFFECT_TICK_CADENCE; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 20,
+            "value_offset": 10,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectExsanguination.class",
+            "methods": [
+              "shouldApplyEffectTickThisTick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectExsanguination.class",
+            "descriptor": "(II)Z",
+            "offset": 10,
+            "opcode": "0x10",
+            "operand": 20
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectExsanguination.class",
+            "method": "shouldApplyEffectTickThisTick",
+            "descriptor": "(II)Z",
+            "offset": 10
+          },
+          "observation_only": true
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:fear",
+      "display_name": "Fear",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "registry_ids": [
+        "alexsmobs:fear"
+      ],
+      "source_actor": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "actual_behavior": "Native movement-speed modifier fear_speed is -1 ADD_MULTIPLIED_BASE, preserving base MobEffect amplifier handling. Every tick with positive Y motion outside water/bubble multiplies velocity (1,0,1). Y suppression is a native binary control, not a signed force contribution.",
+      "closest_vanilla_equivalent": null,
+      "components": [
+        {
+          "primitive": "MOVEMENT_SPEED",
+          "numerical_parameters": {
+            "coefficient": -1.0
+          },
+          "attribute": "minecraft:movement_speed",
+          "native_operation": "ADD_MULTIPLIED_BASE"
+        },
+        {
+          "primitive": "MOVEMENT_GATE",
+          "numerical_parameters": {}
+        }
+      ],
+      "binary_parameters": {},
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectFear.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectFear.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$11"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ],
+      "native_lifecycle": "Original MobEffectInstance admission, stacking, immunity and lifecycle. No extra damage/source/status instance is inferred.",
+      "numeric_observation_scope": "Observed original native inputs only; this does not decide Stage eligibility, policy, balance or hooks.",
+      "mod_key": "alexsmobs",
+      "native_boundary": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectFear.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$11"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Native movement-speed modifier fear_speed is -1 ADD_MULTIPLIED_BASE, preserving base MobEffect amplifier handling. Every tick with positive Y motion outside water/bubble multiplies velocity (1,0,1). Y suppression is a native binary control, not a signed force contribution.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectFear.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$11"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/alexsmobs-foundation.json"
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "alexsmobs:fear:native_boundary"
+      ],
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "MOVEMENT_SPEED",
+          "parameters": [
+            "coefficient"
+          ],
+          "native_value": -1.0,
+          "reviewed_parameter_role": "Original coefficient input to MOVEMENT_SPEED; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": -1.0,
+            "value_offset": 18,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectFear.class",
+            "methods": [
+              "<init>"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectFear.class",
+            "descriptor": "()V",
+            "offset": 18,
+            "opcode": "0x14",
+            "operand": -1.0
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectFear.class",
+            "method": "<init>",
+            "descriptor": "()V",
+            "offset": 18
+          },
+          "observation_only": true
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:fleet_footed",
+      "display_name": "Fleet Footed",
+      "primary_classification": "CUSTOM_STATUS",
+      "registry_ids": [
+        "alexsmobs:fleet_footed"
+      ],
+      "source_actor": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "actual_behavior": "Tick queries the recipient's FleetFooted duration and MOVEMENT_SPEED. Sprinting airborne with duration>2 admits a permanent same-ID ADD_VALUE .2F modifier when absent and resets removeEffectAfter=5. Shared effect-object counter decrements on recipient ticks; remove modifier when counter<=0 or duration<2. This is not a per-entity clock. Old three-argument removal hook is never native-dispatched, so early removal supplies no guaranteed cleanup of the permanent modifier. Preserve exact shared state and native attribute null behavior.",
+      "closest_vanilla_equivalent": null,
+      "components": [
+        {
+          "primitive": "MOVEMENT_SPEED",
+          "numerical_parameters": {
+            "coefficient": 0.20000000298023224
+          },
+          "attribute": "minecraft:movement_speed",
+          "native_operation": "ADD_VALUE"
+        },
+        {
+          "primitive": "STATUS_CLOCK",
+          "numerical_parameters": {
+            "linger_counter": 5
+          }
+        }
+      ],
+      "binary_parameters": {},
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectFleetFooted.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectFleetFooted.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$16"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ],
+      "native_lifecycle": "Original MobEffectInstance admission, stacking, immunity and lifecycle. No extra damage/source/status instance is inferred.",
+      "numeric_observation_scope": "Observed original native inputs only; this does not decide Stage eligibility, policy, balance or hooks.",
+      "dispatch_reference": "vanilla-evidence/alexsmobs-effect-dispatch.json",
+      "mod_key": "alexsmobs",
+      "native_boundary": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectFleetFooted.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$16"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Tick queries the recipient's FleetFooted duration and MOVEMENT_SPEED. Sprinting airborne with duration>2 admits a permanent same-ID ADD_VALUE .2F modifier when absent and resets removeEffectAfter=5. Shared effect-object counter decrements on recipient ticks; remove modifier when counter<=0 or duration<2. This is not a per-entity clock. Old three-argument removal hook is never native-dispatched, so early removal supplies no guaranteed cleanup of the permanent modifier. Preserve exact shared state and native attribute null behavior.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectFleetFooted.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$16"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/alexsmobs-foundation.json"
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "alexsmobs:fleet_footed:native_boundary"
+      ],
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "MOVEMENT_SPEED",
+          "parameters": [
+            "coefficient"
+          ],
+          "native_value": 0.20000000298023224,
+          "reviewed_parameter_role": "Original coefficient input to MOVEMENT_SPEED; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 0.20000000298023224,
+            "value_offset": 11,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectFleetFooted.class",
+            "methods": [
+              "<clinit>"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectFleetFooted.class",
+            "descriptor": "()V",
+            "offset": 11,
+            "opcode": "0x14",
+            "operand": 0.20000000298023224
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectFleetFooted.class",
+            "method": "<clinit>",
+            "descriptor": "()V",
+            "offset": 11
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "STATUS_CLOCK",
+          "parameters": [
+            "linger_counter"
+          ],
+          "native_value": 5,
+          "reviewed_parameter_role": "Original linger counter input to STATUS_CLOCK; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 5,
+            "value_offset": 104,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectFleetFooted.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectFleetFooted.class",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 104,
+            "opcode": "0x8",
+            "operand": 5
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectFleetFooted.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 104
+          },
+          "observation_only": true
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:knockback_resistance",
+      "display_name": "Knockback Resistance",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "registry_ids": [
+        "alexsmobs:knockback_resistance"
+      ],
+      "source_actor": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "actual_behavior": "Original status registers knockback_resistance KNOCKBACK_RESISTANCE +.5 ADD_VALUE; own tick is empty. Base MobEffect applies coefficient*(amp+1) using its native attribute lifecycle. This is attribute resistance, not cancelling every knockback event.",
+      "closest_vanilla_equivalent": null,
+      "components": [
+        {
+          "primitive": "KNOCKBACK_RESISTANCE",
+          "numerical_parameters": {
+            "coefficient": 0.5
+          },
+          "attribute": "minecraft:knockback_resistance",
+          "native_operation": "ADD_VALUE"
+        }
+      ],
+      "binary_parameters": {},
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectKnockbackResistance.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectKnockbackResistance.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$0"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ],
+      "native_lifecycle": "Original MobEffectInstance admission, stacking, immunity and lifecycle. No extra damage/source/status instance is inferred.",
+      "numeric_observation_scope": "Observed original native inputs only; this does not decide Stage eligibility, policy, balance or hooks.",
+      "mod_key": "alexsmobs",
+      "native_boundary": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectKnockbackResistance.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$0"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Original status registers knockback_resistance KNOCKBACK_RESISTANCE +.5 ADD_VALUE; own tick is empty. Base MobEffect applies coefficient*(amp+1) using its native attribute lifecycle. This is attribute resistance, not cancelling every knockback event.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectKnockbackResistance.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$0"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/alexsmobs-foundation.json"
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "alexsmobs:knockback_resistance:native_boundary"
+      ],
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "KNOCKBACK_RESISTANCE",
+          "parameters": [
+            "coefficient"
+          ],
+          "native_value": 0.5,
+          "reviewed_parameter_role": "Original coefficient input to KNOCKBACK_RESISTANCE; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 0.5,
+            "value_offset": 18,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectKnockbackResistance.class",
+            "methods": [
+              "<init>"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectKnockbackResistance.class",
+            "descriptor": "()V",
+            "offset": 18,
+            "opcode": "0x14",
+            "operand": 0.5
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectKnockbackResistance.class",
+            "method": "<init>",
+            "descriptor": "()V",
+            "offset": 18
+          },
+          "observation_only": true
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:lava_vision",
+      "display_name": "Lava Vision",
+      "primary_classification": "CUSTOM_STATUS",
+      "registry_ids": [
+        "alexsmobs:lava_vision"
+      ],
+      "source_actor": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "actual_behavior": "Effect tick is empty. Registered client fog handler with LavaVision and LAVA camera fluid writes near=-8 and far=50 and cancels fog; fluid render hook selects translucent only for lava/flowing_lava. This is visibility behavior, not damage immunity, fire resistance or an entity-motion effect. Shader/render restoration utility remains a separate pending client boundary.",
+      "closest_vanilla_equivalent": null,
+      "components": [
+        {
+          "primitive": "VISIBILITY_RANGE",
+          "numerical_parameters": {
+            "near_plane": -8.0,
+            "far_plane": 50.0
+          }
+        }
+      ],
+      "binary_parameters": {
+        "camera_fluid": "LAVA",
+        "render_types": "lava or flowing_lava"
+      },
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectLavaVision.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectLavaVision.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+          "methods": [
+            "onFogDensity"
+          ],
+          "partial_contract": true,
+          "evidence_file": "native-evidence/alexsmobs-status-consumers.json",
+          "witness_id": "alexsmobs:status-consumers:com/github/alexthe666/alexsmobs/client/event/ClientEvents.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+          "methods": [
+            "onGetFluidRenderType"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-status-consumers.json",
+          "witness_id": "alexsmobs:status-consumers:com/github/alexthe666/alexsmobs/client/event/ClientEvents.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$1"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ],
+      "native_lifecycle": "Original MobEffectInstance admission, stacking, immunity and lifecycle. No extra damage/source/status instance is inferred.",
+      "numeric_observation_scope": "Observed original native inputs only; this does not decide Stage eligibility, policy, balance or hooks.",
+      "mod_key": "alexsmobs",
+      "native_boundary": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectLavaVision.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+          "methods": [
+            "onFogDensity"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+          "methods": [
+            "onGetFluidRenderType"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$1"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Effect tick is empty. Registered client fog handler with LavaVision and LAVA camera fluid writes near=-8 and far=50 and cancels fog; fluid render hook selects translucent only for lava/flowing_lava. This is visibility behavior, not damage immunity, fire resistance or an entity-motion effect. Shader/render restoration utility remains a separate pending client boundary.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectLavaVision.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+          "methods": [
+            "onFogDensity"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+          "methods": [
+            "onGetFluidRenderType"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$1"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/alexsmobs-foundation.json",
+        "native-evidence/alexsmobs-status-consumers.json"
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "alexsmobs:lava_vision:native_boundary"
+      ],
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "VISIBILITY_RANGE",
+          "parameters": [
+            "near_plane"
+          ],
+          "native_value": -8.0,
+          "reviewed_parameter_role": "Original near plane input to VISIBILITY_RANGE; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": -8.0,
+            "value_offset": 31,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+            "methods": [
+              "onFogDensity"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-status-consumers.json",
+            "witness_id": "alexsmobs:status-consumers:com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+            "descriptor": "(Lnet/neoforged/neoforge/client/event/ViewportEvent$RenderFog;)V",
+            "offset": 31,
+            "opcode": "0x12",
+            "operand": -8.0
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+            "method": "onFogDensity",
+            "descriptor": "(Lnet/neoforged/neoforge/client/event/ViewportEvent$RenderFog;)V",
+            "offset": 31
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "VISIBILITY_RANGE",
+          "parameters": [
+            "far_plane"
+          ],
+          "native_value": 50.0,
+          "reviewed_parameter_role": "Original far plane input to VISIBILITY_RANGE; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 50.0,
+            "value_offset": 37,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+            "methods": [
+              "onFogDensity"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-status-consumers.json",
+            "witness_id": "alexsmobs:status-consumers:com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+            "descriptor": "(Lnet/neoforged/neoforge/client/event/ViewportEvent$RenderFog;)V",
+            "offset": 37,
+            "opcode": "0x12",
+            "operand": 50.0
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+            "method": "onFogDensity",
+            "descriptor": "(Lnet/neoforged/neoforge/client/event/ViewportEvent$RenderFog;)V",
+            "offset": 37
+          },
+          "observation_only": true
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:oiled",
+      "display_name": "Oiled",
+      "primary_classification": "CUSTOM_CONTROL",
+      "registry_ids": [
+        "alexsmobs:oiled"
+      ],
+      "source_actor": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "actual_behavior": "Every tick in water/rain/bubble: without shift add Y=.1; with shift clear fallDistance. If not on ground multiply only Y by .9, preserving X/Z. No amplifier use or own server-only guard.",
+      "closest_vanilla_equivalent": null,
+      "components": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "buoyancy_y": 0.1,
+            "vertical_factor": 0.9
+          }
+        }
+      ],
+      "binary_parameters": {},
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectOiled.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectOiled.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$5"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ],
+      "native_lifecycle": "Original MobEffectInstance admission, stacking, immunity and lifecycle. No extra damage/source/status instance is inferred.",
+      "numeric_observation_scope": "Observed original native inputs only; this does not decide Stage eligibility, policy, balance or hooks.",
+      "mod_key": "alexsmobs",
+      "native_boundary": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectOiled.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$5"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Every tick in water/rain/bubble: without shift add Y=.1; with shift clear fallDistance. If not on ground multiply only Y by .9, preserving X/Z. No amplifier use or own server-only guard.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectOiled.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$5"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/alexsmobs-foundation.json"
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "alexsmobs:oiled:native_boundary"
+      ],
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "buoyancy_y"
+          ],
+          "native_value": 0.1,
+          "reviewed_parameter_role": "Original buoyancy y input to FORCED_MOVEMENT; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 0.1,
+            "value_offset": 20,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectOiled.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectOiled.class",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 20,
+            "opcode": "0x14",
+            "operand": 0.1
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectOiled.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 20
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "vertical_factor"
+          ],
+          "native_value": 0.9,
+          "reviewed_parameter_role": "Original vertical factor input to FORCED_MOVEMENT; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 0.9,
+            "value_offset": 53,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectOiled.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectOiled.class",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 53,
+            "opcode": "0x14",
+            "operand": 0.9
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectOiled.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 53
+          },
+          "observation_only": true
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:orcas_might",
+      "display_name": "Orcas Might",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "registry_ids": [
+        "alexsmobs:orcas_might"
+      ],
+      "source_actor": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "actual_behavior": "Native status registers orca_might_attack_speed ATTACK_SPEED +3 ADD_VALUE, preserving base MobEffect amplifier and lifecycle. It is not Haste's operation or melee damage.",
+      "closest_vanilla_equivalent": null,
+      "components": [
+        {
+          "primitive": "ATTACK_SPEED",
+          "numerical_parameters": {
+            "coefficient": 3.0
+          },
+          "attribute": "minecraft:attack_speed",
+          "native_operation": "ADD_VALUE"
+        }
+      ],
+      "binary_parameters": {},
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectOrcaMight.class",
+          "methods": [
+            "<init>",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectOrcaMight.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$6"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ],
+      "native_lifecycle": "Original MobEffectInstance admission, stacking, immunity and lifecycle. No extra damage/source/status instance is inferred.",
+      "numeric_observation_scope": "Observed original native inputs only; this does not decide Stage eligibility, policy, balance or hooks.",
+      "mod_key": "alexsmobs",
+      "native_boundary": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectOrcaMight.class",
+          "methods": [
+            "<init>",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$6"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Native status registers orca_might_attack_speed ATTACK_SPEED +3 ADD_VALUE, preserving base MobEffect amplifier and lifecycle. It is not Haste's operation or melee damage.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectOrcaMight.class",
+          "methods": [
+            "<init>",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$6"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/alexsmobs-foundation.json"
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "alexsmobs:orcas_might:native_boundary"
+      ],
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "ATTACK_SPEED",
+          "parameters": [
+            "coefficient"
+          ],
+          "native_value": 3.0,
+          "reviewed_parameter_role": "Original coefficient input to ATTACK_SPEED; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 3.0,
+            "value_offset": 18,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectOrcaMight.class",
+            "methods": [
+              "<init>"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectOrcaMight.class",
+            "descriptor": "()V",
+            "offset": 18,
+            "opcode": "0x14",
+            "operand": 3.0
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectOrcaMight.class",
+            "method": "<init>",
+            "descriptor": "()V",
+            "offset": 18
+          },
+          "observation_only": true
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:poison_resistance",
+      "display_name": "Poison Resistance",
+      "primary_classification": "BINARY_MECHANIC",
+      "registry_ids": [
+        "alexsmobs:poison_resistance"
+      ],
+      "source_actor": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "actual_behavior": "Every effect tick checks vanilla POISON and requests removal when present, ignoring removal return. This is periodic cleanse, not an effect-admission veto or numeric poison-damage reduction.",
+      "closest_vanilla_equivalent": null,
+      "components": [
+        {
+          "primitive": "EFFECT_REMOVAL",
+          "numerical_parameters": {}
+        }
+      ],
+      "binary_parameters": {
+        "status": "vanilla POISON"
+      },
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectPoisonResistance.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectPoisonResistance.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$4"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ],
+      "native_lifecycle": "Original MobEffectInstance admission, stacking, immunity and lifecycle. No extra damage/source/status instance is inferred.",
+      "numeric_observation_scope": "Observed original native inputs only; this does not decide Stage eligibility, policy, balance or hooks.",
+      "mod_key": "alexsmobs",
+      "native_boundary": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectPoisonResistance.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$4"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Every effect tick checks vanilla POISON and requests removal when present, ignoring removal return. This is periodic cleanse, not an effect-admission veto or numeric poison-damage reduction.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectPoisonResistance.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$4"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/alexsmobs-foundation.json"
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "alexsmobs:poison_resistance:native_boundary"
+      ],
+      "scalable_parameter_candidates": []
+    },
+    {
+      "id": "alexsmobs:power_down",
+      "display_name": "Power Down",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "registry_ids": [
+        "alexsmobs:power_down"
+      ],
+      "source_actor": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "actual_behavior": "Native movement-speed template power_down_speed is -1 ADD_MULTIPLIED_BASE. Positive Y outside water/bubble is zeroed. Scheduler stores shared lastDuration/firstDuration; initialization/reset follows the original -1 sentinel and positive-duration test, not per-recipient state. Tick plays sound/ENTITY_ACTION when clocks equal; getActiveTime is first-last. Old three-argument add/remove reset hooks do not match native dispatch. Client fog color sets RGB0 after holder queries. onGetStarBrightness and the admitted no-fluid PowerDown arm of onFogDensity cast MobEffectInstance.getEffect() (Holder) to EffectPowerDown directly: native registered DeferredHolder is not that class, so downstream brightness/fog formulas are not proven live contributions. Preserve this class-cast failure instead of substituting Holder.value().",
+      "closest_vanilla_equivalent": null,
+      "components": [
+        {
+          "primitive": "MOVEMENT_SPEED",
+          "numerical_parameters": {
+            "coefficient": -1.0
+          },
+          "attribute": "minecraft:movement_speed",
+          "native_operation": "ADD_MULTIPLIED_BASE"
+        },
+        {
+          "primitive": "MOVEMENT_GATE",
+          "numerical_parameters": {}
+        },
+        {
+          "primitive": "VISIBILITY_GATE",
+          "numerical_parameters": {}
+        }
+      ],
+      "binary_parameters": {
+        "shared_clock": true,
+        "client_wrong_cast": "Holder -> EffectPowerDown, no value() dereference"
+      },
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectPowerDown.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getActiveTime",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectPowerDown.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+          "methods": [
+            "onFogColor",
+            "onGetStarBrightness"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-status-consumers.json",
+          "witness_id": "alexsmobs:status-consumers:com/github/alexthe666/alexsmobs/client/event/ClientEvents.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+          "methods": [
+            "onFogDensity"
+          ],
+          "partial_contract": true,
+          "evidence_file": "native-evidence/alexsmobs-status-consumers.json",
+          "witness_id": "alexsmobs:status-consumers:com/github/alexthe666/alexsmobs/client/event/ClientEvents.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$17"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ],
+      "native_lifecycle": "Original MobEffectInstance admission, stacking, immunity and lifecycle. No extra damage/source/status instance is inferred.",
+      "numeric_observation_scope": "Observed original native inputs only; this does not decide Stage eligibility, policy, balance or hooks.",
+      "dispatch_reference": "vanilla-evidence/alexsmobs-effect-dispatch.json",
+      "mod_key": "alexsmobs",
+      "native_boundary": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectPowerDown.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getActiveTime",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+          "methods": [
+            "onFogColor",
+            "onGetStarBrightness"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+          "methods": [
+            "onFogDensity"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$17"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Native movement-speed template power_down_speed is -1 ADD_MULTIPLIED_BASE. Positive Y outside water/bubble is zeroed. Scheduler stores shared lastDuration/firstDuration; initialization/reset follows the original -1 sentinel and positive-duration test, not per-recipient state. Tick plays sound/ENTITY_ACTION when clocks equal; getActiveTime is first-last. Old three-argument add/remove reset hooks do not match native dispatch. Client fog color sets RGB0 after holder queries. onGetStarBrightness and the admitted no-fluid PowerDown arm of onFogDensity cast MobEffectInstance.getEffect() (Holder) to EffectPowerDown directly: native registered DeferredHolder is not that class, so downstream brightness/fog formulas are not proven live contributions. Preserve this class-cast failure instead of substituting Holder.value().",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectPowerDown.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getActiveTime",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+          "methods": [
+            "onFogColor",
+            "onGetStarBrightness"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+          "methods": [
+            "onFogDensity"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$17"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/alexsmobs-foundation.json",
+        "native-evidence/alexsmobs-status-consumers.json"
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "alexsmobs:power_down:native_boundary"
+      ],
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "MOVEMENT_SPEED",
+          "parameters": [
+            "coefficient"
+          ],
+          "native_value": -1.0,
+          "reviewed_parameter_role": "Original coefficient input to MOVEMENT_SPEED; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": -1.0,
+            "value_offset": 27,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectPowerDown.class",
+            "methods": [
+              "<init>"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectPowerDown.class",
+            "descriptor": "()V",
+            "offset": 27,
+            "opcode": "0x14",
+            "operand": -1.0
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectPowerDown.class",
+            "method": "<init>",
+            "descriptor": "()V",
+            "offset": 27
+          },
+          "observation_only": true
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:soulsteal",
+      "display_name": "Soulsteal",
+      "primary_classification": "CUSTOM_RESOURCE",
+      "registry_ids": [
+        "alexsmobs:soulsteal"
+      ],
+      "source_actor": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "actual_behavior": "Own tick is empty. LivingDamageEvent.Pre first reads causing DamageSource.getEntity as LivingEntity. Positive event newDamage + Soulsteal + wounded causing actor admit random proc probability .25+(amp+1)*.25, without local clamp. Heal min(newDamage/2F*(amp+1),2+2*(amp+1)). This precedes this same handler's owned MimicOctopus victim immunity and Emu leggings damage-zeroing. It is neither hurt-return-dependent nor final health-loss based; a projectile direct entity is not substituted for causing actor. Other handler gear contributions remain independently recorded.",
+      "closest_vanilla_equivalent": null,
+      "components": [
+        {
+          "primitive": "PROC_CHANCE",
+          "numerical_parameters": {
+            "base_probability": 0.25,
+            "level_probability_coefficient": 0.25
+          }
+        },
+        {
+          "primitive": "HEALING",
+          "numerical_parameters": {
+            "damage_divisor": 2.0,
+            "cap_base": 2,
+            "cap_level_coefficient": 2
+          }
+        }
+      ],
+      "binary_parameters": {},
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectSoulsteal.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectSoulsteal.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+          "methods": [
+            "onLivingDamageEvent"
+          ],
+          "partial_contract": true,
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/event/ServerEvents.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$8"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ],
+      "native_lifecycle": "Original MobEffectInstance admission, stacking, immunity and lifecycle. No extra damage/source/status instance is inferred.",
+      "numeric_observation_scope": "Observed original native inputs only; this does not decide Stage eligibility, policy, balance or hooks.",
+      "mod_key": "alexsmobs",
+      "native_boundary": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectSoulsteal.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+          "methods": [
+            "onLivingDamageEvent"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$8"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Own tick is empty. LivingDamageEvent.Pre first reads causing DamageSource.getEntity as LivingEntity. Positive event newDamage + Soulsteal + wounded causing actor admit random proc probability .25+(amp+1)*.25, without local clamp. Heal min(newDamage/2F*(amp+1),2+2*(amp+1)). This precedes this same handler's owned MimicOctopus victim immunity and Emu leggings damage-zeroing. It is neither hurt-return-dependent nor final health-loss based; a projectile direct entity is not substituted for causing actor. Other handler gear contributions remain independently recorded.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectSoulsteal.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+          "methods": [
+            "onLivingDamageEvent"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$8"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/alexsmobs-foundation.json"
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "alexsmobs:soulsteal:native_boundary"
+      ],
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "PROC_CHANCE",
+          "parameters": [
+            "base_probability"
+          ],
+          "native_value": 0.25,
+          "reviewed_parameter_role": "Original base probability input to PROC_CHANCE; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 0.25,
+            "value_offset": 80,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+            "methods": [
+              "onLivingDamageEvent"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+            "descriptor": "(Lnet/neoforged/neoforge/event/entity/living/LivingDamageEvent$Pre;)V",
+            "offset": 80,
+            "opcode": "0x13",
+            "operand": 0.25
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+            "method": "onLivingDamageEvent",
+            "descriptor": "(Lnet/neoforged/neoforge/event/entity/living/LivingDamageEvent$Pre;)V",
+            "offset": 80
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "PROC_CHANCE",
+          "parameters": [
+            "level_probability_coefficient"
+          ],
+          "native_value": 0.25,
+          "reviewed_parameter_role": "Original level probability coefficient input to PROC_CHANCE; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 0.25,
+            "value_offset": 85,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+            "methods": [
+              "onLivingDamageEvent"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+            "descriptor": "(Lnet/neoforged/neoforge/event/entity/living/LivingDamageEvent$Pre;)V",
+            "offset": 85,
+            "opcode": "0x13",
+            "operand": 0.25
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+            "method": "onLivingDamageEvent",
+            "descriptor": "(Lnet/neoforged/neoforge/event/entity/living/LivingDamageEvent$Pre;)V",
+            "offset": 85
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "HEALING",
+          "parameters": [
+            "damage_divisor"
+          ],
+          "native_value": 2.0,
+          "reviewed_parameter_role": "Original damage divisor input to HEALING; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 2.0,
+            "value_offset": 99,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+            "methods": [
+              "onLivingDamageEvent"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+            "descriptor": "(Lnet/neoforged/neoforge/event/entity/living/LivingDamageEvent$Pre;)V",
+            "offset": 99,
+            "opcode": "0xd",
+            "operand": 2.0
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+            "method": "onLivingDamageEvent",
+            "descriptor": "(Lnet/neoforged/neoforge/event/entity/living/LivingDamageEvent$Pre;)V",
+            "offset": 99
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "HEALING",
+          "parameters": [
+            "cap_base"
+          ],
+          "native_value": 2,
+          "reviewed_parameter_role": "Original cap base input to HEALING; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 2,
+            "value_offset": 104,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+            "methods": [
+              "onLivingDamageEvent"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+            "descriptor": "(Lnet/neoforged/neoforge/event/entity/living/LivingDamageEvent$Pre;)V",
+            "offset": 104,
+            "opcode": "0x5",
+            "operand": 2
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+            "method": "onLivingDamageEvent",
+            "descriptor": "(Lnet/neoforged/neoforge/event/entity/living/LivingDamageEvent$Pre;)V",
+            "offset": 104
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "HEALING",
+          "parameters": [
+            "cap_level_coefficient"
+          ],
+          "native_value": 2,
+          "reviewed_parameter_role": "Original cap level coefficient input to HEALING; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 2,
+            "value_offset": 105,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+            "methods": [
+              "onLivingDamageEvent"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+            "descriptor": "(Lnet/neoforged/neoforge/event/entity/living/LivingDamageEvent$Pre;)V",
+            "offset": 105,
+            "opcode": "0x5",
+            "operand": 2
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+            "method": "onLivingDamageEvent",
+            "descriptor": "(Lnet/neoforged/neoforge/event/entity/living/LivingDamageEvent$Pre;)V",
+            "offset": 105
+          },
+          "observation_only": true
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:sunbird_blessing",
+      "display_name": "Sunbird Blessing",
+      "primary_classification": "CUSTOM_CONTROL",
+      "registry_ids": [
+        "alexsmobs:sunbird_blessing"
+      ],
+      "source_actor": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "actual_behavior": "Blessing variant clears fallDistance. While fall-flying, pitch<-10 enables addY=.02+abs(pitch)/90F*.02. Otherwise airborne, not crouching and descending multiplies Y by .6 while preserving X/Z. No direct damage or vanilla SlowFalling replacement is inferred.",
+      "closest_vanilla_equivalent": null,
+      "components": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "pitch_divisor": 90.0,
+            "flight_base_y": 0.02,
+            "flight_pitch_coefficient": 0.02,
+            "fall_factor": 0.6
+          }
+        }
+      ],
+      "binary_parameters": {
+        "variant": "constructor curse=false",
+        "pitch_gate": "pitch<-10",
+        "descending_gate": "Y<0"
+      },
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectSunbird.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectSunbird.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$2"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ],
+      "native_lifecycle": "Original MobEffectInstance admission, stacking, immunity and lifecycle. No extra damage/source/status instance is inferred.",
+      "numeric_observation_scope": "Observed original native inputs only; this does not decide Stage eligibility, policy, balance or hooks.",
+      "mod_key": "alexsmobs",
+      "native_boundary": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectSunbird.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$2"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Blessing variant clears fallDistance. While fall-flying, pitch<-10 enables addY=.02+abs(pitch)/90F*.02. Otherwise airborne, not crouching and descending multiplies Y by .6 while preserving X/Z. No direct damage or vanilla SlowFalling replacement is inferred.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectSunbird.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$2"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/alexsmobs-foundation.json"
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "alexsmobs:sunbird_blessing:native_boundary"
+      ],
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "pitch_divisor"
+          ],
+          "native_value": 90.0,
+          "reviewed_parameter_role": "Original pitch divisor input to FORCED_MOVEMENT; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 90.0,
+            "value_offset": 130,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectSunbird.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectSunbird.class",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 130,
+            "opcode": "0x12",
+            "operand": 90.0
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectSunbird.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 130
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "flight_base_y"
+          ],
+          "native_value": 0.02,
+          "reviewed_parameter_role": "Original flight base y input to FORCED_MOVEMENT; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 0.02,
+            "value_offset": 140,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectSunbird.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectSunbird.class",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 140,
+            "opcode": "0x14",
+            "operand": 0.02
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectSunbird.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 140
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "flight_pitch_coefficient"
+          ],
+          "native_value": 0.02,
+          "reviewed_parameter_role": "Original flight pitch coefficient input to FORCED_MOVEMENT; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 0.02,
+            "value_offset": 145,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectSunbird.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectSunbird.class",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 145,
+            "opcode": "0x14",
+            "operand": 0.02
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectSunbird.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 145
+          },
+          "observation_only": true
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "fall_factor"
+          ],
+          "native_value": 0.6,
+          "reviewed_parameter_role": "Original fall factor input to FORCED_MOVEMENT; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": 0.6,
+            "value_offset": 191,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectSunbird.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectSunbird.class",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 191,
+            "opcode": "0x14",
+            "operand": 0.6
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectSunbird.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 191
+          },
+          "observation_only": true
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:sunbird_curse",
+      "display_name": "Sunbird Curse",
+      "primary_classification": "CUSTOM_CONTROL",
+      "registry_ids": [
+        "alexsmobs:sunbird_curse"
+      ],
+      "source_actor": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "actual_behavior": "Curse variant stops fall-flying for Player first. Downward force is admitted for nonplayers or player when !creative || !abilities.flying, and only off ground; add Y=-.2F. Creative flight gate does not erase the earlier stopFallFlying call. No damage/source substitution.",
+      "closest_vanilla_equivalent": null,
+      "components": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "downward_y": -0.20000000298023224
+          }
+        }
+      ],
+      "binary_parameters": {
+        "variant": "constructor curse=true"
+      },
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectSunbird.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectSunbird.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$3"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ],
+      "native_lifecycle": "Original MobEffectInstance admission, stacking, immunity and lifecycle. No extra damage/source/status instance is inferred.",
+      "numeric_observation_scope": "Observed original native inputs only; this does not decide Stage eligibility, policy, balance or hooks.",
+      "mod_key": "alexsmobs",
+      "native_boundary": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectSunbird.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$3"
+          ]
+        }
+      ],
+      "inspection_status": "VERIFIED_PINNED_NATIVE_CONTRACT",
+      "vanilla_similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "vanilla_differences": "Curse variant stops fall-flying for Player first. Downward force is admitted for nonplayers or player when !creative || !abilities.flying, and only off ground; add Y=-.2F. Creative flight gate does not erase the earlier stopFallFlying call. No damage/source substitution.",
+      "alternate_sources": [],
+      "primary_test_source": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectSunbird.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ]
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$3"
+          ]
+        }
+      ],
+      "reference_evidence": [
+        "native-evidence/alexsmobs-foundation.json"
+      ],
+      "unresolved_ambiguities": [],
+      "delivery_paths": [
+        "alexsmobs:sunbird_curse:native_boundary"
+      ],
+      "scalable_parameter_candidates": [
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "parameters": [
+            "downward_y"
+          ],
+          "native_value": -0.20000000298023224,
+          "reviewed_parameter_role": "Original downward y input to FORCED_MOVEMENT; context and native gates recorded in actual_behavior.",
+          "native_literal_numeric_site_binding": {
+            "native_value": -0.20000000298023224,
+            "value_offset": 88,
+            "kind": "EXPLICITLY_REVIEWED_LITERAL_SITE"
+          },
+          "native_consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectSunbird.class",
+            "methods": [
+              "applyEffectTick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-foundation.json",
+            "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectSunbird.class",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 88,
+            "opcode": "0x14",
+            "operand": -0.20000000298023224
+          },
+          "native_parameter_identity": {
+            "entry": "com/github/alexthe666/alexsmobs/effect/EffectSunbird.class",
+            "method": "applyEffectTick",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;I)Z",
+            "offset": 88
+          },
+          "observation_only": true
+        }
+      ]
+    }
+  ],
+  "paths": [
+    {
+      "id": "alexsmobs:bug_pheromones:native_boundary",
+      "mod_key": "alexsmobs",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "alexsmobs:bug_pheromones"
+      ],
+      "primary_source": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectBugPheromones.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectBugPheromones.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+          "methods": [
+            "onLivingSetTargetEvent"
+          ],
+          "partial_contract": true,
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/event/ServerEvents.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$7"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:clinging:native_boundary",
+      "mod_key": "alexsmobs",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "alexsmobs:clinging"
+      ],
+      "primary_source": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectClinging.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "isNearCeiling",
+            "isUpsideDown",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectClinging.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$9"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:debilitating_sting:native_boundary",
+      "mod_key": "alexsmobs",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "alexsmobs:debilitating_sting"
+      ],
+      "primary_source": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectDebilitatingSting.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "isEntityInsideOpaqueBlock",
+            "lambda$isEntityInsideOpaqueBlock$0",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectDebilitatingSting.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/network/MessageTarantulaHawkSting.class",
+          "methods": [
+            "handleClient",
+            "lambda$handleClient$0"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-status-consumers.json",
+          "witness_id": "alexsmobs:status-consumers:com/github/alexthe666/alexsmobs/network/MessageTarantulaHawkSting.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$13"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:earthquake:native_boundary",
+      "mod_key": "alexsmobs",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "alexsmobs:earthquake"
+      ],
+      "primary_source": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectEarthquake.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectEarthquake.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+          "methods": [
+            "onCameraSetup"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-status-consumers.json",
+          "witness_id": "alexsmobs:status-consumers:com/github/alexthe666/alexsmobs/client/event/ClientEvents.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$15"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:ender_flu:native_boundary",
+      "mod_key": "alexsmobs",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "alexsmobs:ender_flu"
+      ],
+      "primary_source": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectEnderFlu.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectEnderFlu.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+          "methods": [
+            "onItemUseLast"
+          ],
+          "partial_contract": true,
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/event/ServerEvents.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+          "methods": [
+            "onInteractWithEntity"
+          ],
+          "partial_contract": true,
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/event/ServerEvents.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$10"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:exsanguination:native_boundary",
+      "mod_key": "alexsmobs",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "alexsmobs:exsanguination"
+      ],
+      "primary_source": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectExsanguination.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectExsanguination.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$14"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:fear:native_boundary",
+      "mod_key": "alexsmobs",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "alexsmobs:fear"
+      ],
+      "primary_source": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectFear.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectFear.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$11"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:fleet_footed:native_boundary",
+      "mod_key": "alexsmobs",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "alexsmobs:fleet_footed"
+      ],
+      "primary_source": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectFleetFooted.class",
+          "methods": [
+            "<clinit>",
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectFleetFooted.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$16"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:knockback_resistance:native_boundary",
+      "mod_key": "alexsmobs",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "alexsmobs:knockback_resistance"
+      ],
+      "primary_source": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectKnockbackResistance.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectKnockbackResistance.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$0"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:lava_vision:native_boundary",
+      "mod_key": "alexsmobs",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "alexsmobs:lava_vision"
+      ],
+      "primary_source": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectLavaVision.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectLavaVision.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+          "methods": [
+            "onFogDensity"
+          ],
+          "partial_contract": true,
+          "evidence_file": "native-evidence/alexsmobs-status-consumers.json",
+          "witness_id": "alexsmobs:status-consumers:com/github/alexthe666/alexsmobs/client/event/ClientEvents.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+          "methods": [
+            "onGetFluidRenderType"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-status-consumers.json",
+          "witness_id": "alexsmobs:status-consumers:com/github/alexthe666/alexsmobs/client/event/ClientEvents.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$1"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:oiled:native_boundary",
+      "mod_key": "alexsmobs",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "alexsmobs:oiled"
+      ],
+      "primary_source": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectOiled.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectOiled.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$5"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:orcas_might:native_boundary",
+      "mod_key": "alexsmobs",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "alexsmobs:orcas_might"
+      ],
+      "primary_source": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectOrcaMight.class",
+          "methods": [
+            "<init>",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectOrcaMight.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$6"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:poison_resistance:native_boundary",
+      "mod_key": "alexsmobs",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "alexsmobs:poison_resistance"
+      ],
+      "primary_source": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectPoisonResistance.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectPoisonResistance.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$4"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:power_down:native_boundary",
+      "mod_key": "alexsmobs",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "alexsmobs:power_down"
+      ],
+      "primary_source": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectPowerDown.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getActiveTime",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectPowerDown.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+          "methods": [
+            "onFogColor",
+            "onGetStarBrightness"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-status-consumers.json",
+          "witness_id": "alexsmobs:status-consumers:com/github/alexthe666/alexsmobs/client/event/ClientEvents.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/client/event/ClientEvents.class",
+          "methods": [
+            "onFogDensity"
+          ],
+          "partial_contract": true,
+          "evidence_file": "native-evidence/alexsmobs-status-consumers.json",
+          "witness_id": "alexsmobs:status-consumers:com/github/alexthe666/alexsmobs/client/event/ClientEvents.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$17"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:soulsteal:native_boundary",
+      "mod_key": "alexsmobs",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "alexsmobs:soulsteal"
+      ],
+      "primary_source": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectSoulsteal.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectSoulsteal.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/event/ServerEvents.class",
+          "methods": [
+            "onLivingDamageEvent"
+          ],
+          "partial_contract": true,
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/event/ServerEvents.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$8"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:sunbird_blessing:native_boundary",
+      "mod_key": "alexsmobs",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "alexsmobs:sunbird_blessing"
+      ],
+      "primary_source": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectSunbird.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectSunbird.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$2"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ]
+    },
+    {
+      "id": "alexsmobs:sunbird_curse:native_boundary",
+      "mod_key": "alexsmobs",
+      "labels": [
+        "OTHER"
+      ],
+      "effect_ids": [
+        "alexsmobs:sunbird_curse"
+      ],
+      "primary_source": "Original effect recipient; native producer/owner remains at each delivery boundary.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/EffectSunbird.class",
+          "methods": [
+            "<init>",
+            "applyEffectTick",
+            "getDescriptionId",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/EffectSunbird.class"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class",
+          "methods": [
+            "lambda$static$3"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "witness_id": "alexsmobs:foundation:com/github/alexthe666/alexsmobs/effect/AMEffectRegistry.class"
+        }
+      ]
+    }
+  ],
+  "native_context_records": [],
+  "semantic_aliases": [],
+  "reviewed_batches": [
+    "alexsmobs-r2o2a-status-foundation.json",
+    "alexsmobs-r2o2b-presentation-context.json"
+  ],
+  "remaining_native_ambiguities": 0,
+  "unresolved_native_ambiguities": 0,
+  "semantic_discovery_complete": false,
+  "source_mapping_complete": false,
+  "delivery_mapping_complete": false,
+  "checkpoint": "R2o2b-alexsmobs-exact-presentation-context",
+  "scope": "2029 exact typed presentation/audio/UI method graphs; complete all-owner field facts and transitive call constraints. Unknown native writers/callbacks remain pending; no actor semantics inferred from model names.",
+  "exact_next_task": "R2o2c — Shared event/gear helpers and new CitadelEntityData storage boundary; then network/registry packages and grouped actor domains.",
+  "notes_file": "alexsmobs-r2o2b-presentation-context.json"
+}
