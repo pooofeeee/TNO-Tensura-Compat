@@ -1,0 +1,1593 @@
+{
+  "schema": "tno.external_effects.authored_contracts.v1",
+  "mod_key": "alexsmobs",
+  "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+  "checkpoint": "R2o3a-alexsmobs-projectile-launcher-packages",
+  "closed_scope": "Four native launchers, five directly owned projectile packages and registered shark-tooth arrow payload; live native ordering, ownership, lifecycle, numeric consumers and independently proven inactive port hooks. Remaining item/actor callbacks stay queued.",
+  "contracts": [
+    {
+      "id": "alexsmobs:mosquito_spit",
+      "display_name": "Mosquito Spit",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "actual_behavior": "Entity-based owned projectile, not a replacement damage source. Living shooter resolves server UUID first, otherwise nonzero network ID. NBT retains Owner/LeftOwner; ID is not saved. Until leftOwner, expand motion AABB by1 and refuse same root vehicle; hit admission requires alive/pickable/nonspectator and, before leaving owner, not same-vehicle. No separate ally predicate. Each tick performs original movement-vector hit dispatch; entity hit does not discard here and hurt return is POP. Solid-volume or water/bubble discards, block hit discards on server. Drag is .99F; no explicit TTL. Gravity is original signed Y input only when !noGravity except Sand special case. Hand constructor offsets shooter head yaw±60, width*.5 and eyeY-.2F; mob constructor uses body yaw, (width+1)*.35 and eyeY+.2F. Entity hit invokes native mobProjectile with this direct projectile and resolved living causing actor; it is not newly server-gated. Server hit CrimsonMosquito gets bloodLevel+1 even when shooter is absent/nonliving or damage rejected.",
+      "source_actor": "Original resolved living shooter; direct entity is native projectile",
+      "closest_vanilla_equivalent": "minecraft:llama_spit",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "damage": 4.0
+          },
+          "formula": "mobProjectile(this, resolved LivingEntity shooter); original hurt result discarded"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "numerical_parameters": {
+            "drag": 0.9900000095367432,
+            "gravity_y": -0.05999999865889549,
+            "gaussian_axis_coefficient": 0.007499999832361937
+          },
+          "formula": "normalize(input direction), add independent nextGaussian*coefficient*input inaccuracy per axis, then scale(input velocity); tick uses prior velocity for next position"
+        },
+        {
+          "primitive": "NATIVE_BLOOD_RESOURCE",
+          "numerical_parameters": {
+            "increment": 1
+          },
+          "formula": "server hit CrimsonMosquito -> current bloodLevel+1 independently of shooter kind/hurt acceptance"
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityMosquitoSpit.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "onEntityHit",
+            "onHitBlock",
+            "defineSynchedData",
+            "setShooter",
+            "getOwner",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "checkLeftOwner",
+            "shoot",
+            "onImpact",
+            "canHitEntity"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-item-combat.json"
+        }
+      ],
+      "candidate_bindings": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "damage"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityMosquitoSpit.class",
+            "methods": [
+              "onEntityHit"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(Lnet/minecraft/world/phys/EntityHitResult;)V"
+          },
+          "offset": 30,
+          "binding": "LITERAL_SITE",
+          "native_value": 4.0,
+          "reviewed_parameter_role": "damage in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "drag"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityMosquitoSpit.class",
+            "methods": [
+              "tick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "()V"
+          },
+          "offset": 143,
+          "binding": "LITERAL_SITE",
+          "native_value": 0.9900000095367432,
+          "reviewed_parameter_role": "drag in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "gravity_y"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityMosquitoSpit.class",
+            "methods": [
+              "tick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "()V"
+          },
+          "offset": 165,
+          "binding": "LITERAL_SITE",
+          "native_value": -0.05999999865889549,
+          "reviewed_parameter_role": "gravity_y in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "gaussian_axis_coefficient"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityMosquitoSpit.class",
+            "methods": [
+              "shoot"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(DDDFF)V"
+          },
+          "offset": 23,
+          "binding": "LITERAL_SITE",
+          "native_value": 0.007499999832361937,
+          "reviewed_parameter_role": "gaussian_axis_coefficient in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "NATIVE_BLOOD_RESOURCE",
+          "parameters": [
+            "increment"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityMosquitoSpit.class",
+            "methods": [
+              "onEntityHit"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(Lnet/minecraft/world/phys/EntityHitResult;)V"
+          },
+          "offset": 66,
+          "binding": "LITERAL_SITE",
+          "native_value": 1,
+          "reviewed_parameter_role": "increment in the original formula/conditions stated in actual_behavior."
+        }
+      ],
+      "numeric_observation_scope": "Original native consumers only. No Stage eligibility, direction, formula, bound, ownership integration or hook chosen.",
+      "binary_parameters": {
+        "native_admission": "Alive/pickable/nonspectator; owner same-vehicle rejection until leftOwner; original native defenses/return",
+        "lifecycle": "Water/bubble/solid-volume discard; entity hit remains; server block discard"
+      }
+    },
+    {
+      "id": "alexsmobs:hemolymph_projectile",
+      "display_name": "Hemolymph Projectile",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "Entity-based owned projectile, not a replacement damage source. Living shooter resolves server UUID first, otherwise nonzero network ID. NBT retains Owner/LeftOwner; ID is not saved. Until leftOwner, expand motion AABB by1 and refuse same root vehicle; hit admission requires alive/pickable/nonspectator and, before leaving owner, not same-vehicle. No separate ally predicate. Each tick performs original movement-vector hit dispatch; entity hit does not discard here and hurt return is POP. Solid-volume or water/bubble discards, block hit discards on server. Drag is .99F; no explicit TTL. Gravity is original signed Y input only when !noGravity except Sand special case. Hand constructor offsets shooter head yaw±60, width*.5 and eyeY-.2F; mob constructor uses body yaw, (width+1)*.35 and eyeY+.2F. Entity hit invokes native mobProjectile with this direct projectile and resolved living causing actor; it is not newly server-gated.",
+      "source_actor": "Original resolved living shooter; direct entity is native projectile",
+      "closest_vanilla_equivalent": "minecraft:llama_spit",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "damage": 7.0
+          },
+          "formula": "mobProjectile(this, resolved LivingEntity shooter); original hurt result discarded"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "numerical_parameters": {
+            "drag": 0.9900000095367432,
+            "gravity_y": -0.019999999552965164,
+            "gaussian_axis_coefficient": 0.007499999832361937
+          },
+          "formula": "normalize(input direction), add independent nextGaussian*coefficient*input inaccuracy per axis, then scale(input velocity); tick uses prior velocity for next position"
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityHemolymph.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "onEntityHit",
+            "onHitBlock",
+            "defineSynchedData",
+            "setShooter",
+            "getOwner",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "checkLeftOwner",
+            "shoot",
+            "onImpact",
+            "canHitEntity"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-item-combat.json"
+        }
+      ],
+      "candidate_bindings": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "damage"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityHemolymph.class",
+            "methods": [
+              "onEntityHit"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(Lnet/minecraft/world/phys/EntityHitResult;)V"
+          },
+          "offset": 28,
+          "binding": "LITERAL_SITE",
+          "native_value": 7.0,
+          "reviewed_parameter_role": "damage in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "drag"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityHemolymph.class",
+            "methods": [
+              "tick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "()V"
+          },
+          "offset": 253,
+          "binding": "LITERAL_SITE",
+          "native_value": 0.9900000095367432,
+          "reviewed_parameter_role": "drag in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "gravity_y"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityHemolymph.class",
+            "methods": [
+              "tick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "()V"
+          },
+          "offset": 275,
+          "binding": "LITERAL_SITE",
+          "native_value": -0.019999999552965164,
+          "reviewed_parameter_role": "gravity_y in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "gaussian_axis_coefficient"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityHemolymph.class",
+            "methods": [
+              "shoot"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(DDDFF)V"
+          },
+          "offset": 23,
+          "binding": "LITERAL_SITE",
+          "native_value": 0.007499999832361937,
+          "reviewed_parameter_role": "gaussian_axis_coefficient in the original formula/conditions stated in actual_behavior."
+        }
+      ],
+      "numeric_observation_scope": "Original native consumers only. No Stage eligibility, direction, formula, bound, ownership integration or hook chosen.",
+      "binary_parameters": {
+        "native_admission": "Alive/pickable/nonspectator; owner same-vehicle rejection until leftOwner; original native defenses/return",
+        "lifecycle": "Water/bubble/solid-volume discard; entity hit remains; server block discard"
+      }
+    },
+    {
+      "id": "alexsmobs:sand_shot",
+      "display_name": "Sand Shot",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "actual_behavior": "Entity-based owned projectile, not a replacement damage source. Living shooter resolves server UUID first, otherwise nonzero network ID. NBT retains Owner/LeftOwner; ID is not saved. Until leftOwner, expand motion AABB by1 and refuse same root vehicle; hit admission requires alive/pickable/nonspectator and, before leaving owner, not same-vehicle. No separate ally predicate. Each tick performs original movement-vector hit dispatch; entity hit does not discard here and hurt return is POP. Solid-volume or water/bubble discards, block hit discards on server. Drag is .99F; no explicit TTL. Gravity is original signed Y input only when !noGravity except Sand special case. Hand constructor offsets shooter head yaw±60, width*.5 and eyeY-.2F; mob constructor uses body yaw, (width+1)*.35 and eyeY+.2F. Entity hit invokes native mobProjectile with this direct projectile and resolved living causing actor; it is not newly server-gated. Player shooter + living hit always attempts Blindness100ticks/amp0 (ambient true, particles false), independent of hurt return. Sand always adds -.03F Y once, then adds -.03F again unless noGravity; it does not have the one-write gravity of the other two projectiles. Variant drives particles only.",
+      "source_actor": "Original resolved living shooter; direct entity is native projectile",
+      "closest_vanilla_equivalent": "minecraft:llama_spit",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "damage": 2.5
+          },
+          "formula": "mobProjectile(this, resolved LivingEntity shooter); original hurt result discarded"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "numerical_parameters": {
+            "drag": 0.9900000095367432,
+            "gravity_y": -0.029999999329447746,
+            "gaussian_axis_coefficient": 0.007499999832361937,
+            "additional_gravity_y": -0.029999999329447746
+          },
+          "formula": "normalize(input direction), add independent nextGaussian*coefficient*input inaccuracy per axis, then scale(input velocity); tick uses prior velocity for next position"
+        },
+        {
+          "primitive": "MOB_EFFECT_BLINDNESS",
+          "numerical_parameters": {
+            "duration": 100,
+            "amplifier": 0
+          },
+          "formula": "Player shooter + LivingEntity victim, ambient=true, visible=false; no hurt-return dependency"
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntitySandShot.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "onEntityHit",
+            "onHitBlock",
+            "defineSynchedData",
+            "setShooter",
+            "getSandShooter",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "checkLeftOwner",
+            "shoot",
+            "onImpact",
+            "canHitEntity"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-item-combat.json"
+        }
+      ],
+      "candidate_bindings": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "damage"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntitySandShot.class",
+            "methods": [
+              "onEntityHit"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(Lnet/minecraft/world/phys/EntityHitResult;)V"
+          },
+          "offset": 28,
+          "binding": "LITERAL_SITE",
+          "native_value": 2.5,
+          "reviewed_parameter_role": "damage in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "drag"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntitySandShot.class",
+            "methods": [
+              "tick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "()V"
+          },
+          "offset": 326,
+          "binding": "LITERAL_SITE",
+          "native_value": 0.9900000095367432,
+          "reviewed_parameter_role": "drag in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "gravity_y"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntitySandShot.class",
+            "methods": [
+              "tick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "()V"
+          },
+          "offset": 341,
+          "binding": "LITERAL_SITE",
+          "native_value": -0.029999999329447746,
+          "reviewed_parameter_role": "gravity_y in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "gaussian_axis_coefficient"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntitySandShot.class",
+            "methods": [
+              "shoot"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(DDDFF)V"
+          },
+          "offset": 23,
+          "binding": "LITERAL_SITE",
+          "native_value": 0.007499999832361937,
+          "reviewed_parameter_role": "gaussian_axis_coefficient in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "MOB_EFFECT_BLINDNESS",
+          "parameters": [
+            "duration",
+            "amplifier"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntitySandShot.class",
+            "methods": [
+              "onEntityHit"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(Lnet/minecraft/world/phys/EntityHitResult;)V"
+          },
+          "offset": 71,
+          "binding": "EFFECT_ARGUMENTS",
+          "native_holder_symbol": "net/minecraft/world/effect/MobEffects.BLINDNESSLnet/minecraft/core/Holder;",
+          "native_holder_allocation_offset": 59,
+          "native_holder_load_offset": 63
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "additional_gravity_y"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntitySandShot.class",
+            "methods": [
+              "tick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "()V"
+          },
+          "offset": 364,
+          "binding": "LITERAL_SITE",
+          "native_value": -0.029999999329447746,
+          "reviewed_parameter_role": "additional_gravity_y in the original formula/conditions stated in actual_behavior."
+        }
+      ],
+      "numeric_observation_scope": "Original native consumers only. No Stage eligibility, direction, formula, bound, ownership integration or hook chosen.",
+      "binary_parameters": {
+        "native_admission": "Alive/pickable/nonspectator; owner same-vehicle rejection until leftOwner; original native defenses/return",
+        "lifecycle": "Water/bubble/solid-volume discard; entity hit remains; server block discard"
+      }
+    },
+    {
+      "id": "alexsmobs:blood_sprayer",
+      "display_name": "BloodSprayer",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "use starts using even when depleted. Usable iff damage<maxDamage-1. Depleted use searches first matching ammo; creative can reload without it; found ammo consumed1 even in refill branch; durability set0 on reload success. While usable, remaining count%2==0 allocates owned EntityMosquitoSpit with original hand/arm side, view direction, velocity1/inaccuracy as recorded; add only server; hurtAndBreak1 MAINHAND runs outside that server gate. Depleted onUseTick reloads Player only, applies cooldown20 on success, always stops using. No damage/status duplicated here; payload is separately canonical. Use duration is Integer.MAX_VALUE when usable else0.",
+      "source_actor": "Original native item user",
+      "closest_vanilla_equivalent": "minecraft:bow",
+      "components": [
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "numerical_parameters": {
+            "cadence_ticks": 2,
+            "velocity": 1.0,
+            "inaccuracy": 10.0
+          },
+          "formula": "remaining use count%2==0; original hand/arm spawn orientation; server add native owned projectile"
+        },
+        {
+          "primitive": "ITEM_RELOAD",
+          "numerical_parameters": {
+            "reload_cooldown_ticks": 20
+          },
+          "formula": "depleted Player onUseTick: first native ammo/creative reload resets durability0, applies cooldown, stopUsingItem"
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/item/ItemBloodSprayer.class",
+          "methods": [
+            "<init>",
+            "use",
+            "getUseDuration",
+            "getUseAnimation",
+            "isUsable",
+            "findAmmo",
+            "onUseTick",
+            "<clinit>",
+            "lambda$static$0"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-item-combat.json"
+        }
+      ],
+      "candidate_bindings": [
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "cadence_ticks"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/item/ItemBloodSprayer.class",
+            "methods": [
+              "onUseTick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;I)V"
+          },
+          "offset": 9,
+          "binding": "LITERAL_SITE",
+          "native_value": 2,
+          "reviewed_parameter_role": "cadence_ticks in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "velocity"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/item/ItemBloodSprayer.class",
+            "methods": [
+              "onUseTick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;I)V"
+          },
+          "offset": 147,
+          "binding": "LITERAL_SITE",
+          "native_value": 1.0,
+          "reviewed_parameter_role": "velocity in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "inaccuracy"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/item/ItemBloodSprayer.class",
+            "methods": [
+              "onUseTick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;I)V"
+          },
+          "offset": 148,
+          "binding": "LITERAL_SITE",
+          "native_value": 10.0,
+          "reviewed_parameter_role": "inaccuracy in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "ITEM_RELOAD",
+          "parameters": [
+            "reload_cooldown_ticks"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/item/ItemBloodSprayer.class",
+            "methods": [
+              "onUseTick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;I)V"
+          },
+          "offset": 235,
+          "binding": "LITERAL_SITE",
+          "native_value": 20,
+          "reviewed_parameter_role": "reload_cooldown_ticks in the original formula/conditions stated in actual_behavior."
+        }
+      ],
+      "numeric_observation_scope": "Original native consumers only. No Stage eligibility, direction, formula, bound, ownership integration or hook chosen.",
+      "binary_parameters": {
+        "ammo": "First matching inventory BLOOD_SAC",
+        "durability_gate": "damage<maxDamage-1"
+      }
+    },
+    {
+      "id": "alexsmobs:hemolymph_blaster",
+      "display_name": "HemolymphBlaster",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "use starts using even when depleted. Usable iff damage<maxDamage-1. Depleted use searches first matching ammo; creative can reload without it; found ammo consumed1 even in refill branch; durability set0 on reload success. While usable, remaining count%2==0 allocates owned EntityHemolymph with original hand/arm side, view direction, velocity1/inaccuracy as recorded; add only server; hurtAndBreak1 MAINHAND runs outside that server gate. Depleted onUseTick reloads Player only, applies cooldown20 on success, always stops using. No damage/status duplicated here; payload is separately canonical. Use duration is Integer.MAX_VALUE when usable else0.",
+      "source_actor": "Original native item user",
+      "closest_vanilla_equivalent": "minecraft:bow",
+      "components": [
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "numerical_parameters": {
+            "cadence_ticks": 2,
+            "velocity": 1.0,
+            "inaccuracy": 3.0
+          },
+          "formula": "remaining use count%2==0; original hand/arm spawn orientation; server add native owned projectile"
+        },
+        {
+          "primitive": "ITEM_RELOAD",
+          "numerical_parameters": {
+            "reload_cooldown_ticks": 20
+          },
+          "formula": "depleted Player onUseTick: first native ammo/creative reload resets durability0, applies cooldown, stopUsingItem"
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/item/ItemHemolymphBlaster.class",
+          "methods": [
+            "<init>",
+            "use",
+            "getUseDuration",
+            "getUseAnimation",
+            "isUsable",
+            "findAmmo",
+            "onUseTick",
+            "<clinit>",
+            "lambda$static$0"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-item-combat.json"
+        }
+      ],
+      "candidate_bindings": [
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "cadence_ticks"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/item/ItemHemolymphBlaster.class",
+            "methods": [
+              "onUseTick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;I)V"
+          },
+          "offset": 9,
+          "binding": "LITERAL_SITE",
+          "native_value": 2,
+          "reviewed_parameter_role": "cadence_ticks in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "velocity"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/item/ItemHemolymphBlaster.class",
+            "methods": [
+              "onUseTick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;I)V"
+          },
+          "offset": 147,
+          "binding": "LITERAL_SITE",
+          "native_value": 1.0,
+          "reviewed_parameter_role": "velocity in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "inaccuracy"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/item/ItemHemolymphBlaster.class",
+            "methods": [
+              "onUseTick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;I)V"
+          },
+          "offset": 148,
+          "binding": "LITERAL_SITE",
+          "native_value": 3.0,
+          "reviewed_parameter_role": "inaccuracy in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "ITEM_RELOAD",
+          "parameters": [
+            "reload_cooldown_ticks"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/item/ItemHemolymphBlaster.class",
+            "methods": [
+              "onUseTick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;I)V"
+          },
+          "offset": 235,
+          "binding": "LITERAL_SITE",
+          "native_value": 20,
+          "reviewed_parameter_role": "reload_cooldown_ticks in the original formula/conditions stated in actual_behavior."
+        }
+      ],
+      "numeric_observation_scope": "Original native consumers only. No Stage eligibility, direction, formula, bound, ownership integration or hook chosen.",
+      "binary_parameters": {
+        "ammo": "First matching inventory HEMOLYMPH",
+        "durability_gate": "damage<maxDamage-1"
+      }
+    },
+    {
+      "id": "alexsmobs:pocket_sand",
+      "display_name": "Pocket Sand",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "Server use with nonempty first ItemTags.SAND ammo; creative constructs Sand stack. Creates owned SandShot with native side/view, velocity1.2F and inaccuracy11. Adds entity, cooldown2, shrink1, hurtAndBreak1 MAINHAND. Award stat and sidedSuccess regardless of successful launch. Native Blindness/damage remain in SandShot contract.",
+      "source_actor": "Original player user",
+      "closest_vanilla_equivalent": "minecraft:snowball",
+      "components": [
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "numerical_parameters": {
+            "velocity": 1.2000000476837158,
+            "inaccuracy": 11.0,
+            "cooldown_ticks": 2
+          }
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/item/ItemPocketSand.class",
+          "methods": [
+            "<init>",
+            "findAmmo",
+            "use",
+            "<clinit>",
+            "lambda$static$0"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-item-combat.json"
+        }
+      ],
+      "candidate_bindings": [
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "velocity"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/item/ItemPocketSand.class",
+            "methods": [
+              "use"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResultHolder;"
+          },
+          "offset": 192,
+          "binding": "LITERAL_SITE",
+          "native_value": 1.2000000476837158,
+          "reviewed_parameter_role": "velocity in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "inaccuracy"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/item/ItemPocketSand.class",
+            "methods": [
+              "use"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResultHolder;"
+          },
+          "offset": 194,
+          "binding": "LITERAL_SITE",
+          "native_value": 11.0,
+          "reviewed_parameter_role": "inaccuracy in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "cooldown_ticks"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/item/ItemPocketSand.class",
+            "methods": [
+              "use"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResultHolder;"
+          },
+          "offset": 218,
+          "binding": "LITERAL_SITE",
+          "native_value": 2,
+          "reviewed_parameter_role": "cooldown_ticks in the original formula/conditions stated in actual_behavior."
+        }
+      ],
+      "numeric_observation_scope": "Original native consumers only. No Stage eligibility, direction, formula, bound, ownership integration or hook chosen."
+    },
+    {
+      "id": "alexsmobs:stink_ray",
+      "display_name": "Stink Ray",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "Player release while usable requires elapsed i>=10. getPowerForTime: f=i/20F; min((f*f+2f)/3,1). Allocate owned Fart from native hand side, shoot view direction with .2F+power*.4F and inaccuracy10; server add; durability1 MAINHAND outside server gate. Use starts using, depleted refill consumes first StinkBottle and yields glass bottle (inventory else drop) or creative refill, then durability0. Use duration72000 if usable else0. Payload status/aggro remain separate.",
+      "source_actor": "Original player user",
+      "closest_vanilla_equivalent": "minecraft:bow",
+      "components": [
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "numerical_parameters": {
+            "base_velocity": 0.20000000298023224,
+            "charged_velocity_coefficient": 0.4000000059604645,
+            "inaccuracy": 10.0,
+            "charge_time_divisor": 20.0,
+            "charge_linear_coefficient": 2.0,
+            "charge_polynomial_divisor": 3.0
+          },
+          "formula": "f=i/20; velocity=.2+min((f*f+2*f)/3,1)*.4"
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/item/ItemStinkRay.class",
+          "methods": [
+            "<init>",
+            "getUseDuration",
+            "getUseAnimation",
+            "isUsable",
+            "getPowerForTime",
+            "releaseUsing",
+            "use",
+            "findAmmo",
+            "<clinit>",
+            "lambda$static$0"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-item-combat.json"
+        }
+      ],
+      "candidate_bindings": [
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "base_velocity"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/item/ItemStinkRay.class",
+            "methods": [
+              "releaseUsing"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/LivingEntity;I)V"
+          },
+          "offset": 177,
+          "binding": "LITERAL_SITE",
+          "native_value": 0.20000000298023224,
+          "reviewed_parameter_role": "base_velocity in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "charged_velocity_coefficient"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/item/ItemStinkRay.class",
+            "methods": [
+              "releaseUsing"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/LivingEntity;I)V"
+          },
+          "offset": 184,
+          "binding": "LITERAL_SITE",
+          "native_value": 0.4000000059604645,
+          "reviewed_parameter_role": "charged_velocity_coefficient in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "inaccuracy"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/item/ItemStinkRay.class",
+            "methods": [
+              "releaseUsing"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/LivingEntity;I)V"
+          },
+          "offset": 188,
+          "binding": "LITERAL_SITE",
+          "native_value": 10.0,
+          "reviewed_parameter_role": "inaccuracy in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "charge_time_divisor"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/item/ItemStinkRay.class",
+            "methods": [
+              "getPowerForTime"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(I)F"
+          },
+          "offset": 2,
+          "binding": "LITERAL_SITE",
+          "native_value": 20.0,
+          "reviewed_parameter_role": "charge_time_divisor in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "charge_linear_coefficient"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/item/ItemStinkRay.class",
+            "methods": [
+              "getPowerForTime"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(I)F"
+          },
+          "offset": 10,
+          "binding": "LITERAL_SITE",
+          "native_value": 2.0,
+          "reviewed_parameter_role": "charge_linear_coefficient in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "parameters": [
+            "charge_polynomial_divisor"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/item/ItemStinkRay.class",
+            "methods": [
+              "getPowerForTime"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(I)F"
+          },
+          "offset": 13,
+          "binding": "LITERAL_SITE",
+          "native_value": 3.0,
+          "reviewed_parameter_role": "charge_polynomial_divisor in the original formula/conditions stated in actual_behavior."
+        }
+      ],
+      "numeric_observation_scope": "Original native consumers only. No Stage eligibility, direction, formula, bound, ownership integration or hook chosen.",
+      "binary_parameters": {
+        "minimum_charge_ticks": 10,
+        "usable": "damage<maxDamage-1"
+      }
+    },
+    {
+      "id": "alexsmobs:fart_status_provocation",
+      "display_name": "Fart Status and Provocation",
+      "primary_classification": "CUSTOM_CONTROL",
+      "actual_behavior": "Native owned Entity launched by StinkRay. UUID/server or network-ID shooter resolution; NBT Owner/LeftOwner. Tick DOES NOT call checkLeftOwner, so default leftOwner remains false absent loaded state; do not import other projectile lifecycle. Alive/pickable/nonspectator and same-vehicle shooter rejection while !leftOwner, no ally hit veto. Living hit attempts CONFUSION300/amp0 then queries nearby Mob AABB inflate15; exclude same object/ID/UUID, both-direction allies and when hit living is IHurtableMultipart. Set each qualifying mob lastHurtByMob and target to victim; no damage request/hurt return gate. Entity hit does not discard. Tick motion drag .95F, discard tickCount>30; no gravity, block hit discards both sides. Effect and aggro callbacks lack added server gate.",
+      "source_actor": "Shooter controls native projectile; victim becomes provocation source",
+      "closest_vanilla_equivalent": "minecraft:nausea",
+      "components": [
+        {
+          "primitive": "MOB_EFFECT_NAUSEA",
+          "numerical_parameters": {
+            "duration": 300,
+            "amplifier": 0
+          }
+        },
+        {
+          "primitive": "AGGRO_REDIRECTION",
+          "numerical_parameters": {
+            "search_box_radius": 15.0
+          }
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "numerical_parameters": {
+            "drag": 0.949999988079071,
+            "lifetime_threshold_ticks": 30,
+            "gaussian_axis_coefficient": 0.007499999832361937
+          }
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityFart.class",
+          "methods": [
+            "<init>",
+            "tick",
+            "isNoGravity",
+            "onImpact",
+            "onEntityHit",
+            "onHitBlock",
+            "canHitEntity",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "defineSynchedData",
+            "getShooter",
+            "setShooter",
+            "shoot"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-item-combat.json"
+        }
+      ],
+      "candidate_bindings": [
+        {
+          "primitive": "MOB_EFFECT_NAUSEA",
+          "parameters": [
+            "duration",
+            "amplifier"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityFart.class",
+            "methods": [
+              "onEntityHit"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(Lnet/minecraft/world/phys/EntityHitResult;)V"
+          },
+          "offset": 29,
+          "binding": "EFFECT_ARGUMENTS",
+          "native_holder_symbol": "net/minecraft/world/effect/MobEffects.CONFUSIONLnet/minecraft/core/Holder;",
+          "native_holder_allocation_offset": 18,
+          "native_holder_load_offset": 22
+        },
+        {
+          "primitive": "AGGRO_REDIRECTION",
+          "parameters": [
+            "search_box_radius"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityFart.class",
+            "methods": [
+              "onEntityHit"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(Lnet/minecraft/world/phys/EntityHitResult;)V"
+          },
+          "offset": 105,
+          "binding": "LITERAL_SITE",
+          "native_value": 15.0,
+          "reviewed_parameter_role": "search_box_radius in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "drag"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityFart.class",
+            "methods": [
+              "tick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "()V"
+          },
+          "offset": 77,
+          "binding": "LITERAL_SITE",
+          "native_value": 0.949999988079071,
+          "reviewed_parameter_role": "drag in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "lifetime_threshold_ticks"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityFart.class",
+            "methods": [
+              "tick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "()V"
+          },
+          "offset": 99,
+          "binding": "LITERAL_SITE",
+          "native_value": 30,
+          "reviewed_parameter_role": "lifetime_threshold_ticks in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "gaussian_axis_coefficient"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityFart.class",
+            "methods": [
+              "shoot"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(DDDFF)V"
+          },
+          "offset": 23,
+          "binding": "LITERAL_SITE",
+          "native_value": 0.007499999832361937,
+          "reviewed_parameter_role": "gaussian_axis_coefficient in the original formula/conditions stated in actual_behavior."
+        }
+      ],
+      "numeric_observation_scope": "Original native consumers only. No Stage eligibility, direction, formula, bound, ownership integration or hook chosen."
+    },
+    {
+      "id": "alexsmobs:enderiophage_rocket",
+      "display_name": "Enderiophage Rocket",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "Server block use creates at click+face*.15 and sets player owner, consumes1 unless creative. Elytra-use requires isFallFlying and server creates attached native projectile, consumes1 unless instabuild. Tick attached optional entity ID resolves level; boost only living currently fall-flying, copy attached position/motion. Otherwise free horizontal acceleration/Y increment as recorded. Native Projectile hit admission remains inherited. Entity/block server impact calls explode, which ONLY broadcasts event17 and discards: no Level.explode, hurt, EnderFlu, damage or spawned Enderiophages. Life/lifetime saved with superclass native owner NBT. Expiry uses server life>lifetime. Item data does not determine explosion payload. Registry-only default constructor RNG is overwritten by item constructors; overwritten defaults are not extra runtime parameters.",
+      "source_actor": "Original item user owner; direct rocket; attached entity original native ID",
+      "closest_vanilla_equivalent": "minecraft:firework_rocket",
+      "components": [
+        {
+          "primitive": "FLIGHT_BOOST",
+          "numerical_parameters": {
+            "forward_contribution": 0.1,
+            "target_speed": 1.5,
+            "velocity_blend": 0.5
+          },
+          "formula": "each axis delta += look*.1+(look*1.5-delta)*.5 only attached living isFallFlying"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "numerical_parameters": {
+            "horizontal_acceleration": 1.15,
+            "vertical_acceleration": 0.04,
+            "initial_vertical_velocity": 0.05,
+            "initial_horizontal_gaussian": 0.001
+          },
+          "formula": "unattached motion*= (1.15,1,1.15), then Y+=.04; initial X/Z randomGaussian*.001,Y=.05"
+        },
+        {
+          "primitive": "PROJECTILE_LIFECYCLE",
+          "numerical_parameters": {
+            "free_lifetime_base": 18,
+            "free_lifetime_rng_bound": 14,
+            "attached_lifetime_base": 18,
+            "attached_lifetime_rng_bound": 14
+          },
+          "formula": "native constructor branches consume separate RNG and overwrite lifetime; final free/attached branch writes recorded independently; increment life then server expires if life>lifetime"
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityEnderiophageRocket.class",
+          "methods": [
+            "<init>",
+            "defineSynchedData",
+            "tick",
+            "isAttachedToEntity",
+            "getAttachedEntity",
+            "onHitEntity",
+            "onHit",
+            "explode",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData",
+            "isAttackable"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-item-combat.json"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/item/ItemEnderiophageRocket.class",
+          "methods": [
+            "<init>",
+            "use",
+            "useOn"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-item-combat.json"
+        }
+      ],
+      "candidate_bindings": [
+        {
+          "primitive": "FLIGHT_BOOST",
+          "parameters": [
+            "forward_contribution"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityEnderiophageRocket.class",
+            "methods": [
+              "tick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "()V"
+          },
+          "offset": 57,
+          "binding": "LITERAL_SITE",
+          "native_value": 0.1,
+          "reviewed_parameter_role": "forward_contribution in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "FLIGHT_BOOST",
+          "parameters": [
+            "target_speed"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityEnderiophageRocket.class",
+            "methods": [
+              "tick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "()V"
+          },
+          "offset": 65,
+          "binding": "LITERAL_SITE",
+          "native_value": 1.5,
+          "reviewed_parameter_role": "target_speed in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "FLIGHT_BOOST",
+          "parameters": [
+            "velocity_blend"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityEnderiophageRocket.class",
+            "methods": [
+              "tick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "()V"
+          },
+          "offset": 75,
+          "binding": "LITERAL_SITE",
+          "native_value": 0.5,
+          "reviewed_parameter_role": "velocity_blend in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "horizontal_acceleration"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityEnderiophageRocket.class",
+            "methods": [
+              "tick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "()V"
+          },
+          "offset": 172,
+          "binding": "LITERAL_SITE",
+          "native_value": 1.15,
+          "reviewed_parameter_role": "horizontal_acceleration in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "vertical_acceleration"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityEnderiophageRocket.class",
+            "methods": [
+              "tick"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "()V"
+          },
+          "offset": 183,
+          "binding": "LITERAL_SITE",
+          "native_value": 0.04,
+          "reviewed_parameter_role": "vertical_acceleration in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "initial_horizontal_gaussian"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityEnderiophageRocket.class",
+            "methods": [
+              "<init>"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(Lnet/minecraft/world/level/Level;DDDLnet/minecraft/world/item/ItemStack;)V"
+          },
+          "offset": 33,
+          "binding": "LITERAL_SITE",
+          "native_value": 0.001,
+          "reviewed_parameter_role": "initial_horizontal_gaussian in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "parameters": [
+            "initial_vertical_velocity"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityEnderiophageRocket.class",
+            "methods": [
+              "<init>"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(Lnet/minecraft/world/level/Level;DDDLnet/minecraft/world/item/ItemStack;)V"
+          },
+          "offset": 37,
+          "binding": "LITERAL_SITE",
+          "native_value": 0.05,
+          "reviewed_parameter_role": "initial_vertical_velocity in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_LIFECYCLE",
+          "parameters": [
+            "free_lifetime_base"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityEnderiophageRocket.class",
+            "methods": [
+              "<init>"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(Lnet/minecraft/world/level/Level;DDDLnet/minecraft/world/item/ItemStack;)V"
+          },
+          "offset": 57,
+          "binding": "LITERAL_SITE",
+          "native_value": 18,
+          "reviewed_parameter_role": "free_lifetime_base in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_LIFECYCLE",
+          "parameters": [
+            "free_lifetime_rng_bound"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityEnderiophageRocket.class",
+            "methods": [
+              "<init>"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(Lnet/minecraft/world/level/Level;DDDLnet/minecraft/world/item/ItemStack;)V"
+          },
+          "offset": 63,
+          "binding": "LITERAL_SITE",
+          "native_value": 14,
+          "reviewed_parameter_role": "free_lifetime_rng_bound in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_LIFECYCLE",
+          "parameters": [
+            "attached_lifetime_base"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityEnderiophageRocket.class",
+            "methods": [
+              "<init>"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/entity/LivingEntity;)V"
+          },
+          "offset": 37,
+          "binding": "LITERAL_SITE",
+          "native_value": 18,
+          "reviewed_parameter_role": "attached_lifetime_base in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "PROJECTILE_LIFECYCLE",
+          "parameters": [
+            "attached_lifetime_rng_bound"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntityEnderiophageRocket.class",
+            "methods": [
+              "<init>"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/entity/LivingEntity;)V"
+          },
+          "offset": 43,
+          "binding": "LITERAL_SITE",
+          "native_value": 14,
+          "reviewed_parameter_role": "attached_lifetime_rng_bound in the original formula/conditions stated in actual_behavior."
+        }
+      ],
+      "numeric_observation_scope": "Original native consumers only. No Stage eligibility, direction, formula, bound, ownership integration or hook chosen."
+    },
+    {
+      "id": "alexsmobs:shark_tooth_arrow_payload",
+      "display_name": "Shark Tooth Registered Arrow Payload",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "actual_behavior": "Registered native EntityType factory constructs this Arrow subtype (not evidence of an active bow factory). Inherited AbstractArrow.onHitEntity invokes doPostHurtEffects only after accepted native hurt. Player victim then damageShield with getBaseDamage, not computed hurt amount: base>=3 and current use item SHIELD_BLOCK => durability cost1+floor(baseDamage), MAINHAND; when emptied call native destroy-item hook, stop using, sound. After shield branch, ARTHROPOD OR Drowned OR (!UNDEAD and canBreatheUnderwater) => second arrow-source hurt7, direct this, causing owner if present else this; result discarded. No added ally veto. isInWater returnsfalse, retaining dry projectile behavior. getPickupItem returns SharkToothArrow item through inherited native pickup call. Pinned ItemModArrow.createArrow has obsolete3-argument signature and no callers: normal bow uses inherited4-argument vanilla factory. Registered AMItemRegistry$1 extends DefaultDispenseItemBehavior and only defines uncalled getProjectile, so native execute ejects item rather than invoking it. These inactive helper paths must not be described as live arrow delivery.",
+      "source_actor": "Native registered entity; original inherited projectile owner (ownerless fallback self)",
+      "closest_vanilla_equivalent": "minecraft:arrow",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "extra_damage": 7.0
+          },
+          "formula": "Accepted parent-arrow hit first; native category test; independent second arrow hurt"
+        },
+        {
+          "primitive": "SHIELD_DURABILITY_DRAIN",
+          "numerical_parameters": {
+            "durability_base": 1
+          },
+          "formula": "1+floor(getBaseDamage); native admission baseDamage>=3 and SHIELD_BLOCK; MAINHAND"
+        }
+      ],
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntitySharkToothArrow.class",
+          "methods": [
+            "<init>",
+            "damageShield",
+            "doPostHurtEffects",
+            "isInWater",
+            "getPickupItem"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-item-combat.json"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/AMEntityRegistry.class",
+          "methods": [
+            "<clinit>"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-foundation.json",
+          "partial_contract": true
+        }
+      ],
+      "candidate_bindings": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "parameters": [
+            "extra_damage"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntitySharkToothArrow.class",
+            "methods": [
+              "doPostHurtEffects"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;)V"
+          },
+          "offset": 94,
+          "binding": "LITERAL_SITE",
+          "native_value": 7.0,
+          "reviewed_parameter_role": "extra_damage in the original formula/conditions stated in actual_behavior."
+        },
+        {
+          "primitive": "SHIELD_DURABILITY_DRAIN",
+          "parameters": [
+            "durability_base"
+          ],
+          "consumer": {
+            "entry": "com/github/alexthe666/alexsmobs/entity/EntitySharkToothArrow.class",
+            "methods": [
+              "damageShield"
+            ],
+            "evidence_file": "native-evidence/alexsmobs-item-combat.json",
+            "descriptor": "(Lnet/minecraft/world/entity/player/Player;F)V"
+          },
+          "offset": 35,
+          "binding": "LITERAL_SITE",
+          "native_value": 1,
+          "reviewed_parameter_role": "durability_base in the original formula/conditions stated in actual_behavior."
+        }
+      ],
+      "numeric_observation_scope": "Original native consumers only. No Stage eligibility, direction, formula, bound, ownership integration or hook chosen.",
+      "reference_evidence": [
+        "vanilla-evidence/alexsmobs-arrow-dispatch.json",
+        "reference-evidence/alexsmobs-native-arrow-dispatch-loader.json",
+        "native-evidence/alexsmobs-item-combat.json"
+      ],
+      "binary_parameters": {
+        "shield_admission_threshold": 3,
+        "normal_bow_dispenser_payload": "Native custom factory helpers inactive; native registered EntityType factory remains proven"
+      }
+    }
+  ],
+  "exclusions": [
+    {
+      "reason": "Visual rotation interpolation and client lerp use original movement snapshot; shootFromRotation has no direct/native-bootstrap callers in this pinned census and is not used by these item/mob launchers. No combat contribution inferred.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityMosquitoSpit.class",
+          "methods": [
+            "lerpRotation",
+            "updateRotation",
+            "lerpMotion",
+            "shootFromRotation"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-item-combat.json"
+        }
+      ]
+    },
+    {
+      "reason": "Visual rotation interpolation and client lerp use original movement snapshot; shootFromRotation has no direct/native-bootstrap callers in this pinned census and is not used by these item/mob launchers. No combat contribution inferred.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityHemolymph.class",
+          "methods": [
+            "lerpRotation",
+            "updateRotation",
+            "lerpMotion",
+            "shootFromRotation"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-item-combat.json"
+        }
+      ]
+    },
+    {
+      "reason": "Visual rotation interpolation and client lerp use original movement snapshot; shootFromRotation has no direct/native-bootstrap callers in this pinned census and is not used by these item/mob launchers. No combat contribution inferred.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntitySandShot.class",
+          "methods": [
+            "lerpRotation",
+            "updateRotation",
+            "lerpMotion",
+            "shootFromRotation"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-item-combat.json"
+        }
+      ]
+    },
+    {
+      "reason": "Durability bar and item equality reequip presentation only; no combat reader/state mutation.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/item/ItemBloodSprayer.class",
+          "methods": [
+            "isBarVisible",
+            "shouldCauseReequipAnimation"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-item-combat.json"
+        }
+      ]
+    },
+    {
+      "reason": "Durability bar and item equality reequip presentation only; no combat reader/state mutation.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/item/ItemHemolymphBlaster.class",
+          "methods": [
+            "isBarVisible",
+            "shouldCauseReequipAnimation"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-item-combat.json"
+        }
+      ]
+    },
+    {
+      "reason": "Original durability bar, reequip item comparison and client renderer binding only; getISTERProperties consumer retained separately in client context.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/item/ItemStinkRay.class",
+          "methods": [
+            "isBarVisible",
+            "shouldCauseReequipAnimation",
+            "initializeClient"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-item-combat.json"
+        }
+      ]
+    },
+    {
+      "reason": "Uncalled checkLeftOwner has zero pinned direct/bootstrap callers; tick never invokes it. Rotation/client interpolation are presentation of original motion, not additional combat. Preserve loaded LeftOwner state and live canHitEntity gate.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityFart.class",
+          "methods": [
+            "checkLeftOwner",
+            "lerpRotation",
+            "updateRotation",
+            "lerpMotion"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-item-combat.json"
+        }
+      ]
+    },
+    {
+      "reason": "Rocket render-distance, item-model snapshot and event17 particles/audio only. The method named explode already has its full non-damage lifecycle contract; no explosion semantics inferred from its name.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/entity/EntityEnderiophageRocket.class",
+          "methods": [
+            "shouldRenderAtSqrDistance",
+            "shouldRender",
+            "handleEntityEvent",
+            "getItem"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-item-combat.json"
+        }
+      ]
+    },
+    {
+      "reason": "Pinned Vanilla1.21.1/NeoForge21.1.244 dispatch proves ItemModArrow three-argument factory does not override current ArrowItem4-argument factory; zero native direct/bootstrap callers. Registered dispenser subclass extends DefaultDispenseItemBehavior, never overrides execute and uncalled getProjectile is not part of its API. Native ordinary item dispensing remains; registered entity payload is separately preserved.",
+      "implementation": [
+        {
+          "entry": "com/github/alexthe666/alexsmobs/item/ItemModArrow.class",
+          "methods": [
+            "<init>",
+            "createArrow"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-item-combat.json"
+        },
+        {
+          "entry": "com/github/alexthe666/alexsmobs/item/AMItemRegistry$1.class",
+          "methods": [
+            "<init>",
+            "getProjectile"
+          ],
+          "evidence_file": "native-evidence/alexsmobs-arrow-dispenser.json"
+        }
+      ]
+    }
+  ],
+  "exact_next_task": "R2o3b — Native lasso, whip, grapple, carver and shield/flight item contracts; then grouped actor census domains. Continue entire AlexMobs goal."
+}

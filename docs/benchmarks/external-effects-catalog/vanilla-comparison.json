@@ -1,7 +1,7 @@
 {
   "schema": "tno.external_effects.vanilla_comparison.v1",
   "status": "PARTIAL",
-  "checkpoint": "R2o2e-alexsmobs-exact-field-transport",
+  "checkpoint": "R2o3b-alexsmobs-native-tether-portal-flight-controls",
   "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
   "note": "Deterministic projection of canonical mod reviews,including explicit PARTIAL scope. The ledger alone tracks per-mod completeness. No Stage eligibility or policy decision.",
   "comparisons": [
@@ -5768,6 +5768,32 @@
       ]
     },
     {
+      "effect_id": "alexsmobs:blood_sprayer",
+      "mod_key": "alexsmobs",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "minecraft:bow",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "use starts using even when depleted. Usable iff damage<maxDamage-1. Depleted use searches first matching ammo; creative can reload without it; found ammo consumed1 even in refill branch; durability set0 on reload success. While usable, remaining count%2==0 allocates owned EntityMosquitoSpit with original hand/arm side, view direction, velocity1/inaccuracy as recorded; add only server; hurtAndBreak1 MAINHAND runs outside that server gate. Depleted onUseTick reloads Player only, applies cooldown20 on success, always stops using. No damage/status duplicated here; payload is separately canonical. Use duration is Integer.MAX_VALUE when usable else0.",
+      "components": [
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "numerical_parameters": {
+            "cadence_ticks": 2,
+            "velocity": 1.0,
+            "inaccuracy": 10.0
+          },
+          "formula": "remaining use count%2==0; original hand/arm spawn orientation; server add native owned projectile"
+        },
+        {
+          "primitive": "ITEM_RELOAD",
+          "numerical_parameters": {
+            "reload_cooldown_ticks": 20
+          },
+          "formula": "depleted Player onUseTick: first native ammo/creative reload resets durability0, applies cooldown, stopUsingItem"
+        }
+      ]
+    },
+    {
       "effect_id": "alexsmobs:bug_pheromones",
       "mod_key": "alexsmobs",
       "primary_classification": "BINARY_MECHANIC",
@@ -5920,6 +5946,35 @@
       ]
     },
     {
+      "effect_id": "alexsmobs:dimensional_carver_delivery",
+      "mod_key": "alexsmobs",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": null,
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Use rejects damage>=maxDamage, starts use; if CarverPortalPos absent/inactive, OUTLINE/ANY block ray1.5 from eye creates component position minus nearest facing*.1F, active. OnUseTick swings; distance²>9 flags stop and Player cooldown40 but DOES NOT skip count==1 branch. At count==1 server creates portal, attachment opposite nearest direction with UP changedDOWN, adds BEFORE onPortalOpen; durability1 MAINHAND, cooldown200, stop and clear component. Release clears component. Normal hook sets lifetime1200, exit dimension native ServerPlayer respawn or OVERWORLD, destination native respawn/sleep/heightmap zero above2. Shattered override lifetime2000/shattered/same dimension; DOWN => minBuildHeight+1, UP=>maxBuildHeight-1, horizontal => playerPos relative opposite facing by int min(borderDistance-5,1000000), with no invented floor if border distance negative. VoidPortal performs native transport separately. Capsid useOn inserts only ordinary native item context.",
+      "components": [
+        {
+          "primitive": "PORTAL_DELIVERY_CLOCK",
+          "numerical_parameters": {
+            "use_duration_ticks": 200,
+            "interrupted_cooldown_ticks": 40,
+            "completed_cooldown_ticks": 200,
+            "normal_lifetime_ticks": 1200,
+            "shattered_lifetime_ticks": 2000
+          }
+        },
+        {
+          "primitive": "PORTAL_DESTINATION",
+          "numerical_parameters": {
+            "ray_distance": 1.5,
+            "shattered_border_margin": 5.0,
+            "shattered_horizontal_limit": 1000000.0
+          },
+          "formula": "Native destination selection, not victim damage/knockback"
+        }
+      ]
+    },
+    {
       "effect_id": "alexsmobs:eagle_input_transport",
       "mod_key": "alexsmobs",
       "primary_classification": "CUSTOM_CONTROL",
@@ -5999,6 +6054,45 @@
       ]
     },
     {
+      "effect_id": "alexsmobs:enderiophage_rocket",
+      "mod_key": "alexsmobs",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "minecraft:firework_rocket",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Server block use creates at click+face*.15 and sets player owner, consumes1 unless creative. Elytra-use requires isFallFlying and server creates attached native projectile, consumes1 unless instabuild. Tick attached optional entity ID resolves level; boost only living currently fall-flying, copy attached position/motion. Otherwise free horizontal acceleration/Y increment as recorded. Native Projectile hit admission remains inherited. Entity/block server impact calls explode, which ONLY broadcasts event17 and discards: no Level.explode, hurt, EnderFlu, damage or spawned Enderiophages. Life/lifetime saved with superclass native owner NBT. Expiry uses server life>lifetime. Item data does not determine explosion payload. Registry-only default constructor RNG is overwritten by item constructors; overwritten defaults are not extra runtime parameters.",
+      "components": [
+        {
+          "primitive": "FLIGHT_BOOST",
+          "numerical_parameters": {
+            "forward_contribution": 0.1,
+            "target_speed": 1.5,
+            "velocity_blend": 0.5
+          },
+          "formula": "each axis delta += look*.1+(look*1.5-delta)*.5 only attached living isFallFlying"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "numerical_parameters": {
+            "horizontal_acceleration": 1.15,
+            "vertical_acceleration": 0.04,
+            "initial_vertical_velocity": 0.05,
+            "initial_horizontal_gaussian": 0.001
+          },
+          "formula": "unattached motion*= (1.15,1,1.15), then Y+=.04; initial X/Z randomGaussian*.001,Y=.05"
+        },
+        {
+          "primitive": "PROJECTILE_LIFECYCLE",
+          "numerical_parameters": {
+            "free_lifetime_base": 18,
+            "free_lifetime_rng_bound": 14,
+            "attached_lifetime_base": 18,
+            "attached_lifetime_rng_bound": 14
+          },
+          "formula": "native constructor branches consume separate RNG and overwrite lifetime; final free/attached branch writes recorded independently; increment life then server expires if life>lifetime"
+        }
+      ]
+    },
+    {
       "effect_id": "alexsmobs:exsanguination",
       "mod_key": "alexsmobs",
       "primary_classification": "VANILLA_LIKE_EXTENDED",
@@ -6016,6 +6110,59 @@
           "primitive": "EFFECT_TICK_CADENCE",
           "numerical_parameters": {
             "interval": 20
+          }
+        }
+      ]
+    },
+    {
+      "effect_id": "alexsmobs:falconry_glove_launch",
+      "mod_key": "alexsmobs",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": null,
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Server registered SwingArm delivery invokes this native ILeftClick. Glove identity, original eye/view ray128, AABB expanded toward ray and inflate1; predicate nonnull/pickable/Player-or-Living. Clip each entity bbox inflate pickRadius and choose original nearest/tie logic (eye-inside branch sets distance0 without setting pointedEntity); same-root-vehicle selection uses original canRiderInteract rule. No block-occlusion trace/ally/owner authentication at wrapper. Iterate existing passengers in order, first IFalconry+Animal removesVehicle, moveTo user eye with animal rotation; server sendMSGToAll client-position transport (client branch attempts sendMSGToServer for that client-only packet). If user Player call native falcon.onLaunch(user,pointedEntity), then returntrue. Actor-specific onLaunch/eligibility/control remain independent; do not manufacture launches/projectiles/damage for remaining passengers.",
+      "components": [
+        {
+          "primitive": "FALCONRY_TARGET_SELECTION",
+          "numerical_parameters": {
+            "ray_distance": 128.0,
+            "query_inflation": 1.0
+          },
+          "formula": "Original entity-ray/vehicle rules, no native block trace"
+        },
+        {
+          "primitive": "NATIVE_RIDE_CONTROL",
+          "formula": "Detach first native qualifying passenger; move to user eye; invoke original onLaunch"
+        }
+      ]
+    },
+    {
+      "effect_id": "alexsmobs:fart_status_provocation",
+      "mod_key": "alexsmobs",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": "minecraft:nausea",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Native owned Entity launched by StinkRay. UUID/server or network-ID shooter resolution; NBT Owner/LeftOwner. Tick DOES NOT call checkLeftOwner, so default leftOwner remains false absent loaded state; do not import other projectile lifecycle. Alive/pickable/nonspectator and same-vehicle shooter rejection while !leftOwner, no ally hit veto. Living hit attempts CONFUSION300/amp0 then queries nearby Mob AABB inflate15; exclude same object/ID/UUID, both-direction allies and when hit living is IHurtableMultipart. Set each qualifying mob lastHurtByMob and target to victim; no damage request/hurt return gate. Entity hit does not discard. Tick motion drag .95F, discard tickCount>30; no gravity, block hit discards both sides. Effect and aggro callbacks lack added server gate.",
+      "components": [
+        {
+          "primitive": "MOB_EFFECT_NAUSEA",
+          "numerical_parameters": {
+            "duration": 300,
+            "amplifier": 0
+          }
+        },
+        {
+          "primitive": "AGGRO_REDIRECTION",
+          "numerical_parameters": {
+            "search_box_radius": 15.0
+          }
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "numerical_parameters": {
+            "drag": 0.949999988079071,
+            "lifetime_threshold_ticks": 30,
+            "gaussian_axis_coefficient": 0.007499999832361937
           }
         }
       ]
@@ -6109,6 +6256,58 @@
       ]
     },
     {
+      "effect_id": "alexsmobs:hemolymph_blaster",
+      "mod_key": "alexsmobs",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "minecraft:bow",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "use starts using even when depleted. Usable iff damage<maxDamage-1. Depleted use searches first matching ammo; creative can reload without it; found ammo consumed1 even in refill branch; durability set0 on reload success. While usable, remaining count%2==0 allocates owned EntityHemolymph with original hand/arm side, view direction, velocity1/inaccuracy as recorded; add only server; hurtAndBreak1 MAINHAND runs outside that server gate. Depleted onUseTick reloads Player only, applies cooldown20 on success, always stops using. No damage/status duplicated here; payload is separately canonical. Use duration is Integer.MAX_VALUE when usable else0.",
+      "components": [
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "numerical_parameters": {
+            "cadence_ticks": 2,
+            "velocity": 1.0,
+            "inaccuracy": 3.0
+          },
+          "formula": "remaining use count%2==0; original hand/arm spawn orientation; server add native owned projectile"
+        },
+        {
+          "primitive": "ITEM_RELOAD",
+          "numerical_parameters": {
+            "reload_cooldown_ticks": 20
+          },
+          "formula": "depleted Player onUseTick: first native ammo/creative reload resets durability0, applies cooldown, stopUsingItem"
+        }
+      ]
+    },
+    {
+      "effect_id": "alexsmobs:hemolymph_projectile",
+      "mod_key": "alexsmobs",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "minecraft:llama_spit",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Entity-based owned projectile, not a replacement damage source. Living shooter resolves server UUID first, otherwise nonzero network ID. NBT retains Owner/LeftOwner; ID is not saved. Until leftOwner, expand motion AABB by1 and refuse same root vehicle; hit admission requires alive/pickable/nonspectator and, before leaving owner, not same-vehicle. No separate ally predicate. Each tick performs original movement-vector hit dispatch; entity hit does not discard here and hurt return is POP. Solid-volume or water/bubble discards, block hit discards on server. Drag is .99F; no explicit TTL. Gravity is original signed Y input only when !noGravity except Sand special case. Hand constructor offsets shooter head yaw±60, width*.5 and eyeY-.2F; mob constructor uses body yaw, (width+1)*.35 and eyeY+.2F. Entity hit invokes native mobProjectile with this direct projectile and resolved living causing actor; it is not newly server-gated.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "damage": 7.0
+          },
+          "formula": "mobProjectile(this, resolved LivingEntity shooter); original hurt result discarded"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "numerical_parameters": {
+            "drag": 0.9900000095367432,
+            "gravity_y": -0.019999999552965164,
+            "gaussian_axis_coefficient": 0.007499999832361937
+          },
+          "formula": "normalize(input direction), add independent nextGaussian*coefficient*input inaccuracy per axis, then scale(input velocity); tick uses prior velocity for next position"
+        }
+      ]
+    },
+    {
       "effect_id": "alexsmobs:knockback_resistance",
       "mod_key": "alexsmobs",
       "primary_classification": "VANILLA_LIKE_EXTENDED",
@@ -6170,6 +6369,39 @@
           "numerical_parameters": {
             "strength": 1.0
           }
+        }
+      ]
+    },
+    {
+      "effect_id": "alexsmobs:mosquito_spit",
+      "mod_key": "alexsmobs",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "minecraft:llama_spit",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Entity-based owned projectile, not a replacement damage source. Living shooter resolves server UUID first, otherwise nonzero network ID. NBT retains Owner/LeftOwner; ID is not saved. Until leftOwner, expand motion AABB by1 and refuse same root vehicle; hit admission requires alive/pickable/nonspectator and, before leaving owner, not same-vehicle. No separate ally predicate. Each tick performs original movement-vector hit dispatch; entity hit does not discard here and hurt return is POP. Solid-volume or water/bubble discards, block hit discards on server. Drag is .99F; no explicit TTL. Gravity is original signed Y input only when !noGravity except Sand special case. Hand constructor offsets shooter head yaw±60, width*.5 and eyeY-.2F; mob constructor uses body yaw, (width+1)*.35 and eyeY+.2F. Entity hit invokes native mobProjectile with this direct projectile and resolved living causing actor; it is not newly server-gated. Server hit CrimsonMosquito gets bloodLevel+1 even when shooter is absent/nonliving or damage rejected.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "damage": 4.0
+          },
+          "formula": "mobProjectile(this, resolved LivingEntity shooter); original hurt result discarded"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "numerical_parameters": {
+            "drag": 0.9900000095367432,
+            "gravity_y": -0.05999999865889549,
+            "gaussian_axis_coefficient": 0.007499999832361937
+          },
+          "formula": "normalize(input direction), add independent nextGaussian*coefficient*input inaccuracy per axis, then scale(input velocity); tick uses prior velocity for next position"
+        },
+        {
+          "primitive": "NATIVE_BLOOD_RESOURCE",
+          "numerical_parameters": {
+            "increment": 1
+          },
+          "formula": "server hit CrimsonMosquito -> current bloodLevel+1 independently of shooter kind/hurt acceptance"
         }
       ]
     },
@@ -6269,6 +6501,24 @@
           },
           "attribute": "minecraft:attack_speed",
           "native_operation": "ADD_VALUE"
+        }
+      ]
+    },
+    {
+      "effect_id": "alexsmobs:pocket_sand",
+      "mod_key": "alexsmobs",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "minecraft:snowball",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Server use with nonempty first ItemTags.SAND ammo; creative constructs Sand stack. Creates owned SandShot with native side/view, velocity1.2F and inaccuracy11. Adds entity, cooldown2, shrink1, hurtAndBreak1 MAINHAND. Award stat and sidedSuccess regardless of successful launch. Native Blindness/damage remain in SandShot contract.",
+      "components": [
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "numerical_parameters": {
+            "velocity": 1.2000000476837158,
+            "inaccuracy": 11.0,
+            "cooldown_ticks": 2
+          }
         }
       ]
     },
@@ -6375,6 +6625,93 @@
       ]
     },
     {
+      "effect_id": "alexsmobs:sand_shot",
+      "mod_key": "alexsmobs",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": "minecraft:llama_spit",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Entity-based owned projectile, not a replacement damage source. Living shooter resolves server UUID first, otherwise nonzero network ID. NBT retains Owner/LeftOwner; ID is not saved. Until leftOwner, expand motion AABB by1 and refuse same root vehicle; hit admission requires alive/pickable/nonspectator and, before leaving owner, not same-vehicle. No separate ally predicate. Each tick performs original movement-vector hit dispatch; entity hit does not discard here and hurt return is POP. Solid-volume or water/bubble discards, block hit discards on server. Drag is .99F; no explicit TTL. Gravity is original signed Y input only when !noGravity except Sand special case. Hand constructor offsets shooter head yaw±60, width*.5 and eyeY-.2F; mob constructor uses body yaw, (width+1)*.35 and eyeY+.2F. Entity hit invokes native mobProjectile with this direct projectile and resolved living causing actor; it is not newly server-gated. Player shooter + living hit always attempts Blindness100ticks/amp0 (ambient true, particles false), independent of hurt return. Sand always adds -.03F Y once, then adds -.03F again unless noGravity; it does not have the one-write gravity of the other two projectiles. Variant drives particles only.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "damage": 2.5
+          },
+          "formula": "mobProjectile(this, resolved LivingEntity shooter); original hurt result discarded"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "numerical_parameters": {
+            "drag": 0.9900000095367432,
+            "gravity_y": -0.029999999329447746,
+            "gaussian_axis_coefficient": 0.007499999832361937,
+            "additional_gravity_y": -0.029999999329447746
+          },
+          "formula": "normalize(input direction), add independent nextGaussian*coefficient*input inaccuracy per axis, then scale(input velocity); tick uses prior velocity for next position"
+        },
+        {
+          "primitive": "MOB_EFFECT_BLINDNESS",
+          "numerical_parameters": {
+            "duration": 100,
+            "amplifier": 0
+          },
+          "formula": "Player shooter + LivingEntity victim, ambient=true, visible=false; no hurt-return dependency"
+        }
+      ]
+    },
+    {
+      "effect_id": "alexsmobs:shark_tooth_arrow_payload",
+      "mod_key": "alexsmobs",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "minecraft:arrow",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Registered native EntityType factory constructs this Arrow subtype (not evidence of an active bow factory). Inherited AbstractArrow.onHitEntity invokes doPostHurtEffects only after accepted native hurt. Player victim then damageShield with getBaseDamage, not computed hurt amount: base>=3 and current use item SHIELD_BLOCK => durability cost1+floor(baseDamage), MAINHAND; when emptied call native destroy-item hook, stop using, sound. After shield branch, ARTHROPOD OR Drowned OR (!UNDEAD and canBreatheUnderwater) => second arrow-source hurt7, direct this, causing owner if present else this; result discarded. No added ally veto. isInWater returnsfalse, retaining dry projectile behavior. getPickupItem returns SharkToothArrow item through inherited native pickup call. Pinned ItemModArrow.createArrow has obsolete3-argument signature and no callers: normal bow uses inherited4-argument vanilla factory. Registered AMItemRegistry$1 extends DefaultDispenseItemBehavior and only defines uncalled getProjectile, so native execute ejects item rather than invoking it. These inactive helper paths must not be described as live arrow delivery.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "extra_damage": 7.0
+          },
+          "formula": "Accepted parent-arrow hit first; native category test; independent second arrow hurt"
+        },
+        {
+          "primitive": "SHIELD_DURABILITY_DRAIN",
+          "numerical_parameters": {
+            "durability_base": 1
+          },
+          "formula": "1+floor(getBaseDamage); native admission baseDamage>=3 and SHIELD_BLOCK; MAINHAND"
+        }
+      ]
+    },
+    {
+      "effect_id": "alexsmobs:shield_of_the_deep",
+      "mod_key": "alexsmobs",
+      "primary_classification": "VANILLA_DIRECT",
+      "closest_vanilla": "minecraft:shield",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Native DEFAULT_SHIELD_ACTIONS, BLOCK animation, use starts/consumes, useDuration72000. Native shield admission, damage defenses and lifecycle remain inherited/loader-owned, no custom retaliation/status/healing callback here.",
+      "components": [
+        {
+          "primitive": "NATIVE_BLOCKING",
+          "formula": "Original shield actions/use state; binary/native defenses"
+        }
+      ]
+    },
+    {
+      "effect_id": "alexsmobs:skelewag_sword_blocking",
+      "mod_key": "alexsmobs",
+      "primary_classification": "VANILLA_DIRECT",
+      "closest_vanilla": "minecraft:shield",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Native DEFAULT_SHIELD_ACTIONS, BLOCK animation, use starts/consumes, useDuration72000. Native shield admission, damage defenses and lifecycle remain inherited/loader-owned, no custom retaliation/status/healing callback here. Sword parent IRON; constructor stores private skelewagModifiers(+3.5/0 ADD_VALUE) with no native reader. getDamage returns3.5F but has no native caller/current SwordItem dispatch consumer; it does not prove an active attack attribute. No live custom numeric attribute inferred from those fields or names.",
+      "components": [
+        {
+          "primitive": "NATIVE_BLOCKING",
+          "formula": "Original shield actions/use state; binary/native defenses"
+        }
+      ]
+    },
+    {
       "effect_id": "alexsmobs:soulsteal",
       "mod_key": "alexsmobs",
       "primary_classification": "CUSTOM_RESOURCE",
@@ -6428,6 +6765,74 @@
       ]
     },
     {
+      "effect_id": "alexsmobs:squid_grapple",
+      "mod_key": "alexsmobs",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": null,
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Release disallowed while fall-flying; server owned UUID hook launch from original hand offset at eye-.2F. Charge f=elapsed/20, power=min((f*f+f+2*f)/4,1), velocity=power*3/inaccuracy1; durability1 MAINHAND. Existing native Citadel storage keeps four UUID hook slots, first unavailable hook then count<4 else original rotating stored index modulo4; replaced live hook becomes withdrawing. Server UUID lookup, client only playerUUID; owner absent/dead discards, owner crouch starts withdrawal. Withdrawal clears anchor and moves normalized eye-.2 vector*1.2, stores drag.99, until distance<=1.2F or withdrawal count>=200 then discard. Unanchored hit predicate alwaysfalse for entities; server block impact anchors original block/face, stops motion. Unloaded chunk server discards. Unanchored drag.99, conditional gravity-.1F; solid nonwater stops motion. Anchored tick does not call super.tick; position block center+face*.55F. Owner distance>2 => add normalized hook-to-owner-eye/2 vector*.2*(1-min(1,sqrt(xxa²+yya²+zza²)*.333F)); reset fallDistance only airborne. Missing anchor block starts withdrawal. No damage/status/entity hook-hit. NBT callbacks are reversed: readAdditionalSaveData writes existing owner into supplied tag; addAdditionalSaveData reads a supplied OwnerUUID and sets owner. They do not prove ordinary owner/anchor persistence.",
+      "components": [
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "numerical_parameters": {
+            "charge_time_divisor": 20.0,
+            "charge_linear_coefficient": 2.0,
+            "charge_polynomial_divisor": 4.0,
+            "velocity_coefficient": 3.0,
+            "inaccuracy": 1.0
+          },
+          "formula": "min((f*f+f+2*f)/4,1)*3"
+        },
+        {
+          "primitive": "FORCED_MOVEMENT",
+          "numerical_parameters": {
+            "pull_coefficient": 0.2,
+            "input_damping_coefficient": 0.3330000042915344
+          },
+          "formula": "normalized direction*.2*(1-min(1,length(native movement inputs)*.333F))"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "numerical_parameters": {
+            "withdraw_speed": 1.2,
+            "withdraw_drag": 0.99,
+            "flight_drag": 0.99,
+            "gravity_y": -0.10000000149011612,
+            "gaussian_axis_coefficient": 0.007499999832361937
+          }
+        },
+        {
+          "primitive": "HOOK_LIFECYCLE",
+          "numerical_parameters": {
+            "withdraw_timeout": 200
+          },
+          "formula": "native withdrawing counter; four slots are structural native gate, not four new effects"
+        }
+      ]
+    },
+    {
+      "effect_id": "alexsmobs:stink_ray",
+      "mod_key": "alexsmobs",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "minecraft:bow",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Player release while usable requires elapsed i>=10. getPowerForTime: f=i/20F; min((f*f+2f)/3,1). Allocate owned Fart from native hand side, shoot view direction with .2F+power*.4F and inaccuracy10; server add; durability1 MAINHAND outside server gate. Use starts using, depleted refill consumes first StinkBottle and yields glass bottle (inventory else drop) or creative refill, then durability0. Use duration72000 if usable else0. Payload status/aggro remain separate.",
+      "components": [
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "numerical_parameters": {
+            "base_velocity": 0.20000000298023224,
+            "charged_velocity_coefficient": 0.4000000059604645,
+            "inaccuracy": 10.0,
+            "charge_time_divisor": 20.0,
+            "charge_linear_coefficient": 2.0,
+            "charge_polynomial_divisor": 3.0
+          },
+          "formula": "f=i/20; velocity=.2+min((f*f+2*f)/3,1)*.4"
+        }
+      ]
+    },
+    {
       "effect_id": "alexsmobs:sunbird_blessing",
       "mod_key": "alexsmobs",
       "primary_classification": "CUSTOM_CONTROL",
@@ -6458,6 +6863,63 @@
           "primitive": "FORCED_MOVEMENT",
           "numerical_parameters": {
             "downward_y": -0.20000000298023224
+          }
+        }
+      ]
+    },
+    {
+      "effect_id": "alexsmobs:tarantula_hawk_elytra",
+      "mod_key": "alexsmobs",
+      "primary_classification": "VANILLA_LIKE_EXTENDED",
+      "closest_vanilla": "minecraft:elytra",
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Leather native ArmorItem CHESTPLATE constructed with registered durability800. NeoForge canElytraFly delegates ElytraItem.isFlyEnabled; native damage<max-1 is flight admission, not a new status. Server (flightTicks+1)%20==0 hurts stack1 CHEST, returns true every callback. No custom aerial damage, status or velocity boost here. Equip slotCHEST; repair original wing fragment.",
+      "components": [
+        {
+          "primitive": "FLIGHT_DURABILITY_DRAIN",
+          "numerical_parameters": {
+            "cadence_ticks": 20,
+            "durability_cost": 1
+          },
+          "formula": "server (flightTicks+1)%20==0, CHEST"
+        }
+      ]
+    },
+    {
+      "effect_id": "alexsmobs:tendon_whip_chain",
+      "mod_key": "alexsmobs",
+      "primary_classification": "VANILLA_COMPOSITE",
+      "closest_vanilla": null,
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Native hurtEnemy attempts launch then returns parent SwordItem result. Server SwingArm dispatch can also invoke onLeftClick: item identity + Player attackStrengthScale(.5)>.9F. Level.clip is block-only, so EntityHitResult branch does not supply a native aimed entity; fallback nearest LivingEntity within12 that is Mob, not self, both-direction nonally and line-of-sight. Durability1 when target exists occurs before launch admission. Helper canLaunch when no last, removed, or distance>30; stored UUID is only server gate to level.getEntity(ID), not UUID lookup; clear last/discard prior before new server segment. Segment creatorUUID, source/target IDs, glint and progress; no segment NBT fields persist. Initial previousTouched list is empty. Tick uses original progress snapshot: extend+1 until3, retract-1, at old progress0 + retract discard/propagate retract/last link. Homing to targetY(.4F) delta=diff*.5 then .99 drag. Once old progress>=3, server sets hasTouched BEFORE hurt; mobProjectile direct segment/causing living creator and current!=creator. Damage getDamageFor uses stored base; no enchantment or attack-attribute addition in this method. Player first segment onJoinWorld gets getDamageForItem: empty attrs ->0, otherwise compares Entry.attribute().value() to ATTACK_DAMAGE Holder, so ordinary native Attribute values never match and sum remains0; private item tendonModifiers(+4/-3) has no native reader. Parent segment damage decreases1 with native floor2 for player-created child; nonplayer default base5 persists. Chain runs independently of damage return, checking UPDATED progress>=3; if targetsHit>3 retract else nearest valid visible living within8, copied previousTouched list adds only chosen child target. Initial victim is not preinserted, so native chain can revisit it; do not deduplicate native hits. ValidTarget allows nonallied Mob OR remembered lastHurtMob/lastHurtByMob by UUID (fallback can override ally/type test). Child set count+1, from parent, target chosen, position chosenY(.4F), update last then add. Native line trace uses COLLIDER/NONE and rejects different level or distance>128. SWORD_SWEEP explicitly denied; parent other actions retained.",
+      "components": [
+        {
+          "primitive": "NATIVE_DAMAGE_REQUEST",
+          "numerical_parameters": {
+            "default_base_damage": 5.0,
+            "child_damage_decrement": 1.0,
+            "child_damage_floor": 2.0
+          },
+          "formula": "Default5 for native nonplayer; player initial native attribute sum0 due value/holder mismatch; child max(parent-1,2)"
+        },
+        {
+          "primitive": "CHAIN_SEQUENCE",
+          "numerical_parameters": {
+            "extension_threshold": 3.0,
+            "extend_step": 1.0,
+            "retract_step": 1.0,
+            "chain_count_threshold": 3,
+            "chain_search_radius": 8.0,
+            "launch_search_radius": 12.0
+          },
+          "formula": "Original old-progress hit and updated-progress chain ordering; targetsHit>3 stops further chain"
+        },
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "numerical_parameters": {
+            "target_height_fraction": 0.4000000059604645,
+            "homing_coefficient": 0.5,
+            "drag": 0.9900000095367432
           }
         }
       ]
@@ -6549,6 +7011,85 @@
         {
           "primitive": "OWNER_LINK",
           "numerical_parameters": {}
+        }
+      ]
+    },
+    {
+      "effect_id": "alexsmobs:vine_lasso_item_delivery",
+      "mod_key": "alexsmobs",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": null,
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Use starts BOW/72000tick item use. Server release computes elapsed charge f=p/20F, power=min((f*f+2*f)/3,1). Native Player.pick(15,1,false) returns block trace under pinned Vanilla/loader; its ENTITY/lassoTo direct branch is inactive, not a reachable instant-attach alternative. Otherwise creates owned EntityVineLasso at eye+.15F, native view direction, velocity=max(.1F,power), inaccuracy1, server add. Consume one only non-instabuild Player; nonplayer does not consume. Inventory tick is empty; use tick sound every7 is non-combat. Hit/pull/source lifecycle is in original lasso projectile/control records.",
+      "components": [
+        {
+          "primitive": "PROJECTILE_DELIVERY",
+          "numerical_parameters": {
+            "minimum_velocity": 0.10000000149011612,
+            "inaccuracy": 1.0,
+            "charge_time_divisor": 20.0,
+            "charge_linear_coefficient": 2.0,
+            "charge_polynomial_divisor": 3.0
+          },
+          "formula": "max(.1,min((f*f+2*f)/3,1)); f=elapsed/20"
+        }
+      ]
+    },
+    {
+      "effect_id": "alexsmobs:vine_lasso_projectile",
+      "mod_key": "alexsmobs",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": null,
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Owned Entity projectile tracks UUID/networkID both raw and synched. Server resolves UUID first then ID fallback; client ID; owner cache fills from sync. NBT retains UUID and LeftOwner, not ID. Tick updates leftOwner using same-root-vehicle motion box, and dispatches impact only server. Entity hit resolves living owner, otherwise server global online player UUID, otherwise nearest player64; living target!=lassoer -> existing VineLassoUtil.lassoTo then discard. No owner authentication, ally/immunity/damage added at wrapper. This nearest-player fallback is a real native source reassignment. Projectile range>15 from resolved owner returns one lasso item if not already removed, inventory for Player else drop; solid volume excluding water/lava or server block hit also returns item then discard. Drag .99F, conditional gravity-.02F, entity admission alive/pickable/nonspectator and same-vehicle rejection until leftOwner. Attachment control uses existing canonical vine_lasso_control; no duplicate pull contract here.",
+      "components": [
+        {
+          "primitive": "PROJECTILE_MOTION",
+          "numerical_parameters": {
+            "range_before_return": 15.0,
+            "drag": 0.9900000095367432,
+            "gravity_y": -0.019999999552965164,
+            "gaussian_axis_coefficient": 0.007499999832361937
+          }
+        },
+        {
+          "primitive": "NATIVE_SOURCE_FALLBACK",
+          "numerical_parameters": {
+            "nearest_player_range": 64.0
+          }
+        }
+      ]
+    },
+    {
+      "effect_id": "alexsmobs:void_portal_transport",
+      "mod_key": "alexsmobs",
+      "primary_classification": "CUSTOM_CONTROL",
+      "closest_vanilla": null,
+      "similarities": "Native APIs retain their original admission, defenses and lifecycle; exact differences are recorded below.",
+      "differences": "Unowned native portal, not damage/explosion. Native type default lifespan300; carver constructors use1200/2000 and onPortalOpen supersedes them; first tick lifespan0 resets2000. Facing gives slab ±1.5 on two axes, ±.15F on normal axis. Query original AABB deflate.2F plus separately VoidWorm inflate1.5, concatenate without dedup. Server destination present, lifespan>20 and tickCount>20 admits not-on-portal-cooldown, notcrouch, nototherportal, getParts==null, notPartEntity, not VOID_PORTAL_IGNORES. VoidWormPart branch can extend lifespan if<22; exact superclass/admission reachability retained for actor reconciliation. VoidWorm teleports to center destination, portal cooldown/resetPortalLogic; actor implementation stays independent. Other entities offset destination by attachmentOpposite*2; if exit dimension resolves and differs by original key reference, cross-dimension route else same-level teleport/cooldown. ServerPlayer cross-dimension native teleport yaw/pitch/empty relative-set, then create sister if absent (no extra player cooldown call in that branch). Nonplayer unRide, native type.create, if nonnull restoreFrom/move/headrot/cooldown/add; discard original even when creation null. Every tick decrement lifespan; <=0 discard. After tick>1 call clearObstructions: once shattered+destination, sets latch and destroys ONLY destination.offset(-1,-1,-1) with drops=true because each native loop bounds is -1..-1; no server guard/mobGriefing/three-cube expansion here. Same-dimension setDestination with no sister creates reverse-facing linked portal; link UUIDs, reciprocal destinations/lifetime; cross-dimension player creates DOWN sister. NBT face/lifespan/shattered/DX-DZ/sister/exit ResourceKey retains native codec fallbackOVERWORLD; transient clear/open/close latches not saved.",
+      "components": [
+        {
+          "primitive": "TELEPORT_CONTROL",
+          "numerical_parameters": {
+            "slab_half_extent": 1.5,
+            "slab_half_thickness": 0.15000000596046448,
+            "admission_box_deflation": 0.20000000298023224,
+            "void_worm_query_inflation": 1.5,
+            "destination_offset_blocks": 2
+          },
+          "formula": "Original admission/team-independent entity query and native teleport, not forced velocity"
+        },
+        {
+          "primitive": "PORTAL_LIFECYCLE",
+          "numerical_parameters": {
+            "native_type_default_ticks": 300,
+            "zero_lifetime_recovery_ticks": 2000
+          },
+          "formula": "Native admission clocks20, decrement1, discard<=0; type default overwritten by material producer paths recorded separately"
+        },
+        {
+          "primitive": "TERRAIN_CLEARING",
+          "formula": "Once shattered destination present: destroyBlock(destination+(-1,-1,-1),true); exact native -1..-1 bounds"
         }
       ]
     },
