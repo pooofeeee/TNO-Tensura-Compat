@@ -56,3 +56,5 @@ numeric/alias/duplicate/exclusion/dependency audits, targeted tests and exact
 pinned-JAR reproduction. Update STATE/review/ledger and verify push/production.
 Genuine missing evidence is a precise blocker after independent scopes finish.
 Do not return after individual families or start any subsequent mod.
+
+Authorized continuation recovery: R2o5d is now closed with all thirteen actors and directly used shared/ant-colony boundaries. AlexMobs remains PARTIAL: 205 records, 839 numeric candidates, 7,138/11,434 dispositioned and 4,296 pending (2,320 semantic-role). Next is R2o6 remaining terrestrial/shore actors, then the entire unresolved finite queue. This checkpoint is not a STOP or mod closure.
