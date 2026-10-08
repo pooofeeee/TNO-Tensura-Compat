@@ -1,0 +1,1734 @@
+{
+  "schema": "tno.external_effects.selected_reference.v1",
+  "id": "alexsmobs-emu-projectile-impact",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "scope": "Exact current native projectile impact cancellation and terrestrial LivingKnockBack event boundary; no loader rediscovery.",
+  "status": "STATIC_EVIDENCE",
+  "witnesses": [
+    {
+      "archive_sha256": "ab6611d0408855a769aca03121f53e4a8aa05e90a3bac17a15b5157079e24fda",
+      "entry": "patches/net/minecraft/world/entity/projectile/AbstractArrow.java.patch",
+      "entry_sha256": "fb04b0e7e3d0f7040f1953d8f5c90c7f1513257a9d622df52b38d2cbe59b16c2",
+      "text_sections": [
+        {
+          "first_line": 12,
+          "last_line": 22,
+          "text": "@@ -224,7 +_,9 @@\n                     }\n                 }\n \n-                if (hitresult != null && !flag) {\n+                if (hitresult != null && hitresult.getType() != HitResult.Type.MISS && !flag) {\n+                    if (net.neoforged.neoforge.event.EventHooks.onProjectileImpact(this, hitresult))\n+                        break;\n                     ProjectileDeflection projectiledeflection = this.hitTargetOrDeflectSelf(hitresult);\n                     this.hasImpulse = true;\n                     if (projectiledeflection != ProjectileDeflection.NONE) {\n"
+        }
+      ]
+    },
+    {
+      "archive_sha256": "3d46a2b339ff378959536640113b1eee289e113901dfb191ac5b113e63ea3228",
+      "entry": "net/neoforged/neoforge/event/entity/ProjectileImpactEvent.java",
+      "entry_sha256": "342554c45667bc1a5963e1571aeb17811f27a02b1790ae66086198df3a1a33bd",
+      "text_sections": [
+        {
+          "first_line": 13,
+          "last_line": 40,
+          "text": "\n/**\n * This event is fired on the {@link NeoForge#EVENT_BUS}.<br>\n * This event is fired when a projectile entity impacts something.<br>\n * This event is fired via {@link EventHooks#onProjectileImpact(Projectile, HitResult)}\n * This event is fired for all vanilla projectiles by Forge,\n * custom projectiles should fire this event and check the result in a similar fashion.\n * This event is cancelable. When canceled, the impact will not be processed and the projectile will continue flying.\n * Killing or other handling of the entity after event cancellation is up to the modder.\n */\npublic class ProjectileImpactEvent extends EntityEvent implements ICancellableEvent {\n    private final HitResult ray;\n    private final Projectile projectile;\n\n    public ProjectileImpactEvent(Projectile projectile, HitResult ray) {\n        super(projectile);\n        this.ray = ray;\n        this.projectile = projectile;\n    }\n\n    public HitResult getRayTraceResult() {\n        return ray;\n    }\n\n    public Projectile getProjectile() {\n        return projectile;\n    }\n}\n"
+        }
+      ]
+    },
+    {
+      "archive_sha256": "3d46a2b339ff378959536640113b1eee289e113901dfb191ac5b113e63ea3228",
+      "entry": "net/neoforged/neoforge/event/EventHooks.java",
+      "entry_sha256": "83f577d8c146b0bb80e359054cc490829b3664ffbaf3b61a2cb141c6d2cc61ff",
+      "text_sections": [
+        {
+          "first_line": 691,
+          "last_line": 694,
+          "text": "    public static boolean onProjectileImpact(Projectile projectile, HitResult ray) {\n        return NeoForge.EVENT_BUS.post(new ProjectileImpactEvent(projectile, ray)).isCanceled();\n    }\n\n"
+        }
+      ]
+    },
+    {
+      "archive_sha256": "d874b2aa4d511919a567ae73f13510e63e16f7318194eb2c03824cd68a59df6f",
+      "entry": "net/neoforged/neoforge/event/EventHooks.class",
+      "entry_sha256": "f810377f87c95c04bb4de7a7ac68e8f4862f9ca33a34cc74e067e65e2a92d66b",
+      "class_name": "net/neoforged/neoforge/event/EventHooks",
+      "superclass": "java/lang/Object",
+      "interfaces": [],
+      "declared_methods": [
+        {
+          "name": "<init>",
+          "descriptor": "()V",
+          "access": 1
+        },
+        {
+          "name": "onMultiBlockPlace",
+          "descriptor": "(Lnet/minecraft/world/entity/Entity;Ljava/util/List;Lnet/minecraft/core/Direction;)Z",
+          "access": 9
+        },
+        {
+          "name": "onBlockPlace",
+          "descriptor": "(Lnet/minecraft/world/entity/Entity;Lnet/neoforged/neoforge/common/util/BlockSnapshot;Lnet/minecraft/core/Direction;)Z",
+          "access": 9
+        },
+        {
+          "name": "onNeighborNotify",
+          "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Ljava/util/EnumSet;Z)Lnet/neoforged/neoforge/event/level/BlockEvent$NeighborNotifyEvent;",
+          "access": 9
+        },
+        {
+          "name": "doPlayerHarvestCheck",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)Z",
+          "access": 9
+        },
+        {
+          "name": "getBreakSpeed",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/block/state/BlockState;FLnet/minecraft/core/BlockPos;)F",
+          "access": 9
+        },
+        {
+          "name": "onPlayerDestroyItem",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/InteractionHand;)V",
+          "access": 9
+        },
+        {
+          "name": "checkSpawnPlacements",
+          "descriptor": "(Lnet/minecraft/world/entity/EntityType;Lnet/minecraft/world/level/ServerLevelAccessor;Lnet/minecraft/world/entity/MobSpawnType;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/RandomSource;Z)Z",
+          "access": 9
+        },
+        {
+          "name": "checkSpawnPosition",
+          "descriptor": "(Lnet/minecraft/world/entity/Mob;Lnet/minecraft/world/level/ServerLevelAccessor;Lnet/minecraft/world/entity/MobSpawnType;)Z",
+          "access": 9
+        },
+        {
+          "name": "checkSpawnPositionSpawner",
+          "descriptor": "(Lnet/minecraft/world/entity/Mob;Lnet/minecraft/world/level/ServerLevelAccessor;Lnet/minecraft/world/entity/MobSpawnType;Lnet/minecraft/world/level/SpawnData;Lnet/minecraft/world/level/BaseSpawner;)Z",
+          "access": 9
+        },
+        {
+          "name": "finalizeMobSpawn",
+          "descriptor": "(Lnet/minecraft/world/entity/Mob;Lnet/minecraft/world/level/ServerLevelAccessor;Lnet/minecraft/world/DifficultyInstance;Lnet/minecraft/world/entity/MobSpawnType;Lnet/minecraft/world/entity/SpawnGroupData;)Lnet/minecraft/world/entity/SpawnGroupData;",
+          "access": 9
+        },
+        {
+          "name": "finalizeMobSpawnSpawner",
+          "descriptor": "(Lnet/minecraft/world/entity/Mob;Lnet/minecraft/world/level/ServerLevelAccessor;Lnet/minecraft/world/DifficultyInstance;Lnet/minecraft/world/entity/MobSpawnType;Lnet/minecraft/world/entity/SpawnGroupData;Lnet/neoforged/neoforge/common/extensions/IOwnedSpawner;Z)Lnet/neoforged/neoforge/event/entity/living/FinalizeSpawnEvent;",
+          "access": 9
+        },
+        {
+          "name": "firePlayerSpawnPhantoms",
+          "descriptor": "(Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;)Lnet/neoforged/neoforge/event/entity/player/PlayerSpawnPhantomsEvent;",
+          "access": 9
+        },
+        {
+          "name": "checkMobDespawn",
+          "descriptor": "(Lnet/minecraft/world/entity/Mob;)Z",
+          "access": 9
+        },
+        {
+          "name": "getItemBurnTime",
+          "descriptor": "(Lnet/minecraft/world/item/ItemStack;ILnet/minecraft/world/item/crafting/RecipeType;)I",
+          "access": 9
+        },
+        {
+          "name": "getExperienceDrop",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/entity/player/Player;I)I",
+          "access": 9
+        },
+        {
+          "name": "getMaxSpawnClusterSize",
+          "descriptor": "(Lnet/minecraft/world/entity/Mob;)I",
+          "access": 9
+        },
+        {
+          "name": "getPlayerDisplayName",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/network/chat/Component;)Lnet/minecraft/network/chat/Component;",
+          "access": 9
+        },
+        {
+          "name": "getPlayerTabListDisplayName",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;)Lnet/minecraft/network/chat/Component;",
+          "access": 9
+        },
+        {
+          "name": "fireFluidPlaceBlockEvent",
+          "descriptor": "(Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/world/level/block/state/BlockState;",
+          "access": 9
+        },
+        {
+          "name": "onItemTooltip",
+          "descriptor": "(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/entity/player/Player;Ljava/util/List;Lnet/minecraft/world/item/TooltipFlag;Lnet/minecraft/world/item/Item$TooltipContext;)Lnet/neoforged/neoforge/event/entity/player/ItemTooltipEvent;",
+          "access": 9
+        },
+        {
+          "name": "onEntityStruckByLightning",
+          "descriptor": "(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/entity/LightningBolt;)Z",
+          "access": 9
+        },
+        {
+          "name": "onItemUseStart",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;I)I",
+          "access": 9
+        },
+        {
+          "name": "onItemUseStart",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/InteractionHand;I)I",
+          "access": 9
+        },
+        {
+          "name": "onItemUseTick",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;I)I",
+          "access": 9
+        },
+        {
+          "name": "onUseItemStop",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;I)Z",
+          "access": 9
+        },
+        {
+          "name": "onItemUseFinish",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;ILnet/minecraft/world/item/ItemStack;)Lnet/minecraft/world/item/ItemStack;",
+          "access": 9
+        },
+        {
+          "name": "onStartEntityTracking",
+          "descriptor": "(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/entity/player/Player;)V",
+          "access": 9
+        },
+        {
+          "name": "onStopEntityTracking",
+          "descriptor": "(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/entity/player/Player;)V",
+          "access": 9
+        },
+        {
+          "name": "firePlayerLoadingEvent",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Ljava/io/File;Ljava/lang/String;)V",
+          "access": 9
+        },
+        {
+          "name": "firePlayerSavingEvent",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Ljava/io/File;Ljava/lang/String;)V",
+          "access": 9
+        },
+        {
+          "name": "firePlayerLoadingEvent",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/storage/PlayerDataStorage;Ljava/lang/String;)V",
+          "access": 9
+        },
+        {
+          "name": "onToolUse",
+          "descriptor": "(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/item/context/UseOnContext;Lnet/neoforged/neoforge/common/ItemAbility;Z)Lnet/minecraft/world/level/block/state/BlockState;",
+          "access": 9
+        },
+        {
+          "name": "fireBonemealEvent",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/item/ItemStack;)Lnet/neoforged/neoforge/event/entity/player/BonemealEvent;",
+          "access": 9
+        },
+        {
+          "name": "onPlaySoundAtEntity",
+          "descriptor": "(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/core/Holder;Lnet/minecraft/sounds/SoundSource;FF)Lnet/neoforged/neoforge/event/PlayLevelSoundEvent$AtEntity;",
+          "access": 9
+        },
+        {
+          "name": "onPlaySoundAtPosition",
+          "descriptor": "(Lnet/minecraft/world/level/Level;DDDLnet/minecraft/core/Holder;Lnet/minecraft/sounds/SoundSource;FF)Lnet/neoforged/neoforge/event/PlayLevelSoundEvent$AtPosition;",
+          "access": 9
+        },
+        {
+          "name": "onItemExpire",
+          "descriptor": "(Lnet/minecraft/world/entity/item/ItemEntity;)I",
+          "access": 9
+        },
+        {
+          "name": "fireItemPickupPre",
+          "descriptor": "(Lnet/minecraft/world/entity/item/ItemEntity;Lnet/minecraft/world/entity/player/Player;)Lnet/neoforged/neoforge/event/entity/player/ItemEntityPickupEvent$Pre;",
+          "access": 9
+        },
+        {
+          "name": "fireItemPickupPost",
+          "descriptor": "(Lnet/minecraft/world/entity/item/ItemEntity;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/item/ItemStack;)V",
+          "access": 9
+        },
+        {
+          "name": "canMountEntity",
+          "descriptor": "(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/entity/Entity;Z)Z",
+          "access": 9
+        },
+        {
+          "name": "onAnimalTame",
+          "descriptor": "(Lnet/minecraft/world/entity/animal/Animal;Lnet/minecraft/world/entity/player/Player;)Z",
+          "access": 9
+        },
+        {
+          "name": "canPlayerStartSleeping",
+          "descriptor": "(Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/core/BlockPos;Lcom/mojang/datafixers/util/Either;)Lcom/mojang/datafixers/util/Either;",
+          "access": 9
+        },
+        {
+          "name": "onPlayerWakeup",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;ZZ)V",
+          "access": 9
+        },
+        {
+          "name": "onPlayerFall",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;FF)V",
+          "access": 9
+        },
+        {
+          "name": "onPlayerSpawnSet",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/core/BlockPos;Z)Z",
+          "access": 9
+        },
+        {
+          "name": "onPlayerClone",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/entity/player/Player;Z)V",
+          "access": 9
+        },
+        {
+          "name": "onExplosionStart",
+          "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/level/Explosion;)Z",
+          "access": 9
+        },
+        {
+          "name": "onExplosionDetonate",
+          "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/level/Explosion;Ljava/util/List;D)V",
+          "access": 9
+        },
+        {
+          "name": "getExplosionKnockback",
+          "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/level/Explosion;Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/Vec3;)Lnet/minecraft/world/phys/Vec3;",
+          "access": 9
+        },
+        {
+          "name": "onCreateWorldSpawn",
+          "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/level/storage/ServerLevelData;)Z",
+          "access": 9
+        },
+        {
+          "name": "onLivingHeal",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;F)F",
+          "access": 9
+        },
+        {
+          "name": "onPotionAttemptBrew",
+          "descriptor": "(Lnet/minecraft/core/NonNullList;)Z",
+          "access": 9
+        },
+        {
+          "name": "onPotionBrewed",
+          "descriptor": "(Lnet/minecraft/core/NonNullList;)V",
+          "access": 9
+        },
+        {
+          "name": "onPlayerBrewedPotion",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/item/ItemStack;)V",
+          "access": 9
+        },
+        {
+          "name": "canEntityContinueSleeping",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/entity/player/Player$BedSleepingProblem;)Z",
+          "access": 9
+        },
+        {
+          "name": "onArrowNock",
+          "descriptor": "(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;Z)Lnet/minecraft/world/InteractionResultHolder;",
+          "access": 9
+        },
+        {
+          "name": "onArrowLoose",
+          "descriptor": "(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/player/Player;IZ)I",
+          "access": 9
+        },
+        {
+          "name": "onProjectileImpact",
+          "descriptor": "(Lnet/minecraft/world/entity/projectile/Projectile;Lnet/minecraft/world/phys/HitResult;)Z",
+          "access": 9
+        },
+        {
+          "name": "loadLootTable",
+          "descriptor": "(Lnet/minecraft/resources/ResourceLocation;Lnet/minecraft/world/level/storage/loot/LootTable;)Lnet/minecraft/world/level/storage/loot/LootTable;",
+          "access": 9
+        },
+        {
+          "name": "loadLootTable",
+          "descriptor": "(Lnet/minecraft/core/HolderLookup$Provider;Lnet/minecraft/resources/ResourceLocation;Lnet/minecraft/world/level/storage/loot/LootTable;)Lnet/minecraft/world/level/storage/loot/LootTable;",
+          "access": 9
+        },
+        {
+          "name": "canCreateFluidSource",
+          "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Z",
+          "access": 9
+        },
+        {
+          "name": "onTrySpawnPortal",
+          "descriptor": "(Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/core/BlockPos;Ljava/util/Optional;)Ljava/util/Optional;",
+          "access": 9
+        },
+        {
+          "name": "onEnchantmentLevelSet",
+          "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;IILnet/minecraft/world/item/ItemStack;I)I",
+          "access": 9
+        },
+        {
+          "name": "onEntityDestroyBlock",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Z",
+          "access": 9
+        },
+        {
+          "name": "canEntityGrief",
+          "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/Entity;)Z",
+          "access": 9
+        },
+        {
+          "name": "fireBlockGrowFeature",
+          "descriptor": "(Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/util/RandomSource;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Holder;)Lnet/neoforged/neoforge/event/level/BlockGrowFeatureEvent;",
+          "access": 9
+        },
+        {
+          "name": "alterGround",
+          "descriptor": "(Lnet/minecraft/world/level/levelgen/feature/treedecorators/TreeDecorator$Context;Ljava/util/List;Lnet/neoforged/neoforge/event/level/AlterGroundEvent$StateProvider;)Lnet/neoforged/neoforge/event/level/AlterGroundEvent$StateProvider;",
+          "access": 9
+        },
+        {
+          "name": "fireChunkTicketLevelUpdated",
+          "descriptor": "(Lnet/minecraft/server/level/ServerLevel;JIILnet/minecraft/server/level/ChunkHolder;)V",
+          "access": 9
+        },
+        {
+          "name": "fireChunkWatch",
+          "descriptor": "(Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/world/level/chunk/LevelChunk;Lnet/minecraft/server/level/ServerLevel;)V",
+          "access": 9
+        },
+        {
+          "name": "fireChunkSent",
+          "descriptor": "(Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/world/level/chunk/LevelChunk;Lnet/minecraft/server/level/ServerLevel;)V",
+          "access": 9
+        },
+        {
+          "name": "fireChunkUnWatch",
+          "descriptor": "(Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/world/level/ChunkPos;Lnet/minecraft/server/level/ServerLevel;)V",
+          "access": 9
+        },
+        {
+          "name": "onPistonMovePre",
+          "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;Z)Z",
+          "access": 9
+        },
+        {
+          "name": "onPistonMovePost",
+          "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;Z)V",
+          "access": 9
+        },
+        {
+          "name": "onSleepFinished",
+          "descriptor": "(Lnet/minecraft/server/level/ServerLevel;JJ)J",
+          "access": 9
+        },
+        {
+          "name": "onResourceReload",
+          "descriptor": "(Lnet/minecraft/server/ReloadableServerResources;Lnet/minecraft/core/RegistryAccess;)Ljava/util/List;",
+          "access": 9
+        },
+        {
+          "name": "onCommandRegister",
+          "descriptor": "(Lcom/mojang/brigadier/CommandDispatcher;Lnet/minecraft/commands/Commands$CommandSelection;Lnet/minecraft/commands/CommandBuildContext;)V",
+          "access": 9
+        },
+        {
+          "name": "getEntitySizeForge",
+          "descriptor": "(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/entity/Pose;Lnet/minecraft/world/entity/EntityDimensions;)Lnet/neoforged/neoforge/event/entity/EntityEvent$Size;",
+          "access": 9
+        },
+        {
+          "name": "getEntitySizeForge",
+          "descriptor": "(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/entity/Pose;Lnet/minecraft/world/entity/EntityDimensions;Lnet/minecraft/world/entity/EntityDimensions;)Lnet/neoforged/neoforge/event/entity/EntityEvent$Size;",
+          "access": 9
+        },
+        {
+          "name": "canLivingConvert",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/entity/EntityType;Ljava/util/function/Consumer;)Z",
+          "access": 9
+        },
+        {
+          "name": "onLivingConvert",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/entity/LivingEntity;)V",
+          "access": 9
+        },
+        {
+          "name": "onEntityTeleportCommand",
+          "descriptor": "(Lnet/minecraft/world/entity/Entity;DDD)Lnet/neoforged/neoforge/event/entity/EntityTeleportEvent$TeleportCommand;",
+          "access": 9
+        },
+        {
+          "name": "onEntityTeleportSpreadPlayersCommand",
+          "descriptor": "(Lnet/minecraft/world/entity/Entity;DDD)Lnet/neoforged/neoforge/event/entity/EntityTeleportEvent$SpreadPlayersCommand;",
+          "access": 9
+        },
+        {
+          "name": "onEnderTeleport",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;DDD)Lnet/neoforged/neoforge/event/entity/EntityTeleportEvent$EnderEntity;",
+          "access": 9
+        },
+        {
+          "name": "onEnderPearlLand",
+          "descriptor": "(Lnet/minecraft/server/level/ServerPlayer;DDDLnet/minecraft/world/entity/projectile/ThrownEnderpearl;FLnet/minecraft/world/phys/HitResult;)Lnet/neoforged/neoforge/event/entity/EntityTeleportEvent$EnderPearl;",
+          "access": 9
+        },
+        {
+          "name": "onChorusFruitTeleport",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;DDD)Lnet/neoforged/neoforge/event/entity/EntityTeleportEvent$ChorusFruit;",
+          "access": 9
+        },
+        {
+          "name": "onPermissionChanged",
+          "descriptor": "(Lcom/mojang/authlib/GameProfile;ILnet/minecraft/server/players/PlayerList;)Z",
+          "access": 9
+        },
+        {
+          "name": "firePlayerChangedDimensionEvent",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/resources/ResourceKey;)V",
+          "access": 9
+        },
+        {
+          "name": "firePlayerLoggedIn",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;)V",
+          "access": 9
+        },
+        {
+          "name": "firePlayerLoggedOut",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;)V",
+          "access": 9
+        },
+        {
+          "name": "firePlayerRespawnPositionEvent",
+          "descriptor": "(Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/world/level/portal/DimensionTransition;Z)Lnet/neoforged/neoforge/event/entity/player/PlayerRespawnPositionEvent;",
+          "access": 9
+        },
+        {
+          "name": "firePlayerRespawnEvent",
+          "descriptor": "(Lnet/minecraft/server/level/ServerPlayer;Z)V",
+          "access": 9
+        },
+        {
+          "name": "firePlayerCraftingEvent",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/Container;)V",
+          "access": 9
+        },
+        {
+          "name": "firePlayerSmeltedEvent",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/item/ItemStack;)V",
+          "access": 9
+        },
+        {
+          "name": "firePlayerHeartTypeEvent",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/client/gui/Gui$HeartType;)Lnet/minecraft/client/gui/Gui$HeartType;",
+          "access": 9
+        },
+        {
+          "name": "fireEntityTickPre",
+          "descriptor": "(Lnet/minecraft/world/entity/Entity;)Lnet/neoforged/neoforge/event/tick/EntityTickEvent$Pre;",
+          "access": 9
+        },
+        {
+          "name": "fireEntityTickPost",
+          "descriptor": "(Lnet/minecraft/world/entity/Entity;)V",
+          "access": 9
+        },
+        {
+          "name": "firePlayerTickPre",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;)V",
+          "access": 9
+        },
+        {
+          "name": "firePlayerTickPost",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;)V",
+          "access": 9
+        },
+        {
+          "name": "fireLevelTickPre",
+          "descriptor": "(Lnet/minecraft/world/level/Level;Ljava/util/function/BooleanSupplier;)V",
+          "access": 9
+        },
+        {
+          "name": "fireLevelTickPost",
+          "descriptor": "(Lnet/minecraft/world/level/Level;Ljava/util/function/BooleanSupplier;)V",
+          "access": 9
+        },
+        {
+          "name": "fireServerTickPre",
+          "descriptor": "(Ljava/util/function/BooleanSupplier;Lnet/minecraft/server/MinecraftServer;)V",
+          "access": 9
+        },
+        {
+          "name": "fireServerTickPost",
+          "descriptor": "(Ljava/util/function/BooleanSupplier;Lnet/minecraft/server/MinecraftServer;)V",
+          "access": 9
+        },
+        {
+          "name": "getPotentialSpawns",
+          "descriptor": "(Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/world/entity/MobCategory;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/random/WeightedRandomList;)Lnet/minecraft/util/random/WeightedRandomList;",
+          "access": 9
+        },
+        {
+          "name": "onStatAward",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/stats/Stat;I)Lnet/neoforged/neoforge/event/StatAwardEvent;",
+          "access": 9
+        },
+        {
+          "name": "onAdvancementEarnedEvent",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/advancements/AdvancementHolder;)V",
+          "access": 9
+        },
+        {
+          "name": "onAdvancementProgressedEvent",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/advancements/AdvancementHolder;Lnet/minecraft/advancements/AdvancementProgress;Ljava/lang/String;Lnet/neoforged/neoforge/event/entity/player/AdvancementEvent$AdvancementProgressEvent$ProgressType;)V",
+          "access": 9
+        },
+        {
+          "name": "onEffectRemoved",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/core/Holder;Lnet/neoforged/neoforge/common/EffectCure;)Z",
+          "access": 9
+        },
+        {
+          "name": "onEffectRemoved",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/effect/MobEffectInstance;Lnet/neoforged/neoforge/common/EffectCure;)Z",
+          "access": 9
+        },
+        {
+          "name": "getEnchantmentLevelSpecific",
+          "descriptor": "(ILnet/minecraft/world/item/ItemStack;Lnet/minecraft/core/Holder;)I",
+          "access": 9
+        },
+        {
+          "name": "getAllEnchantmentLevels",
+          "descriptor": "(Lnet/minecraft/world/item/enchantment/ItemEnchantments;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/core/HolderLookup$RegistryLookup;)Lnet/minecraft/world/item/enchantment/ItemEnchantments;",
+          "access": 9
+        },
+        {
+          "name": "onCreativeModeTabBuildContents",
+          "descriptor": "(Lnet/minecraft/world/item/CreativeModeTab;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/world/item/CreativeModeTab$DisplayItemsGenerator;Lnet/minecraft/world/item/CreativeModeTab$ItemDisplayParameters;Lnet/minecraft/world/item/CreativeModeTab$Output;)V",
+          "access": 9
+        },
+        {
+          "name": "onMobSplit",
+          "descriptor": "(Lnet/minecraft/world/entity/Mob;Ljava/util/List;)Lnet/neoforged/neoforge/event/entity/living/MobSplitEvent;",
+          "access": 9
+        },
+        {
+          "name": "getCustomSpawners",
+          "descriptor": "(Lnet/minecraft/server/level/ServerLevel;Ljava/util/List;)Ljava/util/List;",
+          "access": 9
+        },
+        {
+          "name": "lambda$onCreativeModeTabBuildContents$0",
+          "descriptor": "(Lnet/neoforged/neoforge/common/util/InsertableLinkedOpenCustomHashSet;Lnet/neoforged/neoforge/common/util/InsertableLinkedOpenCustomHashSet;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/CreativeModeTab$TabVisibility;)V",
+          "access": 4106
+        },
+        {
+          "name": "<clinit>",
+          "descriptor": "()V",
+          "access": 8
+        }
+      ],
+      "methods": [
+        {
+          "name": "onProjectileImpact",
+          "descriptor": "(Lnet/minecraft/world/entity/projectile/Projectile;Lnet/minecraft/world/phys/HitResult;)Z",
+          "code_sha256": "73d4643328b80654ff348007520af4325a82f42a21a5fc83d0d0d25edfe67746",
+          "code_hex": "b2002ebb027d592a2bb7027fb900340200c0027db60282ac",
+          "instructions": [
+            {
+              "offset": 0,
+              "opcode": "0xb2",
+              "operand": "net/neoforged/neoforge/common/NeoForge.EVENT_BUSLnet/neoforged/bus/api/IEventBus;"
+            },
+            {
+              "offset": 3,
+              "opcode": "0xbb",
+              "operand": "net/neoforged/neoforge/event/entity/ProjectileImpactEvent"
+            },
+            {
+              "offset": 6,
+              "opcode": "0x59",
+              "operand": null
+            },
+            {
+              "offset": 7,
+              "opcode": "0x2a",
+              "operand": null
+            },
+            {
+              "offset": 8,
+              "opcode": "0x2b",
+              "operand": null
+            },
+            {
+              "offset": 9,
+              "opcode": "0xb7",
+              "operand": "net/neoforged/neoforge/event/entity/ProjectileImpactEvent.<init>(Lnet/minecraft/world/entity/projectile/Projectile;Lnet/minecraft/world/phys/HitResult;)V"
+            },
+            {
+              "offset": 12,
+              "opcode": "0xb9",
+              "operand": "net/neoforged/bus/api/IEventBus.post(Lnet/neoforged/bus/api/Event;)Lnet/neoforged/bus/api/Event;"
+            },
+            {
+              "offset": 17,
+              "opcode": "0xc0",
+              "operand": "net/neoforged/neoforge/event/entity/ProjectileImpactEvent"
+            },
+            {
+              "offset": 20,
+              "opcode": "0xb6",
+              "operand": "net/neoforged/neoforge/event/entity/ProjectileImpactEvent.isCanceled()Z"
+            },
+            {
+              "offset": 23,
+              "opcode": "0xac",
+              "operand": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "archive_sha256": "d874b2aa4d511919a567ae73f13510e63e16f7318194eb2c03824cd68a59df6f",
+      "entry": "net/neoforged/neoforge/event/entity/ProjectileImpactEvent.class",
+      "entry_sha256": "561028e08189e28706b3e381cd472b7463949ae2ce4c1fa4cfc0ee1ab18c3048",
+      "class_name": "net/neoforged/neoforge/event/entity/ProjectileImpactEvent",
+      "superclass": "net/neoforged/neoforge/event/entity/EntityEvent",
+      "interfaces": [
+        "net/neoforged/bus/api/ICancellableEvent"
+      ],
+      "declared_methods": [
+        {
+          "name": "<init>",
+          "descriptor": "(Lnet/minecraft/world/entity/projectile/Projectile;Lnet/minecraft/world/phys/HitResult;)V",
+          "access": 1
+        },
+        {
+          "name": "getRayTraceResult",
+          "descriptor": "()Lnet/minecraft/world/phys/HitResult;",
+          "access": 1
+        },
+        {
+          "name": "getProjectile",
+          "descriptor": "()Lnet/minecraft/world/entity/projectile/Projectile;",
+          "access": 1
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "descriptor": "(Lnet/minecraft/world/entity/projectile/Projectile;Lnet/minecraft/world/phys/HitResult;)V",
+          "code_sha256": "09e634c544a64ad3c170d099fa2bb95f93d094a4e926af1315e3b77d7a9210ac",
+          "code_hex": "2a2bb700012a2cb500072a2bb5000db1",
+          "instructions": [
+            {
+              "offset": 0,
+              "opcode": "0x2a",
+              "operand": null
+            },
+            {
+              "offset": 1,
+              "opcode": "0x2b",
+              "operand": null
+            },
+            {
+              "offset": 2,
+              "opcode": "0xb7",
+              "operand": "net/neoforged/neoforge/event/entity/EntityEvent.<init>(Lnet/minecraft/world/entity/Entity;)V"
+            },
+            {
+              "offset": 5,
+              "opcode": "0x2a",
+              "operand": null
+            },
+            {
+              "offset": 6,
+              "opcode": "0x2c",
+              "operand": null
+            },
+            {
+              "offset": 7,
+              "opcode": "0xb5",
+              "operand": "net/neoforged/neoforge/event/entity/ProjectileImpactEvent.rayLnet/minecraft/world/phys/HitResult;"
+            },
+            {
+              "offset": 10,
+              "opcode": "0x2a",
+              "operand": null
+            },
+            {
+              "offset": 11,
+              "opcode": "0x2b",
+              "operand": null
+            },
+            {
+              "offset": 12,
+              "opcode": "0xb5",
+              "operand": "net/neoforged/neoforge/event/entity/ProjectileImpactEvent.projectileLnet/minecraft/world/entity/projectile/Projectile;"
+            },
+            {
+              "offset": 15,
+              "opcode": "0xb1",
+              "operand": null
+            }
+          ]
+        },
+        {
+          "name": "getRayTraceResult",
+          "descriptor": "()Lnet/minecraft/world/phys/HitResult;",
+          "code_sha256": "668501b084f2dc96265ceb4e39579391868136fffaeab12c3f93e3c91daee2e4",
+          "code_hex": "2ab40007b0",
+          "instructions": [
+            {
+              "offset": 0,
+              "opcode": "0x2a",
+              "operand": null
+            },
+            {
+              "offset": 1,
+              "opcode": "0xb4",
+              "operand": "net/neoforged/neoforge/event/entity/ProjectileImpactEvent.rayLnet/minecraft/world/phys/HitResult;"
+            },
+            {
+              "offset": 4,
+              "opcode": "0xb0",
+              "operand": null
+            }
+          ]
+        },
+        {
+          "name": "getProjectile",
+          "descriptor": "()Lnet/minecraft/world/entity/projectile/Projectile;",
+          "code_sha256": "d0cf9f922ab010f8c80625ee6685ff3cb0a085a2217bde1a5d580997c5014bcb",
+          "code_hex": "2ab4000db0",
+          "instructions": [
+            {
+              "offset": 0,
+              "opcode": "0x2a",
+              "operand": null
+            },
+            {
+              "offset": 1,
+              "opcode": "0xb4",
+              "operand": "net/neoforged/neoforge/event/entity/ProjectileImpactEvent.projectileLnet/minecraft/world/entity/projectile/Projectile;"
+            },
+            {
+              "offset": 4,
+              "opcode": "0xb0",
+              "operand": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "archive_sha256": "d874b2aa4d511919a567ae73f13510e63e16f7318194eb2c03824cd68a59df6f",
+      "entry": "net/neoforged/neoforge/common/CommonHooks.class",
+      "entry_sha256": "86c8a56c77fff474bf4fe90f0354ad32698f018b5e19dc52a2725ee5ff96c73e",
+      "class_name": "net/neoforged/neoforge/common/CommonHooks",
+      "superclass": "java/lang/Object",
+      "interfaces": [],
+      "declared_methods": [
+        {
+          "name": "<init>",
+          "descriptor": "()V",
+          "access": 1
+        },
+        {
+          "name": "canContinueUsing",
+          "descriptor": "(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemStack;)Z",
+          "access": 9
+        },
+        {
+          "name": "onItemStackedOn",
+          "descriptor": "(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/inventory/Slot;Lnet/minecraft/world/inventory/ClickAction;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/entity/SlotAccess;)Z",
+          "access": 9
+        },
+        {
+          "name": "onDifficultyChange",
+          "descriptor": "(Lnet/minecraft/world/Difficulty;Lnet/minecraft/world/Difficulty;)V",
+          "access": 9
+        },
+        {
+          "name": "onLivingChangeTarget",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/entity/LivingEntity;Lnet/neoforged/neoforge/event/entity/living/LivingChangeTargetEvent$ILivingTargetType;)Lnet/neoforged/neoforge/event/entity/living/LivingChangeTargetEvent;",
+          "access": 9
+        },
+        {
+          "name": "isEntityInvulnerableTo",
+          "descriptor": "(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/damagesource/DamageSource;Z)Z",
+          "access": 9
+        },
+        {
+          "name": "onEntityIncomingDamage",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;Lnet/neoforged/neoforge/common/damagesource/DamageContainer;)Z",
+          "access": 9
+        },
+        {
+          "name": "onLivingKnockBack",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;FDD)Lnet/neoforged/neoforge/event/entity/living/LivingKnockBackEvent;",
+          "access": 9
+        },
+        {
+          "name": "onLivingUseTotem",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/damagesource/DamageSource;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/InteractionHand;)Z",
+          "access": 9
+        },
+        {
+          "name": "onLivingDamagePre",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;Lnet/neoforged/neoforge/common/damagesource/DamageContainer;)F",
+          "access": 9
+        },
+        {
+          "name": "onLivingDamagePost",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;Lnet/neoforged/neoforge/common/damagesource/DamageContainer;)V",
+          "access": 9
+        },
+        {
+          "name": "onArmorHurt",
+          "descriptor": "(Lnet/minecraft/world/damagesource/DamageSource;[Lnet/minecraft/world/entity/EquipmentSlot;FLnet/minecraft/world/entity/LivingEntity;)V",
+          "access": 9
+        },
+        {
+          "name": "onLivingDeath",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/damagesource/DamageSource;)Z",
+          "access": 9
+        },
+        {
+          "name": "onLivingDrops",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/damagesource/DamageSource;Ljava/util/Collection;Z)Z",
+          "access": 9
+        },
+        {
+          "name": "onLivingFall",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;FF)[F",
+          "access": 9
+        },
+        {
+          "name": "getEntityVisibilityMultiplier",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/entity/Entity;D)D",
+          "access": 9
+        },
+        {
+          "name": "isLivingOnLadder",
+          "descriptor": "(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/entity/LivingEntity;)Ljava/util/Optional;",
+          "access": 9
+        },
+        {
+          "name": "onLivingJump",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;)V",
+          "access": 9
+        },
+        {
+          "name": "onPlayerTossEvent",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/item/ItemStack;Z)Lnet/minecraft/world/entity/item/ItemEntity;",
+          "access": 9
+        },
+        {
+          "name": "onVanillaGameEvent",
+          "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/Holder;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/level/gameevent/GameEvent$Context;)Z",
+          "access": 9
+        },
+        {
+          "name": "getRawText",
+          "descriptor": "(Lnet/minecraft/network/chat/Component;)Ljava/lang/String;",
+          "access": 10
+        },
+        {
+          "name": "onServerChatSubmittedEvent",
+          "descriptor": "(Lnet/minecraft/server/level/ServerPlayer;Ljava/lang/String;Lnet/minecraft/network/chat/Component;)Lnet/minecraft/network/chat/Component;",
+          "access": 9
+        },
+        {
+          "name": "getServerChatSubmittedDecorator",
+          "descriptor": "()Lnet/minecraft/network/chat/ChatDecorator;",
+          "access": 9
+        },
+        {
+          "name": "newChatWithLinks",
+          "descriptor": "(Ljava/lang/String;)Lnet/minecraft/network/chat/Component;",
+          "access": 9
+        },
+        {
+          "name": "newChatWithLinks",
+          "descriptor": "(Ljava/lang/String;Z)Lnet/minecraft/network/chat/Component;",
+          "access": 9
+        },
+        {
+          "name": "handleBlockDrops",
+          "descriptor": "(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/entity/BlockEntity;Ljava/util/List;Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/item/ItemStack;)V",
+          "access": 9
+        },
+        {
+          "name": "fireBlockBreak",
+          "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/level/GameType;Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Lnet/neoforged/neoforge/event/level/BlockEvent$BreakEvent;",
+          "access": 9
+        },
+        {
+          "name": "onPlaceItemIntoWorld",
+          "descriptor": "(Lnet/minecraft/world/item/context/UseOnContext;)Lnet/minecraft/world/InteractionResult;",
+          "access": 9
+        },
+        {
+          "name": "onPlayerEnchantItem",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/item/ItemStack;Ljava/util/List;)V",
+          "access": 9
+        },
+        {
+          "name": "onAnvilChange",
+          "descriptor": "(Lnet/minecraft/world/inventory/AnvilMenu;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/Container;Ljava/lang/String;JLnet/minecraft/world/entity/player/Player;)Z",
+          "access": 9
+        },
+        {
+          "name": "onAnvilRepair",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemStack;)F",
+          "access": 9
+        },
+        {
+          "name": "onGrindstoneChange",
+          "descriptor": "(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/Container;I)I",
+          "access": 9
+        },
+        {
+          "name": "onGrindstoneTake",
+          "descriptor": "(Lnet/minecraft/world/Container;Lnet/minecraft/world/inventory/ContainerLevelAccess;Ljava/util/function/Function;)Z",
+          "access": 9
+        },
+        {
+          "name": "onGrindstoneTake",
+          "descriptor": "(Lnet/minecraft/world/Container;Lnet/minecraft/world/inventory/ContainerLevelAccess;Lnet/minecraft/world/entity/player/Player;Ljava/util/function/Function;)Z",
+          "access": 9
+        },
+        {
+          "name": "setCraftingPlayer",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;)V",
+          "access": 9
+        },
+        {
+          "name": "getCraftingPlayer",
+          "descriptor": "()Lnet/minecraft/world/entity/player/Player;",
+          "access": 9
+        },
+        {
+          "name": "getCraftingRemainingItem",
+          "descriptor": "(Lnet/minecraft/world/item/ItemStack;)Lnet/minecraft/world/item/ItemStack;",
+          "access": 9
+        },
+        {
+          "name": "onPlayerAttackTarget",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/entity/Entity;)Z",
+          "access": 9
+        },
+        {
+          "name": "onTravelToDimension",
+          "descriptor": "(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/resources/ResourceKey;)Z",
+          "access": 9
+        },
+        {
+          "name": "onInteractEntityAt",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/HitResult;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;",
+          "access": 9
+        },
+        {
+          "name": "onInteractEntityAt",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;",
+          "access": 9
+        },
+        {
+          "name": "onInteractEntity",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;",
+          "access": 9
+        },
+        {
+          "name": "onItemRightClick",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;",
+          "access": 9
+        },
+        {
+          "name": "onLeftClickBlock",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;Lnet/minecraft/network/protocol/game/ServerboundPlayerActionPacket$Action;)Lnet/neoforged/neoforge/event/entity/player/PlayerInteractEvent$LeftClickBlock;",
+          "access": 9
+        },
+        {
+          "name": "onClientMineHold",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Lnet/neoforged/neoforge/event/entity/player/PlayerInteractEvent$LeftClickBlock;",
+          "access": 9
+        },
+        {
+          "name": "onRightClickBlock",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/BlockHitResult;)Lnet/neoforged/neoforge/event/entity/player/PlayerInteractEvent$RightClickBlock;",
+          "access": 9
+        },
+        {
+          "name": "onEmptyClick",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)V",
+          "access": 9
+        },
+        {
+          "name": "onEmptyLeftClick",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;)V",
+          "access": 9
+        },
+        {
+          "name": "onChangeGameType",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/GameType;Lnet/minecraft/world/level/GameType;)Lnet/minecraft/world/level/GameType;",
+          "access": 9
+        },
+        {
+          "name": "lootPoolsCodec",
+          "descriptor": "(Ljava/util/function/BiConsumer;)Lcom/mojang/serialization/Codec;",
+          "access": 9
+        },
+        {
+          "name": "getVanillaFluidType",
+          "descriptor": "(Lnet/minecraft/world/level/material/Fluid;)Lnet/neoforged/neoforge/fluids/FluidType;",
+          "access": 9
+        },
+        {
+          "name": "getTagFromVanillaTier",
+          "descriptor": "(Lnet/minecraft/world/item/Tiers;)Lnet/minecraft/tags/TagKey;",
+          "access": 9
+        },
+        {
+          "name": "onCheckCreativeTabs",
+          "descriptor": "([Lnet/minecraft/world/item/CreativeModeTab;)Ljava/util/Collection;",
+          "access": 137
+        },
+        {
+          "name": "canCropGrow",
+          "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Z)Z",
+          "access": 9
+        },
+        {
+          "name": "fireCropGrowPost",
+          "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)V",
+          "access": 9
+        },
+        {
+          "name": "fireCriticalHit",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/entity/Entity;ZF)Lnet/neoforged/neoforge/event/entity/player/CriticalHitEvent;",
+          "access": 9
+        },
+        {
+          "name": "fireSweepAttack",
+          "descriptor": "(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/entity/Entity;Z)Lnet/neoforged/neoforge/event/entity/player/SweepAttackEvent;",
+          "access": 9
+        },
+        {
+          "name": "computeModifiedAttributes",
+          "descriptor": "(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/component/ItemAttributeModifiers;)Lnet/minecraft/world/item/component/ItemAttributeModifiers;",
+          "access": 9
+        },
+        {
+          "name": "getProjectile",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemStack;)Lnet/minecraft/world/item/ItemStack;",
+          "access": 9
+        },
+        {
+          "name": "getDefaultCreatorModId",
+          "descriptor": "(Lnet/minecraft/world/item/ItemStack;)Ljava/lang/String;",
+          "access": 9
+        },
+        {
+          "name": "onFarmlandTrample",
+          "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;FLnet/minecraft/world/entity/Entity;)Z",
+          "access": 9
+        },
+        {
+          "name": "onNoteChange",
+          "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;II)I",
+          "access": 9
+        },
+        {
+          "name": "getSerializer",
+          "descriptor": "(ILnet/minecraft/util/CrudeIncrementalIntIdentityHashBiMap;)Lnet/minecraft/network/syncher/EntityDataSerializer;",
+          "access": 9
+        },
+        {
+          "name": "getSerializerId",
+          "descriptor": "(Lnet/minecraft/network/syncher/EntityDataSerializer;Lnet/minecraft/util/CrudeIncrementalIntIdentityHashBiMap;)I",
+          "access": 9
+        },
+        {
+          "name": "canEntityDestroy",
+          "descriptor": "(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/entity/LivingEntity;)Z",
+          "access": 9
+        },
+        {
+          "name": "modifyLoot",
+          "descriptor": "(Ljava/util/List;Lnet/minecraft/world/level/storage/loot/LootContext;)Ljava/util/List;",
+          "access": 9
+        },
+        {
+          "name": "modifyLoot",
+          "descriptor": "(Lnet/minecraft/resources/ResourceLocation;Lit/unimi/dsi/fastutil/objects/ObjectArrayList;Lnet/minecraft/world/level/storage/loot/LootContext;)Lit/unimi/dsi/fastutil/objects/ObjectArrayList;",
+          "access": 9
+        },
+        {
+          "name": "getModDataPacks",
+          "descriptor": "()Ljava/util/List;",
+          "access": 9
+        },
+        {
+          "name": "getModDataPacksWithVanilla",
+          "descriptor": "()Ljava/util/List;",
+          "access": 9
+        },
+        {
+          "name": "getAttributesView",
+          "descriptor": "()Ljava/util/Map;",
+          "access": 9
+        },
+        {
+          "name": "modifyAttributes",
+          "descriptor": "()V",
+          "access": 9
+        },
+        {
+          "name": "onEntityEnterSection",
+          "descriptor": "(Lnet/minecraft/world/entity/Entity;JJ)V",
+          "access": 9
+        },
+        {
+          "name": "onDamageBlock",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;Lnet/neoforged/neoforge/common/damagesource/DamageContainer;Z)Lnet/neoforged/neoforge/event/entity/living/LivingShieldBlockEvent;",
+          "access": 9
+        },
+        {
+          "name": "onLivingSwapHandItems",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;)Lnet/neoforged/neoforge/event/entity/living/LivingSwapItemsEvent$Hands;",
+          "access": 9
+        },
+        {
+          "name": "writeAdditionalLevelSaveData",
+          "descriptor": "(Lnet/minecraft/world/level/storage/WorldData;Lnet/minecraft/nbt/CompoundTag;)V",
+          "access": 9
+        },
+        {
+          "name": "readAdditionalLevelSaveData",
+          "descriptor": "(Lnet/minecraft/nbt/CompoundTag;Lnet/minecraft/world/level/storage/LevelStorageSource$LevelDirectory;)V",
+          "access": 9
+        },
+        {
+          "name": "encodeLifecycle",
+          "descriptor": "(Lcom/mojang/serialization/Lifecycle;)Ljava/lang/String;",
+          "access": 9
+        },
+        {
+          "name": "parseLifecycle",
+          "descriptor": "(Ljava/lang/String;)Lcom/mojang/serialization/Lifecycle;",
+          "access": 9
+        },
+        {
+          "name": "saveMobEffect",
+          "descriptor": "(Lnet/minecraft/nbt/CompoundTag;Ljava/lang/String;Lnet/minecraft/world/effect/MobEffect;)V",
+          "access": 9
+        },
+        {
+          "name": "loadMobEffect",
+          "descriptor": "(Lnet/minecraft/nbt/CompoundTag;Ljava/lang/String;Lnet/minecraft/world/effect/MobEffect;)Lnet/minecraft/world/effect/MobEffect;",
+          "access": 9
+        },
+        {
+          "name": "shouldSuppressEnderManAnger",
+          "descriptor": "(Lnet/minecraft/world/entity/monster/EnderMan;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/item/ItemStack;)Z",
+          "access": 9
+        },
+        {
+          "name": "getStructureConversion",
+          "descriptor": "(Ljava/lang/String;)Lnet/minecraft/util/datafix/fixes/StructuresBecomeConfiguredFix$Conversion;",
+          "access": 9
+        },
+        {
+          "name": "checkStructureNamespace",
+          "descriptor": "(Ljava/lang/String;)Z",
+          "access": 9
+        },
+        {
+          "name": "prefixNamespace",
+          "descriptor": "(Lnet/minecraft/resources/ResourceLocation;)Ljava/lang/String;",
+          "access": 9
+        },
+        {
+          "name": "canUseEntitySelectors",
+          "descriptor": "(Lnet/minecraft/commands/SharedSuggestionProvider;)Z",
+          "access": 9
+        },
+        {
+          "name": "wrapRegistryLookup",
+          "descriptor": "(Lnet/minecraft/core/HolderLookup$RegistryLookup;)Lnet/minecraft/core/HolderLookup$RegistryLookup;",
+          "access": 9
+        },
+        {
+          "name": "onLivingBreathe",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;II)V",
+          "access": 9
+        },
+        {
+          "name": "markComponentClassAsValid",
+          "descriptor": "(Ljava/lang/Class;)V",
+          "access": 9
+        },
+        {
+          "name": "validateComponent",
+          "descriptor": "(Ljava/lang/Object;)V",
+          "access": 9
+        },
+        {
+          "name": "isPotentialRegistryObject",
+          "descriptor": "(Ljava/lang/Object;)Z",
+          "access": 10
+        },
+        {
+          "name": "overridesEqualsAndHashCode",
+          "descriptor": "(Ljava/lang/Class;)Z",
+          "access": 10
+        },
+        {
+          "name": "onChunkUnload",
+          "descriptor": "(Lnet/minecraft/world/entity/ai/village/poi/PoiManager;Lnet/minecraft/world/level/chunk/ChunkAccess;)V",
+          "access": 9
+        },
+        {
+          "name": "canMobEffectBeApplied",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/effect/MobEffectInstance;)Z",
+          "access": 9
+        },
+        {
+          "name": "canMobEffectBeApplied",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/effect/MobEffectInstance;Lnet/minecraft/world/entity/Entity;)Z",
+          "access": 9
+        },
+        {
+          "name": "resolveLookup",
+          "descriptor": "(Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/core/HolderLookup$RegistryLookup;",
+          "access": 9
+        },
+        {
+          "name": "extractLookupProvider",
+          "descriptor": "(Lnet/minecraft/resources/RegistryOps;)Lnet/minecraft/core/HolderLookup$Provider;",
+          "access": 9
+        },
+        {
+          "name": "dispenseUseOnContext",
+          "descriptor": "(Lnet/minecraft/core/dispenser/BlockSource;Lnet/minecraft/world/item/ItemStack;)Lnet/minecraft/world/item/context/UseOnContext;",
+          "access": 9
+        },
+        {
+          "name": "tryDispenseShearsHarvestBlock",
+          "descriptor": "(Lnet/minecraft/core/dispenser/BlockSource;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;)Z",
+          "access": 9
+        },
+        {
+          "name": "buildRecipeBookTypeTagFields",
+          "descriptor": "(Ljava/util/Map;)Ljava/util/Map;",
+          "access": 9
+        },
+        {
+          "name": "getFilteredRecipeBookTypeValues",
+          "descriptor": "()[Lnet/minecraft/world/inventory/RecipeBookType;",
+          "access": 9
+        },
+        {
+          "name": "lambda$static$12",
+          "descriptor": "()Ljava/util/Map;",
+          "access": 4106
+        },
+        {
+          "name": "lambda$readAdditionalLevelSaveData$11",
+          "descriptor": "(Ljava/lang/StringBuilder;Lnet/neoforged/neoforge/event/ModMismatchEvent$MismatchResolutionResult;)V",
+          "access": 4106
+        },
+        {
+          "name": "lambda$readAdditionalLevelSaveData$10",
+          "descriptor": "(Ljava/lang/StringBuilder;Lnet/neoforged/neoforge/event/ModMismatchEvent$MismatchResolutionResult;)V",
+          "access": 4106
+        },
+        {
+          "name": "lambda$readAdditionalLevelSaveData$9",
+          "descriptor": "(Ljava/util/Map;Ljava/lang/String;Lorg/apache/maven/artifact/versioning/DefaultArtifactVersion;)V",
+          "access": 4106
+        },
+        {
+          "name": "lambda$readAdditionalLevelSaveData$8",
+          "descriptor": "(Lorg/apache/maven/artifact/versioning/DefaultArtifactVersion;Ljava/util/Map;Ljava/lang/String;Lnet/neoforged/fml/ModContainer;)V",
+          "access": 4106
+        },
+        {
+          "name": "lambda$writeAdditionalLevelSaveData$7",
+          "descriptor": "(Lnet/minecraft/nbt/ListTag;Lnet/neoforged/neoforgespi/language/IModInfo;)V",
+          "access": 4106
+        },
+        {
+          "name": "lambda$modifyAttributes$6",
+          "descriptor": "(Lnet/minecraft/world/entity/EntityType;Lnet/minecraft/world/entity/ai/attributes/AttributeSupplier$Builder;)V",
+          "access": 4106
+        },
+        {
+          "name": "lambda$getVanillaFluidType$5",
+          "descriptor": "(Lnet/minecraft/world/level/material/Fluid;Lnet/minecraft/world/level/material/Fluid;)Z",
+          "access": 4106
+        },
+        {
+          "name": "lambda$getVanillaFluidType$4",
+          "descriptor": "(Lnet/minecraft/world/level/material/Fluid;Lnet/minecraft/world/level/material/Fluid;)Z",
+          "access": 4106
+        },
+        {
+          "name": "lambda$lootPoolsCodec$3",
+          "descriptor": "(Ljava/util/function/BiConsumer;Ljava/util/List;)Ljava/util/List;",
+          "access": 4106
+        },
+        {
+          "name": "lambda$onGrindstoneTake$2",
+          "descriptor": "(Ljava/util/function/Function;Lnet/minecraft/world/inventory/ContainerLevelAccess;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/Container;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;)V",
+          "access": 4106
+        },
+        {
+          "name": "lambda$getServerChatSubmittedDecorator$1",
+          "descriptor": "(Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/network/chat/Component;)Lnet/minecraft/network/chat/Component;",
+          "access": 4106
+        },
+        {
+          "name": "lambda$onArmorHurt$0",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/entity/EquipmentSlot;Lnet/neoforged/neoforge/event/entity/living/ArmorHurtEvent$ArmorEntry;)V",
+          "access": 4106
+        },
+        {
+          "name": "<clinit>",
+          "descriptor": "()V",
+          "access": 8
+        }
+      ],
+      "methods": [
+        {
+          "name": "onLivingKnockBack",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;FDD)Lnet/neoforged/neoforge/event/entity/living/LivingKnockBackEvent;",
+          "code_sha256": "5e9fcec2575099af817e9ee3a6ee639e2fb75df7def832d04b370bbb4d3576cb",
+          "code_hex": "bb0043592a23281804b700453a06b200171906b900220200571906b0",
+          "instructions": [
+            {
+              "offset": 0,
+              "opcode": "0xbb",
+              "operand": "net/neoforged/neoforge/event/entity/living/LivingKnockBackEvent"
+            },
+            {
+              "offset": 3,
+              "opcode": "0x59",
+              "operand": null
+            },
+            {
+              "offset": 4,
+              "opcode": "0x2a",
+              "operand": null
+            },
+            {
+              "offset": 5,
+              "opcode": "0x23",
+              "operand": null
+            },
+            {
+              "offset": 6,
+              "opcode": "0x28",
+              "operand": null
+            },
+            {
+              "offset": 7,
+              "opcode": "0x18",
+              "operand": null
+            },
+            {
+              "offset": 9,
+              "opcode": "0xb7",
+              "operand": "net/neoforged/neoforge/event/entity/living/LivingKnockBackEvent.<init>(Lnet/minecraft/world/entity/LivingEntity;FDD)V"
+            },
+            {
+              "offset": 12,
+              "opcode": "0x3a",
+              "operand": null
+            },
+            {
+              "offset": 14,
+              "opcode": "0xb2",
+              "operand": "net/neoforged/neoforge/common/NeoForge.EVENT_BUSLnet/neoforged/bus/api/IEventBus;"
+            },
+            {
+              "offset": 17,
+              "opcode": "0x19",
+              "operand": null
+            },
+            {
+              "offset": 19,
+              "opcode": "0xb9",
+              "operand": "net/neoforged/bus/api/IEventBus.post(Lnet/neoforged/bus/api/Event;)Lnet/neoforged/bus/api/Event;"
+            },
+            {
+              "offset": 24,
+              "opcode": "0x57",
+              "operand": null
+            },
+            {
+              "offset": 25,
+              "opcode": "0x19",
+              "operand": null
+            },
+            {
+              "offset": 27,
+              "opcode": "0xb0",
+              "operand": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "archive_sha256": "d874b2aa4d511919a567ae73f13510e63e16f7318194eb2c03824cd68a59df6f",
+      "entry": "net/neoforged/neoforge/event/entity/living/LivingKnockBackEvent.class",
+      "entry_sha256": "79e75930138a4ef9d28ee6426f989d05712a720881f18a8ce6fe30a73dfe664e",
+      "class_name": "net/neoforged/neoforge/event/entity/living/LivingKnockBackEvent",
+      "superclass": "net/neoforged/neoforge/event/entity/living/LivingEvent",
+      "interfaces": [
+        "net/neoforged/bus/api/ICancellableEvent"
+      ],
+      "declared_methods": [
+        {
+          "name": "<init>",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;FDD)V",
+          "access": 1
+        },
+        {
+          "name": "getStrength",
+          "descriptor": "()F",
+          "access": 1
+        },
+        {
+          "name": "getRatioX",
+          "descriptor": "()D",
+          "access": 1
+        },
+        {
+          "name": "getRatioZ",
+          "descriptor": "()D",
+          "access": 1
+        },
+        {
+          "name": "getOriginalStrength",
+          "descriptor": "()F",
+          "access": 1
+        },
+        {
+          "name": "getOriginalRatioX",
+          "descriptor": "()D",
+          "access": 1
+        },
+        {
+          "name": "getOriginalRatioZ",
+          "descriptor": "()D",
+          "access": 1
+        },
+        {
+          "name": "setStrength",
+          "descriptor": "(F)V",
+          "access": 1
+        },
+        {
+          "name": "setRatioX",
+          "descriptor": "(D)V",
+          "access": 1
+        },
+        {
+          "name": "setRatioZ",
+          "descriptor": "(D)V",
+          "access": 1
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "descriptor": "(Lnet/minecraft/world/entity/LivingEntity;FDD)V",
+          "code_sha256": "5de0f4b45b5ba6f01003d1f91005d73570af2bc0463408b28d82afada0a31659",
+          "code_hex": "2a2bb700012a2a245ab50007b5000d2a2a295db50010b500142a2a18055db50017b5001ab1",
+          "instructions": [
+            {
+              "offset": 0,
+              "opcode": "0x2a",
+              "operand": null
+            },
+            {
+              "offset": 1,
+              "opcode": "0x2b",
+              "operand": null
+            },
+            {
+              "offset": 2,
+              "opcode": "0xb7",
+              "operand": "net/neoforged/neoforge/event/entity/living/LivingEvent.<init>(Lnet/minecraft/world/entity/LivingEntity;)V"
+            },
+            {
+              "offset": 5,
+              "opcode": "0x2a",
+              "operand": null
+            },
+            {
+              "offset": 6,
+              "opcode": "0x2a",
+              "operand": null
+            },
+            {
+              "offset": 7,
+              "opcode": "0x24",
+              "operand": null
+            },
+            {
+              "offset": 8,
+              "opcode": "0x5a",
+              "operand": null
+            },
+            {
+              "offset": 9,
+              "opcode": "0xb5",
+              "operand": "net/neoforged/neoforge/event/entity/living/LivingKnockBackEvent.originalStrengthF"
+            },
+            {
+              "offset": 12,
+              "opcode": "0xb5",
+              "operand": "net/neoforged/neoforge/event/entity/living/LivingKnockBackEvent.strengthF"
+            },
+            {
+              "offset": 15,
+              "opcode": "0x2a",
+              "operand": null
+            },
+            {
+              "offset": 16,
+              "opcode": "0x2a",
+              "operand": null
+            },
+            {
+              "offset": 17,
+              "opcode": "0x29",
+              "operand": null
+            },
+            {
+              "offset": 18,
+              "opcode": "0x5d",
+              "operand": null
+            },
+            {
+              "offset": 19,
+              "opcode": "0xb5",
+              "operand": "net/neoforged/neoforge/event/entity/living/LivingKnockBackEvent.originalRatioXD"
+            },
+            {
+              "offset": 22,
+              "opcode": "0xb5",
+              "operand": "net/neoforged/neoforge/event/entity/living/LivingKnockBackEvent.ratioXD"
+            },
+            {
+              "offset": 25,
+              "opcode": "0x2a",
+              "operand": null
+            },
+            {
+              "offset": 26,
+              "opcode": "0x2a",
+              "operand": null
+            },
+            {
+              "offset": 27,
+              "opcode": "0x18",
+              "operand": null
+            },
+            {
+              "offset": 29,
+              "opcode": "0x5d",
+              "operand": null
+            },
+            {
+              "offset": 30,
+              "opcode": "0xb5",
+              "operand": "net/neoforged/neoforge/event/entity/living/LivingKnockBackEvent.originalRatioZD"
+            },
+            {
+              "offset": 33,
+              "opcode": "0xb5",
+              "operand": "net/neoforged/neoforge/event/entity/living/LivingKnockBackEvent.ratioZD"
+            },
+            {
+              "offset": 36,
+              "opcode": "0xb1",
+              "operand": null
+            }
+          ]
+        },
+        {
+          "name": "getStrength",
+          "descriptor": "()F",
+          "code_sha256": "1b37a24f9380c1b66f3b2adb7cb8035d5e8a9111fba08aeb5edc1a6fe0bfa73f",
+          "code_hex": "2ab4000dae",
+          "instructions": [
+            {
+              "offset": 0,
+              "opcode": "0x2a",
+              "operand": null
+            },
+            {
+              "offset": 1,
+              "opcode": "0xb4",
+              "operand": "net/neoforged/neoforge/event/entity/living/LivingKnockBackEvent.strengthF"
+            },
+            {
+              "offset": 4,
+              "opcode": "0xae",
+              "operand": null
+            }
+          ]
+        },
+        {
+          "name": "getRatioX",
+          "descriptor": "()D",
+          "code_sha256": "96d3f3fdf1a7d073ab137f5081bdcf0d57327a9197ab975194a2c4c82ffb80d7",
+          "code_hex": "2ab40014af",
+          "instructions": [
+            {
+              "offset": 0,
+              "opcode": "0x2a",
+              "operand": null
+            },
+            {
+              "offset": 1,
+              "opcode": "0xb4",
+              "operand": "net/neoforged/neoforge/event/entity/living/LivingKnockBackEvent.ratioXD"
+            },
+            {
+              "offset": 4,
+              "opcode": "0xaf",
+              "operand": null
+            }
+          ]
+        },
+        {
+          "name": "getRatioZ",
+          "descriptor": "()D",
+          "code_sha256": "e8a3467f975f54d7162042f17c78a68d5eabd3aee5eb9c22a7dc15ca2b35517e",
+          "code_hex": "2ab4001aaf",
+          "instructions": [
+            {
+              "offset": 0,
+              "opcode": "0x2a",
+              "operand": null
+            },
+            {
+              "offset": 1,
+              "opcode": "0xb4",
+              "operand": "net/neoforged/neoforge/event/entity/living/LivingKnockBackEvent.ratioZD"
+            },
+            {
+              "offset": 4,
+              "opcode": "0xaf",
+              "operand": null
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
