@@ -8,22 +8,7 @@ preserve newer valid work, finish the entire finite AlexMobs queue, then perform
 mod closure, commit/push/verify and STOP without starting another mod. All other
 research and production protections remain in force.
 
-R2o5d is active. Ten terrestrial actors are closed in three reviewed batches:
-Tiger, Snow Leopard, Tasmanian Devil, Drop Bear, Grizzly Bear, Rhinoceros,
-Tusklin, Anteater, Gorilla and Gelada. They added 36 records, 206 native numeric
-candidates and 444 exact method dispositions. Do not repeat these contracts.
-
-The existing R2o5d native packet contains 734 selected unresolved methods across
-73 actor/helper classes. Elephant, Kangaroo, Raccoon and remaining directly used
-helper boundaries are already captured but still need semantic review. Capture
-and structural grouping grant no coverage. Reuse the remaining exact identities,
-locked R2o5b/R2o5c evidence, saved native graphs, all-owner field index, Citadel
-contracts and pinned artifacts. See `STATE.md` for the exact remaining queue.
-
-`alexsmobs-r2o5d-checkpoint.json` records 31 targeted tests, exact reproduction of
-734 native and four Vanilla method bodies, canonical/numeric validation and real
-byte/grouping measurements. It is a recovery checkpoint, not mod closure or a
-new STOP instruction. Continue all remaining finite domains before returning.
+R2o5d through R2o9 are closed. Current canonical review has 266 records and 1308 numeric candidates; 8432/11434 methods dispositioned and 3002 pending (1610 semantic-role). Next is R2oa remaining flying actors, then multipart and the complete remaining finite queue. Reuse the saved native packets, graphs, field index and Citadel contracts. Capture and structural grouping grant no semantic coverage.
 
 ## Authorized objective for continuation
 
@@ -62,3 +47,5 @@ Authorized continuation recovery: R2o5d is now closed with all thirteen actors a
 - R2o6 shore closure: 225 canonical records, 989 numeric candidates, 7601/11434 methods dispositioned; 3833 pending. All seven shore actors and directly used payloads closed in `alexsmobs-r2o6-shore-terrestrial.json`; 13 targeted tests PASS and 453 native bodies reproduce byte-identically. Continuation proceeds at R2o7 remaining flying birds using a pending-only remaining-actors capture. No production edits.
 
 - R2o7 bird closure: 241 canonical records, 1081 numeric candidates, 8037/11434 dispositioned; 3397 pending. Crow, Blue Jay, Seagull, Shoebill, Bald Eagle and exact helpers closed; 12 targeted tests PASS, integrity/numeric audits PASS, locked reviews and production unchanged. Pending-only remaining actor packet (1915 bodies/183 classes) reproduced byte-identically. Continue at R2o8 Flutter/Mungus/Bunfungus; recovery commit does not pause campaign.
+
+- R2o8/R2o9 recovery: fungal and parasitic flying actors closed in two grouped batches, 20 targeted tests PASS; integrity/numeric audits PASS and production unchanged. Continue at R2oa; this is not mod closure or a pause.
