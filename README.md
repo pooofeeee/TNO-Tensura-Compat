@@ -1,3 +1,4 @@
+Catalog tooling: [Mod Intelligence V1](docs/mod-intelligence-v1.md) retrieves verified mechanics, numeric values, evidence, and dependencies as compact JSON for coding tasks.
 
 Installation information
 =======
