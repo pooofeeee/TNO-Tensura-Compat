@@ -59,3 +59,5 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts/external-effec
 ```
 
 Tests exercise actual retrieval from each existing completed semantic catalog, a pinned numeric consumer, a semantic alias, native resource evidence, and dependency/version metadata. Small temporary catalogs test pagination, hashes, descriptors, numeric offsets and values, malformed input, path boundaries, unchanged inputs, and invocation from another directory. They do not rerun mod extraction or research. V1 ends at this CLI; indexing services, new research, policy generation, and runtime integration are outside its scope.
+
+The [coding workflow validation](mod-intelligence-workflow-validation.md) demonstrates a small Sugar Rush consumer of CLI JSON, its numeric and dependency behavior, stale-source rejection, targeted tests, and the minimum follow-up justified by that workflow.
