@@ -37,7 +37,9 @@ Search defaults to 10 summaries, accepts `--limit 1..100` and `--offset N`, and 
 
 Every success uses schema `tno.mod_intelligence.v1`, includes `scope: STATIC_PINNED_CATALOG`, the catalog checkpoint, and an `inputs` manifest of the files actually read with SHA-256 hashes. Search loads canonical reviews without opening evidence packets or censuses. Exact retrieval opens only the selected implementation, shared-contract, native-resource, and numeric-consumer witnesses plus cited fact documents. Evidence includes packet and class hashes, method names/descriptors/code hashes, source pins, and numeric instruction offsets when available; bytecode bodies are omitted.
 
-Completion comes from agreement between the ledger and canonical review. An unstarted mod or a completed reference-only scope without a semantic review cannot supply mechanics. Catalog baseline mismatches, missing facts/methods, broken delivery links, conflicting selected method hashes, detached numeric candidates, or changed numeric consumer sites fail the lookup. Native witness JAR hashes are checked against the inventory when that artifact is inventoried. Other witnesses expose their packet pins as `PACKET_PIN_ONLY`; reference-file citations remain locators and are not a fresh audit of every referenced document.
+Completion comes from agreement between the ledger and canonical review. An unstarted mod or a completed reference-only scope without a semantic review cannot supply mechanics. Catalog baseline mismatches, missing facts/methods, broken delivery links, conflicting selected method hashes, detached numeric candidates, or changed numeric consumer sites fail the lookup. Supported numeric bindings must agree with component values and the actual literal instructions at their recorded offsets; an invocation offset alone does not prove its arguments. These checks also run with Python optimization enabled.
+
+Native evidence requires a nonempty mod identity and valid JAR SHA-256, checked against the inventory when that artifact is inventoried. Vanilla packets require their version, client JAR, mappings and manifest pins plus raw class identity. Selected reference packets require their witness archive pin. Unknown evidence schemas fail retrieval. Alternative witnesses expose their validated packet pins as `PACKET_PIN_ONLY`; reference-file citations remain locators and are not a fresh audit of every referenced document.
 
 Use `--expect-version VERSION` and/or `--expect-sha256 HASH` on `get`, `dependencies`, `verify`, or a mod-scoped `search`. These compare the requested source identity to the catalog. Version strings come from embedded metadata or an inventoried dependency version, preserving discrepancies such as Royal Variations declaring `2.0` inside a filename containing `2.0.4`. A hash is the decisive byte identity; equal version strings alone do not prove equal artifacts.
 
@@ -52,12 +54,32 @@ Original observations and formulas stay separate from integration decisions. Leg
 | `3` | Source version/hash or dependency artifact mismatch. |
 | `4` | Unknown mechanic/artifact, unresolved mechanic, or unavailable completed semantic scope. |
 
+Malformed structures and nonfinite contract numbers, including numeric overflow during JSON decoding, return an `ERROR` object with exit code `2`. Serialization errors also follow this protocol. Historical native packets contain 18 nonfinite JVM constants (14 infinities and four NaNs); the reader preserves those only as opaque tokens in literal instruction operands. They cannot serve as numeric parameters or literal numeric evidence. The original packet bytes and hashes remain unchanged.
+
 ## Targeted validation
 
 ```sh
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts/external-effects -p test_mod_intelligence.py -v
+PYTHONDONTWRITEBYTECODE=1 python3 -O -m unittest discover -s scripts/external-effects -p 'test_mod_intelligence*.py' -q
+PYTHONDONTWRITEBYTECODE=1 PYTHONOPTIMIZE=1 python3 -m unittest discover -s scripts/external-effects -p 'test_mod_intelligence*.py' -q
 ```
 
 Tests exercise actual retrieval from each existing completed semantic catalog, a pinned numeric consumer, a semantic alias, native resource evidence, and dependency/version metadata. Small temporary catalogs test pagination, hashes, descriptors, numeric offsets and values, malformed input, path boundaries, unchanged inputs, and invocation from another directory. They do not rerun mod extraction or research. V1 ends at this CLI; indexing services, new research, policy generation, and runtime integration are outside its scope.
 
 The [coding workflow validation](mod-intelligence-workflow-validation.md) demonstrates a small Sugar Rush consumer of CLI JSON, its numeric and dependency behavior, stale-source rejection, targeted tests, and the minimum follow-up justified by that workflow.
+
+### Astra V1 repair milestone
+
+All five reported defects were independently reproduced against `58287e6c767e7dfd906e45e5f910d0c8cfe6eec0` before repair:
+
+| Defect | Baseline reproduction | Repair and focused regression |
+| --- | --- | --- |
+| Nested numeric integrity | Sugar Rush component Y factor changed from `0.45` to `0.6` still returned `OK` with binding `0.45`. | Check component/binding/literal agreement. Test component-only corruption, coordinated component/binding corruption, and an invocation offset substituted for a literal. |
+| Missing native source pin | Removing the native witness JAR hash returned `OK` with `PACKET_PIN_ONLY`. | Require native identity and JAR pins; test missing, empty and malformed pins, plus valid Vanilla/reference alternatives and missing alternative pins. |
+| Disabled assertions | Conflicting `code_hex` failed normally but returned `OK` under `-O`. | Explicit resolver validation replaces assertions; test hash corruption and duplicate witnesses in normal, `-O`, and environment-optimized subprocesses. |
+| Malformed/nonfinite inputs | Metadata `[null]` and a NaN component raised uncaught exceptions with empty stdout. | Validate consumed structures, finite JSON numbers and guarded serialization; test null objects, wrong containers, NaN, both infinities, overflow, and serialization failure. |
+| Unqualified witness ID | A wrong explicit ID was ignored when the evidence file came from row references. | Validate IDs after either resolution path; test valid and wrong IDs through the resolver and CLI. |
+
+Seven focused regression tests were added. The resulting 29 V1 tests and 13 Sugar Rush workflow tests pass in normal Python, `python -O`, and `PYTHONOPTIMIZE=1` (42 tests per mode). All 2,867 mechanic retrieval results across the 14 completed semantic catalogs match the audited baseline exactly. Catalog files and source evidence are unchanged; no extraction or JAR rescan was performed.
+
+The separate existing catalog integrity suite passes 13 of 14 tests. Its published-snapshot equality test fails because `catalog-integrity-audit.json` is already stale at the audited baseline. Replaying the original baseline auditor also reports a live `PASS` with a stale published snapshot. This repair leaves that canonical record unchanged. No reported V1 defect remains unresolved; legacy observations and static-evidence limits described above remain in force.

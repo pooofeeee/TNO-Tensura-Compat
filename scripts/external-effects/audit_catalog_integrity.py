@@ -3,7 +3,9 @@ import argparse
 from collections import Counter, defaultdict
 import hashlib
 import json
+import math
 from pathlib import Path
+import re
 import subprocess
 
 from catalog_common import ROOT, OUT, BASELINE, read_json, write_json
@@ -79,9 +81,52 @@ def forbidden_policy_paths(value, path=''):
     return paths
 
 
+class EvidenceValidationError(ValueError):
+    """Invalid catalog evidence, including when Python assertions are disabled."""
+
+
+def evidence_require(condition, message):
+    if not condition:
+        raise EvidenceValidationError(message)
+
+
+def object_list(value, label):
+    evidence_require(isinstance(value, list) and all(isinstance(v, dict) for v in value),
+                     f'Expected an array of objects: {label}')
+    return value
+
+
+def finite_float(value):
+    number = float(value)
+    evidence_require(math.isfinite(number), f'Nonfinite JSON number: {value}')
+    return number
+
+
+class NonfiniteBytecodeLiteral(str):
+    """An opaque JVM constant, never a usable numeric catalog parameter."""
+
+
+def validate_nonfinite_literals(value, schema, path=()):
+    if isinstance(value, NonfiniteBytecodeLiteral):
+        shape = tuple('*' if isinstance(p, int) else p for p in path)
+        evidence_require(schema == 'tno.external_effects.native_evidence.v1' and
+                         shape == ('witnesses', '*', 'methods', '*', 'instructions', '*', 'operand') and
+                         value in ('Infinity', '-Infinity', 'NaN'), f'Nonfinite JSON number at {path}')
+    elif isinstance(value, dict):
+        if isinstance(value.get('operand'), NonfiniteBytecodeLiteral):
+            evidence_require(value.get('opcode') in ('0x12', '0x13', '0x14'),
+                             f'Nonfinite value outside a JVM literal instruction: {path}')
+        for key, item in value.items():
+            validate_nonfinite_literals(item, schema, path + (key,))
+    elif isinstance(value, list):
+        for n, item in enumerate(value):
+            validate_nonfinite_literals(item, schema, path + (n,))
+
+
 class EvidenceIndex:
-    def __init__(self, root=OUT):
+    def __init__(self, root=OUT, *, strict_json=False):
         self.root, self.files = root, {}
+        self.strict_json = strict_json
         self.methods = defaultdict(set)
         self.file_hashes = {}
 
@@ -90,38 +135,60 @@ class EvidenceIndex:
             file=file.relative_to(self.root).as_posix() if file.is_absolute() else file.as_posix()
         if file not in self.files:
             raw = (self.root/file).read_bytes()
-            self.files[file] = json.loads(raw.decode('utf-8-sig'))
+            constants = []
+            def constant(value):
+                constants.append(value)
+                return NonfiniteBytecodeLiteral(value)
+            data = (json.loads(raw.decode('utf-8-sig'), parse_float=finite_float, parse_constant=constant)
+                    if self.strict_json else json.loads(raw.decode('utf-8-sig')))
+            evidence_require(isinstance(data, dict), f'Expected an object: {file}')
+            # Historical native packets include actual nonfinite JVM constants.
+            # Retain their meaning as opaque tokens only in instruction operands;
+            # contracts and all other JSON numbers must be finite.
+            if constants:
+                validate_nonfinite_literals(data, data.get('schema'))
+            self.files[file] = data
             self.file_hashes[file] = hashlib.sha256(raw).hexdigest()
         return self.files[file]
 
     def witness(self, proof, context):
+        evidence_require(isinstance(proof, dict), 'Expected an evidence reference object')
         file = proof.get('evidence_file')
         if not file:
             matches = []
             for ref in context.get('reference_evidence', []):
-                for witness in self.read(ref).get('witnesses', []):
-                    if witness.get('entry') == proof['entry']:
+                data = self.read(ref)
+                for witness in object_list(data.get('witnesses', data.get('classes', [])), ref):
+                    if witness.get('entry', witness.get('raw_entry')) == proof['entry']:
                         matches.append((ref, witness))
-            assert len(matches) == 1, ('unqualified reference', context['id'], proof)
+            evidence_require(len(matches) == 1, f'Missing/ambiguous unqualified witness: {proof}')
             file, witness = matches[0]
         else:
             data = self.read(file)
-            witnesses = data.get('witnesses', data.get('classes', []))
+            witnesses = object_list(data.get('witnesses', data.get('classes', [])), file)
             matches = [w for w in witnesses if w.get('entry', w.get('raw_entry')) == proof['entry']]
-            assert len(matches) == 1, ('missing/ambiguous witness', context['id'], proof)
+            evidence_require(len(matches) == 1, f'Missing/ambiguous witness: {proof}')
             witness = matches[0]
-            actual_id = witness.get('id', data.get('id', witness.get('class_name')))
-            assert proof.get('witness_id', actual_id) == actual_id, ('wrong witness ID', proof)
-        assert set(proof.get('methods', [])) <= {m['name'] for m in witness.get('methods', [])}
-        for method in witness.get('methods', []):
+        data = self.read(file)
+        actual_id = witness.get('id', data.get('id', witness.get('class_name')))
+        evidence_require('witness_id' not in proof or
+                         (bool(actual_id) and proof['witness_id'] == actual_id), f'Wrong witness ID: {proof}')
+        names = proof.get('methods', [])
+        evidence_require(isinstance(names, list) and all(isinstance(n, str) for n in names),
+                         f'Invalid method selection: {proof}')
+        methods = object_list(witness.get('methods', []), f'{file} methods')
+        evidence_require(set(names) <= {m['name'] for m in methods}, f'Missing method: {proof}')
+        for method in methods:
             if method['name'] not in proof.get('methods', []):
                 continue
             digest = method.get('code_sha256')
             descriptor = method.get('descriptor', method.get('raw_descriptor', method.get('obfuscated_descriptor')))
-            if digest:
-                assert len(digest) == 64
-                if method.get('code_hex'):
-                    assert hashlib.sha256(bytes.fromhex(method['code_hex'])).hexdigest() == digest
+            if digest is not None or 'code_hex' in method:
+                evidence_require(isinstance(digest, str) and re.fullmatch(r'[0-9a-f]{64}', digest),
+                                 f'Invalid method hash: {file}')
+                if 'code_hex' in method:
+                    evidence_require(hashlib.sha256(bytes.fromhex(method['code_hex'])).hexdigest() == digest,
+                                     f'Method code hash mismatch: {file}')
                 if descriptor:
                     self.methods[(proof['entry'], method['name'], descriptor)].add(digest)
         return file, witness

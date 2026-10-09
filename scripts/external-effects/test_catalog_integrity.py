@@ -5,7 +5,7 @@ import json
 import unittest
 
 from catalog_common import OUT, read_json
-from audit_catalog_integrity import audit_catalog, audit_review, EvidenceIndex
+from audit_catalog_integrity import audit_catalog, audit_review, EvidenceIndex, EvidenceValidationError
 from refresh_catalog_views import project
 
 
@@ -35,7 +35,7 @@ class CatalogIntegrityTests(unittest.TestCase):
 
     def test_reject_missing_native_method(self):
         self.review['effects'][0]['implementation'][0]['methods']=['inventedCallback']
-        with self.assertRaises(AssertionError):audit_review(self.review,EvidenceIndex())
+        with self.assertRaises(EvidenceValidationError):audit_review(self.review,EvidenceIndex())
 
     def test_reject_unsupported_stage_policy(self):
         self.review['effects'][0]['stage_scaling_needed']=True
@@ -65,7 +65,7 @@ class CatalogIntegrityTests(unittest.TestCase):
         data=copy.deepcopy(index.read(file));w=next(w for w in data['classes'] if w['class_name'].endswith('WitherMobEffect'))
         m=next(m for m in w['methods'] if m['name']=='applyEffectTick');m['code_hex']='00'+m['code_hex'][2:]
         index.files[file]=data
-        with self.assertRaises(AssertionError):audit_review(self.review,index)
+        with self.assertRaises(EvidenceValidationError):audit_review(self.review,index)
 
     def test_reject_broken_reciprocal_delivery(self):
         self.review['paths'][0]['effect_ids']=[]

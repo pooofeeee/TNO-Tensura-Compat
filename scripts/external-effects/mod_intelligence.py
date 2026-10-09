@@ -1,11 +1,12 @@
 """Read-only V1 retrieval of canonical, pinned mod contracts. No extraction or scans."""
 import argparse
 import json
+import math
 from pathlib import Path
 import re
 import sys
 
-from audit_catalog_integrity import EvidenceIndex
+from audit_catalog_integrity import EvidenceIndex, object_list
 from catalog_common import OUT, sha256
 
 SCHEMA = 'tno.mod_intelligence.v1'
@@ -27,8 +28,32 @@ def pick(value, keys):
     return {key: value[key] for key in keys if key in value}
 
 
+def mapping(value, label):
+    require(isinstance(value, dict), f'Expected an object: {label}')
+    return value
+
+
+def valid_digest(value):
+    return isinstance(value, str) and re.fullmatch(r'[0-9a-f]{64}', value)
+
+
+LITERAL_OPCODES = {hex(op) for op in range(2, 21)}
+SCALAR_BINDINGS = {
+    'native_attribute_binding', 'native_literal_call_argument_binding',
+    'native_last_numeric_argument_binding', 'native_literal_numeric_input_binding',
+    'native_literal_constructor_argument_binding', 'native_literal_integer_dividend_binding',
+    'native_effect_attribute_binding', 'native_literal_numeric_site_binding',
+    'native_item_attribute_binding', 'native_synched_int_binding', 'native_vector_scale_binding',
+    'native_item_wear_binding', 'native_literal_field_numeric_binding', 'native_block_factor_binding',
+    'native_subtract_tag_vector_binding', 'native_numeric_return_binding',
+}
+
+
 class CatalogIndex(EvidenceIndex):
     """Reuse the existing witness resolver; confine all catalog references to root."""
+    def __init__(self, root):
+        super().__init__(root, strict_json=True)
+
     def read(self, file):
         path = (self.root / file).resolve()
         require(path.is_relative_to(self.root), f'Catalog reference escapes root: {file}')
@@ -42,10 +67,11 @@ class Catalog:
         self.ledger = self.index.read('mod-completion-ledger.json')
         self.inventory = self.index.read('jar-inventory.json')
         require(self.ledger['baseline'] == self.inventory['baseline'], 'Inventory/ledger baseline mismatch')
-        self.targets = {t['mod_key']: t for t in self.ledger['targets']}
+        self.targets = {t['mod_key']: t for t in object_list(self.ledger['targets'], 'ledger targets')}
         require(len(self.targets) == len(self.ledger['targets']), 'Duplicate ledger mod keys')
-        artifacts = (self.inventory['targets'] + self.inventory.get('dependency_artifacts', [])
-                     + self.inventory.get('compat_candidates', []))
+        artifacts = object_list(self.inventory['targets'], 'inventory targets')
+        artifacts = artifacts + [a for field in ['dependency_artifacts', 'compat_candidates']
+                     for a in object_list(self.inventory.get(field, []), f'inventory {field}')]
         self.artifacts = {a['key']: a for a in artifacts}
         self.reviews = {}
 
@@ -61,18 +87,25 @@ class Catalog:
 
     def source(self, key):
         artifact = self.artifacts[key]
-        require(re.fullmatch(r'[0-9a-f]{64}', artifact.get('sha256', '')),
+        require(valid_digest(artifact.get('sha256')),
                 f'Missing or invalid source pin: {key}')
         mods = []
-        for metadata in artifact.get('metadata', []):
-            parsed = metadata.get('parsed')
-            if isinstance(parsed, dict):
-                mods.extend(pick(m, ['modId', 'version', 'displayName'])
-                            for m in parsed.get('mods', []))
+        for parsed in self.metadata(key):
+            mods.extend(pick(m, ['modId', 'version', 'displayName'])
+                        for m in object_list(parsed.get('mods', []), f'{key} declared mods'))
         result = dict(filename=artifact['filename'], sha256=artifact['sha256'], declared_mods=mods)
         if artifact.get('version'):
             result['recorded_version'] = artifact['version']
         return result
+
+    def metadata(self, key):
+        for metadata in object_list(self.artifacts[key].get('metadata', []), f'{key} metadata'):
+            parsed = metadata.get('parsed')
+            # Manifest text is a legitimate alternative to parsed TOML metadata.
+            if isinstance(parsed, dict):
+                yield parsed
+            else:
+                require(parsed is None or isinstance(parsed, str), f'Invalid metadata: {key}')
 
     def source_check(self, key, version=None, digest=None, jar=None):
         source = self.source(key)
@@ -106,7 +139,13 @@ class Catalog:
                     f'Ledger/review completion mismatch for {key}')
             require(review['baseline'] == self.ledger['baseline'] == self.inventory['baseline'],
                     f'Catalog baseline mismatch for {key}')
-            require(len({r['id'] for r in review['effects']}) == len(review['effects']),
+            rows = object_list(review['effects'], f'{key} effects')
+            object_list(review['paths'], f'{key} paths')
+            object_list(review.get('semantic_aliases', []), f'{key} aliases')
+            for row in rows:
+                object_list(row['components'], f'{row["id"]} components')
+                object_list(row['implementation'], f'{row["id"]} implementation')
+            require(len({r['id'] for r in rows}) == len(rows),
                     f'Duplicate mechanic IDs in {key}')
             self.reviews[key] = review
         return self.reviews[key]
@@ -182,11 +221,28 @@ class Catalog:
                 f'Evidence baseline mismatch: {file}')
         artifact_key = KEY_ALIASES.get(witness.get('mod_key'), witness.get('mod_key'))
         digest = witness.get('jar_sha256')
-        if digest:
-            require(re.fullmatch(r'[0-9a-f]{64}', digest), f'Invalid witness source pin: {file}')
+        inventory_match = False
+        if packet.get('schema') == 'tno.external_effects.native_evidence.v1':
+            require(isinstance(artifact_key, str) and bool(artifact_key.strip()), f'Missing witness mod key: {file}')
+            require(valid_digest(digest), f'Missing or invalid witness source pin: {file}')
             if artifact_key in self.artifacts:
                 require(digest == self.artifacts[artifact_key]['sha256'],
                         f'Witness source SHA-256 mismatch: {file}#{proof["entry"]}', 3)
+                inventory_match = True
+        elif packet.get('schema') == 'tno.external_effects.vanilla_witness.v1':
+            require(isinstance(packet.get('classes'), list) and
+                    isinstance(witness.get('class_name'), str) and bool(witness['class_name']) and
+                    witness.get('raw_entry') == proof['entry'] and valid_digest(witness.get('raw_class_sha256')),
+                    f'Invalid Vanilla class identity: {file}')
+            require(isinstance(packet.get('version'), str) and bool(packet['version']),
+                    f'Missing Vanilla source version: {file}')
+            for field in ['client_jar_sha256', 'mappings_sha256', 'manifest_sha256']:
+                require(valid_digest(packet.get(field)), f'Missing or invalid Vanilla {field}: {file}')
+        elif packet.get('schema') == 'tno.external_effects.selected_reference.v1':
+            require(valid_digest(witness.get('archive_sha256')),
+                    f'Missing or invalid reference archive pin: {file}')
+        else:
+            raise CatalogError(f'Unsupported evidence schema: {file}')
         descriptor = proof.get('descriptor')
         names = proof.get('methods', [])
         methods = [m for m in witness.get('methods', []) if m['name'] in names and
@@ -200,14 +256,14 @@ class Catalog:
                 'Conflicting code hashes for a selected method identity')
         if 'offset' in proof:
             require(len(methods) == 1, f'Ambiguous numeric consumer: {file}#{proof["entry"]}')
-            sites = [i for i in methods[0].get('instructions', []) if i['offset'] == proof['offset']]
+            sites = [i for i in object_list(methods[0].get('instructions', []), f'{file} instructions')
+                     if i['offset'] == proof['offset']]
             require(len(sites) == 1, f'Missing numeric consumer offset: {file}#{proof["entry"]}')
             for field in ['opcode', 'operand']:
                 if field in proof:
                     require(proof[field] == sites[0].get(field), f'Numeric consumer {field} mismatch: {row["id"]}')
         result = dict(file=file, file_sha256=self.index.file_hashes[file],
-                      entry=proof['entry'], source_pin_check='INVENTORY_MATCH' if digest
-                      and artifact_key in self.artifacts else 'PACKET_PIN_ONLY')
+                      entry=proof['entry'], source_pin_check='INVENTORY_MATCH' if inventory_match else 'PACKET_PIN_ONLY')
         result.update(pick(witness, ['id', 'mod_key', 'jar_sha256', 'entry_sha256', 'raw_class_sha256', 'archive_sha256']))
         result['packet_source'] = pick(packet, ['version', 'client_jar_sha256', 'mappings_sha256', 'manifest_sha256'])
         result['methods'] = [pick(m, ['name', 'descriptor', 'raw_descriptor', 'obfuscated_descriptor', 'code_sha256'])
@@ -220,11 +276,10 @@ class Catalog:
         key = self.key(key)
         review = self.review(key)
         declared = []
-        for metadata in self.artifacts[key].get('metadata', []):
-            parsed = metadata.get('parsed')
-            if isinstance(parsed, dict):
-                for owner, deps in parsed.get('dependencies', {}).items():
-                    declared.extend(dict(owner_mod_id=owner, **dep) for dep in deps)
+        for parsed in self.metadata(key):
+            for owner, deps in mapping(parsed.get('dependencies', {}), f'{key} dependencies').items():
+                declared.extend(dict(owner_mod_id=owner, **dep)
+                                for dep in object_list(deps, f'{key}/{owner} dependencies'))
         result = dict(mod_key=key, declared=declared, obligations=None,
                       obligation_status='NOT_RECORDED')
         file = review.get('external_dependency_obligations_file')
@@ -248,27 +303,138 @@ class Catalog:
                                        for o in data['obligations']])
         return result
 
+    def numeric_binding(self, candidate, values, row):
+        """Check recorded numeric bindings against literal sites, never call operands.
+
+        This validates existing binding schemas; it does not infer control flow or
+        assign numeric meaning to legacy observations without a selected site.
+        """
+        consumer = mapping(candidate.get('native_consumer', {}), 'native consumer')
+        if not consumer.get('entry') or 'offset' not in consumer:
+            require(not any(k.startswith('native_') and k.endswith('_binding') for k in candidate) and
+                    'native_literal_effect_arguments' not in candidate,
+                    f'Missing native binding consumer: {row["id"]}')
+            return
+        self.evidence(consumer, row)
+        _, witness = self.index.witness(consumer, row)
+        methods = [m for m in witness['methods'] if m['name'] in consumer['methods'] and
+                   (not consumer.get('descriptor') or consumer['descriptor'] in
+                    (m.get('descriptor'), m.get('raw_descriptor'), m.get('obfuscated_descriptor')))]
+        require(len(methods) == 1, f'Ambiguous numeric binding: {row["id"]}')
+        body = object_list(methods[0]['instructions'], 'numeric instructions')
+        at = next(n for n, i in enumerate(body) if i['offset'] == consumer['offset'])
+
+        def literal(offset, expected):
+            sites = [i for i in body if i['offset'] == offset]
+            require(len(sites) == 1 and sites[0]['opcode'] in LITERAL_OPCODES and
+                    type(sites[0].get('operand')) in (int, float) and
+                    (type(sites[0]['operand']) is int or math.isfinite(sites[0]['operand'])) and
+                    sites[0]['operand'] == expected,
+                    f'Numeric literal mismatch: {row["id"]}@{offset}')
+
+        def parameters(binding, roles):
+            require(set(roles) == set(candidate['parameters']), f'Invalid numeric roles: {row["id"]}')
+            for parameter, role in roles.items():
+                require(parameter in values and role in binding and values[parameter] == binding[role],
+                        f'Numeric binding mismatch: {row["id"]}/{parameter}')
+
+        # A scalar consumer can itself be the literal, but an invocation is not
+        # proof of any numeric argument supplied to it.
+        if 'native_value' in candidate and body[at]['opcode'] in LITERAL_OPCODES:
+            literal(consumer['offset'], candidate['native_value'])
+        for key, binding in candidate.items():
+            if not key.startswith('native_') or not key.endswith('_binding'):
+                continue
+            mapping(binding, key)
+            if key in SCALAR_BINDINGS or 'native_value' in binding:
+                literal(binding['value_offset'], binding['native_value'])
+                parameters(binding, {p: 'native_value' for p in candidate['parameters']})
+            elif key == 'native_literal_vector_components_binding':
+                require(at >= 3 and binding['operation'] in ('add', 'multiply') and
+                        body[at]['operand'] == 'net/minecraft/world/phys/Vec3.' + binding['operation'] +
+                        '(DDD)Lnet/minecraft/world/phys/Vec3;' and
+                        binding['literal_offsets'] == [i['offset'] for i in body[at-3:at]],
+                        f'Invalid vector literal sites: {row["id"]}')
+                for axis, offset in zip(('x', 'y', 'z'), binding['literal_offsets']):
+                    literal(offset, binding[axis])
+                roles = mapping(candidate['native_vector_parameter_roles'], 'vector roles')
+                require(set(roles.values()) <= {'x', 'y', 'z'}, f'Invalid vector roles: {row["id"]}')
+                parameters(binding, roles)
+            elif key == 'native_literal_rng_bounds_binding':
+                for role in ('minimum', 'maximum'):
+                    literal(binding[role + '_offset'], binding[role])
+                parameters(binding, mapping(candidate['native_rng_parameter_roles'], 'RNG roles'))
+            elif key == 'native_tag_double_binding':
+                literal(binding['value_offset'], binding['value'])
+                parameters(binding, {p: 'value' for p in candidate['parameters']})
+            elif key == 'native_rounded_tag_quotient_binding':
+                require(at >= 2 and body[at]['operand'] == 'java/lang/Math.round(D)J' and
+                        body[at-1]['opcode'] == '0x6f', f'Invalid quotient site: {row["id"]}')
+                literal(body[at-2]['offset'], binding['divisor'])
+                parameters(binding, {p: 'divisor' for p in candidate['parameters']})
+            elif key == 'native_synched_int_distribution_binding':
+                rng = [n for n, i in enumerate(body) if i['offset'] == binding['rng_offset']]
+                require(len(rng) == 1 and rng[0] >= 2, f'Invalid RNG site: {row["id"]}')
+                for n, role in enumerate(('native_minimum', 'native_maximum')):
+                    literal(body[rng[0]-2+n]['offset'], binding[role])
+                parameters(binding, {'minimum': 'native_minimum', 'maximum': 'native_maximum'})
+            elif key == 'native_food_component_binding':
+                starts = [n for n, i in enumerate(body) if i['offset'] == binding['builder_allocation_offset']]
+                require(len(starts) == 1 and starts[0] + 5 < at, f'Invalid food literal sites: {row["id"]}')
+                for n, role in ((3, 'nutrition'), (5, 'saturation_modifier')):
+                    literal(body[starts[0]+n]['offset'], binding[role])
+                parameters(binding, mapping(candidate['native_food_parameter_roles'], 'food roles'))
+            elif key == 'native_arrow_factory_binding':
+                arguments = mapping(binding['literal_arguments'], 'arrow arguments')
+                for argument in arguments.values():
+                    literal(argument['offset'], argument['value'])
+                # Configured base damage has a recorded expression instead of a
+                # literal. Do not invent a value for that alternative binding.
+                if binding['parameter_role'] in arguments:
+                    parameters({role: a['value'] for role, a in arguments.items()},
+                               {p: binding['parameter_role'] for p in candidate['parameters']})
+        effect = candidate.get('native_literal_effect_arguments')
+        if effect:
+            signature = re.fullmatch(r'net/minecraft/world/effect/MobEffectInstance\.<init>\(Lnet/minecraft/core/Holder;(II(?:ZZ|ZZZ)?)\)V',
+                                     str(body[at]['operand']))
+            count = 2 + len(effect['explicit_flags'])
+            require(signature and len(signature.group(1)) == count and at >= count,
+                    f'Invalid effect literal sites: {row["id"]}')
+            args = body[at-count:at]
+            for instruction, value in zip(args, [effect['duration'], effect['amplifier']] + effect['explicit_flags']):
+                literal(instruction['offset'], value)
+            for parameter in candidate['parameters']:
+                if parameter in ('duration', 'amplifier'):
+                    require(values.get(parameter) == effect[parameter],
+                            f'Numeric effect binding mismatch: {row["id"]}/{parameter}')
+
     def record(self, key, row):
         require(not row.get('pending') and not row.get('unresolved_ambiguities'),
                 f'Mechanic has unresolved semantics: {row["id"]}', 4)
         proofs = row['implementation'] + row.get('shared_contracts', []) + row.get('native_resource_evidence', [])
         candidates = row.get('scalable_parameter_candidates', [])
+        require(isinstance(candidates, list) and all(isinstance(c, (str, dict)) for c in candidates),
+                f'Invalid numeric candidates: {row["id"]}')
         for candidate in candidates:
             if isinstance(candidate, dict):
+                values = {}
                 for parameter in candidate['parameters']:
                     components = [c for c in row['components'] if c['primitive'] == candidate['primitive'] and
                                   parameter in (set(c.get('numerical_parameters', {})) |
                                                 set(c.get('component_numerical_parameters', {})) |
                                                 set(c.get('parameter_formulas', {})))]
                     require(len(components) == 1, f'Detached numeric candidate: {row["id"]}/{parameter}')
-                    values = components[0].get('numerical_parameters', {})
-                    if 'native_value' in candidate and parameter in values:
-                        require(candidate['native_value'] == values[parameter],
+                    numbers = mapping(components[0].get('numerical_parameters', {}), 'component numbers')
+                    if parameter in numbers:
+                        values[parameter] = numbers[parameter]
+                    if 'native_value' in candidate and parameter in numbers:
+                        require(candidate['native_value'] == numbers[parameter],
                                 f'Numeric value mismatch: {row["id"]}/{parameter}')
+                self.numeric_binding(candidate, values, row)
                 consumer = candidate.get('native_consumer')
                 if consumer and consumer.get('evidence_file'):
                     proofs.append(consumer)
-                proofs.extend(site for site in candidate.get('additional_consumer_sites', [])
+                proofs.extend(site for site in object_list(candidate.get('additional_consumer_sites', []), 'additional consumers')
                               if site.get('evidence_file') and site.get('methods'))
         evidence = []
         seen = set()
@@ -416,12 +582,16 @@ def main(argv=None):
             data = catalog.dependencies(key) if args.command == 'dependencies' else dict(mod_key=key)
             data['source_check'] = check
         result, code = catalog.response(args.command, data), 0
+        output = json.dumps(result, ensure_ascii=False, indent=2 if pretty else None,
+                            separators=None if pretty else (',', ':'), allow_nan=False)
     except CatalogError as error:
         result, code = dict(schema=SCHEMA, status='ERROR', error=str(error)), error.code
     except (OSError, ValueError, KeyError, TypeError, AssertionError) as error:
         result, code = dict(schema=SCHEMA, status='ERROR', error=f'Invalid or unavailable catalog input: {error}'), 2
-    print(json.dumps(result, ensure_ascii=False, indent=2 if pretty else None,
-                     separators=None if pretty else (',', ':'), allow_nan=False))
+    if code:
+        output = json.dumps(result, ensure_ascii=False, indent=2 if pretty else None,
+                            separators=None if pretty else (',', ':'), allow_nan=False)
+    print(output)
     return code
 
 
