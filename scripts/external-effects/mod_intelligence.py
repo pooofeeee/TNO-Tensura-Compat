@@ -446,7 +446,30 @@ class Catalog:
             if not key.startswith('native_') or not key.endswith('_binding'):
                 continue
             mapping(binding, key)
-            if key in SCALAR_BINDINGS or 'native_value' in binding:
+            if key == 'native_item_attribute_binding':
+                roles = mapping(candidate['native_item_attribute_parameter_roles'], 'item attribute roles')
+                if binding['kind'] == 'ITEM_ATTRIBUTE_MODIFIER':
+                    literal(binding['value_offset'], binding['native_value'])
+                    allowed = {'native_value'}
+                else:
+                    owners = {'DIGGER_ATTRIBUTE_ARGUMENTS': 'DiggerItem',
+                              'SWORD_ATTRIBUTE_ARGUMENTS': 'SwordItem'}
+                    require(binding['kind'] in owners, f'Invalid item attribute binding: {row["id"]}')
+                    require(at >= 3 and body[at]['operand'] == 'net/minecraft/world/item/' +
+                            owners[binding['kind']] + '.createAttributes(Lnet/minecraft/world/item/Tier;FF)'
+                            'Lnet/minecraft/world/item/component/ItemAttributeModifiers;' and
+                            body[at-3]['opcode'] == '0xb2' and
+                            body[at-3]['operand'] == binding['tier_symbol'] and
+                            [binding['damage_offset'], binding['speed_offset']] ==
+                            [i['offset'] for i in body[at-2:at]],
+                            f'Invalid item attribute literal sites: {row["id"]}')
+                    literal(binding['damage_offset'], binding['attack_bonus'])
+                    literal(binding['speed_offset'], binding['attack_speed'])
+                    allowed = {'attack_bonus', 'attack_speed'}
+                require(len(roles) == len(allowed) and set(roles.values()) == allowed,
+                        f'Invalid item attribute roles: {row["id"]}')
+                parameters(binding, roles)
+            elif key in SCALAR_BINDINGS or 'native_value' in binding:
                 literal(binding['value_offset'], binding['native_value'])
                 parameters(binding, {p: 'native_value' for p in candidate['parameters']})
             elif key == 'native_literal_vector_components_binding':

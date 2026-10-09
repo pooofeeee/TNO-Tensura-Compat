@@ -535,6 +535,48 @@ class ExistingCatalogTests(unittest.TestCase):
             self.assertEqual(code, 2)
             self.assertEqual(json.loads(stream.getvalue())['status'], 'ERROR')
 
+    def test_native_item_attribute_variants_preserve_valid_retrieval(self):
+        catalog = Catalog()
+        for suffix in ('abyss_weapon_native_attribute_profiles',
+                       'native_remaining_item_mainhand_attribute_profiles',
+                       'native_spatial_item_mainhand_attribute_profiles',
+                       'staff_launcher_native_mainhand_attribute_profiles'):
+            identity = 'arphex:' + suffix
+            with self.subTest(mechanic=identity):
+                result = catalog.get(identity, 'arphex')
+                self.assertEqual(result['mechanics'][0]['id'], identity)
+
+    def test_item_attribute_arguments_require_component_roles_and_literal_sites(self):
+        variants = {'DIGGER_ATTRIBUTE_ARGUMENTS': 'arphex:abyss_weapon_native_attribute_profiles',
+                    'SWORD_ATTRIBUTE_ARGUMENTS': 'arphex:native_remaining_item_mainhand_attribute_profiles'}
+        for kind, identity in variants.items():
+            for corruption in ('component', 'component_and_binding', 'invocation_as_literal', 'roles'):
+                catalog = Catalog()
+                row = next(r for r in catalog.review('arphex')['effects'] if r['id'] == identity)
+                candidate = next(c for c in row['scalable_parameter_candidates']
+                                 if c.get('native_item_attribute_binding', {}).get('kind') == kind)
+                binding = candidate['native_item_attribute_binding']
+                roles = candidate['native_item_attribute_parameter_roles']
+                parameter = next(p for p, role in roles.items() if role == 'attack_bonus')
+                if corruption == 'invocation_as_literal':
+                    binding['damage_offset'] = candidate['native_consumer']['offset']
+                elif corruption == 'roles':
+                    roles[parameter] = 'attack_speed'
+                else:
+                    component = next(c for c in row['components']
+                                     if parameter in c.get('numerical_parameters', {}))
+                    component['numerical_parameters'][parameter] += 1.0
+                    if corruption == 'component_and_binding':
+                        binding['attack_bonus'] += 1.0
+                stream = io.StringIO()
+                with self.subTest(kind=kind, corruption=corruption), \
+                        patch('mod_intelligence.Catalog', return_value=catalog), contextlib.redirect_stdout(stream):
+                    code = main(['get', identity, '--mod', 'arphex'])
+                self.assertEqual(code, 2)
+                result = json.loads(stream.getvalue())
+                self.assertEqual(result['status'], 'ERROR')
+                self.assertNotIn('data', result)
+
     def test_selected_lookup_in_each_existing_completed_catalog(self):
         for key in Catalog().completed_keys():
             with self.subTest(mod=key):
