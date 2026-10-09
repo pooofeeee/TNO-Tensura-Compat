@@ -10,4 +10,4 @@
 - Research/catalog only: no Stage policy, gameplay edits, Minecraft, Gradle, or datagen.
 - Update compact state and the unresolved queue before meaningful recovery checkpoints.
 - Intermediate commits and context compaction are recovery points; continue internally.
-- Newly authorized active target is Alex's Mobs only. Reuse all ledger COMPLETE results; do not load another mod after AlexMobs closure.
+- Alex's Mobs continuation is COMPLETE. Preserve all ledger COMPLETE results and STOP; do not start another mod.

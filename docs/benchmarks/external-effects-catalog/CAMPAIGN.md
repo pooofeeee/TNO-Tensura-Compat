@@ -1,64 +1,11 @@
-# Active campaign: complete Alex's Mobs
+# Alex’s Mobs campaign complete
 
-## Current session: authorized continuation
+The authorized 2026-10-09 continuation from `1ecac479f0269eda5a57397a3643e5159e5f6c12` is complete. All newer valid work was preserved. R2o5d through R2oi research and R2oj mod closure are closed. STOP without starting another mod.
 
-The explicit 2026-10-09 user goal supersedes the prior session-specific safe-handoff
-STOP. Resume at verified handoff `1ecac479f0269eda5a57397a3643e5159e5f6c12`,
-preserve newer valid work, finish the entire finite AlexMobs queue, then perform
-mod closure, commit/push/verify and STOP without starting another mod. All other
-research and production protections remain in force.
+The canonical catalog contains 352 semantic records,352 delivery paths and 2124 unique method-bound numeric candidate identities. All 11434 census methods are dispositioned: 5546 native contract methods and 5888 explicit exclusions, with zero pending or unresolved external blockers.
 
-R2o5d through R2og are closed. Current canonical review: 352 records / 2125 numeric candidates / 10711/11434 dispositioned / 723 pending. Next: R2oh remaining client finite queue, then final AlexMobs mod-level closure; no next mod. Reuse saved packets, graphs, field index and Citadel contracts. Capture and grouping grant no semantic coverage.
+All 302 tests passed across 31 AlexMobs modules. Independent replay validated 34 batches and 18 authored renderings. Coverage, canonical integrity, classifications, numeric labels, physical duplicate sites, aliases, exclusions, exact dependencies and full data resources passed their audits. Reproduction checked 42 native packets, 18 Vanilla packets and 11 loader packets, plus all 1126 native class hashes and 11434 method hashes, against exact pinned artifacts. The census was not rebuilt.
 
-## Authorized objective for continuation
+Locked R2o5b/R2o5c evidence, graphs, field indexes and Citadel contracts were reused. Full 646 data JSONs and the missing installed Citadel tail are pinned. Actual scope/filter and structural reuse measurements are retained in `alexsmobs-r2oj-mod-closure.json` and checkpoint JSONs; overlapping selections are not counted as avoided work. No token or allowance savings are claimed.
 
-Finish the entire pinned alexsmobs-1.22.17.jar native combat semantic catalog,
-then commit/push, verify remote HEAD and production, and STOP. The explicit 2026-10-09 user
-goal resumes this target from verified handoff 1ecac479; all prior COMPLETE reviews remain locked.
-
-Use the single finite census, exact source/index/body grouping and existing
-shared contracts before semantic interpretation. Scoped source-output filtering
-must retain full raw evidence on disk, complete selected instructions and exact
-identities, explicitly identify omission, and reject incomplete selection.
-Omitted data never establishes absence or semantics. Expand evidence when needed.
-
-Reuse generic capture, renderer, grouping, numeric binding and audit tools.
-Before new tooling record repeated operations removed and implementation/test
-cost; no speculative framework. Batch related domains, checkpoint substantial
-closures, persist the finite unresolved queue, and continue internally.
-
-Cover creatures/admission/attacks, damage/statuses, projectiles/hazards,
-movement/control, healing/resources/attributes, items/equipment, ownership/team,
-timing/lifecycle/configuration and independent native numeric consumers.
-No Stage policy, eligibility, balance, gameplay edits, Minecraft, Gradle or datagen.
-
-Measure real grouping/reuse and filtered/raw output bytes, expansions,
-corrections and new-tool overhead. Token/allowance savings require actual
-telemetry; never infer them from byte counts or elapsed time.
-
-Closure requires full finite-census coverage, independent semantic replay,
-numeric/alias/duplicate/exclusion/dependency audits, targeted tests and exact
-pinned-JAR reproduction. Update STATE/review/ledger and verify push/production.
-Genuine missing evidence is a precise blocker after independent scopes finish.
-Do not return after individual families or start any subsequent mod.
-
-Authorized continuation recovery: R2o5d is now closed with all thirteen actors and directly used shared/ant-colony boundaries. AlexMobs remains PARTIAL: 205 records, 839 numeric candidates, 7,138/11,434 dispositioned and 4,296 pending (2,320 semantic-role). Next is R2o6 remaining terrestrial/shore actors, then the entire unresolved finite queue. This checkpoint is not a STOP or mod closure.
-
-- R2o6 shore closure: 225 canonical records, 989 numeric candidates, 7601/11434 methods dispositioned; 3833 pending. All seven shore actors and directly used payloads closed in `alexsmobs-r2o6-shore-terrestrial.json`; 13 targeted tests PASS and 453 native bodies reproduce byte-identically. Continuation proceeds at R2o7 remaining flying birds using a pending-only remaining-actors capture. No production edits.
-
-- R2o7 bird closure: 241 canonical records, 1081 numeric candidates, 8037/11434 dispositioned; 3397 pending. Crow, Blue Jay, Seagull, Shoebill, Bald Eagle and exact helpers closed; 12 targeted tests PASS, integrity/numeric audits PASS, locked reviews and production unchanged. Pending-only remaining actor packet (1915 bodies/183 classes) reproduced byte-identically. Continue at R2o8 Flutter/Mungus/Bunfungus; recovery commit does not pause campaign.
-
-- R2o8/R2o9 recovery: fungal and parasitic flying actors closed in two grouped batches, 20 targeted tests PASS; integrity/numeric audits PASS and production unchanged. Continue at R2oa; this is not mod closure or a pause.
-
-- R2oa flight/wind closure: 18 records/126 numeric candidates/376 new method dispositions, 13 targeted tests PASS. New pinned Vanilla leash dispatch reproduced BYTE_IDENTICAL; saved effect/projectile/Vanilla contracts reused. Production and locked COMPLETE reviews unchanged. Continue at R2ob; no intermediate STOP.
-
-- R2ob/R2oc recovery: multipart and final six actors closed, 29 records/306 numeric candidates/586 method dispositions; 27 targeted tests PASS, exact new native/Vanilla reproduction and integrity/numeric audits PASS. Continue at R2od through mod closure; recovery does not pause campaign.
-
-- R2od residual helper closure: 5 records/8 refinements/37 numeric candidates/80 method dispositions, 8 targeted tests PASS; new Vanilla hit dispatch reproduction/integrity/numeric audits PASS. Continue at R2oe through final closure; no intermediate STOP.
-
-- R2oe item/equipment closure: 12 records / 207 candidates / 367 method dispositions, 8 targeted tests PASS; new118 native methods/current Vanilla API/loader resources BYTE_IDENTICAL. Current330 records/1984 candidates/9841 dispositions/1593 pending. Continue at R2of; production unchanged.
-
-
-- Latest recovery R2of: 342 records / 2076 candidates / 10349 dispositioned / 1085 pending. Block/tile contracts validated; complete finite queue continues at R2og. Native blocks/global/client captures reproduced; no coverage granted to remaining captures. Production unchanged.
-
-- R2og global closure: 10 records / 1 refinement / 49 candidates / 362 dispositions, 10 targeted tests PASS; current 352/2125/10711/723. Continue at R2oh; production and locked COMPLETE reviews unchanged.
+Authoritative completion: `mod-reviews/alexsmobs.json`, `mod-completion-ledger.json`, `large-mod-campaign.json`, `alexsmobs-r2oj-mod-closure.json`. Production and previous COMPLETE reviews remain unchanged. No Stage policy, gameplay edits, Minecraft, Gradle, datagen or subsequent mod investigation. Final commit/push/live-HEAD verification completes delivery; then STOP.
