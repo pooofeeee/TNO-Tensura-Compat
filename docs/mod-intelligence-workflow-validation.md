@@ -69,3 +69,44 @@ No native archive was parsed and no mod was rescanned. Optional local checks onl
 The minimum justified next step is a narrow, optional obligation selector on `dependencies` that returns that obligation's resolved existing witness identities and hashes, using the current evidence resolver. Add targeted missing/stale dependency-witness tests. Leave formula translation in small coding adapters until another concrete workflow shows a need for broader structure. No new mod scan, research rewrite, framework, or MCP server is needed for that step. This validation stops here; the enhancement is not implemented by this task.
 
 The later [dependency selector milestone](mod-intelligence-v1.md#selected-dependency-contracts), based on `fdaa24ac8ee3816f1ce609c8a5faf761833b856d`, implements that recommendation. `dependencies alexscaves --mechanic alexscaves:sugar_rush --obligation alexscaves:citadel:sugar_rush_tick_controller` resolves the 18 existing Citadel witnesses and 82 selected method identities/hashes. The original consumer continues to exercise the unselected interface; an additional workflow test checks the new selected response, exact artifact pins, unchanged contract, and resolved witness inputs. Missing hashes remain explicit, and historical file-only references remain separate. No research record or production code changed.
+
+## V1.5 coding validation: fixed animation-clock diagnostic
+
+Baseline: `26f377018b1f418446b16396825c22a7472da59d`. The selected coding task is an executable animation-clock diagnostic for the existing Corrodent mechanic, implemented in `scripts/external-effects/examples/animation_clock_preview.py`. It previews one unchanged active animation: Start cancellation, server send intent, counter advance, Tick intent, and expiration. It uses the existing CLI subprocess helper and source-pin expectations from the Sugar Rush example. It never imports the catalog API or reads mechanic research files itself.
+
+The implementation uses `alexscaves:corrodent_bite_native_dig_light_fear` and its exact `alexscaves:citadel:actor_animation_clock` obligation. The retrieved dependency supplies the numeric increment `1`, equality-based expiration, cancellation behavior, server-only animation send, and explicit absence of a damage callback. The native Corrodent tick witness and the Citadel `AnimationHandler.updateAnimations` / `sendAnimationMessage` descriptors and hashes provide the relevant source identities. Both exact artifact pins are checked by the CLI; common input fingerprints are checked for drift between responses.
+
+### Commands and measurements
+
+The final coding workflow executes these three CLI requests. `$MOD_SHA` is `6fad35bf07fcb977aaa32d3fe05bf122150c6a30ed16b057385040207a3b788f`; `$DEP_SHA` is `9e12468c49e5a95b7adbf22b3b4d05bc55565989b89c40b985cd73bdfe63c3c2`.
+
+```sh
+MOD_SHA=6fad35bf07fcb977aaa32d3fe05bf122150c6a30ed16b057385040207a3b788f
+DEP_SHA=9e12468c49e5a95b7adbf22b3b4d05bc55565989b89c40b985cd73bdfe63c3c2
+python3 -B scripts/external-effects/mod_intelligence.py search "corrodent animation" --mod alexscaves --limit 2 --expect-version 2.0.10 --expect-sha256 "$MOD_SHA"
+python3 -B scripts/external-effects/mod_intelligence.py get alexscaves:corrodent_bite_native_dig_light_fear --mod alexscaves --section semantics --section evidence --expect-version 2.0.10 --expect-sha256 "$MOD_SHA"
+python3 -B scripts/external-effects/mod_intelligence.py dependencies alexscaves --mechanic alexscaves:corrodent_bite_native_dig_light_fear --obligation alexscaves:citadel:actor_animation_clock --expect-version 2.0.10 --expect-sha256 "$MOD_SHA" --expect-dependency-version 2.7.6 --expect-dependency-sha256 "$DEP_SHA"
+python3 -B scripts/external-effects/examples/animation_clock_preview.py --duration 3 --updates 4 --start-cancelled
+```
+
+Measured UTF-8 response sizes, including newlines, were **1,818 bytes** for search, **23,684** for get, and **18,332** for selected dependencies: **43,834 bytes** total, with six distinct input fingerprints. The executable records its exact command arguments, response byte counts, source provenance, and trace. A captured run is in the ignored `run/mod-intelligence-v15-validation/cancelled-start.json`. These byte counts are not usage telemetry; no token, time, cost, or usage savings are claimed.
+
+Exploratory CLI requests were `search "corrodent collision" --mod alexscaves --limit 2` (one match), `search "path gate" --mod alexscaves --limit 2` (23 matches; two returned), an initial Corrodent `get` with `semantics`, `numbers`, and `evidence` plus `--expect-version 2.0.10`, and the exact animation obligation request with both expected versions. All used the CLI. The broad navigation query was discarded. The final search was narrowed to Corrodent animation, and the unused actor `numbers` section was removed.
+
+### Implementation and tests
+
+For the explicitly supplied scenario duration `3`, a cancelled Start produces frames `1`, `2`, then a terminal Tick `3` followed by reset to inactive tick `0`. The next update stays inactive. Cancellation omits send intent while preserving clock advance. Client updates also advance without server send intent. A frame above duration stays unchanged; expiration uses equality rather than `>=`. Duration is not clamped: zero can reset immediately, while a negative supplied duration does not become zero.
+
+Eleven focused tests cover these rules, the retrieved increment wiring, exact source-version/hash rejection, required witness identity/hash gaps, unresolved obligations, changed end rules, input drift, and execution from an unrelated directory. A synthetic increment change is only an adapter wiring probe, not another verified contract. Results:
+
+- All **62 Mod Intelligence tests pass** in normal Python, including the existing V1, selector, Sugar Rush, and 11 new diagnostic tests.
+- All **11 new diagnostic tests pass** with `python -O` and separately with `PYTHONOPTIMIZE=1`; the latter also optimizes the spawned CLI processes.
+- No mechanic or catalog correction was required, and no test failure required a behavior correction. The coding corrections were narrowing the search/sections and requiring a supplied duration instead of inventing a native value.
+
+### Sufficiency, missing information, and next improvement
+
+The three final responses were sufficient to implement and verify the scoped diagnostic. **No manual mechanic/source investigation was required.** Only repository instruction/state files and existing tooling/example code were opened directly; no original mechanic review or native witness packet was manually reopened. No JAR was scanned, catalog rebuilt, completed research edited, or production code changed.
+
+Corrodent's native animation duration is absent from the returned structured numbers. `--duration 3` is therefore a scenario input, not a native Corrodent claim. The adapter translates the dependency's prose/control rules by hand. It does not simulate Start animation replacement, Tick listener mutations, actor-specific setters, networking, damage, or a Minecraft runtime. It rejects missing hashes for its required handler methods rather than deriving them. The supplied unchanged-animation scope makes those omissions explicit and keeps the code small.
+
+V1.5 enabled this coding workflow through search, section projection, exact dependency selection, source pins, and witness identities without manual source-file lookup. This is evidence of sufficiency for this bounded task, not a measured general productivity gain. The smallest useful next improvement is optional **method-scoped evidence projection**: this adapter needed the native tick caller and two handler methods, while the responses also carried unrelated actor methods and other obligation witnesses. Such a projection can reuse existing identities and validation; it should not invent missing duration facts or introduce a new analyzer. This validation stops here.
