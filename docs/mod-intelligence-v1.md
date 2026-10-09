@@ -29,9 +29,31 @@ All ordinary responses are one compact JSON object followed by a newline. Use `-
 | `search QUERY` | Case-insensitive AND search across IDs, names, recorded behavior, registry IDs, classifications, components, numeric labels/values, and implementation class/method names. Completed semantic reviews only. |
 | `get ID` | Exact canonical mechanic or explicit semantic alias, full behavior and gates, original numeric values/formulas/units, candidate consumers, delivery links, facts, and selected source evidence. |
 | `dependencies MOD` | Original metadata dependency ranges, plus exact installed artifacts and resolved obligations where the canonical review records them. |
+| `dependencies MOD --mechanic ID [--obligation ID]` | Only recorded obligations required by this mechanic, with resolved dependency witness identities, available hashes, and validation state. |
 | `verify ARTIFACT` | Catalog source identity and optional expected-version, expected-hash, or local-artifact checks for an inventoried mod or dependency. |
 
 Search defaults to 10 summaries, accepts `--limit 1..100` and `--offset N`, and reports `total` and `has_more`. Ordering is stable by mod key and mechanic ID. Each summary is limited to 240 characters and marks truncation; full semantics come from `get`. Filters include `--mod`, `--classification`, and `--primitive`. Empty search results are a successful query with `total: 0`, not proof that a mod has no such mechanic. `bossesrise` and `bomd` are accepted aliases for the corresponding inventory mod keys.
+
+## Selected dependency contracts
+
+```sh
+python3 scripts/external-effects/mod_intelligence.py dependencies alexscaves \
+  --mechanic alexscaves:sugar_rush \
+  --obligation alexscaves:citadel:sugar_rush_tick_controller \
+  --expect-version 2.0.10 \
+  --expect-dependency-version 2.7.6 \
+  --expect-dependency-sha256 9e12468c49e5a95b7adbf22b3b4d05bc55565989b89c40b985cd73bdfe63c3c2
+```
+
+Omit `--obligation` to return all obligations explicitly mapped to the mechanic. Selection uses the mechanic's `external_dependency_contracts` and the obligations' `affected_mechanic_ids`, cross-checking their recorded file and artifact pins. It never infers a dependency from names, descriptions, or historical file citations. An unknown or unrelated obligation, absent mechanic mapping, unresolved obligation, or file-only evidence without witness identities fails with exit code `4`. Malformed or missing witness identities fail with code `2`; stale dependency versions, hashes, or witness JAR pins fail with code `3`.
+
+The result retains the exact resolved `artifact`, including `exact_installed_version` and `sha256`, and adds `requested_mechanic`, canonical `mechanic_ids`, `required_obligation_ids`, and `dependency_source_check`. Each selected obligation includes its original status, contract, affected IDs (or `null` when not recorded), resolved `witnesses`, and `validation_state`. Witnesses contain the recorded class/resource identity, class/entry hash, selected method names/descriptors/code hashes, packet file/hash, and source-pin validation. Bytecode bodies are omitted.
+
+Missing entry or method hashes stay `null` with `hash_status: MISSING`; the selector does not derive them. An obligation with such gaps reports `WITNESSES_RESOLVED_WITH_MISSING_HASHES`, otherwise `WITNESSES_RESOLVED`. These states describe static witness resolution, not runtime behavior. File-only citations are retained separately as `references` with `validation_state: REFERENCE_ONLY`; they are not opened or promoted to verified witness evidence.
+
+`--expect-version`, `--expect-sha256`, and `--jar` still check the target mod. The separate `--expect-dependency-version` and `--expect-dependency-sha256` options check the selected dependency and require `--mechanic`. No dependency JAR is scanned or inspected; its local artifact remains `NOT_CHECKED`. Use `verify citadel --jar PATH` for the existing optional byte-hash check. Unselected `dependencies MOD` and `get` responses retain their previous behavior.
+
+This selector requires an inventoried dependency artifact and explicit native dependency witnesses. Older records containing only broad module-level references remain available through unselected `dependencies`, but cannot supply an inferred mechanic contract. The catalog is not rewritten to fill missing mappings, identities, or hashes.
 
 ## Provenance and source checks
 
@@ -60,6 +82,7 @@ Malformed structures and nonfinite contract numbers, including numeric overflow 
 
 ```sh
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts/external-effects -p test_mod_intelligence.py -v
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts/external-effects -p 'test_mod_intelligence*.py' -q
 PYTHONDONTWRITEBYTECODE=1 python3 -O -m unittest discover -s scripts/external-effects -p 'test_mod_intelligence*.py' -q
 PYTHONDONTWRITEBYTECODE=1 PYTHONOPTIMIZE=1 python3 -m unittest discover -s scripts/external-effects -p 'test_mod_intelligence*.py' -q
 ```

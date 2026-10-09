@@ -78,6 +78,137 @@ class RetrievalTests(unittest.TestCase):
             code = main(['--catalog', str(self.root), *args])
         return code, json.loads(stream.getvalue())
 
+    def dependency_fixture(self):
+        proof = dict(evidence_file='native-evidence/support.json', witness_id='support-witness',
+                     entry='Support.class', methods=['activate'])
+        packet = dict(schema='tno.external_effects.native_evidence.v1', baseline='baseline', witnesses=[
+            dict(id='support-witness', mod_key='support', jar_sha256='a' * 64, entry='Support.class',
+                 class_name='Support', entry_sha256='b' * 64,
+                 methods=[dict(name='activate', descriptor='()V', code_hex='00',
+                               code_sha256=hashlib.sha256(b'\0').hexdigest())])])
+        self.write('native-evidence/support.json', packet)
+        document = json.loads((self.root / 'dependencies.json').read_text())
+        document['schema'] = 'tno.external_effects.external_dependency_obligations.v1'
+        obligation = document['obligations'][0]
+        obligation.update(affected_mechanic_ids=['demo:bite'], evidence=[proof],
+                          evidence_files=['historical-contract.json'])
+        self.write('dependencies.json', document)
+        self.row['external_dependency_contracts'] = dict(file='dependencies.json', ids=['demo:support'], pin_sha256='a' * 64)
+        self.write('mod-reviews/demo.json', self.review)
+        return document, packet
+
+    def test_dependency_selector_returns_only_required_resolved_contract_and_witnesses(self):
+        document, _ = self.dependency_fixture()
+        document['obligations'].append(dict(id='demo:unrelated', status='RESOLVED_PINNED',
+                                             affected_mechanic_ids=['demo:other']))
+        self.write('dependencies.json', document)
+        code, response = self.invoke('dependencies', 'demo', '--mechanic', 'demo:bite',
+            '--obligation', 'demo:support', '--expect-dependency-version', '2.3',
+            '--expect-dependency-sha256', 'a' * 64)
+        self.assertEqual(code, 0)
+        result = response['data']
+        self.assertEqual(result['required_obligation_ids'], ['demo:support'])
+        self.assertEqual(result['mechanic_ids'], ['demo:bite'])
+        self.assertEqual(result['artifact']['sha256'], 'a' * 64)
+        self.assertEqual(result['artifact']['exact_installed_version'], '2.3')
+        self.assertEqual(result['dependency_source_check']['expected_version']['status'], 'MATCH')
+        self.assertEqual(result['dependency_source_check']['local_artifact'], 'NOT_CHECKED')
+        obligation, = result['obligations']
+        self.assertEqual(obligation['actual_contract'], 'Native support contract')
+        self.assertEqual(obligation['affected_mechanic_ids'], ['demo:bite'])
+        self.assertEqual(obligation['validation_state'], 'WITNESSES_RESOLVED')
+        witness, = obligation['witnesses']
+        self.assertEqual(witness['witness_id'], 'support-witness')
+        self.assertEqual(witness['class_name'], 'Support')
+        self.assertEqual(witness['methods'][0]['hash_status'], 'RECORDED')
+        self.assertNotIn('code_hex', witness['methods'][0])
+        self.assertEqual(obligation['references'], [dict(file='historical-contract.json', validation_state='REFERENCE_ONLY')])
+        self.assertNotIn('historical-contract.json', {i['file'] for i in response['inputs']})
+        self.assertIn('native-evidence/support.json', {i['file'] for i in response['inputs']})
+
+    def test_dependency_selector_rejects_wrong_expected_or_recorded_artifact_hash(self):
+        document, packet = self.dependency_fixture()
+        self.assertEqual(self.invoke('dependencies', 'demo', '--mechanic', 'demo:bite',
+                                     '--expect-dependency-sha256', 'f' * 64)[0], 3)
+        document['artifact']['sha256'] = 'f' * 64
+        self.write('dependencies.json', document)
+        self.assertEqual(self.invoke('dependencies', 'demo', '--mechanic', 'demo:bite')[0], 3)
+        document['artifact']['sha256'] = 'a' * 64
+        self.write('dependencies.json', document)
+        packet['witnesses'][0]['jar_sha256'] = 'f' * 64
+        self.write('native-evidence/support.json', packet)
+        self.assertEqual(self.invoke('dependencies', 'demo', '--mechanic', 'demo:bite')[0], 3)
+
+    def test_dependency_selector_rejects_wrong_expected_or_recorded_version(self):
+        document, _ = self.dependency_fixture()
+        self.assertEqual(self.invoke('dependencies', 'demo', '--mechanic', 'demo:bite',
+                                     '--expect-dependency-version', '2.4')[0], 3)
+        document['artifact']['exact_installed_version'] = '2.4'
+        self.write('dependencies.json', document)
+        self.assertEqual(self.invoke('dependencies', 'demo', '--mechanic', 'demo:bite')[0], 3)
+
+    def test_dependency_selector_rejects_missing_witness_identity_and_missing_witness(self):
+        document, packet = self.dependency_fixture()
+        for field in ['evidence_file', 'witness_id', 'entry', 'methods']:
+            with self.subTest(missing=field):
+                corrupted = copy.deepcopy(document)
+                corrupted['obligations'][0]['evidence'][0].pop(field)
+                self.write('dependencies.json', corrupted)
+                code, response = self.invoke('dependencies', 'demo', '--mechanic', 'demo:bite')
+                self.assertEqual(code, 2)
+                self.assertEqual(response['status'], 'ERROR')
+                self.assertNotIn('data', response)
+        self.write('dependencies.json', document)
+        packet['witnesses'] = []
+        self.write('native-evidence/support.json', packet)
+        self.assertEqual(self.invoke('dependencies', 'demo', '--mechanic', 'demo:bite')[0], 2)
+
+    def test_dependency_selector_rejects_unresolved_obligation_and_file_only_evidence(self):
+        document, _ = self.dependency_fixture()
+        for change in [dict(status='BLOCKED'), dict(evidence=[])]:
+            with self.subTest(change=change):
+                corrupted = copy.deepcopy(document)
+                corrupted['obligations'][0].update(change)
+                self.write('dependencies.json', corrupted)
+                code, response = self.invoke('dependencies', 'demo', '--mechanic', 'demo:bite')
+                self.assertEqual(code, 4)
+                self.assertEqual(response['status'], 'ERROR')
+                self.assertNotIn('data', response)
+
+    def test_dependency_selector_preserves_missing_class_and_method_hashes(self):
+        _, packet = self.dependency_fixture()
+        packet['witnesses'][0].pop('entry_sha256')
+        method = packet['witnesses'][0]['methods'][0]
+        method.pop('code_sha256')
+        method.pop('code_hex')
+        self.write('native-evidence/support.json', packet)
+        code, response = self.invoke('dependencies', 'demo', '--mechanic', 'demo:bite')
+        self.assertEqual(code, 0)
+        obligation, = response['data']['obligations']
+        self.assertEqual(obligation['validation_state'], 'WITNESSES_RESOLVED_WITH_MISSING_HASHES')
+        witness, = obligation['witnesses']
+        self.assertIsNone(witness['entry_sha256'])
+        self.assertEqual(witness['hash_status'], 'MISSING')
+        self.assertIsNone(witness['methods'][0]['code_sha256'])
+        self.assertEqual(witness['methods'][0]['hash_status'], 'MISSING')
+
+    def test_dependency_selector_rejects_unknown_unrelated_and_unmapped_obligations(self):
+        document, _ = self.dependency_fixture()
+        document['obligations'].append(dict(id='demo:unrelated', status='RESOLVED_PINNED', affected_mechanic_ids=['demo:other']))
+        self.write('dependencies.json', document)
+        for identity in ['absent', 'demo:unrelated']:
+            with self.subTest(identity=identity):
+                self.assertEqual(self.invoke('dependencies', 'demo', '--mechanic', 'demo:bite', '--obligation', identity)[0], 4)
+        for args in [('--obligation', 'demo:support'), ('--expect-dependency-version', '2.3'),
+                     ('--expect-dependency-sha256', 'a' * 64)]:
+            with self.subTest(args=args):
+                self.assertEqual(self.invoke('dependencies', 'demo', *args)[0], 2)
+        self.row.pop('external_dependency_contracts')
+        self.write('mod-reviews/demo.json', self.review)
+        document['obligations'][0].pop('affected_mechanic_ids')
+        self.write('dependencies.json', document)
+        self.assertEqual(self.invoke('dependencies', 'demo', '--mechanic', 'demo:bite')[0], 4)
+
     def test_retrieves_values_semantics_facts_deliveries_and_exact_evidence(self):
         code, response = self.invoke('get', 'demo:bite', '--expect-version', '1.2')
         self.assertEqual(code, 0)
@@ -371,6 +502,20 @@ class RetrievalTests(unittest.TestCase):
 
 
 class ExistingCatalogTests(unittest.TestCase):
+    def test_selector_retrieves_each_existing_recorded_mechanic_dependency_mapping(self):
+        catalog = Catalog()
+        document = catalog.index.read(catalog.review('alexscaves')['external_dependency_obligations_file'])
+        expected = {}
+        for obligation in document['obligations']:
+            for identity in obligation['affected_mechanic_ids']:
+                expected.setdefault(identity, set()).add(obligation['id'])
+        for mechanic, ids in expected.items():
+            with self.subTest(mechanic=mechanic):
+                result = catalog.dependency_contracts('alexscaves', mechanic)
+                self.assertEqual(set(result['required_obligation_ids']), ids)
+                self.assertEqual({o['id'] for o in result['obligations']}, ids)
+                self.assertTrue(all(o['witnesses'] for o in result['obligations']))
+
     def test_sugar_rush_vector_corruption_checks_the_argument_literals(self):
         for corruption in ('component', 'component_and_binding', 'invocation_as_literal'):
             catalog = Catalog()

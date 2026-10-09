@@ -303,6 +303,106 @@ class Catalog:
                                        for o in data['obligations']])
         return result
 
+    def dependency_contracts(self, key, mechanic, obligation=None, version=None, digest=None):
+        key, rows, _ = self.find(mechanic, key)
+        result = self.dependencies(key)
+        require(result['obligations'] is not None, f'Dependency obligations not recorded: {mechanic}', 4)
+        file = result['evidence_file']
+        data = self.index.read(file)
+        require(data.get('schema') == 'tno.external_effects.external_dependency_obligations.v1',
+                f'Unsupported dependency obligation schema: {file}')
+        obligations = object_list(data['obligations'], 'dependency obligations')
+        by_id = {o['id']: o for o in obligations}
+        require(len(by_id) == len(obligations), f'Duplicate dependency obligation IDs: {file}')
+        if obligation is not None:
+            require(obligation in by_id, f'Unknown dependency obligation: {obligation}', 4)
+        required = set()
+        for row in rows:
+            require(not row.get('pending') and not row.get('unresolved_ambiguities'),
+                    f'Mechanic has unresolved semantics: {row["id"]}', 4)
+            link = row.get('external_dependency_contracts')
+            if link is not None:
+                mapping(link, 'mechanic dependency link')
+                require(link['file'] == file, f'Dependency mapping file mismatch: {row["id"]}')
+                require(link['pin_sha256'] == result['artifact']['sha256'],
+                        f'Dependency mapping source mismatch: {row["id"]}', 3)
+                require(isinstance(link['ids'], list) and all(isinstance(i, str) for i in link['ids']),
+                        f'Invalid dependency mapping IDs: {row["id"]}')
+                require(all(i in by_id for i in link['ids']), f'Dangling dependency mapping: {row["id"]}')
+                for identity in link['ids']:
+                    affected = by_id[identity].get('affected_mechanic_ids')
+                    require(affected is None or row['id'] in affected,
+                            f'Conflicting dependency mapping: {row["id"]}/{identity}')
+                required.update(link['ids'])
+            for item in obligations:
+                affected = item.get('affected_mechanic_ids', [])
+                require(isinstance(affected, list) and all(isinstance(i, str) for i in affected),
+                        f'Invalid affected mechanic IDs: {item["id"]}')
+                if row['id'] in affected:
+                    required.add(item['id'])
+        require(required, f'Dependency mapping not recorded for mechanic: {mechanic}', 4)
+        require(obligation is None or obligation in required,
+                f'Dependency obligation does not apply to mechanic: {obligation}/{mechanic}', 4)
+        artifact = result['artifact']
+        require(data['status'] == 'COMPLETE' and artifact['status'] == 'AVAILABLE_VERIFIED',
+                f'Dependency artifact or obligations are unresolved: {file}', 4)
+        dependency_key = self.artifact_key(artifact['mod_id'])
+        require(valid_digest(artifact['sha256']) and bool(artifact['exact_installed_version']),
+                f'Missing resolved dependency identity: {file}')
+        dependency_check = self.source_check(dependency_key, version, digest)
+        selected = []
+        for identity in sorted([obligation] if obligation is not None else required):
+            item = by_id[identity]
+            require(item['status'] == 'RESOLVED_PINNED',
+                    f'Unresolved dependency obligation: {identity} ({item["status"]})', 4)
+            proofs = object_list(item.get('evidence', []), f'{identity} witnesses')
+            require(proofs, f'Dependency witness identities not recorded: {identity}; file references only', 4)
+            witnesses = []
+            missing_hashes = False
+            for proof in proofs:
+                require(all(isinstance(proof.get(k), str) and bool(proof[k].strip())
+                            for k in ['evidence_file', 'witness_id', 'entry']),
+                        f'Missing dependency witness identity: {identity}')
+                evidence = self.evidence(proof, item)
+                require(evidence.get('mod_key') == dependency_key and
+                        evidence.get('jar_sha256') == artifact['sha256'],
+                        f'Dependency witness artifact mismatch: {identity}/{proof["entry"]}', 3)
+                _, witness = self.index.witness(proof, item)
+                if proof['entry'].endswith('.class'):
+                    require(isinstance(witness.get('class_name'), str) and bool(witness['class_name']),
+                            f'Missing dependency witness class identity: {identity}')
+                    require(bool(proof.get('methods')), f'Missing dependency method selection: {identity}')
+                require(evidence.get('id') == proof['witness_id'], f'Missing dependency witness ID: {identity}')
+                evidence['witness_id'] = evidence.pop('id')
+                evidence['class_name'] = witness.get('class_name')
+                class_hash = evidence.get('entry_sha256')
+                require(class_hash is None or valid_digest(class_hash), f'Invalid dependency entry hash: {identity}')
+                evidence['entry_sha256'] = class_hash
+                evidence['hash_status'] = 'RECORDED' if class_hash else 'MISSING'
+                missing_hashes |= not class_hash
+                for method in evidence['methods']:
+                    require(any(isinstance(method.get(k), str) and bool(method[k])
+                                for k in ['descriptor', 'raw_descriptor', 'obfuscated_descriptor']),
+                            f'Missing dependency method identity: {identity}/{method["name"]}')
+                    method_hash = method.get('code_sha256')
+                    method['code_sha256'] = method_hash
+                    method['hash_status'] = 'RECORDED' if method_hash else 'MISSING'
+                    missing_hashes |= not method_hash
+                witnesses.append(evidence)
+            references = item.get('evidence_files', []) + ([item['vanilla_evidence_file']]
+                         if item.get('vanilla_evidence_file') else [])
+            require(isinstance(references, list) and all(isinstance(f, str) for f in references),
+                    f'Invalid dependency references: {identity}')
+            selected.append(dict(pick(item, ['id', 'status', 'affected_mechanic_ids', 'actual_contract',
+                'contract', 'claim_limit', 'verified_existing_reuse']), witnesses=witnesses,
+                affected_mechanic_ids=item.get('affected_mechanic_ids'),
+                references=[dict(file=f, validation_state='REFERENCE_ONLY') for f in references],
+                validation_state='WITNESSES_RESOLVED_WITH_MISSING_HASHES' if missing_hashes else 'WITNESSES_RESOLVED'))
+        result.update(requested_mechanic=mechanic, mechanic_ids=[r['id'] for r in rows],
+                      required_obligation_ids=sorted(required), obligations=selected,
+                      dependency_source_check=dependency_check)
+        return result
+
     def numeric_binding(self, candidate, values, row):
         """Check recorded numeric bindings against literal sites, never call operands.
 
@@ -546,6 +646,10 @@ def parser():
                      help='Emit only these sections (repeatable); selected witnesses are always checked')
     deps = commands.add_parser('dependencies', help='Read declared dependencies and resolved obligations')
     deps.add_argument('mod')
+    deps.add_argument('--mechanic', help='Select obligations explicitly recorded for this mechanic ID')
+    deps.add_argument('--obligation', help='Select one required obligation ID (requires --mechanic)')
+    deps.add_argument('--expect-dependency-version', help='Expected resolved dependency version (requires --mechanic)')
+    deps.add_argument('--expect-dependency-sha256', help='Expected resolved dependency JAR SHA-256 (requires --mechanic)')
     verify = commands.add_parser('verify', help='Check an inventoried mod or dependency pin without extraction')
     verify.add_argument('mod')
     for command in [search, get, deps, verify]:
@@ -579,7 +683,16 @@ def main(argv=None):
         else:
             key = catalog.artifact_key(args.mod) if args.command == 'verify' else catalog.key(args.mod)
             check = catalog.source_check(key, constraints['version'], constraints['sha256'], args.jar)
-            data = catalog.dependencies(key) if args.command == 'dependencies' else dict(mod_key=key)
+            if args.command == 'dependencies':
+                if args.mechanic:
+                    data = catalog.dependency_contracts(key, args.mechanic, args.obligation,
+                                                       args.expect_dependency_version, args.expect_dependency_sha256)
+                else:
+                    require(not any([args.obligation, args.expect_dependency_version, args.expect_dependency_sha256]),
+                            'Obligation selection and dependency source checks require --mechanic')
+                    data = catalog.dependencies(key)
+            else:
+                data = dict(mod_key=key)
             data['source_check'] = check
         result, code = catalog.response(args.command, data), 0
         output = json.dumps(result, ensure_ascii=False, indent=2 if pretty else None,

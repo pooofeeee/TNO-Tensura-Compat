@@ -154,6 +154,24 @@ class SugarRushWorkflowTests(unittest.TestCase):
         self.assertTrue(any(e['evidence_file'] == 'native-evidence/citadel-alexscaves-dependencies.json'
                             for e in self.contract.provenance['dependency_evidence']))
 
+    def test_mechanic_dependency_selector_resolves_exact_sugar_rush_contract(self):
+        response, _ = call_cli('dependencies', 'alexscaves', '--mechanic', MECHANIC,
+            '--obligation', 'alexscaves:citadel:sugar_rush_tick_controller',
+            '--expect-version', MOD_VERSION, '--expect-sha256', MOD_HASH,
+            '--expect-dependency-version', DEPENDENCY_VERSION, '--expect-dependency-sha256', DEPENDENCY_HASH)
+        result = response['data']
+        self.assertEqual(result['artifact']['exact_installed_version'], DEPENDENCY_VERSION)
+        self.assertEqual(result['artifact']['sha256'], DEPENDENCY_HASH)
+        obligation, = result['obligations']
+        self.assertEqual(obligation['id'], 'alexscaves:citadel:sugar_rush_tick_controller')
+        self.assertEqual(obligation['affected_mechanic_ids'], [MECHANIC])
+        self.assertEqual(obligation['validation_state'], 'WITNESSES_RESOLVED')
+        self.assertEqual(obligation['contract'], self.dependencies['data']['obligations'][0]['contract'])
+        local = next(w for w in obligation['witnesses'] if w['class_name'].endswith('/LocalEntityTickRateModifier'))
+        self.assertEqual(local['source_pin_check'], 'INVENTORY_MATCH')
+        self.assertTrue(any(m['name'] == 'appliesTo' and m['code_sha256'] for m in local['methods']))
+        self.assertIn('native-evidence/citadel-alexscaves-dependencies.json', {i['file'] for i in response['inputs']})
+
     def test_concrete_demo_runs_from_an_unrelated_directory(self):
         script = CLI.parent / 'examples/sugar_rush_workflow.py'
         with tempfile.TemporaryDirectory() as directory:
