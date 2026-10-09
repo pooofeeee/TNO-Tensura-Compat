@@ -3,20 +3,20 @@
 - Active campaign: `CAMPAIGN.md`; `alexsmobs` only, then STOP.
 - Branch: `external-effects-catalog-research`.
 - Latest verified research ref: `origin/external-effects-catalog-research`.
-- Last verified anchor before this checkpoint: `186560dc4270fb30fa5ca7ea84f03b0d91f720f7`. Resolve the current ref with Git; never reset to an older anchor.
+- Last verified anchor before this checkpoint: `7e025db7acfbf5ea07d69ca48fd90b455eeae700`. Resolve the current ref with Git; never reset to an older anchor.
 - Protected production HEAD: `eb37f0bfc0e7aa863632f163881566c0ae2a8701`; production/source gameplay unchanged.
 - Current mod/status: `alexsmobs` / PARTIAL.
 - Locked COMPLETE targets: cultofazazel, variantsandventures, royalvariations, friendsandfoes, twilightforest, iceandfire, eternalstarlight, block_factorys_bosses, bosses_of_mass_destruction, cataclysm, arphex, alexscaves, tensura, legendary_monsters.
-- Canonical records: 318; numeric candidates: 1777.
-- Classifications: {'BINARY_MECHANIC': 41, 'CUSTOM_CONTROL': 98, 'CUSTOM_DAMAGE': 2, 'CUSTOM_RESOURCE': 14, 'CUSTOM_STATUS': 2, 'VANILLA_COMPOSITE': 72, 'VANILLA_DIRECT': 5, 'VANILLA_LIKE_EXTENDED': 84}.
+- Canonical records: 330; numeric candidates: 1984.
+- Classifications: {'BINARY_MECHANIC': 42, 'CUSTOM_CONTROL': 99, 'CUSTOM_DAMAGE': 2, 'CUSTOM_RESOURCE': 20, 'CUSTOM_STATUS': 2, 'VANILLA_COMPOSITE': 74, 'VANILLA_DIRECT': 6, 'VANILLA_LIKE_EXTENDED': 85}.
 - Census: `alexsmobs-combat-census.json` (existing pin; do not rediscover).
 - Queue: `alexsmobs-unresolved-queue.json`; ordinals refer to that exact census/hash.
-- Coverage: 9474 / 11434 dispositioned; 1960 pending.
-- Remaining semantic-role methods: 1033 (routing, not a mechanic count).
+- Coverage: 9841 / 11434 dispositioned; 1593 pending.
+- Remaining semantic-role methods: 894 (routing, not a mechanic count).
 - Canonical authorities: `mod-reviews/alexsmobs.json`, `mod-completion-ledger.json`, `large-mod-campaign.json`.
 - Native source/indexes: existing census, field-use index and reviewed-batch pointers; consult cold bodies only for exact unresolved boundaries.
 - Known blockers: consult unresolved queue and dependency obligations.
-- Exact next action: R2oe remaining items/equipment and Rainbow helper, then block/tile hazards, registry/global event/control/status/lifecycle/presentation finite queue and final AlexMobs mod closure. R2o5d through R2od are closed; do not repeat.
+- Exact next action: R2of remaining block/tile hazards and lifecycle, then global event/registry/network/configuration/presentation finite queue and final AlexMobs closure. R2o5d through R2oe are closed; do not repeat.
 - STOP after `alexsmobs` closure. Do not start another mod.
 
 - The explicit 2026-10-09 continuation supersedes the old session STOP; this recovery checkpoint does not pause the campaign.
@@ -37,3 +37,5 @@
 - R2ob multipart/R2oc final actors: 29 records / 306 numeric candidates / 586 new dispositions; 27 targeted tests PASS. New six-body damage-source packet and targeted Vanilla XP/prefix-copy dependencies reproduce BYTE_IDENTICAL; integrity/numeric audits PASS. Exact filter measurements in both checkpoint JSONs. Production and locked reviews unchanged. Continue at R2od, no pause.
 
 - R2od residual actors/helpers: 5 records / 8 canonical refinements / 37 numeric candidates / 80 method dispositions; 8 targeted tests PASS. New Vanilla egg hit dispatch reproduced BYTE_IDENTICAL, integrity/numeric audits PASS. Five complete named-instruction owner-search bodies form one verified equal group; four additional canonical uses, no avoided body loads claimed. Production/locked reviews unchanged. Continue at R2oe.
+
+- R2oe residual actors/helpers: 12 records / 207 numeric candidates / 367 method dispositions; 8 targeted tests PASS. New Vanilla current item dispatch reproduced BYTE_IDENTICAL, integrity/numeric audits PASS. 250 existing method witnesses reused; 118 missing method bodies captured, no avoided body loads claimed. Production/locked reviews unchanged. Continue at R2of.

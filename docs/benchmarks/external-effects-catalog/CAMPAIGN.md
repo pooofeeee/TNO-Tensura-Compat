@@ -55,3 +55,7 @@ Authorized continuation recovery: R2o5d is now closed with all thirteen actors a
 - R2ob/R2oc recovery: multipart and final six actors closed, 29 records/306 numeric candidates/586 method dispositions; 27 targeted tests PASS, exact new native/Vanilla reproduction and integrity/numeric audits PASS. Continue at R2od through mod closure; recovery does not pause campaign.
 
 - R2od residual helper closure: 5 records/8 refinements/37 numeric candidates/80 method dispositions, 8 targeted tests PASS; new Vanilla hit dispatch reproduction/integrity/numeric audits PASS. Continue at R2oe through final closure; no intermediate STOP.
+
+- R2oe item/equipment closure: 12 records / 207 candidates / 367 method dispositions, 8 targeted tests PASS; new118 native methods/current Vanilla API/loader resources BYTE_IDENTICAL. Current330 records/1984 candidates/9841 dispositions/1593 pending. Continue at R2of; production unchanged.
+
+- R2oe residual helper closure: 5 records/8 refinements/37 numeric candidates/80 method dispositions, 8 targeted tests PASS; new Vanilla hit dispatch reproduction/integrity/numeric audits PASS. Continue at R2oe through final closure; no intermediate STOP.
