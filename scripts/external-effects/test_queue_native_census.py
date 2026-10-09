@@ -1,7 +1,6 @@
 """Routing preserves independent reconciliation; raw hashes cannot prove closure."""
 import copy
 import unittest
-from unittest.mock import patch
 from catalog_common import OUT,read_json
 from queue_native_census import build, call_frontier
 from reconcile_native_census import reconcile,method_key
@@ -30,12 +29,17 @@ class NativeQueueTests(unittest.TestCase):
         self.assertEqual(self.review,read_json(OUT/'mod-reviews/alexscaves.json'))
 
     def test_passenger_aware_spawn_is_not_hidden_from_routing(self):
-        # Exercise the parser independently of whatever queue remains today.
-        with patch('queue_native_census.decode_sites', return_value=[dict(
-                operand='net/minecraft/server/level/ServerLevel.addFreshEntityWithPassengers(Lnet/minecraft/world/entity/Entity;)V')]):
-            q=build(self.review,self.census)
-        self.assertEqual(q['summary']['direct_native_call_sites']['.addFreshEntityWithPassengers('],
-                         q['summary']['remaining_methods'])
+        # A completed live mod has no pending bodies to route. Keep this
+        # regression independent of the campaign's current coverage state.
+        census=dict(mod_key='example',jar_sha256='pin',total_methods=1,
+            classes=[dict(entry='x/Actor.class',superclass='java/lang/Object')],
+            symbols=['net/minecraft/server/level/ServerLevel.addFreshEntityWithPassengers(Lnet/minecraft/world/entity/Entity;)V'],
+            methods=[dict(entry='x/Actor.class',method='spawn',descriptor='()V',
+                code_sha256='body',code_bytes=4,disposition='PENDING_SEMANTIC_REVIEW',
+                calls=[[0,182,0]])])
+        q=build(dict(effects=[]),census)
+        self.assertEqual(q['summary']['remaining_methods'],1)
+        self.assertEqual(q['summary']['direct_native_call_sites']['.addFreshEntityWithPassengers('],1)
 
 
 class FrontierTests(unittest.TestCase):

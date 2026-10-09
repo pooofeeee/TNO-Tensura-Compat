@@ -1,20 +1,19 @@
 # Compact research state
 
-- Active campaign: Alex’s Mobs COMPLETE. STOP; do not start another mod.
-- Branch: `external-effects-catalog-research`.
-- Verified handoff: `1ecac479f0269eda5a57397a3643e5159e5f6c12`; valid newer work preserved.
-- Current completion ref: `origin/external-effects-catalog-research`; resolve live Git HEAD after final push.
-- Historical protected production reference: `eb37f0bfc0e7aa863632f163881566c0ae2a8701`; preexisting handoff differences preserved; production unchanged from handoff.
-- Canonical authorities: `mod-reviews/alexsmobs.json`, `mod-completion-ledger.json`, `large-mod-campaign.json`.
-- Closure: `alexsmobs-r2oj-mod-closure.json`; dependency obligations: `alexsmobs-dependency-obligations.json`.
-- Final status: COMPLETE; 352 semantic records / 352 delivery paths / 2124 unique numeric candidate identities.
-- Census: 11434 total / 5546 contract methods / 5888 explicit exclusions / 11434 dispositioned / 0 pending.
-- Queue: `alexsmobs-unresolved-queue.json`; ZERO_PENDING; no remaining semantic methods or external blockers.
-- Numeric audit: 2125 labels, 2124 candidate identities, one canonical summary alias; 2120 distinct physical consumer sites, zero duplicate sites.
-- Validation: 302 tests PASS across 31 modules; independent 34-batch / 18-specification replay PASS; integrity/coverage/alias/numeric/dependency/resource audits PASS.
-- Reproduction: 42 native packets, 18 Vanilla packets, 11 loader packets BYTE_IDENTICAL; 1126 native class hashes and 11434 method hashes verified against pinned JAR without census rebuild.
-- Full 646 data JSONs retained; exact Citadel 2.7.6 dependency tail captured/reproduced and locked prior contracts reused.
-- Measurements: per-scope actual selected/raw/filter bytes in checkpoint files and closure; no token/allowance telemetry or claimed savings.
-- Original COMPLETE review hashes preserved; AlexMobs canonical review now locked.
-- R2o5d through R2oi research and R2oj mod closure complete. No repeated completed family or next mod.
-- The new 2026-10-09 continuation superseded the previous session STOP; authorization is now fulfilled. STOP.
+- STOP at R2p3: `tensura_neb` PARTIAL, local native scope reconciled, external dependency closure blocked. No other mod work is authorized.
+- AlexMobs remains COMPLETE and closed at `dc08cda002029695ff1acc18ce8ed44f0f8ae90f`: 352 semantic records / 2,124 numeric candidates, all 11,434 census methods dispositioned. Its protected review and COMPLETE ledger row are unchanged.
+- Branch: `external-effects-catalog-research`. This authorization began from clean, live-verified `dc08cda002029695ff1acc18ce8ed44f0f8ae90f`; it is the production protection baseline.
+- Canonical NEB review: `mod-reviews/tensura_neb.json`; ledger: `mod-completion-ledger.json`; finite queue: `tensura_neb-unresolved-queue.json`; external queue: `tensura_neb-dependency-obligations.json`.
+- NEB: 44 semantic records / 58 delivery paths / 347 distinct original numeric sites. Classifications: BINARY_MECHANIC 4, CUSTOM_CONTROL 11, CUSTOM_DAMAGE 9, CUSTOM_RESOURCE 9, VANILLA_LIKE_EXTENDED 11. No numeric labels unresolved.
+- Finite local census: 40 classes / 476 methods; 365 exact contract methods + 111 explicitly reviewed context exclusions; 476 dispositioned / 0 local pending. Zero local pending does not imply inherited behavior or mod-level completion.
+- Exact native artifact: `tensura_neb-neoforge-2.0.0.3.jar`, SHA-256 `99ce6e9fd6737278182e055a3fb98b5013a5c53cc7a62700078daa21e158778c`.
+- Exact available base artifact: `tensura-neoforge-2.0.1.1.jar`, SHA-256 `c12ec9aaa1488c662ede52b4bd0150ec114e7bdac32af20c0e723612dd79d8b9`.
+- Both exact artifacts recovered without substitution. Full local evidence: 476 methods and 50 JSON/metadata resources, 90 witnesses / 2,832,484 packet bytes. Three historical detailed discovery indexes recovered BYTE_IDENTICAL; source recovery and census were not repeated after pause.
+- Selected base boundary evidence: 16 classes / 96 complete methods / 508,291 packet bytes; 163 other methods in those classes omitted from the selected packet. No semantic absence or inherited outcome inferred from omission. Ten bounded base facts are linked without reopening the accepted reference-only Tensura scope.
+- Validation: authored render identical; batch, canonical, numeric, exact coverage and five projected-view checks pass. Both evidence packets reproduce BYTE_IDENTICAL from exact pinned JARs; all native class/method hashes independently match the existing census. See `tensura_neb-r2p3-verification.json` and `tensura_neb-r2p3-reproduction.json`.
+- Targeted tests: 66 distinct tests verified; one preexisting queue regression depended on the now-completed AlexCaves queue and was corrected to an independent fixture, then passed its focused rerun. No outstanding failures. Static tests only; no Minecraft, Gradle or datagen.
+- All 14 completed semantic reviews, all 15 COMPLETE ledger rows, all other-mod ledger/view rows and production remain unchanged.
+- Genuine blocker: exact original-instance ManasCore filename/version/SHA-256 and matching bytes are missing. Minimum dependency versions and the older development runtime's reported version do not establish this installed pin. Owner input was requested; none supplied. Four explicit obligation groups retain skill/race/config dispatch, storage/event/projectile/critical consumers and subsequent transitive AI/loader closure.
+- Exact next milestone: recover the original ManasCore identity/bytes, resolve these four obligation groups using targeted pinned evidence, extend canonical contracts as warranted, then perform mod-level closure. Preserve the existing authored batch, packets, census, selected base facts and all completed research; do not repeat closed families.
+- Mod Intelligence remains isolated at `/workspace/mod-intelligence-a314516`, detached at `a3145162e3b22e576fe216ef25482862ad5a6d2b`. Its CLI/docs are available there; tooling was not merged. No token savings telemetry or invented savings claim.
+- Research only: no Stage policy, production, runtime or another mod investigation. Commit/push/live-verify this blocked checkpoint, then STOP.

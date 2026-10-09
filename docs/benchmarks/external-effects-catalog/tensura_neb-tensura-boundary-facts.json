@@ -1,0 +1,251 @@
+{
+  "schema": "tno.external_effects.dependency_boundary_facts.v1",
+  "baseline": "a5e85e610349120e21d62f4a80f1b607e36607fe",
+  "mod_key": "tensura_neb",
+  "dependency_mod_key": "tensura",
+  "dependency_jar_sha256": "c12ec9aaa1488c662ede52b4bd0150ec114e7bdac32af20c0e723612dd79d8b9",
+  "status": "SELECTED_STATIC_BOUNDARIES_VERIFIED_TRANSITIVE_CLOSURE_INCOMPLETE",
+  "facts": {
+    "weapon_attribute_argument_mapping": {
+      "actual_contract": "TensuraSwordItem constructor maps damage argument+tier.getAttackDamageBonus to MAINHAND attack ADD_VALUE; speed/range/sweep/critical chance/critical multiplier each receive ADD_VALUE. HIHIIROKANE tier attack bonus is76. Native attribute modifier amounts are therefore Night Rose89 and Halberd94 two-handed/88 one-handed; these are attribute amounts, not final per-hit HP damage. TwoHandedSwordItem stores one/two-handed components and setTwoHanded replaces ATTRIBUTE_MODIFIERS. ManasCore critical attribute consumers and the mode-switch caller still require exact dependency evidence.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/tensura_neb-tensura-boundaries.json",
+          "witness_id": "neb:tensura:TensuraSwordItem",
+          "entry": "io/github/manasmods/tensura/item/weapon/TensuraSwordItem.class",
+          "methods": [
+            "<init>",
+            "createAttributes"
+          ],
+          "evidence_format": "SHARED_NATIVE_REFERENCE"
+        },
+        {
+          "evidence_file": "native-evidence/tensura_neb-tensura-boundaries.json",
+          "witness_id": "neb:tensura:TwoHandedSwordItem",
+          "entry": "io/github/manasmods/tensura/item/weapon/TwoHandedSwordItem.class",
+          "methods": [
+            "<init>",
+            "setTwoHanded"
+          ],
+          "evidence_format": "SHARED_NATIVE_REFERENCE"
+        },
+        {
+          "evidence_file": "native-evidence/tensura_neb-tensura-boundaries.json",
+          "witness_id": "neb:tensura:TensuraToolTiers",
+          "entry": "io/github/manasmods/tensura/item/TensuraToolTiers.class",
+          "methods": [
+            "<init>",
+            "getAttackDamageBonus",
+            "<clinit>"
+          ],
+          "evidence_format": "SHARED_NATIVE_REFERENCE"
+        }
+      ],
+      "scope": "Selected static Tensura 2.0.1.1 boundary, not runtime or all-transitive-dependencies closure."
+    },
+    "gear_codec_defaults": {
+      "actual_contract": "GearExistenceData CODEC requires type/minEP, defaults missing maxEP to2000000 and epGain to0.03. The exact NEB shipped JSON consequently retains that base default; bootstrap uses the same epGain. Engravings are optional enchantment-holder maps; declaration alone is not equipped effect execution.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/tensura_neb-tensura-boundaries.json",
+          "witness_id": "neb:tensura:GearExistenceData",
+          "entry": "io/github/manasmods/tensura/data/existence/gear/GearExistenceData.class",
+          "methods": [
+            "getDefault",
+            "lambda$static$0",
+            "<clinit>"
+          ],
+          "evidence_format": "SHARED_NATIVE_REFERENCE"
+        }
+      ],
+      "scope": "Selected static Tensura 2.0.1.1 boundary, not runtime or all-transitive-dependencies closure."
+    },
+    "range_and_held_attack_boundaries": {
+      "actual_contract": "CustomRangeAttack squares configured min/max radii. Start check requires target memory and no special cooldown, optional sight and inclusive squared min/max range. Delayed action requires nonnull target, sight unconditionally and max range; successful invocation sets special attack cooldown to configured interval. Minimum range is not rechecked at delayed action. CustomHeldAttack requires target, squares ranges, checks optional sight/inclusive range on start, and its tick calls inherited tick(owner), applies callback with runningTime, stops and sets special cooldown when callback returns false, then increments runningTime. SBL lifecycle/delay/memory implementation and exact installed pin remain outside this selected boundary; no fixed attack-frequency guarantee follows.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/tensura_neb-tensura-boundaries.json",
+          "witness_id": "neb:tensura:CustomRangeAttack",
+          "entry": "io/github/manasmods/tensura/entity/ai/behaviour/attack/CustomRangeAttack.class",
+          "methods": [
+            "<init>",
+            "maxAttackRadius",
+            "minAttackRadius",
+            "checkExtraStartConditions",
+            "start",
+            "stop",
+            "doDelayedAction"
+          ],
+          "evidence_format": "SHARED_NATIVE_REFERENCE"
+        },
+        {
+          "evidence_file": "native-evidence/tensura_neb-tensura-boundaries.json",
+          "witness_id": "neb:tensura:CustomHeldAttack",
+          "entry": "io/github/manasmods/tensura/entity/ai/behaviour/attack/CustomHeldAttack.class",
+          "methods": [
+            "<init>",
+            "maxAttackRadius",
+            "minAttackRadius",
+            "checkExtraStartConditions",
+            "tick"
+          ],
+          "evidence_format": "SHARED_NATIVE_REFERENCE"
+        }
+      ],
+      "scope": "Selected static Tensura 2.0.1.1 boundary, not runtime or all-transitive-dependencies closure."
+    },
+    "effect_source_and_predicate_removal": {
+      "actual_contract": "TensuraMobEffect.addEffect preserves source UUID and ability/mode metadata, then calls native LivingEntity.addEffect. UUID overload supplies getPlayerByUUID as cause, so a boss UUID need not produce a nonnull cause entity despite preserved metadata. Entity overload supplies actual entity. removePredicateEffect snapshots active effects, applies holder predicate, computes level=amplifier+1, checks isOutOfEnergy(apCost*level,mpCost*level), then removes holder and reports any success. Its third double argument is MAGICULE COST, not removal level. NEB passes0; no assumption bypasses native event/energy admission.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/tensura_neb-tensura-boundaries.json",
+          "witness_id": "neb:tensura:TensuraMobEffect",
+          "entry": "io/github/manasmods/tensura/effect/template/TensuraMobEffect.class",
+          "methods": [
+            "addEffect",
+            "removePredicateEffect"
+          ],
+          "evidence_format": "SHARED_NATIVE_REFERENCE"
+        }
+      ],
+      "scope": "Selected static Tensura 2.0.1.1 boundary, not runtime or all-transitive-dependencies closure."
+    },
+    "effect_storage_reset": {
+      "actual_contract": "TensuraStorages.resetEffect sets severance amount0, severance removal time0, onBlackFlame false and ignorePainNull false, then marks effect storage dirty. It does not itself iterate or remove vanilla active MobEffects. getEffectFrom/getExistenceFrom use manasCore$getStorage and casts; concrete storage access and tracking require ManasCore. IExistence setters retained here are abstract declarations, not implementations or clamping proof.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/tensura_neb-tensura-boundaries.json",
+          "witness_id": "neb:tensura:TensuraStorages",
+          "entry": "io/github/manasmods/tensura/storage/TensuraStorages.class",
+          "methods": [
+            "getExistenceFrom",
+            "getEffectFrom",
+            "resetEffect"
+          ],
+          "evidence_format": "SHARED_NATIVE_REFERENCE"
+        },
+        {
+          "evidence_file": "native-evidence/tensura_neb-tensura-boundaries.json",
+          "witness_id": "neb:tensura:IExistence",
+          "entry": "io/github/manasmods/tensura/storage/ep/IExistence.class",
+          "methods": [
+            "setSpiritualHealth",
+            "setAura",
+            "setMagicule",
+            "setSummonedSecond",
+            "setSummoner",
+            "markDirty"
+          ],
+          "evidence_format": "SHARED_NATIVE_REFERENCE"
+        }
+      ],
+      "scope": "Selected static Tensura 2.0.1.1 boundary, not runtime or all-transitive-dependencies closure."
+    },
+    "energy_drain_and_conditional_normal_gain": {
+      "actual_contract": "EnergyHelper drain rejects nonpositive amount and source drain immunity, applies Energy Protection multiplier1-protection*0.1F, wraps amount/percentage/drain/gain in ManasCore Changeable and invokes ENERGY_DRAIN_EVENT. Unless EventResult.isFalse, actual drain branches require appropriate max attribute and use min(current/request) for current MAGICULE/AURA. EP can drain both independently. Marks storage dirty and hurt; remaining EP<=0 while alive forces health0, absorption0 and die(ENERGY_DRAIN), then returns true. A true return need not mean a positive amount drained. gain NORMAL respects effective max and spiritual limit only when prior current<=max; prior current>max uses unbounded new value. NORMAL_EXCEED_MAX always adds; MAX raises max attribute base and fills with cap. NEB rewrite NORMAL_EXCEED_MAX to NORMAL therefore does not universally clamp an already over-cap Luminous. Callback aggregation, Changeable and concrete storage still require the installed library.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/tensura_neb-tensura-boundaries.json",
+          "witness_id": "neb:tensura:EnergyHelper",
+          "entry": "io/github/manasmods/tensura/util/EnergyHelper.class",
+          "methods": [
+            "drainEnergy",
+            "gainAura",
+            "gainMagicule",
+            "hasEnergyDrainImmunity",
+            "getMaxEP",
+            "getBaseMaxEP",
+            "setBaseMaxEP",
+            "getMaxMagicule",
+            "getMaxAura",
+            "isOutOfEnergy"
+          ],
+          "evidence_format": "SHARED_NATIVE_REFERENCE"
+        }
+      ],
+      "scope": "Selected static Tensura 2.0.1.1 boundary, not runtime or all-transitive-dependencies closure."
+    },
+    "movement_and_haki_effect_templates": {
+      "actual_contract": "MovementInterference has no effect-tick body: its template adds knockback resistance0.1 ADD_VALUE and attack speed/jump/movement plus ManasCore swim/lava/glide speed -0.1 ADD_MULTIPLIED_TOTAL. Native MobEffect amplifier scaling applies subject to loader/attribute implementation; this is not a named fixed-duration stun. HakiCoat template adds PHYSICAL_RESIST_DEGRADATION1 ADD_VALUE. Attribute consumers remain native Tensura/ManasCore contracts.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/tensura_neb-tensura-boundaries.json",
+          "witness_id": "neb:tensura:MovementInterferenceEffect",
+          "entry": "io/github/manasmods/tensura/effect/debuff/MovementInterferenceEffect.class",
+          "methods": [
+            "<init>",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_format": "SHARED_NATIVE_REFERENCE"
+        },
+        {
+          "evidence_file": "native-evidence/tensura_neb-tensura-boundaries.json",
+          "witness_id": "neb:tensura:HakiCoatEffect",
+          "entry": "io/github/manasmods/tensura/effect/ability/HakiCoatEffect.class",
+          "methods": [
+            "<init>"
+          ],
+          "evidence_format": "SHARED_NATIVE_REFERENCE"
+        }
+      ],
+      "scope": "Selected static Tensura 2.0.1.1 boundary, not runtime or all-transitive-dependencies closure."
+    },
+    "lust_embracement_effect_boundary": {
+      "actual_contract": "Neutral LustEmbracement template uses interaction/block range, movement/flying/jump -1 ADD_MULTIPLIED_TOTAL and knockback resistance+1 ADD_VALUE. On start stores locked rotations and marks effect storage dirty. Each positive-duration tick locks rotation; every20 effect-duration ticks, source==target returns whether an alive embraced entity exists in its interaction-range AABB. For a separate living source, sets ignorePainNull; amplifier>=1 requests percentage EP drain using configured embraceEPMastered, then fixed EP drain using embraceEP, both NORMAL_EXCEED_MAX; failed drain returns true. Dead source returns false. Attribute removal clears ignorePainNull and marks dirty. Exact callback dispatch, config defaults/overrides, rotation consumer and transitive skill behavior remain open.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/tensura_neb-tensura-boundaries.json",
+          "witness_id": "neb:tensura:LustEmbracementEffect",
+          "entry": "io/github/manasmods/tensura/effect/debuff/LustEmbracementEffect.class",
+          "methods": [
+            "<init>",
+            "onEffectStarted",
+            "applyEffectTick",
+            "onAttributeRemoved",
+            "shouldApplyEffectTickThisTick",
+            "isEmbraced",
+            "lambda$static$0"
+          ],
+          "evidence_format": "SHARED_NATIVE_REFERENCE"
+        }
+      ],
+      "scope": "Selected static Tensura 2.0.1.1 boundary, not runtime or all-transitive-dependencies closure."
+    },
+    "fear_effect_boundary": {
+      "actual_contract": "Fear movement template is -0.05F ADD_MULTIPLIED_TOTAL and addAttributeModifiers delegates only for passed amplifier>0. Every duration%40==0, abnormal-condition resistance toggled reduces local damage amplifier by2; amplifier<4, no current Fear or no source metadata yields no local damage. Server source lookup and UUID damage source: Player within distance<7 from existing source requests2*(amplifier-3), then amplifier>=9 separately requests3*(amplifier-8) for any entity. These are separate requests; no summed actual HP loss or guaranteed attribution is claimed. Skill toggle and source metadata dispatch remain inherited.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/tensura_neb-tensura-boundaries.json",
+          "witness_id": "neb:tensura:FearEffect",
+          "entry": "io/github/manasmods/tensura/effect/FearEffect.class",
+          "methods": [
+            "<init>",
+            "addAttributeModifiers",
+            "applyEffectTick",
+            "shouldApplyEffectTickThisTick"
+          ],
+          "evidence_format": "SHARED_NATIVE_REFERENCE"
+        }
+      ],
+      "scope": "Selected static Tensura 2.0.1.1 boundary, not runtime or all-transitive-dependencies closure."
+    },
+    "otherworlder_lifecycle_boundary": {
+      "actual_contract": "OtherworlderEntity delegates player-like behavior; its save/read add HOME global-position helpers. die releases home, delegates superclass, then server-side if no longer alive calls dropSkills(causal entity). Its methods do not establish the inherited PlayerLike/TensuraTamable/ManasCore actor behavior as absent. That transitive closure remains pending exact dependencies.",
+      "implementation": [
+        {
+          "evidence_file": "native-evidence/tensura_neb-tensura-boundaries.json",
+          "witness_id": "neb:tensura:OtherworlderEntity",
+          "entry": "io/github/manasmods/tensura/entity/human/OtherworlderEntity.class",
+          "methods": [
+            "<init>",
+            "die",
+            "addAdditionalSaveData",
+            "readAdditionalSaveData"
+          ],
+          "evidence_format": "SHARED_NATIVE_REFERENCE"
+        }
+      ],
+      "scope": "Selected static Tensura 2.0.1.1 boundary, not runtime or all-transitive-dependencies closure."
+    }
+  }
+}
