@@ -8,7 +8,7 @@ preserve newer valid work, finish the entire finite AlexMobs queue, then perform
 mod closure, commit/push/verify and STOP without starting another mod. All other
 research and production protections remain in force.
 
-R2o5d through R2oa are closed. Current canonical review has 284 records and 1434 numeric candidates; 8808/11434 methods dispositioned and 2626 pending (1416 semantic-role). Next is R2ob multipart and remaining other actors, then the complete remaining finite queue. Reuse the saved native packets, graphs, field index and Citadel contracts. Capture and structural grouping grant no semantic coverage.
+R2o5d through R2oc are closed. Current canonical review has 313 records and 1740 numeric candidates; 9394/11434 methods dispositioned and 2040 pending (1066 semantic-role). Next is R2od residual actor/utility and item/block/global domains through the complete remaining finite queue. Reuse the saved native packets, graphs, field index and Citadel contracts. Capture and structural grouping grant no semantic coverage.
 
 ## Authorized objective for continuation
 
@@ -51,3 +51,5 @@ Authorized continuation recovery: R2o5d is now closed with all thirteen actors a
 - R2o8/R2o9 recovery: fungal and parasitic flying actors closed in two grouped batches, 20 targeted tests PASS; integrity/numeric audits PASS and production unchanged. Continue at R2oa; this is not mod closure or a pause.
 
 - R2oa flight/wind closure: 18 records/126 numeric candidates/376 new method dispositions, 13 targeted tests PASS. New pinned Vanilla leash dispatch reproduced BYTE_IDENTICAL; saved effect/projectile/Vanilla contracts reused. Production and locked COMPLETE reviews unchanged. Continue at R2ob; no intermediate STOP.
+
+- R2ob/R2oc recovery: multipart and final six actors closed, 29 records/306 numeric candidates/586 method dispositions; 27 targeted tests PASS, exact new native/Vanilla reproduction and integrity/numeric audits PASS. Continue at R2od through mod closure; recovery does not pause campaign.
