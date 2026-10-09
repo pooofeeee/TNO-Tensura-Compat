@@ -1,5 +1,7 @@
 """Read-only V1 retrieval of canonical, pinned mod contracts. No extraction or scans."""
 import argparse
+import ast
+import hashlib
 import json
 import math
 from pathlib import Path
@@ -7,9 +9,10 @@ import re
 import sys
 
 from audit_catalog_integrity import EvidenceIndex, object_list
-from catalog_common import OUT, sha256
+from catalog_common import OUT, ROOT, sha256
 
 SCHEMA = 'tno.mod_intelligence.v1'
+V2_SCHEMA = 'tno.mod_intelligence.v2.0'
 KEY_ALIASES = {'bossesrise': 'block_factorys_bosses', 'bomd': 'bosses_of_mass_destruction'}
 
 
@@ -17,6 +20,13 @@ class CatalogError(Exception):
     def __init__(self, message, code=2):
         super().__init__(message)
         self.code = code
+
+
+class ContextBudgetError(CatalogError):
+    def __init__(self, budget, required):
+        super().__init__(f'Context requires {required} UTF-8 bytes; budget is {budget}. '
+                         'Increase --budget-bytes; required content was not truncated.')
+        self.budget = dict(requested_bytes=budget, required_bytes=required)
 
 
 def require(condition, message, code=2):
@@ -47,6 +57,89 @@ SCALAR_BINDINGS = {
     'native_item_wear_binding', 'native_literal_field_numeric_binding', 'native_block_factor_binding',
     'native_subtract_tag_vector_binding', 'native_numeric_return_binding',
 }
+
+
+def recorded_proofs(row):
+    proofs = row.get('implementation', []) + row.get('shared_contracts', []) + row.get('native_resource_evidence', [])
+    for candidate in row.get('scalable_parameter_candidates', []):
+        if isinstance(candidate, dict):
+            if candidate.get('native_consumer'):
+                proofs.append(candidate['native_consumer'])
+            proofs.extend(candidate.get('additional_consumer_sites', []))
+    return object_list(proofs, 'recorded proof references')
+
+
+def test_references(identities, repo_root):
+    """Locate literal IDs in repository Python tests; establish no coverage claim."""
+    references, errors = [], []
+    for path in sorted((repo_root / 'scripts/external-effects').glob('test_*.py')):
+        file = path.relative_to(repo_root).as_posix()
+        try:
+            require(path.resolve().is_relative_to(repo_root.resolve()), f'Test reference escapes repository: {file}')
+            raw = path.read_bytes()
+            tree = ast.parse(raw.decode('utf-8-sig'), filename=file)
+            matches = sorted({(node.value, node.lineno) for node in ast.walk(tree)
+                              if isinstance(node, ast.Constant) and isinstance(node.value, str)
+                              and node.value in identities})
+            if matches:
+                references.append(dict(file=file, sha256=hashlib.sha256(raw).hexdigest(),
+                    relationship='UNKNOWN', execution='NOT_RUN', coverage='UNVERIFIED_ID_REFERENCE',
+                    matches=[dict(id=identity, line=line) for identity, line in matches]))
+        except (OSError, UnicodeError, SyntaxError) as error:
+            errors.append(dict(area='TEST_REFERENCE_DISCOVERY', file=file, reason=str(error)))
+    return references, errors
+
+
+def repository_links(catalog, identities, repo_root, links_file=None):
+    """Read explicit, pinned Python fixture mappings without executing code."""
+    root = Path(repo_root).resolve()
+    index = CatalogIndex(root)
+    file = Path(links_file) if links_file is not None else root / 'scripts/external-effects/mod_intelligence_links.json'
+    if not file.is_absolute():
+        file = root / file
+    if not file.exists() and links_file is None:
+        return dict(tests=[], sources=[], inputs=[])
+    require(file.resolve().is_relative_to(root), 'Repository links file escapes repository')
+    document = index.read(file.resolve().relative_to(root).as_posix())
+    require(document.get('schema') == 'tno.mod_intelligence.repository_links.v1', 'Unsupported repository links schema')
+    tests, sources = [], []
+    inputs = dict(index.file_hashes)
+    entries = object_list(document['mechanics'], 'repository mechanic mappings')
+    require(len({e['id'] for e in entries}) == len(entries), 'Duplicate repository mechanic mapping')
+    for entry in entries:
+        if entry['id'] not in identities:
+            continue
+        key, _, _ = catalog.find(entry['id'], entry['mod_key'])
+        require(valid_digest(entry['jar_sha256']) and valid_digest(entry['review_sha256']), 'Missing mapping pins')
+        require(entry['jar_sha256'] == catalog.source(key)['sha256'] and
+                entry['review_sha256'] == catalog.index.file_hashes[f'mod-reviews/{key}.json'],
+                f'Stale mechanic mapping: {entry["id"]}', 3)
+        for expected in object_list(entry['catalog_inputs'], 'mapping catalog inputs'):
+            require(valid_digest(expected['sha256']), 'Missing mapping input pin')
+            require(expected['file'] in catalog.index.file_hashes, 'Mapping references an unselected catalog input')
+            require(catalog.index.file_hashes[expected['file']] == expected['sha256'],
+                    f'Stale mapping catalog input: {expected["file"]}', 3)
+        for kind, target in (('tests', tests), ('sources', sources)):
+            for link in object_list(entry.get(kind, []), f'{entry["id"]} {kind}'):
+                path = (root / link['file']).resolve()
+                require(path.is_relative_to(root) and path.suffix == '.py', 'Mapping requires an in-repository Python file')
+                raw = path.read_bytes()
+                digest = hashlib.sha256(raw).hexdigest()
+                require(valid_digest(link['sha256']), f'Missing repository file pin: {link["file"]}')
+                require(digest == link['sha256'], f'Stale repository mapping: {link["file"]}', 3)
+                try:
+                    tree = ast.parse(raw.decode('utf-8-sig'), filename=link['file'])
+                except (SyntaxError, UnicodeError) as error:
+                    raise CatalogError(f'Invalid mapped Python source: {link["file"]}: {error}') from error
+                symbols = {n.name for n in tree.body if isinstance(n, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))}
+                require(isinstance(link['symbol'], str) and link['symbol'] in symbols,
+                        f'Missing mapped symbol: {link["file"]}#{link["symbol"]}')
+                require(link.get('scope') == 'STATIC_CODING_FIXTURE', 'Unsupported repository mapping scope')
+                inputs[link['file']] = digest
+                target.append(dict(link, mechanic_id=entry['id'], relationship='EVIDENCE_BACKED_RELATIONSHIP',
+                                   execution='NOT_RUN', editable=kind == 'sources'))
+    return dict(tests=tests, sources=sources,
+                inputs=[dict(file=f, sha256=h) for f, h in sorted(inputs.items())])
 
 
 class CatalogIndex(EvidenceIndex):
@@ -623,6 +716,232 @@ class Catalog:
             data['alias_evidence'] = [self.evidence(proof, dict(id=identity)) for proof in alias['native_evidence']]
         return data
 
+    def impact(self, identity, mod=None, limit=10, offset=0, *, repo_root=ROOT, links_file=None,
+               dependency_version=None, dependency_digest=None, include_peers=True):
+        """Immediate recorded links only; this is neither a call graph nor a change prediction."""
+        require(1 <= limit <= 100 and offset >= 0, 'Invalid impact pagination')
+        key, rows, _ = self.find(identity, mod)
+        selected = self.get(identity, key, ['semantics', 'numbers', 'evidence'])
+        unknown = [dict(area=area, relationship='UNKNOWN', reason=reason) for area, reason in [
+            ('TRANSITIVE_AND_CROSS_MOD_IMPACT', 'Only immediate references in this completed mod are compared; call chains and other mods are not analysed.'),
+            ('RUNTIME_EFFECT', 'Shared links do not prove that a change alters another mechanic or is reachable at runtime.'),
+            ('TEST_COVERAGE', 'Mapped tests cover static coding fixtures, not Minecraft runtime behavior. Tests are not executed by retrieval.'),
+            ('NUMERIC_BINDING_SCOPE', 'V1 validates supported typed numeric bindings. Other candidate metadata retains its recorded meaning; invocation sites alone do not prove numeric arguments.'),
+            ('PEER_CONTRACT_SCOPE', 'Only shared witness relationships are validated for peers; their complete behavior is not re-evaluated.'),
+            ('EDIT_TARGETS', 'External class entries are source locators, not editable repository paths. Repository mappings are limited to coding fixtures.')]]
+        dependency = None
+        try:
+            dependency = self.dependency_contracts(key, identity, version=dependency_version, digest=dependency_digest)
+        except CatalogError as error:
+            if error.code != 4 or dependency_version is not None or dependency_digest is not None:
+                raise
+            unknown.append(dict(area='DEPENDENCY_MAPPING', relationship='UNKNOWN', reason=str(error)))
+        module_dependencies = self.dependencies(key)
+        links, methods = {}, {}
+
+        def add_evidence(evidence, role):
+            link_key = evidence['file'], evidence['entry'], evidence.get('id', evidence.get('witness_id'))
+            class_hash = evidence.get('entry_sha256', evidence.get('raw_class_sha256'))
+            require(class_hash is None or valid_digest(class_hash), f'Invalid evidence entry hash: {evidence["file"]}')
+            if link_key not in links:
+                links[link_key] = dict(pick(evidence, ['file', 'file_sha256', 'entry', 'mod_key', 'jar_sha256',
+                    'entry_sha256', 'raw_class_sha256', 'archive_sha256', 'packet_source', 'source_pin_check']),
+                    id=f'e{len(links)}', witness_id=link_key[2], relationship='EVIDENCE_BACKED_RELATIONSHIP',
+                    class_hash=class_hash, class_hash_status='RECORDED' if class_hash else 'MISSING')
+            link_id = links[link_key]['id']
+            for method in evidence['methods']:
+                descriptor = method.get('descriptor', method.get('raw_descriptor', method.get('obfuscated_descriptor')))
+                method_key = link_id, method['name'], descriptor
+                if method_key not in methods:
+                    methods[method_key] = dict(method, entry=evidence['entry'], evidence_link=link_id,
+                        id=f'm{len(methods)}', relationship='EVIDENCE_BACKED_RELATIONSHIP',
+                        code_sha256=method.get('code_sha256'), hash_status='RECORDED' if method.get('code_sha256') else 'MISSING',
+                        roles=[])
+                if role not in methods[method_key]['roles']:
+                    methods[method_key]['roles'].append(role)
+            return link_id
+
+        numeric, consumers, boundaries, references = [], [], [], set()
+        for record in selected['mechanics']:
+            for evidence in record['evidence']:
+                add_evidence(evidence, 'MECHANIC_CONTRACT')
+            numeric.append(dict(mechanic_id=record['id'], relationship='EVIDENCE_BACKED_RELATIONSHIP',
+                components=record['components'],
+                observations=record['numeric_parameters'], binding_note=record['numeric_binding_note']))
+            for candidate in record['parameter_candidates']:
+                if isinstance(candidate, dict) and candidate.get('native_consumer'):
+                    consumers.append(dict(candidate, mechanic_id=record['id'], relationship='EVIDENCE_BACKED_RELATIONSHIP'))
+                elif isinstance(candidate, dict):
+                    consumers.append(dict(candidate, mechanic_id=record['id'], relationship='UNKNOWN'))
+                    unknown.append(dict(area='NUMERIC_CONSUMER', relationship='UNKNOWN',
+                                        reason=f'No native consumer recorded: {record["id"]}/{candidate["parameters"]}'))
+                elif isinstance(candidate, str):
+                    unknown.append(dict(area='NUMERIC_CONSUMER', relationship='UNKNOWN',
+                                        reason=f'Legacy unscoped candidate: {record["id"]}/{candidate}'))
+            row = next(r for r in rows if r['id'] == record['id'])
+            boundaries.append(dict(pick(record, ['id', 'inspection_status', 'actual_behavior', 'contract', 'facts']),
+                **pick(row, ['native_boundary', 'ownership_note', 'scope']), relationship='EVIDENCE_BACKED_RELATIONSHIP'))
+            references.update(record['reference_files'])
+        for evidence in selected.get('alias_evidence', []):
+            add_evidence(evidence, 'ALIAS_CONTRACT')
+        confirmed_dependencies = []
+        if dependency:
+            for obligation in dependency['obligations']:
+                evidence_ids = [add_evidence(w, 'DEPENDENCY_CONTRACT') for w in obligation['witnesses']]
+                confirmed_dependencies.append(dict(pick(obligation, ['id', 'status', 'affected_mechanic_ids',
+                    'validation_state', 'contract', 'actual_contract', 'claim_limit']),
+                    relationship='CONFIRMED_DEPENDENCY', artifact=dependency['artifact'], evidence_links=evidence_ids,
+                    source_check=dependency['dependency_source_check'],
+                    method_count=sum(len(w['methods']) for w in obligation['witnesses']),
+                    missing_method_hashes=[dict(witness_id=w['witness_id'], name=m['name'],
+                        descriptor=m.get('descriptor', m.get('raw_descriptor', m.get('obfuscated_descriptor'))),
+                        **pick(m, ['raw_descriptor', 'obfuscated_descriptor']), code_sha256=None) for w in obligation['witnesses']
+                        for m in w['methods'] if not m.get('code_sha256')],
+                    retrieve=['dependencies', key, '--mechanic', identity, '--obligation', obligation['id']]))
+                references.update(ref['file'] for ref in obligation['references'])
+        if any(m['hash_status'] == 'MISSING' for m in methods.values()) or any(e['class_hash_status'] == 'MISSING' for e in links.values()):
+            unknown.append(dict(area='METHOD_HASHES', relationship='UNKNOWN', reason='Selected class or method hashes are explicitly missing; none are derived.'))
+
+        # Reverse lookup uses explicit source locators; names alone are never
+        # a relationship. Unqualified proofs still pass the V1 resolver.
+        roots = {}
+        for record in selected['mechanics']:
+            for evidence in record['evidence']:
+                source = evidence['file'], evidence['entry']
+                if source not in roots:
+                    roots[source] = dict(evidence, methods=[])
+                for method in evidence['methods']:
+                    if method not in roots[source]['methods']:
+                        roots[source]['methods'].append(method)
+        canonical_ids = {r['id'] for r in rows}
+        peers = []
+        for row in self.review(key)['effects'] if include_peers else []:
+            if row['id'] in canonical_ids:
+                continue
+            reasons = []
+            for proof in recorded_proofs(row):
+                candidates = ([roots[(proof['evidence_file'], proof['entry'])]]
+                    if (proof.get('evidence_file'), proof['entry']) in roots else [])
+                if not proof.get('evidence_file'):
+                    candidates = [e for (file, entry), e in roots.items() if entry == proof['entry'] and
+                                  file in row.get('reference_evidence', [])]
+                if not any(m['name'] in proof.get('methods', []) and (not proof.get('descriptor') or
+                    proof['descriptor'] in [m.get(k) for k in ('descriptor', 'raw_descriptor', 'obfuscated_descriptor')])
+                    for e in candidates for m in e['methods']):
+                    continue
+                resolved = self.evidence(proof, row)
+                evidence = roots.get((resolved['file'], resolved['entry']))
+                if evidence is None:
+                    continue
+                for method in evidence['methods']:
+                    if not any(m['name'] == method['name'] and
+                        any(m.get(k) and m[k] in [method.get(d) for d in
+                            ('descriptor', 'raw_descriptor', 'obfuscated_descriptor')]
+                            for k in ('descriptor', 'raw_descriptor', 'obfuscated_descriptor')) for m in resolved['methods']):
+                        continue
+                    reason = dict(kind='RECORDED_METHOD_OVERLAP', entry=proof['entry'], method=method['name'],
+                        descriptor=method.get('descriptor', method.get('raw_descriptor', method.get('obfuscated_descriptor'))),
+                        relationship='EVIDENCE_BACKED_RELATIONSHIP',
+                        condition='If the shared witnessed method is changed', evidence_file=evidence['file'])
+                    if reason not in reasons:
+                        reasons.append(reason)
+            for obligation in confirmed_dependencies:
+                if row['id'] in (obligation.get('affected_mechanic_ids') or []):
+                    reasons.append(dict(kind='SHARED_DEPENDENCY_OBLIGATION', id=obligation['id'],
+                                        relationship='EVIDENCE_BACKED_RELATIONSHIP',
+                                        condition='If the change reaches the shared dependency contract'))
+            if reasons:
+                peers.append(dict(id=row['id'], name=row['display_name'], relationship='POSSIBLE_IMPACT',
+                                  reason_count=len(reasons), has_more_reasons=len(reasons) > limit, reasons=reasons[:limit]))
+        peers.sort(key=lambda p: p['id'])
+        test_ids = canonical_ids | {identity} | {o['id'] for o in confirmed_dependencies}
+        tests, errors = test_references(test_ids, Path(repo_root))
+        mapped = repository_links(self, canonical_ids, repo_root, links_file)
+        tests = mapped['tests'] + [t for t in tests if t['file'] not in {m['file'] for m in mapped['tests']}]
+        unknown.extend(dict(error, relationship='UNKNOWN') for error in errors)
+        if not mapped['tests']:
+            unknown.append(dict(area='TEST_MAPPING', relationship='UNKNOWN', reason='No pinned test mapping exists for this mechanic. Literal references do not establish coverage.'))
+        return dict(analysis='BOUNDED_IMPACT_V2_0', mod_key=key, requested_id=identity,
+            canonical_ids=sorted(canonical_ids), alias=selected.get('alias'),
+            confirmed_contract=dict(methods=list(methods.values()), numeric_parameters=numeric, consumers=consumers,
+                delivery_paths=[dict(mechanic_id=r['id'], paths=r['delivery_paths'], relationship='EVIDENCE_BACKED_RELATIONSHIP') for r in selected['mechanics']]),
+            dependencies=confirmed_dependencies, evidence_links=list(links.values()), known_boundaries=boundaries,
+            source_locations=[dict(entry=e['entry'], evidence_link=e['id'], editable=False,
+                scope='EXTERNAL_ARTIFACT', relationship='EVIDENCE_BACKED_RELATIONSHIP') for e in links.values()] + mapped['sources'],
+            repository_inputs=mapped['inputs'],
+            related_references=dict(files=[dict(file=f, relationship='UNKNOWN', validation_state='REFERENCE_ONLY') for f in sorted(references)],
+                module_obligations=[] if dependency else [dict(pick(o, ['id', 'status']), relationship='UNKNOWN')
+                    for o in module_dependencies['obligations'] or []]),
+            possible_impact=dict(scope='SAME_COMPLETED_MOD', total=len(peers), limit=limit, offset=offset,
+                has_more=offset + limit < len(peers), mechanics=peers[offset:offset + limit]),
+            tests=dict(discovery='PINNED_FIXTURE_MAPPINGS_AND_LITERAL_REFERENCES', scope='scripts/external-effects/test_*.py',
+                total=len(tests), references=tests), unknown=unknown)
+
+    def context(self, identity, mod=None, *, repo_root=ROOT, links_file=None,
+                dependency_version=None, dependency_digest=None):
+        impact = self.impact(identity, mod, limit=1, repo_root=repo_root, links_file=links_file,
+                             dependency_version=dependency_version, dependency_digest=dependency_digest,
+                             include_peers=False)
+        # A fixed projection, independent of budget. All dependency witnesses
+        # are resolved first; their class locators remain in the package.
+        methods = impact['confirmed_contract']['methods']
+        evidence, sources = [], {}
+        for link in impact['evidence_links']:
+            selected = [m for m in methods if m['evidence_link'] == link['id']]
+            source = pick(link, ['file', 'file_sha256', 'mod_key', 'jar_sha256', 'archive_sha256',
+                                 'packet_source', 'source_pin_check'])
+            source_key = json.dumps(source, sort_keys=True)
+            if source_key not in sources:
+                sources[source_key] = dict(source, id=f'p{len(sources)}', relationship='EVIDENCE_BACKED_RELATIONSHIP')
+            evidence.append(dict(pick(link, ['id', 'entry', 'witness_id', 'class_hash', 'class_hash_status', 'relationship']),
+                class_hash_kind='RAW_CLASS' if 'raw_class_sha256' in link else 'ENTRY',
+                source_id=sources[source_key]['id'], method_names=sorted({m['name'] for m in selected})))
+
+        def proof_reference(proof):
+            matches = [m for m in methods if any(e['id'] == m['evidence_link'] and
+                e['file'] == proof.get('evidence_file') and e['entry'] == proof.get('entry') for e in impact['evidence_links'])
+                and m['name'] in proof.get('methods', []) and (not proof.get('descriptor') or
+                proof['descriptor'] in [m.get(k) for k in ('descriptor', 'raw_descriptor', 'obfuscated_descriptor')])]
+            if not matches:
+                return proof
+            return dict({k: v for k, v in proof.items() if k not in
+                         ('evidence_file', 'entry', 'witness_id', 'methods', 'descriptor')},
+                        evidence_link=matches[0]['evidence_link'], method_ids=[m['id'] for m in matches])
+
+        consumers = []
+        for original in impact['confirmed_contract']['consumers']:
+            consumer = dict(original)
+            if consumer.get('native_consumer'):
+                consumer['native_consumer'] = proof_reference(consumer['native_consumer'])
+            if consumer.get('additional_consumer_sites'):
+                consumer['additional_consumer_sites'] = [proof_reference(p) for p in consumer['additional_consumer_sites']]
+            identity_binding = consumer.get('native_parameter_identity')
+            if isinstance(identity_binding, dict):
+                matches = [m for m in methods if m['entry'] == identity_binding.get('entry') and
+                           m['name'] == identity_binding.get('method') and identity_binding.get('descriptor') in
+                           [m.get(k) for k in ('descriptor', 'raw_descriptor', 'obfuscated_descriptor')] and
+                           m['id'] in consumer.get('native_consumer', {}).get('method_ids', [])]
+                if len(matches) == 1:
+                    consumer['native_parameter_identity'] = dict({k: v for k, v in identity_binding.items()
+                        if k not in ('entry', 'method', 'descriptor')}, method_id=matches[0]['id'])
+            consumers.append(consumer)
+        warnings = impact['unknown'] + [dict(area='DEPENDENCY_METHOD_PROJECTION', relationship='UNKNOWN',
+            reason='Dependency-only descriptors and hashes are validated but not projected. Class evidence locators and all hash gaps remain; use each dependency retrieve command for full details.'),
+            dict(area='POSSIBLE_PEERS', relationship='UNKNOWN', reason='Peer lists are available through impact; this package retains the complete selected mechanic and dependency contracts.')]
+        return dict(package='CODING_CONTEXT_V2_0', mod_key=impact['mod_key'], requested_id=identity,
+            canonical_ids=impact['canonical_ids'], alias=impact['alias'],
+            verified_behavior=impact['known_boundaries'],
+            source_locations=dict(external_evidence_links=[e['id'] for e in evidence], external_editable=False,
+                relationship='EVIDENCE_BACKED_RELATIONSHIP',
+                repository=[s for s in impact['source_locations'] if s['scope'] != 'EXTERNAL_ARTIFACT']),
+            numbers_and_formulas=impact['confirmed_contract']['numeric_parameters'],
+            consumers=consumers,
+            methods=[{k: v for k, v in m.items() if k != 'entry'} for m in methods
+                     if any(role != 'DEPENDENCY_CONTRACT' for role in m['roles'])],
+            delivery_paths=impact['confirmed_contract']['delivery_paths'], dependencies=impact['dependencies'],
+            evidence=evidence, evidence_sources=list(sources.values()), tests=impact['tests'], warnings=warnings,
+            references=impact['related_references'], repository_inputs=impact['repository_inputs'])
+
     def response(self, command, data):
         return dict(schema=SCHEMA, command=command, status='OK',
                     scope='STATIC_PINNED_CATALOG', catalog_checkpoint=self.ledger['checkpoint'],
@@ -649,6 +968,13 @@ def nonnegative_int(value):
     return number
 
 
+def positive_int(value):
+    number = int(value)
+    if number < 1:
+        raise argparse.ArgumentTypeError('budget must be positive')
+    return number
+
+
 def parser():
     cli = Parser(description=__doc__)
     cli.add_argument('--catalog', type=Path, default=OUT, help='Existing catalog directory')
@@ -667,6 +993,19 @@ def parser():
     get.add_argument('--mod', help='Restrict lookup to a catalog mod key')
     get.add_argument('--section', action='append', choices=['semantics', 'numbers', 'evidence', 'dependencies'],
                      help='Emit only these sections (repeatable); selected witnesses are always checked')
+    impact = commands.add_parser('impact', help='Report immediate catalog links and conditional possible impact')
+    impact.add_argument('id')
+    impact.add_argument('--mod')
+    impact.add_argument('--limit', type=bounded_int, default=10, help='Maximum peer mechanics and reasons per peer; required root data is retained')
+    impact.add_argument('--offset', type=nonnegative_int, default=0, help='Peer mechanic pagination offset')
+    context = commands.add_parser('context', help='Compact verified coding package; never truncate required content')
+    context.add_argument('id')
+    context.add_argument('--mod')
+    context.add_argument('--budget-bytes', type=positive_int, default=65536, help='Maximum successful UTF-8 response bytes, including newline')
+    for command in (impact, context):
+        command.add_argument('--links', type=Path, help='Pinned repository fixture mappings within this repository')
+        command.add_argument('--expect-dependency-version')
+        command.add_argument('--expect-dependency-sha256')
     deps = commands.add_parser('dependencies', help='Read declared dependencies and resolved obligations')
     deps.add_argument('mod')
     deps.add_argument('--mechanic', help='Select obligations explicitly recorded for this mechanic ID')
@@ -675,7 +1014,7 @@ def parser():
     deps.add_argument('--expect-dependency-sha256', help='Expected resolved dependency JAR SHA-256 (requires --mechanic)')
     verify = commands.add_parser('verify', help='Check an inventoried mod or dependency pin without extraction')
     verify.add_argument('mod')
-    for command in [search, get, deps, verify]:
+    for command in [search, get, impact, context, deps, verify]:
         command.add_argument('--expect-version', help='Exact embedded or inventoried dependency version, not a filename version')
         command.add_argument('--expect-sha256', help='Expected catalog JAR SHA-256')
         command.add_argument('--jar', type=Path, help='Hash this local JAR against the catalog pin; never scan it')
@@ -684,9 +1023,12 @@ def parser():
 
 def main(argv=None):
     pretty = False
+    response_schema = SCHEMA
     try:
         args = parser().parse_args(argv)
         pretty = args.pretty
+        if args.command in ('impact', 'context'):
+            response_schema = V2_SCHEMA
         catalog = Catalog(args.catalog)
         constraints = {name: getattr(args, 'expect_' + name, None) for name in ['version', 'sha256']}
         if args.command == 'mods':
@@ -698,10 +1040,16 @@ def main(argv=None):
             data = catalog.search(args.query, args.mod, args.limit, args.offset, args.classification, args.primitive)
             if check:
                 data['source_check'] = check
-        elif args.command == 'get':
+        elif args.command in ('get', 'impact', 'context'):
             key, _, _ = catalog.find(args.id, args.mod)
             check = catalog.source_check(key, constraints['version'], constraints['sha256'], args.jar)
-            data = catalog.get(args.id, key, args.section)
+            if args.command == 'get':
+                data = catalog.get(args.id, key, args.section)
+            else:
+                options = dict(links_file=args.links, dependency_version=args.expect_dependency_version,
+                               dependency_digest=args.expect_dependency_sha256)
+                data = (catalog.impact(args.id, key, args.limit, args.offset, **options) if args.command == 'impact'
+                        else catalog.context(args.id, key, **options))
             data['source_check'] = check
         else:
             key = catalog.artifact_key(args.mod) if args.command == 'verify' else catalog.key(args.mod)
@@ -718,12 +1066,20 @@ def main(argv=None):
                 data = dict(mod_key=key)
             data['source_check'] = check
         result, code = catalog.response(args.command, data), 0
+        result['schema'] = response_schema
         output = json.dumps(result, ensure_ascii=False, indent=2 if pretty else None,
                             separators=None if pretty else (',', ':'), allow_nan=False)
+        if args.command == 'context':
+            required = len(output.encode('utf-8')) + 1
+            if required > args.budget_bytes:
+                raise ContextBudgetError(args.budget_bytes, required)
     except CatalogError as error:
-        result, code = dict(schema=SCHEMA, status='ERROR', error=str(error)), error.code
+        result, code = dict(schema=response_schema, status='ERROR', error=str(error)), error.code
+        if isinstance(error, ContextBudgetError):
+            result['schema'] = V2_SCHEMA
+            result['budget'] = error.budget
     except (OSError, ValueError, KeyError, TypeError, AssertionError) as error:
-        result, code = dict(schema=SCHEMA, status='ERROR', error=f'Invalid or unavailable catalog input: {error}'), 2
+        result, code = dict(schema=response_schema, status='ERROR', error=f'Invalid or unavailable catalog input: {error}'), 2
     if code:
         output = json.dumps(result, ensure_ascii=False, indent=2 if pretty else None,
                             separators=None if pretty else (',', ':'), allow_nan=False)
