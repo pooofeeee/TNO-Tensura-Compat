@@ -8,7 +8,7 @@ preserve newer valid work, finish the entire finite AlexMobs queue, then perform
 mod closure, commit/push/verify and STOP without starting another mod. All other
 research and production protections remain in force.
 
-R2o5d through R2od are closed. Current canonical review has 318 records and 1777 numeric candidates; 9474/11434 methods dispositioned and 1960 pending (1033 semantic-role). Next is R2oe remaining item/equipment, then block/tile/global/registry/presentation domains through the complete remaining finite queue. Reuse the saved native packets, graphs, field index and Citadel contracts. Capture and structural grouping grant no semantic coverage.
+R2o5d through R2og are closed. Current canonical review: 352 records / 2125 numeric candidates / 10711/11434 dispositioned / 723 pending. Next: R2oh remaining client finite queue, then final AlexMobs mod-level closure; no next mod. Reuse saved packets, graphs, field index and Citadel contracts. Capture and grouping grant no semantic coverage.
 
 ## Authorized objective for continuation
 
@@ -58,6 +58,7 @@ Authorized continuation recovery: R2o5d is now closed with all thirteen actors a
 
 - R2oe item/equipment closure: 12 records / 207 candidates / 367 method dispositions, 8 targeted tests PASS; new118 native methods/current Vanilla API/loader resources BYTE_IDENTICAL. Current330 records/1984 candidates/9841 dispositions/1593 pending. Continue at R2of; production unchanged.
 
-- R2oe residual helper closure: 5 records/8 refinements/37 numeric candidates/80 method dispositions, 8 targeted tests PASS; new Vanilla hit dispatch reproduction/integrity/numeric audits PASS. Continue at R2oe through final closure; no intermediate STOP.
 
 - Latest recovery R2of: 342 records / 2076 candidates / 10349 dispositioned / 1085 pending. Block/tile contracts validated; complete finite queue continues at R2og. Native blocks/global/client captures reproduced; no coverage granted to remaining captures. Production unchanged.
+
+- R2og global closure: 10 records / 1 refinement / 49 candidates / 362 dispositions, 10 targeted tests PASS; current 352/2125/10711/723. Continue at R2oh; production and locked COMPLETE reviews unchanged.
