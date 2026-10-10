@@ -11,6 +11,7 @@ import sys
 from audit_catalog_integrity import EvidenceIndex, object_list
 from catalog_common import OUT, ROOT, sha256
 from mod_intelligence_plan import PLAN_SCHEMA, INTENT_SCHEMA, normalize_request, build_plan
+from mod_intelligence_adaptive import ADAPTIVE_SCHEMA, adaptive_plan
 
 SCHEMA = 'tno.mod_intelligence.v1'
 V2_SCHEMA = 'tno.mod_intelligence.v2.0'
@@ -997,6 +998,12 @@ class Catalog:
         return build_plan(self, identity, intent, mod, limit, repo_root, links_file,
                           dependency_version, dependency_digest, require)
 
+    def adaptive_plan(self, identity, intent, mod=None, limit=10, *, repo_root=ROOT, links_file=None,
+                      dependency_version=None, dependency_digest=None, profile_file=None):
+        plan = self.plan(identity, intent, mod, limit, repo_root=repo_root, links_file=links_file,
+                         dependency_version=dependency_version, dependency_digest=dependency_digest)
+        return adaptive_plan(self, plan, repo_root, profile_file, require)
+
     def response(self, command, data):
         return dict(schema=SCHEMA, command=command, status='OK',
                     scope='STATIC_PINNED_CATALOG', catalog_checkpoint=self.ledger['checkpoint'],
@@ -1069,6 +1076,7 @@ def parser():
     context.add_argument('--mod')
     context.add_argument('--budget-bytes', type=positive_int, default=65536, help='Maximum successful UTF-8 response bytes, including newline')
     plan = commands.add_parser('plan', help='Read-only change plan from exact structured intent; never generate code')
+    plan.add_argument('--adaptive', action='store_true', help='V4: project using pinned literal scope profiles; preserve uncertainty')
     plan.add_argument('--mechanic', help='Optional exact cross-check against the request target')
     plan.add_argument('--request', '--change-spec', dest='change_spec', type=Path, required=True)
     plan.add_argument('--budget-bytes', type=positive_int, default=65536, help='Maximum successful UTF-8 plan response bytes; no required constraints are dropped')
@@ -1102,7 +1110,7 @@ def main(argv=None):
         if args.command in ('impact', 'context'):
             response_schema = V2_SCHEMA
         elif args.command == 'plan':
-            response_schema = PLAN_SCHEMA
+            response_schema = ADAPTIVE_SCHEMA if args.adaptive else PLAN_SCHEMA
         catalog = Catalog(args.catalog)
         constraints = {name: getattr(args, 'expect_' + name, None) for name in ['version', 'sha256']}
         if args.command == 'mods':
@@ -1118,7 +1126,8 @@ def main(argv=None):
             intent, provenance = read_change_intent(args.change_spec, args.mechanic)
             key, _, _ = catalog.find(intent['target'], args.mod)
             check = catalog.source_check(key, constraints['version'], constraints['sha256'], args.jar)
-            data = catalog.plan(intent['target'], intent, key, args.limit, links_file=args.links,
+            planner = catalog.adaptive_plan if args.adaptive else catalog.plan
+            data = planner(intent['target'], intent, key, args.limit, links_file=args.links,
                                 dependency_version=args.expect_dependency_version,
                                 dependency_digest=args.expect_dependency_sha256)
             data['source_check'] = check
