@@ -91,3 +91,37 @@ confirmed that its result also differs from the published snapshot. That
 canonical snapshot is outside this repair scope and remains unchanged.
 The five reported defects have no unresolved reproduction or regression failure;
 the CLI's documented static-evidence and legacy-observation limits still apply.
+
+## Fresh verification of the existing repairs — 2026-10-10
+
+Starting tooling commit: `dc95df9ce264fa10015c2116732e953da84c4ec1`.
+The repair commits named above were already committed and pushed. This replay
+requires no additional runtime repair or new regression test; their nine focused
+regressions remain present. Later existing tooling was preserved.
+
+The exported baseline CLI, resolver and shared helper were checked byte-for-byte
+against `58287e6c767e7dfd906e45e5f910d0c8cfe6eec0`. Fresh catalog instances
+reproduced all five findings using the same seven corruption variants listed
+above. Baseline optimization again bypassed the method-code hash check; malformed
+metadata and NaN again produced uncaught exceptions. On the current tooling
+commit, every corruption returned JSON `ERROR` and exit `2` in normal Python,
+`python -O`, and `PYTHONOPTIMIZE=1`, without an uncaught exception.
+
+The same three test commands listed above each passed **128 tests**, including
+the **39 V1 retrieval/integrity tests** and **14 Sugar Rush workflow tests**.
+The remaining existing animation, V2, impact, V3 and V4 tests also passed; this
+checkpoint introduces no feature changes to those tools. A fresh full retrieval
+sweep against both revisions returned **2,867 mechanics across 14 completed
+mods**, with **zero changed result hashes**.
+
+There are no canonical catalog or production-source changes between the audited
+baseline and the starting tooling commit. Protected production and research refs
+remain `eb37f0bfc0e7aa863632f163881566c0ae2a8701` and
+`1ecac479f0269eda5a57397a3643e5159e5f6c12`, respectively. Existing untracked
+planner input was preserved. No mod research, JAR rescan, framework change or
+new feature was performed. Replay outputs, test logs and retrieval hashes are
+local artifacts under `run/five-defect-repair-recheck/`.
+
+All five findings are reproduced and verified repaired. The previously documented
+stale published integrity snapshot remains outside this repair scope; it was not
+changed or represented as a new passing check.
