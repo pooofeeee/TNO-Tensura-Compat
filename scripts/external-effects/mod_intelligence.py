@@ -10,6 +10,7 @@ import sys
 
 from audit_catalog_integrity import EvidenceIndex, object_list
 from catalog_common import OUT, ROOT, sha256
+from mod_intelligence_plan import PLAN_SCHEMA, INTENT_SCHEMA, normalize_request, build_plan
 
 SCHEMA = 'tno.mod_intelligence.v1'
 V2_SCHEMA = 'tno.mod_intelligence.v2.0'
@@ -23,8 +24,8 @@ class CatalogError(Exception):
 
 
 class ContextBudgetError(CatalogError):
-    def __init__(self, budget, required):
-        super().__init__(f'Context requires {required} UTF-8 bytes; budget is {budget}. '
+    def __init__(self, budget, required, noun='Context'):
+        super().__init__(f'{noun} requires {required} UTF-8 bytes; budget is {budget}. '
                          'Increase --budget-bytes; required content was not truncated.')
         self.budget = dict(requested_bytes=budget, required_bytes=required)
 
@@ -928,6 +929,9 @@ class Catalog:
         impact = self.impact(identity, mod, limit=1, repo_root=repo_root, links_file=links_file,
                              dependency_version=dependency_version, dependency_digest=dependency_digest,
                              include_peers=False)
+        return self._context_projection(identity, impact)
+
+    def _context_projection(self, identity, impact):
         # A fixed projection, independent of budget. All dependency witnesses
         # are resolved first; their class locators remain in the package.
         methods = impact['confirmed_contract']['methods']
@@ -988,6 +992,11 @@ class Catalog:
             evidence=evidence, evidence_sources=list(sources.values()), tests=impact['tests'], warnings=warnings,
             references=impact['related_references'], repository_inputs=impact['repository_inputs'])
 
+    def plan(self, identity, intent, mod=None, limit=10, *, repo_root=ROOT, links_file=None,
+             dependency_version=None, dependency_digest=None):
+        return build_plan(self, identity, intent, mod, limit, repo_root, links_file,
+                          dependency_version, dependency_digest, require)
+
     def response(self, command, data):
         return dict(schema=SCHEMA, command=command, status='OK',
                     scope='STATIC_PINNED_CATALOG', catalog_checkpoint=self.ledger['checkpoint'],
@@ -1021,6 +1030,16 @@ def positive_int(value):
     return number
 
 
+def read_change_intent(file, mechanic=None):
+    file = Path(file).resolve()
+    require(file.stat().st_size <= 65536, 'Change request exceeds 65536 bytes')
+    index = CatalogIndex(file.parent)
+    request = normalize_request(index.read(file.name), require)
+    require(mechanic is None or request['target'] == mechanic, 'Request target does not match --mechanic')
+    return request, dict(file=str(file), sha256=index.file_hashes[file.name],
+                         classification='VERIFIED', verification='REQUEST_FILE_BYTES_ONLY')
+
+
 def parser():
     cli = Parser(description=__doc__)
     cli.add_argument('--catalog', type=Path, default=OUT, help='Existing catalog directory')
@@ -1049,7 +1068,13 @@ def parser():
     context.add_argument('id')
     context.add_argument('--mod')
     context.add_argument('--budget-bytes', type=positive_int, default=65536, help='Maximum successful UTF-8 response bytes, including newline')
-    for command in (impact, context):
+    plan = commands.add_parser('plan', help='Read-only change plan from exact structured intent; never generate code')
+    plan.add_argument('--mechanic', help='Optional exact cross-check against the request target')
+    plan.add_argument('--request', '--change-spec', dest='change_spec', type=Path, required=True)
+    plan.add_argument('--budget-bytes', type=positive_int, default=65536, help='Maximum successful UTF-8 plan response bytes; no required constraints are dropped')
+    plan.add_argument('--mod')
+    plan.add_argument('--limit', type=bounded_int, default=10, help='Maximum conditional shared-method neighbors')
+    for command in (impact, context, plan):
         command.add_argument('--links', type=Path, help='Pinned repository fixture mappings within this repository')
         command.add_argument('--expect-dependency-version')
         command.add_argument('--expect-dependency-sha256')
@@ -1061,7 +1086,7 @@ def parser():
     deps.add_argument('--expect-dependency-sha256', help='Expected resolved dependency JAR SHA-256 (requires --mechanic)')
     verify = commands.add_parser('verify', help='Check an inventoried mod or dependency pin without extraction')
     verify.add_argument('mod')
-    for command in [search, get, impact, context, deps, verify]:
+    for command in [search, get, impact, context, plan, deps, verify]:
         command.add_argument('--expect-version', help='Exact embedded or inventoried dependency version, not a filename version')
         command.add_argument('--expect-sha256', help='Expected catalog JAR SHA-256')
         command.add_argument('--jar', type=Path, help='Hash this local JAR against the catalog pin; never scan it')
@@ -1076,6 +1101,8 @@ def main(argv=None):
         pretty = args.pretty
         if args.command in ('impact', 'context'):
             response_schema = V2_SCHEMA
+        elif args.command == 'plan':
+            response_schema = PLAN_SCHEMA
         catalog = Catalog(args.catalog)
         constraints = {name: getattr(args, 'expect_' + name, None) for name in ['version', 'sha256']}
         if args.command == 'mods':
@@ -1087,6 +1114,15 @@ def main(argv=None):
             data = catalog.search(args.query, args.mod, args.limit, args.offset, args.classification, args.primitive)
             if check:
                 data['source_check'] = check
+        elif args.command == 'plan':
+            intent, provenance = read_change_intent(args.change_spec, args.mechanic)
+            key, _, _ = catalog.find(intent['target'], args.mod)
+            check = catalog.source_check(key, constraints['version'], constraints['sha256'], args.jar)
+            data = catalog.plan(intent['target'], intent, key, args.limit, links_file=args.links,
+                                dependency_version=args.expect_dependency_version,
+                                dependency_digest=args.expect_dependency_sha256)
+            data['source_check'] = check
+            data['intent_input'] = provenance
         elif args.command == 'impact' and args.target is not None:
             require(args.id is None, 'Use either a mechanic ID or --target')
             data = catalog.impact(None, args.mod, args.limit, args.offset, coding_target=args.target,
@@ -1123,14 +1159,14 @@ def main(argv=None):
         result['schema'] = response_schema
         output = json.dumps(result, ensure_ascii=False, indent=2 if pretty else None,
                             separators=None if pretty else (',', ':'), allow_nan=False)
-        if args.command == 'context':
+        if args.command in ('context', 'plan'):
             required = len(output.encode('utf-8')) + 1
             if required > args.budget_bytes:
-                raise ContextBudgetError(args.budget_bytes, required)
+                raise ContextBudgetError(args.budget_bytes, required, 'Plan' if args.command == 'plan' else 'Context')
     except CatalogError as error:
         result, code = dict(schema=response_schema, status='ERROR', error=str(error)), error.code
         if isinstance(error, ContextBudgetError):
-            result['schema'] = V2_SCHEMA
+            result['schema'] = response_schema
             result['budget'] = error.budget
     except (OSError, ValueError, KeyError, TypeError, AssertionError) as error:
         result, code = dict(schema=response_schema, status='ERROR', error=f'Invalid or unavailable catalog input: {error}'), 2
