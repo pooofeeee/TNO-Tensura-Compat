@@ -307,6 +307,38 @@ class Catalog:
         require(len(matches) == 1, f'Mechanic not found or ambiguous: {identity}', 4)
         return matches[0]
 
+    def resolve_coding_target(self, target, mod=None, *, repo_root=ROOT, links_file=None):
+        """Select a mechanic only from an explicit mapping; impact verifies its pins."""
+        require(isinstance(target, str) and target.count('#') == 1, 'Target must be FILE#SYMBOL')
+        file, symbol = target.split('#')
+        require(file and symbol, 'Target must include both file and symbol')
+        root = Path(repo_root).resolve()
+        source = (root / file).resolve()
+        require(source.is_relative_to(root), 'Coding target escapes repository')
+        file = source.relative_to(root).as_posix()
+        index = CatalogIndex(root)
+        path = Path(links_file) if links_file is not None else root / 'scripts/external-effects/mod_intelligence_links.json'
+        if not path.is_absolute():
+            path = root / path
+        require(path.resolve().is_relative_to(root), 'Repository links file escapes repository')
+        require(path.exists(), 'No repository target mappings recorded', 4 if links_file is None else 2)
+        mapping_file = path.resolve().relative_to(root).as_posix()
+        document = index.read(mapping_file)
+        require(document.get('schema') == 'tno.mod_intelligence.repository_links.v1', 'Unsupported repository links schema')
+        entries = object_list(document['mechanics'], 'repository mechanic mappings')
+        require(len({e['id'] for e in entries}) == len(entries), 'Duplicate repository mechanic mapping')
+        matches = set()
+        for entry in entries:
+            if mod is not None and entry['mod_key'] != self.key(mod):
+                continue
+            for kind in ('sources', 'tests'):
+                for link in object_list(entry.get(kind, []), f'{entry["id"]} {kind}'):
+                    if link['file'] == file and link['symbol'] == symbol:
+                        matches.add(entry['id'])
+        require(len(matches) == 1, f'Unmapped or ambiguous coding target: {target}; use an exact mechanic ID', 4)
+        return next(iter(matches)), dict(file=file, symbol=symbol, mapping_file=mapping_file,
+                                        mapping_sha256=index.file_hashes[mapping_file])
+
     def evidence(self, proof, row):
         file, witness = self.index.witness(proof, row)
         packet = self.index.read(file)
@@ -716,9 +748,14 @@ class Catalog:
             data['alias_evidence'] = [self.evidence(proof, dict(id=identity)) for proof in alias['native_evidence']]
         return data
 
-    def impact(self, identity, mod=None, limit=10, offset=0, *, repo_root=ROOT, links_file=None,
-               dependency_version=None, dependency_digest=None, include_peers=True):
+    def impact(self, identity=None, mod=None, limit=10, offset=0, *, repo_root=ROOT, links_file=None,
+               dependency_version=None, dependency_digest=None, include_peers=True, coding_target=None):
         """Immediate recorded links only; this is neither a call graph nor a change prediction."""
+        target = None
+        if coding_target is not None:
+            require(identity is None, 'Use either a mechanic ID or --target')
+            identity, target = self.resolve_coding_target(coding_target, mod, repo_root=repo_root, links_file=links_file)
+        require(isinstance(identity, str) and bool(identity), 'Impact requires a mechanic ID or --target')
         require(1 <= limit <= 100 and offset >= 0, 'Invalid impact pagination')
         key, rows, _ = self.find(identity, mod)
         selected = self.get(identity, key, ['semantics', 'numbers', 'evidence'])
@@ -861,7 +898,7 @@ class Catalog:
         unknown.extend(dict(error, relationship='UNKNOWN') for error in errors)
         if not mapped['tests']:
             unknown.append(dict(area='TEST_MAPPING', relationship='UNKNOWN', reason='No pinned test mapping exists for this mechanic. Literal references do not establish coverage.'))
-        return dict(analysis='BOUNDED_IMPACT_V2_0', mod_key=key, requested_id=identity,
+        result = dict(analysis='BOUNDED_IMPACT_V2_0', mod_key=key, requested_id=identity,
             canonical_ids=sorted(canonical_ids), alias=selected.get('alias'),
             confirmed_contract=dict(methods=list(methods.values()), numeric_parameters=numeric, consumers=consumers,
                 delivery_paths=[dict(mechanic_id=r['id'], paths=r['delivery_paths'], relationship='EVIDENCE_BACKED_RELATIONSHIP') for r in selected['mechanics']]),
@@ -876,6 +913,15 @@ class Catalog:
                 has_more=offset + limit < len(peers), mechanics=peers[offset:offset + limit]),
             tests=dict(discovery='PINNED_FIXTURE_MAPPINGS_AND_LITERAL_REFERENCES', scope='scripts/external-effects/test_*.py',
                 total=len(tests), references=tests), unknown=unknown)
+        if target is not None:
+            require(any(p['file'] == target['mapping_file'] and p['sha256'] == target['mapping_sha256']
+                        for p in mapped['inputs']), 'Target mapping changed during retrieval', 3)
+            matches = [p for p in mapped['sources'] + mapped['tests']
+                       if p['file'] == target['file'] and p['symbol'] == target['symbol']]
+            require(matches, 'Coding target is not present in the verified mechanic mapping')
+            result['coding_target'] = dict(target, **pick(matches[0], ['sha256', 'scope', 'editable', 'execution']),
+                                           relationship='EVIDENCE_BACKED_RELATIONSHIP')
+        return result
 
     def context(self, identity, mod=None, *, repo_root=ROOT, links_file=None,
                 dependency_version=None, dependency_digest=None):
@@ -994,7 +1040,8 @@ def parser():
     get.add_argument('--section', action='append', choices=['semantics', 'numbers', 'evidence', 'dependencies'],
                      help='Emit only these sections (repeatable); selected witnesses are always checked')
     impact = commands.add_parser('impact', help='Report immediate catalog links and conditional possible impact')
-    impact.add_argument('id')
+    impact.add_argument('id', nargs='?')
+    impact.add_argument('--target', help='Exact FILE#SYMBOL from a pinned repository fixture mapping')
     impact.add_argument('--mod')
     impact.add_argument('--limit', type=bounded_int, default=10, help='Maximum peer mechanics and reasons per peer; required root data is retained')
     impact.add_argument('--offset', type=nonnegative_int, default=0, help='Peer mechanic pagination offset')
@@ -1040,7 +1087,14 @@ def main(argv=None):
             data = catalog.search(args.query, args.mod, args.limit, args.offset, args.classification, args.primitive)
             if check:
                 data['source_check'] = check
+        elif args.command == 'impact' and args.target is not None:
+            require(args.id is None, 'Use either a mechanic ID or --target')
+            data = catalog.impact(None, args.mod, args.limit, args.offset, coding_target=args.target,
+                                  links_file=args.links, dependency_version=args.expect_dependency_version,
+                                  dependency_digest=args.expect_dependency_sha256)
+            data['source_check'] = catalog.source_check(data['mod_key'], constraints['version'], constraints['sha256'], args.jar)
         elif args.command in ('get', 'impact', 'context'):
+            require(args.id is not None, 'Impact requires a mechanic ID or --target')
             key, _, _ = catalog.find(args.id, args.mod)
             check = catalog.source_check(key, constraints['version'], constraints['sha256'], args.jar)
             if args.command == 'get':
