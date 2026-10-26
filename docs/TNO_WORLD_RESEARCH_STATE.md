@@ -59,12 +59,14 @@ Try the site's exposed reading/export options when needed. Opening a landing pag
 - Follow-up focused on 蟲型魔獣, 精霊召喚, and 悪魔 to investigate world types, summoning, manifestation, embodiment, and vessels.
 - Preserve the methodological corrections: a vessel is not automatically a corpse; “natural incarnation” alone does not prove the absence of a vessel or ritual; summoning and embodiment are not established as mutually exclusive processes; differing glossary descriptions do not prove there are no shared laws.
 - Do not classify every revived being as undead, infer universal body/identity rules from a short entry, or use failure to mention EP/Stages as proof of their absence from the LN.
-- Full novel passages supporting the current Diablo/Beretta questions have not yet been verified in this research handoff. Do not promote earlier glossary paraphrases or speculative questions into novel-backed laws.
+- The initial handoff had no verified novel scenes. The 2026-10-26 [embodiment evidence checkpoint](TNO_EMBODIMENT_EVIDENCE.md) now records directly inspected translated LN passages for both cases. Japanese comparison and broader generalization remain open; earlier glossary speculation is not promoted to law.
 - Do not repeat the dictionary summaries as a substitute for the next evidence task.
 
-## Immediate next research task
+## Current evidence checkpoint and next research task
 
-Find inspectable LN passages for:
+The initial passage-location task below has reached a reviewable checkpoint: see [TNO_EMBODIMENT_EVIDENCE.md](TNO_EMBODIMENT_EVIDENCE.md). Next refine the rule records and their limits from those exact passages. Reuse the recorded access routes rather than repeating the search. The earlier access observations above remain historical, not a current claim that no text is readable.
+
+Original bounded task (retained for acceptance criteria): find inspectable LN passages for:
 
 1. Diablo's summoning and what the passage says about his appearance/body.
 2. Beretta's summoning and preparation of the associated body.
