@@ -1,5 +1,15 @@
 # Codex project instructions
 
+## Current project direction (2026-10-26)
+
+- TNO's current objective is a comprehensive, source-grounded redevelopment of the Tensura world, separate from Infinity Mod.
+- Read `docs/TNO_WORLD_RESEARCH_STATE.md` for world research, source policy, redevelopment scope, and the current evidence task; read `docs/CODEX_STATE.md` for the relationship to preserved implementation.
+- The compatibility/Stage rules below protect the existing implementation. They do not approve Stages, EP-based control, or the old compatibility roadmap for the new world design.
+- Use the user's selected Slime Reader and FlipHTML5 LN access points documented in the research state; record the actual translation, edition, location, and access level.
+- Current work is source research and documentation. Preserve production while the source-to-design relationship is established; no broad gameplay rewrite or Royal Variations pilot is authorized by this checkpoint.
+
+## Preserved implementation and execution constraints
+
 - Treat this file as a map, not a request to preload the repository.
 - Read `docs/CODEX_STATE.md` only for architecture, Stage-system, or project-wide decisions. For local tasks, read only the files needed for that task.
 - Work on `codex/production-continuation`. Do not modify `main` or `external-effects-catalog-research` unless explicitly requested.

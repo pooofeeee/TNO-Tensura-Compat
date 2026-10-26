@@ -1,5 +1,15 @@
 # TNO Tensura Compat — live Codex state
 
+## Current direction — reconciled 2026-10-26
+
+The current user-approved objective is comprehensive Tensura world redevelopment, preceded by source-backed research. The active branch remains `codex/production-continuation`, verified at `af391700ae546c748bd7621b29df4bd7bad654c3` before this documentation update. `main` is not the development baseline.
+
+Read [TNO_WORLD_RESEARCH_STATE.md](TNO_WORLD_RESEARCH_STATE.md) for current requirements, approved LN access links, continuity policy, research progress, and unresolved decisions. The immediate evidence task is Diablo/Beretta summoning and embodiment, not a Stage integration pilot.
+
+The snapshot below is preserved historical compatibility state. Its purpose, Stage/EP design, archive checkpoint, and next milestone do not supersede the newer project direction. Existing code remains protected; no gameplay changes are made by this reconciliation. The archive's currently verified head is `301601ec6afa62e5cc8dc8f0c24759c937c1ba71`; its NEB dependency blocker remains separate from LN research.
+
+## Preserved compatibility snapshot
+
 ## Purpose
 
 TNO integrates selected external-mod gear and combat mechanics into Tensura progression without replacing the native mechanic.
