@@ -64,7 +64,7 @@ Try the site's exposed reading/export options when needed. Opening a landing pag
 
 ## Current evidence checkpoint and next research task
 
-The initial passage-location task below has reached a reviewable checkpoint: see [TNO_EMBODIMENT_EVIDENCE.md](TNO_EMBODIMENT_EVIDENCE.md). Next refine the rule records and their limits from those exact passages. Reuse the recorded access routes rather than repeating the search. The earlier access observations above remain historical, not a current claim that no text is readable.
+The initial passage-location task and its targeted rule refinement are complete for the inspected scenes: see [TNO_EMBODIMENT_EVIDENCE.md](TNO_EMBODIMENT_EVIDENCE.md), records E-BER-001-R1 and E-DIA-001-R1. Body, energy, vessel/offering and contract/service fields now separate explicit evidence, inference and unresolved limits. Next address the recorded physical-presence/temporary-body ambiguity with identifiable applicable evidence; Japanese access is unverified. Reuse the recorded access routes rather than repeating the search. The earlier access observations above remain historical, not a current claim that no text is readable.
 
 Original bounded task (retained for acceptance criteria): find inspectable LN passages for:
 
@@ -101,7 +101,7 @@ Still unresolved:
 
 ## Efficiency and handoff
 
-Keep the user's selected GPT-6.1 Sol with High reasoning. Save usage through targeted reads/searches, reuse of verified results, bounded tool output, and relevant validation; never by reducing model capability or dropping necessary evidence.
+For the transferred Codex research task, the user's 2026-10-26 instruction requests GPT-6 Astra / Extra High (xhigh), superseding the earlier GPT-6.1 Sol / High preference still recorded in AGENTS.md. The requested task setting is not proof of the model's actual runtime identity; do not substitute another model if unavailable. Save usage through targeted reads/searches, reuse of verified results, bounded tool output, and relevant validation; never by reducing model capability or dropping necessary evidence.
 
 Use one agent by default. Do not install Caveman, RTK, Headroom, Ponytail, hooks, or MCP servers merely because their names came up. No savings measurement or installation is claimed by this checkpoint.
 
