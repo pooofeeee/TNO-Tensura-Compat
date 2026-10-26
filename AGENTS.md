@@ -20,3 +20,11 @@
 - Keep terminal output bounded. Redirect verbose Gradle/Minecraft output to a file; inspect the failure, matching errors, or a short tail instead of dumping full logs into context.
 - Do not create benchmark/evidence trees for ordinary implementation work.
 - Do not start the Royal Variations pilot until explicitly requested. Current pilot candidates are Dazed, Marked, and Time Bomb.
+
+## Usage budget discipline
+- Keep the user's selected Sol 6.1 / High reasoning unchanged; save work through focused context and fewer redundant calls, not by lowering reasoning.
+- Define the task's required outcome and stop condition before exploring. Start with `rg`, specific file paths, and existing decision records.
+- Single agent by default; use subagents only for genuinely independent subproblems with a demonstrable net benefit.
+- If the same operation fails twice without changed conditions, investigate the cause rather than looping.
+- For task transitions, use the canonical state instead of replaying previous chats; compact only when necessary and preserve key decisions and unresolved blockers.
+- Final report: changed paths, targeted/full checks actually run, and outstanding issues. No unrequested third-party token hooks or broad MCP additions.
