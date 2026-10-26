@@ -65,6 +65,32 @@ Source: [Volume 5, chapter 4, viewer P205–206; chapter 5, P251–253](https://
 
 The four requested fields are now recorded for both cases, including explicit gaps. Prior evidence remains preserved. These records do not approve a universal embodiment sequence, energy formula, vessel rule, or gameplay implementation.
 
-Next bounded research question: resolve the meaning and scope of the physical-presence statement against the temporary-body passage in Volume 4 P288–290, using an identifiable Japanese counterpart if accessible or a separately documented applicable LN clarification. Japanese access remains unverified; do not invent a comparison or repeat the passage-location hunt.
+Follow-up question: the meaning and scope of the physical-presence statement against the temporary-body passage in Volume 4 P288–290. The bounded attempt and remaining evidence requirement are recorded in E-BER-001-Q1 below; do not repeat the completed access check without a new source/locator.
 
 Validation for this pass: checked every new claim against the specified viewer markers, speaker and context; reviewed the documentation diff for preservation and scope. No code, builds, runtime tests, complete-book reading or archive research.
+
+## E-BER-001-Q1 — physical presence: bounded follow-up (2026-10-26)
+
+**Outcome: partial constraint, not a resolved Japanese wording comparison.** Reused E-BER-001-R1; did not restart the Beretta/Diablo scenes or glossary work.
+
+### Japanese access actually checked
+
+- The [GC Novels publisher catalogue](https://gcnovels.jp/slime/novel.html) links its Volume 4 sample through ISBN 9784896375022 to [BOOK WALKER's official trial](https://bookwalker.jp/web_rd/?adpcnt=7qM_PsvB&isbnet=9784896375022). The [retailer record](https://bookwalker.jp/ded1673020-607d-4ead-82d2-8d0a223d2814/) identifies Fuse/Mitz Vah, GC Novels, and an edition reformatted for electronic distribution.
+- Web extraction could not open the redirected trial viewer. Browser inspection succeeded: title Volume 4, page counter ending at **34/34**. The contents listed chapter 7, **七章 救われる魂**, but selecting it did not expose its text; the last available page was early narrative, not the target scene. These are one publisher-linked sample route, not two independent textual witnesses.
+- Access level: official bibliographic record and limited Japanese sample inspected. The Japanese counterpart of English viewer P288–290 was **not reached**. This is a sample/access limit, not evidence that the original lacks an answer. No purchase, subscription, full-text upload, or access-control bypass.
+
+### E-LN11-001 — conditional LN comparison
+
+[Volume 11](https://fliphtml5.com/efxnj/gabb/That_Time_I_Got_Reincarnated_as_a_Slime,_Vol.11/), chapter 3: heading P108; scene P136, context P137. Credits at P04 identify **DasRay/Anna's English fan translation, third edition, March 2023**, not Yen On. Text and credits were directly read; Japanese fidelity and upload authenticity remain unverified.
+
+- **Explicit narration, Leon/knights scene:** overlap at the Gate of Hell permits brief physical-world influence by demons without physical bodies; Jaune's activity range is limited before obtaining one.
+- **Inference:** this conditional case rules out adopting an unrestricted no-physical-influence reading from the earlier English phrase.
+- **Unknown:** whether Beretta uses that mechanism or the two translations' terms correspond. This passage cannot establish either connection or resolve the Japanese wording.
+
+### What remains open and the exact evidence needed
+
+A distinction between lasting embodiment and temporary manifestation is a **working interpretation**, not a verified translation or universal rule. Neither a mistranslation nor an irreconcilable contradiction has been established.
+
+To resolve the wording question, inspect an identifiable Japanese LN Volume 4, chapter 7 copy at the paragraphs corresponding to English viewer P288–290: temporary-body decay/support and the later physical-presence/incarnation statement, including surrounding sentences. Record its edition and its own page/location; do not carry English viewer numbers into Japanese pagination. Compare the actual terms and duration/condition qualifiers. Alternatively, a located LN passage must explicitly connect those same summoning conditions to the distinction; the gate example alone cannot supply that bridge.
+
+**Stop condition reached:** one official Japanese sample route and one directly inspectable independent LN scene checked. No wider census, WN substitution, or repeated access hunt. Resume this particular question only with a concrete new source/locator. The two original case records remain valid within their recorded limits; no gameplay rule is approved.

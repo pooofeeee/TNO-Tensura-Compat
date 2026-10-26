@@ -64,7 +64,7 @@ Try the site's exposed reading/export options when needed. Opening a landing pag
 
 ## Current evidence checkpoint and next research task
 
-The initial passage-location task and its targeted rule refinement are complete for the inspected scenes: see [TNO_EMBODIMENT_EVIDENCE.md](TNO_EMBODIMENT_EVIDENCE.md), records E-BER-001-R1 and E-DIA-001-R1. Body, energy, vessel/offering and contract/service fields now separate explicit evidence, inference and unresolved limits. Next address the recorded physical-presence/temporary-body ambiguity with identifiable applicable evidence; Japanese access is unverified. Reuse the recorded access routes rather than repeating the search. The earlier access observations above remain historical, not a current claim that no text is readable.
+The initial passage-location task and its targeted rule refinement are complete for the inspected scenes: see [TNO_EMBODIMENT_EVIDENCE.md](TNO_EMBODIMENT_EVIDENCE.md), records E-BER-001-R1 and E-DIA-001-R1. Body, energy, vessel/offering and contract/service fields now separate explicit evidence, inference and unresolved limits. The bounded physical-presence follow-up is recorded as E-BER-001-Q1: the official Japanese sample did not reach the matching passage; E-LN11-001 supplies a conditional comparison, not a definitive wording resolution. Keep that ambiguity open; resume it only with the specified Japanese counterpart or a directly connecting LN passage, not another general access hunt. Reuse the recorded access routes rather than repeating the search. The earlier access observations above remain historical, not a current claim that no text is readable.
 
 Original bounded task (retained for acceptance criteria): find inspectable LN passages for:
 
