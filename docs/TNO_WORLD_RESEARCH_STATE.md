@@ -1,6 +1,6 @@
 # TNO world redevelopment — decisions and research state
 
-Updated: 2026-10-26. This is the compact record of the user's newer project direction and source decisions. It supersedes the old compatibility roadmap as the current objective; it does not invalidate or delete the existing implementation.
+Updated: 2026-10-28. This is the compact record of the user's newer project direction and source decisions. It supersedes the old compatibility roadmap as the current objective; it does not invalidate or delete the existing implementation.
 
 ## Repository and branch
 
@@ -65,6 +65,16 @@ Try the site's exposed reading/export options when needed. Opening a landing pag
 ## Current evidence checkpoint and next research task
 
 The initial passage-location task and its targeted rule refinement are complete for the inspected scenes: see [TNO_EMBODIMENT_EVIDENCE.md](TNO_EMBODIMENT_EVIDENCE.md), records E-BER-001-R1 and E-DIA-001-R1. Body, energy, vessel/offering and contract/service fields now separate explicit evidence, inference and unresolved limits. The bounded physical-presence follow-up is recorded as E-BER-001-Q1: the official Japanese sample did not reach the matching passage; E-LN11-001 supplies a conditional comparison, not a definitive wording resolution. Keep that ambiguity open; resume it only with the specified Japanese counterpart or a directly connecting LN passage, not another general access hunt. Reuse the recorded access routes rather than repeating the search. The earlier access observations above remain historical, not a current claim that no text is readable.
+
+### 2026-10-28 continuation
+
+Verified branch baseline: `f78a02df3dfe94645925668c66cc805b7418bb6b`. Read this branch's AGENTS.md, this state, the evidence record and relevant CODEX_STATE.md context. No literal STATE.md was found in the root/docs listings; these are the canonical research files designated by AGENTS.md. No local checkout was available.
+
+Completed the bounded artificial-vessel/transfer batch as **E-LN11-002**, with explicit statements, interpretation, unknowns and a documented P98 image-access/extraction limit. Use that record rather than repeating the scene or treating the earlier provisional design as the implemented vessel. E-BER-001-Q1 is still open; no new Japanese locator was obtained and its completed sample search was not repeated.
+
+**Next bounded task:** LN11 chapter 2, viewer P85–88, Ifrit's separate case; consult P79–80 only for necessary vessel-preparation context. Record compatibility, transfer/naming conditions and any stated energy source, keeping character claims and inference separate. Stop at one reviewable case record with explicit gaps. Do not presume demon mechanics apply to Ifrit or reopen the Japanese search without the source specified in Q1.
+
+Only the evidence and world-research-state documents are updated for this checkpoint. Validation is source/location review, preservation/scope review and remote commit/content verification; no code/build/runtime tests are warranted for this documentation-only batch.
 
 Original bounded task (retained for acceptance criteria): find inspectable LN passages for:
 

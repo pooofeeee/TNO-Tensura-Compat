@@ -1,6 +1,6 @@
 # Embodiment evidence checkpoint — 2026-10-26
 
-Status: two translated LN passages directly inspected; broader ontology remains open.
+Initial status: two translated LN passages directly inspected. Later bounded additions are dated below; broader ontology remains open.
 
 ## Access and provenance
 
@@ -94,3 +94,24 @@ A distinction between lasting embodiment and temporary manifestation is a **work
 To resolve the wording question, inspect an identifiable Japanese LN Volume 4, chapter 7 copy at the paragraphs corresponding to English viewer P288–290: temporary-body decay/support and the later physical-presence/incarnation statement, including surrounding sentences. Record its edition and its own page/location; do not carry English viewer numbers into Japanese pagination. Compare the actual terms and duration/condition qualifiers. Alternatively, a located LN passage must explicitly connect those same summoning conditions to the distinction; the gate example alone cannot supply that bridge.
 
 **Stop condition reached:** one official Japanese sample route and one directly inspectable independent LN scene checked. No wider census, WN substitution, or repeated access hunt. Resume this particular question only with a concrete new source/locator. The two original case records remain valid within their recorded limits; no gameplay rule is approved.
+
+## E-LN11-002 — artificial vessels and transfer/naming sequence (2026-10-28)
+
+**Scope:** one bounded continuation after E-LN11-001; Diablo's recruits, not a universal embodiment model. Source: [LN Volume 11](https://fliphtml5.com/efxnj/gabb/That_Time_I_Got_Reincarnated_as_a_Slime,_Vol.11/), chapter 2, *New Companions* (heading P64). Reuse the recorded DasRay/Anna English fan translation, third edition, March 2023; credits were not rechecked in this pass. Viewer markers below are not print pages. No Japanese comparison or upload authentication.
+
+**Direct textual evidence:**
+
+- **Rimuru, P77–78:** supplied capsules grow the vessels. Implemented figures contain Spirit Magic Cores and Emulated Souls; the earlier bare-skeleton plan is not their final design.
+- **Rimuru, [P98](https://fliphtml5.com/efxnj/gabb/That_Time_I_Got_Reincarnated_as_a_Slime,_Vol.11/98/):** bodiless demons lose mana here over time. Beelzebuth takes them in; Raphael fuses them with the figures' Emulated Souls.
+- **Rimuru, [P99](https://fliphtml5.com/efxnj/gabb/That_Time_I_Got_Reincarnated_as_a_Slime,_Vol.11/99/)–[P101](https://fliphtml5.com/efxnj/gabb/That_Time_I_Got_Reincarnated_as_a_Slime,_Vol.11/101/):** transfer succeeds before naming. Two–three days is an integration estimate; the trio's possession completes immediately after naming.
+- **Raphael, P102:** capsule magicules can fund the remaining names.
+
+**Inference:** transfer and completed possession are distinguishable in this scene. Construction supply, naming fuel and continuing upkeep must not be conflated.
+
+**Unknown:** minimum energy, indispensable vessel components, ongoing upkeep and general applicability. Neither a fixed integration duration nor universal necessity of naming/Emulated Souls follows. E-BER-001-Q1 remains unresolved.
+
+**Access/validation:** directly read the targeted text extraction, with context P76–78 and P96–102; not a complete-book read. P98 appears out of narrative order: the body/method paragraphs precede a continuation of P97's dialogue. Its text was readable, but the embedded browser viewer remained blank and opening its title link exposed no page image. Visual verification of that page's paragraph order therefore did not complete; no access denial was reported. Chronology above uses the cross-page anchors, not P98's internal ordering. A rendered P98 from this edition would settle this extraction issue; it is not needed to re-read the already anchored sequence.
+
+**Next bounded task:** inspect the separate Ifrit case at chapter 2, viewer P85–88, with P79–80 only as needed for its vessel's preparation. Test the stated compatibility, transfer and naming conditions without importing demon conclusions. This is a located next question, not a completed finding. The Japanese Beretta question stays parked under Q1's existing evidence requirement.
+
+Documentation only: prior records preserved; no code, gameplay rules, runtime tests, full-book upload or new glossary/access census.
