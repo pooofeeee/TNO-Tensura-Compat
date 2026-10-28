@@ -76,6 +76,16 @@ Completed the bounded artificial-vessel/transfer batch as **E-LN11-002**, with e
 
 Only the evidence and world-research-state documents are updated for this checkpoint. Validation is source/location review, preservation/scope review and remote commit/content verification; no code/build/runtime tests are warranted for this documentation-only batch.
 
+### Ifrit batch completed — 2026-10-28
+
+Baseline checked: `dba3b18133fba4d25d99cae6bcee8f2a47df4320`. The previously queued Ifrit task is complete as **E-LN11-003** in [the evidence file](TNO_EMBODIMENT_EVIDENCE.md). Read LN11 chapter 2, viewer P85–88 directly through the existing upload; source identity reused from the register. No preparatory reread of P79–80 was needed.
+
+The record distinguishes Veldora's compatibility explanation and Raphael's agreement, Rimuru's tolerance expectation, the reported transfer/body sequence, and naming safeguards. Keep its unknowns explicit; do not turn this case or E-LN11-002 into universal spirit/demon laws. The extraction-order caveat is recorded separately from the cross-page sequence.
+
+**Current stopping point:** this bounded batch is complete and awaits review. Do not start another batch automatically. The earlier “Next bounded task” paragraph above is historical and now satisfied. Any post-P88 follow-up needs a new bounded scope; no such work is claimed here. Beretta Q1's Japanese gap and E-LN11-002's P98 image-access issue remain unchanged.
+
+Changed paths: evidence and this state only. Checks: source/speaker/location review, prior-record preservation, documentation-only scope and remote head/content verification. No code, main, builds or runtime tests.
+
 Original bounded task (retained for acceptance criteria): find inspectable LN passages for:
 
 1. Diablo's summoning and what the passage says about his appearance/body.

@@ -115,3 +115,22 @@ To resolve the wording question, inspect an identifiable Japanese LN Volume 4, c
 **Next bounded task:** inspect the separate Ifrit case at chapter 2, viewer P85–88, with P79–80 only as needed for its vessel's preparation. Test the stated compatibility, transfer and naming conditions without importing demon conclusions. This is a located next question, not a completed finding. The Japanese Beretta question stays parked under Q1's existing evidence requirement.
 
 Documentation only: prior records preserved; no code, gameplay rules, runtime tests, full-book upload or new glossary/access census.
+
+## E-LN11-003 — Ifrit: compatible core, body transfer and naming (2026-10-28)
+
+**Scope/source:** LN11, chapter 2, viewer P85–88, same upload and recorded DasRay/Anna English fan translation, third edition, March 2023 as E-LN11-001/002. Credits reused, not rechecked. Directly read the text extraction; Japanese terms/fidelity and upload authenticity remain unverified. Viewer markers are not retail print pagination.
+
+**Explicit evidence:**
+
+- **Veldora, [P85](https://fliphtml5.com/efxnj/gabb/That_Time_I_Got_Reincarnated_as_a_Slime,_Vol.11/85/):** Charybdis's remaining core retains his mana; Ifrit's prolonged exposure to his youki favors this over an Emulated Soul. **Raphael agrees.**
+- **Rimuru, P85–86:** selects the dragotite skeleton; expects greater-spirit Ifrit to withstand Veldora's magicules.
+- **Raphael, [P86](https://fliphtml5.com/efxnj/gabb/That_Time_I_Got_Reincarnated_as_a_Slime,_Vol.11/86/):** transfers Ifrit's remains to Charybdis's core, constructs a soul container, merges with the body. **Narration:** operation completes; flesh forms and Ifrit speaks.
+- **P88:** naming follows. Rimuru warns excess magicules endanger the recipient; Veldora proposes cutoff through Soul Corridor, Raphael accepts oversight.
+
+**Inference:** this case supports embodiment before naming; the compatibility choice is contextual, not a universal recipe.
+
+**Unknown:** numeric tolerance/cost, upkeep, minimum components, whether alternatives fail. No Emulated Soul impossibility is established.
+
+**Access and interpretation limits:** P88's extraction places the previous conversation's continuation after the naming sentence. No conclusion relies on that internal ordering; P86 versus P88 anchors the sequence. The selected range supports the naming proposal/safeguard and its occurrence, not a detailed post-naming outcome. Further effects require separately scoped continuation; no finding from beyond P88 is incorporated. Terms such as “remains,” “soul container” and “merges” retain this translation's wording, not a settled Japanese ontology.
+
+**Validation/stop:** reviewed claim, speaker, viewer marker and scope; retained all earlier records. The P85–88 task is complete. No new batch is started or authorized by this record; await review. Beretta Q1 and the independent P98 image-order issue remain as previously recorded. Documentation only; no code/build/runtime tests or full-book reproduction.
