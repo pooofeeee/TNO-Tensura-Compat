@@ -111,7 +111,7 @@ Still unresolved:
 
 ## Efficiency and handoff
 
-For the transferred Codex research task, the user's 2026-10-26 instruction requests GPT-6 Astra / Extra High (xhigh), superseding the earlier GPT-6.1 Sol / High preference still recorded in AGENTS.md. The requested task setting is not proof of the model's actual runtime identity; do not substitute another model if unavailable. Save usage through targeted reads/searches, reuse of verified results, bounded tool output, and relevant validation; never by reducing model capability or dropping necessary evidence.
+Latest user instruction received through the parent on 2026-10-28: use GPT-6.1 Sol / High for this Codex task's subsequent turns. This explicitly supersedes the 2026-10-26 Astra / Extra High (xhigh) request; the user's exception retaining Astra / Extra High applies only to the separate Work coordinator, not this task. Preserve this instruction history rather than treating the change as an autonomous usage-saving downgrade. A requested setting is not proof of actual runtime identity, and this checkpoint does not claim a runtime-confirmed switch. Save usage through targeted reads/searches, reuse of verified results, bounded tool output and relevant validation; do not change the user's selected model/effort autonomously.
 
 Use one agent by default. Do not install Caveman, RTK, Headroom, Ponytail, hooks, or MCP servers merely because their names came up. No savings measurement or installation is claimed by this checkpoint.
 
