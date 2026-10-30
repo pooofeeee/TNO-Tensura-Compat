@@ -266,3 +266,14 @@ L أسطر الملف، لا P أو line_N. قرئت سياقات جديدة L15
 الاقتباسان القصيران في السجل من L405 وL977، وبقية العرض تحليل وتلخيص أصلي. L329 يحفظ غموض النفي مقابل السياق ولا يُرمم النص؛ حواشي Small World/الخلود تعليقات في المصدر لا دليل مستقل على اليابانية. لا ترفع نصوص الرواية أو تصحح مصدرها في مستودعه.
 
 **مؤشر تالٍ فقط:** بحث resurrection في Volume13 أعاد Chapter1 (blob `be9e0f00c1184c858562542dd174a7c97f3e27a4`)، Chapter3، Chapter4 وEpilogue؛ لم تُقرأ هذه النتائج بعد، ولا تملك مرحلة/ترجمة/مضمونًا جديدًا معتمدًا قبل فحص Master والسياق. لا عودة إلى LN2 P256 المتحدى أو F03/P254/JP أو هوية/أهلية من الذاكرة.
+
+## إضافة REF-81/82/83 وREF-84-S — 2026-10-30
+
+**SR13-GH**، Slime Reader العام، commit `97b06b7659fcfe30a3ec396a5c2c8fa0962bbe00`. [Volume13/Master](https://github.com/tensurafan/tensurafan.github.io/blob/97b06b7659fcfe30a3ec396a5c2c8fa0962bbe00/ln/sources/Volume%2013/Master)، blob `ae3caff12667e8694444edd50f416e8edc9249ce`، يثبت **3rd Edition** واعتمادات DeepL/Wakamesalad/DasRay/Apollo. تنبيه المصدر يخص الفصلين3 و4: DeepL machine-translations مع تحرير يدوي من CharVANder. لا يصف الفصل1 وحده بأنه آلي/بشري خالص، ولا يثبت مقابلة يابانية أجراها الباحث. تاريخ هذه الطبعة غير متحقق من الموضع المفحوص.
+
+- [Chapter1: Unrest and Resolve](https://github.com/tensurafan/tensurafan.github.io/blob/97b06b7659fcfe30a3ec396a5c2c8fa0962bbe00/ln/sources/Volume%2013/Chapter%201)، blob `be9e0f00c1184c858562542dd174a7c97f3e27a4`. قرئت سياقات L65–103 و515–547 و731–815؛ المستعمل REF81 عند747–791 وREF82 عند793–799.
+- [Chapter3: Labyrinth Siege](https://github.com/tensurafan/tensurafan.github.io/blob/97b06b7659fcfe30a3ec396a5c2c8fa0962bbe00/ln/sources/Volume%2013/Chapter%203)، blob `d0f3c99c7c545ae106a678aa691e114709e81987`. بحث resurrection/bracelet عيّن السياق، وقرئ المقطع L1139–1310؛ المستعمل REF83 عند1147–1195 و1283–1307. لم يُقرأ كامل الفصل/حملة الحرب أو فصل4/Epilogue. قيد الترجمة الآلية المحررة ظاهر في التحليل.
+
+**L أسطر Markdown عند commit، لا P أو line_N.** REF84-S تجميع من السجلات السابقة وREF81–83، لا مصدر جديد أو مضاعفة للشواهد؛ لا اقتباس إنجليزي جديد أو رفع رواية. جرى الاطلاع على سجل Gaia المنشور لتثبيت نقطة الاستئناف فقط، لا إعادة عدّ مشهد الإنقاذ.
+
+لا تقيس المقاطع المفحوصة كلفة/تزامن الإحياء؛ هذا حد القراءة لا نفي جواب في كامل LN13. لم تُعد LN8/LN9 أو قنوات الإيمان/الـavatar أو المصادر المحجوبة؛ F03 وLN2/P254 وJP/P98 محفوظة.
