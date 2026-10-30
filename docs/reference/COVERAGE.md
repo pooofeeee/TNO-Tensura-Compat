@@ -8,10 +8,10 @@
 |---|---|---|---|---|
 | [Milim](characters/milim.md) | LN3 Prologue فقط؛ LN6 فصل 5؛ LN10 فصل 5 | فعل/تمثيل وتدرج معرفة وكشف خطة وإنقاذ صديق، جزئي | [مواجهة LN6](abilities/milim-walpurgis.md) ومقاومات/إنقاذ جزئي | لقاء LN3 محجوب؛ الموارد وبقية المراحل |
 | [Masayuki](characters/masayuki.md) | LN9 Prologue وفصل 4؛ LN10 فصل 1 | قرار المسايرة والاستقلال وحملة وانسحاب، جزئي | [Chosen One](abilities/chosen-one.md)، تعزيز جماعي موثق جزئيًا | المدى/المقاومات والتطور اللاحق |
-| [Hinata](characters/hinata.md) | LN4 خاتمة؛ LN5 فصل 3؛ LN7 فصل 3/5/6 وEpilogue؛ LN10 فصل 1/4 | مشاهد جزئية زمنية، مع الشك/الرسالة | [المواجهة الأولى](abilities/hinata-first-clash.md)، [قدرات LN7](abilities/hinata-ln7.md) وتصريح انتقال | بقية القتال والتطور والقيود الرقمية |
+| [Hinata](characters/hinata.md) | LN4 خاتمة؛ LN5 فصل 3؛ LN7 فصل 3/5/6 وEpilogue؛ LN8 فصل 1؛ LN10 فصل 1/4 | مشاهد جزئية زمنية، مع الشك/الرسالة | [المواجهة الأولى](abilities/hinata-first-clash.md)، [قدرات LN7](abilities/hinata-ln7.md) وتصريح انتقال | بقية القتال والتطور والقيود الرقمية |
 | [Glenda](characters/glenda.md) | LN10 فصل 4، الاغتيال ثم الأسر والتجنيد | مشاهد جزئية مترابطة | [Sniper](abilities/sniper.md)، جزئي | التطور اللاحق وحدود القدرة |
 | [Mariabell](characters/mariabell.md) | LN10 Interlude وفصل 5 وEpilogue | التفاوض والفشل والمآل، جزئي | [Greed](abilities/greed.md)، تطبيقات ومقاومات جزئية | حدود رقمية وتعميمات غير محسومة |
-| [Rimuru True Demon Lord](characters/rimuru-tdl.md) | LN5 بداية التحول؛ LN6؛ LN7؛ LN10 | مشاهد جزئية | [الجرد المرحلي](abilities/rimuru-ln5-inventory.md)، والتحول والتحليل والإنقاذ | آليات الوظائف/المقاومات ومنشأ الأهلية والتطور |
+| [Rimuru True Demon Lord](characters/rimuru-tdl.md) | LN5 بداية التحول؛ LN6؛ LN7؛ LN8 فصل 1؛ LN10 | مشاهد جزئية | [الجرد المرحلي](abilities/rimuru-ln5-inventory.md)، والتحول والتحليل والإنقاذ | آليات الوظائف/المقاومات ومنشأ الأهلية والتطور |
 | [Weak Shinro](characters/weak-shinro.md) | غير محددة | هوية معلقة | لا شيء معتمد | الاسم الأصلي/معرف الكيان/المصدر |
 
 حقول كل ملف غير المذكورة بدليل تظل غير مقروءة. لا تعني أولوية الشخصية موافقة على كيان مود باسم مشابه.
@@ -103,3 +103,14 @@
 | REF-27 | V6-W-HOLY | [حالة سحر مقدس لدى غير البشر](world/holy-magic-cases.md)، لا منظومة كاملة |
 
 MI-LN6-ACTION مغلق ضمن المقاطع المحددة، لا ضمن كل قتال مليم. لا يغلق هذا لقاء LN3 أو بقية MI-POWER وR-FUNCTIONS؛ لا كامل قوة مستنتجة من أداء داخل تمثيل.
+
+## دفعات القنوات والتوافق والتفعيل
+
+| الدفعة | السجل | حدود الإنجاز |
+|---|---|---|
+| REF-28 | V7-W-HOLY-HIN | توافق علاج، دعم حيوي، وفعل Holy Miracle؛ لا معيار موت/إحياء شامل |
+| REF-29 | V8-W-FAITH | تصريح Luminas عن قناة عقد الإيمان؛ لا خريطة موارد مكتملة |
+| REF-30 | V7-W-CAST | تعلم/تدريب وتفكيك قبل التفعيل في مواجهة واحدة |
+| REF-31 | V8-H-PACT | مقترح إعلان وتحذير من تبعاته، لا تغيير لنتيجة القتال |
+
+تربط [حالات السحر المقدس](world/holy-magic-cases.md) الإيمان والتفعيل دون مساواة جميع القنوات، وتفصل [حالة الإبطال](world/magic-activation-cases.md) توقيت التدخل عن الحصانة المطلقة. HOLY-CHANNELS مغلق كدفعة مقارنة محددة فقط؛ الإمداد/التفويض والتغطية العامة ما زالا جزئيين.
