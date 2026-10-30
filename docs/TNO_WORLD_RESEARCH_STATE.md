@@ -11,7 +11,7 @@ The user's latest instruction expands the research deliverable to a permanent, d
 
 Baseline verified: `c52800e93cda5d48b0b1834268f024a3cd1df407`. New batches REF-01/02/03/04 directly inspected selected LN10 and LN6 scenes through Slime Reader's browser. Translation editions and electronic paragraph anchors are recorded in the source register. Existing embodiment records were linked without repeating their research. “Weak Shinro” remains unresolved; repository search returned incomplete results and is not absence evidence.
 
-**Resume:** RTDL-BASE in the reference gap ledger, then targeted Masayuki/Hinata expansion. GL-END and MB-FIELD were completed by REF-05/06, with a linked Milim/Rimuru rescue case added in REF-07. Continue independent useful work around a blocked passage. Save evidence and coverage at milestones; do not imply unattended execution after a turn ends. No automation, replacement task, Work-executor message or server operation was created. The parent transfers reviewed material when needed.
+**Resume:** RTDL-SKILLS in the reference gap ledger: F05 chapter 5 ability review after awakening, then new bounded resistance/condition checks for Masayuki and Hinata. RTDL-BASE and their initial ability expansions are complete as REF-08/09/10. GL-END and MB-FIELD were completed by REF-05/06, with a linked Milim/Rimuru rescue case added in REF-07. Continue independent useful work around a blocked passage. Save evidence and coverage at milestones; do not imply unattended execution after a turn ends. No automation, replacement task, Work-executor message or server operation was created. The parent transfers reviewed material when needed.
 
 Documentation-only changes: new reference tree and this state. Checks: source/edition/speaker/locator review, internal relative-link validation, historical-evidence preservation and remote commit/content verification. No code or runtime tests.
 
@@ -149,3 +149,13 @@ Baseline: `86fc5c8d0f66ec3fd08442cefbf3dd91246a3610`. Rechecked the designated b
 - REF-07 adds Milim/Rimuru cooperation and the Gaia core operation; vessel preparation is separated from expected future recovery. No completed general resurrection system is claimed.
 
 Source ranges, interpretation, capability limits and new gaps are linked through the reference index. Coverage remains partial. Next: RTDL-BASE, followed by specific Masayuki/Hinata evidence. No general permission request is needed. Only reference documentation and this state changed; internal-link/preservation/scope checks and remote head/content verification are the validation for this batch. No code/build/runtime tests.
+
+## Reference continuation REF-08/09/10 — 2026-10-30
+
+Baseline checked: `bec913a4855cf62526f1d35cd7255a818f973610`. Followed the saved queue without repeating Diablo's case or earlier character scenes.
+
+- REF-08 locates Rimuru's eligibility statement, condition discussion, Harvest Festival onset and selected body/skill changes in F05. Quantity alone is not adopted as a sufficient universal rule; original eligibility and full skill inventory remain gaps.
+- REF-09 adds SR09's Chosen One description and the tournament withdrawal, with SR10's later worry about Gozer. Withdrawal is not reported as skill deactivation; reputation, party effects and personal fighting ability stay separate.
+- REF-10 records SR07's Usurper, Mathematician and Melt Slash in their LN7 phase, including interference, training/body constraints and Raphael's later clarification. Figurative “ultimate” is not a classification change, and a counterfactual survival explanation is not an observed hit without defense.
+
+Sources, coverage and gaps now point to RTDL-SKILLS; identity/Japanese/access gaps remain preserved. Only reference documentation and this state changed. Checks: source/edition/speaker/phase review, relative-link and preservation/scope review, remote head/content verification. No code/build/runtime tests.
