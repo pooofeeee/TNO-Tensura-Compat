@@ -469,3 +469,24 @@ REF108 عند243–255 مع269–271 للمورد؛ REF109 عند257–277. يُ
 | [Epilogue: Rage](https://github.com/tensurafan/tensurafan.github.io/blob/97b06b7659fcfe30a3ec396a5c2c8fa0962bbe00/ln/sources/Volume%2014/Epilogue#L25-L65) | `4d861ea1f9d9827eb59c8aff7986dc2c56b552b2` | L25–65 حول نتيجة الاسم41، لتحديد منظور ريمورو والتراجع والسياق اللاحق |
 
 لم يُقرأ الفصل/الخاتمة كاملين أو يعاد C4/C2، ولم تعتمد تفاصيل القتال/السيطرة أو الحاشية في C3 عن charisma كقواعد قدرات جديدة. [تدقيق المؤشرين](characters/masayuki-war-betrayal-ln13-14.md) لا يثبت فعل Masayuki بعد الصدمة أو علمه/سبب الأوامر، ولا زمن حوار الشعر. النتيجة قصور المؤشرين وإغلاق المسار المحدد لا غياب الجواب من الرواية. لا اقتباسات طويلة أو مسارات وصول محجوبة.
+
+## B-TRADE-PAYMENT — REF122-A/123–125، 2026-10-30
+
+**تعيين الاختيار دون بحث واسع:** استُعملت نتائج بحث Glenda المقيدة بـLN12/13؛ الأولى عينت C2، والثانية أعادت صفر نتائج ولا تعد نفيًا في الرواية. أظهر payment المقيد بـLN9 Interlude2 وC5. هذه مؤشرات وصول لا أدلة وحدها؛ لم يُقرأ كل فصل/مجلد أو تعد نتائج كلمات متناثرة سياقًا.
+
+### REF122-A — حد مؤشر Glenda
+
+[SR12-GH C2: Outcomes and Preparation](https://github.com/tensurafan/tensurafan.github.io/blob/97b06b7659fcfe30a3ec396a5c2c8fa0962bbe00/ln/sources/Volume%2012/Chapter%202#L367-L389)، blob `d67c9190652c82dca24b19e0f1454a30fcf00333`، عند المصدر المثبت. **قرئ L367–389**؛ العضوية عند381. اعتمادات Master السابقة Wakamesalad/DasRay/Anna، 2nd Edition يعاد استعمالها، لا مقارنة JP. تقديرات القوة/تنظيم الوحدات المحيطة ليست ملف جيش جديدًا أو قيودًا سحرية على Glenda.
+
+### SR09-GH — أزمة النقد وتسويتها
+
+عند commit `97b06b7659fcfe30a3ec396a5c2c8fa0962bbe00`. أُعيد فحص [Master](https://github.com/tensurafan/tensurafan.github.io/blob/97b06b7659fcfe30a3ec396a5c2c8fa0962bbe00/ln/sources/Volume%209/Master)، blob `0734a9cbc9d727fd684faf12e2c13b5d5dfa6eab`: DasRay/Anna، **3rd Edition**، تحرير Voxel/Squishy/Censored/Sushi، وتاريخ هذا المسار غير متحقق. لا توريث تاريخ مارس2023 أو صفة رسمية/مطابقة يابانية. إنجليزية fan translation؛ لا حسم حقوق الرفع.
+
+| النص | blob | القراءة/حد الاستعمال |
+|---|---|---|
+| [Interlude2: Problems Emerging](https://github.com/tensurafan/tensurafan.github.io/blob/97b06b7659fcfe30a3ec396a5c2c8fa0962bbe00/ln/sources/Volume%209/Interlude%202#L79-L249) | `4ae0794d8a51ccc02ff5415ad458d52080336568` | L79–249؛ REF123 عند89–143، REF124 عند183–249، مع موقف151 من فرض القواعد. لا تتمة السهرة أو مسح الشخوص |
+| [C5: After the Festival](https://github.com/tensurafan/tensurafan.github.io/blob/97b06b7659fcfe30a3ec396a5c2c8fa0962bbe00/ln/sources/Volume%209/Chapter%205#L253-L365) | `ce49d597939a4f9983bcef93601b2c0a9ae88276` | L1–45 و47–89 و253–365؛ المستعمل للدفع275–355. مصدر بعض النقود من Elmesia ترجيح الراوي335، لا مقدار تمويل موثق |
+
+**L أسطر Markdown عند commit لا صفحات P أو line_N**. القراءة القديمة لـC5 L1239–1285 تخص تدريب الكهنة ولا تتداخل؛ لم تعد حوادث البطولة أو الحظ أو المتاهة. ظهرت أسطر منفردة في تعيين الكلمات بعد365، ومنها661–685، ولم يقرأ سياقها أو يعتمد مضمونها؛ لا مؤشر تصنيع معتمد منها الآن.
+
+Raphael207 تقرير رفض بديل؛ ريمورو211 يرى الأرقام، وليس اختبار كشف نسخة مصنوعة. وفي C5 إعلان الأصالة بعد أداة تقييم وشهود ثم إتمام دفع حالة محددة. تصريح الراوي103 عن الفائدة وتقرير Myourmiles127 عن الميثاق محفوظان بصاحبهما وحد السياق، لا قوانين أضافها الباحث أو مقابلة نص ميثاق/JP. لا اقتباسات إنجليزية جديدة أو نصوص طويلة؛ القيود النصية/Albert ومسار Masayuki المغلق لم يعاد فتحها.
