@@ -1,6 +1,19 @@
 # TNO world redevelopment — decisions and research state
 
-Updated: 2026-10-28. This is the compact record of the user's newer project direction and source decisions. It supersedes the old compatibility roadmap as the current objective; it does not invalidate or delete the existing implementation.
+Updated: 2026-10-30. This is the compact record of the user's newer project direction and source decisions. It supersedes the old compatibility roadmap as the current objective; it does not invalidate or delete the existing implementation.
+
+
+## Active reference programme — 2026-10-30
+
+The user's latest instruction expands the research deliverable to a permanent, detailed LN reference for characters, behaviour, abilities and world laws, intended for later implementation work. It explicitly authorizes successive evidence batches without requesting general permission after each one, superseding the 2026-10-28 “await review / do not start another batch” checkpoint below. Historical evidence and its uncertainties remain preserved.
+
+**Canonical entry point:** [docs/reference/README.md](reference/README.md), with coverage, sources, character/ability/world chapters and a gap/resume ledger. Initial priorities are Milim, Masayuki, Hinata, Glenda, Mariabell, Rimuru at True Demon Lord stage, and the user's “Weak Shinro” label after identity verification. These are priority targets, not a complete series census. No character dossier is claimed complete.
+
+Baseline verified: `c52800e93cda5d48b0b1834268f024a3cd1df407`. New batches REF-01/02/03/04 directly inspected selected LN10 and LN6 scenes through Slime Reader's browser. Translation editions and electronic paragraph anchors are recorded in the source register. Existing embodiment records were linked without repeating their research. “Weak Shinro” remains unresolved; repository search returned incomplete results and is not absence evidence.
+
+**Resume:** GL-END in the reference gap ledger, then MB-FIELD and the remaining queue. Continue independent useful work around a blocked passage. Save evidence and coverage at milestones; do not imply unattended execution after a turn ends. No automation, replacement task, Work-executor message or server operation was created. The parent transfers reviewed material when needed.
+
+Documentation-only changes: new reference tree and this state. Checks: source/edition/speaker/locator review, internal relative-link validation, historical-evidence preservation and remote commit/content verification. No code or runtime tests.
 
 ## Repository and branch
 
