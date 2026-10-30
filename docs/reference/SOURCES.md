@@ -241,3 +241,16 @@ L أسطر الملف، لا P أو line_N. قرئت سياقات جديدة L15
 **مؤشرات فقط:** بحث Avatar Core في Volume10 أعاد Chapter2 وChapter5 (blob `a35b178f07d2f5c7f37057c5d4bfae51905cfb5a`)؛ لم يُقرأ فصل5 في هذه الدفعة لأنه قد يتداخل مع شاهد Gaia المحفوظ. بحث Revival في Volume9 أعاد Chapter4 (blob `f415328bce63b4738be3d66ae4af23342038f585`) وChapter5؛ ليست شواهد إحياء مقروءة بعد، ولا تُنقل لها أرقام line_N السابقة.
 
 لم يُفتح مصدر LN2 المتحدى أو P256 أو F03/P254، ولم يُعد البحث السابق عن الأهلية/JP. هذه فصول من مصدر Slime Reader المسموح، لا التفاف على قيد FlipHTML5.
+
+## إضافة REF-73/74/75/76 — 2026-10-30
+
+**SR09-GH**، مستودع Slime Reader العام عند `97b06b7659fcfe30a3ec396a5c2c8fa0962bbe00`. [Volume9/Master](https://github.com/tensurafan/tensurafan.github.io/blob/97b06b7659fcfe30a3ec396a5c2c8fa0962bbe00/ln/sources/Volume%209/Master)، blob `0734a9cbc9d727fd684faf12e2c13b5d5dfa6eab`، يثبت DasRay/Anna، **3rd Edition**. تاريخ طبعة هذا المسار غير متحقق؛ بيانات SR09 السابقة لا تنشئ مقابلة كاملة أو شاهد ترجمة مستقلًا.
+
+- [Chapter4: The Final Round and the Dungeon Opening](https://github.com/tensurafan/tensurafan.github.io/blob/97b06b7659fcfe30a3ec396a5c2c8fa0962bbe00/ln/sources/Volume%209/Chapter%204)، blob `f415328bce63b4738be3d66ae4af23342038f585`. قرئت L1137–1253 وL1847–1925 وL1939–1983 وL849–865. المستعمل REF73 عند1155–1189، REF74 عند1219–1243 و1939–1979 مع855–859، REF75 عند1861–1919 و1959–1967.
+- [Chapter5: After the Festival](https://github.com/tensurafan/tensurafan.github.io/blob/97b06b7659fcfe30a3ec396a5c2c8fa0962bbe00/ln/sources/Volume%209/Chapter%205)، blob `ce49d597939a4f9983bcef93601b2c0a9ae88276`. قرئت L1239–1285، المستعمل REF76 عند1257–1285.
+
+**L أسطر Markdown عند commit، لا صفحات P أو line_N للواجهة**. العنوانان مثبتان في L1؛ | فاصل تنسيق. بحث Revival/Resurrection/bracelet عيّن مقاطع جديدة، ولم تُعد مباريات Masayuki أو تعريف Chosen One المنشور. لم يُقرأ الفصلان كاملين أو مجلد كامل، ولا تدقيق ياباني/حقوق رفع. الاقتباس القصير يثبت قيد المكان من C4 L1157؛ بقية العرض تحليل وتلخيص أصلي.
+
+اختلاف Revival/Resurrection في نص المصدر محفوظ، ولا يُسوّى الاسم وحده بـReturn Whistle أو سوار حفظ الكور. بيانات زمن العرض وعودة Floor Boss ليست كلفة/تبريد الإحياء ولم تُستخدم كذلك.
+
+**مؤشر تالٍ فقط:** بحث resurrect في Volume8 عيّن Chapter3، blob `e80511a2708034e47307cae6f119277d9e945ab1`؛ لا محتوى معتمد منه قبل القراءة. لا إعادة مصدر LN2 المتحدى أو F03/P254/JP، ولا شواهد جديدة من مراجعة REF69–72/REF68 بالإحالة.
