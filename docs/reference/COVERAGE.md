@@ -9,7 +9,7 @@
 | [Milim](characters/milim.md) | LN3 Prologue فقط؛ LN6 فصل 5؛ LN10 فصل 5 | فعل/تمثيل وتدرج معرفة وكشف خطة وإنقاذ صديق، جزئي | [مواجهة LN6](abilities/milim-walpurgis.md) ومقاومات/إنقاذ جزئي | لقاء LN3 محجوب؛ الموارد وبقية المراحل |
 | [Masayuki](characters/masayuki.md) | LN9 Prologue وفصل 4؛ LN10 فصل 1 | قرار المسايرة والاستقلال وحملة وانسحاب، جزئي | [Chosen One](abilities/chosen-one.md)، تعزيز جماعي موثق جزئيًا | المدى/المقاومات والتطور اللاحق |
 | [Hinata](characters/hinata.md) | LN4 خاتمة؛ LN5 فصل 3؛ LN7 فصل 3/5/6 وEpilogue؛ LN8 فصل 1؛ LN10 فصل 1/4 | مشاهد جزئية زمنية، مع الشك/الرسالة | [المواجهة الأولى](abilities/hinata-first-clash.md)، [قدرات LN7](abilities/hinata-ln7.md) وتصريح انتقال | بقية القتال والتطور والقيود الرقمية |
-| [Glenda](characters/glenda.md) | LN10 فصل 4، الاغتيال ثم الأسر والتجنيد | مشاهد جزئية مترابطة | [Sniper](abilities/sniper.md)، جزئي | التطور اللاحق وحدود القدرة |
+| [Glenda](characters/glenda.md) | LN7 فصل 3؛ LN10 فصل 4، الاغتيال ثم الأسر والتجنيد | مشاهد جزئية مترابطة | [Sniper](abilities/sniper.md)، جزئي | التطور اللاحق وحدود القدرة |
 | [Mariabell](characters/mariabell.md) | LN10 Interlude وفصل 5 وEpilogue | التفاوض والفشل والمآل، جزئي | [Greed](abilities/greed.md)، تطبيقات ومقاومات جزئية | حدود رقمية وتعميمات غير محسومة |
 | [Rimuru True Demon Lord](characters/rimuru-tdl.md) | LN5 بداية التحول؛ LN6؛ LN7؛ LN8 فصل 1؛ LN10 | مشاهد جزئية | [الجرد المرحلي](abilities/rimuru-ln5-inventory.md)، والتحول والتحليل والإنقاذ | آليات الوظائف/المقاومات ومنشأ الأهلية والتطور |
 | [Weak Shinro](characters/weak-shinro.md) | غير محددة | هوية معلقة | لا شيء معتمد | الاسم الأصلي/معرف الكيان/المصدر |
@@ -133,3 +133,15 @@ MI-LN6-ACTION مغلق ضمن المقاطع المحددة، لا ضمن كل �
 | REF-35 | V7-SHION-ACT | أمر منسوب، غضب/ضبط وتفاوض وتدرج معرفة المراقب |
 
 [السجل المشترك](world/holy-cannon-barrier.md) يغلق مرشح R-RESIST-HOLY-CANNON بعد تصحيح صاحبة المشهد إلى شِيون. لا يكمل موارد Cook أو مقاومته أو بقية قدرات ريمورو.
+
+## دفعات التجهيز والتنبؤ والتطور
+
+| الدفعة | السجل | حدود الإنجاز |
+|---|---|---|
+| REF-36 | V7-H-ARMAMENT | تبديل التجهيز وشرط استعمال موصوف؛ علاقة الحالة بالتطور غير محسومة |
+| REF-37 | V7-R-BLADE | إعداد سلاح وتقرير خطر مورد ومقارنة منظورين |
+| REF-38 | V7-R-PREDICT | تعلم وتطبيق وتنبؤ ناجح مشروط، مع قيد وتعامل الخصم |
+| REF-39 | V7-W-SAGE-SAINT | لقب/تطور ووصف شبه روحاني؛ قيد صياغة وتوقيت محفوظ |
+| REF-40 | V7-GL0 | تقديم غلندا في مرحلة أسبق؛ لا آلية قدرة أو تاريخ كامل |
+
+الرابطان [التجهيز](abilities/hinata-ln7.md) و[التنبؤ](abilities/rimuru-ln7-combat.md) لا يحولان مرحلة إلى فهرس كامل. [سجل التطور](world/human-evolution-cases.md) ليس قانون أهلية شاملًا، و[غلندا](characters/glenda.md) ما زالت مشاهد جزئية.
