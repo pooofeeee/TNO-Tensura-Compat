@@ -50,3 +50,7 @@ SR10، فصل 5، [line_5163–5270](https://tensurafan.github.io/read/v10#line_
 ## سوابق للمقارنة — قبل مرحلة True Demon Lord
 
 أضيف [V4-H-FIRST / V5-H-ESCAPE](../abilities/hinata-first-clash.md) و[V4-KNOWLEDGE](../abilities/rimuru-analysis-learning.md) بوصفها **سوابق قبل الاستيقاظ**. لا تُضم وظائف Great Sage / Glutton تلقائيًا إلى الجرد اللاحق، ولا تعكس نتائج المرحلة اللاحقة على سلوك ريمورو أو معرفته السابقة. هذه إحالة زمنية، وليست تغيير عنوان هذا الملف أو ادعاء فهرسة المرحلة المبكرة كاملة.
+
+## مسار الوظائف السابق — REF-17/18/19
+
+أضيف [تعريف Predator](../abilities/rimuru-predator.md) و[انتقال Glutton والمقارنة](../abilities/rimuru-glutton-phases.md) إلى السوابق الزمنية. استخدمهما لتحديد ما ثبت قبل المرحلة الحالية، واتبع فجوات التغير بدل افتراض احتفاظ غير مشروط بكل آلية سابقة.
