@@ -11,7 +11,7 @@ The user's latest instruction expands the research deliverable to a permanent, d
 
 Baseline verified: `c52800e93cda5d48b0b1834268f024a3cd1df407`. New batches REF-01/02/03/04 directly inspected selected LN10 and LN6 scenes through Slime Reader's browser. Translation editions and electronic paragraph anchors are recorded in the source register. Existing embodiment records were linked without repeating their research. “Weak Shinro” remains unresolved; repository search returned incomplete results and is not absence evidence.
 
-**Resume:** GL-END in the reference gap ledger, then MB-FIELD and the remaining queue. Continue independent useful work around a blocked passage. Save evidence and coverage at milestones; do not imply unattended execution after a turn ends. No automation, replacement task, Work-executor message or server operation was created. The parent transfers reviewed material when needed.
+**Resume:** RTDL-BASE in the reference gap ledger, then targeted Masayuki/Hinata expansion. GL-END and MB-FIELD were completed by REF-05/06, with a linked Milim/Rimuru rescue case added in REF-07. Continue independent useful work around a blocked passage. Save evidence and coverage at milestones; do not imply unattended execution after a turn ends. No automation, replacement task, Work-executor message or server operation was created. The parent transfers reviewed material when needed.
 
 Documentation-only changes: new reference tree and this state. Checks: source/edition/speaker/locator review, internal relative-link validation, historical-evidence preservation and remote commit/content verification. No code or runtime tests.
 
@@ -139,3 +139,13 @@ Latest user instruction received through the parent on 2026-10-28: use GPT-6.1 S
 Use one agent by default. Do not install Caveman, RTK, Headroom, Ponytail, hooks, or MCP servers merely because their names came up. No savings measurement or installation is claimed by this checkpoint.
 
 At meaningful milestones, update the appropriate GitHub state and evidence records within authorized scope. Record changed paths, checks actually executed, unresolved blockers, and the next bounded task. Do not replay entire conversations or reread unchanged repositories.
+
+## Reference continuation REF-05/06/07 — 2026-10-30
+
+Baseline: `86fc5c8d0f66ec3fd08442cefbf3dd91246a3610`. Rechecked the designated branch and AGENTS, reused SR10's seventh-edition register and inspected the targeted text in-browser.
+
+- REF-05 follows Glenda's capture report, questioning, curse removal and recruitment; it does not invent the offscreen remainder of the duel. The curse and desire influence stay distinct pending a demonstrated connection.
+- REF-06 adds Greed's field applications and failures, preserving earlier character/analysis beliefs alongside Yuuki's later deception disclosure. No universal Unique/Ultimate immunity or skill-transfer formula is approved.
+- REF-07 adds Milim/Rimuru cooperation and the Gaia core operation; vessel preparation is separated from expected future recovery. No completed general resurrection system is claimed.
+
+Source ranges, interpretation, capability limits and new gaps are linked through the reference index. Coverage remains partial. Next: RTDL-BASE, followed by specific Masayuki/Hinata evidence. No general permission request is needed. Only reference documentation and this state changed; internal-link/preservation/scope checks and remote head/content verification are the validation for this batch. No code/build/runtime tests.
