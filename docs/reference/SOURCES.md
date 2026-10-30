@@ -427,3 +427,22 @@ REF108 عند243–255 مع269–271 للمورد؛ REF109 عند257–277. يُ
 تفاصيل Healer/Thrower/Observer وبعض الحوارات مرئية ضمن السياق، لكن لم يُنشأ منها جرد قدرات مستقل أو وصفة بيولوجية/سلاح. تحليل Rimuru لتوافق الفريق ليس إثبات استعمال كل وظائفهم في المعركة. وعبارة749 عن تعلم/تحكم السحر لم تحول إلى عجز تعلم مطلق.
 
 لا اقتباس إنجليزي جديد أو رواية مرفوعة أو مصادر WN/ويكي؛ القيود النصية/اليابانية محفوظة، وماريابيل/المحجوب لم يعاد فتحهما.
+
+
+## B-MASAYUKI-WAR — REF116–118 ، 2026-10-30
+
+**النطاق:** [حزمة مراحل Masayuki](characters/masayuki-war-betrayal-ln13-14.md)، لا إعادة الحظ/Chosen One أو البطولة. أُعيد استعمال سجلات LN9/10 بالإحالة. جولة المقارنة REF115-S مغلقة بعد نشر/تحقق e56c5a5 ؛ هذا انتقال لشخصية، لا شاهد جديد لتعارض Albert.
+
+مصدر القراءة العام: ملفات Slime Reader في مستودع tensurafan/tensurafan.github.io عند commit `97b06b7659fcfe30a3ec396a5c2c8fa0962bbe00`. **L أسطر Markdown عند هذا التثبيت، لا صفحات P ولا line_N للواجهة**. إنجليزية fan translation ؛ لا مطابقة يابانية أو تحقق رسمية/حقوق رفع. تاريخ الطبعتين في ملفي Master غير متحقق، ولا يستورد تاريخ واجهة آخر.
+
+| النسخة/الملف | معرف blob | البيانات/المواضع المقروءة |
+|---|---|---|
+| [SR13-GH Master](https://github.com/tensurafan/tensurafan.github.io/blob/97b06b7659fcfe30a3ec396a5c2c8fa0962bbe00/ln/sources/Volume%2013/Master) | `ae3caff12667e8694444edd50f416e8edc9249ce` | الطبعة الثالثة؛ أسماء DeepL/Wakamesalad/DasRay/Apollo ؛ تخصيص الفصلين 3/4: أساس DeepL وتحرير CharVANder يدوي. لا تعميم نسبة الفصل على Prologue |
+| [LN13 Prologue — Two Suspicions](https://github.com/tensurafan/tensurafan.github.io/blob/97b06b7659fcfe30a3ec396a5c2c8fa0962bbe00/ln/sources/Volume%2013/Prologue#L39-L81) | `e79d616855128e32a6cd9b900f8bf52fca308096` | L39–81 ، شكوك Yuuki/خبر الشبه، لا هوية مثبتة |
+| [LN13 C4 — Total Victory](https://github.com/tensurafan/tensurafan.github.io/blob/97b06b7659fcfe30a3ec396a5c2c8fa0962bbe00/ln/sources/Volume%2013/Chapter%204#L2551-L2791) | `ac3105af4f073c2be7cf884604c1bf9de01e1e83` | L2551–2791 ، 2879–2931 ، 2995–3023 ، 3085–3115 ، 3421–3481 ؛ مسؤولية وانكشاف وردود وفندق/حماية. ليس الفصل كاملًا أو جرد قدرات المقاتلين |
+| [SR14-GH Master](https://github.com/tensurafan/tensurafan.github.io/blob/97b06b7659fcfe30a3ec396a5c2c8fa0962bbe00/ln/sources/Volume%2014/Master) | `e6a8e8912a37ce12cafb486327c1562c7ebffd12` | الطبعة الأولى؛ Translation: DeepL ؛ تحرير CharVANder/Voxel/gi2000 ؛ لا ترجمة بشرية خالصة أو دقة JP مفترضة |
+| [LN14 C2 — Future Plans](https://github.com/tensurafan/tensurafan.github.io/blob/97b06b7659fcfe30a3ec396a5c2c8fa0962bbe00/ln/sources/Volume%2014/Chapter%202#L553-L655) | `9856fe13e4f87cd727b9cd0992cffa935cf56d66` | L553–655 ، 697–755 ، 961–977 ؛ إفادات/تفسير/تكليف وترتيب المرافقة. لا علم Masayuki مفترض بكل التحقيق |
+
+**حد الوصول/الاعتماد:** LN14 Prologue جُلب لتحديد المؤشر، وظهر الاسم في بحث؛ لم يعتمد سياقه شاهدًا لهذه الحزمة. نتائج الاسم في C3/C4/Epilogue ليست قراءة أحداثها؛ C4 مرشح الاستئناف فقط. البحث في LN13/14 لا يعني مسح هذين المجلدين. لم يُقرأ تسلسل الحرب كله أو تضاف مقارنة WN/أنمي/مانغا، ولا نصوص طويلة أو اقتباس إنجليزي جديد.
+
+**تنبيه دلالي:** LN14 C2 L649 مضطرب الضمائر في حكاية الإنقاذ؛ يوثق حد النص بدل تحديد من أنقذ من بالتخمين. وخطة الإخفاء/إزالة الذاكرة عند 741 لم تقع في المقاطع المعتمدة. أوصاف Ultimate/الأعتدة/القوة في السياق تخص أصحابها، ولا تنقل إلى Masayuki أو تتحول إلى قانون عالمي. قيود F03/F02/JP وتعارض Albert محفوظة دون مسارات وصول جديدة.
