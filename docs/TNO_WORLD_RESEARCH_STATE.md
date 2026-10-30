@@ -11,7 +11,7 @@ The user's latest instruction expands the research deliverable to a permanent, d
 
 Baseline verified: `c52800e93cda5d48b0b1834268f024a3cd1df407`. New batches REF-01/02/03/04 directly inspected selected LN10 and LN6 scenes through Slime Reader's browser. Translation editions and electronic paragraph anchors are recorded in the source register. Existing embodiment records were linked without repeating their research. “Weak Shinro” remains unresolved; repository search returned incomplete results and is not absence evidence.
 
-**Resume:** RTDL-SKILLS in the reference gap ledger: F05 chapter 5 ability review after awakening, then new bounded resistance/condition checks for Masayuki and Hinata. RTDL-BASE and their initial ability expansions are complete as REF-08/09/10. GL-END and MB-FIELD were completed by REF-05/06, with a linked Milim/Rimuru rescue case added in REF-07. Continue independent useful work around a blocked passage. Save evidence and coverage at milestones; do not imply unattended execution after a turn ends. No automation, replacement task, Work-executor message or server operation was created. The parent transfers reviewed material when needed.
+**Resume:** H-FIRST in the reference gap ledger: locate Hinata/Rimuru’s first confrontation through F04’s contents, verify its location before recording soul-attack/escape conditions; then R-FUNCTIONS. REF-11/12/13 completed the bounded LN5 inventory and two phase-specific counterchecks. RTDL-BASE and their initial ability expansions are complete as REF-08/09/10. GL-END and MB-FIELD were completed by REF-05/06, with a linked Milim/Rimuru rescue case added in REF-07. Continue independent useful work around a blocked passage. Save evidence and coverage at milestones; do not imply unattended execution after a turn ends. No automation, replacement task, Work-executor message or server operation was created. The parent transfers reviewed material when needed.
 
 Documentation-only changes: new reference tree and this state. Checks: source/edition/speaker/locator review, internal relative-link validation, historical-evidence preservation and remote commit/content verification. No code or runtime tests.
 
@@ -159,3 +159,11 @@ Baseline checked: `bec913a4855cf62526f1d35cd7255a818f973610`. Followed the saved
 - REF-10 records SR07's Usurper, Mathematician and Melt Slash in their LN7 phase, including interference, training/body constraints and Raphael's later clarification. Figurative “ultimate” is not a classification change, and a counterfactual survival explanation is not an observed hit without defense.
 
 Sources, coverage and gaps now point to RTDL-SKILLS; identity/Japanese/access gaps remain preserved. Only reference documentation and this state changed. Checks: source/edition/speaker/phase review, relative-link and preservation/scope review, remote head/content verification. No code/build/runtime tests.
+
+## Reference continuation REF-11/12/13 — 2026-10-30
+
+Baseline checked: `6f3f6bbb6a800efa6ffa0354cb9993ab3672f0d5`. Reused AGENTS, canonical source/coverage records and completed case evidence.
+
+REF-11 adds the LN5 post-awakening inventory, separating the initial review, Veldora soul-corridor event and later Food Chain/Ability Adjust consolidation. Function names do not establish full mechanics or independent Ultimate ranks. REF-12 distinguishes tentative resistance attributed to Bernie from Rimuru's own non-effect report. REF-13 resolves the earlier Beelzebuth-copy gap with a newly located passage before the already-read defense explanation; it does not approve universal skill backup.
+
+The active queue moves to H-FIRST, then uncovered R-FUNCTIONS. Character phases, translation labels and open costs/ranges remain explicit. Documentation only. Validation: source/speaker/phase review, relative-link/scope checks and remote commit/content verification. No code, builds, runtime tests, main edits or external messages.

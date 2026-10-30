@@ -1,0 +1,19 @@
+# جرد ريمورو — V5-INV
+
+F05، الفصل 5؛ النسخة المسجلة. P عارض، لا طباعة. جرد مرحلي جزئي.
+
+| الموضع/المرحلة | الأسماء المعلنة ووظائفها التابعة |
+|---|---|
+| [P266–267](https://fliphtml5.com/mymwk/bbow/That_Time_I_Got_Reincarnated_as_a_Slime,_Vol._5/) | Raphael: Mind Accelerate، Analyze and Assess، Parallel Computation، Cast Cancel، All of Creation، Combine/Disassemble، Ability Adjust |
+| P267 | Belzebuth: Predation، Stomach، Mimicry، Isolate، Rot، Soul Consume، Food Chain |
+| P270–272، بعد رابطة الروح | Veldora: Summon Storm Dragon، Restore Storm Dragon، سحر العاصفة |
+| P275–277، بعد Food Chain والتعديل | Uriel: Unlimited Imprisonment، Control Laws، Universal Barrier، Dominate Space |
+| P276، المتبقي كمهارات فطرية | Infinite Regeneration، Universal Detect، Universal Shapeshift، Lord’s Ambition، Enhanced Replication، Universal Thread |
+
+**شروط صريحة:** Soul Consume يبقي شرط كسر إرادة الهدف؛ Food Chain يتبادل القوة ضمن تسلسل الروح. استدعاء فيلدورا واحد، والاستعادة موصوفة ببقاء ريمورو، لا تجربة موته هنا. Dominate Space يحتاج إحداثيات معلومة. Uriel ناتج دمج أساسه Unlimited Imprisonment، لا مكافأة لحظة التحول وحدها.
+
+Control Laws يشمل الحرارة والقصور؛ Universal Barrier يقطع الحيز؛ Unlimited Imprisonment حبس أبعادي.
+
+**حدود:** تسريع الفكر ليس إيقاف زمن؛ [LN7](hinata-ln7.md) يقيّد قراءة الدفاع المطلق.
+
+**مجهول:** الموارد/المدى/المدة والمقاومات. قائمة مقاومات P214 موضعها [التحول](../world/rimuru-awakening.md)، وآلياتها مفتوحة.
