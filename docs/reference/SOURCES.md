@@ -167,3 +167,18 @@ F05، Kevin Gifford / Yen On، إنجليزية أبريل 2019؛ هوية ال�
 - [P241](https://fliphtml5.com/mymwk/bbow/That_Time_I_Got_Reincarnated_as_a_Slime%2C_Vol._5/241/) · [P242](https://fliphtml5.com/mymwk/bbow/That_Time_I_Got_Reincarnated_as_a_Slime%2C_Vol._5/242/) · [P243](https://fliphtml5.com/mymwk/bbow/That_Time_I_Got_Reincarnated_as_a_Slime%2C_Vol._5/243/) · [P16](https://fliphtml5.com/mymwk/bbow/That_Time_I_Got_Reincarnated_as_a_Slime%2C_Vol._5/16/) · [P19](https://fliphtml5.com/mymwk/bbow/That_Time_I_Got_Reincarnated_as_a_Slime%2C_Vol._5/19/) · [P22](https://fliphtml5.com/mymwk/bbow/That_Time_I_Got_Reincarnated_as_a_Slime%2C_Vol._5/22/).
 
 لا إعادة لشواهد الإحياء أو Walpurgis أو مصدر F03 الممنوع أو F02 P254 أو بحث الأهلية. Holy supply هو نطاق تالٍ مقترح بمصدر SR08، وليس دليلًا جديدًا مقروءًا في هذه الدفعة.
+
+## إضافة REF-54-A/55/56/57 — 2026-10-30
+
+| المصدر | بياناته المعاد فحصها | المقاطع الجديدة المستعملة |
+|---|---|---|
+| [SR08](https://tensurafan.github.io/read/v8) | DasRay، إنجليزية fan translation، **الطبعة الرابعة مارس 2023** | الفصل 1 **Reconciliation and Pacts**: line_760–790؛ مورد العتاد خصوصًا 777 و784–790 |
+| [SR09](https://tensurafan.github.io/read/v9) | DasRay/Anna، إنجليزية fan translation، **الطبعة الثالثة مارس 2023** | الفصل 3 **Martial Tournament**: 2399–2438 و2602–2628؛ الفصل 4 **The Final Round and the Dungeon Opening**: 2811–2824، 2840–2918، 2929–2942 |
+
+line معرفات فقرات، لا صفحات طباعة أو مقابلة يابانية. عناوين الأقسام وحدودها عُينت من ترتيب عناوين الصفحة: SR08 فصل 1 يبدأ142 والفصل2 يبدأ884؛ SR09 فصل3 يبدأ2016، Interlude3 يبدأ2647، فصل4 يبدأ2797. لا يلزم ادعاء قراءة كامل هذه الحدود لتثبيت القسم.
+
+**نطاق REF-54-A:** بحث فقري محدود في SR08 خارج 723–758، بكلمات faith/contract/holy magic/spiritron وما يتصل بها، ثم تثبيت نطاق الفصل 1. لم يعين البحث شرحًا جديدًا للإمداد/التفويض؛ لا دليل غياب. ظهر مؤشر من الفصل2، فقُرئ سياق line_1622–1668؛ لم يعتمد كشرح طاقة أو آلية جديدة، ولا يعاد هذا السياق بوصفه اكتشافًا تقنيًا لاحقًا.
+
+بحث Masayuki/Heroic لتحديد مشاهد SR09 لا يعني قراءة كل نتيجة أو نصف المجلد. لم تُعد أوصاف Prologue أو تعريفات/انسحاب 2943–3033 و3125–3148 المستعملة سابقًا. مقاطع Gobta المحيطة تُقرأ كسياق نتيجة وفشل تحكم، لا ملف كامل لقدراته أو تصريحًا بأن Raphael منحه مهارة من دون نسبة المتكلم.
+
+الاقتباسان القصيران في السجلين مثبتان إلى SR08 line_777 وSR09 line_2935، وبقية العرض تحليل وتلخيص أصلي. لم تُفتح F03 أو F02 P254، ولا بحث JP جديد أو نصوص WN/ويكي بديلة.
