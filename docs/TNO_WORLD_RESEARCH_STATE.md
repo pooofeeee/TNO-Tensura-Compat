@@ -13,9 +13,9 @@ The user's latest instruction expands the research deliverable to a permanent, d
 
 Baseline verified: `c52800e93cda5d48b0b1834268f024a3cd1df407`. New batches REF-01/02/03/04 directly inspected selected LN10 and LN6 scenes through Slime Reader's browser. Translation editions and electronic paragraph anchors are recorded in the source register. Existing embodiment records were linked without repeating their research. “Weak Shinro” remains unresolved; repository search returned incomplete results and is not absence evidence.
 
-**Resume:** **المتابعة النشطة 2026-11-01:** LN1/F01 مكتمل P1–P267؛ LN2–4 فجوات وصول معلنة محفوظة. LN5/F05-SEQ-20261101 مقروء متصل **P1–P100**؛ أُغلق الفصل2 وأضيف فاصل الفصل3، والتالي **P101**. Kevin Gifford/Yen On، First Edition April2019 بتحقق P7–P8؛ P عارض لا مطبوع. لا اكتمال LN5 أو السلسلة، وفحص P301 للإتاحة فقط ليس تغطية.
+**Resume:** **المتابعة النشطة 2026-11-01:** LN1/F01 مكتمل P1–P267؛ LN2–4 فجوات وصول معلنة محفوظة. LN5/F05-SEQ-20261101 مقروء متصل **P1–P146**؛ أُغلق الفصل3 وأضيف فاصل الفصل4، والتالي **P147**. Kevin Gifford/Yen On، First Edition April2019 بتحقق P7–P8؛ P عارض لا مطبوع. لا اكتمال LN5 أو السلسلة، وفحص P301 للإتاحة فقط ليس تغطية.
 
-[SEQ-LN05-0003](reference/sequential/batches/SEQ-LN05-0003.md) أغلقت الفصل2. الجديد أسباب قرار Farmus وفرق التقرير/المصلحة/الغطاء الديني؛ قيد المستدعين والتعلم اللغوي؛ إبطال Shuna لـBewilder بتحليل موجاته؛ وتمييز المجالين حول Tempest. لا وحي مثبت من خطاب Reyhiem أو نصر عام من تفاخر Kyoya أو كل مقاومة عقلية من اختبار Parser. يستمر المتسلسل من P101، دون إعادة القيود أو توقف تلقائي عند دفعة. الرأس السابق584e8440f56d6512b4b14dd8e1951f3f66c51798؛ وثائق فقط بلا Work/code/main.
+[SEQ-LN05-0004](reference/sequential/batches/SEQ-LN05-0004.md) أغلقت الفصل3. وصلت الأدلة السابقة للهروب وحفظ الأرواح/القلب دون عدها اكتشافًا جديدًا؛ وثقت النقل بوجهة ممكنة/ممنوعة وقناة الخيط المختبرة وتمييز المجالين، وإزالة أثر مانع قبل نجاح الجرعة، وحدود معرفة Great Sage وتقدير الأرواح وخطة الإحياء/الحكم. التالي P147؛ مصدر متاح والقراءة مستمرة، قيود LN2–4 باقية. لا code/main/Work. الرأس السابق def2549fde3ab655b603746e3401f8e6f5c2bf6c.
 
 Documentation-only changes: new reference tree and this state. Checks: source/edition/speaker/locator review, internal relative-link validation, historical-evidence preservation and remote commit/content verification. No code or runtime tests.
 
