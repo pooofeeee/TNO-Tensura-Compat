@@ -1,6 +1,6 @@
 # TNO world redevelopment — decisions and research state
 
-Updated: 2026-10-30. This is the compact record of the user's newer project direction and source decisions. It supersedes the old compatibility roadmap as the current objective; it does not invalidate or delete the existing implementation.
+Updated: 2026-11-01. This is the compact record of the user's newer project direction and source decisions. It supersedes the old compatibility roadmap as the current objective; it does not invalidate or delete the existing implementation.
 
 
 ## Active reference programme — 2026-10-30
@@ -13,7 +13,7 @@ The user's latest instruction expands the research deliverable to a permanent, d
 
 Baseline verified: `c52800e93cda5d48b0b1834268f024a3cd1df407`. New batches REF-01/02/03/04 directly inspected selected LN10 and LN6 scenes through Slime Reader's browser. Translation editions and electronic paragraph anchors are recorded in the source register. Existing embodiment records were linked without repeating their research. “Weak Shinro” remains unresolved; repository search returned incomplete results and is not absence evidence.
 
-**Resume:** ACCESS-LN02-20261030: فُحصت جاهزية LN2 من بدايته، ولم يتوفر ضمن المسارات المتحققة مصدر كامل مسموح؛ صفر صفحات رواية جديدة. LN1/F01 باقٍ مكتمل القراءة P1–P267. [سجل الوصول والملف المطلوب](reference/sequential/SOURCES.md#access-ln02-20261030) يراجع F02 دون إعادة فتحه، ويثبت غياب LN2 من جرد Slime Reader المفحوص، وكون صفحة الناشر بيانات/شراء لا نصًا كاملًا متاحًا هنا؛ فحص ملفات المهمة لم يجد PDF/EPUB. المطلوب ملف LN2 كامل مسموح بمشاركته أو رابط قراءة كاملة مصرّح، ثم توثيق النسخة والترقيم من البداية؛ لا شراء أو تجاوز حاجز/منع أو وسيط للمصدر المقيد. لا قارئ/صفحة مطبوعة جديدة متحققة، ولا نسبة صفحة الناشر إلى F02. توقفت القراءة عند هذا العائق ولم يُقفز إلى مجلد آخر؛ الشواهد الانتقائية القديمة والفجوات محفوظة. الرأس قبل تحديث الوصول 4f30fbe7600130314f3ef17796c664898c68af7f؛ وثائق فقط دون code/main أو Work.
+**Resume:** 2026-11-01 — استؤنف المرجع بقراءة انتقائية مأذونة بعد مراجعة عائق LN2؛ لم يظهر PDF/EPUB جديد في مساحة المهمة ولم يرد مصدر كامل جديد في السياق، ولم يُعد مسار F02. LN1/F01 مكتمل P1–P267؛ LN2 صفر صفحات متسلسلة. أُنجزت [REF135–137 / E-LN11-004](reference/world/charys-naming-ln11.md): في LN11 فصل2 يظهر قطع Raphael للإمداد عند قبول الاسم، وتقرير Flame Lord، وتغير الهيئة مع تمييز تفسير الإرادة من الفعل. النص DasRay/Anna، 3rd Edition عند commit97b06b7، L929–1073 للسياق والحد، والجديد المعتمد L1011–1067؛ لا صفحات مطبوعة/عارض متطابقة أو مقارنة يابانية. لا يُنسب الجسم/الريح كلهما للاسم، ولا demon lord-class لاستيقاظ True Demon Lord. الفجوات المتبقية: آلية/موارد التحمل والصيانة والقناة والهيئة، والتفسير الاصطلاحي لتكون الجسم. الوحدة مغلقة عند قبول الرفيق، لا قراءة كامل LN11. أولويتا الاستئناف منفصلتان: LN2 من البداية إذا توفر مصدر كامل مسموح؛ وإلا فجوة انتقائية لاحقة ذات مؤشر محدد دون تكرار هذه الحالة. جميع التعارضات/القيود السابقة محفوظة؛ لا code/main أو Work. الرأس قبل الدفعة 40570354aaa53ac1dcb32f71aed7817d53269298.
 
 Documentation-only changes: new reference tree and this state. Checks: source/edition/speaker/locator review, internal relative-link validation, historical-evidence preservation and remote commit/content verification. No code or runtime tests.
 

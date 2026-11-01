@@ -134,3 +134,9 @@ Documentation only: prior records preserved; no code, gameplay rules, runtime te
 **Access and interpretation limits:** P88's extraction places the previous conversation's continuation after the naming sentence. No conclusion relies on that internal ordering; P86 versus P88 anchors the sequence. The selected range supports the naming proposal/safeguard and its occurrence, not a detailed post-naming outcome. Further effects require separately scoped continuation; no finding from beyond P88 is incorporated. Terms such as “remains,” “soul container” and “merges” retain this translation's wording, not a settled Japanese ontology.
 
 **Validation/stop:** reviewed claim, speaker, viewer marker and scope; retained all earlier records. The P85–88 task is complete. No new batch is started or authorized by this record; await review. Beretta Q1 and the independent P98 image-order issue remain as previously recorded. Documentation only; no code/build/runtime tests or full-book reproduction.
+
+## E-LN11-004 — result after naming: Charys (2026-11-01)
+
+[REF135–137, bounded selective continuation](reference/world/charys-naming-ln11.md) records the supply cutoff actually performed, the reported Flame Lord evolution, and the subsequent form change. Source: Slime Reader LN11 Chapter2, DasRay/Anna third edition at commit97b06b7, L1011–1067 with declared context; not a viewer-page mapping or full-volume reading. E-LN11-003 remains unchanged. The older await-review checkpoint is superseded for this continuation by the user's 2026-11-01 instruction.
+
+The new record distinguishes completed body before naming from later race terminology, observer comparisons from tested fights, and witnessed form change from claims about will. Supply thresholds/upkeep/channel reopening, ontology and generalization remain open; no universal embodiment/naming rule or Japanese equivalence is established.
